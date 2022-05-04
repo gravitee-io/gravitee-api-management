@@ -15,15 +15,14 @@
  */
 package io.gravitee.reporter.elasticsearch.config;
 
-import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toSet;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  *
@@ -51,20 +50,19 @@ public class PipelineConfiguration {
     private boolean valid = false;
 
     public String createPipeline() {
-        if (ingestPlugins != null && ! ingestPlugins.isEmpty()) {
+        if (ingestPlugins != null && !ingestPlugins.isEmpty()) {
             final Set<String> configuredPlugin = Stream.of(ingestPlugins.split(",")).map(String::trim).collect(toSet());
             configuredPlugin.retainAll(RETAINED_INGEST_PLUGINS);
 
             final Map<String, Object> data = new HashMap<>();
             data.put("userAgentRegexFile", userAgentRegexFile);
 
-            final String processors =
-                    configuredPlugin
-                            .stream()
-                            .map(ingestPlug -> this.freeMarkerComponent.generateFromTemplate(ingestPlug + ".ftl", data))
-                            .collect(Collectors.joining(","));
+            final String processors = configuredPlugin
+                .stream()
+                .map(ingestPlug -> this.freeMarkerComponent.generateFromTemplate(ingestPlug + ".ftl", data))
+                .collect(Collectors.joining(","));
 
-            final Map<String,Object> processorsMap = new HashMap<>(1);
+            final Map<String, Object> processorsMap = new HashMap<>(1);
             processorsMap.put("processors", processors);
             return this.freeMarkerComponent.generateFromTemplate("pipeline.ftl", processorsMap);
         }
@@ -72,9 +70,13 @@ public class PipelineConfiguration {
         return null;
     }
 
-    public String getPipelineName() { return this.pipeline; }
+    public String getPipelineName() {
+        return this.pipeline;
+    }
 
-    public String getPipeline() { return valid ? this.pipeline : null; }
+    public String getPipeline() {
+        return valid ? this.pipeline : null;
+    }
 
     public void valid() {
         this.valid = true;

@@ -15,6 +15,8 @@
  */
 package io.gravitee.reporter.elasticsearch.spring;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.elasticsearch.ElasticsearchReporter;
@@ -23,6 +25,7 @@ import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.name.IndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.MultiTypeIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeAndDateIndexNameGenerator;
+import java.time.Instant;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,10 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.time.Instant;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)

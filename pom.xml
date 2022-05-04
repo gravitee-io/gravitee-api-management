@@ -107,6 +107,23 @@
 		</resources>
 		<plugins>
 			<plugin>
+				<groupId>com.hubspot.maven.plugins</groupId>
+				<artifactId>prettier-maven-plugin</artifactId>
+				<version>0.17</version>
+				<configuration>
+					<nodeVersion>12.13.0</nodeVersion>
+					<prettierJavaVersion>1.6.1</prettierJavaVersion>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.3</version>
 				<configuration>

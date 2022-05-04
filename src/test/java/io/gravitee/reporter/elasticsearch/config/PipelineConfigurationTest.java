@@ -15,21 +15,20 @@
  */
 package io.gravitee.reporter.elasticsearch.config;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 /**
  *
@@ -103,7 +102,6 @@ public class PipelineConfigurationTest {
 
         Assert.assertNull(pipelineConfiguration.getPipeline());
         assertEquals("gravitee_pipeline", pipelineConfiguration.getPipelineName());
-
     }
 
     private void mockPluginJson(String pluginName, String pluginJson) {

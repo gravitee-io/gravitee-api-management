@@ -21,15 +21,14 @@ import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.embedded.ElasticsearchNode;
 import io.gravitee.reporter.elasticsearch.node.DummyNode;
 import io.vertx.core.Vertx;
+import java.util.Collections;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import java.util.Collections;
-
 /**
  * Spring configuration used for testing purpose.
- * 
+ *
  * @author Guillaume Waignier
  * @author Sebastien Devaux
  */
@@ -46,7 +45,7 @@ public class ElasticsearchReporterConfigurationTest {
     public ReporterConfiguration configuration() {
         ReporterConfiguration elasticConfiguration = new ReporterConfiguration();
         elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://localhost:" + elasticsearchNode().getHttpPort())));
-//        elasticConfiguration.setIngestPlugins(Arrays.asList("geoip"));
+        //        elasticConfiguration.setIngestPlugins(Arrays.asList("geoip"));
         return elasticConfiguration;
     }
 

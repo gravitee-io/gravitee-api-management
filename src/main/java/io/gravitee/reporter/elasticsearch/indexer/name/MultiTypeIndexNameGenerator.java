@@ -16,7 +16,6 @@
 package io.gravitee.reporter.elasticsearch.indexer.name;
 
 import io.gravitee.reporter.api.Reportable;
-
 import javax.annotation.PostConstruct;
 
 /**

@@ -28,11 +28,6 @@ import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.name.IndexNameGenerator;
 import io.vertx.core.buffer.Buffer;
-import org.apache.commons.validator.routines.InetAddressValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.ZoneId;
@@ -40,6 +35,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.validator.routines.InetAddressValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -210,11 +209,13 @@ public abstract class AbstractIndexer implements Indexer {
         data.put(Fields.GATEWAY, node.id());
 
         if (monitor.getOs() != null) {
-
             if (monitor.getOs().cpu != null) {
                 data.put(Fields.PERCENT, monitor.getOs().cpu.getPercent());
 
-                if (monitor.getOs().cpu.getLoadAverage() != null && Arrays.stream(monitor.getOs().cpu.getLoadAverage()).anyMatch(load -> load != -1)) {
+                if (
+                    monitor.getOs().cpu.getLoadAverage() != null &&
+                    Arrays.stream(monitor.getOs().cpu.getLoadAverage()).anyMatch(load -> load != -1)
+                ) {
                     if (monitor.getOs().cpu.getLoadAverage()[0] != -1) {
                         data.put(Fields.LOAD_AVERAGE_1M, monitor.getOs().cpu.getLoadAverage()[0]);
                     }
@@ -250,7 +251,6 @@ public abstract class AbstractIndexer implements Indexer {
             data.put(Fields.UPTIME_IN_MILLIS, monitor.getJvm().uptime);
 
             if (monitor.getJvm().mem != null) {
-
                 data.put(Fields.HEAP_USED_IN_BYTES, monitor.getJvm().mem.heapUsed);
                 if (monitor.getJvm().mem.getHeapUsedPercent() >= 0) {
                     data.put(Fields.HEAP_USED_PERCENT, monitor.getJvm().mem.getHeapUsedPercent());
@@ -279,6 +279,7 @@ public abstract class AbstractIndexer implements Indexer {
     protected abstract Buffer generateData(String templateName, Map<String, Object> data);
 
     static final class Fields {
+
         static final String GATEWAY = "gateway";
         static final String HOSTNAME = "hostname";
         static final String SPECIAL_TIMESTAMP = "@timestamp";

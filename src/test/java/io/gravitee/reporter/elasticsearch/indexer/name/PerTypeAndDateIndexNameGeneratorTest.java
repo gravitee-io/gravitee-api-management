@@ -15,12 +15,11 @@
  */
 package io.gravitee.reporter.elasticsearch.indexer.name;
 
-import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
-import org.junit.Test;
-
-import java.time.Instant;
-
 import static org.junit.Assert.assertEquals;
+
+import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
+import java.time.Instant;
+import org.junit.Test;
 
 public class PerTypeAndDateIndexNameGeneratorTest {
 

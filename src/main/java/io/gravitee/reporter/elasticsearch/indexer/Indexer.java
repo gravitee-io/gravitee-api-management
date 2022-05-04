@@ -24,6 +24,5 @@ import io.vertx.core.buffer.Buffer;
  * @author GraviteeSource Team
  */
 public interface Indexer {
-
     void index(Reportable reportable);
 }

@@ -22,6 +22,5 @@ import io.reactivex.Completable;
  * @author GraviteeSource Team
  */
 public interface IndexPreparer {
-
     Completable prepare();
 }
