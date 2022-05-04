@@ -89,12 +89,9 @@
         </li>
       </ul>
     </div>
-    <gv-button
-      link
-      outlined
-      [routerLink]="['/applications/', createdApplication.id]"
-      [innerHTML]="'applicationCreation.validation.confirm' | translate: { name: createdApplication.name }"
-    ></gv-button>
+    <gv-button link outlined [routerLink]="['/applications/', createdApplication.id]">{{
+      'applicationCreation.validation.confirm' | translate: { name: createdApplication.name }
+    }}</gv-button>
   </div>
 
   <div class="message message-full message-error" *ngIf="creationError">
