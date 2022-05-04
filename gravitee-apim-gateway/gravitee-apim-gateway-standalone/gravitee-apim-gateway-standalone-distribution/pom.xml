@@ -120,6 +120,14 @@
             <scope>runtime</scope>
             <type>zip</type>
         </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-elasticsearch</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
     </dependencies>
 
     <build>
