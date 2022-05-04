@@ -1,0 +1,35 @@
+version: 2.1
+
+# this allows you to use CircleCI's dynamic configuration feature
+setup: true
+
+orbs:
+    gravitee: gravitee-io/gravitee@2.1
+
+# our single workflow, that triggers the setup job defined above, filters on tag and branches are needed otherwise
+# some workflow and job will not be triggered for tags (default CircleCI behavior)
+workflows:
+    setup_build:
+        when:
+            not: << pipeline.git.tag >>
+        jobs:
+            - gravitee/setup_plugin-build-config:
+                  filters:
+                      tags:
+                          ignore:
+                              - /.*/
+
+    setup_release:
+        when:
+            matches:
+                pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+                value: << pipeline.git.tag >>
+        jobs:
+            - gravitee/setup_plugin-release-config:
+                  filters:
+                      branches:
+                          ignore:
+                              - /.*/
+                      tags:
+                          only:
+                              - /^[0-9]+\.[0-9]+\.[0-9]+$/
