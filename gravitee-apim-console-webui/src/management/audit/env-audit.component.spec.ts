@@ -57,7 +57,7 @@ describe('EnvAuditComponent', () => {
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
     const rows = await table.getRows();
-    const rowCells = await await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
     expect(rowCells.length).toEqual(20);
     expect(rowCells[0]).toEqual({
       date: 'Apr 19, 2022, 3:32:30 PM',
@@ -76,7 +76,7 @@ describe('EnvAuditComponent', () => {
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
     const rows = await table.getRows();
-    const rowCells = await await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
     expect(rowCells.length).toEqual(20);
 
     const eventInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=event]' }));
@@ -91,7 +91,7 @@ describe('EnvAuditComponent', () => {
     // 1. Expect initial page
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
     const rows = await table.getRows();
-    const rowCells = await await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
     expect(rowCells.length).toEqual(20);
 
     // 2. Expect display of APIs select field
@@ -116,7 +116,7 @@ describe('EnvAuditComponent', () => {
     // 1. Expect initial page
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
     const rows = await table.getRows();
-    const rowCells = await await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
     expect(rowCells.length).toEqual(20);
 
     // 3. Expect date range works and trigger new AuditListRequest
@@ -135,7 +135,7 @@ describe('EnvAuditComponent', () => {
     // 1. Expect initial page
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
     const rows = await table.getRows();
-    const rowCells = await await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
     expect(rowCells.length).toEqual(20);
 
     // 2. Expect new call on page 2
