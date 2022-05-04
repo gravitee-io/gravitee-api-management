@@ -17,7 +17,7 @@
 import { beforeAll, describe, expect, test } from '@jest/globals';
 import { GatewayApi } from '@management-apis/GatewayApi';
 import { forManagementAsAdminUser, forManagementAsApiUser } from '@client-conf/*';
-import { fail } from '../../lib/jest-utils';
+import { fail, succeed } from '../../lib/jest-utils';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -27,10 +27,7 @@ const gatewayApiAsUser = new GatewayApi(forManagementAsApiUser());
 describe('GatewayApi', () => {
   describe('Get all gateway instances', () => {
     test('should get a list of gateways as response that complies with response schema', async () => {
-      const response = await gatewayApiAsAdmin.getInstancesRaw({ envId, orgId });
-      expect(response.raw.status).toBe(200);
-
-      const gatewayInstances = await response.value();
+      const gatewayInstances = await succeed(gatewayApiAsAdmin.getInstancesRaw({ envId, orgId }));
       expect(gatewayInstances).toHaveProperty('content');
       expect(gatewayInstances).toHaveProperty('pageElements');
       expect(gatewayInstances).toHaveProperty('pageNumber');

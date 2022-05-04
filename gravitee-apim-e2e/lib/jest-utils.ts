@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { expect } from '@jest/globals';
+import { ApiResponse } from 'lib/management-webclient-sdk/src/lib/runtime';
 
 export async function fail(promise, expectedStatus: number, expectedMessage?: string) {
   try {
@@ -26,4 +27,10 @@ export async function fail(promise, expectedStatus: number, expectedMessage?: st
       expect(message).toEqual(expectedMessage);
     }
   }
+}
+
+export async function succeed(promise: Promise<ApiResponse<any>>, expectedStatus: number = 200) {
+  const response = await promise;
+  expect(response.raw.status).toEqual(expectedStatus);
+  return await response.value();
 }
