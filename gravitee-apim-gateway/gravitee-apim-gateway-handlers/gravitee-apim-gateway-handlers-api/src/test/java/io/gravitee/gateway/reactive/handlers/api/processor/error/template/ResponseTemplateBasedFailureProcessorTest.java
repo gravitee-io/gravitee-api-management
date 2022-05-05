@@ -13,67 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.processor.error.templates;
+package io.gravitee.gateway.reactive.handlers.api.processor.error.template;
 
+import static io.gravitee.gateway.api.http.HttpHeaderNames.ACCEPT;
+import static io.gravitee.gateway.api.http.HttpHeaderNames.ORIGIN;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.api.processor.ProcessorFailure;
-import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.gateway.handlers.api.processor.error.templates.DummyProcessorFailure;
+import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ResponseTemplateBasedFailureProcessorTest {
+public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessorTest {
 
     private ResponseTemplateBasedFailureProcessor processor;
 
-    @Mock
-    private ExecutionContext context;
-
-    @Mock
-    private Request request;
-
-    @Mock
-    private Response response;
-
-    @Mock
-    private HttpHeaders requestHeaders;
-
-    @Mock
-    private HttpHeaders responseHeaders;
-
-    @Mock
-    private Handler<ExecutionContext> next;
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        when(request.metrics()).thenReturn(Metrics.on(System.currentTimeMillis()).build());
-        when(request.headers()).thenReturn(requestHeaders);
-        when(response.headers()).thenReturn(responseHeaders);
-        when(context.request()).thenReturn(request);
-        when(context.response()).thenReturn(response);
-    }
-
     @Test
-    public void shouldFallbackToDefaultHandler_noProcessorFailureKey() {
+    public void shouldFallbackToDefaultWithNoProcessorFailureKey() {
         ResponseTemplate template = new ResponseTemplate();
         template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -84,20 +54,19 @@ public class ResponseTemplateBasedFailureProcessorTest {
         templates.put("POLICY_ERROR_KEY", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
-        processor.handler(next);
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure();
         failure.statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-        when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
+        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
 
-        processor.handle(context);
+        processor.execute(ctx).test().assertResult();
 
-        verify(response, times(1)).status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        verify(mockResponse, times(1)).status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
     }
 
     @Test
-    public void shouldFallbackToDefaultHandler_withProcessorFailureKey() {
+    public void shouldFallbackToDefaultWithProcessorFailureKey() {
         ResponseTemplate template = new ResponseTemplate();
         template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -108,22 +77,21 @@ public class ResponseTemplateBasedFailureProcessorTest {
         templates.put("POLICY_ERROR_KEY", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
-        processor.handler(next);
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure();
         failure.key("POLICY_ERROR_KEY");
         failure.statusCode(HttpStatusCode.BAD_REQUEST_400);
 
-        when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
+        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
 
-        processor.handle(context);
+        processor.execute(ctx).test().assertResult();
 
-        verify(response, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
     }
 
     @Test
-    public void shouldFallbackToDefaultHandler_withProcessorFailureKey_fallbackToDefault() {
+    public void shouldFallbackToDefaultWithProcessorFailureKeyAndFallbackToDefault() {
         ResponseTemplate template = new ResponseTemplate();
         template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -134,22 +102,21 @@ public class ResponseTemplateBasedFailureProcessorTest {
         templates.put("DEFAULT", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
-        processor.handler(next);
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure();
         failure.key("POLICY_ERROR_KEY");
         failure.statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
-        when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
+        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
 
-        processor.handle(context);
+        processor.execute(ctx).test().assertResult();
 
-        verify(response, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
     }
 
     @Test
-    public void shouldFallbackToDefaultHandler_withProcessorFailureKey_unmappedAcceptHeader() {
+    public void shouldFallbackToDefaultHandlerWithProcessorFailureKeyAndUnmappedAcceptHeader() {
         ResponseTemplate template = new ResponseTemplate();
         template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -160,23 +127,21 @@ public class ResponseTemplateBasedFailureProcessorTest {
         templates.put("POLICY_ERROR_KEY", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
-        processor.handler(next);
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure();
         failure.key("POLICY_ERROR_KEY");
         failure.statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_XML));
+        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
 
-        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(Collections.singletonList(MediaType.APPLICATION_XML));
-        when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
+        processor.execute(ctx).test().assertResult();
 
-        processor.handle(context);
-
-        verify(response, times(1)).status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        verify(mockResponse, times(1)).status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
     }
 
     @Test
-    public void shouldFallbackToDefaultHandler_withProcessorFailureKey_unmappedAcceptHeader_fallbackToWildcard() {
+    public void shouldFallbackToDefaultHandlerWithProcessorFailureKeyAndUnmappedAcceptHeaderAndWildcard() {
         ResponseTemplate template = new ResponseTemplate();
         template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -191,23 +156,22 @@ public class ResponseTemplateBasedFailureProcessorTest {
         templates.put("POLICY_ERROR_KEY", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
-        processor.handler(next);
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure()
             .key("POLICY_ERROR_KEY")
             .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
-        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(Collections.singletonList(MediaType.APPLICATION_XML));
-        when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
+        spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_XML));
+        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
 
-        processor.handle(context);
+        processor.execute(ctx).test().assertResult();
 
-        verify(response, times(1)).status(HttpStatusCode.BAD_GATEWAY_502);
+        verify(mockResponse, times(1)).status(HttpStatusCode.BAD_GATEWAY_502);
     }
 
     @Test
-    public void shouldFallbackToDefaultHandler_withProcessorFailureKey_acceptHeader() {
+    public void shouldFallbackToDefaultHandlerWithProcessorFailureKeyAndAcceptHeader() {
         ResponseTemplate jsonTemplate = new ResponseTemplate();
         jsonTemplate.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -218,23 +182,22 @@ public class ResponseTemplateBasedFailureProcessorTest {
         templates.put("POLICY_ERROR_KEY", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
-        processor.handler(next);
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure()
             .key("POLICY_ERROR_KEY")
             .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
-        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(Collections.singletonList(MediaType.APPLICATION_JSON));
-        when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
+        spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_JSON));
+        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
 
-        processor.handle(context);
+        processor.execute(ctx).test().assertResult();
 
-        verify(response, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
     }
 
     @Test
-    public void shouldFallbackToDefaultHandler_withProcessorFailureKey_acceptHeader_fallbackToNextMediaType() {
+    public void shouldFallbackToDefaultHandlerWithProcessorFailureKeyAndAcceptHeaderAndNextMediaType() {
         ResponseTemplate jsonTemplate = new ResponseTemplate();
         jsonTemplate.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -245,20 +208,17 @@ public class ResponseTemplateBasedFailureProcessorTest {
         templates.put("POLICY_ERROR_KEY", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
-        processor.handler(next);
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure()
             .key("POLICY_ERROR_KEY")
             .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
-        HttpHeaders headers = HttpHeaders.create();
-        headers.set(HttpHeaderNames.ACCEPT, "text/html, application/json, */*;q=0.8, application/xml;q=0.9");
-        when(request.headers()).thenReturn(headers);
-        when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
+        spyRequestHeaders.add(ACCEPT, List.of("text/html", " application/json", "*/*;q=0.8", "application/xml;q=0.9"));
+        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
 
-        processor.handle(context);
+        processor.execute(ctx).test().assertResult();
 
-        verify(response, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
     }
 }

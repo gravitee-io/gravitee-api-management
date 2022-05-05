@@ -48,9 +48,7 @@ public class ProcessorChain {
         if (ctx.isInterrupted()) {
             return Completable.complete();
         }
-
         log.debug("Executing processor {}", processor.getId());
-
         return processor.execute(ctx);
     }
 

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.reactor.handler.context;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
@@ -25,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A factory of {@link DefaultSyncExecutionContext} or {@link MessageExecutionContext}.
+ * A factory of {@link DefaultRequestExecutionContext} or {@link MessageExecutionContext}.
  * A single instance is created on per api basis because {@link TemplateVariableProvider} providers list is containing provider specific to the api.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -48,20 +49,22 @@ public class ExecutionContextFactory {
      *
      * @return the created {@link RequestExecutionContext}.
      */
-    public RequestExecutionContext createRequestContext(Request request, Response response) {
-        return new DefaultSyncExecutionContext(request, response, componentProvider, templateVariableProviders);
+    public RequestExecutionContext createRequestContext(Api api, Request request, Response response) {
+        return new DefaultRequestExecutionContext(api, request, response, componentProvider, templateVariableProviders);
     }
 
     /**
      * Creates a new {@link MessageExecutionContext} for each of the incoming async request to the gateway.
      *
+     *
+     * @param api
      * @param request the request to attach to the context.
      * @param response the response to attach to the context.
      *
      * @return the created {@link MessageExecutionContext}.
      */
-    public MessageExecutionContext createMessageContext(Request request, Response response) {
-        return new DefaultMessageExecutionContext(request, response, componentProvider, templateVariableProviders);
+    public MessageExecutionContext createMessageContext(Api api, Request request, Response response) {
+        return new DefaultMessageExecutionContext(api, request, response, componentProvider, templateVariableProviders);
     }
 
     public void addTemplateVariableProvider(TemplateVariableProvider templateVariableProvider) {

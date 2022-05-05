@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.core.processor;
-
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
-import io.reactivex.Completable;
+package io.gravitee.gateway.reactive.handlers.api.processor;
 
 /**
- * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Processor {
-    String getId();
-
-    Completable execute(final RequestExecutionContext ctx);
-}
+public class ApiProcessorChainFactory {}
