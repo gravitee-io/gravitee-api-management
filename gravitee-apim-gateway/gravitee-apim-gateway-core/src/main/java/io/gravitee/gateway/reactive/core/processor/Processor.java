@@ -26,5 +26,5 @@ import io.reactivex.Completable;
 public interface Processor {
     String getId();
 
-    Completable execute(RequestExecutionContext ctx);
+    Completable execute(final RequestExecutionContext ctx);
 }

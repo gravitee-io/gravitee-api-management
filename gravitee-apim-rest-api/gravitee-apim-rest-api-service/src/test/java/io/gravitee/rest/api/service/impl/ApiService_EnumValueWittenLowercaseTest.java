@@ -75,6 +75,7 @@ public class ApiService_EnumValueWittenLowercaseTest {
             .isEqualTo(
                 "{\n" +
                 "  \"name\" : \"test\",\n" +
+                "  \"execution_mode\" : \"v3\",\n" +
                 "  \"description\" : \"Gravitee.io\",\n" +
                 "  \"visibility\" : \"PUBLIC\",\n" +
                 "  \"paths\" : { },\n" +

@@ -24,7 +24,7 @@ import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.*;
 import io.vertx.reactivex.core.http.HttpServerRequest;
@@ -35,14 +35,17 @@ import javax.net.ssl.SSLSession;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxHttpServerRequest implements Request {
+public class VertxHttpServerRequest implements MutableRequest {
 
-    protected final String id;
     protected final long timestamp;
     protected final Metrics metrics;
     protected final String contextPath;
     protected final String pathInfo;
     protected final HttpServerRequest nativeRequest;
+    protected String id;
+    protected String transactionId;
+    protected String remoteAddress;
+    protected String localAddress;
     protected MultiValueMap<String, String> queryParameters = null;
     protected MultiValueMap<String, String> pathParameters = null;
     protected HttpHeaders headers;
@@ -83,7 +86,13 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public String transactionId() {
-        throw new IllegalStateException("Request not yet managed.");
+        return this.transactionId;
+    }
+
+    @Override
+    public MutableRequest transactionId(String transactionId) {
+        this.transactionId = transactionId;
+        return this;
     }
 
     @Override
@@ -155,28 +164,35 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public String remoteAddress() {
-        SocketAddress address = nativeRequest.remoteAddress();
-        if (address == null) {
-            return null;
+        if (remoteAddress == null) {
+            SocketAddress remoteAddress = nativeRequest.remoteAddress();
+            this.remoteAddress = extractAddress(remoteAddress);
         }
+        return remoteAddress;
+    }
 
-        //TODO: To be removed
-        int ipv6Idx = address.host().indexOf("%");
-
-        return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();
+    @Override
+    public MutableRequest remoteAddress(String remoteAddress) {
+        this.remoteAddress = remoteAddress;
+        return this;
     }
 
     @Override
     public String localAddress() {
-        SocketAddress address = nativeRequest.localAddress();
-        if (address == null) {
-            return null;
+        if (localAddress == null) {
+            SocketAddress localAddress = nativeRequest.localAddress();
+            this.localAddress = extractAddress(localAddress);
         }
+        return localAddress;
+    }
 
-        //TODO: To be removed
-        int ipv6Idx = address.host().indexOf("%");
-
-        return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();
+    private String extractAddress(SocketAddress address) {
+        if (address != null) {
+            //TODO Could be improve to a better compatibility with geoIP
+            int ipv6Idx = address.host().indexOf("%");
+            return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();
+        }
+        return null;
     }
 
     @Override
