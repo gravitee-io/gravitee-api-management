@@ -62,7 +62,7 @@ describe('GatewayApi', () => {
     });
 
     test('should get a single instance as response that complies with response schema', async () => {
-      const gatewayInstance = await gatewayApiAsAdmin.getInstance({ instance: instanceId, envId, orgId });
+      const gatewayInstance = await succeed(gatewayApiAsAdmin.getInstanceRaw({ instance: instanceId, envId, orgId }));
       const instanceListItem = {
         event: expect.any(String),
         id: expect.any(String),

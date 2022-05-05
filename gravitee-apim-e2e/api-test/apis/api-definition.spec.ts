@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
-import { fail } from '../../lib/jest-utils';
+import { fail, succeed } from '../../lib/jest-utils';
 import { APIPlansApi } from '@management-apis/APIPlansApi';
 import { APIDefinitionApi } from '@management-apis/APIDefinitionApi';
 import { APIsApi } from '@management-apis/APIsApi';
@@ -144,7 +144,7 @@ describe('API definition', () => {
         value: flowModeExpected,
       },
     ];
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
 
     const { name, version, description, visibility, flow_mode } = JSON.parse(apiDefinitionUpdated);
     expect(name).toEqual(nameExpected);
@@ -166,7 +166,7 @@ describe('API definition', () => {
         operation: JsonPatchOperationEnum.REPLACE,
       },
     ];
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { properties } = JSON.parse(apiDefinitionUpdated);
     expect(properties.length).toEqual(propertiesExpected.length);
     expect(properties[0].key).toEqual(propertiesExpected[0].key);
@@ -189,8 +189,7 @@ describe('API definition', () => {
       },
     ];
 
-    const response = await apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch });
-    expect(response.raw.status).toEqual(204);
+    await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }), 204);
   });
 
   test('should remove property', async () => {
@@ -201,7 +200,7 @@ describe('API definition', () => {
       },
     ];
 
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
 
     const { properties } = JSON.parse(apiDefinitionUpdated);
     expect(properties.length).toEqual(1);
@@ -218,7 +217,7 @@ describe('API definition', () => {
       },
     ];
 
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
 
     const { proxy } = JSON.parse(apiDefinitionUpdated);
     expect(proxy.groups[0].endpoints.length).toEqual(2);
@@ -236,7 +235,7 @@ describe('API definition', () => {
       },
     ];
 
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
 
     const { proxy } = JSON.parse(apiDefinitionUpdated);
     expect(proxy.groups[0].endpoints.length).toEqual(2);
@@ -260,7 +259,7 @@ describe('API definition', () => {
       },
     ];
 
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
 
     const { proxy } = JSON.parse(apiDefinitionUpdated);
     expect(proxy.groups[0].http.connectTimeout).toEqual(1500);
@@ -287,7 +286,7 @@ describe('API definition', () => {
       },
     ];
 
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { resources } = JSON.parse(apiDefinitionUpdated);
     expect(resources.length).toEqual(2);
   });
@@ -337,7 +336,7 @@ describe('API definition', () => {
       },
     ];
 
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
 
     const { resources } = JSON.parse(apiDefinitionUpdated);
     expect(resources.length).toEqual(2);
@@ -393,7 +392,7 @@ describe('API definition', () => {
       },
     ];
 
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { flows } = JSON.parse(apiDefinitionUpdated);
     expect(flows.length).toEqual(1);
     expect(flows[0].methods.length).toEqual(3);
@@ -419,7 +418,7 @@ describe('API definition', () => {
         ],
       },
     ];
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { flows } = JSON.parse(apiDefinitionUpdated);
     expect(flows.length).toEqual(1);
     expect(flows[0].methods.length).toEqual(1);
@@ -439,7 +438,7 @@ describe('API definition', () => {
         },
       },
     ];
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { flows } = JSON.parse(apiDefinitionUpdated);
 
     expect(flows.length).toEqual(1);
@@ -456,7 +455,7 @@ describe('API definition', () => {
         operation: JsonPatchOperationEnum.REMOVE,
       },
     ];
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { flows } = JSON.parse(apiDefinitionUpdated);
 
     expect(flows.length).toEqual(1);
@@ -471,7 +470,7 @@ describe('API definition', () => {
         value: fakeId,
       },
     ];
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { id } = JSON.parse(apiDefinitionUpdated);
 
     expect(id).not.toEqual(fakeId);
@@ -497,7 +496,7 @@ describe('API definition', () => {
         operation: JsonPatchOperationEnum.REMOVE,
       },
     ];
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { members } = JSON.parse(apiDefinitionUpdated);
     expect(members).not.toEqual([]);
   });
@@ -509,7 +508,7 @@ describe('API definition', () => {
         value: [],
       },
     ];
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { members } = JSON.parse(apiDefinitionUpdated);
 
     expect(members).not.toEqual([]);
@@ -523,7 +522,7 @@ describe('API definition', () => {
       },
     ];
 
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { members } = JSON.parse(apiDefinitionUpdated);
 
     expect(members[0].sourceId).toEqual('admin');
@@ -542,7 +541,7 @@ describe('API definition', () => {
       },
     ];
 
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { members } = JSON.parse(apiDefinitionUpdated);
 
     expect(members.length).toEqual(1);
@@ -556,7 +555,7 @@ describe('API definition', () => {
       },
     ];
 
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { pages } = JSON.parse(apiDefinitionUpdated);
 
     expect(pages).not.toEqual([]);
@@ -570,7 +569,7 @@ describe('API definition', () => {
         value: PlansFaker.plan(),
       },
     ];
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { plans } = JSON.parse(apiDefinitionUpdated);
 
     expect(plans.length).toEqual(3);
@@ -603,7 +602,7 @@ describe('API definition', () => {
       },
     ];
 
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
 
     const { plans } = JSON.parse(apiDefinitionUpdated);
     expect(plans.length).toEqual(3);
@@ -619,7 +618,7 @@ describe('API definition', () => {
         value: 'foobar',
       },
     ];
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
 
     const { plans } = JSON.parse(apiDefinitionUpdated);
     const plan = plans.find((p) => p.id === addedPlanId);
@@ -635,7 +634,7 @@ describe('API definition', () => {
         operation: JsonPatchOperationEnum.REMOVE,
       },
     ];
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
 
     const { plans } = JSON.parse(apiDefinitionUpdated);
     const plan = plans.find((p) => p.id === addedPlanId);
@@ -651,7 +650,7 @@ describe('API definition', () => {
       },
     ];
 
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { plans } = JSON.parse(apiDefinitionUpdated);
 
     expect(plans.find((p) => p.id === stagingPlanId).status).toEqual('STAGING');
@@ -664,7 +663,7 @@ describe('API definition', () => {
         operation: JsonPatchOperationEnum.REMOVE,
       },
     ];
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { plans } = JSON.parse(apiDefinitionUpdated);
 
     expect(plans.length).toEqual(2);
@@ -677,7 +676,7 @@ describe('API definition', () => {
         value: [],
       },
     ];
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { plans } = JSON.parse(apiDefinitionUpdated);
 
     expect(plans.length).toEqual(0);
@@ -695,7 +694,7 @@ describe('API definition', () => {
       },
     ];
 
-    const apiDefinitionUpdated = await apiDefinitionApi.patch({ orgId, envId, api, jsonPatch });
+    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
     const { primaryOwner } = JSON.parse(apiDefinitionUpdated);
 
     expect(primaryOwner.id).not.toEqual('fake-id');

@@ -17,6 +17,7 @@ import { APIsApi } from '@management-apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsApiUser } from '@client-conf/*';
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { ApisFaker } from '@management-fakers/ApisFaker';
+import { succeed } from '../../lib/jest-utils';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -45,24 +46,24 @@ describe('API Search', () => {
   });
 
   test('should find API of API_USER as ADMIN_USER', async () => {
-    const apiListItems = await apisResourceAdmin.searchApis({ orgId, envId, q: userApi.name });
+    const apiListItems = await succeed(apisResourceAdmin.searchApisRaw({ orgId, envId, q: userApi.name }));
     expect(apiListItems).toHaveLength(1);
     expect(apiListItems[0].name).toEqual(userApi.name);
   });
 
   test('should find API of ADMIN_USER as ADMIN_USER', async () => {
-    const apiListItems = await apisResourceAdmin.searchApis({ orgId, envId, q: adminApi.name });
+    const apiListItems = await succeed(apisResourceAdmin.searchApisRaw({ orgId, envId, q: adminApi.name }));
     expect(apiListItems).toHaveLength(1);
     expect(apiListItems[0].name).toEqual(adminApi.name);
   });
 
   test('should not find API of ADMIN_USER as API_USER', async () => {
-    const apiListItems = await apisResourceUser.searchApis({ orgId, envId, q: adminApi.name });
+    const apiListItems = await succeed(apisResourceUser.searchApisRaw({ orgId, envId, q: adminApi.name }));
     expect(apiListItems).toHaveLength(0);
   });
 
   test('should find API of API_USER as API_USER', async () => {
-    const apiListItems = await apisResourceUser.searchApis({ orgId, envId, q: userApi.name });
+    const apiListItems = await succeed(apisResourceUser.searchApisRaw({ orgId, envId, q: userApi.name }));
     expect(apiListItems).toHaveLength(1);
     expect(apiListItems[0].name).toEqual(userApi.name);
   });
