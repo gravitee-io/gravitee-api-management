@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -22,6 +23,7 @@ import io.gravitee.rest.api.model.UpdateRoleEntity;
 import io.gravitee.rest.api.model.permissions.Permission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.*;
 
@@ -32,6 +34,13 @@ import java.util.*;
  */
 public interface RoleService {
     RoleEntity create(ExecutionContext executionContext, final NewRoleEntity roleEntity);
+    void createOrUpdateSystemRole(
+        ExecutionContext executionContext,
+        SystemRole roleName,
+        RoleScope roleScope,
+        Permission[] permissions,
+        String organizationId
+    );
     void createOrUpdateSystemRoles(ExecutionContext executionContext, String organizationId);
     void delete(ExecutionContext executionContext, String roleId);
     List<RoleEntity> findAllByOrganization(String organizationId);

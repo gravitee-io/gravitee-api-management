@@ -501,7 +501,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             );
             //GROUP - ADMINISTRATOR
             createOrUpdateSystemRole(executionContext, SystemRole.ADMIN, RoleScope.GROUP, GroupPermission.values(), organizationId);
-        } catch (TechnicalException ex) {
+        } catch (TechnicalManagementException ex) {
             LOGGER.error("An error occurs while trying to create admin roles", ex);
             throw new TechnicalManagementException("An error occurs while trying to create admin roles ", ex);
         }
@@ -543,52 +543,60 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         throw new RoleNotFoundException(roleScope + "_PRIMARY_OWNER");
     }
 
-    private void createOrUpdateSystemRole(
+    public void createOrUpdateSystemRole(
         ExecutionContext executionContext,
         SystemRole roleName,
         RoleScope roleScope,
         Permission[] permissions,
         String organizationId
-    ) throws TechnicalException {
-        Role systemRole = createSystemRoleWithoutPermissions(roleName.name(), roleScope, new Date());
-        Map<String, char[]> perms = new HashMap<>();
-        for (Permission perm : permissions) {
-            perms.put(perm.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() });
-        }
-        systemRole.setPermissions(convertPermissions(roleScope, perms));
+    ) {
+        try {
+            Role systemRole = createSystemRoleWithoutPermissions(roleName.name(), roleScope, new Date());
+            Map<String, char[]> perms = new HashMap<>();
+            for (Permission perm : permissions) {
+                perms.put(perm.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() });
+            }
+            systemRole.setPermissions(convertPermissions(roleScope, perms));
 
-        systemRole.setReferenceId(organizationId);
-        systemRole.setReferenceType(RoleReferenceType.ORGANIZATION);
+            systemRole.setReferenceId(organizationId);
+            systemRole.setReferenceType(RoleReferenceType.ORGANIZATION);
 
-        Optional<Role> existingRole = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-            systemRole.getScope(),
-            systemRole.getName(),
-            organizationId,
-            RoleReferenceType.ORGANIZATION
-        );
-        if (existingRole.isPresent() && permissionsAreDifferent(existingRole.get(), systemRole)) {
-            systemRole.setId(existingRole.get().getId());
-            systemRole.setUpdatedAt(new Date());
-            roleRepository.update(systemRole);
-            auditService.createOrganizationAuditLog(
-                executionContext,
+            Optional<Role> existingRole = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                systemRole.getScope(),
+                systemRole.getName(),
                 organizationId,
-                Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
-                ROLE_UPDATED,
-                systemRole.getCreatedAt(),
-                existingRole,
-                systemRole
+                RoleReferenceType.ORGANIZATION
             );
-        } else if (!existingRole.isPresent()) {
-            roleRepository.create(systemRole);
-            auditService.createOrganizationAuditLog(
-                executionContext,
-                organizationId,
-                Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
-                ROLE_CREATED,
-                systemRole.getCreatedAt(),
-                null,
-                systemRole
+            if (existingRole.isPresent() && permissionsAreDifferent(existingRole.get(), systemRole)) {
+                systemRole.setId(existingRole.get().getId());
+                systemRole.setUpdatedAt(new Date());
+                roleRepository.update(systemRole);
+                auditService.createOrganizationAuditLog(
+                    executionContext,
+                    organizationId,
+                    Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
+                    ROLE_UPDATED,
+                    systemRole.getCreatedAt(),
+                    existingRole,
+                    systemRole
+                );
+            } else if (!existingRole.isPresent()) {
+                roleRepository.create(systemRole);
+                auditService.createOrganizationAuditLog(
+                    executionContext,
+                    organizationId,
+                    Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
+                    ROLE_CREATED,
+                    systemRole.getCreatedAt(),
+                    null,
+                    systemRole
+                );
+            }
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to create " + roleName.name() + " " + roleScope.name() + " roles", ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to create " + roleName.name() + " " + roleScope.name() + " roles ",
+                ex
             );
         }
     }
