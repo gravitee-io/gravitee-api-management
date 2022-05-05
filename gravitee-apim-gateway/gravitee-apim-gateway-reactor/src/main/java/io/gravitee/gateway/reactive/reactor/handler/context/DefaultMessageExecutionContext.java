@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.reactor.handler.context;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
@@ -31,18 +32,19 @@ import java.util.List;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-class DefaultMessageExecutionContext extends AbstractExecutionContext implements MessageExecutionContext {
+public class DefaultMessageExecutionContext extends AbstractExecutionContext implements MessageExecutionContext {
 
     private final MessageFlow incomingMessageFlow;
     private final MessageFlow outgoingMessageFlow;
 
     public DefaultMessageExecutionContext(
+        Api api,
         Request request,
         Response response,
         ComponentProvider componentProvider,
         List<TemplateVariableProvider> templateVariableProviders
     ) {
-        super(request, response, componentProvider, templateVariableProviders);
+        super(api, request, response, componentProvider, templateVariableProviders);
         incomingMessageFlow = new DefaultMessageFlow(Flowable.empty());
         outgoingMessageFlow = new DefaultMessageFlow(Flowable.empty());
     }
