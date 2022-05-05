@@ -43,78 +43,78 @@ let publishedPlanId: string;
 let stagingPlanId: string;
 let addedPlanId: string;
 
-beforeAll(async () => {
-  const apiImport = ApisFaker.apiImport({
-    plans: [fakePlan1, fakePlan2],
-    resources: [
-      {
-        name: 'cache_name',
-        type: 'cache',
-        enabled: true,
-        configuration: {
-          name: 'my-cache',
-          timeToIdleSeconds: 1,
-          timeToLiveSeconds: 2,
-          maxEntriesLocalHeap: 1000,
-        },
-      },
-    ],
-    pages: [
-      PagesFaker.folder(),
-      PagesFaker.folder({ parentId: '29b97194-8786-48cb-8162-d3989ce5ad48' }),
-      PagesFaker.page({ parentId: '7ef6a60d-3c29-459d-b05b-3d74ade03fa6' }),
-    ],
-    metadata: [
-      {
-        key: 'team',
-        name: 'team',
-        format: ApiMetadataFormat.STRING,
-        value: 'Ops',
-      },
-    ],
-  });
-
-  const apiEntity = await apisApi.importApiDefinition({
-    orgId,
-    envId,
-    definitionVersion: '2.0.0',
-    body: apiImport,
-  });
-  api = apiEntity.id;
-  publishedPlanId = apiEntity.plans[0].id;
-  stagingPlanId = apiEntity.plans[1].id;
-
-  const plan = await apiPlansApi.publishApiPlan({ orgId, envId, api, plan: publishedPlanId });
-  expect(plan.status).toEqual('PUBLISHED');
-
-  const apiStartedResponse = await apisApi.doApiLifecycleActionRaw({
-    orgId,
-    envId,
-    api,
-    action: LifecycleAction.START,
-  });
-  expect(apiStartedResponse.raw.status).toEqual(204);
-
-  const apiDeployedResponse = await apisApi.deployApiRaw({ orgId, envId, api: api });
-
-  expect(apiDeployedResponse.raw.status).toEqual(200);
-  const response = await apiDefinitionApi.getApiDefinition({
-    orgId,
-    envId,
-    api,
-  });
-
-  // @ts-ignore
-  const { pages, crossId } = JSON.parse(response);
-  expect(crossId).not.toBeNull();
-  expect(pages).toBeDefined();
-  pageIds = pages.filter((p) => p.type != 'SYSTEM_FOLDER').map((p) => p.id);
-  expect(pages.length).toEqual(2);
-
-  return apiEntity;
-});
-
 describe('API definition', () => {
+  beforeAll(async () => {
+    const apiImport = ApisFaker.apiImport({
+      plans: [fakePlan1, fakePlan2],
+      resources: [
+        {
+          name: 'cache_name',
+          type: 'cache',
+          enabled: true,
+          configuration: {
+            name: 'my-cache',
+            timeToIdleSeconds: 1,
+            timeToLiveSeconds: 2,
+            maxEntriesLocalHeap: 1000,
+          },
+        },
+      ],
+      pages: [
+        PagesFaker.folder(),
+        PagesFaker.folder({ parentId: '29b97194-8786-48cb-8162-d3989ce5ad48' }),
+        PagesFaker.page({ parentId: '7ef6a60d-3c29-459d-b05b-3d74ade03fa6' }),
+      ],
+      metadata: [
+        {
+          key: 'team',
+          name: 'team',
+          format: ApiMetadataFormat.STRING,
+          value: 'Ops',
+        },
+      ],
+    });
+
+    const apiEntity = await apisApi.importApiDefinition({
+      orgId,
+      envId,
+      definitionVersion: '2.0.0',
+      body: apiImport,
+    });
+    api = apiEntity.id;
+    publishedPlanId = apiEntity.plans[0].id;
+    stagingPlanId = apiEntity.plans[1].id;
+
+    const plan = await apiPlansApi.publishApiPlan({ orgId, envId, api, plan: publishedPlanId });
+    expect(plan.status).toEqual('PUBLISHED');
+
+    const apiStartedResponse = await apisApi.doApiLifecycleActionRaw({
+      orgId,
+      envId,
+      api,
+      action: LifecycleAction.START,
+    });
+    expect(apiStartedResponse.raw.status).toEqual(204);
+
+    const apiDeployedResponse = await apisApi.deployApiRaw({ orgId, envId, api: api });
+
+    expect(apiDeployedResponse.raw.status).toEqual(200);
+    const response = await apiDefinitionApi.getApiDefinition({
+      orgId,
+      envId,
+      api,
+    });
+
+    // @ts-ignore
+    const { pages, crossId } = JSON.parse(response);
+    expect(crossId).not.toBeNull();
+    expect(pages).toBeDefined();
+    pageIds = pages.filter((p) => p.type != 'SYSTEM_FOLDER').map((p) => p.id);
+    expect(pages.length).toEqual(2);
+
+    return apiEntity;
+  });
+
   test('should replace simple properties', async () => {
     const nameExpected = faker.commerce.productName();
     const versionExpected = ApisFaker.version();
@@ -738,19 +738,19 @@ describe('API definition', () => {
       'The json patch does not follow security policy : [Tag not allowed: script]',
     );
   });
-});
 
-afterAll(async () => {
-  const apiStoppedResponse = await apisApi.doApiLifecycleActionRaw({
-    orgId,
-    envId,
-    api,
-    action: LifecycleAction.STOP,
+  afterAll(async () => {
+    const apiStoppedResponse = await apisApi.doApiLifecycleActionRaw({
+      orgId,
+      envId,
+      api,
+      action: LifecycleAction.STOP,
+    });
+    expect(apiStoppedResponse.raw.status).toEqual(204);
+    const apiPagesApi = new APIPagesApi(configuration);
+
+    await Promise.all(pageIds.reverse().map((page) => apiPagesApi.deleteApiPage({ orgId, envId, api, page })));
+
+    return await apisApi.deleteApi({ orgId, envId, api: api });
   });
-  expect(apiStoppedResponse.raw.status).toEqual(204);
-  const apiPagesApi = new APIPagesApi(configuration);
-
-  await Promise.all(pageIds.reverse().map((page) => apiPagesApi.deleteApiPage({ orgId, envId, api, page })));
-
-  return await apisApi.deleteApi({ orgId, envId, api: api });
 });

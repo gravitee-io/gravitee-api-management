@@ -27,23 +27,23 @@ const apisResourceAdmin = new APIsApi(forManagementAsAdminUser());
 let userApi;
 let adminApi;
 
-beforeAll(async () => {
-  [userApi, adminApi] = await Promise.all([
-    apisResourceUser.createApi({
-      orgId,
-      envId,
-      newApiEntity: ApisFaker.newApi({ name: ApisFaker.uniqueWord() }),
-    }),
-    apisResourceAdmin.createApi({
-      orgId,
-      envId,
-      newApiEntity: ApisFaker.newApi({ name: ApisFaker.uniqueWord() }),
-    }),
-  ]);
-  return [userApi, adminApi];
-});
-
 describe('API Search', () => {
+  beforeAll(async () => {
+    [userApi, adminApi] = await Promise.all([
+      apisResourceUser.createApi({
+        orgId,
+        envId,
+        newApiEntity: ApisFaker.newApi({ name: ApisFaker.uniqueWord() }),
+      }),
+      apisResourceAdmin.createApi({
+        orgId,
+        envId,
+        newApiEntity: ApisFaker.newApi({ name: ApisFaker.uniqueWord() }),
+      }),
+    ]);
+    return [userApi, adminApi];
+  });
+
   test('should find API of API_USER as ADMIN_USER', async () => {
     const apiListItems = await apisResourceAdmin.searchApis({ orgId, envId, q: userApi.name });
     expect(apiListItems).toHaveLength(1);
@@ -66,9 +66,9 @@ describe('API Search', () => {
     expect(apiListItems).toHaveLength(1);
     expect(apiListItems[0].name).toEqual(userApi.name);
   });
-});
 
-afterAll(async () => {
-  await apisResourceAdmin.deleteApi({ orgId, envId, api: userApi.id });
-  return await apisResourceAdmin.deleteApi({ orgId, envId, api: adminApi.id });
+  afterAll(async () => {
+    await apisResourceAdmin.deleteApi({ orgId, envId, api: userApi.id });
+    return await apisResourceAdmin.deleteApi({ orgId, envId, api: adminApi.id });
+  });
 });
