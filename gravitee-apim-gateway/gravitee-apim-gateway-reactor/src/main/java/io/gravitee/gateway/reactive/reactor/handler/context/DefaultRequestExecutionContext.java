@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.reactor.handler.context;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.context.Request;
@@ -28,9 +29,9 @@ import java.util.List;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-class DefaultSyncExecutionContext extends AbstractExecutionContext implements RequestExecutionContext {
+public class DefaultRequestExecutionContext extends AbstractExecutionContext implements RequestExecutionContext {
 
-    public DefaultSyncExecutionContext(
+    public DefaultRequestExecutionContext(
         Request request,
         Response response,
         ComponentProvider componentProvider,

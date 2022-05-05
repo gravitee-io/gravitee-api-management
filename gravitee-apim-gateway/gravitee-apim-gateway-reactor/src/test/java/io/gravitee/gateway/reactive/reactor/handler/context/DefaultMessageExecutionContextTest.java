@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.reactor.handler.context;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
 import java.util.List;
@@ -28,7 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class DefaultSyncExecutionContextTest extends AbstractExecutionContextTest {
+class DefaultMessageExecutionContextTest extends AbstractExecutionContextTest {
 
     @Mock
     protected Request request;
@@ -36,8 +37,11 @@ class DefaultSyncExecutionContextTest extends AbstractExecutionContextTest {
     @Mock
     protected Response response;
 
+    @Mock
+    protected Api api;
+
     @BeforeEach
     public void init() {
-        cut = new DefaultSyncExecutionContext(request, response, componentProvider, List.of(templateVariableProvider));
+        cut = new DefaultMessageExecutionContext(request, response, componentProvider, List.of(templateVariableProvider));
     }
 }

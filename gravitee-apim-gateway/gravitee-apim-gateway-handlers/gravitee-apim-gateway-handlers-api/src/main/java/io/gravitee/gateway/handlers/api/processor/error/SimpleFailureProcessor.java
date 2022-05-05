@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.handlers.api.processor.error;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeadersValues;
@@ -99,28 +98,6 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
             response.write(payload);
-        }
-    }
-
-    private class ProcessorFailureAsJson {
-
-        @JsonProperty
-        private final String message;
-
-        @JsonProperty("http_status_code")
-        private final int httpStatusCode;
-
-        private ProcessorFailureAsJson(ProcessorFailure processorFailure) {
-            this.message = processorFailure.message();
-            this.httpStatusCode = processorFailure.statusCode();
-        }
-
-        private String getMessage() {
-            return message;
-        }
-
-        private int httpStatusCode() {
-            return httpStatusCode;
         }
     }
 }

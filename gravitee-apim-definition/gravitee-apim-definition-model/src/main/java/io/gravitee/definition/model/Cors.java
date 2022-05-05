@@ -55,6 +55,7 @@ public class Cors implements Serializable {
     @JsonProperty("allowHeaders")
     private Set<String> accessControlAllowHeaders;
 
+    //FIXME Should be removed as it is never used, neither by UI or API neither by cors processors
     @JsonIgnore
     private int errorStatusCode = DEFAULT_ERROR_STATUS_CODE;
 
@@ -62,20 +63,20 @@ public class Cors implements Serializable {
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private boolean runPolicies;
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
     public static int getDefaultErrorStatusCode() {
         return DEFAULT_ERROR_STATUS_CODE;
     }
 
     public static void setDefaultErrorStatusCode(int defaultErrorStatusCode) {
         DEFAULT_ERROR_STATUS_CODE = defaultErrorStatusCode;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     public Set<String> getAccessControlAllowOrigin() {

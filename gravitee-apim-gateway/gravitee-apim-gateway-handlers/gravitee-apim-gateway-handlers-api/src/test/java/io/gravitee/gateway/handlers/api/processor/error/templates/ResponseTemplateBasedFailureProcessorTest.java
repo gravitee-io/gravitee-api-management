@@ -88,7 +88,7 @@ public class ResponseTemplateBasedFailureProcessorTest {
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure();
-        failure.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        failure.statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
         when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
 
         processor.handle(context);
@@ -112,8 +112,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure();
-        failure.setKey("POLICY_ERROR_KEY");
-        failure.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
+        failure.key("POLICY_ERROR_KEY");
+        failure.statusCode(HttpStatusCode.BAD_REQUEST_400);
 
         when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
 
@@ -138,8 +138,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure();
-        failure.setKey("POLICY_ERROR_KEY");
-        failure.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        failure.key("POLICY_ERROR_KEY");
+        failure.statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
         when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
 
@@ -164,8 +164,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure();
-        failure.setKey("POLICY_ERROR_KEY");
-        failure.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        failure.key("POLICY_ERROR_KEY");
+        failure.statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
         when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(Collections.singletonList(MediaType.APPLICATION_XML));
         when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
@@ -194,9 +194,9 @@ public class ResponseTemplateBasedFailureProcessorTest {
         processor.handler(next);
 
         // Set failure
-        DummyProcessorFailure failure = new DummyProcessorFailure();
-        failure.setKey("POLICY_ERROR_KEY");
-        failure.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        DummyProcessorFailure failure = new DummyProcessorFailure()
+            .key("POLICY_ERROR_KEY")
+            .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
         when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(Collections.singletonList(MediaType.APPLICATION_XML));
         when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
@@ -221,9 +221,9 @@ public class ResponseTemplateBasedFailureProcessorTest {
         processor.handler(next);
 
         // Set failure
-        DummyProcessorFailure failure = new DummyProcessorFailure();
-        failure.setKey("POLICY_ERROR_KEY");
-        failure.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        DummyProcessorFailure failure = new DummyProcessorFailure()
+            .key("POLICY_ERROR_KEY")
+            .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
         when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(Collections.singletonList(MediaType.APPLICATION_JSON));
         when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
@@ -248,9 +248,9 @@ public class ResponseTemplateBasedFailureProcessorTest {
         processor.handler(next);
 
         // Set failure
-        DummyProcessorFailure failure = new DummyProcessorFailure();
-        failure.setKey("POLICY_ERROR_KEY");
-        failure.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        DummyProcessorFailure failure = new DummyProcessorFailure()
+            .key("POLICY_ERROR_KEY")
+            .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
         HttpHeaders headers = HttpHeaders.create();
         headers.set(HttpHeaderNames.ACCEPT, "text/html, application/json, */*;q=0.8, application/xml;q=0.9");
@@ -260,59 +260,5 @@ public class ResponseTemplateBasedFailureProcessorTest {
         processor.handle(context);
 
         verify(response, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
-    }
-
-    static class DummyProcessorFailure implements ProcessorFailure {
-
-        private int statusCode;
-        private String message;
-        private String key;
-        private Map<String, Object> parameters;
-        private String contentType;
-
-        @Override
-        public int statusCode() {
-            return this.statusCode;
-        }
-
-        @Override
-        public String message() {
-            return this.message;
-        }
-
-        @Override
-        public String key() {
-            return this.key;
-        }
-
-        @Override
-        public Map<String, Object> parameters() {
-            return this.parameters;
-        }
-
-        @Override
-        public String contentType() {
-            return this.contentType;
-        }
-
-        public void setStatusCode(int statusCode) {
-            this.statusCode = statusCode;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-
-        public void setKey(String key) {
-            this.key = key;
-        }
-
-        public void setParameters(Map<String, Object> parameters) {
-            this.parameters = parameters;
-        }
-
-        public void setContentType(String contentType) {
-            this.contentType = contentType;
-        }
     }
 }

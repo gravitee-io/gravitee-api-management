@@ -31,14 +31,17 @@ import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
+import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
+import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory;
+import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.Entrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
@@ -65,12 +68,18 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private final FlowChain platformFlowChain;
     private final FlowChain apiPlanFlowChain;
     private final FlowChain apiFlowChain;
+    private final ProcessorChain platformPreProcessorChain;
+    private final ProcessorChain platformPostProcessorChain;
+    private final ProcessorChain apiPreProcessorChain;
+    private final ProcessorChain apiPostProcessorChain;
 
     public SyncApiReactor(
         final Api api,
         final ExecutionContextFactory ctxFactory,
         final Invoker defaultInvoker,
         final ResourceLifecycleManager resourceLifecycleManager,
+        final PlatformProcessorChainFactory platformProcessorChainFactory,
+        final ApiProcessorChainFactory apiProcessorChainFactory,
         final PolicyManager policyManager,
         final PolicyChainFactory platformPolicyChainFactory,
         final GroupLifecycleManager groupLifecycleManager,
@@ -85,6 +94,10 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         final PolicyChainFactory policyChainFactory = new DefaultPolicyChainFactory(api.getId(), policyManager);
 
+        this.platformPreProcessorChain = platformProcessorChainFactory.preProcessorChain();
+        this.platformPostProcessorChain = platformProcessorChainFactory.postProcessorChain();
+        this.apiPreProcessorChain = apiProcessorChainFactory.preProcessorChain(api);
+        this.apiPostProcessorChain = apiProcessorChainFactory.postProcessorChain(api);
         this.platformFlowChain =
             new FlowChain("Platform", FlowResolverFactory.forPlatform(api, organizationManager), platformPolicyChainFactory);
         this.apiPlanFlowChain = new FlowChain("Api Plan", FlowResolverFactory.forApiPlan(api), policyChainFactory);
@@ -126,8 +139,12 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     private Completable handleRequest(RequestExecutionContext ctx) {
-        // Execute request flows (platform, security, api plan, api).
-        return executeChain(ctx, platformFlowChain, REQUEST)
+        // Execute platform pre processor chain
+        return defer(() -> platformPreProcessorChain.execute(ctx))
+            // Execute platform flow chain
+            .andThen(continueChain(ctx, platformFlowChain, REQUEST))
+            // Execute pre api processor chain
+            .andThen(defer(() -> apiPreProcessorChain.execute(ctx)))
             .andThen(continueChain(ctx, apiPlanFlowChain, REQUEST))
             .andThen(continueChain(ctx, apiFlowChain, REQUEST))
             // All request flows have been executed. Invokes backend.
@@ -135,14 +152,18 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             // Execute response flows (api plan, api, platform).
             .andThen(continueChain(ctx, apiPlanFlowChain, RESPONSE))
             .andThen(continueChain(ctx, apiFlowChain, RESPONSE))
+            // Execute post api processor chain
+            .andThen(defer(() -> apiPostProcessorChain.execute(ctx)))
             // In case of any interruption, resume the execution.
             .doOnComplete(ctx::resume)
             // Platform post flows must always be executed
             .andThen(continueChain(ctx, platformFlowChain, RESPONSE))
             // Catch all possible unexpected errors.
             .onErrorResumeNext(t -> handleError(ctx, t))
-            // Finally, end the response.
-            .andThen(endResponse(ctx));
+            // End the response.
+            .andThen(endResponse(ctx))
+            // Finally, execute post platform  processor chain
+            .andThen(defer(() -> platformPostProcessorChain.execute(ctx)));
     }
 
     /**

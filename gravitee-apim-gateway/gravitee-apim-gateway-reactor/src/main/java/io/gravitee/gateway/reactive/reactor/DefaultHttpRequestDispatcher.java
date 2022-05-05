@@ -24,26 +24,34 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.http.utils.WebSocketUtils;
 import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
 import io.gravitee.gateway.http.vertx.grpc.VertxGrpcServerRequest;
 import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
+import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
+import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
+import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.Completable;
+import io.reactivex.CompletableEmitter;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.reactivex.core.http.HttpHeaders;
 import io.vertx.reactivex.core.http.HttpServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Request dispatcher responsible to dispatch any HTTP request to the appropriate {@link io.gravitee.gateway.reactor.handler.ReactorHandler}.
@@ -60,42 +68,45 @@ public class DefaultHttpRequestDispatcher
     extends AbstractService<HttpRequestDispatcher>
     implements HttpRequestDispatcher, EventListener<ReactorEvent, Reactable> {
 
-    private final Logger log = LoggerFactory.getLogger(DefaultHttpRequestDispatcher.class);
     public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
-
+    private final Logger log = LoggerFactory.getLogger(DefaultHttpRequestDispatcher.class);
     private final EventManager eventManager;
     private final GatewayConfiguration gatewayConfiguration;
     private final ReactorHandlerRegistry reactorHandlerRegistry;
     private final EntrypointResolver entrypointResolver;
     private final IdGenerator idGenerator;
+    private final RequestProcessorChainFactory requestProcessorChainFactory;
+    private final ResponseProcessorChainFactory responseProcessorChainFactory;
 
     public DefaultHttpRequestDispatcher(
         EventManager eventManager,
         GatewayConfiguration gatewayConfiguration,
         ReactorHandlerRegistry reactorHandlerRegistry,
         EntrypointResolver entrypointResolver,
-        IdGenerator idGenerator
+        IdGenerator idGenerator,
+        RequestProcessorChainFactory requestProcessorChainFactory,
+        ResponseProcessorChainFactory responseProcessorChainFactory
     ) {
         this.eventManager = eventManager;
         this.gatewayConfiguration = gatewayConfiguration;
         this.reactorHandlerRegistry = reactorHandlerRegistry;
         this.entrypointResolver = entrypointResolver;
         this.idGenerator = idGenerator;
+        this.requestProcessorChainFactory = requestProcessorChainFactory;
+        this.responseProcessorChainFactory = responseProcessorChainFactory;
     }
 
     /**
      * {@inheritDoc}
      * Each incoming request is dispatched respecting the following step order:
      * <ul>
-     *     <li>Pre-processors: executes all global pre-processors (transactionId, ...).</li>
      *     <li>Api resolution: resolves the {@link ReactorHandler} that is able to handle the request based on the request host path.</li>
      *     <li>Api request: invokes the V3 or Jupiter {@link ReactorHandler} to handle the api request. Eventually, handle not found if no handler has been resolved.</li>
-     *     <li>Post-processors: executes all global post-processors (reporters, ...).
+     *     <li>Platform processors: in case of V3 {@link ReactorHandler} pre and post platform processor are executed</li>
      * </ul>
      */
     @Override
     public Completable dispatch(HttpServerRequest httpServerRequest) {
-        // FIXME: run global pre-processors.
         log.debug("Dispatching request on host {} and path {}", httpServerRequest.host(), httpServerRequest.path());
 
         final HandlerEntrypoint handlerEntrypoint = entrypointResolver.resolve(httpServerRequest.host(), httpServerRequest.path());
@@ -114,7 +125,6 @@ public class DefaultHttpRequestDispatcher
         }
 
         return dispatchObs;
-        // FIXME: run global post-processors.
     }
 
     private Completable handleJupiterRequest(HttpServerRequest httpServerRequest, HandlerEntrypoint handlerEntrypoint) {
@@ -135,28 +145,42 @@ public class DefaultHttpRequestDispatcher
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request = createV3Request(httpServerRequest);
 
         // Prepare invocation execution context.
-        SimpleExecutionContext ctx = new SimpleExecutionContext(request, request.create());
+        SimpleExecutionContext simpleExecutionContext = new SimpleExecutionContext(request, request.create());
 
         // Required by the v3 execution mode.
-        ctx.setAttribute(ATTR_ENTRYPOINT, handlerEntrypoint);
+        simpleExecutionContext.setAttribute(ATTR_ENTRYPOINT, handlerEntrypoint);
 
         // Set gateway tenants and zones in request metrics.
         prepareMetrics(request.metrics());
-
-        // Must catch the end of the v3 request handling to complete the reactive chain.
+        // Prepare handler chain and catch the end of the v3 request handling to complete the reactive chain.
         return Completable.create(
-            emitter ->
-                reactorHandler.handle(
-                    ctx,
-                    context -> {
-                        if (context.response().ended()) {
-                            emitter.onComplete();
-                        } else {
-                            httpServerRequest.response().rxEnd().subscribe(emitter::onComplete, emitter::onError);
+            emitter -> {
+                Handler<io.gravitee.gateway.api.ExecutionContext> endHandler = endRequestHandler(emitter, httpServerRequest);
+                requestProcessorChainFactory
+                    .create()
+                    .handler(
+                        ctx -> {
+                            reactorHandler.handle(ctx, endHandler);
                         }
-                    }
-                )
+                    )
+                    .errorHandler(result -> processResponse(simpleExecutionContext, endHandler))
+                    .exitHandler(result -> processResponse(simpleExecutionContext, endHandler))
+                    .handle(simpleExecutionContext);
+            }
         );
+    }
+
+    private Handler<io.gravitee.gateway.api.ExecutionContext> endRequestHandler(
+        final CompletableEmitter emitter,
+        final HttpServerRequest httpServerRequest
+    ) {
+        return context -> {
+            if (context.response().ended()) {
+                emitter.onComplete();
+            } else {
+                httpServerRequest.response().rxEnd().subscribe(emitter::onComplete, emitter::onError);
+            }
+        };
     }
 
     /**
@@ -212,6 +236,13 @@ public class DefaultHttpRequestDispatcher
             (httpServerRequest.version() == HttpVersion.HTTP_1_0 || httpServerRequest.version() == HttpVersion.HTTP_1_1) &&
             WebSocketUtils.isWebSocket(httpServerRequest.method().name(), connectionHeader, upgradeHeader)
         );
+    }
+
+    private void processResponse(
+        io.gravitee.gateway.api.ExecutionContext context,
+        Handler<io.gravitee.gateway.api.ExecutionContext> handler
+    ) {
+        responseProcessorChainFactory.create().handler(handler).handle(context);
     }
 
     @Override

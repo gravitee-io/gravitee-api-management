@@ -15,14 +15,13 @@
  */
 package io.gravitee.gateway.reactive.reactor.handler.context;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
-import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
