@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
@@ -53,6 +54,7 @@ class ExecutionContextFactoryTest {
     public void shouldCreateSyncExecutionContext() {
         final TemplateVariableProvider provider = mock(TemplateVariableProvider.class);
 
+        final Api api = mock(Api.class);
         final Request request = mock(Request.class);
         final Response response = mock(Response.class);
 
@@ -61,7 +63,7 @@ class ExecutionContextFactoryTest {
 
         cut.addTemplateVariableProvider(provider);
 
-        final RequestExecutionContext ctx = cut.createRequestContext(request, response);
+        final RequestExecutionContext ctx = cut.createRequestContext(api, request, response);
 
         assertNotNull(ctx);
         assertEquals(request, ctx.request());
@@ -80,6 +82,7 @@ class ExecutionContextFactoryTest {
     public void shouldCreateASyncExecutionContext() {
         final TemplateVariableProvider provider = mock(TemplateVariableProvider.class);
 
+        final Api api = mock(Api.class);
         final Request request = mock(Request.class);
         final Response response = mock(Response.class);
 
@@ -88,7 +91,7 @@ class ExecutionContextFactoryTest {
 
         cut.addTemplateVariableProvider(provider);
 
-        final MessageExecutionContext ctx = cut.createMessageContext(request, response);
+        final MessageExecutionContext ctx = cut.createMessageContext(api, request, response);
 
         assertNotNull(ctx);
         assertEquals(request, ctx.request());

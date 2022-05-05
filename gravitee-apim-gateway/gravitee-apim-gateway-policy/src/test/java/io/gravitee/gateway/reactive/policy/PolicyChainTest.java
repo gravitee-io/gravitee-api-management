@@ -129,7 +129,7 @@ class PolicyChainTest {
     }
 
     @Test
-    public void shouldExecutePoliciesOnAsyncResponse() {
+    public void shouldExecutePoliciesOnAResponse() {
         final Policy policy1 = mock(Policy.class);
         final Policy policy2 = mock(Policy.class);
         final MessageExecutionContext ctx = mock(MessageExecutionContext.class);

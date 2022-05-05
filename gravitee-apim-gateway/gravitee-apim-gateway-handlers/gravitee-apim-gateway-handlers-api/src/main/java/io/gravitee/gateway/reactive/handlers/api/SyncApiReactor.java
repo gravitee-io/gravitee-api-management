@@ -98,7 +98,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     @Override
     public Completable handle(Request request, Response response) {
-        final RequestExecutionContext ctx = ctxFactory.createRequestContext(request, response);
+        final RequestExecutionContext ctx = ctxFactory.createRequestContext(api, request, response);
 
         // Prepare attributes and metrics before handling the request.
         prepareContextAttributes(ctx);
