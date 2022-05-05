@@ -187,6 +187,11 @@ public class DefaultEntrypointResolver implements EntrypointResolver {
         }
 
         @Override
+        public Request closeHandler(Handler<Void> closeHandler) {
+            return null;
+        }
+
+        @Override
         public String host() {
             return host;
         }
