@@ -173,6 +173,11 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
     }
 
     @Override
+    public io.gravitee.gateway.api.Request closeHandler(Handler<Void> closeHandler) {
+        return this;
+    }
+
+    @Override
     public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
         return this;
     }
