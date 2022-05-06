@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationServiceImpl;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.EmptyInitialAccessTokenException;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.InvalidRenewClientSecretException;
 import java.util.Collections;
 import org.junit.After;
 import org.junit.Before;
@@ -122,6 +123,25 @@ public class ClientRegistrationService_CreateTest {
     public void shouldThrowWithTypeInitialAccessTokenAndWithoutToken() {
         NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
         providerPayload.setInitialAccessTokenType(InitialAccessTokenType.INITIAL_ACCESS_TOKEN);
+        clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
+    }
+
+    @Test(expected = InvalidRenewClientSecretException.class)
+    public void shouldThrowWithBadRenewClientSecretMethod() {
+        NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
+        providerPayload.setName("name");
+        providerPayload.setRenewClientSecretSupport(true);
+        providerPayload.setRenewClientSecretMethod("DELETE");
+        clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
+    }
+
+    @Test(expected = InvalidRenewClientSecretException.class)
+    public void shouldThrowWithBadRenewClientSecretEndpoint() {
+        NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
+        providerPayload.setName("name");
+        providerPayload.setRenewClientSecretSupport(true);
+        providerPayload.setRenewClientSecretMethod("POST");
+        providerPayload.setRenewClientSecretEndpoint("notStartWithHttp");
         clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
     }
 }
