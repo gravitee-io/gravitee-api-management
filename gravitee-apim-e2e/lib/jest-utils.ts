@@ -34,3 +34,7 @@ export async function succeed(promise: Promise<ApiResponse<any>>, expectedStatus
   expect(response.raw.status).toEqual(expectedStatus);
   return await response.value();
 }
+
+export async function created(promise: Promise<ApiResponse<any>>) {
+  return this.succeed(promise, 201);
+}
