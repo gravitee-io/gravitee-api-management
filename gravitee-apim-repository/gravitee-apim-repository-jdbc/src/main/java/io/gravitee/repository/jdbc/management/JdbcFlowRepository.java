@@ -139,18 +139,26 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
 
     @Override
     public Flow create(Flow flow) throws TechnicalException {
-        storeMethods(flow, false);
-        storeSteps(flow, false);
-        storeConsumers(flow, false);
-        return super.create(flow);
+        try {
+            storeMethods(flow, false);
+            storeSteps(flow, false);
+            storeConsumers(flow, false);
+            return super.create(flow);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 
     @Override
     public Flow update(Flow flow) throws TechnicalException {
-        storeMethods(flow, true);
-        storeSteps(flow, true);
-        storeConsumers(flow, true);
-        return super.update(flow);
+        try {
+            storeMethods(flow, true);
+            storeSteps(flow, true);
+            storeConsumers(flow, true);
+            return super.update(flow);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 
     private void storeConsumers(Flow flow, boolean deleteFirst) {

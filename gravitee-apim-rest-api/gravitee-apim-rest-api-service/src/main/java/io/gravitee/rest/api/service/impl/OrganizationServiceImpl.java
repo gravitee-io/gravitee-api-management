@@ -135,12 +135,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     private void createPublishOrganizationEvent(OrganizationEntity organizationEntity) throws JsonProcessingException {
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.ORGANIZATION_ID.getValue(), organizationEntity.getId());
-        eventService.create(
-            Collections.singleton(GraviteeContext.getCurrentEnvironment()),
-            EventType.PUBLISH_ORGANIZATION,
-            mapper.writeValueAsString(organizationEntity),
-            properties
-        );
+        eventService.create(Set.of(), EventType.PUBLISH_ORGANIZATION, mapper.writeValueAsString(organizationEntity), properties);
     }
 
     @Override
