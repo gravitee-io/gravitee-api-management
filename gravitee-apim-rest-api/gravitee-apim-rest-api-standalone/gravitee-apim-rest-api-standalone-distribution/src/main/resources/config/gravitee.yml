@@ -111,6 +111,7 @@ management:
 #    username:                    # mongodb username (default null)
 #    password:                    # mongodb password (default null)
 #    authSource:                  # mongodb authentication source (when at least a user or a password is defined, default gravitee)
+#    retryWrites:                 # mongodb retriable writes (default true)
 #    readPreference:              # possible values are 'nearest', 'primary', 'primaryPreferred', 'secondary', 'secondaryPreferred'
 #    readPreferenceTags:          # list of read preference tags (https://docs.mongodb.com/manual/core/read-preference-tags/#std-label-replica-set-read-preference-tag-sets)
 ### Write concern
