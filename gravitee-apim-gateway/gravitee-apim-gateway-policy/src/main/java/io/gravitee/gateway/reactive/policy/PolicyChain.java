@@ -109,11 +109,10 @@ public class PolicyChain {
                     .andThen(
                         messageExecutionContext
                             .incomingMessageFlow()
-                            .onMessage(
-                                upstream ->
-                                    policy
-                                        .onMessageFlow(messageExecutionContext, upstream)
-                                        .flatMap(message -> policy.onMessage(messageExecutionContext, message))
+                            .onMessage(upstream ->
+                                policy
+                                    .onMessageFlow(messageExecutionContext, upstream)
+                                    .flatMapMaybe(message -> policy.onMessage(messageExecutionContext, message))
                             )
                     );
             } else {
@@ -122,11 +121,10 @@ public class PolicyChain {
                     .andThen(
                         messageExecutionContext
                             .outgoingMessageFlow()
-                            .onMessage(
-                                upstream ->
-                                    policy
-                                        .onMessageFlow(messageExecutionContext, upstream)
-                                        .flatMap(message -> policy.onMessage(messageExecutionContext, message))
+                            .onMessage(upstream ->
+                                policy
+                                    .onMessageFlow(messageExecutionContext, upstream)
+                                    .flatMapMaybe(message -> policy.onMessage(messageExecutionContext, message))
                             )
                     );
             }

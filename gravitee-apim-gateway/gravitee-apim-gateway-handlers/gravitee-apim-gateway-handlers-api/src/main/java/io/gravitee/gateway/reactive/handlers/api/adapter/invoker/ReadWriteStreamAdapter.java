@@ -44,17 +44,16 @@ class ReadWriteStreamAdapter extends SimpleReadWriteStream<Buffer> {
      */
     public ReadWriteStreamAdapter(ExecutionContextAdapter ctx, CompletableEmitter nextEmitter) {
         final RequestAdapter requestAdapter = ctx.request();
-        final Request nativeRequest = ctx.getDelegate().request();
+        final Request delegateRequest = ctx.getDelegate().request();
 
-        requestAdapter.onResume(
-            () ->
-                nativeRequest
-                    .chunks()
-                    .doOnNext(this::write)
-                    .doOnComplete(this::end)
-                    .doOnError(nextEmitter::tryOnError)
-                    .onErrorResumeNext(e -> {})
-                    .subscribe()
+        requestAdapter.onResume(() ->
+            delegateRequest
+                .chunks()
+                .doOnNext(this::write)
+                .doOnComplete(this::end)
+                .doOnError(nextEmitter::tryOnError)
+                .onErrorResumeNext(e -> {})
+                .subscribe()
         );
     }
 }
