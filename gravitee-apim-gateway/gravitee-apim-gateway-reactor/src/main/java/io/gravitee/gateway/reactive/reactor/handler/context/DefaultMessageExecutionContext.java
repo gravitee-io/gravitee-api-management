@@ -17,25 +17,43 @@ package io.gravitee.gateway.reactive.reactor.handler.context;
 
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.gateway.reactive.api.context.async.AsyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.async.AsyncRequest;
-import io.gravitee.gateway.reactive.api.context.async.AsyncResponse;
+import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
+import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.api.message.MessageFlow;
+import io.gravitee.gateway.reactive.reactor.handler.message.DefaultMessageFlow;
+import io.reactivex.Flowable;
 import java.util.List;
 
 /**
- * Default implementation of {@link AsyncExecutionContext} to use when handling async api requests.
+ * Default implementation of {@link MessageExecutionContext} to use when handling async api requests.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-class DefaultAsyncExecutionContext extends AbstractExecutionContext<AsyncRequest, AsyncResponse> implements AsyncExecutionContext {
+class DefaultMessageExecutionContext extends AbstractExecutionContext implements MessageExecutionContext {
 
-    public DefaultAsyncExecutionContext(
-        AsyncRequest request,
-        AsyncResponse response,
+    private final MessageFlow incomingMessageFlow;
+    private final MessageFlow outgoingMessageFlow;
+
+    public DefaultMessageExecutionContext(
+        Request request,
+        Response response,
         ComponentProvider componentProvider,
         List<TemplateVariableProvider> templateVariableProviders
     ) {
         super(request, response, componentProvider, templateVariableProviders);
+        incomingMessageFlow = new DefaultMessageFlow(Flowable.empty());
+        outgoingMessageFlow = new DefaultMessageFlow(Flowable.empty());
+    }
+
+    @Override
+    public MessageFlow incomingMessageFlow() {
+        return incomingMessageFlow;
+    }
+
+    @Override
+    public MessageFlow outgoingMessageFlow() {
+        return outgoingMessageFlow;
     }
 }

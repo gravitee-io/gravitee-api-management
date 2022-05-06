@@ -42,7 +42,7 @@ abstract class AbstractExecutionContextTest {
     @Mock
     protected TemplateVariableProvider templateVariableProvider;
 
-    protected ExecutionContext<?, ?> cut;
+    protected ExecutionContext cut;
 
     @Test
     public void shouldPutAndGetAttributes() {
@@ -100,7 +100,7 @@ abstract class AbstractExecutionContextTest {
         assertThrows(
             ClassCastException.class,
             () -> {
-                final Float value = (Float) cut.getAttribute(ATTRIBUTE_KEY);
+                final Float value = cut.getAttribute(ATTRIBUTE_KEY);
             }
         );
     }
@@ -166,7 +166,7 @@ abstract class AbstractExecutionContextTest {
         assertThrows(
             ClassCastException.class,
             () -> {
-                final Float value = (Float) cut.getInternalAttribute(ATTRIBUTE_KEY);
+                final Float value = cut.getInternalAttribute(ATTRIBUTE_KEY);
             }
         );
     }

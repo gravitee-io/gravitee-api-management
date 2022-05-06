@@ -17,22 +17,22 @@ package io.gravitee.gateway.reactive.reactor.handler.context;
 
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncRequest;
-import io.gravitee.gateway.reactive.api.context.sync.SyncResponse;
+import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.context.Response;
 import java.util.List;
 
 /**
- * Default implementation of {@link SyncExecutionContext} to use when handling sync api requests.
+ * Default implementation of {@link RequestExecutionContext} to use when handling sync api requests.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-class DefaultSyncExecutionContext extends AbstractExecutionContext<SyncRequest, SyncResponse> implements SyncExecutionContext {
+class DefaultSyncExecutionContext extends AbstractExecutionContext implements RequestExecutionContext {
 
     public DefaultSyncExecutionContext(
-        SyncRequest request,
-        SyncResponse response,
+        Request request,
+        Response response,
         ComponentProvider componentProvider,
         List<TemplateVariableProvider> templateVariableProviders
     ) {

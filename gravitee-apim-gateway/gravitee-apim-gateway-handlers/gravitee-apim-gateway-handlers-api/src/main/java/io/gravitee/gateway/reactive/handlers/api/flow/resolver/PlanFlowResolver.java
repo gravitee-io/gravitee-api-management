@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.condition.ConditionEvaluator;
 import io.reactivex.Flowable;
 import java.util.Objects;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PlanFlowResolver extends AsbtractFlowResolver {
+public class PlanFlowResolver extends AbstractFlowResolver {
 
     private final Api api;
 
@@ -37,7 +38,7 @@ public class PlanFlowResolver extends AsbtractFlowResolver {
     }
 
     @Override
-    public Flowable<Flow> provideFlows(ExecutionContext<?, ?> ctx) {
+    public Flowable<Flow> provideFlows(RequestExecutionContext ctx) {
         if (api.getPlans() == null || api.getPlans().isEmpty()) {
             return Flowable.empty();
         }
