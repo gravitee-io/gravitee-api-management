@@ -88,3 +88,17 @@ export const forPortalAsAppUser = () => {
 export const forPortalAsSimpleUser = () => {
   return forPortal(SIMPLE_USER);
 };
+
+export const forPortalWithWrongPassword = () => {
+  return forPortal({
+    username: process.env.API_USERNAME,
+    password: 'wrongPassword',
+  });
+};
+
+export const forManagementWithWrongPassword = () => {
+  return forManagement({
+    username: process.env.API_USERNAME,
+    password: 'wrongPassword',
+  });
+};
