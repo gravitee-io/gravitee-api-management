@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const jwt = require('jsonwebtoken');
+import { requestGateway } from 'ui-test/support/common/http.commands';
+
 import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 import { deleteApi, deployApi, getApiKeys, importCreateApi, startApi, stopApi } from '@commands/management/api-management-commands';
 import { publishPlan, closePlan } from '@commands/management/api-plan-management-commands';
@@ -27,7 +28,6 @@ import {
   subscribeApplication,
 } from '@commands/management/application-management-commands';
 import { ApplicationFakers } from '@fakers/applications';
-import { requestGateway } from 'support/common/http.commands';
 
 context('Create and test an API Key plan', () => {
   let createdApi: ApiImport;

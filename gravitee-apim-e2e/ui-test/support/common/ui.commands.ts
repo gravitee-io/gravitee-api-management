@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { gio } from '@commands/gravitee.commands';
-import { ADMIN_USER } from '@fakers/users/users';
-
 declare namespace Cypress {
   interface Chainable {
     /**
@@ -37,6 +34,8 @@ declare namespace Cypress {
      * @param password Password to use for authentication
      */
     loginInAPIM(username: string, password: string): Chainable<Element>;
+
+    focusOnDialog(): Chainable<Element>;
   }
 }
 
@@ -58,5 +57,5 @@ Cypress.Commands.add('loginInAPIM', (username: string, password: string) => {
 });
 
 Cypress.Commands.add('focusOnDialog', () => {
-  return cy.get('mat-dialog-container');
+  cy.get('mat-dialog-container');
 });

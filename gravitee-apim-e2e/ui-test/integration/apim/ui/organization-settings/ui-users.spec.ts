@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ADMIN_USER } from '@fakers/users/users';
-import faker from 'faker';
+import faker from '@faker-js/faker';
 
 describe('Users', () => {
   beforeEach(() => {

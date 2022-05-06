@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import faker from '@faker-js/faker';
 
 import {
   am_createApplication,
@@ -21,14 +22,14 @@ import {
 } from '@commands/am_management/am_application-management-commands';
 import { am_createDomain, am_deleteDomain, am_enableDomain } from '@commands/am_management/am_domain-management-commands';
 import { am_getApiToken } from '@commands/am_management/am_token-management-commands';
-import { deleteApi, deployApi, importCreateApi, startApi, stopApi } from '@commands/management/api-management-commands';
-import { closePlan, publishPlan } from '@commands/management/api-plan-management-commands';
+import { deployApi, importCreateApi, startApi } from '@commands/management/api-management-commands';
+import { publishPlan } from '@commands/management/api-plan-management-commands';
 import { AM_ADMIN_USER } from '@fakers/users/am_users';
 import { API_PUBLISHER_USER } from '@fakers/users/users';
 import { Application } from '@model/am_applications';
-import * as faker from 'faker';
-import { requestGateway } from 'support/common/http.commands';
 import { ApiFakers } from '@fakers/apis';
+import { requestGateway } from 'ui-test/support/common/http.commands';
+
 const jwt = require('jsonwebtoken');
 
 context('Testing OAuth2 policy', () => {

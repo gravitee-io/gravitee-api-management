@@ -22,8 +22,7 @@ import {
 } from '@model/api-imports';
 import { BasicAuthentication } from '@model/users';
 import { ProcessSubscriptionEntity } from '@model/api-subscriptions';
-import { requestGateway } from 'support/common/http.commands';
-import { JsonPatch } from '@model/json-patch';
+import { requestGateway } from 'ui-test/support/common/http.commands';
 
 export function createApi(auth: BasicAuthentication, body: Api, failOnStatusCode = false) {
   return cy.request({

@@ -15,7 +15,7 @@
         "test:platform": "cypress open --config-file ui-test/integration/platform/cypress-config.json",
         "test:api": "jest api-test",
         "test:ci": "jest api-test --runInBand",
-        "lint": "npm run prettier && npm run lint:license",
+        "lint": "npm run prettier && npm run lint:license && tsc --noEmit",
         "lint:fix": "npm run prettier:fix && npm run lint:license:fix",
         "lint:license": "license-check-and-add check -f license-check-config.json",
         "lint:license:fix": "license-check-and-add add -f license-check-config.json -r",

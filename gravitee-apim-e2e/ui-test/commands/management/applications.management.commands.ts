@@ -28,7 +28,7 @@ export class ApplicationsManagementCommands extends HttpConnector {
     return this.httpClient.get('/applications');
   }
 
-  create<T extends ErrorableManagement<ApplicationEntity[]> = ApplicationEntity[]>(application: Application): Chainable<Response<T>> {
+  create<T extends ErrorableManagement<ApplicationEntity> = ApplicationEntity>(application: Application): Chainable<Response<T>> {
     return this.httpClient.post('/applications', application);
   }
 }

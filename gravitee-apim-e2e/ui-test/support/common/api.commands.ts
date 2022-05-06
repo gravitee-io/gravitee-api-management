@@ -52,7 +52,9 @@ Cypress.Commands.add('createAndStartApiFromSwagger', (swaggerImport: string, att
     api.proxy.groups[0].endpoints.forEach((_value, index) => {
       api.proxy.groups[0].endpoints[index].target = `${Cypress.env('localPetstore_v2')}`;
     });
+    // @ts-ignore
     updateApi(API_PUBLISHER_USER, api.id, api);
+    // @ts-ignore
     return createPlan(API_PUBLISHER_USER, api.id, fakePlan)
       .its('body')
       .then((plan) => {

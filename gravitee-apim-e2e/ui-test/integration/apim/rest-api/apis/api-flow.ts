@@ -20,7 +20,7 @@ import { createApi, deleteApi, publishApi, startApi, stopApi } from '@commands/m
 import { createPlan, publishPlan, deletePlan } from '@commands/management/api-plan-management-commands';
 import { Api } from '@model/apis';
 import { NewPlanEntity, PlanSecurityType } from '@model/plan';
-import { requestGateway } from 'support/common/http.commands';
+import { requestGateway } from 'ui-test/support/common/http.commands';
 
 context('Create an API flow', () => {
   let api: Api;
@@ -106,7 +106,7 @@ context('Create an API flow', () => {
     it('should get a positive response when calling the new API endpoint', function () {
       requestGateway({
         method: 'GET',
-        url: `${Cypress.env('gatewayServer')}${api.context_path}?teststring=${api.id}`,
+        url: `${Cypress.env('gatewayServer')}${api.contextPath}?teststring=${api.id}`,
       })
         .ok()
         .its('body.query_params.teststring')

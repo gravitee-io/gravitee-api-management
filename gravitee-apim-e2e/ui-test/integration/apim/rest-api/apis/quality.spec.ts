@@ -16,12 +16,8 @@
 import { ADMIN_USER, API_PUBLISHER_USER, LOW_PERMISSION_USER } from '@fakers/users/users';
 import { Api, ApiDefinition, ApiLifecycleState, ApiQualityRule, ApiState, ApiVisibility, ApiWorkflowState } from '@model/apis';
 import { ManagementError } from '@model/technical';
-import { ApiAssertions, ApiQualityMetricsAssertions } from 'assertions/api.assertion';
-import { TechnicalErrorAssertions } from 'assertions/error.assertion';
 import { PortalSettings } from '@model/portal-settings';
-import { PortalSettingsAssertions } from 'assertions/portal-settings.assertion';
 import { QualityRule } from '@model/quality-rules';
-import { EnvironmentGroupAssertions, EnvironmentQualityRuleAssertions } from 'assertions/environment-configuration.assertion';
 import { Group, GroupEvent } from '@model/groups';
 import { Task, TaskQuality, TaskType, User } from '@model/users';
 import { Member } from '@model/members';
@@ -29,6 +25,10 @@ import { ApiFakers } from '@fakers/apis';
 import Response = Cypress.Response;
 import { gio } from '@commands/gravitee.commands';
 import faker from '@faker-js/faker';
+import { EnvironmentGroupAssertions, EnvironmentQualityRuleAssertions } from 'ui-test/assertions/environment-configuration.assertion';
+import { ApiAssertions, ApiQualityMetricsAssertions } from 'ui-test/assertions/api.assertion';
+import { TechnicalErrorAssertions } from 'ui-test/assertions/error.assertion';
+import { PortalSettingsAssertions } from 'ui-test/assertions/portal-settings.assertion';
 
 context('API - Quality', () => {
   let createdQualityRule: QualityRule;

@@ -17,6 +17,7 @@ import { Endpoint, Services } from './api-endpoints';
 import { Flow, FlowMode } from './api-flows';
 import { MethodType, Plan, Step } from './plan';
 export interface Api {
+  proxy: any;
   id: string;
   contextPath: string;
   description: string;

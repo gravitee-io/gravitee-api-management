@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ADMIN_USER } from '@fakers/users/users';
-import faker from 'faker';
+import faker from '@faker-js/faker';
 
 describe('Tenants', () => {
   const name = `${faker.lorem.word(10)} ${faker.lorem.word(10)}`.substring(0, 20);

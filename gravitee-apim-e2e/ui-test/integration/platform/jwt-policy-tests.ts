@@ -18,7 +18,6 @@ import { API_PUBLISHER_USER } from '@fakers/users/users';
 import { deployApi, importCreateApi, startApi } from '@commands/management/api-management-commands';
 import { publishPlan } from '@commands/management/api-plan-management-commands';
 import { ApiImport } from '@model/api-imports';
-import { requestGateway } from 'support/common/http.commands';
 import { ApiFakers } from '@fakers/apis';
 import { am_createApplication, am_deleteApplication } from '@commands/am_management/am_application-management-commands';
 import { am_createDomain, am_deleteDomain, am_enableDomain } from '@commands/am_management/am_domain-management-commands';
@@ -26,6 +25,7 @@ import { am_getApiToken } from '@commands/am_management/am_token-management-comm
 import { AM_ADMIN_USER } from '@fakers/users/am_users';
 import { Application } from '@model/applications';
 import faker from '@faker-js/faker';
+import { requestGateway } from 'ui-test/support/common/http.commands';
 
 context('Create and test JWT policy', () => {
   let hs256Api: ApiImport;
@@ -279,8 +279,8 @@ context('Create and test JWT policy', () => {
         url: `${Cypress.env('am_gatewayServer')}/auth/${am_domainHrid}/oauth/token`,
         form: true,
         auth: {
-          username: am_jwksTestApplication.settings.oauth.clientId,
-          password: am_jwksTestApplication.settings.oauth.clientSecret,
+          username: am_jwksTestApplication.settings.oauth.client_id,
+          password: am_jwksTestApplication.settings.oauth.client_secret,
         },
         body: 'grant_type=client_credentials',
       }).then((response: Cypress.Response<any>) => {

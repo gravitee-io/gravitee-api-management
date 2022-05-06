@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 declare global {
   namespace Cypress {
     interface Chainable<Subject> {
@@ -36,9 +35,8 @@ Cypress.Commands.add(
   {
     prevSubject: true,
   },
-  (subject, statusCode: number) => {
-    expect(subject.status).to.equal(statusCode);
-    return subject;
+  (response: Cypress.Response<any>, statusCode: number) => {
+    expect(response.status).to.equal(statusCode);
   },
 );
 
@@ -47,9 +45,8 @@ Cypress.Commands.add(
   {
     prevSubject: true,
   },
-  (subject) => {
-    expect(subject.status).to.equal(200);
-    return subject;
+  (response: Cypress.Response<any>) => {
+    expect(response.status).to.equal(200);
   },
 );
 
@@ -58,9 +55,8 @@ Cypress.Commands.add(
   {
     prevSubject: true,
   },
-  (subject) => {
-    expect(subject.status).to.equal(201);
-    return subject;
+  (response: Cypress.Response<any>) => {
+    expect(response.status).to.equal(201);
   },
 );
 
@@ -69,9 +65,8 @@ Cypress.Commands.add(
   {
     prevSubject: true,
   },
-  (subject) => {
-    expect(subject.status).to.equal(204);
-    return subject;
+  (response: Cypress.Response<any>) => {
+    expect(response.status).to.equal(204);
   },
 );
 
@@ -80,9 +75,8 @@ Cypress.Commands.add(
   {
     prevSubject: true,
   },
-  (subject) => {
-    expect(subject.status).to.equal(400);
-    return subject;
+  (response: Cypress.Response<any>) => {
+    expect(response.status).to.equal(400);
   },
 );
 
@@ -91,9 +85,8 @@ Cypress.Commands.add(
   {
     prevSubject: true,
   },
-  (subject) => {
-    expect(subject.status).to.equal(401);
-    return subject;
+  (response: Cypress.Response<any>) => {
+    expect(response.status).to.equal(401);
   },
 );
 
@@ -102,9 +95,8 @@ Cypress.Commands.add(
   {
     prevSubject: true,
   },
-  (subject) => {
-    expect(subject.status).to.equal(404);
-    return subject;
+  (response: Cypress.Response<any>) => {
+    expect(response.status).to.equal(404);
   },
 );
 
@@ -113,9 +105,8 @@ Cypress.Commands.add(
   {
     prevSubject: true,
   },
-  (subject) => {
-    expect(subject.status).to.equal(503);
-    return subject;
+  (response: Cypress.Response<any>) => {
+    expect(response.status).to.equal(503);
   },
 );
 
