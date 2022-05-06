@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.reactivex.Flowable;
 
 /**
@@ -28,12 +29,12 @@ public interface FlowResolver {
      * Resolve the flows against the current context.
      * Each flow of the initial flow list is filtered thanks to the provided evaluator before being returned.
      *
-     * Initial flow list must be provided by a concrete implementation of {@link #provideFlows(ExecutionContext)}.
+     * Initial flow list must be provided by a concrete implementation of {@link #provideFlows(RequestExecutionContext)}.
      *
      * @param ctx the current context.
      * @return a {@link Flowable} of {@link Flow} that have passed the filter step.
      */
-    Flowable<Flow> resolve(ExecutionContext<?, ?> ctx);
+    Flowable<Flow> resolve(RequestExecutionContext ctx);
 
     /**
      * Provides the initial list of flows.
@@ -43,5 +44,5 @@ public interface FlowResolver {
      * @param ctx the current context
      * @return a {@link Flowable} of {@link Flow}.
      */
-    Flowable<Flow> provideFlows(ExecutionContext<?, ?> ctx);
+    Flowable<Flow> provideFlows(RequestExecutionContext ctx);
 }
