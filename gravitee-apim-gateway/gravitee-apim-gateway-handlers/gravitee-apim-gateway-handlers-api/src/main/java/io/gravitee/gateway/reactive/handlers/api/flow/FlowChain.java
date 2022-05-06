@@ -26,6 +26,7 @@ import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolver;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
@@ -56,7 +57,7 @@ public class FlowChain {
         this.policyManager = policyManager;
     }
 
-    public Completable execute(ExecutionContext<?, ?> ctx, ExecutionPhase phase) {
+    public Completable execute(RequestExecutionContext ctx, ExecutionPhase phase) {
         return resolveFlows(ctx)
             .doOnNext(flow -> log.debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name()))
             .map(flow -> createPolicyChain(flow, phase))
@@ -91,7 +92,7 @@ public class FlowChain {
         return phase == REQUEST || phase == ASYNC_REQUEST ? ON_REQUEST : ON_RESPONSE;
     }
 
-    private Flowable<Flow> resolveFlows(ExecutionContext<?, ?> ctx) {
+    private Flowable<Flow> resolveFlows(RequestExecutionContext ctx) {
         if (this.flows == null) {
             // Resolves the flows once. Subsequent resolutions will return the same flows.
             this.flows = resolver.resolve(ctx).cache();
@@ -100,7 +101,7 @@ public class FlowChain {
         return this.flows;
     }
 
-    private Completable continueChain(ExecutionContext<?, ?> ctx, PolicyChain chain) {
+    private Completable continueChain(RequestExecutionContext ctx, PolicyChain chain) {
         if (!ctx.isInterrupted()) {
             return chain.execute(ctx);
         } else {

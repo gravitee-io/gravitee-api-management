@@ -18,8 +18,10 @@ package io.gravitee.gateway.reactive.policy.adapter.policy;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.async.AsyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Completable;
@@ -46,23 +48,23 @@ public class PolicyAdapter implements Policy {
     }
 
     @Override
-    public Completable onRequest(SyncExecutionContext ctx) {
+    public Completable onRequest(RequestExecutionContext ctx) {
         return execute(ctx, ExecutionPhase.REQUEST);
     }
 
     @Override
-    public Completable onResponse(SyncExecutionContext ctx) {
+    public Completable onResponse(RequestExecutionContext ctx) {
         return execute(ctx, ExecutionPhase.RESPONSE);
     }
 
     @Override
-    public Completable onAsyncRequest(AsyncExecutionContext ctx) {
-        return Completable.error(new RuntimeException("Cannot adapt v3 policy for async request execution"));
+    public Flowable<Message> onMessage(ExecutionContext ctx, Message message) {
+        return Flowable.error(new RuntimeException("Cannot adapt v3 policy for message request execution"));
     }
 
     @Override
-    public Completable onAsyncResponse(AsyncExecutionContext ctx) {
-        return Completable.error(new RuntimeException("Cannot adapt v3 policy for async response execution"));
+    public Flowable<Message> onMessageFlow(ExecutionContext ctx, Flowable<Message> messageFlow) {
+        return Flowable.error(new RuntimeException("Cannot adapt v3 policy for message response execution"));
     }
 
     /**
@@ -76,7 +78,7 @@ public class PolicyAdapter implements Policy {
      *
      * @return a {@link Completable} indicating the execution is completed.
      */
-    private Completable execute(SyncExecutionContext ctx, ExecutionPhase phase) {
+    private Completable execute(final RequestExecutionContext ctx, final ExecutionPhase phase) {
         Completable completable;
 
         if (policy.isRunnable()) {
@@ -94,7 +96,7 @@ public class PolicyAdapter implements Policy {
         return completable;
     }
 
-    private Completable policyExecute(SyncExecutionContext ctx) {
+    private Completable policyExecute(RequestExecutionContext ctx) {
         return Completable.create(
             emitter -> {
                 try {
@@ -106,7 +108,7 @@ public class PolicyAdapter implements Policy {
         );
     }
 
-    private Completable policyStream(SyncExecutionContext ctx, ExecutionPhase phase) {
+    private Completable policyStream(RequestExecutionContext ctx, ExecutionPhase phase) {
         Buffer newBuffer = Buffer.buffer();
 
         return Completable
@@ -160,19 +162,19 @@ public class PolicyAdapter implements Policy {
             );
     }
 
-    private Flowable<Buffer> getBody(SyncExecutionContext ctx, ExecutionPhase phase) {
+    private Flowable<Buffer> getBody(RequestExecutionContext ctx, ExecutionPhase phase) {
         if (phase == ExecutionPhase.REQUEST) {
-            return ctx.request().getChunkedBody();
+            return ctx.request().chunks();
         } else {
-            return ctx.response().getChunkedBody();
+            return ctx.response().chunks();
         }
     }
 
-    private Completable setBody(SyncExecutionContext ctx, ExecutionPhase phase, Buffer newBuffer) {
+    private Completable setBody(RequestExecutionContext ctx, ExecutionPhase phase, Buffer newBuffer) {
         if (phase == ExecutionPhase.REQUEST) {
-            return ctx.request().setBody(Maybe.just(newBuffer));
+            return ctx.request().body(Maybe.just(newBuffer));
         } else {
-            return ctx.response().setBody(Maybe.just(newBuffer));
+            return ctx.response().body(Maybe.just(newBuffer));
         }
     }
 }

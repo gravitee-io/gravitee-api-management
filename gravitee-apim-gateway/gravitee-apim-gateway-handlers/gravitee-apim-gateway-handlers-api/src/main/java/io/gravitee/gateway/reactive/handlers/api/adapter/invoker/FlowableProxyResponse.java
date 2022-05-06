@@ -18,7 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.adapter.invoker;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.reactivex.Flowable;
 import io.reactivex.internal.subscriptions.EmptySubscription;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,13 +36,13 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
     private ProxyResponse proxyResponse;
-    private SyncExecutionContext ctx;
+    private RequestExecutionContext ctx;
     private ProxyConnection connection;
 
     private Subscription subscription;
     private Subscriber<? super Buffer> subscriber;
 
-    public void initialize(SyncExecutionContext ctx, ProxyConnection connection, ProxyResponse proxyResponse) {
+    public void initialize(RequestExecutionContext ctx, ProxyConnection connection, ProxyResponse proxyResponse) {
         this.ctx = ctx;
         this.connection = connection;
         this.proxyResponse = proxyResponse;

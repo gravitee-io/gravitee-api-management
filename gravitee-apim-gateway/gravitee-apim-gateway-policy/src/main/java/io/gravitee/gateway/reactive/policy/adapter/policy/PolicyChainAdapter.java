@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.policy.adapter.policy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.policy.api.PolicyResult;
 import io.reactivex.CompletableEmitter;
 
@@ -27,10 +28,10 @@ import io.reactivex.CompletableEmitter;
  */
 public class PolicyChainAdapter implements io.gravitee.policy.api.PolicyChain {
 
-    private final ExecutionContext<?, ?> ctx;
+    private final RequestExecutionContext ctx;
     private final CompletableEmitter emitter;
 
-    public PolicyChainAdapter(ExecutionContext<?, ?> ctx, CompletableEmitter emitter) {
+    public PolicyChainAdapter(RequestExecutionContext ctx, CompletableEmitter emitter) {
         this.ctx = ctx;
         this.emitter = emitter;
     }

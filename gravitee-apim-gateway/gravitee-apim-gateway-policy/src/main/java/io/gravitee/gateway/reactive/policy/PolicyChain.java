@@ -17,8 +17,8 @@ package io.gravitee.gateway.reactive.policy;
 
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.async.AsyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
+import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
@@ -49,7 +49,7 @@ public class PolicyChain {
      *
      * @param id an arbitrary id that helps to identify the policy chain at execution time.
      * @param policies the list of the policies to be part of the execution chain.
-     * @param phase the execution phase that will be used to determine the method of the policies to execute ({@link Policy#onRequest(SyncExecutionContext)}, {@link Policy#onAsyncRequest(AsyncExecutionContext)}}, ...).
+     * @param phase the execution phase that will be used to determine the method of the policies to execute.
      */
     public PolicyChain(@Nonnull String id, @Nonnull List<Policy> policies, @Nonnull ExecutionPhase phase) {
         this.id = id;
@@ -65,30 +65,72 @@ public class PolicyChain {
      * @return a {@link Completable} that completes when all the policies of the chain have been executed or the chain has been interrupted.
      * The {@link Completable} may complete in error in case of any error occurred while executing the policies.
      */
-    public Completable execute(ExecutionContext<?, ?> ctx) {
+    public Completable execute(ExecutionContext ctx) {
         log.debug("Executing chain {}", id);
 
         return policies.flatMapCompletable(policy -> executePolicy(ctx, policy), false, 1);
     }
 
-    private Completable executePolicy(ExecutionContext<?, ?> ctx, Policy policy) {
+    private Completable executePolicy(ExecutionContext ctx, Policy policy) {
         if (ctx.isInterrupted()) {
             return Completable.complete();
         }
 
         log.debug("Executing policy {} on phase {}", policy.getId(), phase);
 
-        switch (phase) {
-            case REQUEST:
-                return policy.onRequest((SyncExecutionContext) ctx);
-            case RESPONSE:
-                return policy.onResponse((SyncExecutionContext) ctx);
-            case ASYNC_REQUEST:
-                return policy.onAsyncRequest((AsyncExecutionContext) ctx);
-            case ASYNC_RESPONSE:
-                return policy.onAsyncResponse((AsyncExecutionContext) ctx);
-            default:
-                return Completable.error(new RuntimeException("Invalid execution phase"));
+        if (ExecutionPhase.REQUEST == phase || ExecutionPhase.RESPONSE == phase) {
+            // Ensure right context is given
+            if (!(ctx instanceof RequestExecutionContext)) {
+                return Completable.error(
+                    new IllegalArgumentException(
+                        String.format("Context '%s' is compatible with the given phase '%s'", ctx.getClass().getSimpleName(), phase)
+                    )
+                );
+            }
+            RequestExecutionContext RequestExecutionContext = (RequestExecutionContext) ctx;
+            if (ExecutionPhase.REQUEST == phase) {
+                return policy.onRequest(RequestExecutionContext);
+            } else {
+                return policy.onResponse(RequestExecutionContext);
+            }
+        } else if (ExecutionPhase.ASYNC_REQUEST == phase || ExecutionPhase.ASYNC_RESPONSE == phase) {
+            // Ensure right context is given
+            if (!(ctx instanceof MessageExecutionContext)) {
+                return Completable.error(
+                    new IllegalArgumentException(
+                        String.format("Context '%s' is compatible with the given phase '%s'", ctx.getClass().getSimpleName(), phase)
+                    )
+                );
+            }
+            MessageExecutionContext messageExecutionContext = (MessageExecutionContext) ctx;
+            if (ExecutionPhase.ASYNC_REQUEST == phase) {
+                return policy
+                    .onRequest(messageExecutionContext)
+                    .andThen(
+                        messageExecutionContext
+                            .incomingMessageFlow()
+                            .onMessage(
+                                upstream ->
+                                    policy
+                                        .onMessageFlow(messageExecutionContext, upstream)
+                                        .flatMap(message -> policy.onMessage(messageExecutionContext, message))
+                            )
+                    );
+            } else {
+                return policy
+                    .onResponse(messageExecutionContext)
+                    .andThen(
+                        messageExecutionContext
+                            .outgoingMessageFlow()
+                            .onMessage(
+                                upstream ->
+                                    policy
+                                        .onMessageFlow(messageExecutionContext, upstream)
+                                        .flatMap(message -> policy.onMessage(messageExecutionContext, message))
+                            )
+                    );
+            }
         }
+        return Completable.error(new RuntimeException("Invalid execution phase"));
     }
 }

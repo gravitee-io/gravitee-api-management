@@ -22,33 +22,33 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
 import io.gravitee.tracing.api.Tracer;
 import java.util.*;
 
-@SuppressWarnings("unchecked")
-class AbstractExecutionContext<RQ extends Request<?>, RS extends Response<?>> implements ExecutionContext<RQ, RS> {
+abstract class AbstractExecutionContext implements RequestExecutionContext {
 
     private static final String TEMPLATE_ATTRIBUTE_REQUEST = "request";
     private static final String TEMPLATE_ATTRIBUTE_RESPONSE = "response";
     private static final String TEMPLATE_ATTRIBUTE_CONTEXT = "context";
 
     private final ComponentProvider componentProvider;
-    private Collection<TemplateVariableProvider> templateVariableProviders;
-    private TemplateEngine templateEngine;
-
     private final Map<String, Object> attributes = new HashMap<>();
     private final Map<String, Object> internalAttributes = new HashMap<>();
-    private final RQ request;
-    private final RS response;
+    private final Request request;
+    private final Response response;
+    private Collection<TemplateVariableProvider> templateVariableProviders;
+    private TemplateEngine templateEngine;
     private boolean interrupted;
     private ExecutionFailure executionFailure;
 
-    public AbstractExecutionContext(
-        RQ request,
-        RS response,
+    protected AbstractExecutionContext(
+        Request request,
+        Response response,
         ComponentProvider componentProvider,
         List<TemplateVariableProvider> templateVariableProviders
     ) {
@@ -80,12 +80,12 @@ class AbstractExecutionContext<RQ extends Request<?>, RS extends Response<?>> im
     }
 
     @Override
-    public RQ request() {
+    public Request request() {
         return request;
     }
 
     @Override
-    public RS response() {
+    public Response response() {
         return response;
     }
 

@@ -34,11 +34,11 @@ import javax.net.ssl.SSLSession;
  */
 public class RequestAdapter implements io.gravitee.gateway.api.Request {
 
-    private final Request<?> request;
+    private final Request request;
 
     private Runnable onResumeHandler;
 
-    public RequestAdapter(Request<?> request) {
+    public RequestAdapter(Request request) {
         this.request = request;
     }
 

@@ -23,6 +23,6 @@ import io.reactivex.Completable;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiReactor<RQ extends Request<?>, RS extends Response<?>> {
-    Completable handle(RQ request, RS response);
+public interface ApiReactor {
+    Completable handle(final Request request, final Response response);
 }

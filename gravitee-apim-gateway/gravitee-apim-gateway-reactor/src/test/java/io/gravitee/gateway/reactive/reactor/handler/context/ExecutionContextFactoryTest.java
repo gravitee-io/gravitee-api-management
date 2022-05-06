@@ -23,12 +23,10 @@ import static org.mockito.Mockito.verify;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.gateway.reactive.api.context.async.AsyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.async.AsyncRequest;
-import io.gravitee.gateway.reactive.api.context.async.AsyncResponse;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncRequest;
-import io.gravitee.gateway.reactive.api.context.sync.SyncResponse;
+import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
+import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.context.Response;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -55,15 +53,15 @@ class ExecutionContextFactoryTest {
     public void shouldCreateSyncExecutionContext() {
         final TemplateVariableProvider provider = mock(TemplateVariableProvider.class);
 
-        final SyncRequest request = mock(SyncRequest.class);
-        final SyncResponse response = mock(SyncResponse.class);
+        final Request request = mock(Request.class);
+        final Response response = mock(Response.class);
 
         final ComponentProvider componentProvider = mock(ComponentProvider.class);
         final ExecutionContextFactory cut = new ExecutionContextFactory(componentProvider);
 
         cut.addTemplateVariableProvider(provider);
 
-        final SyncExecutionContext ctx = cut.create(request, response);
+        final RequestExecutionContext ctx = cut.createRequestResponseContext(request, response);
 
         assertNotNull(ctx);
         assertEquals(request, ctx.request());
@@ -82,15 +80,15 @@ class ExecutionContextFactoryTest {
     public void shouldCreateASyncExecutionContext() {
         final TemplateVariableProvider provider = mock(TemplateVariableProvider.class);
 
-        final AsyncRequest request = mock(AsyncRequest.class);
-        final AsyncResponse response = mock(AsyncResponse.class);
+        final Request request = mock(Request.class);
+        final Response response = mock(Response.class);
 
         final ComponentProvider componentProvider = mock(ComponentProvider.class);
         final ExecutionContextFactory cut = new ExecutionContextFactory(componentProvider);
 
         cut.addTemplateVariableProvider(provider);
 
-        final AsyncExecutionContext ctx = cut.create(request, response);
+        final MessageExecutionContext ctx = cut.createMessageContext(request, response);
 
         assertNotNull(ctx);
         assertEquals(request, ctx.request());
