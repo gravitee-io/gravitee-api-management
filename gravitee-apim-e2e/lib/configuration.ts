@@ -17,7 +17,7 @@ import 'dotenv/config';
 import fetchApi from 'node-fetch';
 import { BasicAuthentication } from '@model/users';
 import { Configuration as ManagementConfiguration } from './management-webclient-sdk/src/lib/runtime';
-import { Configuration as PortalConfiguration } from './portal-webclient-sdk/src/lib';
+import { Configuration as PortalConfiguration, HTTPHeaders } from './portal-webclient-sdk/src/lib';
 
 export const ADMIN_USER = {
   username: process.env.ADMIN_USERNAME,
@@ -57,50 +57,66 @@ export const forManagementAsSimpleUser = () => {
   return forManagement(SIMPLE_USER);
 };
 
-export const forManagement = (auth: BasicAuthentication = ADMIN_USER) => {
+export const forManagement = (auth: BasicAuthentication = ADMIN_USER, headers = {}) => {
   return new ManagementConfiguration({
     basePath: process.env.MANAGEMENT_BASE_PATH,
     fetchApi,
     ...auth,
+    headers: { ...defaultHeaders, ...headers },
   });
 };
 
-export const forPortal = (auth: BasicAuthentication = ANONYMOUS, envId: string = 'DEFAULT') => {
+const defaultHeaders = {
+  Accept: '*/*',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'Cache-Control': 'no-cache',
+  Connection: 'keep-alive',
+  'User-Agent': 'node-fetch',
+};
+
+export const forPortal = ({ auth = ANONYMOUS, envId = 'DEFAULT', headers = {} }) => {
   return new PortalConfiguration({
     basePath: `${process.env.PORTAL_BASE_PATH}/${envId}`,
     fetchApi,
     ...auth,
+    headers: { ...defaultHeaders, ...headers },
   });
 };
 
-export const forPortalAsAnonymous = () => {
-  return forPortal(ANONYMOUS);
+export const forPortalAsAnonymous = (headers: HTTPHeaders = {}) => {
+  return forPortal({ headers });
 };
 
-export const forPortalAsApplicationUser = () => {
-  return forPortal(APP_USER);
+export const forPortalAsApplicationUser = (headers: HTTPHeaders = {}) => {
+  return forPortal({ auth: APP_USER, headers });
 };
 
-export const forPortalAsAdminUser = () => {
-  return forPortal(ADMIN_USER);
+export const forPortalAsApplicationFrenchUser = (headers: HTTPHeaders = {}) => {
+  return forPortalAsApplicationUser({ 'Accept-Language': 'fr-FR,fr;q=0.9' });
 };
 
-export const forPortalAsApiUser = () => {
-  return forPortal(API_USER);
+export const forPortalAsAdminUser = (headers: HTTPHeaders = {}) => {
+  return forPortal({ auth: ADMIN_USER, headers });
 };
 
-export const forPortalAsAppUser = () => {
-  return forPortal(APP_USER);
+export const forPortalAsApiUser = (headers: HTTPHeaders = {}) => {
+  return forPortal({ auth: API_USER, headers });
 };
 
-export const forPortalAsSimpleUser = () => {
-  return forPortal(SIMPLE_USER);
+export const forPortalAsAppUser = (headers: HTTPHeaders = {}) => {
+  return forPortal({ auth: APP_USER, headers });
+};
+
+export const forPortalAsSimpleUser = (headers: HTTPHeaders = {}) => {
+  return forPortal({ auth: SIMPLE_USER, headers });
 };
 
 export const forPortalWithWrongPassword = () => {
   return forPortal({
-    username: process.env.API_USERNAME,
-    password: 'wrongPassword',
+    auth: {
+      username: process.env.API_USERNAME,
+      password: 'wrongPassword',
+    },
   });
 };
 

@@ -29,8 +29,20 @@ export async function fail(promise, expectedStatus: number, expectedMessage?: st
   }
 }
 
+export async function unauthorized(promise: Promise<ApiResponse<any>>) {
+  return fail(promise, 401);
+}
+
 export async function succeed(promise: Promise<ApiResponse<any>>, expectedStatus: number = 200) {
   const response = await promise;
   expect(response.raw.status).toEqual(expectedStatus);
   return await response.value();
+}
+
+export async function created(promise: Promise<ApiResponse<any>>) {
+  return succeed(promise, 201);
+}
+
+export async function deleted(promise: Promise<ApiResponse<any>>) {
+  return succeed(promise, 204);
 }
