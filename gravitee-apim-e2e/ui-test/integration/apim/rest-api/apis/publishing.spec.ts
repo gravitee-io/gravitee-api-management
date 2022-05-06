@@ -17,8 +17,8 @@ import { ADMIN_USER, API_PUBLISHER_USER, APPLICATION_USER, LOW_PERMISSION_USER }
 import { ApiFakers } from '@fakers/apis';
 import { Api, ApiErrorCodes, ApiLifecycleState, PortalApi } from '@model/apis';
 import { CollectionResponse, PortalError } from '@model/technical';
-import { PortalApiAssertions, ApiAssertions } from 'assertions/api.assertion';
-import { ErrorAssertions } from 'assertions/error.assertion';
+import { PortalApiAssertions, ApiAssertions } from 'ui-test/assertions/api.assertion';
+import { ErrorAssertions } from 'ui-test/assertions/error.assertion';
 import { gio } from '@commands/gravitee.commands';
 
 context('API - Publishing', () => {

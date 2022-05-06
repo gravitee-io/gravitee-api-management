@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
+import { API_PUBLISHER_USER } from '@fakers/users/users';
 import { ApiFakers } from '@fakers/apis';
 import { PlanFakers } from '@fakers/plans';
 import {
@@ -27,11 +27,11 @@ import {
   updateApi,
 } from '@commands/management/api-management-commands';
 import { createPlan, publishPlan, deletePlan } from '@commands/management/api-plan-management-commands';
-import { Api, ResponseTemplate } from '@model/apis';
+import { Api } from '@model/apis';
 import { NewPlanEntity, PlanSecurityType } from '@model/plan';
 import { ApiImportFakers } from '@fakers/api-imports';
 import { ApiImport } from '@model/api-imports';
-import { requestGateway } from 'support/common/http.commands';
+import { requestGateway } from 'ui-test/support/common/http.commands';
 
 context('Create a mock policy on a API v1 (path based)', () => {
   let createdApi: Api;
@@ -74,7 +74,7 @@ context('Create a mock policy on a API v1 (path based)', () => {
   it('should successfully call the mocked API endpoint', function () {
     requestGateway({
       method: 'GET',
-      url: `${Cypress.env('gatewayServer')}${createdApi.context_path}`,
+      url: `${Cypress.env('gatewayServer')}${createdApi.contextPath}`,
     }).should((response: Cypress.Response<any>) => {
       expect(response.headers['test-value']).to.equal('value123');
       expect(response.body.message).to.equal('This is a mocked response');

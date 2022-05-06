@@ -107,6 +107,7 @@ export interface ApiImportPrimaryOwner {
 }
 
 export interface ApiImport {
+  context_path?: string;
   id?: string;
   environment_id?: string;
   name: string;

@@ -18,8 +18,8 @@ import { ApiFakers } from '@fakers/apis';
 import { Api, ApiErrorCodes, ApiLifecycleState, ApiMember, ApiVisibility, PortalApi } from '@model/apis';
 import { CollectionResponse, PortalError } from '@model/technical';
 import { User } from '@model/users';
-import { ApiAssertions, PortalApiAssertions } from 'assertions/api.assertion';
-import { ErrorAssertions } from 'assertions/error.assertion';
+import { ApiAssertions, PortalApiAssertions } from 'ui-test/assertions/api.assertion';
+import { ErrorAssertions } from 'ui-test/assertions/error.assertion';
 import { gio } from '@commands/gravitee.commands';
 
 context('API - Visibility', () => {
