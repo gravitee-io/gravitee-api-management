@@ -22,6 +22,7 @@ import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
+import io.gravitee.gateway.handlers.api.manager.ApiDeploymentPreProcessor;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
@@ -62,6 +63,9 @@ public class DebugReactor extends DefaultReactor {
     @Qualifier("debugReactorHandlerRegistry")
     private ReactorHandlerRegistry reactorHandlerRegistry;
 
+    @Autowired
+    private ApiDeploymentPreProcessor apiDeploymentPreProcessor;
+
     @Override
     public void onEvent(Event<ReactorEvent, Reactable> reactorEvent) {
         if (reactorEvent.type() == ReactorEvent.DEBUG) {
@@ -74,6 +78,7 @@ public class DebugReactor extends DefaultReactor {
                     logger.debug("Reactable already deployed. No need to do it again.");
                     return;
                 }
+                apiDeploymentPreProcessor.prepareApi(reactableDebugApi);
                 logger.info("Deploy api for debug...");
 
                 logger.debug("Creating ReactorHandler");

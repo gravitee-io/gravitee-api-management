@@ -23,6 +23,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -33,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
+import io.gravitee.gateway.handlers.api.manager.ApiDeploymentPreProcessor;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.ReactableWrapper;
@@ -51,6 +53,7 @@ import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -88,8 +91,16 @@ public class DebugReactorTest {
     @Mock
     private VertxDebugHttpClientConfiguration debugHttpClientConfiguration;
 
+    @Mock
+    private ApiDeploymentPreProcessor apiDeploymentPreProcessor;
+
     @Captor
     ArgumentCaptor<io.gravitee.repository.management.model.Event> eventCaptor;
+
+    @Before
+    public void setUp() {
+        doNothing().when(apiDeploymentPreProcessor).prepareApi(any());
+    }
 
     @Test
     public void shouldDebugApiSuccessfully() throws TechnicalException, JsonProcessingException {

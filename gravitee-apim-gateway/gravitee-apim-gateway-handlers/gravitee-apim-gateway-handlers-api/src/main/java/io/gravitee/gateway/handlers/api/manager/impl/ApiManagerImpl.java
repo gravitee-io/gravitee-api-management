@@ -24,6 +24,7 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.manager.ApiDeploymentPreProcessor;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.cache.*;
@@ -62,7 +63,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
     private CacheManager cacheManager;
 
     @Autowired
-    private DataEncryptor dataEncryptor;
+    private ApiDeploymentPreProcessor apiDeploymentPreProcessor;
 
     private Cache<String, Api> apis;
 
@@ -101,8 +102,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
 
             // if API will be deployed or updated
             if (apiToDeploy || apiToUpdate) {
-                api.setPlans(getPlansMatchingShardingTag(api));
-                decryptProperties(api.getProperties());
+                apiDeploymentPreProcessor.prepareApi(api);
             }
 
             // API is not yet deployed, so let's do it
@@ -207,32 +207,6 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
         );
     }
 
-    private List<Plan> getPlansMatchingShardingTag(Api api) {
-        return api
-            .getPlans()
-            .stream()
-            .filter(
-                new Predicate<Plan>() {
-                    @Override
-                    public boolean test(Plan plan) {
-                        if (plan.getTags() != null && !plan.getTags().isEmpty()) {
-                            boolean hasMatchingTags = gatewayConfiguration.hasMatchingTags(plan.getTags());
-                            if (!hasMatchingTags) {
-                                logger.debug(
-                                    "Plan name[{}] api[{}] has been ignored because not in configured sharding tags",
-                                    plan.getName(),
-                                    api.getName()
-                                );
-                            }
-                            return hasMatchingTags;
-                        }
-                        return true;
-                    }
-                }
-            )
-            .collect(Collectors.toList());
-    }
-
     private void update(Api api) {
         MDC.put("api", api.getId());
         logger.debug("Updating {}", api);
@@ -263,22 +237,6 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
             eventManager.publishEvent(ReactorEvent.UNDEPLOY, currentApi);
             logger.info("{} has been undeployed", currentApi);
             MDC.remove("api");
-        }
-    }
-
-    private void decryptProperties(Properties properties) {
-        if (properties != null) {
-            for (Property property : properties.getProperties()) {
-                if (property.isEncrypted()) {
-                    try {
-                        property.setValue(dataEncryptor.decrypt(property.getValue()));
-                        property.setEncrypted(false);
-                        properties.getValues().put(property.getKey(), property.getValue());
-                    } catch (GeneralSecurityException e) {
-                        logger.error("Error decrypting API property value for key {}", property.getKey(), e);
-                    }
-                }
-            }
         }
     }
 

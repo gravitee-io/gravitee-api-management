@@ -20,8 +20,10 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.ApiContextHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.manager.ApiDeploymentPreProcessor;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
@@ -58,10 +60,18 @@ public class ApiHandlerConfiguration {
     private Node node;
 
     @Autowired
+    private GatewayConfiguration gatewayConfiguration;
+
+    @Autowired
     private io.gravitee.node.api.configuration.Configuration configuration;
 
     @Bean
-    public ApiManager apiManager() {
+    public ApiDeploymentPreProcessor apiDeploymentPreProcessor(DataEncryptor apiPropertiesEncryptor) {
+        return new ApiDeploymentPreProcessor(apiPropertiesEncryptor, gatewayConfiguration);
+    }
+
+    @Bean
+    public ApiManager apiManager() throws Exception {
         return new ApiManagerImpl();
     }
 

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.manager;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -23,8 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.Properties;
-import io.gravitee.el.TemplateContext;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
@@ -35,7 +34,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -60,7 +58,10 @@ public class ApiManagerTest {
     private GatewayConfiguration gatewayConfiguration;
 
     @Mock
-    private DataEncryptor dataEncryptor;
+    private DataEncryptor dataEncryptor = mock(DataEncryptor.class);
+
+    @Mock
+    private ApiDeploymentPreProcessor apiDeploymentPreProcessor;
 
     @Before
     public void setUp() {
@@ -70,6 +71,8 @@ public class ApiManagerTest {
         ((ApiManagerImpl) apiManager).setApis(new StandaloneCache<>("api_manager_test", new CacheConfiguration()));
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
+
+        doNothing().when(apiDeploymentPreProcessor).prepareApi(any());
     }
 
     @Test
@@ -192,6 +195,14 @@ public class ApiManagerTest {
         api.setPlans(singletonList(mockedPlan));
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
+        doAnswer(
+                invocation -> {
+                    api.setPlans(emptyList());
+                    return null;
+                }
+            )
+            .when(apiDeploymentPreProcessor)
+            .prepareApi(api);
 
         apiManager.register(api);
 
@@ -357,29 +368,6 @@ public class ApiManagerTest {
 
         verify(eventManager, never()).publishEvent(ReactorEvent.UPDATE, api);
         verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
-    }
-
-    @Test
-    public void shouldDecryptApiPropertiesOnDeployment() throws Exception {
-        final Api api = buildTestApi();
-
-        Properties properties = new Properties();
-        properties.setProperties(
-            List.of(
-                new Property("key1", "plain value 1", false),
-                new Property("key2", "value2Base64encrypted", true),
-                new Property("key3", "value3Base64encrypted", true)
-            )
-        );
-        api.setProperties(properties);
-
-        when(dataEncryptor.decrypt("value2Base64encrypted")).thenReturn("plain value 2");
-        when(dataEncryptor.decrypt("value3Base64encrypted")).thenReturn("plain value 3");
-
-        apiManager.register(api);
-
-        verify(dataEncryptor, times(2)).decrypt(any());
-        assertEquals(Map.of("key1", "plain value 1", "key2", "plain value 2", "key3", "plain value 3"), api.getProperties().getValues());
     }
 
     /*
@@ -777,39 +765,6 @@ public class ApiManagerTest {
     }
 
     private Api buildTestApi() {
-        Proxy proxy = new Proxy();
-        proxy.setVirtualHosts(singletonList(mock(VirtualHost.class)));
-        return new ApiBuilder().id("api-test").name("api-name-test").proxy(proxy).deployedAt(new Date()).build();
-    }
-
-    class ApiBuilder {
-
-        private final Api api = new Api();
-
-        public ApiBuilder id(String id) {
-            this.api.setId(id);
-            return this;
-        }
-
-        public ApiBuilder name(String name) {
-            this.api.setName(name);
-            return this;
-        }
-
-        public ApiBuilder proxy(Proxy proxy) {
-            this.api.setProxy(proxy);
-            return this;
-        }
-
-        public ApiBuilder deployedAt(Date updatedAt) {
-            this.api.setDeployedAt(updatedAt);
-            return this;
-        }
-
-        public Api build() {
-            api.setEnabled(true);
-
-            return this.api;
-        }
+        return new ApiBuilder().id("api-test").name("api-name-test").deployedAt(new Date()).build();
     }
 }
