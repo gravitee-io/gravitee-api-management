@@ -26,6 +26,7 @@ import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 import io.reactivex.observers.TestObserver;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
@@ -102,10 +103,10 @@ class PolicyChainTest {
 
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy1.onMessageFlow(eq(ctx), any())).thenReturn(Flowable.empty());
-        when(policy1.onMessage(eq(ctx), any())).thenReturn(Flowable.empty());
+        when(policy1.onMessage(eq(ctx), any())).thenReturn(Maybe.empty());
         when(policy2.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy2.onMessageFlow(eq(ctx), any())).thenReturn(Flowable.empty());
-        when(policy2.onMessage(eq(ctx), any())).thenReturn(Flowable.empty());
+        when(policy2.onMessage(eq(ctx), any())).thenReturn(Maybe.empty());
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
@@ -132,10 +133,10 @@ class PolicyChainTest {
 
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy1.onMessageFlow(eq(ctx), any())).thenReturn(Flowable.empty());
-        when(policy1.onMessage(eq(ctx), any())).thenReturn(Flowable.empty());
+        when(policy1.onMessage(eq(ctx), any())).thenReturn(Maybe.empty());
         when(policy2.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy2.onMessageFlow(eq(ctx), any())).thenReturn(Flowable.empty());
-        when(policy2.onMessage(eq(ctx), any())).thenReturn(Flowable.empty());
+        when(policy2.onMessage(eq(ctx), any())).thenReturn(Maybe.empty());
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
