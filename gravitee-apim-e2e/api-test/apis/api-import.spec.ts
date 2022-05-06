@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expect, test, it, afterEach, beforeAll, afterAll } from '@jest/globals';
+import { describe, expect, test, afterEach } from '@jest/globals';
 
-import * as swaggerv2 from '../resources/petstore_swaggerv2.json';
-import * as openapiv3 from '../resources/petstore_openapiv3.json';
-import { src as wsdlapi } from '../resources/wsdl.xml';
+import * as swaggerv2 from '@api-test-resources/petstore_swaggerv2.json';
+import * as openapiv3 from '@api-test-resources/petstore_openapiv3.json';
+import { src as wsdlapi } from '@api-test-resources/wsdl.xml';
 import { APIsApi } from '@management-apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsApiUser } from '@client-conf/*';
 import { ImportSwaggerDescriptorEntity } from '@management-models/ImportSwaggerDescriptorEntity';

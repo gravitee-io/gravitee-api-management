@@ -12,7 +12,7 @@ module.exports = {
   // cacheDirectory: "/private/var/folders/xk/k4x32f212msf6nyqh_24ct0c0000gn/T/jest_dx",
 
   // Automatically clear mock calls and instances between every test
-  clearMocks: true,
+  // clearMocks: true,
 
   // Indicates whether the coverage information should be collected while executing the test
   // collectCoverage: false,
@@ -21,13 +21,13 @@ module.exports = {
   // collectCoverageFrom: undefined,
 
   // The directory where Jest should output its coverage files
-  coverageDirectory: 'coverage',
+  // coverageDirectory: 'coverage',
 
   // An array of regexp pattern strings used to skip coverage collection
-  coveragePathIgnorePatterns: ['/node_modules/', '/dist/'],
+  coveragePathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/dist/'],
 
   // Indicates which provider should be used to instrument code for coverage
-  coverageProvider: 'v8',
+  // coverageProvider: 'v8',
 
   // A list of reporter names that Jest uses when writing coverage reports
   // coverageReporters: [
@@ -84,6 +84,7 @@ module.exports = {
     '@management-models/(.*)': '<rootDir>/lib/management-webclient-sdk/src/lib/models/$1',
     '@portal-apis/(.*)': '<rootDir>/lib/portal-webclient-sdk/src/lib/apis/$1',
     '@portal-models/(.*)': '<rootDir>/lib/portal-webclient-sdk/src/lib/models/$1',
+    '@api-test-resources/(.*)': '<rootDir>/api-test/resources/$1',
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
@@ -140,7 +141,7 @@ module.exports = {
   // snapshotSerializers: [],
 
   // The test environment that will be used for testing
-  testEnvironment: 'jsdom',
+  testEnvironment: 'node',
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
@@ -149,7 +150,7 @@ module.exports = {
   // testLocationInResults: false,
 
   // The glob patterns Jest uses to detect test files
-  testMatch: ['**/api-test/**/?(*.)+(spec|test).[tj]s?(x)'],
+  testMatch: ['<rootDir>/api-test/**/?(*.)+(spec|test).[tj]s?(x)'],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   // testPathIgnorePatterns: ['/node_modules/', 'dist'],
@@ -175,7 +176,7 @@ module.exports = {
     '^.+\\.xml$': '<rootDir>/lib/jest-raw-loader.js',
   },
 
-  testTimeout: 30000,
+  // testTimeout: 5000,
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   // transformIgnorePatterns: ["/node_modules/", "\\.pnp\\.[^\\\/]+$"],

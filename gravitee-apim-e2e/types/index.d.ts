@@ -20,3 +20,8 @@ declare module '*.xml' {
   const filename: string;
   export { src, filename };
 }
+
+declare module '*.json' {
+  const value: any;
+  export default value;
+}
