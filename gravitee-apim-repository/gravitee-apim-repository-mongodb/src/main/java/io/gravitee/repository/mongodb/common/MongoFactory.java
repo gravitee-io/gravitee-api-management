@@ -247,6 +247,9 @@ public class MongoFactory implements FactoryBean<MongoClient> {
             builder.credential(credentials);
         }
 
+        Boolean retryWritesPreference = readPropertyValue(propertyPrefix + "retryWrites", Boolean.class, true);
+        builder.retryWrites(retryWritesPreference);
+
         if (!isReactive) {
             String readPreference = readPropertyValue(propertyPrefix + "readPreference", String.class);
             String readPreferenceTags = readPropertyValue(propertyPrefix + "readPreferenceTags", String.class);
