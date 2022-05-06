@@ -48,7 +48,7 @@ public class ExecutionContextFactory {
      *
      * @return the created {@link RequestExecutionContext}.
      */
-    public RequestExecutionContext createRequestResponseContext(Request request, Response response) {
+    public RequestExecutionContext createRequestContext(Request request, Response response) {
         return new DefaultSyncExecutionContext(request, response, componentProvider, templateVariableProviders);
     }
 
