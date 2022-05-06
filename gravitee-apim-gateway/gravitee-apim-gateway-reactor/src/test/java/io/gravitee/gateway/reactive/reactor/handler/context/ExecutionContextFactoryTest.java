@@ -61,7 +61,7 @@ class ExecutionContextFactoryTest {
 
         cut.addTemplateVariableProvider(provider);
 
-        final RequestExecutionContext ctx = cut.createRequestResponseContext(request, response);
+        final RequestExecutionContext ctx = cut.createRequestContext(request, response);
 
         assertNotNull(ctx);
         assertEquals(request, ctx.request());
