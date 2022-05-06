@@ -1177,7 +1177,7 @@ jobs:
                       # Start APIM in background
                       GIO_MAX_MEM=1024m rest-api-docker-context/distribution/bin/gravitee &
                       # Wait for APIM to be up and running
-                      timeout 60s bash -c 'until nc -vz localhost 8083; do sleep 2; done'
+                      timeout 61s bash -c 'until nc -vz localhost 8083; do sleep 2; done'
                       # Run Postman tests
                       cd gravitee-apim-rest-api
                       make postman
