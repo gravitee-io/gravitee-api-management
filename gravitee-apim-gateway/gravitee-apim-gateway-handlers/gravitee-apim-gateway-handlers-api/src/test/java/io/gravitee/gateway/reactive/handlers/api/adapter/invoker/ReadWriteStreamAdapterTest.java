@@ -19,8 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncRequest;
+import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.reactive.policy.adapter.context.RequestAdapter;
 import io.reactivex.CompletableEmitter;
@@ -47,13 +47,13 @@ class ReadWriteStreamAdapterTest {
     private ExecutionContextAdapter ctx;
 
     @Mock
-    private RequestAdapter request;
+    private RequestAdapter requestAdapter;
 
     @Mock
-    private SyncExecutionContext syncCtx;
+    private RequestExecutionContext syncCtx;
 
     @Mock
-    private SyncRequest syncRequest;
+    private Request request;
 
     @Mock
     private CompletableEmitter nexEmitter;
@@ -66,18 +66,18 @@ class ReadWriteStreamAdapterTest {
         final Buffer requestChunk1 = Buffer.buffer("chunk1");
         final Buffer requestChunk2 = Buffer.buffer("chunk2");
 
-        when(ctx.request()).thenReturn(request);
+        when(ctx.request()).thenReturn(requestAdapter);
         when(ctx.getDelegate()).thenReturn(syncCtx);
-        when(syncCtx.request()).thenReturn(syncRequest);
+        when(syncCtx.request()).thenReturn(request);
 
         new ReadWriteStreamAdapter(ctx, nexEmitter);
 
         // Verify the onResume handler has been set.
-        verify(request).onResume(onResumeCaptor.capture());
+        verify(requestAdapter).onResume(onResumeCaptor.capture());
 
         final CountDownLatch latch = new CountDownLatch(1);
         final Flowable<Buffer> chunks = Flowable.just(requestChunk1, requestChunk2).doOnTerminate(latch::countDown);
-        when(syncRequest.getChunkedBody()).thenReturn(chunks);
+        when(request.chunks()).thenReturn(chunks);
 
         // Force call of onResume handler.
         final Runnable onResume = onResumeCaptor.getValue();
@@ -90,20 +90,20 @@ class ReadWriteStreamAdapterTest {
 
     @Test
     public void shouldErrorWhenErrorOccurs() throws InterruptedException {
-        when(ctx.request()).thenReturn(request);
+        when(ctx.request()).thenReturn(requestAdapter);
         when(ctx.getDelegate()).thenReturn(syncCtx);
-        when(syncCtx.request()).thenReturn(syncRequest);
+        when(syncCtx.request()).thenReturn(request);
 
         new ReadWriteStreamAdapter(ctx, nexEmitter);
 
         // Verify the onResume handler has been set.
-        verify(request).onResume(onResumeCaptor.capture());
+        verify(requestAdapter).onResume(onResumeCaptor.capture());
 
         final CountDownLatch latch = new CountDownLatch(1);
         final Flowable<Buffer> chunks = Flowable
             .<Buffer>error(new RuntimeException(MOCK_EXCEPTION_MESSAGE))
             .doOnTerminate(latch::countDown);
-        when(syncRequest.getChunkedBody()).thenReturn(chunks);
+        when(request.chunks()).thenReturn(chunks);
 
         // Force call of onResume handler.
         final Runnable onResume = onResumeCaptor.getValue();

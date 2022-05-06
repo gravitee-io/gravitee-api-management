@@ -21,6 +21,7 @@ import io.gravitee.gateway.flow.condition.evaluation.ExpressionLanguageFlowCondi
 import io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Flowable;
 
@@ -37,7 +38,7 @@ public class FlowConditionEvaluator implements ConditionEvaluator<Flow> {
     );
 
     @Override
-    public Flowable<Flow> filter(ExecutionContext<?, ?> executionContext, Flowable<Flow> flows) {
+    public Flowable<Flow> filter(RequestExecutionContext executionContext, Flowable<Flow> flows) {
         return flows.filter(flow -> conditionEvaluator.evaluate(ExecutionContextAdapter.create(executionContext), flow));
     }
 }

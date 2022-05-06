@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.reactive.reactor.handler.context;
 
-import io.gravitee.gateway.reactive.api.context.sync.SyncRequest;
-import io.gravitee.gateway.reactive.api.context.sync.SyncResponse;
+import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.Response;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,10 +31,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DefaultSyncExecutionContextTest extends AbstractExecutionContextTest {
 
     @Mock
-    protected SyncRequest request;
+    protected Request request;
 
     @Mock
-    protected SyncResponse response;
+    protected Response response;
 
     @BeforeEach
     public void init() {
