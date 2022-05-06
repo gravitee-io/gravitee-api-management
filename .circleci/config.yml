@@ -439,7 +439,7 @@ jobs:
                       docker logout graviteeio.azurecr.io
             - notify-on-failure
 
-    e2e-lint:
+    e2e-lint-build:
         executor:
             name: node-lts
             class: medium
@@ -457,7 +457,16 @@ jobs:
                   name: Run Prettier and ESLint
                   command: npm run lint
                   working_directory: gravitee-apim-e2e
+            - run:
+                name: Build
+                command: npm run build
+                working_directory: gravitee-apim-e2e
             - notify-on-failure
+            - persist_to_workspace:
+                  root: .
+                  paths:
+                    -  gravitee-apim-e2e/dist
+                    -  gravitee-apim-e2e/node_modules
 
     webui-lint-test:
         parameters:
@@ -1206,8 +1215,6 @@ jobs:
         - checkout
         - attach_workspace:
             at: .
-        - webui-install:
-            apim-ui-project: gravitee-apim-e2e
         - run:
             name: Wait for Mongo to be up and running
             command: timeout 15s bash -c 'until nc -vz localhost 27017; do sleep 2; done'
@@ -1442,14 +1449,14 @@ workflows:
                               - master
                               - /^\d+\.\d+\.x$/
                   # To be modified when testing strategy will be defined
-            - e2e-lint:
-                  name: Lint APIM e2e
+            - e2e-lint-build:
+                  name: Lint & Build APIM e2e
                   requires:
                       - setup
             - e2e-test:
                   name: Test APIM e2e
                   requires:
-                      - Lint APIM e2e
+                      - Lint & Build APIM e2e
                       - build
                   filters:
                     branches:

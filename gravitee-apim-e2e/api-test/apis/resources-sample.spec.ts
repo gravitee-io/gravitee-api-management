@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { describe, expect, test } from '@jest/globals';
-import { src as testXml, filename } from '../resources/test.xml';
-import * as petstore_openapiv3 from '../resources/petstore_openapiv3.json';
+import { src as testXml, filename } from '@api-test-resources/test.xml';
+import * as petstore_openapiv3 from '@api-test-resources/petstore_openapiv3.json';
 
 describe('Resources sample', () => {
   test('should load xml file', () => {
