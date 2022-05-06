@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.reactive.reactor.handler.context;
 
-import io.gravitee.gateway.reactive.api.context.async.AsyncRequest;
-import io.gravitee.gateway.reactive.api.context.async.AsyncResponse;
+import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.Response;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,13 +31,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DefaultAsyncExecutionContextTest extends AbstractExecutionContextTest {
 
     @Mock
-    protected AsyncRequest request;
+    protected Request request;
 
     @Mock
-    protected AsyncResponse response;
+    protected Response response;
 
     @BeforeEach
     public void init() {
-        cut = new DefaultAsyncExecutionContext(request, response, componentProvider, List.of(templateVariableProvider));
+        cut = new DefaultMessageExecutionContext(request, response, componentProvider, List.of(templateVariableProvider));
     }
 }

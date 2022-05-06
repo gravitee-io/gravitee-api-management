@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.handlers.api.adapter.resolver;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolver;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Flowable;
@@ -35,9 +36,8 @@ public class FlowResolverAdapter implements FlowResolver {
     }
 
     @Override
-    public Flowable<Flow> resolve(ExecutionContext<?, ?> ctx) {
+    public Flowable<Flow> resolve(RequestExecutionContext ctx) {
         final List<Flow> flows = legacyResolver.resolve(ExecutionContextAdapter.create(ctx));
-
         if (flows == null || flows.isEmpty()) {
             return Flowable.empty();
         }
@@ -46,7 +46,7 @@ public class FlowResolverAdapter implements FlowResolver {
     }
 
     @Override
-    public Flowable<Flow> provideFlows(ExecutionContext<?, ?> ctx) {
+    public Flowable<Flow> provideFlows(RequestExecutionContext ctx) {
         return Flowable.empty();
     }
 }

@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.handlers.api.condition;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.reactivex.Flowable;
 
 /**
@@ -24,5 +25,5 @@ import io.reactivex.Flowable;
  * @author GraviteeSource Team
  */
 public interface ConditionEvaluator<T> {
-    Flowable<Flow> filter(ExecutionContext<?, ?> executionContext, Flowable<T> flowable);
+    Flowable<Flow> filter(RequestExecutionContext executionContext, Flowable<T> flowable);
 }

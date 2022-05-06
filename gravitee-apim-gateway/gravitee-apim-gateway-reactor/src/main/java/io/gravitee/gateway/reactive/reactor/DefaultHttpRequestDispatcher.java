@@ -23,13 +23,11 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
-import io.gravitee.gateway.reactive.http.vertx.VertxSyncHttpServerRequest;
-import io.gravitee.gateway.reactive.http.vertx.VertxSyncHttpServerResponse;
+import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
+import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerResponse;
 import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.reactivex.Completable;
@@ -48,20 +46,19 @@ public class DefaultHttpRequestDispatcher
     implements HttpRequestDispatcher, EventListener<ReactorEvent, Reactable> {
 
     private final Logger log = LoggerFactory.getLogger(DefaultHttpRequestDispatcher.class);
+    private final IdGenerator idGenerator;
 
     @Autowired
     protected EventManager eventManager;
+
+    @Autowired
+    protected GatewayConfiguration gatewayConfiguration;
 
     @Autowired
     private ReactorHandlerRegistry reactorHandlerRegistry;
 
     @Autowired
     private EntrypointResolver entrypointResolver;
-
-    @Autowired
-    protected GatewayConfiguration gatewayConfiguration;
-
-    private final IdGenerator idGenerator;
 
     public DefaultHttpRequestDispatcher(IdGenerator idGenerator) {
         this.idGenerator = idGenerator;
@@ -77,13 +74,15 @@ public class DefaultHttpRequestDispatcher
                     final ReactorHandler target = handlerEntrypoint.target();
 
                     // TODO: NotFoundHandler to make it work like an api and avoid creating a NotFoundProcessor;
-                    Request<?> request;
-                    Response<?> response;
 
                     if (target instanceof ApiReactor) {
                         // For now, supports only sync requests.
-                        request = new VertxSyncHttpServerRequest(httpServerRequest, handlerEntrypoint.path(), idGenerator);
-                        response = new VertxSyncHttpServerResponse((VertxSyncHttpServerRequest) request);
+                        VertxHttpServerRequest request = new VertxHttpServerRequest(
+                            httpServerRequest,
+                            handlerEntrypoint.path(),
+                            idGenerator
+                        );
+                        VertxHttpServerResponse response = new VertxHttpServerResponse(request);
 
                         // Set gateway tenant
                         gatewayConfiguration.tenant().ifPresent(tenant -> request.metrics().setTenant(tenant));
@@ -91,10 +90,7 @@ public class DefaultHttpRequestDispatcher
                         // Set gateway zone
                         gatewayConfiguration.zone().ifPresent(zone -> request.metrics().setZone(zone));
 
-                        return ((ApiReactor<VertxSyncHttpServerRequest, VertxSyncHttpServerResponse>) target).handle(
-                                (VertxSyncHttpServerRequest) request,
-                                (VertxSyncHttpServerResponse) response
-                            );
+                        return ((ApiReactor) target).handle(request, response);
                     } else {
                         // TODO: Handle v3 compatibility.
                         return httpServerRequest.response().rxEnd();

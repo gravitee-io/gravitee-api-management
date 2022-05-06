@@ -22,9 +22,9 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncRequest;
-import io.gravitee.gateway.reactive.api.context.sync.SyncResponse;
+import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.schedulers.TestScheduler;
 import io.reactivex.subscribers.TestSubscriber;
@@ -49,13 +49,13 @@ class FlowableProxyResponseTest {
     protected static final int REQUEST_COUNT = 16;
 
     @Mock
-    private SyncExecutionContext ctx;
+    private RequestExecutionContext ctx;
 
     @Mock
-    private SyncRequest request;
+    private Request request;
 
     @Mock
-    private SyncResponse response;
+    private Response response;
 
     @Mock
     private ProxyResponse proxyResponse;

@@ -22,8 +22,8 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncResponse;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.context.Response;
 import io.reactivex.CompletableEmitter;
 import io.reactivex.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,10 +47,10 @@ class InvokerAdapterTest {
     private Invoker invoker;
 
     @Mock
-    private SyncResponse response;
+    private Response response;
 
     @Mock
-    private SyncExecutionContext ctx;
+    private RequestExecutionContext ctx;
 
     private InvokerAdapter cut;
 
@@ -84,7 +84,7 @@ class InvokerAdapterTest {
         obs.assertComplete();
 
         // Verify the response body has been set.
-        verify(response).setChunkedBody(any(FlowableProxyResponse.class));
+        verify(response).chunks(any(FlowableProxyResponse.class));
     }
 
     @Test

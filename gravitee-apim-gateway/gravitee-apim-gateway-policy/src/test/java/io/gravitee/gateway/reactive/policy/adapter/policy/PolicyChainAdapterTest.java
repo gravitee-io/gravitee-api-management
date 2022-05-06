@@ -21,9 +21,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncExecutionContext;
-import io.gravitee.gateway.reactive.api.context.sync.SyncResponse;
-import io.gravitee.gateway.reactive.policy.adapter.policy.PolicyChainAdapter;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.policy.api.PolicyResult;
 import io.reactivex.CompletableEmitter;
 import org.junit.jupiter.api.Test;
@@ -36,7 +34,7 @@ class PolicyChainAdapterTest {
 
     @Test
     public void shouldCompleteWhenDoNext() {
-        final ExecutionContext<?, ?> ctx = mock(ExecutionContext.class);
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
         final CompletableEmitter emitter = mock(CompletableEmitter.class);
 
         final PolicyChainAdapter cut = new PolicyChainAdapter(ctx, emitter);
@@ -48,8 +46,8 @@ class PolicyChainAdapterTest {
 
     @Test
     public void shouldInterruptAndCompleteWhenFailWith() {
-        final SyncExecutionContext ctx = mock(SyncExecutionContext.class);
-        final SyncResponse response = mock(SyncResponse.class);
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final io.gravitee.gateway.reactive.api.context.Response response = mock(io.gravitee.gateway.reactive.api.context.Response.class);
         final CompletableEmitter emitter = mock(CompletableEmitter.class);
         final PolicyResult policyResult = mock(PolicyResult.class);
 
@@ -68,8 +66,8 @@ class PolicyChainAdapterTest {
 
     @Test
     public void shouldInterruptAndCompleteWhenStreamFailWith() {
-        final SyncExecutionContext ctx = mock(SyncExecutionContext.class);
-        final SyncResponse response = mock(SyncResponse.class);
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final io.gravitee.gateway.reactive.api.context.Response response = mock(io.gravitee.gateway.reactive.api.context.Response.class);
         final CompletableEmitter emitter = mock(CompletableEmitter.class);
         final PolicyResult policyResult = mock(PolicyResult.class);
 
