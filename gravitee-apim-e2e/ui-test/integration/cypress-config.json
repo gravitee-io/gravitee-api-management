@@ -1,10 +1,8 @@
 {
-  "projectId": "gravitee-apim-cypress",
-  "integrationFolder": "cypress/integration",
-  "testFiles": "**/*.ts",
+  "extends": "../cypress.json",
+  "integrationFolder": "ui-test/integration",
+  "pluginsFile": "ui-test/plugins/index.ts",
   "baseUrl": "https://apim.gravitee.io/api",
-  "video": false,
-  "screenshotOnRunFailure": false,
   "env": {
     "failOnStatusCode": false,
     "api_publisher_user_login": "api1",

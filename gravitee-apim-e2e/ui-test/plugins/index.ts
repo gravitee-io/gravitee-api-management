@@ -38,4 +38,5 @@ module.exports = (on, config) => {
     includeSuccessfulHookLogs: config.env.printLogsToConsole === 'always',
   };
   require('cypress-terminal-report/src/installLogsPrinter')(on, options);
+  return require('@bahmutov/cypress-extends')(config.configFile);
 };
