@@ -22,8 +22,10 @@ import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
+import io.gravitee.gateway.reactive.reactor.handler.message.DefaultMessageFlow;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
@@ -98,18 +100,23 @@ class PolicyChainTest {
         final Policy policy1 = mock(Policy.class);
         final Policy policy2 = mock(Policy.class);
         final MessageExecutionContext ctx = mock(MessageExecutionContext.class);
+        when(ctx.incomingMessageFlow()).thenReturn(new DefaultMessageFlow(Flowable.just(new DummyMessage())));
+        when(ctx.outgoingMessageFlow()).thenReturn(new DefaultMessageFlow(Flowable.empty()));
 
         final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.ASYNC_REQUEST);
 
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
-        when(policy1.onMessageFlow(eq(ctx), any())).thenReturn(Flowable.empty());
-        when(policy1.onMessage(eq(ctx), any())).thenReturn(Maybe.empty());
+        when(policy1.onMessageFlow(eq(ctx), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        when(policy1.onMessage(eq(ctx), any())).thenAnswer(invocation -> Maybe.just(invocation.getArgument(1)));
         when(policy2.onRequest(ctx)).thenReturn(Completable.complete());
-        when(policy2.onMessageFlow(eq(ctx), any())).thenReturn(Flowable.empty());
-        when(policy2.onMessage(eq(ctx), any())).thenReturn(Maybe.empty());
+        when(policy2.onMessageFlow(eq(ctx), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        when(policy2.onMessage(eq(ctx), any())).thenAnswer(invocation -> Maybe.just(invocation.getArgument(1)));
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
-        obs.assertComplete();
+        final TestObserver<Void> ctxObserver = cut.execute(ctx).test();
+        ctxObserver.assertResult();
+
+        final TestObserver<Void> flowObserver = ctx.incomingMessageFlow().consume().test();
+        flowObserver.assertResult();
 
         verify(policy1).onRequest(ctx);
         verify(policy1).onMessageFlow(eq(ctx), any());
@@ -117,7 +124,7 @@ class PolicyChainTest {
         verify(policy1).getId();
         verify(policy2).onRequest(ctx);
         verify(policy2).onMessageFlow(eq(ctx), any());
-        verify(policy2).onMessageFlow(eq(ctx), any());
+        verify(policy2).onMessage(eq(ctx), any());
         verify(policy2).getId();
 
         verifyNoMoreInteractions(policy1, policy2);
@@ -128,26 +135,31 @@ class PolicyChainTest {
         final Policy policy1 = mock(Policy.class);
         final Policy policy2 = mock(Policy.class);
         final MessageExecutionContext ctx = mock(MessageExecutionContext.class);
+        when(ctx.incomingMessageFlow()).thenReturn(new DefaultMessageFlow(Flowable.empty()));
+        when(ctx.outgoingMessageFlow()).thenReturn(new DefaultMessageFlow(Flowable.just(new DummyMessage())));
 
         final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.ASYNC_RESPONSE);
 
-        when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
-        when(policy1.onMessageFlow(eq(ctx), any())).thenReturn(Flowable.empty());
-        when(policy1.onMessage(eq(ctx), any())).thenReturn(Maybe.empty());
-        when(policy2.onRequest(ctx)).thenReturn(Completable.complete());
-        when(policy2.onMessageFlow(eq(ctx), any())).thenReturn(Flowable.empty());
-        when(policy2.onMessage(eq(ctx), any())).thenReturn(Maybe.empty());
+        when(policy1.onResponse(ctx)).thenReturn(Completable.complete());
+        when(policy1.onMessageFlow(eq(ctx), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        when(policy1.onMessage(eq(ctx), any())).thenAnswer(invocation -> Maybe.just(invocation.getArgument(1)));
+        when(policy2.onResponse(ctx)).thenReturn(Completable.complete());
+        when(policy2.onMessageFlow(eq(ctx), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        when(policy2.onMessage(eq(ctx), any())).thenAnswer(invocation -> Maybe.just(invocation.getArgument(1)));
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
+
+        final TestObserver<Void> flowObserver = ctx.outgoingMessageFlow().consume().test();
+        flowObserver.assertResult();
 
         verify(policy1).onResponse(ctx);
         verify(policy1).onMessageFlow(eq(ctx), any());
         verify(policy1).onMessage(eq(ctx), any());
         verify(policy1).getId();
         verify(policy2).onResponse(ctx);
-        verify(policy1).onMessageFlow(eq(ctx), any());
-        verify(policy1).onMessageFlow(eq(ctx), any());
+        verify(policy2).onMessageFlow(eq(ctx), any());
+        verify(policy2).onMessage(eq(ctx), any());
         verify(policy2).getId();
 
         verifyNoMoreInteractions(policy1, policy2);
