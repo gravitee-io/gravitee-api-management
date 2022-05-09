@@ -28,10 +28,11 @@ import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.NodeApisEndpointInitializer;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
-import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
+import io.gravitee.gateway.reactive.policy.DefaultPolicyFactoryCreator;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.node.api.Node;
@@ -91,8 +92,13 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public PolicyFactoryCreator policyFactoryCreator(final PolicyPluginFactory policyPluginFactory) {
+    public io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator(final PolicyPluginFactory policyPluginFactory) {
         return new PolicyFactoryCreatorImpl(configuration, policyPluginFactory, new ExpressionLanguageStringConditionEvaluator());
+    }
+
+    @Bean
+    public PolicyFactoryCreator policyFactoryCreator(final PolicyPluginFactory policyPluginFactory) {
+        return new DefaultPolicyFactoryCreator(configuration, policyPluginFactory, new ExpressionLanguageStringConditionEvaluator());
     }
 
     @Bean
@@ -112,9 +118,17 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public ReactorHandlerFactory<Api> reactorHandlerFactory(
+        io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactoryCreator policyFactoryCreator,
         PolicyChainProviderLoader policyChainProviderLoader
     ) {
-        return new ApiReactorHandlerFactory(applicationContext, configuration, node, policyFactoryCreator, policyChainProviderLoader);
+        return new ApiReactorHandlerFactory(
+            applicationContext,
+            configuration,
+            node,
+            v3PolicyFactoryCreator,
+            policyFactoryCreator,
+            policyChainProviderLoader
+        );
     }
 }
