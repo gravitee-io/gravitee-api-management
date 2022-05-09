@@ -49,6 +49,10 @@ export const forManagementAsApiUser = () => {
   return forManagement(API_USER);
 };
 
+export const forManagementAsAppUser = () => {
+  return forManagement(APP_USER);
+};
+
 export const forManagementAsSimpleUser = () => {
   return forManagement(SIMPLE_USER);
 };
