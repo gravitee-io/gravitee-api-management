@@ -15,15 +15,12 @@
  */
 package io.gravitee.rest.api.management.rest.resource.swagger;
 
-import io.gravitee.common.util.Version;
 import io.swagger.v3.jaxrs2.ReaderListener;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.integration.api.OpenApiReader;
 import io.swagger.v3.oas.models.*;
-import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
-import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 import java.util.*;
 
@@ -37,9 +34,7 @@ public class GraviteeApiDefinition implements ReaderListener {
     public static final String TOKEN_AUTH_SCHEME = "gravitee-auth";
 
     @Override
-    public void beforeScan(OpenApiReader reader, OpenAPI openAPI) {
-        openAPI.info(new Info().version(Version.RUNTIME_VERSION.MAJOR_VERSION).title("Gravitee.io - Management API"));
-    }
+    public void beforeScan(OpenApiReader reader, OpenAPI openAPI) {}
 
     @Override
     public void afterScan(OpenApiReader reader, OpenAPI openAPI) {

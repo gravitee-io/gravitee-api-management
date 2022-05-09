@@ -1,3 +1,0 @@
-resourcePackages:
-  - io.gravitee.rest.api.management.rest.resource
-readerClass: io.gravitee.rest.api.management.rest.resource.swagger.GraviteeOpenApiReader

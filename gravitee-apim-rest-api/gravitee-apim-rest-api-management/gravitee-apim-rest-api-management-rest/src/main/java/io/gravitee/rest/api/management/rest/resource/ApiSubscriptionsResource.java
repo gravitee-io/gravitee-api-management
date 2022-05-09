@@ -289,11 +289,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         private ListStringParam applications;
 
         @QueryParam("status")
-        @Parameter(
-            description = "Subscription status",
-            explode = Explode.FALSE,
-            schema = @Schema(type = "array", defaultValue = "[\"ACCEPTED\"]")
-        )
+        @Parameter(description = "Subscription status. default: ACCEPTED", explode = Explode.FALSE, schema = @Schema(type = "array"))
         private ListSubscriptionStatusParam status;
 
         @QueryParam("api_key")
