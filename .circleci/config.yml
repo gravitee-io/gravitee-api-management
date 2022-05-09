@@ -252,7 +252,7 @@ jobs:
             - notify-on-failure
             - save-maven-cache
 
-    build:
+    build-and-test:
         docker:
             - image: cimg/openjdk:11.0
         resource_class: large
@@ -263,51 +263,34 @@ jobs:
             - restore-maven-cache
             - prepare-env-var
             - run:
-                  name: "Build project"
+                  name: Build repository dependencies - without tests
                   command: |
-                      mvn -s .gravitee.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev,distribution-ee
-                      mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
-                      mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
-
-            - notify-on-failure
-            - save-maven-cache
-            - persist_to_workspace:
-                  root: ./
-                  paths:
-                      - ./rest-api-docker-context
-                      - ./gateway-docker-context
-
-    test:
-        docker:
-            - image: cimg/openjdk:11.0
-        resource_class: medium
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - restore-maven-cache
+                      mvn clean install -s .gravitee.settings.xml -f gravitee-apim-repository -Dskip.validation=true -DskipTests
             - run:
-                  name: Build repository models
-                  command: |
-                      mvn clean install -s .gravitee.settings.xml -f gravitee-apim-repository/gravitee-apim-repository-api -Dskip.validation=true -DskipTests
+                 name: Run tests
+                 command: |
+                      mvn -pl 'gravitee-apim-definition, gravitee-apim-rest-api, gravitee-apim-gateway' -amd --fail-fast -s .gravitee.settings.xml install --no-transfer-progress -Dskip.validation=true -T 2C -P distribution-dev,distribution-ee
             - run:
-                  name: Run tests
-                  command: |
-                      mvn -pl 'gravitee-apim-definition, gravitee-apim-rest-api, gravitee-apim-gateway' -amd --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -T 2C
-            - run:
-                  name: Save test results
-                  command: |
+                 name: Save test results
+                 command: |
                       mkdir -p ~/test-results/junit/
                       find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-                  when: always
+                 when: always
             - notify-on-failure
             - store_test_results:
                   path: ~/test-results
+            - run:
+                  name: "Build project"
+                  command: |
+                      mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
+                      mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
             - persist_to_workspace:
-                  root: .
+                  root: ./
                   paths:
-                      - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
-                      - gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
+                      - ./gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
+                      - ./gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
+                      - ./rest-api-docker-context
+                      - ./gateway-docker-context
 
     test-repository:
         machine:
@@ -1284,19 +1267,16 @@ workflows:
                   context: gravitee-qa
                   requires:
                       - setup
-            - build:
+            - build-and-test:
                   context: gravitee-qa
                   requires:
                       - validate
-            - test:
-                  requires:
-                      - build
             - test-repository:
                   requires:
-                      - build
+                      - validate
             - run_postman_tests:
                   requires:
-                      - build
+                      - build-and-test
                   filters:
                       branches:
                           only:
@@ -1312,7 +1292,7 @@ workflows:
                               - gravitee-apim-gateway
                   context: cicd-orchestrator
                   requires:
-                      - test
+                      - build-and-test
                       - test-repository
             - publish-on-artifactory:
                   filters:
@@ -1321,7 +1301,7 @@ workflows:
                               - master
                               - /^\d+\.\d+\.x$/
                   requires:
-                      - test
+                      - build-and-test
                       - test-repository
             - publish-on-nexus:
                   filters:
@@ -1330,14 +1310,14 @@ workflows:
                               - master
                               - /^\d+\.\d+\.x$/
                   requires:
-                      - test
+                      - build-and-test
                       - test-repository
             - publish-images-azure-registry:
                   name: Publish ee images on azure registry
                   context: cicd-orchestrator
                   enterprise_edition: true
                   requires:
-                      - test
+                      - build-and-test
                       - test-repository
                   filters:
                       branches:
@@ -1349,7 +1329,7 @@ workflows:
                   context: cicd-orchestrator
                   enterprise_edition: false
                   requires:
-                      - test
+                      - build-and-test
                       - test-repository
                   filters:
                       branches:
@@ -1370,7 +1350,7 @@ workflows:
                   requires:
                       - Build Console Storybook
                       - test-repository
-                      - test
+                      - build-and-test
             - console-webui-chromatic-deployment:
                   context: cicd-orchestrator
                   requires:
@@ -1457,7 +1437,7 @@ workflows:
                   name: Test APIM e2e
                   requires:
                       - Lint & Build APIM e2e
-                      - build
+                      - build-and-test
                   filters:
                     branches:
                       only:
