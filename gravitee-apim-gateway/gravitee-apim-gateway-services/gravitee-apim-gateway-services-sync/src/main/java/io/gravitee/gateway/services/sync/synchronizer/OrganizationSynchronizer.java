@@ -19,6 +19,7 @@ import static io.gravitee.gateway.services.sync.spring.SyncConfiguration.PARALLE
 import static io.gravitee.repository.management.model.Event.EventProperties.ORGANIZATION_ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.Organization;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
@@ -100,7 +101,9 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
     private Maybe<io.gravitee.definition.model.Organization> toOrganization(Event event) {
         try {
             // Read organization definition from event
-            return Maybe.just(objectMapper.readValue(event.getPayload(), io.gravitee.definition.model.Organization.class));
+            final Organization organization = objectMapper.readValue(event.getPayload(), Organization.class);
+            organization.setUpdatedAt(event.getUpdatedAt());
+            return Maybe.just(organization);
         } catch (IOException ioe) {
             logger.error("Error while determining deployed organization into events payload", ioe);
         }

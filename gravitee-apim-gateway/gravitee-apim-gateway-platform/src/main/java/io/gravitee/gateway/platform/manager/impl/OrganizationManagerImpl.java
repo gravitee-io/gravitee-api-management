@@ -19,9 +19,9 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.platform.Organization;
-import io.gravitee.gateway.platform.PlatformPolicyManager;
 import io.gravitee.gateway.platform.manager.OrganizationEvent;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.reactive.platform.PlatformPolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +37,19 @@ public class OrganizationManagerImpl implements OrganizationManager {
     private final PlatformPolicyManager policyManager;
 
     private Organization currentOrganization;
+    private final io.gravitee.gateway.platform.PlatformPolicyManager v3policyManager;
     private EventManager eventManager;
 
     @Autowired
     GatewayConfiguration gatewayConfiguration;
 
-    public OrganizationManagerImpl(PlatformPolicyManager policyManager, EventManager eventManager) {
+    public OrganizationManagerImpl(
+        PlatformPolicyManager policyManager,
+        io.gravitee.gateway.platform.PlatformPolicyManager v3policyManager,
+        EventManager eventManager
+    ) {
         this.policyManager = policyManager;
+        this.v3policyManager = v3policyManager;
         this.eventManager = eventManager;
     }
 
@@ -55,11 +61,17 @@ public class OrganizationManagerImpl implements OrganizationManager {
             currentOrganization.getUpdatedAt() == null ||
             currentOrganization.getUpdatedAt().before(organization.getUpdatedAt())
         ) {
-            logger.info("Register organization {}", organization);
-            currentOrganization = organization;
-            eventManager.publishEvent(OrganizationEvent.REGISTER, organization);
-            policyManager.setDependencies(currentOrganization.dependencies(Policy.class));
-            return true;
+            if (
+                currentOrganization == null ||
+                (currentOrganization != organization && currentOrganization.getUpdatedAt().compareTo(organization.getUpdatedAt()) < 0)
+            ) {
+                logger.info("Register organization {}", organization);
+                currentOrganization = organization;
+                eventManager.publishEvent(OrganizationEvent.REGISTER, organization);
+                policyManager.setDependencies(currentOrganization.dependencies(Policy.class));
+                v3policyManager.setDependencies(currentOrganization.dependencies(Policy.class));
+                return true;
+            }
         }
         return false;
     }

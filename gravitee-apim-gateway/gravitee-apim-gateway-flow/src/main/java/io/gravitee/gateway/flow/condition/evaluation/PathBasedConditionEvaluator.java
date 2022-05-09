@@ -36,6 +36,7 @@ public class PathBasedConditionEvaluator implements ConditionEvaluator<Flow> {
     private static final String PATH_SEPARATOR = "/";
     private static final String PATH_PARAM_PREFIX = ":";
     private static final String PATH_PARAM_REGEX = "[a-zA-Z0-9\\-._~%!$&'()* +,;=:@/]+";
+    private static final Pattern SEPARATOR_SPLITTER = Pattern.compile(PATH_SEPARATOR);
 
     private final Map<String, Pattern> cache = new ConcurrentHashMap<>();
 
@@ -49,7 +50,7 @@ public class PathBasedConditionEvaluator implements ConditionEvaluator<Flow> {
     }
 
     private Pattern transform(String path) {
-        String[] branches = path.split(PATH_SEPARATOR);
+        String[] branches = SEPARATOR_SPLITTER.split(path);
         StringBuilder buffer = new StringBuilder(PATH_SEPARATOR);
 
         for (final String branch : branches) {

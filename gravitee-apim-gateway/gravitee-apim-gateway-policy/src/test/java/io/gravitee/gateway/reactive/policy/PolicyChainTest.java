@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.policy.impl;
+package io.gravitee.gateway.reactive.policy;
 
 import static java.util.Arrays.asList;
 import static org.mockito.Mockito.*;
@@ -22,9 +22,7 @@ import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
-import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.policy.Policy;
-import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.gravitee.gateway.reactive.reactor.handler.message.DefaultMessageFlow;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
