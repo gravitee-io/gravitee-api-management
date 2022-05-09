@@ -34,8 +34,6 @@ public class UpdatePageEntity extends FetchablePageEntity {
      */
     private String crossId;
 
-    @NotNull
-    @Size(min = 1)
     private String name;
 
     private String lastContributor;
