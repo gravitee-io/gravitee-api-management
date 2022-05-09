@@ -35,9 +35,9 @@ import io.gravitee.gateway.platform.providers.OnResponsePlatformPolicyChainProvi
 import io.gravitee.gateway.policy.ConfigurablePolicyChainProvider;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
-import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
@@ -81,8 +81,8 @@ public class DebugConfiguration {
     }
 
     @Bean
-    @Qualifier("debugPolicyFactoryCreator")
-    public PolicyFactoryCreator debugPolicyFactoryCreator(final PolicyPluginFactory policyPluginFactory) {
+    @Qualifier("debugV3PolicyFactoryCreator")
+    public io.gravitee.gateway.policy.PolicyFactoryCreator debugPolicyFactoryCreator(final PolicyPluginFactory policyPluginFactory) {
         return new PolicyDebugDecoratorFactoryCreator(
             new PolicyFactoryCreatorImpl(configuration, policyPluginFactory, new ExpressionLanguageStringConditionEvaluator())
         );
@@ -91,13 +91,15 @@ public class DebugConfiguration {
     @Bean
     @Qualifier("debugReactorHandlerFactory")
     public ReactorHandlerFactory<Api> reactorHandlerFactory(
-        @Qualifier("debugPolicyFactoryCreator") PolicyFactoryCreator policyFactoryCreator,
+        @Qualifier("debugV3PolicyFactoryCreator") io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
+        PolicyFactoryCreator policyFactoryCreator,
         @Qualifier("debugPolicyChainProviderLoader") PolicyChainProviderLoader policyChainProviderLoader
     ) {
         return new DebugApiContextHandlerFactory(
             applicationContext.getParent(),
             configuration,
             node,
+            v3PolicyFactoryCreator,
             policyFactoryCreator,
             policyChainProviderLoader
         );
@@ -175,7 +177,7 @@ public class DebugConfiguration {
     @Bean
     @Qualifier("debugPlatformPolicyManager")
     public PlatformPolicyManager platformPolicyManager(
-        @Qualifier("debugPolicyFactoryCreator") PolicyFactoryCreator factory,
+        @Qualifier("debugPolicyFactoryCreator") io.gravitee.gateway.policy.PolicyFactoryCreator factory,
         PolicyConfigurationFactory policyConfigurationFactory,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ResourceLifecycleManager resourceLifecycleManager,

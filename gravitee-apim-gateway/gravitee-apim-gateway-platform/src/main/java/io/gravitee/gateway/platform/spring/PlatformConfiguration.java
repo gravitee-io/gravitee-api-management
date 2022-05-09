@@ -21,14 +21,15 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.platform.OrganizationFlowResolver;
-import io.gravitee.gateway.platform.PlatformPolicyManager;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.platform.manager.impl.OrganizationManagerImpl;
 import io.gravitee.gateway.platform.providers.OnRequestPlatformPolicyChainProvider;
 import io.gravitee.gateway.platform.providers.OnResponsePlatformPolicyChainProvider;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
-import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
+import io.gravitee.gateway.reactive.platform.PlatformPolicyManager;
+import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
@@ -59,8 +60,12 @@ public class PlatformConfiguration {
     private boolean classLoaderLegacyMode;
 
     @Bean
-    public OrganizationManager organizationManager(PlatformPolicyManager policyManager, EventManager eventManager) {
-        return new OrganizationManagerImpl(policyManager, eventManager);
+    public OrganizationManager organizationManager(
+        PlatformPolicyManager policyManager,
+        io.gravitee.gateway.platform.PlatformPolicyManager v3policyManager,
+        EventManager eventManager
+    ) {
+        return new OrganizationManagerImpl(policyManager, v3policyManager, eventManager);
     }
 
     @Bean
@@ -69,8 +74,8 @@ public class PlatformConfiguration {
     }
 
     @Bean
-    public PolicyChainFactory policyChainFactory(PlatformPolicyManager platformPolicyManager) {
-        return new PolicyChainFactory(platformPolicyManager);
+    public PolicyChainFactory policyChainFactory(io.gravitee.gateway.platform.PlatformPolicyManager v3PlatformPolicyManager) {
+        return new PolicyChainFactory(v3PlatformPolicyManager);
     }
 
     @Bean
@@ -90,8 +95,8 @@ public class PlatformConfiguration {
     }
 
     @Bean
-    public PlatformPolicyManager platformPolicyManager(
-        PolicyFactoryCreator factoryCreator,
+    public io.gravitee.gateway.platform.PlatformPolicyManager v3PlatformPolicyManager(
+        io.gravitee.gateway.policy.PolicyFactoryCreator factoryCreator,
         PolicyConfigurationFactory policyConfigurationFactory,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ResourceLifecycleManager resourceLifecycleManager,
@@ -105,7 +110,7 @@ public class PlatformConfiguration {
             beanNamesForType[0]
         );
 
-        return new PlatformPolicyManager(
+        return new io.gravitee.gateway.platform.PlatformPolicyManager(
             classLoaderLegacyMode,
             applicationContext.getBean(DefaultClassLoader.class),
             factoryCreator.create(),
@@ -115,6 +120,36 @@ public class PlatformConfiguration {
             resourceLifecycleManager,
             componentProvider
         );
+    }
+
+    @Bean
+    public PlatformPolicyManager platformPolicyManager(
+        PolicyFactoryCreator factoryCreator,
+        PolicyConfigurationFactory policyConfigurationFactory,
+        PolicyClassLoaderFactory policyClassLoaderFactory,
+        ComponentProvider componentProvider
+    ) {
+        String[] beanNamesForType = applicationContext.getBeanNamesForType(
+            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
+        );
+
+        ConfigurablePluginManager<PolicyPlugin<?>> cpm = (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(
+            beanNamesForType[0]
+        );
+
+        return new PlatformPolicyManager(
+            applicationContext.getBean(DefaultClassLoader.class),
+            factoryCreator.create(),
+            policyConfigurationFactory,
+            cpm,
+            policyClassLoaderFactory,
+            componentProvider
+        );
+    }
+
+    @Bean("platformPolicyChainFactory")
+    public io.gravitee.gateway.reactive.policy.PolicyChainFactory platformPolicyChainFactory(PlatformPolicyManager platformPolicyManager) {
+        return new DefaultPolicyChainFactory("platform", platformPolicyManager);
     }
 
     @Bean

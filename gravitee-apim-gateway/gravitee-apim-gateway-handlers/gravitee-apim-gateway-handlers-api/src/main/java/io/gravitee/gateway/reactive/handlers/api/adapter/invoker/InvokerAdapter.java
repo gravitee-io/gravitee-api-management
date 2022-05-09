@@ -15,6 +15,11 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.adapter.invoker;
 
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.proxy.ProxyConnection;
+import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
@@ -25,11 +30,13 @@ import org.slf4j.LoggerFactory;
 /**
  * Specific implementation of {@link Invoker} that adapt the behavior of an existing {@link io.gravitee.gateway.api.Invoker}
  * to make it work in a reactive chain.
+ * The adapter implements both {@link Invoker} and {@link io.gravitee.gateway.api.Invoker} to keep cross compatability between jupiter and v3 policies
+ * that expect v3 {@link io.gravitee.gateway.api.Invoker} type.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class InvokerAdapter implements Invoker {
+public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker {
 
     private final Logger log = LoggerFactory.getLogger(InvokerAdapter.class);
 
@@ -70,5 +77,10 @@ public class InvokerAdapter implements Invoker {
                 }
             }
         );
+    }
+
+    @Override
+    public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
+        legacyInvoker.invoke(context, stream, connectionHandler);
     }
 }
