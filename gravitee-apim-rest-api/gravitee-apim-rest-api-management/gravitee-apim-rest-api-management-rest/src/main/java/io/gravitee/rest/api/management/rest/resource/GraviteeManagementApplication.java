@@ -22,7 +22,6 @@ import io.gravitee.rest.api.management.rest.provider.*;
 import io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.organization.OrganizationsResource;
 import io.gravitee.rest.api.management.rest.resource.swagger.OpenAPIResource;
-import io.gravitee.rest.api.management.rest.resource.swagger.Swagger_3_17_Resource;
 import io.swagger.converter.ModelConverter;
 import io.swagger.converter.ModelConverterContext;
 import io.swagger.converter.ModelConverters;
@@ -107,7 +106,6 @@ public class GraviteeManagementApplication extends ResourceConfig {
         register(JacksonFeature.class);
 
         register(OpenAPIResource.class);
-        register(Swagger_3_17_Resource.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
         property(ServerProperties.BV_DISABLE_VALIDATE_ON_EXECUTABLE_OVERRIDE_CHECK, true);

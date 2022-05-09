@@ -139,6 +139,7 @@
         <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <prettier-maven-plugin.version>0.16</prettier-maven-plugin.version>
+        <swagger-maven-plugin.version>2.1.6</swagger-maven-plugin.version>
     </properties>
 
     <dependencyManagement>
