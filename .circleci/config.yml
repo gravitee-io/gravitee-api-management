@@ -289,7 +289,7 @@ jobs:
             - run:
                   name: Build repository models
                   command: |
-                      mvn clean install -s .gravitee.settings.xml -f gravitee-apim-repository/gravitee-apim-repository-api -Dskip.validation=true -DskipTests
+                      mvn clean install -s .gravitee.settings.xml -f gravitee-apim-repository -Dskip.validation=true -DskipTests
             - run:
                   name: Run tests
                   command: |
