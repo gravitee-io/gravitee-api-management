@@ -1,5 +1,12 @@
 {
-  "projectId": "gravitee-apim-cypress-integration",
-  "integrationFolder": "cypress/integration",
-  "testFiles": "**/*.ts"
+  "projectId": "ui-test",
+  "integrationFolder": "ui-test/integration",
+  "fixturesFolder": "ui-test/fixtures",
+  "pluginsFile": "ui-test/plugins/index.ts",
+  "screenshotsFolder": "ui-test/screenshots",
+  "supportFile": "ui-test/support/index.ts",
+  "videosFolder": "ui-test/videos",
+  "testFiles": "**/*.ts",
+  "video": false,
+  "screenshotOnRunFailure": false
 }
