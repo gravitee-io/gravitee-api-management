@@ -16,7 +16,7 @@
 import 'dotenv/config';
 import fetchApi from 'node-fetch';
 import { BasicAuthentication } from '@model/users';
-import { Configuration as ManagementConfiguration } from './management-webclient-sdk/src/lib';
+import { Configuration as ManagementConfiguration } from './management-webclient-sdk/src/lib/runtime';
 import { Configuration as PortalConfiguration } from './portal-webclient-sdk/src/lib';
 
 export const ADMIN_USER = {
@@ -71,6 +71,10 @@ export const forPortal = (auth: BasicAuthentication = ANONYMOUS, envId: string =
 
 export const forPortalAsAnonymous = () => {
   return forPortal(ANONYMOUS);
+};
+
+export const forPortalAsApplicationUser = () => {
+  return forPortal(APP_USER);
 };
 
 export const forPortalAsAdminUser = () => {
