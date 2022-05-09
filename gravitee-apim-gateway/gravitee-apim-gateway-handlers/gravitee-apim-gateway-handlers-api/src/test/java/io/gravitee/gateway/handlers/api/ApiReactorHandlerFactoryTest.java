@@ -39,7 +39,7 @@ public class ApiReactorHandlerFactoryTest {
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        apiContextHandlerFactory = new ApiReactorHandlerFactory(null, null, null, null, null);
+        apiContextHandlerFactory = new ApiReactorHandlerFactory(null, null, null, null, null, null);
     }
 
     @Test

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.condition;
+package io.gravitee.gateway.reactive.core.condition;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
@@ -25,5 +25,5 @@ import io.reactivex.Flowable;
  * @author GraviteeSource Team
  */
 public interface ConditionEvaluator<T> {
-    Flowable<Flow> filter(RequestExecutionContext executionContext, Flowable<T> flowable);
+    Flowable<T> filter(RequestExecutionContext ctx, Flowable<T> flows);
 }

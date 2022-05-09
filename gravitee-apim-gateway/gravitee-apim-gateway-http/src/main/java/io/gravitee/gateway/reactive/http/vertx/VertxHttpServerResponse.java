@@ -183,7 +183,7 @@ public class VertxHttpServerResponse implements Response {
     private synchronized Completable setChunks(Flowable<Buffer> chunks) {
         if (chunks != null) {
             // Current chunks need to be drained before being replaced.
-            this.chunks = chunks().ignoreElements().andThen(chunks);
+            this.chunks = chunks().ignoreElements().andThen(chunks).cache();
         }
 
         return Completable.complete();
