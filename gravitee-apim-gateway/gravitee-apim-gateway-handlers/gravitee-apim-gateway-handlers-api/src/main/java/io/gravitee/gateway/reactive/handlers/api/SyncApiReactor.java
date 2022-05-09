@@ -15,27 +15,36 @@
  */
 package io.gravitee.gateway.reactive.handlers.api;
 
+import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
+import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
 import static io.reactivex.Completable.defer;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
+import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
+import io.gravitee.gateway.reactive.handlers.api.flow.FlowChain;
+import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
+import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
+import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
+import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.Entrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.Completable;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,14 +61,19 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private final ResourceLifecycleManager resourceLifecycleManager;
     private final PolicyManager policyManager;
     private final GroupLifecycleManager groupLifecycleManager;
+    private final FlowChain platformFlowChain;
+    private final FlowChain apiPlanFlowChain;
+    private final FlowChain apiFlowChain;
 
     public SyncApiReactor(
-        Api api,
-        ExecutionContextFactory ctxFactory,
-        Invoker defaultInvoker,
-        ResourceLifecycleManager resourceLifecycleManager,
-        PolicyManager policyManager,
-        GroupLifecycleManager groupLifecycleManager
+        final Api api,
+        final ExecutionContextFactory ctxFactory,
+        final Invoker defaultInvoker,
+        final ResourceLifecycleManager resourceLifecycleManager,
+        final PolicyManager policyManager,
+        final PolicyChainFactory platformPolicyChainFactory,
+        final GroupLifecycleManager groupLifecycleManager,
+        final OrganizationManager organizationManager
     ) {
         this.api = api;
         this.ctxFactory = ctxFactory;
@@ -67,32 +81,97 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.resourceLifecycleManager = resourceLifecycleManager;
         this.policyManager = policyManager;
         this.groupLifecycleManager = groupLifecycleManager;
+
+        final PolicyChainFactory policyChainFactory = new DefaultPolicyChainFactory(api.getId(), policyManager);
+
+        this.platformFlowChain =
+            new FlowChain("Platform", FlowResolverFactory.forPlatform(api, organizationManager), platformPolicyChainFactory);
+        this.apiPlanFlowChain = new FlowChain("Api Plan", FlowResolverFactory.forApiPlan(api), policyChainFactory);
+        this.apiFlowChain = new FlowChain("Api", FlowResolverFactory.forApi(api), policyChainFactory);
     }
 
     @Override
     public Completable handle(Request request, Response response) {
         final RequestExecutionContext ctx = ctxFactory.createRequestContext(request, response);
 
+        // Prepare attributes and metrics before handling the request.
+        prepareContextAttributes(ctx);
+        prepareMetrics(ctx);
+
+        return handleRequest(ctx);
+    }
+
+    private void prepareContextAttributes(RequestExecutionContext ctx) {
         ctx.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, ctx.request().contextPath());
         ctx.setAttribute(ExecutionContext.ATTR_API, api.getId());
         ctx.setAttribute(ExecutionContext.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
         ctx.setAttribute(ExecutionContext.ATTR_INVOKER, defaultInvoker);
         ctx.setAttribute(ExecutionContext.ATTR_ORGANIZATION, api.getOrganizationId());
         ctx.setAttribute(ExecutionContext.ATTR_ENVIRONMENT, api.getEnvironmentId());
+    }
 
-        // Prepare request metrics
-        request.metrics().setApi(api.getId());
-        request.metrics().setPath(request.pathInfo());
+    private void prepareMetrics(RequestExecutionContext ctx) {
+        final Request request = ctx.request();
+        final Metrics metrics = request.metrics();
 
-        ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis());
+        metrics.setApi(api.getId());
+        metrics.setPath(request.pathInfo());
+        metrics.setApiResponseTimeMs(System.currentTimeMillis());
+    }
 
-        // FIXME: security chain with plan resolution.
-        ctx.setAttribute(io.gravitee.gateway.api.ExecutionContext.ATTR_PLAN, "cd593616-5a15-4972-9936-165a15c972be");
+    private Completable handleRequest(RequestExecutionContext ctx) {
+        // Execute request flows (platform, security, api plan, api).
+        return executeChain(ctx, platformFlowChain, REQUEST)
+            .andThen(continueChain(ctx, apiPlanFlowChain, REQUEST))
+            .andThen(continueChain(ctx, apiFlowChain, REQUEST))
+            // All request flows have been executed. Invokes backend.
+            .andThen(invokeBackend(ctx))
+            // Execute response flows (api plan, api, platform).
+            .andThen(continueChain(ctx, apiPlanFlowChain, RESPONSE))
+            .andThen(continueChain(ctx, apiFlowChain, RESPONSE))
+            // In case of any interruption, resume the execution.
+            .doOnComplete(ctx::resume)
+            // Platform post flows must always be executed
+            .andThen(continueChain(ctx, platformFlowChain, RESPONSE))
+            // Catch all possible unexpected errors.
+            .onErrorResumeNext(t -> handleError(ctx, t))
+            // Finally, end the response.
+            .andThen(endResponse(ctx));
+    }
 
-        return invokeBackend(ctx)
-            .andThen(end(ctx))
-            .doFinally(() -> setApiResponseTime(ctx))
-            .doFinally(() -> log.debug("Request {} has been processed in {}ms.", request.id(), getApiResponseTime(ctx)));
+    /**
+     * Executes the flow chain for the specified phase without taking care if the current context is interrupted or not.
+     * This is particularly useful to execute platform flow chain which must always be executed whatever the result of the other flow chain executions.
+     *
+     * @param ctx the current context
+     * @param flowChain the flow chain
+     * @param phase the phase to execute
+     *
+     * @return a {@link Completable} that will complete once the flow chain phase has been fully executed.
+     */
+    private Completable executeChain(RequestExecutionContext ctx, FlowChain flowChain, ExecutionPhase phase) {
+        return defer(() -> flowChain.execute(ctx, phase));
+    }
+
+    /**
+     * Continues the execution of the specified flow chain for the specified phase if the context is not marked as interrupted.
+     * If the context is completed, the flow chain phase is not executed.
+     *
+     * @param ctx the current context
+     * @param flowChain the flow chain
+     * @param phase the phase to execute
+     *
+     * @return a {@link Completable} that will complete once the flow chain phase has been fully executed or that completes immediately if the context is marked as completed.
+     */
+    private Completable continueChain(RequestExecutionContext ctx, FlowChain flowChain, ExecutionPhase phase) {
+        return defer(
+            () -> {
+                if (!ctx.isInterrupted()) {
+                    return flowChain.execute(ctx, phase);
+                }
+                return Completable.complete();
+            }
+        );
     }
 
     /**
@@ -103,46 +182,49 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      * @return a {@link Completable} that will complete once the invoker has been invoked or that completes immediately if execution isn't required.
      */
     private Completable invokeBackend(RequestExecutionContext ctx) {
-        return defer(() -> {
-            if (!ctx.isInterrupted() && !(boolean) Boolean.FALSE.equals(ctx.getAttribute("invoker.skip"))) {
-                Invoker invoker = this.getInvoker(ctx);
-                return invoker.invoke(ctx);
+        return defer(
+            () -> {
+                if (!ctx.isInterrupted() && !(boolean) Boolean.FALSE.equals(ctx.getAttribute("invoker.skip"))) {
+                    Invoker invoker = getInvoker(ctx);
+
+                    if (invoker != null) {
+                        return invoker.invoke(ctx);
+                    }
+                }
+                return Completable.complete();
             }
-            return Completable.complete();
-        });
+        );
     }
 
-    private long getApiResponseTime(RequestExecutionContext ctx) {
-        return ctx.request().metrics().getApiResponseTimeMs();
-    }
+    /**
+     * Get the invoker currently referenced in the execution context.
+     * If the invoker has been overridden by a v3 policy, the {@link io.gravitee.gateway.api.Invoker} will be adapted to match with the expected jupiter {@link Invoker} type.
+     *
+     * @param ctx the current context where the invoker is referenced.
+     * @return the current invoker in the expected type.
+     */
+    private Invoker getInvoker(RequestExecutionContext ctx) {
+        final Object invoker = ctx.getAttribute(ExecutionContext.ATTR_INVOKER);
 
-    protected Invoker getInvoker(RequestExecutionContext context) {
-        return context.getAttribute(ExecutionContext.ATTR_INVOKER);
-    }
-
-    private Completable end(RequestExecutionContext ctx) {
-        return defer(() -> {
-            setApiResponseTime(ctx);
-            return ctx.response().end().timeout(10, TimeUnit.SECONDS, handleTimeout(ctx));
-        });
-    }
-
-    private void setApiResponseTime(RequestExecutionContext ctx) {
-        if (ctx.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
-            ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
+        if (invoker == null) {
+            return null;
         }
+
+        if (!(invoker instanceof InvokerAdapter)) {
+            return new InvokerAdapter((io.gravitee.gateway.api.Invoker) invoker);
+        }
+
+        return (Invoker) invoker;
     }
 
-    private Completable handleTimeout(RequestExecutionContext ctx) {
-        return defer(() -> handleError(ctx, null).andThen(defer(() -> ctx.response().end())));
+    private Completable endResponse(RequestExecutionContext ctx) {
+        return defer(() -> ctx.response().end());
     }
 
     private Completable handleError(RequestExecutionContext ctx, Throwable t) {
         if (t != null) {
             log.error("Unexpected error", t);
         }
-
-        setApiResponseTime(ctx);
 
         // TODO: execute error processors
 
@@ -156,7 +238,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     @Override
     public SyncApiReactor handler(Handler<io.gravitee.gateway.api.ExecutionContext> handler) {
-        return this;
+        throw new RuntimeException(
+            "Handler method is here for compatibility only byt must not be called. Invoke handle(SyncRequest, SyncResponse) instead."
+        );
     }
 
     @Override
@@ -172,18 +256,18 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         dumpVirtualHosts();
 
         long endTime = System.currentTimeMillis(); // Get the end Time
-        log.debug("API handler started in {} ms", (endTime - startTime));
+        log.debug("API reactor started in {} ms", (endTime - startTime));
     }
 
     @Override
     protected void doStop() throws Exception {
-        log.debug("API handler is now stopping, closing context for {} ...", this);
+        log.debug("API reactor is now stopping, closing context for {} ...", this);
 
         policyManager.stop();
         resourceLifecycleManager.stop();
         groupLifecycleManager.stop();
 
-        log.debug("API handler is now stopped: {}", this);
+        log.debug("API reactor is now stopped: {}", this);
     }
 
     @Override
@@ -202,9 +286,11 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected void dumpVirtualHosts() {
         List<Entrypoint> entrypoints = api.entrypoints();
         log.debug("{} ready to accept requests on:", this);
-        entrypoints.forEach(entrypoint -> {
-            log.debug("\t{}", entrypoint);
-        });
+        entrypoints.forEach(
+            entrypoint -> {
+                log.debug("\t{}", entrypoint);
+            }
+        );
     }
 
     @Override

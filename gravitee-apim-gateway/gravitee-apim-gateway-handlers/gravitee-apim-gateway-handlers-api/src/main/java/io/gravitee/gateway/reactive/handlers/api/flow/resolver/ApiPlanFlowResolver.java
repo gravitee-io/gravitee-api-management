@@ -15,24 +15,27 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
-import io.gravitee.gateway.reactive.handlers.api.condition.ConditionEvaluator;
+import io.gravitee.gateway.reactive.core.condition.ConditionEvaluator;
+import io.gravitee.gateway.reactive.flow.AbstractFlowResolver;
 import io.reactivex.Flowable;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
+ * Allows resolving {@link Flow}s defined at plan level of a given {@link Api}.
+ *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PlanFlowResolver extends AbstractFlowResolver {
+class ApiPlanFlowResolver extends AbstractFlowResolver {
 
     private final Api api;
 
-    public PlanFlowResolver(Api api, ConditionEvaluator<Flow> evaluator) {
+    public ApiPlanFlowResolver(Api api, ConditionEvaluator<Flow> evaluator) {
         super(evaluator);
         this.api = api;
     }
@@ -43,11 +46,13 @@ public class PlanFlowResolver extends AbstractFlowResolver {
             return Flowable.empty();
         }
 
+        final String planId = ctx.getAttribute(ExecutionContext.ATTR_PLAN);
+
         return Flowable.fromIterable(
             api
                 .getPlans()
                 .stream()
-                .filter(plan -> plan.getId().equals(ctx.getAttribute(ExecutionContext.ATTR_PLAN)))
+                .filter(plan -> Objects.equals(plan.getId(), planId))
                 .filter(plan -> Objects.nonNull(plan.getFlows()))
                 .flatMap(plan -> plan.getFlows().stream())
                 .filter(Flow::isEnabled)
