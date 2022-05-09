@@ -15,37 +15,64 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 
-import io.gravitee.definition.model.Organization;
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.platform.Organization;
+import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
-import io.gravitee.gateway.reactive.handlers.api.condition.ConditionEvaluator;
+import io.gravitee.gateway.reactive.core.condition.ConditionEvaluator;
+import io.gravitee.gateway.reactive.flow.AbstractFlowResolver;
 import io.reactivex.Flowable;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
+ * Allows resolving {@link Flow}s managed at platform level.
+ * Api is linked to an organization and inherits from all flows defined at organization level (aka platform level).
+ * The current implementation relies on the {@link OrganizationManager} to retrieve the organization of the api.
+ *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PlatformFlowResolver extends AbstractFlowResolver {
+class PlatformFlowResolver extends AbstractFlowResolver {
 
-    private final Flowable<Flow> flows;
+    private final Api api;
+    private Flowable<Flow> flows;
+    private final OrganizationManager organizationManager;
+    private Organization organization;
 
-    public PlatformFlowResolver(Organization organization, ConditionEvaluator<Flow> evaluator) {
+    public PlatformFlowResolver(Api api, OrganizationManager organizationManager, ConditionEvaluator<Flow> evaluator) {
         super(evaluator);
-        this.flows = getFlows(organization);
+        this.api = api;
+        this.organizationManager = organizationManager;
+        initFlows();
     }
 
     @Override
     public Flowable<Flow> provideFlows(RequestExecutionContext ctx) {
+        initFlows();
         return this.flows;
     }
 
-    private Flowable<Flow> getFlows(Organization organization) {
+    private void initFlows() {
+        final Organization refreshedOrganization = organizationManager.getCurrentOrganization();
+
+        // Platform flows must be initialized the first time or when the organization has changed.
+        if (flows == null || organization != refreshedOrganization) {
+            // FIXME: currently the OrganizationManager manages only one organization. It means this organization could be not related to the api (see https://github.com/gravitee-io/issues/issues/5992).
+            this.organization =
+                refreshedOrganization != null && Objects.equals(api.getOrganizationId(), refreshedOrganization.getId())
+                    ? refreshedOrganization
+                    : null;
+            this.flows = provideFlows();
+        }
+    }
+
+    private Flowable<Flow> provideFlows() {
         if (organization == null || organization.getFlows() == null || organization.getFlows().isEmpty()) {
             return Flowable.empty();
         }
 
-        return Flowable.fromIterable(organization.getFlows().stream().filter(Flow::isEnabled).collect(Collectors.toList())).cache();
+        return Flowable.fromIterable(organization.getFlows().stream().filter(Flow::isEnabled).collect(Collectors.toList()));
     }
 }

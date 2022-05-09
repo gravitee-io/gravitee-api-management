@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
+package io.gravitee.gateway.reactive.flow;
 
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
-import io.gravitee.gateway.reactive.handlers.api.condition.ConditionEvaluator;
+import io.gravitee.gateway.reactive.core.condition.ConditionEvaluator;
 import io.reactivex.Flowable;
 
 /**

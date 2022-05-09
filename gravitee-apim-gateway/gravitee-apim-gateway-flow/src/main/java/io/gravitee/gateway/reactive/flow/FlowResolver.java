@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
+package io.gravitee.gateway.reactive.flow;
 
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.reactivex.Flowable;
 
@@ -26,6 +25,16 @@ import io.reactivex.Flowable;
  */
 public interface FlowResolver {
     /**
+     * Provides the initial list of flows.
+     * It's up to the implementation to decide to use the current execution context or not.
+     * The implementation can decide to cache the list of flows or evaluate it against the current context.
+     *
+     * @param ctx the current context
+     * @return a {@link Flowable} of {@link Flow}.
+     */
+    Flowable<Flow> provideFlows(final RequestExecutionContext ctx);
+
+    /**
      * Resolve the flows against the current context.
      * Each flow of the initial flow list is filtered thanks to the provided evaluator before being returned.
      *
@@ -34,15 +43,5 @@ public interface FlowResolver {
      * @param ctx the current context.
      * @return a {@link Flowable} of {@link Flow} that have passed the filter step.
      */
-    Flowable<Flow> resolve(RequestExecutionContext ctx);
-
-    /**
-     * Provides the initial list of flows.
-     * It's up to the implementation to decide to use the current execution context or not.
-     * The implementation can decide to cache the list of flows or evaluate it against the current context.
-     *
-     * @param ctx the current context
-     * @return a {@link Flowable} of {@link Flow}.
-     */
-    Flowable<Flow> provideFlows(RequestExecutionContext ctx);
+    Flowable<Flow> resolve(final RequestExecutionContext ctx);
 }

@@ -42,14 +42,16 @@ import io.gravitee.gateway.handlers.api.policy.security.PlanBasedAuthenticationH
 import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
+import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
-import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.handlers.api.SyncApiReactor;
 import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
+import io.gravitee.gateway.reactive.platform.PlatformPolicyManager;
+import io.gravitee.gateway.reactive.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
@@ -89,6 +91,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     private ApplicationContext applicationContext;
     private final Configuration configuration;
     private final Node node;
+    private final io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator;
     private final PolicyFactoryCreator policyFactoryCreator;
     private final PolicyChainProviderLoader policyChainProviderLoader;
 
@@ -96,12 +99,14 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         ApplicationContext applicationContext,
         Configuration configuration,
         Node node,
+        io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactoryCreator policyFactoryCreator,
         PolicyChainProviderLoader policyChainProviderLoader
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
         this.node = node;
+        this.v3PolicyFactoryCreator = v3PolicyFactoryCreator;
         this.policyFactoryCreator = policyFactoryCreator;
         this.policyChainProviderLoader = policyChainProviderLoader;
     }
@@ -145,57 +150,74 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                     endpointResolver(referenceRegister, groupLifecycleManager)
                 )
                     .create();
-                // Force creation of a dedicated PolicyFactory for each api as it may involve cache we want to be released when api is undeployed.
-                final PolicyFactory policyFactory = policyFactoryCreator.create();
-
-                final PolicyManager policyManager = policyManager(
-                    api,
-                    policyFactory,
-                    policyConfigurationFactory(),
-                    applicationContext.getBean(PolicyClassLoaderFactory.class),
-                    resourceLifecycleManager,
-                    apiComponentProvider
-                );
 
                 if (isV3ExecutionMode(api)) {
+                    // Force creation of a dedicated PolicyFactory for each api as it may involve cache we want to be released when api is undeployed.
+                    final PolicyFactory v3policyFactory = v3PolicyFactoryCreator.create();
+
+                    final PolicyManager v3PolicyManager = v3PolicyManager(
+                        api,
+                        v3policyFactory,
+                        policyConfigurationFactory(),
+                        applicationContext.getBean(PolicyClassLoaderFactory.class),
+                        resourceLifecycleManager,
+                        apiComponentProvider
+                    );
+
                     final ApiReactorHandler v3ApiReactor = getApiReactorHandler(api);
+                    final FlowPolicyResolverFactory v3FlowPolicyResolverFactory = new FlowPolicyResolverFactory();
+                    final PolicyChainFactory policyChainFactory = policyChainFactory(v3PolicyManager);
 
-                    final FlowPolicyResolverFactory flowPolicyResolverFactory = new FlowPolicyResolverFactory();
-
-                    final PolicyChainFactory policyChainFactory = policyChainFactory(policyManager);
                     final RequestProcessorChainFactory requestProcessorChainFactory = requestProcessorChainFactory(
                         api,
                         policyChainFactory,
-                        policyManager,
+                        v3PolicyManager,
                         policyChainProviderLoader,
                         authenticationHandlerSelector(
                             authenticationHandlerManager(securityProviderLoader(), authenticationHandlerEnhancer(api), apiComponentProvider)
                         ),
-                        flowPolicyResolverFactory
+                        v3FlowPolicyResolverFactory
                     );
 
                     v3ApiReactor.setRequestProcessorChain(requestProcessorChainFactory);
                     v3ApiReactor.setResponseProcessorChain(
-                        responseProcessorChainFactory(api, policyChainFactory, policyChainProviderLoader, flowPolicyResolverFactory)
+                        responseProcessorChainFactory(api, policyChainFactory, policyChainProviderLoader, v3FlowPolicyResolverFactory)
                     );
                     v3ApiReactor.setErrorProcessorChain(errorProcessorChainFactory(api, policyChainFactory));
 
                     v3ApiReactor.setInvoker(invoker);
 
-                    v3ApiReactor.setPolicyManager(policyManager);
+                    v3ApiReactor.setPolicyManager(v3PolicyManager);
                     v3ApiReactor.setGroupLifecycleManager(groupLifecycleManager);
                     v3ApiReactor.setResourceLifecycleManager(resourceLifecycleManager);
 
                     v3ApiReactor.setExecutionContextFactory(v3ExecutionContextFactory(api, apiComponentProvider, referenceRegister));
                     return v3ApiReactor;
                 } else {
+                    final io.gravitee.gateway.reactive.policy.PolicyManager policyManager = policyManager(
+                        api,
+                        policyFactoryCreator.create(),
+                        policyConfigurationFactory(),
+                        applicationContext.getBean(PolicyClassLoaderFactory.class),
+                        apiComponentProvider
+                    );
+
+                    final PlatformPolicyManager platformPolicyManager = applicationContext.getBean(PlatformPolicyManager.class);
+                    final io.gravitee.gateway.reactive.policy.PolicyChainFactory platformPolicyChainFactory = applicationContext.getBean(
+                        "platformPolicyChainFactory",
+                        io.gravitee.gateway.reactive.policy.PolicyChainFactory.class
+                    );
+                    final OrganizationManager organizationManager = applicationContext.getBean(OrganizationManager.class);
+
                     return new SyncApiReactor(
                         api,
                         executionContextFactory(api, apiComponentProvider, referenceRegister),
                         new InvokerAdapter(invoker),
                         resourceLifecycleManager,
                         policyManager,
-                        groupLifecycleManager
+                        platformPolicyChainFactory,
+                        groupLifecycleManager,
+                        organizationManager
                     );
                 }
             } else {
@@ -259,7 +281,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         return new PolicyChainFactory(policyManager);
     }
 
-    public PolicyManager policyManager(
+    public PolicyManager v3PolicyManager(
         Api api,
         PolicyFactory factory,
         PolicyConfigurationFactory policyConfigurationFactory,
@@ -284,6 +306,32 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
             ppm,
             policyClassLoaderFactory,
             resourceLifecycleManager,
+            componentProvider
+        );
+    }
+
+    public io.gravitee.gateway.reactive.policy.PolicyManager policyManager(
+        Api api,
+        io.gravitee.gateway.reactive.policy.PolicyFactory factory,
+        PolicyConfigurationFactory policyConfigurationFactory,
+        PolicyClassLoaderFactory policyClassLoaderFactory,
+        ComponentProvider componentProvider
+    ) {
+        String[] beanNamesForType = applicationContext.getBeanNamesForType(
+            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
+        );
+
+        ConfigurablePluginManager<PolicyPlugin<?>> ppm = (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(
+            beanNamesForType[0]
+        );
+
+        return new io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager(
+            applicationContext.getBean(DefaultClassLoader.class),
+            api,
+            factory,
+            policyConfigurationFactory,
+            ppm,
+            policyClassLoaderFactory,
             componentProvider
         );
     }
