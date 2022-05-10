@@ -16,16 +16,23 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.emptyList;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.UserCriteria;
-import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.Workflow;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
@@ -60,9 +67,6 @@ public class TaskServiceTest {
     private SubscriptionService subscriptionService;
 
     @Mock
-    private ApplicationService applicationService;
-
-    @Mock
     private MembershipService membershipService;
 
     @Mock
@@ -72,9 +76,6 @@ public class TaskServiceTest {
     private RoleService roleService;
 
     @Mock
-    private PlanService planService;
-
-    @Mock
     private UserService userService;
 
     @Mock
@@ -82,6 +83,15 @@ public class TaskServiceTest {
 
     @Mock
     private PromotionTasksService promotionTasksService;
+
+    @Mock
+    private ApplicationRepository applicationRepository;
+
+    @Mock
+    private PlanRepository planRepository;
+
+    @Mock
+    private ApiRepository apiRepository;
 
     @Before
     public void setUp() {
@@ -160,5 +170,86 @@ public class TaskServiceTest {
         verify(subscriptionService, times(1)).search(eq(GraviteeContext.getExecutionContext()), any());
         verify(promotionTasksService, times(1)).getPromotionTasks(GraviteeContext.getExecutionContext());
         verify(userService, times(1)).search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any());
+    }
+
+    @Test
+    public void shouldGetMetadata() throws TechnicalException {
+        final Authentication authentication = mock(Authentication.class);
+
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+
+        // Task Subscription
+        TaskEntity taskSubscription = new TaskEntity();
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        taskSubscription.setData(subscriptionEntity);
+        subscriptionEntity.setApplication("appId");
+        subscriptionEntity.setPlan("planId");
+
+        Application application = new Application();
+        application.setName("App Name");
+        when(applicationRepository.findById(eq("appId"))).thenReturn(Optional.of(application));
+
+        Plan plan = new Plan();
+        plan.setName("Plan Name");
+        plan.setApi("planApiId");
+        when(planRepository.findById(eq("planId"))).thenReturn(Optional.of(plan));
+        Api planApi = new Api();
+        planApi.setName("Plan Api Name");
+        when(apiRepository.findById(eq("planApiId"))).thenReturn(Optional.of(planApi));
+
+        // Task Workflow
+        TaskEntity taskWorkflow = new TaskEntity();
+        Workflow workflow = new Workflow();
+        taskWorkflow.setData(workflow);
+        workflow.setReferenceType("API");
+        workflow.setReferenceId("workflowApiId");
+        Api workflowApi = new Api();
+        workflowApi.setName("Workflow Api Name");
+        when(apiRepository.findById(eq("workflowApiId"))).thenReturn(Optional.of(workflowApi));
+
+        Metadata metadata = taskService.getMetadata(GraviteeContext.getExecutionContext(), Arrays.asList(taskSubscription, taskWorkflow));
+
+        Map<String, Map<String, Object>> expectedMetadata = new HashMap<>();
+        // expected Metadata for Task Subscription
+        expectedMetadata.put("appId", Collections.singletonMap("name", "App Name"));
+        expectedMetadata.put("planApiId", Collections.singletonMap("name", "Plan Api Name"));
+        Map<String, Object> expectedPlanIdMetadata = new HashMap<>();
+        expectedPlanIdMetadata.put("name", "Plan Name");
+        expectedPlanIdMetadata.put("api", "planApiId");
+        expectedMetadata.put("planId", expectedPlanIdMetadata);
+        // expected Metadata for Task Workflow
+        expectedMetadata.put("workflowApiId", Collections.singletonMap("name", "Workflow Api Name"));
+
+        assertEquals(metadata.toMap(), expectedMetadata);
+    }
+
+    @Test
+    public void shouldGetMetadataWithoutThrowTechnicalException() throws TechnicalException {
+        final Authentication authentication = mock(Authentication.class);
+
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+
+        // Task Subscription
+        TaskEntity taskSubscription = new TaskEntity();
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        taskSubscription.setData(subscriptionEntity);
+        subscriptionEntity.setApplication("appId");
+        subscriptionEntity.setPlan("planId");
+
+        when(applicationRepository.findById(eq("appId"))).thenThrow(new TechnicalException());
+
+        when(planRepository.findById(eq("planId"))).thenThrow(new TechnicalException());
+
+        // Task Workflow
+        TaskEntity taskWorkflow = new TaskEntity();
+        Workflow workflow = new Workflow();
+        taskWorkflow.setData(workflow);
+        workflow.setReferenceType("API");
+        workflow.setReferenceId("workflowApiId");
+        when(apiRepository.findById(eq("workflowApiId"))).thenThrow(new TechnicalException());
+
+        Metadata metadata = taskService.getMetadata(GraviteeContext.getExecutionContext(), Arrays.asList(taskSubscription, taskWorkflow));
+
+        assertEquals(metadata.toMap(), Collections.emptyMap());
     }
 }
