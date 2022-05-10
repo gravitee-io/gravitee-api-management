@@ -91,6 +91,7 @@ services:
     environment:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_newsletter_enabled=false
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://admin:adminadmin@localhost:18083/_node" ]
       interval: 2s

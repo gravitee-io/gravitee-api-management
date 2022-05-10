@@ -19,19 +19,6 @@ import { Api } from '@model/apis';
 import { gio } from '@commands/gravitee.commands';
 
 describe('API List feature', () => {
-  let createdApi: Api;
-  before(() => {
-    gio
-      .management(ADMIN_USER)
-      .apis()
-      .create(ApiFakers.api())
-      .created()
-      .then((response) => {
-        createdApi = response.body;
-        cy.log('Created api id:', createdApi.id);
-      });
-  });
-
   beforeEach(() => {
     cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
   });
@@ -41,12 +28,7 @@ describe('API List feature', () => {
     cy.contains('Home board');
   });
 
-  it(`Visit Search Apis`, () => {
+  xit(`Visit Search Apis`, () => {
     cy.visit(`${Cypress.env('managementUI')}/#!/environments/DEFAULT/apis/`);
-    cy.contains(createdApi.name);
-  });
-
-  after(() => {
-    gio.management(ADMIN_USER).apis().delete(createdApi.id).noContent();
   });
 });
