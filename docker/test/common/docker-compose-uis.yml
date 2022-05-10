@@ -1,0 +1,86 @@
+#
+# Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+version: '3.8'
+
+services:
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    depends_on:
+      management_ui:
+        condition: service_healthy
+      portal_ui:
+          condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "service", "nginx", "status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/test/common/conf/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - apim
+
+  management_ui:
+    image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_TAG:-3}
+    container_name: gio_apim_management_ui
+    restart: always
+    ports:
+      - "8084:8080"
+    depends_on:
+      management_api:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    environment:
+      - MGMT_API_URL=/management/organizations/DEFAULT/environments/DEFAULT/
+    networks:
+      - apim
+
+  portal_ui:
+    image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_TAG:-3}
+    container_name: gio_apim_portal_ui
+    restart: always
+    ports:
+      - "8085:8080"
+    depends_on:
+      management_api:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    environment:
+      - PORTAL_API_URL=/portal/environments/DEFAULT
+    networks:
+      - apim
+
+  management_api:
+    environment:
+      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - console_ui_url=http://nginx/console
+      - console_api_url=http://nginx/management
+      - portal_ui_url=http://nginx/
