@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.model.permissions.EnvironmentPermission.DOCUMENTATION;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -25,10 +27,13 @@ import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -186,5 +191,21 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
                         o.getScope().equals(RoleScope.GROUP)
                 )
             );
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldNotCreateBecauseOfTechnicalManagementException() throws TechnicalException {
+        Role mgmtAdminRole = mock(Role.class);
+        when(
+            mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                RoleScope.ENVIRONMENT,
+                "ADMIN",
+                REFERENCE_ID,
+                REFERENCE_TYPE
+            )
+        )
+            .thenThrow(new TechnicalException());
+
+        roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
     }
 }
