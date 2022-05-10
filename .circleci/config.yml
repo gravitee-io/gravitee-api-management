@@ -174,13 +174,51 @@ commands:
                     docker save -o ./docker-cache/apim-management-api.tar ${REST_API_PRIVATE_IMAGE_TAG}
                     docker save -o ./docker-cache/apim-gateway.tar ${GATEWAY_PRIVATE_IMAGE_TAG}
 
-    load-backend-images-from-workspace:
+    build-ui-image:
+        parameters:
+            docker-image-name:
+                type: string
+                default: ""
+                description: the name of the image
+            apim-ui-project:
+              type: string
+              default: ""
+              description: the name of the UI project to build
+        steps:
+            - run:
+                name: Build UI docker image
+                command: |
+                    cp -fr docker/config .
+                    cp -fr docker/run.sh .
+                  
+                    export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/<< parameters.docker-image-name >>:$APIM_VERSION
+                    docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG} .
+                working_directory: << parameters.apim-ui-project >>
+
+    save-image-in-workspace:
+        parameters:
+            docker-image-name:
+                type: string
+                default: ""
+                description: the name of the image
+        steps:
+            - run:
+                name: Save Image in Docker Cache
+                command: |
+                    mkdir -p ./docker-cache
+                    export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/<< parameters.docker-image-name >>:$APIM_VERSION
+                    docker save -o ./docker-cache/<< parameters.docker-image-name >>.tar ${PRIVATE_IMAGE_TAG}
+
+    load-image-from-workspace:
+        parameters:
+            docker-image-name:
+                type: string
+                default: ""
+                description: the name of the image
         steps:
             - run:
                 name: Load Image from Docker Cache
-                command: |
-                  docker load < ./docker-cache/apim-management-api.tar
-                  docker load < ./docker-cache/apim-gateway.tar
+                command: docker load < ./docker-cache/<< parameters.docker-image-name >>.tar
 
 parameters:
     gio_action:
@@ -613,11 +651,19 @@ jobs:
                 type: string
                 default: ""
                 description: the name of the UI project to build
+            docker-image-name:
+                type: string
+                default: ""
+                description: the name of the image
         executor:
             name: node-lts
             class: large
         steps:
             - checkout
+            - attach_workspace:
+                at: .
+            - get-apim-version
+            - setup_remote_docker
             - webui-install:
                   apim-ui-project: << parameters.apim-ui-project >>
             - run:
@@ -627,11 +673,17 @@ jobs:
                       NODE_OPTIONS: --max_old_space_size=4086
                       BACKEND_ENV: apim-master
                   working_directory: << parameters.apim-ui-project >>
+            - build-ui-image:
+                docker-image-name: << parameters.docker-image-name >>
+                apim-ui-project: << parameters.apim-ui-project >>
+            - save-image-in-workspace:
+                docker-image-name: << parameters.docker-image-name >>
             - notify-on-failure
             - persist_to_workspace:
                   root: .
                   paths:
                       - << parameters.apim-ui-project >>/dist
+                      - ./docker-cache
 
     webui-publish-images-azure-registry:
         parameters:
@@ -658,15 +710,12 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
                   var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+            - build-ui-image:
+                docker-image-name: << parameters.docker-image-name >>
+                apim-ui-project: << parameters.apim-ui-project >>
             - run:
-                  name: Build & Publish Web UI Docker Image to Azure Registry
+                  name: Publish Web UI Docker Image to Azure Registry
                   command: |
-                      cp -fr docker/config .
-                      cp -fr docker/run.sh .
-
-                      export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/<< parameters.docker-image-name >>:${TAG}
-                      docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG} .
-
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                       docker push ${PRIVATE_IMAGE_TAG}
                       docker logout graviteeio.azurecr.io
@@ -1268,7 +1317,10 @@ jobs:
             - attach_workspace:
                 at: .
             - get-apim-version
-            - load-backend-images-from-workspace
+            - load-image-from-workspace:
+                docker-image-name: apim-gateway
+            - load-image-from-workspace:
+                docker-image-name: apim-management-api
             - run:
                 name: Run API & e2e tests
                 command: |
@@ -1276,6 +1328,34 @@ jobs:
                     APIM_TAG=$APIM_VERSION \
                     docker-compose -f ./docker/test/common/docker-compose-apis.yml -f ./docker/test/api-tests/docker-compose-api-tests.yml \
                       -p api-integration-test --project-directory $PWD up --no-build --abort-on-container-exit --exit-code-from jest-e2e
+            - notify-on-failure
+
+    e2e-cypress:
+        machine:
+            image: ubuntu-2004:202101-01
+        resource_class: medium
+        steps:
+            - checkout
+            - attach_workspace:
+                at: .
+            - get-apim-version
+            - load-image-from-workspace:
+                docker-image-name: apim-gateway
+            - load-image-from-workspace:
+                docker-image-name: apim-management-api
+            - load-image-from-workspace:
+                docker-image-name: apim-management-ui
+            - load-image-from-workspace:
+                docker-image-name: apim-portal-ui
+            - webui-install:
+                apim-ui-project: gravitee-apim-e2e
+            - run:
+                name: Run UI tests
+                command: |
+                    APIM_REGISTRY=graviteeio.azurecr.io \
+                    APIM_TAG=$APIM_VERSION \
+                    docker-compose -f ./docker/test/common/docker-compose-apis.yml -f ./docker/test/common/docker-compose-uis.yml -f ./docker/test/ui-tests/docker-compose-ui-tests.yml \
+                      -p ui-tests --project-directory $PWD up --no-build --abort-on-container-exit --exit-code-from cypress
             - notify-on-failure
 
     publish_rpm_packages:
@@ -1416,6 +1496,7 @@ workflows:
             - webui-build:
                   name: Build APIM Console
                   apim-ui-project: gravitee-apim-console-webui
+                  docker-image-name: apim-management-ui
                   requires:
                       - setup
             - console-webui-deploy-on-azure-storage:
@@ -1459,6 +1540,7 @@ workflows:
             - webui-build:
                   name: Build APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
+                  docker-image-name: apim-portal-ui
                   requires:
                       - setup
             - webui-publish-images-azure-registry:
@@ -1501,6 +1583,17 @@ workflows:
                       only:
                         - master
                         - /.*-run-e2e.*/
+            - e2e-cypress:
+                  name: Run Cypress UI tests
+                  requires:
+                      - Build APIM Portal
+                      - Build APIM Console
+                      - build-images
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /.*-run-e2e.*/
 
 
     build_rpm_&_docker_images:
