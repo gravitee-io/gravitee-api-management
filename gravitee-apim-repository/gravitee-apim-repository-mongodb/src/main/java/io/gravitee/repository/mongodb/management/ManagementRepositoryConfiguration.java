@@ -19,6 +19,9 @@ import com.mongodb.client.MongoClient;
 import io.gravitee.repository.Scope;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import io.gravitee.repository.mongodb.common.MongoFactory;
+import io.gravitee.repository.mongodb.management.converters.BsonUndefinedToNullReadingConverter;
+import java.util.List;
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +30,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 /**
@@ -42,6 +47,18 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     @Autowired
     @Qualifier("managementMongo")
     private MongoFactory mongoFactory;
+
+    @Autowired
+    private MappingMongoConverter mappingMongoConverter;
+
+    private static MongoCustomConversions mongoCustomConversions() {
+        return new MongoCustomConversions(List.of(new BsonUndefinedToNullReadingConverter()));
+    }
+
+    @PostConstruct
+    public void addCustomConverters() {
+        mappingMongoConverter.setCustomConversions(mongoCustomConversions());
+    }
 
     @Bean(name = "managementMongo")
     public MongoFactory mongoFactory() {
