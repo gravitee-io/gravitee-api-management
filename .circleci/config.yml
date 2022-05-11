@@ -171,7 +171,7 @@ jobs:
         steps:
             - checkout
             - keeper/env-export:
-                  secret-url: keeper://zy9yQmXus2_LRA0lkydEkw/custom_field/xml
+                  secret-url: keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml
                   var-name: MAVEN_SETTINGS
             - run:
                   command: echo $MAVEN_SETTINGS > .gravitee.settings.xml
@@ -794,7 +794,7 @@ jobs:
                   name: Update maven dependencies versions from properties and remove `-SNAPSHOT` from versions
                   command: |
                       # Update maven dependencies versions from properties
-                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee-releases -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -T 2C
+                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -T 2C
 
                       # Remove `-SNAPSHOT` from versions
                       mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
