@@ -172,11 +172,11 @@ module.exports = {
 
   // A map from regular expressions to paths to transformers
   transform: {
-    '^.+\\.ts$': 'esbuild-jest',
+    '\\.(js|jsx|ts|tsx)$': '@sucrase/jest-plugin',
     '^.+\\.xml$': '<rootDir>/lib/jest-raw-loader.js',
   },
 
-  // testTimeout: 5000,
+  testTimeout: 30000,
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   // transformIgnorePatterns: ["/node_modules/", "\\.pnp\\.[^\\\/]+$"],
