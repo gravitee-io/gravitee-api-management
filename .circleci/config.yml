@@ -771,9 +771,8 @@ jobs:
     ## Release Jobs
     release:
         docker:
-            - image: cimg/openjdk:11.0.13
-        resource_class: large
-
+            - image: cimg/openjdk:11
+        resource_class: xlarge
         environment:
             DRY_RUN: << pipeline.parameters.dry_run >>
             MAVEN_PROFILE_ID: << pipeline.parameters.maven_profile_id >>
@@ -794,17 +793,17 @@ jobs:
                   name: Update maven dependencies versions from properties and remove `-SNAPSHOT` from versions
                   command: |
                       # Update maven dependencies versions from properties
-                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -T 2C
+                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -T 2C -no-transfer-progress
 
                       # Remove `-SNAPSHOT` from versions
-                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false --no-transfer-progress
             - prepare-gpg
             - prepare-env-var
             - run:
                   name: Maven deploy to Gravitee's private Artifactory
                   command: |
                       echo "  MAVEN_PROFILE_ID=[${MAVEN_PROFILE_ID}]  "
-                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U -P ${MAVEN_PROFILE_ID} clean deploy -DskipTests=true -Dskip.validation -T 2C
+                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U -P ${MAVEN_PROFILE_ID} clean deploy -DskipTests=true -Dskip.validation -T 1C --no-transfer-progress
             - add_ssh_keys:
                   fingerprints:
                       - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
