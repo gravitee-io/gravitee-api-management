@@ -34,7 +34,7 @@ public class ClientConnectionResponseTemplateTest extends AbstractWiremockGatewa
 
     @Test
     public void call_unreachable_api_with_response_template() throws Exception {
-        HttpResponse response = Request.Post("http://localhost:8082/unreachable").execute().returnResponse();
+        HttpResponse response = execute(Request.Post("http://localhost:8082/unreachable")).returnResponse();
 
         assertEquals(HttpStatus.SC_BAD_GATEWAY, response.getStatusLine().getStatusCode());
 
