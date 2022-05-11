@@ -771,7 +771,7 @@ jobs:
     ## Release Jobs
     release:
         docker:
-            - image: cimg/openjdk:11
+            - image: cimg/openjdk:11.0
         resource_class: xlarge
         environment:
             DRY_RUN: << pipeline.parameters.dry_run >>
