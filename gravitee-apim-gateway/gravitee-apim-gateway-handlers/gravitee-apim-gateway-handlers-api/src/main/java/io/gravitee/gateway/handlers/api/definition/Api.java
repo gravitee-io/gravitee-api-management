@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.handlers.api.definition;
 
-import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.ORIGIN_KUBERNETES;
-
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
@@ -44,8 +42,6 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
     private String environmentHrid;
     private String organizationId;
     private String organizationHrid;
-
-    private DefinitionContext definitionContext = new DefinitionContext();
 
     public Api() {}
 
@@ -93,14 +89,6 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
         this.setExecutionMode(definition.getExecutionMode());
     }
 
-    public DefinitionContext getDefinitionContext() {
-        return definitionContext;
-    }
-
-    public void setDefinitionContext(DefinitionContext definitionContext) {
-        this.definitionContext = definitionContext;
-    }
-
     public boolean isEnabled() {
         return enabled;
     }
@@ -135,15 +123,6 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
 
     private Set<Policy> policies() {
         Set<io.gravitee.definition.model.Policy> policies = new HashSet<>();
-
-        if (ORIGIN_KUBERNETES.equals(this.getDefinitionContext().getOrigin())) {
-            Policy secPolicy = buildSecurityPolicy("KEY_LESS");
-
-            if (secPolicy.getName() != null) {
-                policies.add(secPolicy);
-            }
-        }
-
         // Load policies from the API
         if (getPaths() != null) {
             getPaths()

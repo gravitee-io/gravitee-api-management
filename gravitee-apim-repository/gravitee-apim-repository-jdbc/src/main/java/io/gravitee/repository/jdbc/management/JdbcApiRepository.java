@@ -66,6 +66,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .builder(Api.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("cross_id", Types.NVARCHAR, String.class)
+            .addColumn("origin", Types.NVARCHAR, String.class)
+            .addColumn("mode", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)

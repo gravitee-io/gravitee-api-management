@@ -39,6 +39,7 @@
         <module>gravitee-apim-gateway-services-heartbeat</module>
         <module>gravitee-apim-gateway-services-endpoint-discovery</module>
         <module>gravitee-apim-gateway-services-debug</module>
+<!--        <module>gravitee-apim-gateway-services-kubernetes</module>-->
     </modules>
 
     <dependencies>

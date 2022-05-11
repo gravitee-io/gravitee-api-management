@@ -164,3 +164,19 @@ databaseChangeLog:
                   - column:
                         name: environment_id
                         type: nvarchar(64)
+        # ################
+        # Apis Changes: Kubernetes Operator
+        # ################
+        - addColumn:
+            tableName: ${gravitee_prefix}apis
+            columns:
+              - column:
+                  name: origin
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: mode
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true

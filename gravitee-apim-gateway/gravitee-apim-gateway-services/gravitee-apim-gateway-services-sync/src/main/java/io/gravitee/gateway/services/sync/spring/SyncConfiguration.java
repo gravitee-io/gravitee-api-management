@@ -18,7 +18,9 @@ package io.gravitee.gateway.services.sync.spring;
 import io.gravitee.gateway.services.sync.SyncManager;
 import io.gravitee.gateway.services.sync.cache.configuration.LocalCacheConfiguration;
 import io.gravitee.gateway.services.sync.healthcheck.ApiSyncProbe;
+import io.gravitee.gateway.services.sync.kubernetes.KubernetesSyncService;
 import io.gravitee.gateway.services.sync.synchronizer.*;
+import io.gravitee.kubernetes.client.KubernetesClient;
 import io.gravitee.node.api.cache.CacheManager;
 import io.reactivex.annotations.NonNull;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -86,6 +88,11 @@ public class SyncConfiguration {
     @Bean
     public OrganizationSynchronizer organizationSynchronizer() {
         return new OrganizationSynchronizer();
+    }
+
+    @Bean
+    public KubernetesSyncService kubernetesSyncService(KubernetesClient client, ApiSynchronizer apiSynchronizer) {
+        return new KubernetesSyncService(client, apiSynchronizer);
     }
 
     @Bean

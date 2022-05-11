@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
@@ -60,6 +61,7 @@ public class ApiConverter {
         apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
         apiEntity.setCategories(api.getCategories());
+        apiEntity.setDefinitionContext(new DefinitionContext(api.getOrigin(), api.getMode()));
 
         if (api.getDefinition() != null) {
             try {
@@ -154,6 +156,7 @@ public class ApiConverter {
         updateApiEntity.setResponseTemplates(apiEntity.getResponseTemplates());
         updateApiEntity.setCategories(apiEntity.getCategories());
         updateApiEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
+        updateApiEntity.setDefinitionContext(apiEntity.getDefinitionContext());
         return updateApiEntity;
     }
 }

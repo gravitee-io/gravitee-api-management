@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.handlers.api.manager.impl;
 
-import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.planRequired;
-
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.Plan;
@@ -174,7 +172,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
 
         if (api.isEnabled()) {
             // Deploy the API only if there is at least one plan
-            if (!api.getPlans().isEmpty() || !planRequired(api)) {
+            if (!api.getPlans().isEmpty()) {
                 logger.debug("Deploying {} plan(s) for {}:", api.getPlans().size(), api);
                 for (Plan plan : api.getPlans()) {
                     logger.debug("\t- {}", plan.getName());
@@ -234,7 +232,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
         MDC.put("api", api.getId());
         logger.debug("Updating {}", api);
 
-        if (!api.getPlans().isEmpty() || !planRequired(api)) {
+        if (!api.getPlans().isEmpty()) {
             logger.debug("Deploying {} plan(s) for {}:", api.getPlans().size(), api);
             for (Plan plan : api.getPlans()) {
                 logger.info("\t- {}", plan.getName());

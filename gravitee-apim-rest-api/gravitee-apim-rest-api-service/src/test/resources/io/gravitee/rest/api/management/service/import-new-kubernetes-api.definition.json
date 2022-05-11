@@ -1,0 +1,153 @@
+{
+  "id": "a409499e-e447-38fd-a3f0-a7f17bd67226",
+  "crossId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+  "definition_context": {
+    "origin": "kubernetes",
+    "mode": "fully_managed"
+  },
+  "name": "test kubernetes",
+  "version": "1",
+  "gravitee": "2.0.0",
+  "description": "bmll",
+  "visibility": "PRIVATE",
+  "lifecycle_state": "CREATED",
+  "tags": [],
+  "proxy": {
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "https://api.gravitee.io/echo",
+        "weight": 1,
+        "backup": false,
+        "healthcheck": true
+      }
+    ],
+    "load_balancing": {
+      "type": "ROUND_ROBIN"
+    },
+    "failover": {
+      "maxAttempts": 1,
+      "retryTimeout": 0,
+      "cases": [
+        "TIMEOUT"
+      ]
+    },
+    "strip_context_path": false,
+    "http": {
+      "configuration": {
+        "connectTimeout": 5000,
+        "idleTimeout": 60000,
+        "keepAlive": true,
+        "dumpRequest": false,
+        "readTimeout": 10000,
+        "pipelining": false,
+        "maxConcurrentConnections": 100,
+        "useCompression": false
+      }
+    }
+  },
+  "plans" : [
+    {
+      "id" : "3f78a156-952e-3d98-8b04-bb6ec0f5bc72",
+      "crossId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "name": "free plan",
+      "description" : "free plan",
+      "validation" : "AUTO",
+      "security" : "API_KEY",
+      "type" : "API",
+      "status" : "PUBLISHED",
+      "api" : "a409499e-e447-38fd-a3f0-a7f17bd67226",
+      "order" : 0,
+      "paths" : {
+        "/" : [ {
+          "methods" : [ "GET" ],
+          "rate-limit" : {
+            "rate": {
+              "limit": 1,
+              "periodTime": 1,
+              "periodTimeUnit": "SECONDS"
+            }
+          },
+          "enabled" : true
+        } ]
+      }
+    } ,
+    {
+      "id" : "3fde2343-dbb5-385b-8ff7-9fe121b810b9",
+      "crossId" : "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "name": "keyless plan",
+      "description" : "keyless plan",
+      "validation" : "AUTO",
+      "security" : "KEY_LESS",
+      "type" : "API",
+      "status" : "PUBLISHED",
+      "api" : "a409499e-e447-38fd-a3f0-a7f17bd67226",
+      "order" : 0,
+      "paths" : {
+        "/" : [ {
+          "methods" : [ "GET" ],
+          "rate-limit" : {
+            "rate": {
+              "limit": 1,
+              "periodTime": 1,
+              "periodTimeUnit": "SECONDS"
+            }
+          },
+          "enabled" : true
+        } ]
+      }
+    }
+  ],
+  "flows": [
+    {
+      "name": "",
+      "path-operator": {
+        "operator": "STARTS_WITH",
+        "path": "/"
+      },
+      "condition": "",
+      "methods": [],
+      "pre": [
+        {
+          "name": "JSON Validation",
+          "description": "",
+          "enabled": true,
+          "policy": "json-validation",
+          "configuration": {
+            "scope": "REQUEST",
+            "schema": "{\n\t\"$schema\": \"https://json-schema.org/draft/2019-09/schema\"\n}",
+            "errorMessage": "ERROR FROM VALIDATION"
+          }
+        }
+      ],
+      "post": [],
+      "enabled": true
+    }
+  ],
+  "properties": {
+    "prop1": "value1"
+  },
+  "services": {},
+  "resources": [
+    {
+      "name": "cache_name",
+      "type": "cache",
+      "enabled": true,
+      "configuration": {
+        "name": "my-cache",
+        "timeToIdleSeconds": 1,
+        "timeToLiveSeconds": 2,
+        "maxEntriesLocalHeap": 1000
+      }
+    }
+  ],
+  "response_templates": {
+    "API_KEY_MISSING": {
+      "*/*": {
+        "status": 400,
+        "body": "{\"bad\":\"news\"}"
+      }
+    }
+  }
+}
