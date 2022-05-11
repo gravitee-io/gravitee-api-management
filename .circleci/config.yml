@@ -801,10 +801,10 @@ jobs:
             - prepare-gpg
             - prepare-env-var
             - run:
-                  name: Maven deploy to Gravitee's private Artifactory"
+                  name: Maven deploy to Gravitee's private Artifactory
                   command: |
                       echo "  MAVEN_PROFILE_ID=[${MAVEN_PROFILE_ID}]  "
-                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U -P ${MAVEN_PROFILE_ID} clean deploy -DskipTests=true -Dskip.validation
+                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U -P ${MAVEN_PROFILE_ID} clean deploy -DskipTests=true -Dskip.validation -T 2C
             - add_ssh_keys:
                   fingerprints:
                       - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
