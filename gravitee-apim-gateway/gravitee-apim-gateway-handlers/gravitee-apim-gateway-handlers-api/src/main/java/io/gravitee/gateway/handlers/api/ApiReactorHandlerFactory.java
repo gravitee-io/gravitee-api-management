@@ -50,6 +50,7 @@ import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.handlers.api.SyncApiReactor;
 import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
+import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.platform.PlatformPolicyManager;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory;
@@ -73,6 +74,7 @@ import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.ResolvableType;
 
 /**
@@ -87,13 +89,13 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     public static final String REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY = "reporters.logging.excluded_response_types";
     public static final String API_JUPITER_MODE_ENABLED = "api.jupiterMode.enabled";
     private final Logger logger = LoggerFactory.getLogger(ApiReactorHandlerFactory.class);
-
-    private ApplicationContext applicationContext;
     private final Configuration configuration;
     private final Node node;
     private final io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator;
     private final PolicyFactoryCreator policyFactoryCreator;
     private final PolicyChainProviderLoader policyChainProviderLoader;
+    private final ApiProcessorChainFactory apiProcessorChainFactory;
+    private ApplicationContext applicationContext;
 
     public ApiReactorHandlerFactory(
         ApplicationContext applicationContext,
@@ -109,6 +111,16 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         this.v3PolicyFactoryCreator = v3PolicyFactoryCreator;
         this.policyFactoryCreator = policyFactoryCreator;
         this.policyChainProviderLoader = policyChainProviderLoader;
+        this.apiProcessorChainFactory = createApiProcessorChainFactory();
+    }
+
+    private ApiProcessorChainFactory createApiProcessorChainFactory() {
+        ApiProcessorChainFactory.Options options = new ApiProcessorChainFactory.Options();
+        options.overrideXForwardedPrefix(
+            configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false)
+        );
+
+        return new ApiProcessorChainFactory(options, node);
     }
 
     @Override
@@ -214,6 +226,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                         executionContextFactory(api, apiComponentProvider, referenceRegister),
                         new InvokerAdapter(invoker),
                         resourceLifecycleManager,
+                        apiProcessorChainFactory,
                         policyManager,
                         platformPolicyChainFactory,
                         groupLifecycleManager,
