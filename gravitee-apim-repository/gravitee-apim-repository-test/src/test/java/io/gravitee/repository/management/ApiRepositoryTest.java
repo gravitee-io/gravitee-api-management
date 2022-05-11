@@ -56,6 +56,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         Api api = new Api();
         api.setId(apiId);
         api.setEnvironmentId("DEFAULT");
+        api.setOrigin(Api.ORIGIN_KUBERNETES);
+        api.setMode(Api.MODE_API_DEFINITION_ONLY);
         api.setName("sample-new name");
         api.setVersion("1");
         api.setLifecycleState(STOPPED);
@@ -72,6 +74,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
         Api apiSaved = optional.get();
         assertEquals("Invalid saved environment id.", api.getEnvironmentId(), apiSaved.getEnvironmentId());
+        assertEquals("Invalid saved api origin.", api.getOrigin(), apiSaved.getOrigin());
+        assertEquals("Invalid saved api mode.", api.getMode(), apiSaved.getMode());
         assertEquals("Invalid saved api version.", api.getVersion(), apiSaved.getVersion());
         assertEquals("Invalid deployment lifecycle.", api.getLifecycleState(), apiSaved.getLifecycleState());
         assertEquals("Invalid api private api status.", api.getVisibility(), apiSaved.getVisibility());
@@ -148,6 +152,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
         Api api = optional.get();
         assertEquals("Invalid environment id.", "DEFAULT", api.getEnvironmentId());
+        assertEquals("Invalid origin.", Api.ORIGIN_KUBERNETES, api.getOrigin());
+        assertEquals("Invalid mode.", Api.MODE_API_DEFINITION_ONLY, api.getMode());
         assertEquals("Invalid api name", "api-to-findById name", api.getName());
         assertEquals("Invalid api version", "1", api.getVersion());
         assertEquals("Invalid api visibility", PUBLIC, api.getVisibility());

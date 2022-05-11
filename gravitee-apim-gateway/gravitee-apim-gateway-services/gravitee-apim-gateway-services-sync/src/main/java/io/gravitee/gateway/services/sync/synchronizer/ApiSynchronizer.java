@@ -118,7 +118,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     }
 
     @NonNull
-    private Flowable<String> processApiEvents(Flowable<Event> upstream) {
+    public Flowable<String> processApiEvents(Flowable<Event> upstream) {
         return upstream
             .groupBy(Event::getType)
             .flatMap(

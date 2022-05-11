@@ -223,12 +223,12 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         verify(apiService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
-    private ApiEntity prepareUpdateImportApiWithMembers(UserEntity admin, UserEntity user) {
+    private ApiEntity prepareUpdateImportApiWithMembers(String apiId, UserEntity admin, UserEntity user) {
         ApiEntity apiEntity = new ApiEntity();
         Api api = new Api();
-        api.setId(API_ID);
+        api.setId(apiId);
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
-        apiEntity.setId(API_ID);
+        apiEntity.setId(apiId);
         apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED);
         when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any())).thenReturn(apiEntity);
 
@@ -275,7 +275,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         UserEntity admin = new UserEntity();
         UserEntity user = new UserEntity();
-        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
+        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(API_ID, admin, user);
 
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
@@ -323,7 +323,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         UserEntity admin = new UserEntity();
         UserEntity user = new UserEntity();
-        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
+        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(API_ID, admin, user);
 
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
@@ -361,7 +361,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         UserEntity admin = new UserEntity();
         UserEntity user = new UserEntity();
-        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
+        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(API_ID, admin, user);
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
@@ -447,7 +447,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         UserEntity admin = new UserEntity();
         UserEntity user = new UserEntity();
-        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
+        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(API_ID, admin, user);
         apiEntity.setId("id-api");
         apiEntity.setCrossId("api-cross-id");
         // plan1 is present both in existing api and in imported api definition
@@ -495,7 +495,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         UserEntity admin = new UserEntity();
         UserEntity user = new UserEntity();
-        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
+        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(API_ID, admin, user);
         apiEntity.setCrossId("api-cross-id");
 
         // plan1 had a description and a name before import
@@ -560,5 +560,39 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         String toBeImport = Resources.toString(resource, Charsets.UTF_8);
 
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport);
+    }
+
+    @Test
+    public void shouldUpdateWithKubernetesOrigin() throws IOException {
+        // For api coming from kubernetes operator, ids are managed by the operator itself and must remain the same to keep consistency.
+        String apiId = "a409499e-e447-38fd-a3f0-a7f17bd67226";
+        String apiCrossId = "ffffffff-ffff-ffff-ffff-ffffffffffff";
+        String planId1 = "3f78a156-952e-3d98-8b04-bb6ec0f5bc72";
+        String planCrossId1 = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+        String planId2 = "3fde2343-dbb5-385b-8ff7-9fe121b810b9";
+        String planCrossId2 = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-update-kubernetes-api.definition.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        UserEntity admin = new UserEntity();
+        UserEntity user = new UserEntity();
+        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(apiId, admin, user);
+        apiEntity.setId(apiId);
+        apiEntity.setCrossId(apiCrossId);
+        PlanEntity plan1 = new PlanEntity();
+        plan1.setId(planId1);
+        plan1.setCrossId(planCrossId1);
+        plan1.setApi(apiId);
+        PlanEntity plan2 = new PlanEntity();
+        plan2.setId(planId2);
+        plan2.setCrossId(planCrossId2);
+        plan2.setApi(apiId);
+
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId())).thenReturn(Set.of(plan1, plan2));
+        when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq(apiId), any())).thenReturn(apiEntity);
+
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
+
+        verify(planService, times(2)).findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
     }
 }

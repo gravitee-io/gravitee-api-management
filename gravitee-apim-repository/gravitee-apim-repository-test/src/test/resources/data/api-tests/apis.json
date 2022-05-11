@@ -2,6 +2,8 @@
   {
     "id": "api-to-delete",
     "environmentId": "DEV",
+    "origin": "management",
+    "mode": "fully_managed",
     "name": "api-to-delete name",
     "version": "1",
     "definition" : "{\"id\" : \"product\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
@@ -15,6 +17,8 @@
   {
     "id": "api-to-update",
     "environmentId": "DEVS",
+    "origin": "management",
+    "mode": "fully_managed",
     "name": "api-to-update name",
     "version": "1",
     "definition" : "{\"id\" : \"product\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
@@ -28,6 +32,8 @@
   {
     "id": "api-to-findById",
     "environmentId": "DEFAULT",
+    "origin": "kubernetes",
+    "mode": "api_definition_only",
     "name": "api-to-findById name",
     "crossId": "searched-crossId",
     "version": "1",
@@ -44,6 +50,8 @@
   {
     "id": "grouped-api",
     "environmentId": "DEFAULT",
+    "origin": "management",
+    "mode": "fully_managed",
     "name": "grouped-api name",
     "crossId": "another-crossId",
     "version": "1",
@@ -60,6 +68,8 @@
   {
     "id": "big-name",
     "environmentId": "DEV",
+    "origin": "management",
+    "mode": "fully_managed",
     "name": "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012",
     "version": "long",
     "definition" : "{\"id\" : \"product\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/another_product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
@@ -73,6 +83,8 @@
   {
     "id": "api-with-categories",
     "environmentId": "ANOTHER",
+    "origin": "management",
+    "mode": "fully_managed",
     "name": "api-with-categories name",
     "crossId": "searched-crossId-xxx-999-1212112",
     "version": "2",
@@ -88,6 +100,8 @@
   {
     "id": "crossId-api",
     "environmentId": "ENV6",
+    "origin": "management",
+    "mode": "fully_managed",
     "name": "duplicated-crossId-api name",
     "crossId": "searched-crossId2",
     "version": "13.5",
@@ -104,6 +118,8 @@
   {
     "id": "duplicated-crossId-api-1",
     "environmentId": "ENV6",
+    "origin": "management",
+    "mode": "fully_managed",
     "name": "duplicated-crossId-api name",
     "crossId": "duplicated-crossId",
     "version": "13.5",
@@ -120,6 +136,8 @@
   {
     "id": "duplicated-crossId-api-2",
     "environmentId": "ENV6",
+    "origin": "management",
+    "mode": "fully_managed",
     "name": "duplicated-crossId-api name",
     "crossId": "duplicated-crossId",
     "version": "13.5",

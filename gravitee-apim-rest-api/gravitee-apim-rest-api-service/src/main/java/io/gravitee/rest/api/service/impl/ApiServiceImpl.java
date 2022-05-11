@@ -49,14 +49,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.util.DataEncryptor;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.Logging;
-import io.gravitee.definition.model.LoggingMode;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
@@ -475,9 +468,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Set date fields
             repoApi.setCreatedAt(new Date());
             repoApi.setUpdatedAt(repoApi.getCreatedAt());
-            // Be sure that lifecycle is set to STOPPED by default and visibility is private
-            repoApi.setLifecycleState(LifecycleState.STOPPED);
 
+            if (DefinitionContext.isKubernetes(api.getDefinitionContext())) {
+                // Be sure that api is always marked as STARTED when managed by k8s.
+                repoApi.setLifecycleState(LifecycleState.STARTED);
+
+                // Set the api lifecycle state if defined or set it to CREATED by default.
+                repoApi.setApiLifecycleState(
+                    api.getLifecycleState() != null ? ApiLifecycleState.valueOf(api.getLifecycleState().name()) : ApiLifecycleState.CREATED
+                );
+            } else {
+                // Be sure that lifecycle is set to STOPPED
+                repoApi.setLifecycleState(LifecycleState.STOPPED);
+                repoApi.setApiLifecycleState(ApiLifecycleState.CREATED);
+            }
+
+            // Make sure visibility is PRIVATE by default if not set.
             repoApi.setVisibility(api.getVisibility() == null ? Visibility.PRIVATE : Visibility.valueOf(api.getVisibility().toString()));
 
             // Add Default groups
@@ -1685,7 +1691,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api.setEnvironmentId(apiToUpdate.getEnvironmentId());
             api.setDeployedAt(apiToUpdate.getDeployedAt());
             api.setCreatedAt(apiToUpdate.getCreatedAt());
-            api.setLifecycleState(apiToUpdate.getLifecycleState());
+
+            if (DefinitionContext.isKubernetes(updateApiEntity.getDefinitionContext())) {
+                // Be sure that api is started when managed by k8s.
+                api.setLifecycleState(LifecycleState.STARTED);
+                if (updateApiEntity.getLifecycleState() != null) {
+                    api.setApiLifecycleState(ApiLifecycleState.valueOf(updateApiEntity.getLifecycleState().name()));
+                }
+            } else {
+                api.setLifecycleState(apiToUpdate.getLifecycleState());
+            }
+
             if (updateApiEntity.getCrossId() == null) {
                 api.setCrossId(apiToUpdate.getCrossId());
             }
@@ -2004,75 +2020,85 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
-            if (api.getLifecycleState() == LifecycleState.STARTED) {
-                throw new ApiRunningStateException(apiId);
-            } else {
-                // Delete plans
-                Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
-                Set<String> plansNotClosed = plans
-                    .stream()
-                    .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
-                    .map(PlanEntity::getName)
-                    .collect(toSet());
-
-                if (!plansNotClosed.isEmpty()) {
-                    throw new ApiNotDeletableException(plansNotClosed);
-                }
-
-                Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(executionContext, apiId);
-                subscriptions.forEach(sub -> subscriptionService.delete(executionContext, sub.getId()));
-
-                plans.forEach(plan -> planService.delete(executionContext, plan.getId()));
-
-                // Delete flows
-                flowService.save(FlowReferenceType.API, apiId, null);
-
-                // Delete events
-                final EventQuery query = new EventQuery();
-                query.setApi(apiId);
-                eventService.search(executionContext, query).forEach(event -> eventService.delete(event.getId()));
-
-                // https://github.com/gravitee-io/issues/issues/4130
-                // Ensure we are sending a last UNPUBLISH_API event because the gateway couldn't be aware that the API (and
-                // all its relative events) have been deleted.
-                Map<String, String> properties = new HashMap<>(2);
-                properties.put(Event.EventProperties.API_ID.getValue(), apiId);
-                if (getAuthenticatedUser() != null) {
-                    properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
-                }
-                eventService.createApiEvent(
-                    executionContext,
-                    singleton(executionContext.getEnvironmentId()),
-                    EventType.UNPUBLISH_API,
-                    null,
-                    properties
-                );
-
-                // Delete pages
-                pageService.deleteAllByApi(executionContext, apiId);
-
-                // Delete top API
-                topApiService.delete(executionContext, apiId);
-                // Delete API
-                apiRepository.delete(apiId);
-                // Delete memberships
-                membershipService.deleteReference(executionContext, MembershipReferenceType.API, apiId);
-                // Delete notifications
-                genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
-                portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
-                // Delete alerts
-                final List<AlertTriggerEntity> alerts = alertService.findByReferenceWithEventCounts(AlertReferenceType.API, apiId);
-                alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
-                // delete all reference on api quality rule
-                apiQualityRuleRepository.deleteByApi(apiId);
-                // Audit
-                auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
-                // remove from search engine
+            if (DefinitionContext.isKubernetes(api.getOrigin())) {
+                // Quick win: when api is managed by Kubernetes, for now, just mark the api STOPPED, remove it from the search engine and mark it UNPUBLISHED from dev portal.
+                // This must be better handled with an higher concept such as 'archiving' or something close.
+                api.setLifecycleState(LifecycleState.STOPPED);
+                api.setApiLifecycleState(ApiLifecycleState.UNPUBLISHED);
+                api.setVisibility(Visibility.PRIVATE);
+                apiRepository.update(api);
                 searchEngineService.delete(executionContext, convert(executionContext, api));
+            } else {
+                if (api.getLifecycleState() == LifecycleState.STARTED) {
+                    throw new ApiRunningStateException(apiId);
+                } else {
+                    // Delete plans
+                    Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
+                    Set<String> plansNotClosed = plans
+                        .stream()
+                        .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
+                        .map(PlanEntity::getName)
+                        .collect(toSet());
 
-                mediaService.deleteAllByApi(apiId);
+                    if (!plansNotClosed.isEmpty()) {
+                        throw new ApiNotDeletableException(plansNotClosed);
+                    }
 
-                apiMetadataService.deleteAllByApi(executionContext, apiId);
+                    Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(executionContext, apiId);
+                    subscriptions.forEach(sub -> subscriptionService.delete(executionContext, sub.getId()));
+
+                    plans.forEach(plan -> planService.delete(executionContext, plan.getId()));
+
+                    // Delete flows
+                    flowService.save(FlowReferenceType.API, apiId, null);
+
+                    // Delete events
+                    final EventQuery query = new EventQuery();
+                    query.setApi(apiId);
+                    eventService.search(executionContext, query).forEach(event -> eventService.delete(event.getId()));
+
+                    // https://github.com/gravitee-io/issues/issues/4130
+                    // Ensure we are sending a last UNPUBLISH_API event because the gateway couldn't be aware that the API (and
+                    // all its relative events) have been deleted.
+                    Map<String, String> properties = new HashMap<>(2);
+                    properties.put(Event.EventProperties.API_ID.getValue(), apiId);
+                    if (getAuthenticatedUser() != null) {
+                        properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
+                    }
+                    eventService.createApiEvent(
+                        executionContext,
+                        singleton(executionContext.getEnvironmentId()),
+                        EventType.UNPUBLISH_API,
+                        null,
+                        properties
+                    );
+
+                    // Delete pages
+                    pageService.deleteAllByApi(executionContext, apiId);
+
+                    // Delete top API
+                    topApiService.delete(executionContext, apiId);
+                    // Delete API
+                    apiRepository.delete(apiId);
+                    // Delete memberships
+                    membershipService.deleteReference(executionContext, MembershipReferenceType.API, apiId);
+                    // Delete notifications
+                    genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
+                    portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
+                    // Delete alerts
+                    final List<AlertTriggerEntity> alerts = alertService.findByReferenceWithEventCounts(AlertReferenceType.API, apiId);
+                    alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
+                    // delete all reference on api quality rule
+                    apiQualityRuleRepository.deleteByApi(apiId);
+                    // Audit
+                    auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
+                    // remove from search engine
+                    searchEngineService.delete(executionContext, convert(executionContext, api));
+
+                    mediaService.deleteAllByApi(apiId);
+
+                    apiMetadataService.deleteAllByApi(executionContext, apiId);
+                }
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete API {}", apiId, ex);
@@ -2121,6 +2147,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             // 1_ First, check the API state
             ApiEntity api = findById(executionContext, apiId);
+
+            // The state of the api is managed by kubernetes. There is no synchronization allowed from management.
+            if (DefinitionContext.isKubernetes(api.getDefinitionContext())) {
+                return true;
+            }
 
             Map<String, Object> properties = new HashMap<>();
             properties.put(Event.EventProperties.API_ID.getValue(), apiId);
@@ -2235,6 +2266,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiDeploymentEntity apiDeploymentEntity
     ) throws Exception {
         Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+
+        if (DefinitionContext.isKubernetes(api.getOrigin())) {
+            throw new ApiNotManagedException("The api is managed externally (" + api.getOrigin() + "). Unable to deploy it.");
+        }
 
         // add deployment date
         api.setUpdatedAt(new Date());
@@ -3101,6 +3136,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Optional<Api> optApi = apiRepository.findById(apiId);
         if (optApi.isPresent()) {
             Api api = optApi.get();
+
+            if (DefinitionContext.isKubernetes(api.getOrigin())) {
+                throw new ApiNotManagedException("The api is managed externally (" + api.getOrigin() + "). Unable to start or stop it.");
+            }
+
             Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
@@ -3297,6 +3337,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         boolean readDatabaseFlows
     ) {
         ApiEntity apiEntity = apiConverter.toApiEntity(api, primaryOwner);
+        if (apiEntity.getDefinitionContext() == null) {
+            // Set context to management for backward compatibility.
+            apiEntity.setDefinitionContext(new DefinitionContext(Api.ORIGIN_MANAGEMENT, Api.MODE_FULLY_MANAGED));
+        }
 
         Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
         apiEntity.setPlans(plans);
@@ -3350,6 +3394,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         api.setDescription(updateApiEntity.getDescription().trim());
         api.setPicture(updateApiEntity.getPicture());
         api.setBackground(updateApiEntity.getBackground());
+
+        final DefinitionContext definitionContext = updateApiEntity.getDefinitionContext() != null
+            ? updateApiEntity.getDefinitionContext()
+            : new DefinitionContext();
+        api.setOrigin(definitionContext.getOrigin());
+        api.setMode(definitionContext.getMode());
 
         api.setDefinition(buildApiDefinition(apiId, apiDefinition, updateApiEntity));
 

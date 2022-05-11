@@ -22,6 +22,7 @@ import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
 import io.gravitee.gateway.services.sync.handler.SyncHandler;
 import io.gravitee.gateway.services.sync.healthcheck.ApiSyncProbe;
+import io.gravitee.gateway.services.sync.kubernetes.KubernetesSyncService;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.healthcheck.ProbeManager;
 import io.vertx.ext.web.Router;
@@ -57,6 +58,9 @@ public class SyncService extends AbstractService {
     @Value("${services.sync.enabled:true}")
     private boolean enabled;
 
+    @Value("${services.sync.kubernetes.enabled:true}")
+    private boolean kubernetesEnabled;
+
     @Value("${services.local.enabled:false}")
     private boolean localRegistryEnabled;
 
@@ -75,6 +79,9 @@ public class SyncService extends AbstractService {
 
     @Autowired
     private SubscriptionsCacheService subscriptionsCacheService;
+
+    @Autowired
+    private KubernetesSyncService kubernetesSyncService;
 
     @Autowired
     private ProbeManager probeManager;
@@ -122,6 +129,10 @@ public class SyncService extends AbstractService {
                 syncManager.startScheduler(delay, unit);
                 apiKeysCacheService.startScheduler(delay, unit);
                 subscriptionsCacheService.startScheduler(delay, unit);
+
+                if (kubernetesEnabled) {
+                    kubernetesSyncService.start();
+                }
             } else {
                 logger.warn("Sync service is disabled");
             }
@@ -135,6 +146,10 @@ public class SyncService extends AbstractService {
         syncManager.stop();
         apiKeysCacheService.stop();
         subscriptionsCacheService.stop();
+
+        if (kubernetesEnabled) {
+            kubernetesSyncService.stop();
+        }
 
         super.doStop();
     }

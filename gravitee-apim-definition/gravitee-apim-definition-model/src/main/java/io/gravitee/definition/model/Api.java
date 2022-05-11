@@ -45,6 +45,9 @@ public class Api implements Serializable {
     @JsonProperty("gravitee")
     private DefinitionVersion definitionVersion;
 
+    @JsonProperty(value = "definition_context")
+    private DefinitionContext definitionContext;
+
     @JsonProperty("proxy")
     private Proxy proxy;
 
@@ -217,6 +220,14 @@ public class Api implements Serializable {
 
     public void setExecutionMode(final ExecutionMode executionMode) {
         this.executionMode = executionMode;
+    }
+
+    public DefinitionContext getDefinitionContext() {
+        return definitionContext;
+    }
+
+    public void setDefinitionContext(DefinitionContext definitionContext) {
+        this.definitionContext = definitionContext;
     }
 
     @Override

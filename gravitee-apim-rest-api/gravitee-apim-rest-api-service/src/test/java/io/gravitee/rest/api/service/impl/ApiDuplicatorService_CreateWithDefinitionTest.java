@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -37,11 +38,7 @@ import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import org.junit.After;
+import java.util.*;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -521,5 +518,84 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                 "API_OWNER"
             );
         verify(membershipService, never()).transferApiOwnership(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+    }
+
+    @Test
+    public void shouldCreateImportApiWithKubernetesOrigin() throws IOException {
+        // For api coming from kubernetes operator, ids are managed by the operator itself and must remain the same to keep consistency.
+        String apiId = "a409499e-e447-38fd-a3f0-a7f17bd67226";
+        String apiCrossId = "ffffffff-ffff-ffff-ffff-ffffffffffff";
+        String planId1 = "3f78a156-952e-3d98-8b04-bb6ec0f5bc72";
+        String planCrossId1 = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+        String planId2 = "3fde2343-dbb5-385b-8ff7-9fe121b810b9";
+        String planCrossId2 = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-new-kubernetes-api.definition.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(apiId);
+        apiEntity.setId(apiId);
+        when(apiService.createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), any(), any())).thenReturn(apiEntity);
+
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        admin.setSource(SOURCE);
+        admin.setSourceId(apiId);
+        UserEntity user = new UserEntity();
+        user.setId("user");
+        user.setSource(SOURCE);
+        user.setSourceId(apiId);
+
+        apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
+
+        verify(apiService, times(1))
+            .createWithApiDefinition(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(
+                    argument -> {
+                        assertEquals(Api.ORIGIN_KUBERNETES, argument.getDefinitionContext().getOrigin());
+                        assertEquals(Api.MODE_FULLY_MANAGED, argument.getDefinitionContext().getMode());
+
+                        // Check ids and crossId has been preserved.
+                        assertEquals(apiCrossId, argument.getCrossId());
+
+                        List<PlanEntity> plans = new ArrayList<>(argument.getPlans());
+                        final PlanEntity plan1 = plans.get(0);
+                        assertEquals(planId1, plan1.getId());
+                        assertEquals(apiId, plan1.getApi());
+
+                        final PlanEntity plan2 = plans.get(1);
+                        assertEquals(planId2, plan2.getId());
+                        assertEquals(apiId, plan2.getApi());
+
+                        return true;
+                    }
+                ),
+                eq("admin"),
+                argThat(
+                    argument -> {
+                        assertEquals(Api.ORIGIN_KUBERNETES, argument.findPath("definition_context").findPath("origin").asText());
+                        assertEquals(Api.MODE_FULLY_MANAGED, argument.findPath("definition_context").findPath("mode").asText());
+
+                        // Check ids and crossId has been preserved.
+                        assertEquals(apiId, argument.get("id").asText());
+                        assertEquals(apiCrossId, argument.get("crossId").asText());
+
+                        final JsonNode plan1 = argument.findPath("plans").get(0);
+                        assertEquals(planId1, plan1.get("id").asText());
+                        assertEquals(planCrossId1, plan1.get("crossId").asText());
+                        assertEquals(apiId, plan1.get("api").asText());
+
+                        final JsonNode plan2 = argument.findPath("plans").get(1);
+                        assertEquals(planId2, plan2.get("id").asText());
+                        assertEquals(planCrossId2, plan2.get("crossId").asText());
+                        assertEquals(apiId, plan2.get("api").asText());
+
+                        return true;
+                    }
+                )
+            );
+        verify(pageService, times(1)).createAsideFolder(eq(GraviteeContext.getExecutionContext()), eq(apiId));
     }
 }

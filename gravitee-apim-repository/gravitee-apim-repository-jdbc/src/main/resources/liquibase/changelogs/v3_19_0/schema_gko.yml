@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      # ################
+      # Apis Changes: Kubernetes Operator
+      # ################
+      - addColumn:
+        tableName: ${gravitee_prefix}apis
+        columns:
+          - column:
+              name: origin
+              type: nvarchar(64)
+              constraints:
+                nullable: true
+          - column:
+              name: mode
+              type: nvarchar(64)
+              constraints:
+                nullable: true

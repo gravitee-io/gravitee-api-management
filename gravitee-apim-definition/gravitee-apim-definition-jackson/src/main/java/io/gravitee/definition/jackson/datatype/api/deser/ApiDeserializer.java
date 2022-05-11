@@ -40,21 +40,21 @@ import org.slf4j.LoggerFactory;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiDeserializer extends StdScalarDeserializer<Api> {
+public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
 
     private final Logger logger = LoggerFactory.getLogger(ApiDeserializer.class);
 
-    public ApiDeserializer(Class<Api> vc) {
+    public ApiDeserializer(Class<T> vc) {
         super(vc);
     }
 
     @Override
-    public Api deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public T deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        return this.deserialize(jp, ctxt, new Api(), node);
+        return this.deserialize(jp, ctxt, (T) new Api(), node);
     }
 
-    public Api deserialize(JsonParser jp, DeserializationContext ctxt, Api api, JsonNode node) throws IOException {
+    public T deserialize(JsonParser jp, DeserializationContext ctxt, T api, JsonNode node) throws IOException {
         JsonNode idNode = node.get("id");
         if (idNode == null) {
             throw ctxt.mappingException("ID property is required");

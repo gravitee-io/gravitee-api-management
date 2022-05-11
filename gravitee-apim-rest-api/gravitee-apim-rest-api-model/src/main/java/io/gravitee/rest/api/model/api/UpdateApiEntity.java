@@ -106,6 +106,10 @@ public class UpdateApiEntity {
     @Schema(description = "API's gravitee definition version")
     private String graviteeDefinitionVersion;
 
+    @JsonProperty(value = "definition_context")
+    @Schema(description = "the context where the api definition was created from")
+    private DefinitionContext definitionContext;
+
     @DeploymentRequired
     @JsonProperty(value = "flow_mode")
     @Schema(description = "API's flow mode.", example = "BEST_MATCH")
