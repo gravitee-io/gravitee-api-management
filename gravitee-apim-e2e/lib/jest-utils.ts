@@ -33,6 +33,10 @@ export async function unauthorized(promise: Promise<ApiResponse<any>>) {
   return fail(promise, 401);
 }
 
+export async function forbidden(promise: Promise<ApiResponse<any>>) {
+  return fail(promise, 403);
+}
+
 export async function succeed(promise: Promise<ApiResponse<any>>, expectedStatus: number = 200) {
   const response = await promise;
   expect(response.raw.status).toEqual(expectedStatus);
