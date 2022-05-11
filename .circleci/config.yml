@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
     slack: circleci/slack@4.4.4
-    gravitee: gravitee-io/gravitee@1.0.44
     keeper: gravitee-io/keeper@0.6.2
     gh: circleci/github-cli@1.0.5
     aws-cli: circleci/aws-cli@2.0.6
@@ -128,7 +127,16 @@ commands:
 parameters:
     gio_action:
         type: enum
-        enum: [release, standalone_release, standalone_release_replay, nexus_staging, vm_nexus_staging, pull_requests, build_rpm_&_docker_images]
+        enum:
+            [
+                release,
+                standalone_release,
+                standalone_release_replay,
+                nexus_staging,
+                vm_nexus_staging,
+                pull_requests,
+                build_rpm_&_docker_images,
+            ]
         default: pull_requests
     dry_run:
         type: boolean
@@ -138,14 +146,6 @@ parameters:
         type: string
         default: "gravitee-dry-run"
         description: "Maven ID of the Maven profile to use for a dry run ?"
-    secrethub_org:
-        type: string
-        default: "graviteeio"
-        description: "SecretHub Org to use to fetch secrets ?"
-    secrethub_repo:
-        type: string
-        default: "cicd"
-        description: "SecretHub Repo to use to fetch secrets ?"
     s3_bucket_name:
         type: string
         default: ""
@@ -1032,34 +1032,34 @@ jobs:
                       mvn clean deploy --activate-profiles gravitee-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
 
     publish_rpm_packages:
-      parameters:
-        dry_run:
-          default: true
-          type: boolean
-        graviteeio_version:
-          type: string
-          default: ""
-      machine:
-        image: ubuntu-2004:202201-01
-      resource_class: medium
-      steps:
-        - keeper/env-export:
-            secret-url: keeper://8CG6HxY5gYsl-85eJKuIoA/field/password
-            var-name: GIO_PACKAGECLOUD_TOKEN
-        - run:
-            name: "Building and publishing RPMs"
-            command: |
-              export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
-              git clone git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
-              
-              cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x
-              ./build.sh -v << parameters.graviteeio_version >>
-              
-              if [ "<< parameters.dry_run >>" == "false" ]; then
-                  docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
-              else
-                  echo "This is just a DRY RUN, no RPMs will be published"
-              fi;                    
+        parameters:
+            dry_run:
+                default: true
+                type: boolean
+            graviteeio_version:
+                type: string
+                default: ""
+        machine:
+            image: ubuntu-2004:202201-01
+        resource_class: medium
+        steps:
+            - keeper/env-export:
+                  secret-url: keeper://8CG6HxY5gYsl-85eJKuIoA/field/password
+                  var-name: GIO_PACKAGECLOUD_TOKEN
+            - run:
+                  name: "Building and publishing RPMs"
+                  command: |
+                      export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
+                      git clone git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
+
+                      cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x
+                      ./build.sh -v << parameters.graviteeio_version >>
+
+                      if [ "<< parameters.dry_run >>" == "false" ]; then
+                          docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
+                      else
+                          echo "This is just a DRY RUN, no RPMs will be published"
+                      fi;
 
 workflows:
     pull_requests:
@@ -1133,11 +1133,11 @@ workflows:
                       - Install APIM Console
             - console-webui-build-storybook:
                   requires:
-                    - Install APIM Console
+                      - Install APIM Console
             - trigger-chromatic:
                   type: approval
                   requires:
-                    - console-webui-build-storybook
+                      - console-webui-build-storybook
             - console-webui-chromatic-deployment:
                   context: cicd-orchestrator
                   requires:
@@ -1245,7 +1245,7 @@ workflows:
                   enterprise_edition: true
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM EE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
-            -  publish_rpm_packages:
+            - publish_rpm_packages:
                   context: cicd-orchestrator
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>
                   dry_run: << pipeline.parameters.dry_run >>
@@ -1255,12 +1255,14 @@ workflows:
         when:
             equal: [release, << pipeline.parameters.gio_action >>]
         jobs:
-            - gravitee/d_release_secrets:
+            - load-snapshot-configuration:
                   context: cicd-orchestrator
-                  name: release_secrets_resolution
+            - compute-apim-tag:
+                  requires:
+                      - load-snapshot-configuration
             - prepare-settings:
                   requires:
-                      - release_secrets_resolution
+                      - compute-apim-tag
             - release:
                   requires:
                       - prepare-settings
