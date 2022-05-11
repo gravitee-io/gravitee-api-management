@@ -272,30 +272,58 @@ jobs:
                       - ./gravitee-*/*/target/*
                       - ./rest-api-docker-context
                       - ./gateway-docker-context
-
     test:
+      docker:
+        - image: cimg/openjdk:11.0
+      resource_class: medium
+      steps:
+        - checkout
+        - attach_workspace:
+            at: .
+        - restore-maven-cache
+        - run:
+            name: Build repository models
+            command: |
+              mvn clean install -s .gravitee-snapshot.settings.xml -f gravitee-apim-repository -Dskip.validation=true -DskipTests
+        - run:
+            name: Run tests
+            command: |
+              mvn -pl 'gravitee-apim-definition, gravitee-apim-rest-api, gravitee-apim-gateway' -amd --fail-fast -s .gravitee-snapshot.settings.xml test --no-transfer-progress -Dskip.validation=true -T 2C
+        - run:
+            name: Save test results
+            command: |
+              mkdir -p ~/test-results/junit/
+              find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+            when: always
+        - notify-on-failure
+        - store_test_results:
+            path: ~/test-results
+
+    test-repository:
         machine:
-            image: ubuntu-2004:202107-02
-        resource_class: xlarge
+          image: ubuntu-2004:current
+        resource_class: large
         steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - restore-maven-cache
-            - run:
-                  name: Run tests
-                  command: |
-                      # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee-snapshot.settings.xml package --no-transfer-progress -Dskip.validation=true -T 2C
-            - run:
-                  name: Save test results
-                  command: |
-                      mkdir -p ~/test-results/junit/
-                      find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-                  when: always
-            - notify-on-failure
-            - store_test_results:
-                  path: ~/test-results
+          - checkout
+          - attach_workspace:
+              at: .
+          - restore-maven-cache
+          - run:
+              name: Run tests
+              command: |
+                # Need to use `verify` phase to get repo-test's jar build and shared to mongodb and jdbc repos 
+                # and then collect and merge all coverage reports
+                cd gravitee-apim-repository
+                mvn -s ../.gravitee-snapshot.settings.xml verify --no-transfer-progress -Dskip.validation=true -T 2C
+          - run:
+              name: Save test results
+              command: |
+                mkdir -p ~/test-results/junit/
+                find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+              when: always
+          - notify-on-failure
+          - store_test_results:
+              path: ~/test-results
 
     publish-on-artifactory:
         docker:
@@ -1088,6 +1116,9 @@ workflows:
             - test:
                   requires:
                       - build
+            - test-repository:
+                  requires:
+                      - build
             - sonarcloud-analysis:
                   name: Sonar - << matrix.working_directory >>
                   matrix:
@@ -1099,6 +1130,7 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - test
+                      - test-repository
             - publish-on-artifactory:
                   filters:
                       branches:
@@ -1108,6 +1140,7 @@ workflows:
                               - fix-nexus-pb
                   requires:
                       - test
+                      - test-repository
             - publish-on-nexus:
                   filters:
                       branches:
@@ -1117,10 +1150,12 @@ workflows:
                               - fix-nexus-pb
                   requires:
                       - test
+                      - test-repository
             - publish-images-azure-registry:
                   context: cicd-orchestrator
                   requires:
                       - test
+                      - test-repository
                   filters:
                       branches:
                           only:

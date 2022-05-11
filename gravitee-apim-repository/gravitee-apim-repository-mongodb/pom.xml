@@ -37,6 +37,7 @@
         -->
         <mongo.version>4.1.2</mongo.version>
         <spring.data.mongodb.version>3.2.3</spring.data.mongodb.version>
+        <jna.version>5.11.0</jna.version>
     </properties>
 
     <dependencies>
@@ -168,10 +169,18 @@
         </dependency>
 
         <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>${jna.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>
