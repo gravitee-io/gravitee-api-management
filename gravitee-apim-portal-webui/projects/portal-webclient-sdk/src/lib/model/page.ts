@@ -51,7 +51,7 @@ export interface Page {
     metadata?: Array<Metadata>;
     _links?: PageLinks;
     /**
-     * Only returned with *_/apis/{apiId}/pages/{pageId}* and *_/pages/{pageId}*. Need *include* query param to contain \'content\'.  The content of the page. 
+     * Only returned with (*)/apis/{apiId}/pages/{pageId}* and (*)/pages/{pageId}*. Need *include* query param to contain \'content\'.  The content of the page. 
      */
     content?: string;
     contentRevisionId?: PageRevisionId;

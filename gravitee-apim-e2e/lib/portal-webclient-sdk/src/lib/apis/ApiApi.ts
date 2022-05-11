@@ -395,6 +395,9 @@ export class ApiApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/{apiId}/links`.replace(`{${"apiId"}}`, encodeURIComponent(String(requestParameters.apiId))),
             method: 'GET',
@@ -431,6 +434,9 @@ export class ApiApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/{apiId}/media/{mediaHash}`.replace(`{${"apiId"}}`, encodeURIComponent(String(requestParameters.apiId))).replace(`{${"mediaHash"}}`, encodeURIComponent(String(requestParameters.mediaHash))),
             method: 'GET',
@@ -463,6 +469,9 @@ export class ApiApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/{apiId}/metrics`.replace(`{${"apiId"}}`, encodeURIComponent(String(requestParameters.apiId))),
             method: 'GET',
@@ -503,6 +512,9 @@ export class ApiApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/{apiId}/plans`.replace(`{${"apiId"}}`, encodeURIComponent(String(requestParameters.apiId))),
             method: 'GET',
@@ -551,6 +563,9 @@ export class ApiApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/{apiId}/ratings`.replace(`{${"apiId"}}`, encodeURIComponent(String(requestParameters.apiId))),
             method: 'GET',
@@ -654,6 +669,9 @@ export class ApiApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/{apiId}/background`.replace(`{${"apiId"}}`, encodeURIComponent(String(requestParameters.apiId))),
             method: 'GET',
@@ -694,6 +712,9 @@ export class ApiApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/{apiId}/pages/{pageId}`.replace(`{${"apiId"}}`, encodeURIComponent(String(requestParameters.apiId))).replace(`{${"pageId"}}`, encodeURIComponent(String(requestParameters.pageId))),
             method: 'GET',
@@ -730,6 +751,9 @@ export class ApiApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/{apiId}/pages/{pageId}/content`.replace(`{${"apiId"}}`, encodeURIComponent(String(requestParameters.apiId))).replace(`{${"pageId"}}`, encodeURIComponent(String(requestParameters.pageId))),
             method: 'GET',
@@ -778,6 +802,9 @@ export class ApiApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/{apiId}/pages`.replace(`{${"apiId"}}`, encodeURIComponent(String(requestParameters.apiId))),
             method: 'GET',
@@ -810,6 +837,9 @@ export class ApiApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/{apiId}/picture`.replace(`{${"apiId"}}`, encodeURIComponent(String(requestParameters.apiId))),
             method: 'GET',
@@ -854,6 +884,9 @@ export class ApiApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/{apiId}/subscribers`.replace(`{${"apiId"}}`, encodeURIComponent(String(requestParameters.apiId))),
             method: 'GET',
@@ -886,6 +919,9 @@ export class ApiApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/categories`,
             method: 'GET',
@@ -930,6 +966,9 @@ export class ApiApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/_search`,
             method: 'POST',
