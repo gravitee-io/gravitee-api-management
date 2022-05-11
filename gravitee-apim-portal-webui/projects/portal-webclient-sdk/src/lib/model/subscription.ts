@@ -69,7 +69,7 @@ export interface Subscription {
      */
     status: Subscription.StatusEnum;
     /**
-     * Only returned with *_/subscriptions/{subscriptionId}*. Need *include* query param to contain \'keys\'.  List of APIKeys of the subscription. 
+     * Only returned with (*)/subscriptions/{subscriptionId}*. Need *include* query param to contain \'keys\'.  List of APIKeys of the subscription. 
      */
     keys?: Array<Key>;
 }

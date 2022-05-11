@@ -67,7 +67,9 @@ paths:
         If a **cat** query param is sent, a specific sorting can be applied. Please refer to **cat** description for detail.
       operationId: getApis
       security:
+        - {}
         - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List accessible APIs for current user
@@ -90,7 +92,10 @@ paths:
         Same as `/apis` but with a search query as a parameter. Search for API using the search engine.
         Supports pagination.
       operationId: searchApis
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: Search accessible APIs for current user
@@ -113,7 +118,10 @@ paths:
 
         The list is sorted by alphabetic order.
       operationId: listCategories
-      security: [ ]
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List used categories in accessible APIs for current user
@@ -138,7 +146,9 @@ paths:
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getApiByApiId
       security:
+        - {}
         - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: API definition
@@ -160,7 +170,10 @@ paths:
       operationId: getApiInformations
       description: |
         Get api informations.
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List of api informations
@@ -182,7 +195,10 @@ paths:
       operationId: getApiLinks
       description: |
         Get all the links (internal and external) to be displayed in the detail of the API.
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List of Links
@@ -207,7 +223,10 @@ paths:
 
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getApiMetricsByApiId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: API metrics
@@ -236,7 +255,10 @@ paths:
 
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getPagesByApiId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           $ref: '#/components/responses/PagesSuccess'
@@ -259,7 +281,10 @@ paths:
 
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getPageByApiIdAndPageId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           $ref: '#/components/responses/PageSuccess'
@@ -284,7 +309,10 @@ paths:
 
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getPageContentByApiIdAndPageId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: The content of the api documentation page.
@@ -310,7 +338,10 @@ paths:
 
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getPictureByApiId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           $ref: '#/components/responses/PictureSuccess'
@@ -330,7 +361,10 @@ paths:
 
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getBackgroundByApiId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           $ref: '#/components/responses/PictureSuccess'
@@ -354,7 +388,10 @@ paths:
 
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getApiPlansByApiId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List accessible plans for current user
@@ -383,7 +420,10 @@ paths:
 
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getApiRatingsByApiId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List of ratings
@@ -598,7 +638,10 @@ paths:
 
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getSubscriberApplicationsByApiId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List accessible applications for current user
@@ -621,7 +664,10 @@ paths:
       operationId: getApiMedia
       description: |
         Get api media.
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           $ref: '#/components/responses/MediaSuccess'
@@ -1370,7 +1416,10 @@ paths:
       operationId: getApplicationType
       description: |
         Get application type.
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: Application type configuration
@@ -1535,7 +1584,10 @@ paths:
 
         This application has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getSubscriberApisByApplicationId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List accessible APIs for current user
@@ -1679,7 +1731,10 @@ paths:
       operationId: getPortalMedia
       description: |
         Get portal media.
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           $ref: '#/components/responses/MediaSuccess'
@@ -1698,7 +1753,10 @@ paths:
       description: |
         List all portal documentation pages
       operationId: getPages
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           $ref: '#/components/responses/PagesSuccess'
@@ -1716,7 +1774,10 @@ paths:
       description: |
         Get a specific portal documentation page.
       operationId: getPageByPageId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           $ref: '#/components/responses/PageSuccess'
@@ -1738,7 +1799,10 @@ paths:
       description: |
         Get the contentn of a specific portal documentation page.
       operationId: getPageContentByPageId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: The content of the portal documentation page.
@@ -1762,7 +1826,10 @@ paths:
       operationId: getHooks
       description: |
         Get application's hooks that can be used in the portal.
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List of hooks
@@ -2313,7 +2380,10 @@ paths:
       description: |
         Get all categories of the platform.
       operationId: getCategories
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List of Categories
@@ -2333,7 +2403,10 @@ paths:
       description: |
         Get a specific category.
       operationId: getCategoryByCategoryId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: One Category
@@ -2359,7 +2432,10 @@ paths:
       description: |
         Get the picture of a category.
       operationId: getPictureByCategoryId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           $ref: '#/components/responses/PictureSuccess'
@@ -2381,7 +2457,10 @@ paths:
       description: |
         Get the background of a category.
       operationId: getBackgroundByCategoryId
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           $ref: '#/components/responses/PictureSuccess'
@@ -2401,7 +2480,10 @@ paths:
       operationId: getPortalTheme
       description: |
         Get portal theme.
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: Portal configuration
@@ -2425,7 +2507,10 @@ paths:
       operationId: getPortalConfiguration
       description: |
         Get all the portal configuration from the platform settings.
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: Portal configuration
@@ -2443,7 +2528,10 @@ paths:
       operationId: getPortalIdentityProviders
       description: |
         Get all the identity providers that can used in the portal.
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List of identity providers
@@ -2463,7 +2551,10 @@ paths:
       operationId: getPortalIdentityProvider
       description: |
         Get a specific identity provider by its id.
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: An identity provider
@@ -2481,7 +2572,10 @@ paths:
       operationId: getPortalLinks
       description: |
         Get all the links (internal and external) to be displayed in the header and in the footer of the portal.
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List of Links
@@ -2499,7 +2593,10 @@ paths:
       operationId: getEnabledApplicationTypes
       description: |
         Get enabled application types.
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List of enabled application types
@@ -2517,7 +2614,10 @@ paths:
       operationId: getApplicationRoles
       description: |
         Get application roles.
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List of application roles
@@ -2554,7 +2654,10 @@ paths:
       operationId: getPortalInformation
       description: |
         Get some information about the portal (version, ...).
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: API information
@@ -2572,7 +2675,10 @@ paths:
       description: |
         Get all dashboards of the platform.
       operationId: getDashboards
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: List of Dashboards
@@ -2628,7 +2734,10 @@ paths:
     post:
       tags:
         - Authentication
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       parameters:
         - $ref: '#/components/parameters/authIdentityParam'
       operationId: exchangeAuthorizationCode
@@ -2657,7 +2766,10 @@ paths:
     post:
       tags:
         - Authentication
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       parameters:
         - $ref: '#/components/parameters/authIdentityParam'
         - name: token
@@ -2689,7 +2801,10 @@ paths:
       operationId: getNotifiers
       description: |
         Get notifiers
-      security: []
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
       responses:
         200:
           description: Notifier information

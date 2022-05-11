@@ -1704,6 +1704,17 @@ export class ApplicationService {
 
         let headers = this.defaultHeaders;
 
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
+
         let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
         if (httpHeaderAcceptSelected === undefined) {
             // to determine the Accept header
@@ -1822,6 +1833,17 @@ export class ApplicationService {
     public getHooks(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
 
         let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
         if (httpHeaderAcceptSelected === undefined) {
@@ -2088,6 +2110,17 @@ export class ApplicationService {
         }
 
         let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
 
         let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
         if (httpHeaderAcceptSelected === undefined) {

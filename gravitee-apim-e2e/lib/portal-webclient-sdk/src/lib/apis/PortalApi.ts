@@ -175,6 +175,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/apis/{apiId}/informations`.replace(`{${"apiId"}}`, encodeURIComponent(String(requestParameters.apiId))),
             method: 'GET',
@@ -203,6 +206,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/configuration/applications/roles`,
             method: 'GET',
@@ -235,6 +241,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/categories/{categoryId}/background`.replace(`{${"categoryId"}}`, encodeURIComponent(String(requestParameters.categoryId))),
             method: 'GET',
@@ -271,6 +280,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/categories`,
             method: 'GET',
@@ -303,6 +315,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/categories/{categoryId}`.replace(`{${"categoryId"}}`, encodeURIComponent(String(requestParameters.categoryId))),
             method: 'GET',
@@ -331,6 +346,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/dashboards`,
             method: 'GET',
@@ -359,6 +377,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/configuration/applications/types`,
             method: 'GET',
@@ -395,6 +416,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/pages/{pageId}`.replace(`{${"pageId"}}`, encodeURIComponent(String(requestParameters.pageId))),
             method: 'GET',
@@ -427,6 +451,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/pages/{pageId}/content`.replace(`{${"pageId"}}`, encodeURIComponent(String(requestParameters.pageId))),
             method: 'GET',
@@ -471,6 +498,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/pages`,
             method: 'GET',
@@ -503,6 +533,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/categories/{categoryId}/picture`.replace(`{${"categoryId"}}`, encodeURIComponent(String(requestParameters.categoryId))),
             method: 'GET',
@@ -531,6 +564,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/configuration`,
             method: 'GET',
@@ -563,6 +599,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/configuration/identities/{identityProviderId}`.replace(`{${"identityProviderId"}}`, encodeURIComponent(String(requestParameters.identityProviderId))),
             method: 'GET',
@@ -591,6 +630,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/configuration/identities`,
             method: 'GET',
@@ -619,6 +661,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/info`,
             method: 'GET',
@@ -647,6 +692,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/configuration/links`,
             method: 'GET',
@@ -679,6 +727,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/media/{mediaHash}`.replace(`{${"mediaHash"}}`, encodeURIComponent(String(requestParameters.mediaHash))),
             method: 'GET',
@@ -707,6 +758,9 @@ export class PortalApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/theme`,
             method: 'GET',

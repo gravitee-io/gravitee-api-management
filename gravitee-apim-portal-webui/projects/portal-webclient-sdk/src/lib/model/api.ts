@@ -71,11 +71,11 @@ export interface Api {
     rating_summary?: RatingSummary;
     _links?: ApiLinks;
     /**
-     * Only returned with *_/apis/{apiId}*. Need *include* query param to contain \'pages\'.  The documentation pages of this API. Same as *_/apis/{apiId}/pages*. 
+     * Only returned with (*)/apis/{apiId}*. Need *include* query param to contain \'pages\'.  The documentation pages of this API. Same as (*)/apis/{apiId}/pages*. 
      */
     pages?: Array<Page>;
     /**
-     * Only returned with *_/apis/{apiId}*. Need *include* query param to contain \'plans\'.  The plans of this API. Same as *_/apis/{apiId}/plans*. 
+     * Only returned with (*)/apis/{apiId}*. Need *include* query param to contain \'plans\'.  The plans of this API. Same as (*)/apis/{apiId}/plans*. 
      */
     plans?: Array<Plan>;
 }

@@ -1088,6 +1088,9 @@ export class ApplicationApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/applications/{applicationId}/configuration`.replace(`{${"applicationId"}}`, encodeURIComponent(String(requestParameters.applicationId))),
             method: 'GET',
@@ -1163,6 +1166,9 @@ export class ApplicationApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/applications/hooks`,
             method: 'GET',
@@ -1328,6 +1334,9 @@ export class ApplicationApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
         const response = await this.request({
             path: `/applications/{applicationId}/subscribers`.replace(`{${"applicationId"}}`, encodeURIComponent(String(requestParameters.applicationId))),
             method: 'GET',
