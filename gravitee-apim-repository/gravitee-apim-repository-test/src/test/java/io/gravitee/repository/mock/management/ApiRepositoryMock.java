@@ -66,11 +66,15 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         final Api apiToUpdate = mock(Api.class);
         when(apiToUpdate.getId()).thenReturn("api-to-update");
         when(apiToUpdate.getName()).thenReturn("api-to-update name");
+        when(apiToUpdate.getOrigin()).thenReturn(Api.ORIGIN_MANAGEMENT);
+        when(apiToUpdate.getMode()).thenReturn(Api.MODE_FULLY_MANAGED);
         when(apiToUpdate.getApiLifecycleState()).thenReturn(PUBLISHED);
         when(apiToUpdate.getDefinition()).thenReturn("\"proxy\" : {  \"context_path\" : \"/product\" }");
         final Api apiUpdated = mock(Api.class);
         when(apiUpdated.getName()).thenReturn("New API name");
         when(apiUpdated.getEnvironmentId()).thenReturn("new_DEFAULT");
+        when(apiUpdated.getOrigin()).thenReturn(Api.ORIGIN_MANAGEMENT);
+        when(apiUpdated.getMode()).thenReturn(Api.MODE_FULLY_MANAGED);
         when(apiUpdated.getDescription()).thenReturn("New description");
         when(apiUpdated.getCategories()).thenReturn(Sets.newSet("category1", "category2"));
         when(apiUpdated.getDefinition()).thenReturn("New definition");
@@ -99,6 +103,8 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(newApi.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(newApi.getDefinition()).thenReturn("{}");
         when(newApi.getEnvironmentId()).thenReturn("DEFAULT");
+        when(newApi.getOrigin()).thenReturn(Api.ORIGIN_KUBERNETES);
+        when(newApi.getMode()).thenReturn(Api.MODE_API_DEFINITION_ONLY);
         when(newApi.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(newApi.getUpdatedAt()).thenReturn(parse("12/02/2016"));
         when(newApi.getApiLifecycleState()).thenReturn(ApiLifecycleState.CREATED);
@@ -116,6 +122,8 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         final Api apiToFindById = mock(Api.class);
         when(apiToFindById.getId()).thenReturn("api-to-findById");
         when(apiToFindById.getEnvironmentId()).thenReturn("DEFAULT");
+        when(apiToFindById.getOrigin()).thenReturn(Api.ORIGIN_KUBERNETES);
+        when(apiToFindById.getMode()).thenReturn(Api.MODE_API_DEFINITION_ONLY);
         when(apiToFindById.getVersion()).thenReturn("1");
         when(apiToFindById.getName()).thenReturn("api-to-findById name");
         when(apiToFindById.getLifecycleState()).thenReturn(LifecycleState.STOPPED);

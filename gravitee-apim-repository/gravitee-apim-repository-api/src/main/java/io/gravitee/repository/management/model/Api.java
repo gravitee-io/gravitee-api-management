@@ -26,6 +26,27 @@ import java.util.Set;
  */
 public class Api {
 
+    /**
+     * Indicates that this api comes Gravitee Kubernetes Operator.
+     */
+    public static final String ORIGIN_KUBERNETES = "kubernetes";
+
+    /**
+     * Indicates that this api comes from Gravitee Management Console.
+     */
+    public static final String ORIGIN_MANAGEMENT = "management";
+
+    /**
+     * Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api.
+     */
+    public static final String MODE_FULLY_MANAGED = "fully_managed";
+
+    /**
+     * Mode indicating the api is partially managed by the origin and so, only the origin should be able to manage the the api definition part of the api.
+     * This includes everything regarding the definition of the apis (plans, flows, metadata, ...)
+     */
+    public static final String MODE_API_DEFINITION_ONLY = "api_definition_only";
+
     public enum AuditEvent implements Audit.ApiAuditEvent {
         API_CREATED,
         API_UPDATED,
@@ -66,6 +87,17 @@ public class Api {
      * The api version.
      */
     private String version;
+
+    /**
+     * The origin of the api (management, kubernetes, ...). Default is {@link Api#ORIGIN_MANAGEMENT}.
+     */
+    private String origin = ORIGIN_MANAGEMENT;
+
+    /**
+     * How the api is managed by the origin (fully, api_definition_only, ...).
+     * Default is {@link Api#MODE_FULLY_MANAGED}.
+     */
+    private String mode = MODE_FULLY_MANAGED;
 
     /**
      * The api JSON definition
@@ -132,6 +164,8 @@ public class Api {
         this.environmentId = cloned.environmentId;
         this.name = cloned.name;
         this.description = cloned.description;
+        this.origin = cloned.origin;
+        this.mode = cloned.mode;
         this.version = cloned.version;
         this.definition = cloned.definition;
         this.deployedAt = cloned.deployedAt;
@@ -300,6 +334,22 @@ public class Api {
         this.crossId = crossId;
     }
 
+    public String getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+
+    public String getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -321,6 +371,12 @@ public class Api {
             '\'' +
             ", crossId='" +
             crossId +
+            '\'' +
+            ", origin='" +
+            origin +
+            '\'' +
+            ", mode='" +
+            mode +
             '\'' +
             ", environmentId='" +
             environmentId +
