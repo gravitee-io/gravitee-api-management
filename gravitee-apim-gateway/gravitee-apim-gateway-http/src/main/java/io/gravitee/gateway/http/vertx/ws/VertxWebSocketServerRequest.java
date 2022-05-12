@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.vertx.ws;
+package io.gravitee.gateway.http.vertx.ws;
 
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.Request;
@@ -30,7 +30,7 @@ public class VertxWebSocketServerRequest extends VertxHttpServerRequest {
 
     private final VertxWebSocket vertxWebSocket;
 
-    VertxWebSocketServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
+    public VertxWebSocketServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
         super(httpServerRequest, idGenerator);
         this.vertxWebSocket = new VertxWebSocket(httpServerRequest);
     }

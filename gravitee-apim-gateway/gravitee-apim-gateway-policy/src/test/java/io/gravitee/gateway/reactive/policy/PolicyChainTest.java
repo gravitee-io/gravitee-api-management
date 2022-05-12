@@ -18,10 +18,9 @@ package io.gravitee.gateway.reactive.policy;
 import static java.util.Arrays.asList;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
-import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.context.*;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.reactor.handler.message.DefaultMessageFlow;
 import io.reactivex.Completable;
@@ -39,11 +38,12 @@ class PolicyChainTest {
 
     protected static final String CHAIN_ID = "unit-test";
     protected static final String MOCK_ERROR_MESSAGE = "Mock error";
+    protected static final String MOCK_STATUS_ERROR_MESSAGE = "Mock error on status";
 
     @Test
     public void shouldExecuteNothingWithEmptyPolicyList() {
         PolicyChain cut = new PolicyChain(CHAIN_ID, new ArrayList<>(), ExecutionPhase.REQUEST);
-        final ExecutionContext ctx = mock(ExecutionContext.class);
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertComplete();
@@ -184,21 +184,49 @@ class PolicyChainTest {
     }
 
     @Test
-    public void shouldExecuteOnlyPolicy1IfError() {
+    public void shouldExecuteOnlyPolicy1AndInterruptWhenPolicy1Error() {
         final Policy policy1 = mock(Policy.class);
         final Policy policy2 = mock(Policy.class);
         final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
 
         final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
 
+        final Response response = mock(Response.class);
+        when(ctx.response()).thenReturn(response);
         when(policy1.onRequest(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
-        obs.assertErrorMessage(MOCK_ERROR_MESSAGE);
+        obs.assertResult();
 
         verify(policy1).onRequest(ctx);
         verify(policy1).getId();
-
         verifyNoMoreInteractions(policy1, policy2);
+
+        verify(ctx).interrupt();
+        verify(response).status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+    }
+
+    @Test
+    public void shouldErrorWhenUnableToSetStatusWhileHandlingInterruptionOnPolicyError() {
+        final Policy policy1 = mock(Policy.class);
+        final Policy policy2 = mock(Policy.class);
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+
+        final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
+
+        final Response response = mock(Response.class);
+        when(ctx.response()).thenReturn(response);
+        when(response.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500)).thenThrow(new RuntimeException(MOCK_STATUS_ERROR_MESSAGE));
+
+        when(policy1.onRequest(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
+
+        final TestObserver<Void> obs = cut.execute(ctx).test();
+        obs.assertErrorMessage(MOCK_STATUS_ERROR_MESSAGE);
+
+        verify(policy1).onRequest(ctx);
+        verify(policy1).getId();
+        verifyNoMoreInteractions(policy1, policy2);
+
+        verify(ctx).interrupt();
     }
 }

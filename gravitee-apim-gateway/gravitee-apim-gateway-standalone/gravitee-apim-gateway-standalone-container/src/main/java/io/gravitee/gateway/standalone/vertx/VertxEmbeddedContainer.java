@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
+import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_BY_DEFAULT;
+import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_KEY;
+
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.reactive.standalone.vertx.HttpProtocolVerticle;
 import io.gravitee.node.vertx.verticle.factory.SpringVerticleFactory;
@@ -40,6 +43,9 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     @Value("${http.instances:0}")
     private int instances;
 
+    @Value("${" + JUPITER_MODE_ENABLED_KEY + ":" + JUPITER_MODE_ENABLED_BY_DEFAULT + "}")
+    private boolean jupiterMode;
+
     @Autowired
     private Vertx vertx;
 
@@ -63,8 +69,16 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
         logger.info("Starting Vertx container and deploy Gateway Verticles [{} instance(s)]", instances);
 
         DeploymentOptions options = new DeploymentOptions().setInstances(instances);
+        final String verticleName;
+
+        if (jupiterMode) {
+            verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + HttpProtocolVerticle.class.getName();
+        } else {
+            verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + ReactorVerticle.class.getName();
+        }
+
         vertx.deployVerticle(
-            SpringVerticleFactory.VERTICLE_PREFIX + ':' + HttpProtocolVerticle.class.getName(),
+            verticleName,
             options,
             event -> {
                 if (event.failed()) {

@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaders;
@@ -335,7 +336,12 @@ public class EntrypointResolverTest {
         }
 
         @Override
-        public ReactorHandler target() {
+        public <T extends ReactorHandler> T target() {
+            return null;
+        }
+
+        @Override
+        public ExecutionMode executionMode() {
             return null;
         }
 
@@ -357,6 +363,11 @@ public class EntrypointResolverTest {
         @Override
         public boolean accept(Request request) {
             return entrypoint.accept(request);
+        }
+
+        @Override
+        public boolean accept(String host, String path) {
+            return entrypoint.accept(host, path);
         }
     }
 }

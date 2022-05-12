@@ -17,19 +17,21 @@ package io.gravitee.gateway.reactive.standalone.vertx;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
-import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
 import io.reactivex.Completable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.plugins.RxJavaPlugins;
 import io.vertx.core.http.HttpServer;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.core.RxHelper;
+import io.vertx.reactivex.core.http.HttpServerRequest;
 import io.vertx.reactivex.core.http.HttpServerResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
+ * Main Vertx Verticle in charge of starting the Vertx http server and to listen and dispatch all incoming http requests.
+ *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
@@ -53,56 +55,86 @@ public class HttpProtocolVerticle extends AbstractVerticle {
     @Override
     public Completable rxStart() {
         // Set global error handler to catch everything that has not been properly caught.
-        RxJavaPlugins.setErrorHandler(e -> log.warn("An unexpected error occurred", e));
+        RxJavaPlugins.setErrorHandler(throwable -> log.warn("An unexpected error occurred", throwable));
 
         // Reconfigure RxJava to use Vertx schedulers.
         RxJavaPlugins.setComputationSchedulerHandler(s -> RxHelper.scheduler(vertx));
         RxJavaPlugins.setIoSchedulerHandler(s -> RxHelper.blockingScheduler(vertx));
         RxJavaPlugins.setNewThreadSchedulerHandler(s -> RxHelper.scheduler(vertx));
 
-        requestDisposable =
-            rxHttpServer
-                .requestStream()
-                .toFlowable()
-                .flatMapCompletable(
-                    request ->
-                        requestDispatcher
-                            .dispatch(request)
-                            .doOnComplete(() -> log.debug("Request properly dispatched"))
-                            .doOnSubscribe(
-                                dispatchDisposable ->
-                                    request
-                                        .connection()
-                                        // Must be added to ensure closed connection disposes underlying subscription
-                                        .closeHandler(event -> dispatchDisposable.dispose())
-                            )
-                            .doOnError(
-                                throwable -> log.error("An unexpected error occurred while dispatching the incoming request", throwable)
-                            )
-                            .onErrorComplete()
-                            .andThen(
-                                Completable.defer(
-                                    () -> {
-                                        HttpServerResponse response = request.response();
-                                        if (!response.ended()) {
-                                            if (!response.headWritten()) {
-                                                response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-                                            }
-                                            return response.rxEnd().onErrorResumeNext(endError -> Completable.complete());
-                                        } else {
-                                            return Completable.complete();
-                                        }
-                                    }
-                                )
-                            )
-                )
-                .subscribe();
+        // Listen and dispatch http requests.
+        requestDisposable = rxHttpServer.requestStream().toFlowable().flatMapCompletable(this::dispatchRequest).subscribe();
 
         return rxHttpServer
             .rxListen()
             .ignoreElement()
             .doOnComplete(() -> log.info("HTTP listener ready to accept requests on port {}", rxHttpServer.actualPort()))
             .doOnError(throwable -> log.error("Unable to start HTTP Server", throwable.getCause()));
+    }
+
+    /**
+     * Dispatches the incoming request to the request dispatcher and completes once the dispatch completes.
+     * To avoid any interruption in the request flow, this method makes sure that <b>no error can be emitted by logging the error and completing normally</b>.
+     *
+     * Eventually, in case of unexpected error during the request dispatch, tries to end the response if not already ended (but it's an exceptional case that should not occur).
+     *
+     * @param request the current request to dispatch.
+     * @return a {@link Completable} that completes once the request has been ended.
+     */
+    private Completable dispatchRequest(HttpServerRequest request) {
+        return requestDispatcher
+            .dispatch(request)
+            .doOnComplete(() -> log.debug("Request properly dispatched"))
+            .onErrorResumeNext(t -> handleError(t, request.response()))
+            .doOnSubscribe(dispatchDisposable -> configureCloseHandler(request, dispatchDisposable));
+    }
+
+    /**
+     * Logs the given {@link Throwable} and try ending the response.
+     *
+     * @param throwable the {@link Throwable} to log in error.
+     * @param response the response to end.
+     *
+     * @return a completed {@link Completable} in any circumstances.
+     */
+    private Completable handleError(Throwable throwable, HttpServerResponse response) {
+        log.error("An unexpected error occurred while dispatching request", throwable);
+
+        return tryEndResponse(response);
+    }
+
+    /**
+     * Try to end the response if not already ended and completes normally in case of error.
+     *
+     * @param response the response to end.
+     * @return a completed {@link Completable} even in case of error trying to end the response.
+     */
+    private Completable tryEndResponse(HttpServerResponse response) {
+        try {
+            if (!response.ended()) {
+                if (!response.headWritten()) {
+                    response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+                }
+
+                // Try to end the response and complete normally in case of error.
+                return response
+                    .rxEnd()
+                    .doOnError(throwable -> log.error("Failed to properly end response after error", throwable))
+                    .onErrorComplete();
+            }
+
+            return Completable.complete();
+        } catch (Throwable throwable) {
+            log.error("Failed to properly end response after error", throwable);
+            return Completable.complete();
+        }
+    }
+
+    private void configureCloseHandler(HttpServerRequest request, Disposable dispatchDisposable) {
+        request
+            .connection()
+            // Must be added to ensure closed connection disposes underlying subscription
+            .closeHandler(event -> dispatchDisposable.dispose());
     }
 
     @Override

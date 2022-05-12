@@ -106,6 +106,19 @@ public class VertxHttpServerResponse implements Response {
     }
 
     @Override
+    public Maybe<Buffer> body() {
+        // Reduce all the chunks to create a unique buffer containing all the content.
+        final Maybe<Buffer> buffer = chunks().reduce(Buffer::appendBuffer);
+        this.chunks = buffer.toFlowable();
+        return buffer;
+    }
+
+    @Override
+    public Single<Buffer> bodyOrEmpty() {
+        return body().switchIfEmpty(Single.just(Buffer.buffer()));
+    }
+
+    @Override
     public Flowable<Buffer> chunks() {
         if (this.chunks == null) {
             this.chunks = Flowable.empty();
@@ -124,19 +137,6 @@ public class VertxHttpServerResponse implements Response {
     @Override
     public Completable onBody(MaybeTransformer<Buffer, Buffer> bodyTransformer) {
         return body(body().compose(bodyTransformer));
-    }
-
-    @Override
-    public synchronized Maybe<Buffer> body() {
-        // Reduce all the chunks to create a unique buffer containing all the content.
-        final Maybe<Buffer> buffer = chunks().reduce(Buffer::appendBuffer);
-        this.chunks = buffer.toFlowable();
-        return buffer;
-    }
-
-    @Override
-    public Single<Buffer> bodyOrEmpty() {
-        return body().switchIfEmpty(Single.just(Buffer.buffer()));
     }
 
     @Override
@@ -180,7 +180,7 @@ public class VertxHttpServerResponse implements Response {
         return nativeResponse.rxEnd();
     }
 
-    private synchronized Completable setChunks(Flowable<Buffer> chunks) {
+    private Completable setChunks(Flowable<Buffer> chunks) {
         if (chunks != null) {
             // Current chunks need to be drained before being replaced.
             this.chunks = chunks().ignoreElements().andThen(chunks).cache();
