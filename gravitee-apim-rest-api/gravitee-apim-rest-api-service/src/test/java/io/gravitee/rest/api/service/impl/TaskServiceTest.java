@@ -61,9 +61,6 @@ public class TaskServiceTest {
     private final TaskService taskService = new TaskServiceImpl();
 
     @Mock
-    private ApiService apiService;
-
-    @Mock
     private SubscriptionService subscriptionService;
 
     @Mock
@@ -92,6 +89,9 @@ public class TaskServiceTest {
 
     @Mock
     private ApiRepository apiRepository;
+
+    @Mock
+    private EnvironmentService environmentService;
 
     @Before
     public void setUp() {
@@ -164,6 +164,11 @@ public class TaskServiceTest {
         authorities.add(admin);
         when(authentication.getAuthorities()).thenReturn(authorities);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+
+        final EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId(GraviteeContext.getCurrentEnvironment());
+
+        when(environmentService.findByOrganization(GraviteeContext.getCurrentOrganization())).thenReturn(List.of(environment));
 
         taskService.findAll(GraviteeContext.getExecutionContext(), "admin");
 
