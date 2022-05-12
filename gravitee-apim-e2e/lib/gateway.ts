@@ -34,6 +34,7 @@ export async function fetchGateway(
     if (response.status == 404) {
       throw new Error(`Gateway [${process.env.GATEWAY_BASE_PATH}${contextPath}] not found. Retry...`);
     }
+    return response;
   } catch (e) {
     return new Promise((successCallback, failureCallback) => {
       setTimeout(() => {

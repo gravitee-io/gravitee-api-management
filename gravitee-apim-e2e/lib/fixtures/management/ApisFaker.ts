@@ -87,7 +87,7 @@ export class ApisFaker {
       name,
       description,
       version,
-      endpoint: 'https://api.gravitee.io/echo',
+      endpoint: `${process.env.WIREMOCK_BASE_PATH}/echo`,
       ...attributes,
     };
   }
@@ -108,7 +108,7 @@ export class ApisFaker {
             {
               inherit: true,
               name: 'default',
-              target: 'https://api.gravitee.io/whattimeisit',
+              target: `${process.env.WIREMOCK_BASE_PATH}/whattimeisit`,
               weight: 1,
               backup: false,
               type: 'http',
