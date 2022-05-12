@@ -962,23 +962,17 @@ jobs:
             - image: cimg/openjdk:11.0
         resource_class: medium
         steps:
-            - add_ssh_keys:
-                  fingerprints:
-                      - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
+            - checkout
             - run:
-                  name: Checkout APIM with the tag
+                  name: Checkout tag << pipeline.parameters.graviteeio_version >>
                   command: |
-                      mkdir project
-                      cd project
-                      git clone --depth 1 --branch << pipeline.parameters.graviteeio_version >> $CIRCLE_REPOSITORY_URL .
+                      git checkout << pipeline.parameters.graviteeio_version >>
             - run:
                   name: Create .apim-version file for cache
                   command: |
                       # the previous cache key was computed with the SNAPSHOT version of the release. 
                       echo "<< pipeline.parameters.graviteeio_version >>-SNAPSHOT" > .apim-version.txt
             - restore-maven-cache
-            - attach_workspace:
-                  at: .
             - prepare-gpg
             - run:
                   name: Release on Nexus
