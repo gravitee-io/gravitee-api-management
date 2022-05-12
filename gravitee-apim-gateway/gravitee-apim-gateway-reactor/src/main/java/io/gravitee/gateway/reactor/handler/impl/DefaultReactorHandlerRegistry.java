@@ -15,7 +15,9 @@
  */
 package io.gravitee.gateway.reactor.handler.impl;
 
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.*;
 import java.util.*;
@@ -187,6 +189,11 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         }
 
         @Override
+        public ExecutionMode executionMode() {
+            return handler.executionMode();
+        }
+
+        @Override
         public String path() {
             return entrypoint.path();
         }
@@ -204,6 +211,11 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         @Override
         public boolean accept(Request request) {
             return entrypoint.accept(request);
+        }
+
+        @Override
+        public boolean accept(String host, String path) {
+            return entrypoint.accept(host, path);
         }
 
         @Override

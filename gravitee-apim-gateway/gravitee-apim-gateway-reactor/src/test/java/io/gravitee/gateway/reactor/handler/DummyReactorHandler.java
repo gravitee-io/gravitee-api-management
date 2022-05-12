@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactor.Reactable;
 import java.util.List;
@@ -53,12 +54,12 @@ public class DummyReactorHandler extends AbstractReactorHandler<Reactable> {
     }
 
     @Override
-    public void handle(ExecutionContext context) {
-        doHandle(context);
+    public void handle(ExecutionContext context, Handler<ExecutionContext> endHandler) {
+        doHandle(context, endHandler);
     }
 
     @Override
-    protected void doHandle(ExecutionContext executionContext) {
+    protected void doHandle(ExecutionContext executionContext, Handler<ExecutionContext> endHandler) {
         Response proxyResponse = mock(Response.class);
         when(proxyResponse.headers()).thenReturn(HttpHeaders.create());
         when(proxyResponse.status()).thenReturn(HttpStatusCode.OK_200);

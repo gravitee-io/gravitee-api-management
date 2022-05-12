@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.reactor.handler;
 
+import io.gravitee.definition.model.ExecutionMode;
+
 /**
  * This class represents a listening entrypoint link to a {@link ReactorHandler}.
  *
@@ -22,5 +24,7 @@ package io.gravitee.gateway.reactor.handler;
  * @author GraviteeSource Team
  */
 public interface HandlerEntrypoint extends Entrypoint {
-    ReactorHandler target();
+    <T extends ReactorHandler> T target();
+
+    ExecutionMode executionMode();
 }

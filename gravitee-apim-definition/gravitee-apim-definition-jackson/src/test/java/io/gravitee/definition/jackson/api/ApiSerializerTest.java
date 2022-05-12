@@ -15,613 +15,80 @@
  */
 package io.gravitee.definition.jackson.api;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.AbstractTest;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
+import java.io.IOException;
+import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiSerializerTest extends AbstractTest {
 
-    @Test
-    public void definition_defaultHttpConfig() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-defaulthttpconfig-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
+    private static Stream<Arguments> provideParameters() {
+        return Stream.of(
+            Arguments.of("/io/gravitee/definition/jackson/api-defaulthttpconfig-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-bestMatchFlowMode-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-overridedhttpconfig-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-nopath-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-defaultpath-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-multiplepath-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-path-nohttpmethod-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-withoutpolicy-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-withoutproperties-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-withemptyproperties-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-withproperties-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-nossl-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-nooptions-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-defaulthttpconfig-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-default-failover-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-override-failover-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-failover-singlecase-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-hostHeader-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-cors-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-multitenants-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-logging-client-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-truststore-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-keystore-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-endpointgroup-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-response-templates-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-virtualhosts-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-http2-endpoint-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-grpc-endpoint-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-grpc-endpoint-ssl-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-grpc-endpoint-without-type-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-defaultflow-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-kafka-endpoint-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-default-executionmode-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-executionmode-v3-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-executionmode-jupiter-expected.json")
         );
     }
 
-    @Test
-    public void definition_bestMatchFlowMode() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-bestMatchFlowMode.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-bestMatchFlowMode-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertTrue(generatedJsonDefinition.contains("BEST_MATCH"));
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_overridedHttpConfig() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-overridedhttpconfig.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-overridedhttpconfig-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_noPath() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-nopath.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-nopath-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_defaultPath() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-defaultpath-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_multiplePath() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-multiplepath.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-multiplepath-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_pathwithmethods() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-defaultpath-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_pathwithoutmethods() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-path-nohttpmethod.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-path-nohttpmethod-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_pathwithpolicies() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-defaultpath-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_pathwithpolicies_disabled() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-defaultpath-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_pathwithoutpolicy() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-path-withoutpolicy.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-withoutpolicy-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_apiWithoutProperties() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-withoutproperties.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-withoutproperties-expected.json";
-
-        Assert.assertNull(api.getProperties());
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-
-        JsonNode node = objectMapper().readTree(generatedJsonDefinition.getBytes());
-        Assert.assertNotNull(node.get("properties"));
-    }
-
-    @Test
-    public void definition_apiWithEmptyProperties() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-withemptyproperties.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-withemptyproperties-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_apiWithProperties() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-withproperties.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-withproperties-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_withclientoptions() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-withclientoptions.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-withclientoptions-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_withclientoptions_nossl() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nossl.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-withclientoptions-nossl-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_withclientoptions_nooptions() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-withclientoptions-nooptions-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_withclientoptions_nooptions_defaultconfiguration() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-withclientoptions-nooptions-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_defaultLoadBalancer_roundRobin() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-defaulthttpconfig-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_no_failover() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-defaulthttpconfig-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_default_failover() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-default-failover.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-default-failover-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_override_failover() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-override-failover.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-override-failover-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_failover_singlecase() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-failover-singlecase.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-failover-singlecase-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_hostHeader() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-hostHeader.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-hostHeader-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_noCors() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-hostHeader.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-hostHeader-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_withCors_defaultValues() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-cors.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-cors-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_multiTenants_enable() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-multitenants.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-multitenants-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_withLogging_clientMode() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-logging-client.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-logging-client-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_withclientoptions_truststore() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-truststore.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-withclientoptions-truststore-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_withclientoptions_keystore() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-keystore.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-withclientoptions-keystore-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_withHeaders() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-headers.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-headers-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_withEndpointGroup() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-endpointgroup.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-endpointgroup-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_withResponseTemplates() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-response-templates.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-response-templates-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_virtualhosts() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-virtualhosts.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-virtualhosts-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_http2_endpoint() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-http2-endpoint.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-http2-endpoint-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_grpc_endpoint() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-grpc-endpoint.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-grpc-endpoint-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_grpc_endpoint_ssl() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-grpc-endpoint-ssl.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-grpc-endpoint-ssl-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_grpc_endpoint_without_type() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-grpc-endpoint-without-type.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-grpc-endpoint-without-type-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void definition_defaultflow() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-defaultflow.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-defaultflow-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        assertTrue(generatedJsonDefinition.contains("\"gravitee\" : \"2.0.0\","));
-        Assert.assertEquals(
+    @ParameterizedTest
+    @MethodSource("provideParameters")
+    public void shouldWriteValidJson(final String json) throws IOException {
+        JsonNode jsonNode = loadJson(json);
+        String generatedJsonDefinition = objectMapper().writeValueAsString(jsonNode);
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(json));
+
+        assertNotNull(generatedJsonDefinition);
+        assertEquals(
             objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
             objectMapper().readTree(generatedJsonDefinition.getBytes())
         );
@@ -645,69 +112,6 @@ public class ApiSerializerTest extends AbstractTest {
             "}",
             generatedJsonDefinition,
             JSONCompareMode.STRICT
-        );
-    }
-
-    @Test
-    public void definition_kafka_endpoint() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-kafka-endpoint.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-kafka-endpoint-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void shouldDefaultDefinitionExecutionModeEqualV3WhenApiContainsNull() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-default-executionmode.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-default-executionmode-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void shouldDefinitionExecutionModeEqualV3WhenApiContainsV3() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-executionmode-v3.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-executionmode-v3-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void shouldDefinitionExecutionModeEqualJupiterWhenApiContainsJupiter() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-executionmode-jupiter.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-executionmode-jupiter-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
         );
     }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.vertx.ws;
+package io.gravitee.gateway.http.vertx.ws;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.ws.WebSocket;
