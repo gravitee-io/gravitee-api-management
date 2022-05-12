@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.jackson;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import java.io.IOException;
@@ -25,6 +26,10 @@ import java.io.InputStream;
  * @author GraviteeSource Team
  */
 public abstract class AbstractTest {
+
+    protected JsonNode loadJson(String resource) throws IOException {
+        return objectMapper().readTree(read(resource));
+    }
 
     protected <T> T load(String resource, Class<T> type) throws IOException {
         return objectMapper().readValue(read(resource), type);
