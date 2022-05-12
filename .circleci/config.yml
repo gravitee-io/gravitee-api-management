@@ -142,10 +142,6 @@ parameters:
         type: boolean
         default: true
         description: "Run in dry run mode?"
-    maven_profile_id:
-        type: string
-        default: "gravitee-dry-run"
-        description: "Maven ID of the Maven profile to use for a dry run ?"
     s3_bucket_name:
         type: string
         default: ""
@@ -775,7 +771,6 @@ jobs:
         resource_class: xlarge
         environment:
             DRY_RUN: << pipeline.parameters.dry_run >>
-            MAVEN_PROFILE_ID: << pipeline.parameters.maven_profile_id >>
         steps:
             - checkout
             - restore_cache:
@@ -802,7 +797,7 @@ jobs:
             - run:
                   name: Maven deploy to Gravitee's private Artifactory
                   command: |
-                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U -P ${MAVEN_PROFILE_ID} clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
+                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U -P gio-artifactory-release,gio-release clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
             - add_ssh_keys:
                   fingerprints:
                       - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
