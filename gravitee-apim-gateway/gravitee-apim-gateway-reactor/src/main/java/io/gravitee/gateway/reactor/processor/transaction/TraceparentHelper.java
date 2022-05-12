@@ -46,13 +46,13 @@ public class TraceparentHelper {
 
     public static boolean isValid(String traceparent) {
         String[] array = traceparent.split("-");
-        boolean valid =
+
+        return (
             isHexString(array[0], 2, 'f') && // 1 byte arr => 2 hex char
             isHexString(array[1], 32, '0') && // 16 bytes arr => 32 hex char
             isHexString(array[2], 16, '0') && // 8 bytes arr => 16 hex char
-            (array[3].length() == 2); // 1 byte arr => 2 hex char
-
-        return valid;
+            (array[3].length() == 2)
+        );
     }
 
     /**

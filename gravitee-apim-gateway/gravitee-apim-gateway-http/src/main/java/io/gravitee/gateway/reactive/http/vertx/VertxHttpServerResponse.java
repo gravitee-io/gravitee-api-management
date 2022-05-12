@@ -20,7 +20,7 @@ import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.reactivex.*;
 import io.vertx.reactivex.core.http.HttpServerResponse;
 
@@ -28,7 +28,7 @@ import io.vertx.reactivex.core.http.HttpServerResponse;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxHttpServerResponse implements Response {
+public class VertxHttpServerResponse implements MutableResponse {
 
     protected final VertxHttpServerRequest serverRequest;
     protected final HttpHeaders headers;

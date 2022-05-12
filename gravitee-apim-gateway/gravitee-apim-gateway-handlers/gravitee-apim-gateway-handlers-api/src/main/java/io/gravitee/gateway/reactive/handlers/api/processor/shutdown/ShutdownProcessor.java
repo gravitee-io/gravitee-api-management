@@ -47,16 +47,18 @@ public class ShutdownProcessor implements Processor {
 
     @Override
     public Completable execute(final RequestExecutionContext ctx) {
-        return Completable.fromRunnable(() -> {
-            if (node.lifecycleState() != Lifecycle.State.STARTED) {
-                // The node is certainly shutting down, explicitly ask for closing connection.
-                if (ctx.request().version() == HttpVersion.HTTP_2) {
-                    // Create a fake internal header to notify the underlying layer to gracefully close the connection (aka: goAway).
-                    ctx.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_GO_AWAY);
-                } else {
-                    ctx.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+        return Completable.fromRunnable(
+            () -> {
+                if (node.lifecycleState() != Lifecycle.State.STARTED) {
+                    // The node is certainly shutting down, explicitly ask for closing connection.
+                    if (ctx.request().version() == HttpVersion.HTTP_2) {
+                        // Create a fake internal header to notify the underlying layer to gracefully close the connection (aka: goAway).
+                        ctx.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_GO_AWAY);
+                    } else {
+                        ctx.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+                    }
                 }
             }
-        });
+        );
     }
 }
