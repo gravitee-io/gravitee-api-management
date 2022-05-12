@@ -960,7 +960,7 @@ jobs:
     nexus-staging:
         docker:
             - image: cimg/openjdk:11.0
-        resource_class: medium
+        resource_class: xlarge
         steps:
             - checkout
             - run:
@@ -979,7 +979,7 @@ jobs:
             - run:
                   name: Release on Nexus
                   command: |
-                      mvn clean deploy --activate-profiles gravitee-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
+                      mvn clean deploy --activate-profiles gravitee-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots -T 4
 
     publish_rpm_packages:
         parameters:
