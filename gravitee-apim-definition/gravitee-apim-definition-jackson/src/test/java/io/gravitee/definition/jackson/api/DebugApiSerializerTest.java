@@ -18,76 +18,38 @@ package io.gravitee.definition.jackson.api;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.debug.DebugApi;
+import java.io.IOException;
+import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class DebugApiSerializerTest extends AbstractTest {
 
-    @Test
-    public void debugApi_withBackendResponse() throws Exception {
-        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-backend-response.json", DebugApi.class);
-
-        String expectedDefinition = "/io/gravitee/definition/jackson/debug/debug-api-with-backend-response-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(debugApi);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        assertNotNull(generatedJsonDefinition);
-
-        assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
+    private static Stream<Arguments> provideParameters() {
+        return Stream.of(
+            Arguments.of("/io/gravitee/definition/jackson/debug/debug-api-with-backend-response-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-error-expected.json"),
+            Arguments.of("/io/gravitee/definition/jackson/debug/debug-api-with-response-expected.json")
         );
     }
 
-    @Test
-    public void debugApi_withDebugSteps() throws Exception {
-        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps.json", DebugApi.class);
+    @ParameterizedTest
+    @MethodSource("provideParameters")
+    public void shouldWriteValidJson(final String json) throws IOException {
+        JsonNode jsonNode = loadJson(json);
+        String generatedJsonDefinition = objectMapper().writeValueAsString(jsonNode);
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(json));
 
-        String expectedDefinition = "/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(debugApi);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        assertNotNull(generatedJsonDefinition);
-
-        assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void debugApi_withDebugStepsError() throws Exception {
-        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-error.json", DebugApi.class);
-
-        String expectedDefinition = "/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-error-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(debugApi);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        assertNotNull(generatedJsonDefinition);
-
-        assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
-    public void debugApi_withRequestResponse() throws Exception {
-        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-response.json", DebugApi.class);
-
-        String expectedDefinition = "/io/gravitee/definition/jackson/debug/debug-api-with-response-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(debugApi);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        assertNotNull(generatedJsonDefinition);
-
-        assertEquals(
+        Assertions.assertNotNull(generatedJsonDefinition);
+        Assertions.assertEquals(
             objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
             objectMapper().readTree(generatedJsonDefinition.getBytes())
         );
