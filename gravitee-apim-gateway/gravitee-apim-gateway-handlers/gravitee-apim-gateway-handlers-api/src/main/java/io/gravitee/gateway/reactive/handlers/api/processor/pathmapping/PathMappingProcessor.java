@@ -46,20 +46,22 @@ public class PathMappingProcessor implements Processor {
         return Maybe
             .fromCallable(() -> ctx.api().getPathMappings())
             .filter(pathMapping -> !pathMapping.isEmpty())
-            .doOnSuccess(pathMapping -> {
-                String path = ctx.request().pathInfo();
-                if (path.length() == 0 || path.charAt(path.length() - 1) != '/') {
-                    path += '/';
+            .doOnSuccess(
+                pathMapping -> {
+                    String path = ctx.request().pathInfo();
+                    if (path.length() == 0 || path.charAt(path.length() - 1) != '/') {
+                        path += '/';
+                    }
+                    final String finalPath = path;
+                    pathMapping
+                        .entrySet()
+                        .stream()
+                        .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
+                        .map(Map.Entry::getKey)
+                        .min(comparing(this::countOccurrencesOf))
+                        .ifPresent(resolvedMappedPath -> ctx.request().metrics().setMappedPath(resolvedMappedPath));
                 }
-                final String finalPath = path;
-                pathMapping
-                    .entrySet()
-                    .stream()
-                    .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
-                    .map(Map.Entry::getKey)
-                    .min(comparing(this::countOccurrencesOf))
-                    .ifPresent(resolvedMappedPath -> ctx.request().metrics().setMappedPath(resolvedMappedPath));
-            })
+            )
             .ignoreElement();
     }
 
