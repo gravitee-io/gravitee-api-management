@@ -90,13 +90,13 @@ public class DefaultReactor extends AbstractService<Reactor> implements Reactor,
                     if (entrypoint != null) {
                         entrypoint
                             .target()
-                            .handler(
+                            .handle(
+                                ctx,
                                 context1 -> {
                                     // Ensure that response has been ended before going further
                                     context1.response().endHandler(avoid -> processResponse(context1, handler)).end();
                                 }
-                            )
-                            .handle(ctx);
+                            );
                     } else {
                         processNotFound(ctx, handler);
                     }

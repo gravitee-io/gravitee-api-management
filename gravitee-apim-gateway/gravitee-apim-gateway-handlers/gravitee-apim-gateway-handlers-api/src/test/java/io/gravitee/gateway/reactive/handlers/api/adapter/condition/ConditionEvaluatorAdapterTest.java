@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.adapter.condition;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 

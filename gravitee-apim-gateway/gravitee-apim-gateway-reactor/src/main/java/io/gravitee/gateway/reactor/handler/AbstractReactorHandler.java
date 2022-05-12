@@ -44,8 +44,6 @@ public abstract class AbstractReactorHandler<T extends Reactable>
 
     private ExecutionContextFactory executionContextFactory;
 
-    protected Handler<ExecutionContext> handler;
-
     protected final T reactable;
 
     protected AbstractReactorHandler(T reactable) {
@@ -68,18 +66,12 @@ public abstract class AbstractReactorHandler<T extends Reactable>
     }
 
     @Override
-    public ReactorHandler handler(Handler<ExecutionContext> handler) {
-        this.handler = handler;
-        return this;
-    }
-
-    @Override
-    public void handle(ExecutionContext context) {
+    public void handle(ExecutionContext context, Handler<ExecutionContext> endHandler) {
         // Wrap the actual request to contextualize it
         contextualizeRequest(context);
 
         try {
-            doHandle(executionContextFactory.create(context));
+            doHandle(executionContextFactory.create(context), endHandler);
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while processing request", ex);
 
@@ -89,7 +81,7 @@ public abstract class AbstractReactorHandler<T extends Reactable>
             context.response().status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
             context.response().headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
-            handler.handle(context);
+            endHandler.handle(context);
         }
     }
 
@@ -109,7 +101,7 @@ public abstract class AbstractReactorHandler<T extends Reactable>
         );
     }
 
-    protected abstract void doHandle(ExecutionContext executionContext);
+    protected abstract void doHandle(ExecutionContext executionContext, Handler<ExecutionContext> endHandler);
 
     public void setExecutionContextFactory(ExecutionContextFactory executionContextFactory) {
         this.executionContextFactory = executionContextFactory;

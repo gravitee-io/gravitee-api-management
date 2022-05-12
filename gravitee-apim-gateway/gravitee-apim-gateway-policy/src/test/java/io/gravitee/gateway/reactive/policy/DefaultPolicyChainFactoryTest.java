@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.policy;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -197,6 +198,35 @@ class DefaultPolicyChainFactoryTest {
         assertNotNull(policyChain);
 
         verify(policyManager, times(1)).create(eq(ExecutionPhase.RESPONSE), any(PolicyMetadata.class));
+        verifyNoMoreInteractions(policyManager);
+    }
+
+    @Test
+    public void shouldFilterNullPoliciesReturnedByPolicyManager() {
+        final Policy policy = mock(Policy.class);
+        final Flow flow = mock(Flow.class);
+        final Step step1 = mock(Step.class);
+        final Step step2 = mock(Step.class);
+
+        when(step1.isEnabled()).thenReturn(true);
+        when(step2.isEnabled()).thenReturn(true);
+        when(flow.getPre()).thenReturn(List.of(step1, step2));
+
+        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(null).thenReturn(policy);
+
+        when(step1.getPolicy()).thenReturn("policy-step1");
+        when(step1.getConfiguration()).thenReturn("config-step1");
+        when(step1.getCondition()).thenReturn("condition-step1");
+
+        when(step2.getPolicy()).thenReturn("policy-step2");
+        when(step2.getConfiguration()).thenReturn("config-step2");
+        when(step2.getCondition()).thenReturn("condition-step2");
+
+        final PolicyChain policyChain = cut.create(flow, ExecutionPhase.REQUEST);
+        assertNotNull(policyChain);
+
+        verify(policyManager, times(2)).create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class));
+
         verifyNoMoreInteractions(policyManager);
     }
 }
