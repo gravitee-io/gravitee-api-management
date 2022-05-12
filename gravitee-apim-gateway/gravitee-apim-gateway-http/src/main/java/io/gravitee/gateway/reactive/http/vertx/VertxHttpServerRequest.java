@@ -72,6 +72,10 @@ public class VertxHttpServerRequest implements Request {
                 .cache();
     }
 
+    public VertxHttpServerResponse response() {
+        return new VertxHttpServerResponse(this);
+    }
+
     @Override
     public String id() {
         return id;
@@ -197,7 +201,10 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public Maybe<Buffer> body() {
-        return chunks.reduce(Buffer::appendBuffer);
+        // Reduce all the chunks to create a unique buffer containing all the content.
+        final Maybe<Buffer> buffer = chunks().reduce(Buffer::appendBuffer);
+        this.chunks = buffer.toFlowable();
+        return buffer;
     }
 
     @Override
@@ -234,11 +241,11 @@ public class VertxHttpServerRequest implements Request {
     }
 
     @Override
-    public synchronized Completable chunks(final Flowable<Buffer> chunks) {
+    public Completable chunks(final Flowable<Buffer> chunks) {
         return setChunks(chunks);
     }
 
-    private synchronized Completable setChunks(Flowable<Buffer> chunks) {
+    private Completable setChunks(Flowable<Buffer> chunks) {
         return onChunk(upstream -> chunks);
     }
 }

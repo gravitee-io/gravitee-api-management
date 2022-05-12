@@ -17,10 +17,11 @@ package io.gravitee.gateway.standalone.vertx.ws;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.IdGenerator;
+import io.gravitee.gateway.http.utils.WebSocketUtils;
 import io.gravitee.gateway.http.vertx.VertxHttpServerRequest;
+import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.standalone.vertx.VertxReactorHandler;
-import io.gravitee.gateway.standalone.vertx.ws.utils.WebSocketUtils;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpVersion;
 

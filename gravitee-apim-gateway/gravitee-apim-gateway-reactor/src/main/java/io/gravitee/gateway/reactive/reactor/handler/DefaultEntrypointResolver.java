@@ -38,8 +38,6 @@ import javax.net.ssl.SSLSession;
  */
 public class DefaultEntrypointResolver implements EntrypointResolver {
 
-    public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
-
     private final ReactorHandlerRegistry handlerRegistry;
 
     public DefaultEntrypointResolver(ReactorHandlerRegistry handlerRegistry) {
@@ -48,162 +46,12 @@ public class DefaultEntrypointResolver implements EntrypointResolver {
 
     @Override
     public HandlerEntrypoint resolve(String host, String path) {
-        Request request = new EntrypointRequest(path, host);
         for (HandlerEntrypoint entrypoint : handlerRegistry.getEntrypoints()) {
-            if (entrypoint.accept(request)) {
+            if (entrypoint.accept(host, path)) {
                 return entrypoint;
             }
         }
 
         return null;
-    }
-
-    /**
-     * FIXME: quick & dirty solution to make current entry point resolution working.
-     */
-    private static class EntrypointRequest implements Request {
-
-        private final String path;
-        private final String host;
-
-        public EntrypointRequest(String path, String host) {
-            this.path = path;
-            this.host = host;
-        }
-
-        @Override
-        public String id() {
-            return null;
-        }
-
-        @Override
-        public String transactionId() {
-            return null;
-        }
-
-        @Override
-        public String uri() {
-            return null;
-        }
-
-        @Override
-        public String path() {
-            return path;
-        }
-
-        @Override
-        public String pathInfo() {
-            return null;
-        }
-
-        @Override
-        public String contextPath() {
-            return null;
-        }
-
-        @Override
-        public MultiValueMap<String, String> parameters() {
-            return null;
-        }
-
-        @Override
-        public MultiValueMap<String, String> pathParameters() {
-            return null;
-        }
-
-        @Override
-        public HttpHeaders headers() {
-            return null;
-        }
-
-        @Override
-        public HttpMethod method() {
-            return null;
-        }
-
-        @Override
-        public String scheme() {
-            return null;
-        }
-
-        @Override
-        public HttpVersion version() {
-            return null;
-        }
-
-        @Override
-        public long timestamp() {
-            return 0;
-        }
-
-        @Override
-        public String remoteAddress() {
-            return null;
-        }
-
-        @Override
-        public String localAddress() {
-            return null;
-        }
-
-        @Override
-        public SSLSession sslSession() {
-            return null;
-        }
-
-        @Override
-        public Metrics metrics() {
-            return null;
-        }
-
-        @Override
-        public boolean ended() {
-            return false;
-        }
-
-        @Override
-        public Request timeoutHandler(Handler<Long> timeoutHandler) {
-            return null;
-        }
-
-        @Override
-        public Handler<Long> timeoutHandler() {
-            return null;
-        }
-
-        @Override
-        public boolean isWebSocket() {
-            return false;
-        }
-
-        @Override
-        public WebSocket websocket() {
-            return null;
-        }
-
-        @Override
-        public Request customFrameHandler(Handler<HttpFrame> frameHandler) {
-            return null;
-        }
-
-        @Override
-        public Request closeHandler(Handler<Void> closeHandler) {
-            return null;
-        }
-
-        @Override
-        public String host() {
-            return host;
-        }
-
-        @Override
-        public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
-            return null;
-        }
-
-        @Override
-        public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
-            return null;
-        }
     }
 }
