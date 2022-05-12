@@ -26,14 +26,17 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -41,6 +44,8 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,9 +60,6 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(TaskServiceImpl.class);
     private static final int NUMBER_OF_PENDING_USERS_TO_SEARCH = 100;
-
-    @Autowired
-    private ApiService apiService;
 
     @Autowired
     private SubscriptionService subscriptionService;
@@ -86,6 +88,9 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
     @Autowired
     private ApiRepository apiRepository;
 
+    @Autowired
+    private EnvironmentService environmentService;
+
     @Override
     public List<TaskEntity> findAll(ExecutionContext executionContext, String userId) {
         if (userId == null) {
@@ -97,6 +102,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             // the user has a SUBSCRIPTION_UPDATE permission
 
             // search for PENDING subscriptions
+
             Set<String> apiIds = getApisForAPermission(executionContext, userId, SUBSCRIPTION.getName());
             final List<TaskEntity> tasks;
             if (apiIds.isEmpty()) {
@@ -165,11 +171,13 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
     private Set<String> getApisForAPermission(ExecutionContext executionContext, final String userId, final String permission)
         throws TechnicalException {
         // 1. find apis and group memberships
+
         Set<MembershipEntity> memberships = membershipService.getMembershipsByMemberAndReference(
             MembershipMemberType.USER,
             userId,
             io.gravitee.rest.api.model.MembershipReferenceType.API
         );
+
         memberships.addAll(
             membershipService.getMembershipsByMemberAndReference(
                 MembershipMemberType.USER,
@@ -215,9 +223,21 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         }
         // 54. add apiId that comes from group
         if (!groupIds.isEmpty()) {
-            ApiQuery apiQuery = new ApiQuery();
-            apiQuery.setGroups(groupIds);
-            apiIds.addAll(apiService.searchIds(executionContext, apiQuery));
+            ApiCriteria criteria = new ApiCriteria.Builder().groups(groupIds).build();
+
+            apiIds.addAll(apiRepository.searchIds(criteria));
+        }
+
+        if (isEnvironmentAdmin()) {
+            List<String> environmentIds = environmentService
+                .findByOrganization(executionContext.getOrganizationId())
+                .stream()
+                .map(EnvironmentEntity::getId)
+                .collect(toList());
+
+            ApiCriteria criteria = new ApiCriteria.Builder().environments(environmentIds).build();
+
+            apiIds.addAll(apiRepository.searchIds(criteria));
         }
 
         return apiIds;
@@ -230,53 +250,59 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             task -> {
                 final Object data = task.getData();
                 if (data instanceof SubscriptionEntity) {
-                    final SubscriptionEntity subscription = (SubscriptionEntity) data;
-
-                    if (!metadata.containsKey(subscription.getApplication())) {
-                        try {
-                            Optional<Application> application = applicationRepository.findById(subscription.getApplication());
-                            if (application.isPresent()) {
-                                metadata.put(subscription.getApplication(), "name", application.get().getName());
-                            }
-                        } catch (TechnicalException e) {
-                            LOGGER.error("Error retrieving application task metadata {}", e.getMessage());
-                        }
-                    }
-
-                    if (!metadata.containsKey(subscription.getPlan())) {
-                        try {
-                            Optional<Plan> optPlan = planRepository.findById(subscription.getPlan());
-
-                            if (optPlan.isPresent()) {
-                                String apiId = optPlan.get().getApi();
-                                metadata.put(subscription.getPlan(), "name", optPlan.get().getName());
-                                metadata.put(subscription.getPlan(), "api", apiId);
-
-                                Optional<Api> optionalApi = apiRepository.findById(apiId);
-                                if (optionalApi.isPresent()) {
-                                    metadata.put(apiId, "name", optionalApi.get().getName());
-                                }
-                            }
-                        } catch (TechnicalException e) {
-                            LOGGER.error("Error retrieving plan task metadata {}", e.getMessage());
-                        }
-                    }
+                    addSubscriptionMetadata(metadata, (SubscriptionEntity) data);
                 } else if (data instanceof Workflow) {
-                    final Workflow workflow = (Workflow) data;
-                    if (API.name().equals(workflow.getReferenceType()) && !metadata.containsKey(workflow.getReferenceId())) {
-                        try {
-                            Optional<Api> optionalApi = apiRepository.findById(workflow.getReferenceId());
-                            if (optionalApi.isPresent()) {
-                                metadata.put(workflow.getReferenceId(), "name", optionalApi.get().getName());
-                            }
-                        } catch (TechnicalException e) {
-                            LOGGER.error("Error retrieving api task metadata {}", e.getMessage());
-                        }
-                    }
+                    addWorkflowMetadata(metadata, (Workflow) data);
                 }
             }
         );
         return metadata;
+    }
+
+    private void addSubscriptionMetadata(Metadata metadata, SubscriptionEntity subscription) {
+        if (!metadata.containsKey(subscription.getApplication())) {
+            addApplicationMetadata(metadata, subscription);
+        }
+        if (!metadata.containsKey(subscription.getPlan())) {
+            addPlanMetadata(metadata, subscription);
+        }
+    }
+
+    private void addWorkflowMetadata(Metadata metadata, Workflow workflow) {
+        if (API.name().equals(workflow.getReferenceType()) && !metadata.containsKey(workflow.getReferenceId())) {
+            try {
+                Optional<Api> optionalApi = apiRepository.findById(workflow.getReferenceId());
+                optionalApi.ifPresent(api -> metadata.put(workflow.getReferenceId(), "name", api.getName()));
+            } catch (TechnicalException e) {
+                LOGGER.error("Error retrieving api task metadata {}", e.getMessage());
+            }
+        }
+    }
+
+    private void addApplicationMetadata(Metadata metadata, SubscriptionEntity subscription) {
+        try {
+            Optional<Application> application = applicationRepository.findById(subscription.getApplication());
+            application.ifPresent(value -> metadata.put(subscription.getApplication(), "name", value.getName()));
+        } catch (TechnicalException e) {
+            LOGGER.error("Error retrieving application task metadata {}", e.getMessage());
+        }
+    }
+
+    private void addPlanMetadata(Metadata metadata, SubscriptionEntity subscription) {
+        try {
+            Optional<Plan> optPlan = planRepository.findById(subscription.getPlan());
+
+            if (optPlan.isPresent()) {
+                String apiId = optPlan.get().getApi();
+                metadata.put(subscription.getPlan(), "name", optPlan.get().getName());
+                metadata.put(subscription.getPlan(), "api", apiId);
+
+                Optional<Api> optionalApi = apiRepository.findById(apiId);
+                optionalApi.ifPresent(api -> metadata.put(apiId, "name", api.getName()));
+            }
+        } catch (TechnicalException e) {
+            LOGGER.error("Error retrieving plan task metadata {}", e.getMessage());
+        }
     }
 
     private TaskEntity convert(UserEntity user) {
