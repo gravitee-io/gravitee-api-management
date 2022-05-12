@@ -704,18 +704,22 @@ jobs:
                   at: .
             - setup_remote_docker
             - get-apim-tag
+            - get-apim-version
             - keeper/env-export:
                   secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
                   var-name: AZURE_DOCKER_REGISTRY_USERNAME
             - keeper/env-export:
                   secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
                   var-name: AZURE_DOCKER_REGISTRY_PASSWORD
-            - build-ui-image:
+            - load-image-from-workspace:
                 docker-image-name: << parameters.docker-image-name >>
-                apim-ui-project: << parameters.apim-ui-project >>
             - run:
                   name: Publish Web UI Docker Image to Azure Registry
                   command: |
+                      # Add new tag before pushing to Azure
+                      export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/<< parameters.docker-image-name >>:$TAG
+                      docker tag graviteeio.azurecr.io/<< parameters.docker-image-name >>:$APIM_VERSION $PRIVATE_IMAGE_TAG
+                    
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                       docker push ${PRIVATE_IMAGE_TAG}
                       docker logout graviteeio.azurecr.io
@@ -887,7 +891,6 @@ jobs:
         steps:
             - attach_workspace:
                   at: .
-            - get-apim-tag
             - keeper/env-export:
                   secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/login
                   var-name: AZURE_APPLICATION_ID
@@ -1520,6 +1523,7 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
+                              - fix-ui-azure-publish
             - webui-lint-test:
                   name: Lint & Test APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
