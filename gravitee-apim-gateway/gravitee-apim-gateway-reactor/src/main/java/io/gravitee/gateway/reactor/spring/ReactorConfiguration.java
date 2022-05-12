@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactor.spring;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.utils.Hex;
 import io.gravitee.common.utils.UUID;
@@ -23,11 +24,13 @@ import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.handler.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.context.provider.NodeTemplateVariableProvider;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
+import io.gravitee.gateway.reactor.impl.DefaultReactor;
 import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
@@ -48,6 +51,18 @@ public class ReactorConfiguration {
     private static final String HEX_FORMAT = "hex";
 
     @Bean
+    public Reactor v3Reactor() {
+        // DefaultReactor bean must be kept while we are still supporting v3 execution mode.
+        return new DefaultReactor();
+    }
+
+    @Bean
+    public io.gravitee.gateway.reactor.handler.EntrypointResolver v3EntrypointResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
+        // V3 EntrypointResolver bean must be kept while we are still supporting v3 execution mode.
+        return new io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver(reactorHandlerRegistry);
+    }
+
+    @Bean
     public IdGenerator idGenerator(@Value("${handlers.request.format:uuid}") String requestFormat) {
         if (HEX_FORMAT.equals(requestFormat)) {
             return new Hex();
@@ -57,8 +72,20 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public HttpRequestDispatcher httpRequestDispatcher(IdGenerator idGenerator) {
-        return new DefaultHttpRequestDispatcher(idGenerator);
+    public HttpRequestDispatcher httpRequestDispatcher(
+        EventManager eventManager,
+        GatewayConfiguration gatewayConfiguration,
+        ReactorHandlerRegistry reactorHandlerRegistry,
+        EntrypointResolver entrypointResolver,
+        IdGenerator idGenerator
+    ) {
+        return new DefaultHttpRequestDispatcher(
+            eventManager,
+            gatewayConfiguration,
+            reactorHandlerRegistry,
+            entrypointResolver,
+            idGenerator
+        );
     }
 
     @Bean

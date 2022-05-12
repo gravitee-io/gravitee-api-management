@@ -20,9 +20,18 @@ import io.reactivex.Completable;
 import io.vertx.reactivex.core.http.HttpServerRequest;
 
 /**
+ * Request dispatcher responsible to dispatch any HTTP request to the appropriate {@link io.gravitee.gateway.reactor.handler.ReactorHandler}.
+ *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface HttpRequestDispatcher extends Service<HttpRequestDispatcher> {
+    /**
+     * Dispatches the incoming request to the right {@link io.gravitee.gateway.reactor.handler.ReactorHandler}.
+     *
+     * @param httpServerRequest the vertx http request.
+     *
+     * @return a {@link Completable} that completes when the request has been fully dispatched and completed.
+     */
     Completable dispatch(HttpServerRequest httpServerRequest);
 }

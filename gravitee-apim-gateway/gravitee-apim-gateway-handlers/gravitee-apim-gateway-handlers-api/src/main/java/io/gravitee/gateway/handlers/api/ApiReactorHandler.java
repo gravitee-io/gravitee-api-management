@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
@@ -65,11 +66,11 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
     }
 
     @Override
-    protected void doHandle(final ExecutionContext context) {
+    protected void doHandle(final ExecutionContext context, Handler<ExecutionContext> endHandler) {
         final Request request = context.request();
 
         // Set the timeout handler on the request
-        request.timeoutHandler(result -> handleError(context, TIMEOUT_PROCESSOR_FAILURE));
+        request.timeoutHandler(result -> handleError(context, endHandler, TIMEOUT_PROCESSOR_FAILURE));
 
         // Pause the request and resume it as soon as all the stream are plugged and we have processed the HEAD part
         // of the request. (see handleProxyInvocation method).
@@ -87,26 +88,30 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         request.metrics().setPath(request.pathInfo());
 
         // It's time to process incoming client request
-        handleClientRequest(context);
+        handleClientRequest(context, endHandler);
     }
 
-    private void handleClientRequest(final ExecutionContext context) {
+    private void handleClientRequest(final ExecutionContext context, Handler<ExecutionContext> endHandler) {
         final StreamableProcessor<ExecutionContext, Buffer> chain = requestProcessorChain.create();
 
         chain
-            .handler(__ -> handleProxyInvocation(context, chain))
-            .streamErrorHandler(failure -> handleError(context, failure))
-            .errorHandler(failure -> handleError(context, failure))
+            .handler(__ -> handleProxyInvocation(context, endHandler, chain))
+            .streamErrorHandler(failure -> handleError(context, endHandler, failure))
+            .errorHandler(failure -> handleError(context, endHandler, failure))
             .exitHandler(
                 __ -> {
                     context.request().resume();
-                    handler.handle(context);
+                    endHandler.handle(context);
                 }
             )
             .handle(context);
     }
 
-    private void handleProxyInvocation(final ExecutionContext context, final StreamableProcessor<ExecutionContext, Buffer> chain) {
+    private void handleProxyInvocation(
+        final ExecutionContext context,
+        Handler<ExecutionContext> endHandler,
+        final StreamableProcessor<ExecutionContext, Buffer> chain
+    ) {
         // Call an invoker to get a proxy connection (connection to an underlying backend, default to HTTP)
         Invoker upstreamInvoker = getInvoker(context);
 
@@ -118,7 +123,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
             connection -> {
                 context.request().customFrameHandler(connection::writeCustomFrame);
 
-                connection.responseHandler(proxyResponse -> handleProxyResponse(context, proxyResponse));
+                connection.responseHandler(proxyResponse -> handleProxyResponse(context, endHandler, proxyResponse));
 
                 // Override the stream error handler to be able to cancel connection to backend
                 chain.streamErrorHandler(
@@ -128,7 +133,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
                             .metrics()
                             .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
                         connection.cancel();
-                        handleError(context, failure);
+                        handleError(context, endHandler, failure);
                     }
                 );
             }
@@ -152,7 +157,11 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         return (Invoker) context.getAttribute(ExecutionContext.ATTR_INVOKER);
     }
 
-    private void handleProxyResponse(final ExecutionContext context, final ProxyResponse proxyResponse) {
+    private void handleProxyResponse(
+        final ExecutionContext context,
+        Handler<ExecutionContext> endHandler,
+        final ProxyResponse proxyResponse
+    ) {
         // If the response is not yet ended (by a request timeout for example)
         if (!context.response().ended()) {
             if (proxyResponse == null || !proxyResponse.connected()) {
@@ -162,17 +171,21 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
                     .metrics()
                     .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
                 if (proxyResponse instanceof ProcessorFailure) {
-                    handleError(context, (ProcessorFailure) proxyResponse);
+                    handleError(context, endHandler, (ProcessorFailure) proxyResponse);
                 } else {
-                    handler.handle(context);
+                    endHandler.handle(context);
                 }
             } else {
-                handleClientResponse(context, proxyResponse);
+                handleClientResponse(context, endHandler, proxyResponse);
             }
         }
     }
 
-    private void handleClientResponse(final ExecutionContext context, final ProxyResponse proxyResponse) {
+    private void handleClientResponse(
+        final ExecutionContext context,
+        Handler<ExecutionContext> endHandler,
+        final ProxyResponse proxyResponse
+    ) {
         // Set the status
         context.response().status(proxyResponse.status());
         context.response().reason(proxyResponse.reason());
@@ -189,19 +202,19 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
             .errorHandler(
                 failure -> {
                     proxyResponse.cancel();
-                    handleError(context, failure);
+                    handleError(context, endHandler, failure);
                 }
             )
             .streamErrorHandler(
                 failure -> {
                     proxyResponse.cancel();
-                    handleError(context, failure);
+                    handleError(context, endHandler, failure);
                 }
             )
-            .exitHandler(__ -> handler.handle(context))
+            .exitHandler(__ -> endHandler.handle(context))
             .handler(
                 stream -> {
-                    chain.bodyHandler(chunk -> context.response().write(chunk)).endHandler(__ -> handler.handle(context));
+                    chain.bodyHandler(chunk -> context.response().write(chunk)).endHandler(__ -> endHandler.handle(context));
 
                     proxyResponse
                         .bodyHandler(
@@ -238,7 +251,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
             .handle(context);
     }
 
-    private void handleError(ExecutionContext context, ProcessorFailure failure) {
+    private void handleError(ExecutionContext context, Handler<ExecutionContext> endHandler, ProcessorFailure failure) {
         if (context.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
             context
                 .request()
@@ -254,7 +267,11 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
             context.request().resume();
         }
 
-        errorProcessorChain.create().handler(__ -> handler.handle(context)).errorHandler(__ -> handler.handle(context)).handle(context);
+        errorProcessorChain
+            .create()
+            .handler(__ -> endHandler.handle(context))
+            .errorHandler(__ -> endHandler.handle(context))
+            .handle(context);
     }
 
     @Override

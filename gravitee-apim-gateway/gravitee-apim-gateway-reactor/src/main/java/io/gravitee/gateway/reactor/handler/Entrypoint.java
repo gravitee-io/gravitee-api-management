@@ -25,29 +25,33 @@ import io.gravitee.gateway.api.Request;
  */
 public interface Entrypoint {
     /**
-     * Listening path.
-     *
-     * @return
+     * @return the listening path of this entrypoint.
      */
     String path();
 
     /**
-     * The optional listening host (can be null).
+     * @return the optional listening host (can be <code>null</code>).
      */
     String host();
 
     /**
-     * Priority of the entrypoint.
-     *
-     * @return
+     * @return the priority of the this entrypoint.
      */
     int priority();
 
     /**
-     * Does the entrypoint accepts the incoming request ?
-     *
-     * @param request
-     * @return
+     * @deprecated see {@link #accept(String, String)} instead.
      */
+    @Deprecated(forRemoval = true)
     boolean accept(Request request);
+
+    /**
+     * Allows to test the entrypoint against the specified <code>host</code> and <code>path</code> to check if it can handle the request or not.
+     *
+     * @param host the request's host.
+     * @param path the request's path.
+     *
+     * @return <code>true</code> if the entrypoint is able to accept the request, <code>false</code> else.
+     */
+    boolean accept(String host, String path);
 }
