@@ -42,13 +42,19 @@ public class VertxReactorConfiguration {
     }
 
     @Bean("gatewayHttpServer")
-    //    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public VertxHttpServerFactory vertxHttpServerFactory(
         Vertx vertx,
         @Qualifier("httpServerConfiguration") HttpServerConfiguration httpServerConfiguration,
         KeyStoreLoaderManager keyStoreLoaderManager
     ) {
         return new VertxHttpServerFactory(vertx, httpServerConfiguration, keyStoreLoaderManager);
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public ReactorVerticle v3GraviteeVerticle() {
+        // V3 ReactorVerticle bean must be kept while we are still supporting v3 execution mode.
+        return new ReactorVerticle();
     }
 
     @Bean

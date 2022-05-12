@@ -20,6 +20,7 @@ import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
 import static io.reactivex.Completable.defer;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -88,6 +89,11 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             new FlowChain("Platform", FlowResolverFactory.forPlatform(api, organizationManager), platformPolicyChainFactory);
         this.apiPlanFlowChain = new FlowChain("Api Plan", FlowResolverFactory.forApiPlan(api), policyChainFactory);
         this.apiFlowChain = new FlowChain("Api", FlowResolverFactory.forApi(api), policyChainFactory);
+    }
+
+    @Override
+    public ExecutionMode executionMode() {
+        return ExecutionMode.JUPITER;
     }
 
     @Override
@@ -237,13 +243,6 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     @Override
-    public SyncApiReactor handler(Handler<io.gravitee.gateway.api.ExecutionContext> handler) {
-        throw new RuntimeException(
-            "Handler method is here for compatibility only byt must not be called. Invoke handle(SyncRequest, SyncResponse) instead."
-        );
-    }
-
-    @Override
     protected void doStart() throws Exception {
         log.debug("API handler is now starting, preparing API context...");
         long startTime = System.currentTimeMillis(); // Get the start Time
@@ -294,7 +293,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     @Override
-    public void handle(io.gravitee.gateway.api.ExecutionContext result) {
+    public void handle(io.gravitee.gateway.api.ExecutionContext ctx, Handler<io.gravitee.gateway.api.ExecutionContext> endHandler) {
         throw new RuntimeException(new IllegalAccessException("Handle method can be called on SyncApiReactor"));
     }
 }

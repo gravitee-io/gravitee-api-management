@@ -18,7 +18,9 @@ package io.gravitee.gateway.standalone.junit.stmt;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.standalone.ApiLoaderInterceptor;
@@ -46,6 +48,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -73,6 +76,7 @@ public class ApiDeployerStatement extends Statement {
 
         GatewayTestContainer container = new GatewayTestContainer();
         final ApplicationContext applicationContext = container.applicationContext();
+        final Environment environment = applicationContext.getBean(Environment.class);
 
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
             (ConfigurableApplicationContext) applicationContext
@@ -129,6 +133,32 @@ public class ApiDeployerStatement extends Statement {
 
         try {
             final io.gravitee.gateway.handlers.api.definition.Api apiToRegister = new io.gravitee.gateway.handlers.api.definition.Api(api);
+            final boolean jupiterEnabled = environment.getProperty("api.jupiterMode.enabled", Boolean.class, false);
+
+            if (jupiterEnabled) {
+                final String jupiterDefault = environment.getProperty("api.jupiterMode.default", String.class);
+
+                if (jupiterDefault != null) {
+                    if (jupiterDefault.equalsIgnoreCase("always")) {
+                        // Force the execution mode to JUPITER as required by the environment variable.
+                        apiToRegister.setExecutionMode(ExecutionMode.JUPITER);
+                    } else if (jupiterDefault.equalsIgnoreCase("never")) {
+                        // Switch back the execution mode to V3 as required by the environment variable.
+                        apiToRegister.setExecutionMode(ExecutionMode.V3);
+                    }
+
+                    if (
+                        apiToRegister.getExecutionMode() == ExecutionMode.JUPITER &&
+                        apiToRegister.getDefinitionVersion() == DefinitionVersion.V1
+                    ) {
+                        // Jupiter does not support V1 api definition, switch to V3 execution mode.
+                        apiToRegister.setExecutionMode(ExecutionMode.V3);
+                        logger.warn(
+                            "JUPITER EXECUTION MODE IS SET ON AN API DEFINITION V1. V1 IS NOT SUPPORTED BY JUPITER, SWITCH EXECUTION MODE TO V3"
+                        );
+                    }
+                }
+            }
             apiToRegister.setDeployedAt(new Date());
             apiManager.register(apiToRegister);
             base.evaluate();

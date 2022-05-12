@@ -29,6 +29,7 @@ import io.gravitee.node.cache.standalone.StandaloneCache;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -76,6 +77,7 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
                 .filter(Step::isEnabled)
                 .map(step -> new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition()))
                 .map(policyMetadata -> policyManager.create(phase, policyMetadata))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
             policyChain = new PolicyChain(flow.getName() + " " + phase.name(), policies, phase);

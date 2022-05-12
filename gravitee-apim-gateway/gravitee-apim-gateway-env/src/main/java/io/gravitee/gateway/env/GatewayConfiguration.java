@@ -30,6 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class GatewayConfiguration implements InitializingBean {
 
+    public static final boolean JUPITER_MODE_ENABLED_BY_DEFAULT = false;
+    public static final String JUPITER_MODE_ENABLED_KEY = "api.jupiterMode.enabled";
+
     static final String SHARDING_TAGS_SYSTEM_PROPERTY = "tags";
     private static final String SHARDING_TAGS_SEPARATOR = ",";
 

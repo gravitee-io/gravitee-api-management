@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.policy;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
@@ -65,13 +66,28 @@ public class PolicyChain {
      * @return a {@link Completable} that completes when all the policies of the chain have been executed or the chain has been interrupted.
      * The {@link Completable} may complete in error in case of any error occurred while executing the policies.
      */
-    public Completable execute(ExecutionContext ctx) {
+    public Completable execute(RequestExecutionContext ctx) {
         log.debug("Executing chain {}", id);
 
-        return policies.flatMapCompletable(policy -> executePolicy(ctx, policy), false, 1);
+        return policies
+            .flatMapCompletable(policy -> executePolicy(ctx, policy), false, 1)
+            .onErrorResumeNext(throwable -> interruptOnError(ctx, throwable));
     }
 
-    private Completable executePolicy(ExecutionContext ctx, Policy policy) {
+    private Completable interruptOnError(RequestExecutionContext ctx, Throwable throwable) {
+        try {
+            // FIXME: ExecutionFailure
+            ctx.interrupt();
+            ctx.response().status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+            log.error("An unexpected error occurred during policy chain execution. Interrupt the chain.", throwable);
+
+            return Completable.complete();
+        } catch (Throwable t) {
+            return Completable.error(t);
+        }
+    }
+
+    private Completable executePolicy(RequestExecutionContext ctx, Policy policy) {
         if (ctx.isInterrupted()) {
             return Completable.complete();
         }
