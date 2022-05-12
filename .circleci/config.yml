@@ -973,6 +973,8 @@ jobs:
                       # the previous cache key was computed with the SNAPSHOT version of the release. 
                       echo "<< pipeline.parameters.graviteeio_version >>-SNAPSHOT" > .apim-version.txt
             - restore-maven-cache
+            - attach_workspace:
+                  at: .
             - prepare-gpg
             - run:
                   name: Release on Nexus
