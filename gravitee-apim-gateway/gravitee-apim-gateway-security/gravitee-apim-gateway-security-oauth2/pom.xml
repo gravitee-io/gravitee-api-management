@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.apim.gateway.security</groupId>
         <artifactId>gravitee-apim-gateway-security</artifactId>
-        <version>3.17.3</version>
+        <version>3.17.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-apim-gateway-security-oauth2</artifactId>

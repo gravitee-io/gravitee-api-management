@@ -31,7 +31,7 @@
 
     <groupId>io.gravitee.apim</groupId>
     <artifactId>gravitee-api-management</artifactId>
-    <version>3.17.3</version>
+    <version>3.17.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Gravitee.io APIM</name>
