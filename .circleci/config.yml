@@ -979,7 +979,7 @@ jobs:
             - run:
                   name: Release on Nexus
                   command: |
-                      mvn clean deploy --activate-profiles gravitee-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots -T 4
+                      mvn clean deploy --activate-profiles gravitee-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
 
     publish_rpm_packages:
         parameters:
