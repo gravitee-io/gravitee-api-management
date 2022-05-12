@@ -181,12 +181,14 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      * @return a {@link Completable} that will complete once the flow chain phase has been fully executed or that completes immediately if the context is marked as completed.
      */
     private Completable continueChain(RequestExecutionContext ctx, FlowChain flowChain, ExecutionPhase phase) {
-        return defer(() -> {
-            if (!ctx.isInterrupted()) {
-                return flowChain.execute(ctx, phase);
+        return defer(
+            () -> {
+                if (!ctx.isInterrupted()) {
+                    return flowChain.execute(ctx, phase);
+                }
+                return Completable.complete();
             }
-            return Completable.complete();
-        });
+        );
     }
 
     /**
@@ -197,16 +199,18 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      * @return a {@link Completable} that will complete once the invoker has been invoked or that completes immediately if execution isn't required.
      */
     private Completable invokeBackend(RequestExecutionContext ctx) {
-        return defer(() -> {
-            if (!ctx.isInterrupted() && !(boolean) Boolean.FALSE.equals(ctx.getAttribute("invoker.skip"))) {
-                Invoker invoker = getInvoker(ctx);
+        return defer(
+            () -> {
+                if (!ctx.isInterrupted() && !(boolean) Boolean.FALSE.equals(ctx.getAttribute("invoker.skip"))) {
+                    Invoker invoker = getInvoker(ctx);
 
-                if (invoker != null) {
-                    return invoker.invoke(ctx);
+                    if (invoker != null) {
+                        return invoker.invoke(ctx);
+                    }
                 }
+                return Completable.complete();
             }
-            return Completable.complete();
-        });
+        );
     }
 
     /**
@@ -292,9 +296,11 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected void dumpVirtualHosts() {
         List<Entrypoint> entrypoints = api.entrypoints();
         log.debug("{} ready to accept requests on:", this);
-        entrypoints.forEach(entrypoint -> {
-            log.debug("\t{}", entrypoint);
-        });
+        entrypoints.forEach(
+            entrypoint -> {
+                log.debug("\t{}", entrypoint);
+            }
+        );
     }
 
     @Override
