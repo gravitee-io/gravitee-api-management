@@ -35,6 +35,9 @@ export async function fail(
     if (error.status == undefined) {
       throw error;
     }
+    if (error.status !== expectedStatus) {
+      console.debug(error);
+    }
     expect(error.status).toEqual(expectedStatus);
     if (expectedError != null) {
       if (typeof expectedError === 'string') {
