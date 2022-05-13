@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.processor.cors;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.context.Request;
@@ -38,7 +39,8 @@ public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
     public Completable execute(final RequestExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
-                Cors cors = ctx.api().getProxy().getCors();
+                Api api = ctx.getComponent(Api.class);
+                Cors cors = api.getProxy().getCors();
                 if (cors != null && cors.isEnabled()) {
                     handleSimpleCrossOriginRequest(cors, ctx.request(), ctx.response());
                 }

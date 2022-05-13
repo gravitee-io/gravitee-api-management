@@ -15,11 +15,16 @@
  */
 package io.gravitee.gateway.handlers.api;
 
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY;
 import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
+import io.gravitee.node.api.configuration.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -34,12 +39,17 @@ public class ApiReactorHandlerFactoryTest {
     private ApiReactorHandlerFactory apiContextHandlerFactory;
 
     @Mock
+    private Configuration mockConfiguration;
+
+    @Mock
     private Api api;
 
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        apiContextHandlerFactory = new ApiReactorHandlerFactory(null, null, null, null, null, null, null);
+        when(mockConfiguration.getProperty(eq(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY), eq(Boolean.class), eq(false)))
+            .thenReturn(false);
+        apiContextHandlerFactory = new ApiReactorHandlerFactory(null, mockConfiguration, null, null, null, null, null);
     }
 
     @Test
