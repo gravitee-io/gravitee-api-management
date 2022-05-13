@@ -29,10 +29,6 @@ import {
     ApiReviewFromJSON,
     ApiReviewFromJSONTyped,
     ApiReviewToJSON,
-    Application,
-    ApplicationFromJSON,
-    ApplicationFromJSONTyped,
-    ApplicationToJSON,
     Company,
     CompanyFromJSON,
     CompanyFromJSONTyped,
@@ -61,6 +57,10 @@ import {
     PortalFromJSON,
     PortalFromJSONTyped,
     PortalToJSON,
+    PortalApplicationSettings,
+    PortalApplicationSettingsFromJSON,
+    PortalApplicationSettingsFromJSONTyped,
+    PortalApplicationSettingsToJSON,
     PortalAuthentication,
     PortalAuthenticationFromJSON,
     PortalAuthenticationFromJSONTyped,
@@ -111,10 +111,10 @@ export interface PortalSettingsEntity {
     apiReview?: ApiReview;
     /**
      * 
-     * @type {Application}
+     * @type {PortalApplicationSettings}
      * @memberof PortalSettingsEntity
      */
-    application?: Application;
+    application?: PortalApplicationSettings;
     /**
      * 
      * @type {PortalAuthentication}
@@ -203,7 +203,7 @@ export function PortalSettingsEntityFromJSONTyped(json: any, ignoreDiscriminator
         'api': !exists(json, 'api') ? undefined : ApiFromJSON(json['api']),
         'apiQualityMetrics': !exists(json, 'apiQualityMetrics') ? undefined : ApiQualityMetricsFromJSON(json['apiQualityMetrics']),
         'apiReview': !exists(json, 'apiReview') ? undefined : ApiReviewFromJSON(json['apiReview']),
-        'application': !exists(json, 'application') ? undefined : ApplicationFromJSON(json['application']),
+        'application': !exists(json, 'application') ? undefined : PortalApplicationSettingsFromJSON(json['application']),
         'authentication': !exists(json, 'authentication') ? undefined : PortalAuthenticationFromJSON(json['authentication']),
         'company': !exists(json, 'company') ? undefined : CompanyFromJSON(json['company']),
         'cors': !exists(json, 'cors') ? undefined : PortalCorsFromJSON(json['cors']),
@@ -232,7 +232,7 @@ export function PortalSettingsEntityToJSON(value?: PortalSettingsEntity | null):
         'api': ApiToJSON(value.api),
         'apiQualityMetrics': ApiQualityMetricsToJSON(value.apiQualityMetrics),
         'apiReview': ApiReviewToJSON(value.apiReview),
-        'application': ApplicationToJSON(value.application),
+        'application': PortalApplicationSettingsToJSON(value.application),
         'authentication': PortalAuthenticationToJSON(value.authentication),
         'company': CompanyToJSON(value.company),
         'cors': PortalCorsToJSON(value.cors),
