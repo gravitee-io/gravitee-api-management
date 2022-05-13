@@ -32,12 +32,11 @@ import java.util.List;
 public class DefaultRequestExecutionContext extends AbstractExecutionContext implements RequestExecutionContext {
 
     public DefaultRequestExecutionContext(
-        Api api,
         Request request,
         Response response,
         ComponentProvider componentProvider,
         List<TemplateVariableProvider> templateVariableProviders
     ) {
-        super(api, request, response, componentProvider, templateVariableProviders);
+        super(request, response, componentProvider, templateVariableProviders);
     }
 }

@@ -38,13 +38,12 @@ public class DefaultMessageExecutionContext extends AbstractExecutionContext imp
     private final MessageFlow outgoingMessageFlow;
 
     public DefaultMessageExecutionContext(
-        Api api,
         Request request,
         Response response,
         ComponentProvider componentProvider,
         List<TemplateVariableProvider> templateVariableProviders
     ) {
-        super(api, request, response, componentProvider, templateVariableProviders);
+        super(request, response, componentProvider, templateVariableProviders);
         incomingMessageFlow = new DefaultMessageFlow(Flowable.empty());
         outgoingMessageFlow = new DefaultMessageFlow(Flowable.empty());
     }

@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.processor.cors;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightInvoker;
@@ -45,7 +46,8 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
     public Completable execute(final RequestExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
-                Cors cors = ctx.api().getProxy().getCors();
+                Api api = ctx.getComponent(Api.class);
+                Cors cors = api.getProxy().getCors();
                 if (cors != null && cors.isEnabled()) {
                     // Test if we are in the context of a preflight request
                     if (isPreflightRequest(ctx.request())) {

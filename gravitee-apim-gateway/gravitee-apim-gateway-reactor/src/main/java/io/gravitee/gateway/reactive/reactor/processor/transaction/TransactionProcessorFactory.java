@@ -33,7 +33,7 @@ public class TransactionProcessorFactory {
 
     public TransactionProcessorFactory(final String transactionHeader, final String requestHeader) {
         this.transactionHeader = transactionHeader == null ? DEFAULT_TRANSACTION_ID_HEADER : transactionHeader;
-        this.requestHeader = requestHeader == null ? DEFAULT_REQUEST_ID_HEADER : transactionHeader;
+        this.requestHeader = requestHeader == null ? DEFAULT_REQUEST_ID_HEADER : requestHeader;
     }
 
     public TransactionProcessor create() {
