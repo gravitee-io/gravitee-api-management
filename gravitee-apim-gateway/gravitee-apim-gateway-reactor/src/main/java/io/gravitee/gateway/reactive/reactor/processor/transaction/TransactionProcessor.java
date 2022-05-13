@@ -65,10 +65,10 @@ public class TransactionProcessor implements Processor {
                     transactionId = requestId;
                     ctx.request().headers().set(transactionHeader, transactionId);
                 }
-                ctx.request().metrics().setTransactionId(transactionId);
-                ctx.response().headers().set(transactionHeader, transactionId);
-
                 ctx.request().headers().set(requestHeader, requestId);
+                ctx.request().metrics().setTransactionId(transactionId);
+
+                ctx.response().headers().set(transactionHeader, transactionId);
                 ctx.response().headers().set(requestHeader, requestId);
 
                 ((MutableRequest) ctx.request()).transactionId(transactionId);

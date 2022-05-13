@@ -15,25 +15,6 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.processor;
 
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
-import io.gravitee.gateway.core.condition.ConditionEvaluator;
-import io.gravitee.gateway.flow.BestMatchFlowResolver;
-import io.gravitee.gateway.flow.SimpleFlowPolicyChainProvider;
-import io.gravitee.gateway.flow.condition.evaluation.ExpressionLanguageFlowConditionEvaluator;
-import io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator;
-import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
-import io.gravitee.gateway.handlers.api.flow.api.ApiFlowResolver;
-import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowPolicyChainProvider;
-import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowResolver;
-import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainProvider;
-import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyResolver;
-import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainProvider;
-import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
-import io.gravitee.gateway.policy.PolicyChainOrder;
-import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.handlers.api.processor.cors.CorsPreflightRequestProcessor;
@@ -61,7 +42,7 @@ public class ApiProcessorChainFactory {
         this.node = node;
     }
 
-    public ProcessorChain createPreProcessorChain() {
+    public ProcessorChain preProcessorChain() {
         if (preProcessorChain == null) {
             initPreProcessorChain();
         }
@@ -75,9 +56,10 @@ public class ApiProcessorChainFactory {
         if (options.overrideXForwardedPrefix()) {
             preProcessorList.add(new XForwardedPrefixProcessor());
         }
+        preProcessorChain = new ProcessorChain("pre-api-processor-chain", preProcessorList);
     }
 
-    public ProcessorChain createPostProcessorChain() {
+    public ProcessorChain postProcessorChain() {
         if (postProcessorChain == null) {
             initPostProcessorChain();
         }
@@ -89,6 +71,7 @@ public class ApiProcessorChainFactory {
         postProcessorList.add(new ShutdownProcessor(node));
         postProcessorList.add(new CorsSimpleRequestProcessor());
         postProcessorList.add(new PathMappingProcessor());
+        postProcessorChain = new ProcessorChain("post-api-processor-chain", postProcessorList);
     }
 
     public static class Options {

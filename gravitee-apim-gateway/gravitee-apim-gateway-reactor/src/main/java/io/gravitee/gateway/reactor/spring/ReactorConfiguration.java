@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.reactor.spring;
 
+import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_REQUEST_ID_HEADER;
+import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_TRANSACTION_ID_HEADER;
+
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.utils.Hex;
@@ -24,6 +27,7 @@ import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.handler.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
@@ -36,7 +40,9 @@ import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
+import io.gravitee.plugin.alert.AlertEventProducer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -72,19 +78,43 @@ public class ReactorConfiguration {
     }
 
     @Bean
+    public io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory(
+        @Value("${handlers.request.transaction.header:" + DEFAULT_TRANSACTION_ID_HEADER + "}") String transactionHeader,
+        @Value("${handlers.request.request.header:" + DEFAULT_REQUEST_ID_HEADER + "}") String requestHeader
+    ) {
+        return new io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory(transactionHeader, requestHeader);
+    }
+
+    @Bean
+    public PlatformProcessorChainFactory platformProcessorChainFactory(
+        io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
+        @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
+        ReporterService reporterService,
+        AlertEventProducer eventProducer,
+        Node node,
+        @Value("${http.port:8082}") String httpPort
+    ) {
+        return new PlatformProcessorChainFactory(transactionHandlerFactory, traceContext, reporterService, eventProducer, node, httpPort);
+    }
+
+    @Bean
     public HttpRequestDispatcher httpRequestDispatcher(
         EventManager eventManager,
         GatewayConfiguration gatewayConfiguration,
         ReactorHandlerRegistry reactorHandlerRegistry,
         EntrypointResolver entrypointResolver,
-        IdGenerator idGenerator
+        IdGenerator idGenerator,
+        RequestProcessorChainFactory requestProcessorChainFactory,
+        ResponseProcessorChainFactory responseProcessorChainFactory
     ) {
         return new DefaultHttpRequestDispatcher(
             eventManager,
             gatewayConfiguration,
             reactorHandlerRegistry,
             entrypointResolver,
-            idGenerator
+            idGenerator,
+            requestProcessorChainFactory,
+            responseProcessorChainFactory
         );
     }
 
@@ -104,12 +134,12 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public TransactionProcessorFactory transactionHandlerFactory() {
-        return new TransactionProcessorFactory();
+    public TransactionProcessorFactory v3TransactionHandlerFactory() {
+        return new io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory();
     }
 
     @Bean
-    public TraceContextProcessorFactory traceContextHandlerFactory() {
+    public TraceContextProcessorFactory v3TraceContextProcessorFactory() {
         return new TraceContextProcessorFactory();
     }
 
