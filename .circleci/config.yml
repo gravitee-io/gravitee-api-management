@@ -1111,6 +1111,28 @@ jobs:
                       md5sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.md5
                       sha512sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.sha512sum
                       sha1sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.sha1
+                      
+                      cd $workingDir
+
+                      #############
+                      #Repositories 
+                      #############
+                      for repositoryZipFile in $(find ./tmp/${RELEASE_VERSION}/repositories/ -name '*.zip' | sed "s#./tmp/${RELEASE_VERSION}/repositories/##"); do
+                        # compute the destination folder on S3 to publish the artefact
+                        # e.g. gravitee-my-project-1.14.0.zip => graviteeio-apim/plugins/repositories/gravitee-my-project
+                        artefactFolderToSync=graviteeio-apim/plugins/repositories/${repositoryZipFile%-*p}                                               
+
+                        mkdir -p $artefactFolderToSync
+                        cp ./tmp/${RELEASE_VERSION}/repositories/$repositoryZipFile $artefactFolderToSync/
+
+                        cd $artefactFolderToSync
+
+                        md5sum $repositoryZipFile > $repositoryZipFile.md5
+                        sha512sum $repositoryZipFile > $repositoryZipFile.sha512sum
+                        sha1sum $repositoryZipFile > $repositoryZipFile.sha1
+
+                        cd $workingDir
+                      done
             - keeper/env-export:
                   secret-url: keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password
                   var-name: AWS_ACCESS_KEY_ID
