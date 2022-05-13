@@ -271,6 +271,7 @@ export * from './PolicyType';
 export * from './Portal';
 export * from './PortalAnalytics';
 export * from './PortalApis';
+export * from './PortalApplicationSettings';
 export * from './PortalAuthentication';
 export * from './PortalConfigEntity';
 export * from './PortalCors';

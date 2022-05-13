@@ -25,7 +25,7 @@ import io.gravitee.rest.api.model.parameters.Key;
  * @author GraviteeSource Team
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Application {
+public class PortalApplicationSettings {
 
     private ClientRegistration registration = new ClientRegistration();
     private ApplicationTypes types = new ApplicationTypes();

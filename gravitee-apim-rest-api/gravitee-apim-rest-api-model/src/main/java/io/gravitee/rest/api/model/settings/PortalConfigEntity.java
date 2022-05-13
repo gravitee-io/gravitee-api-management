@@ -25,7 +25,7 @@ public class PortalConfigEntity {
     private Api api;
     private ApiQualityMetrics apiQualityMetrics;
     private ApiReview apiReview;
-    private Application application;
+    private PortalApplicationSettings application;
     private PortalAuthentication authentication;
     private Company company;
     private Documentation documentation;
@@ -42,7 +42,7 @@ public class PortalConfigEntity {
         api = new Api();
         apiQualityMetrics = new ApiQualityMetrics();
         apiReview = new ApiReview();
-        application = new Application();
+        application = new PortalApplicationSettings();
         authentication = new PortalAuthentication();
         company = new Company();
         documentation = new Documentation();
@@ -87,11 +87,11 @@ public class PortalConfigEntity {
         this.apiReview = apiReview;
     }
 
-    public Application getApplication() {
+    public PortalApplicationSettings getApplication() {
         return application;
     }
 
-    public void setApplication(Application application) {
+    public void setApplication(PortalApplicationSettings application) {
         this.application = application;
     }
 

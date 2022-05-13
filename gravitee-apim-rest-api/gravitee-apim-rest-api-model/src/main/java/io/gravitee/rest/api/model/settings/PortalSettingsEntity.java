@@ -30,7 +30,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
     private Api api;
     private ApiQualityMetrics apiQualityMetrics;
     private ApiReview apiReview;
-    private Application application;
+    private PortalApplicationSettings application;
     private PortalAuthentication authentication;
     private Company company;
     private PortalCors cors;
@@ -48,7 +48,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
         api = new Api();
         apiQualityMetrics = new ApiQualityMetrics();
         apiReview = new ApiReview();
-        application = new Application();
+        application = new PortalApplicationSettings();
         authentication = new PortalAuthentication();
         company = new Company();
         cors = new PortalCors();
@@ -94,11 +94,11 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
         this.apiReview = apiReview;
     }
 
-    public Application getApplication() {
+    public PortalApplicationSettings getApplication() {
         return application;
     }
 
-    public void setApplication(Application application) {
+    public void setApplication(PortalApplicationSettings application) {
         this.application = application;
     }
 

@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.settings.*;
-import io.gravitee.rest.api.model.settings.Application;
 import io.gravitee.rest.api.model.settings.Plan;
+import io.gravitee.rest.api.model.settings.PortalApplicationSettings;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Enabled;
 import org.springframework.stereotype.Component;
@@ -56,7 +56,7 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationPortal convert(Portal portal, Application application) {
+    private ConfigurationPortal convert(Portal portal, PortalApplicationSettings application) {
         ConfigurationPortal configuration = new ConfigurationPortal();
         configuration.setAnalytics(convert(portal.getAnalytics()));
         configuration.setApikeyHeader(portal.getApikeyHeader());
@@ -68,7 +68,7 @@ public class ConfigurationMapper {
         configuration.setUserCreation(convert(portal.getUserCreation().getEnabled()));
         configuration.setHomepageTitle(portal.getHomepageTitle());
 
-        Application.ApplicationTypes types = application.getTypes();
+        PortalApplicationSettings.ApplicationTypes types = application.getTypes();
         if (
             !application.getRegistration().getEnabled() &&
             !types.getSimpleType().isEnabled() ||
@@ -152,14 +152,14 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationApplication convert(Application application) {
+    private ConfigurationApplication convert(PortalApplicationSettings application) {
         ConfigurationApplication configuration = new ConfigurationApplication();
         configuration.setRegistration(convert(application.getRegistration().getEnabled()));
         configuration.setTypes(convert(application.getTypes()));
         return configuration;
     }
 
-    private ConfigurationApplicationTypes convert(Application.ApplicationTypes types) {
+    private ConfigurationApplicationTypes convert(PortalApplicationSettings.ApplicationTypes types) {
         ConfigurationApplicationTypes configuration = new ConfigurationApplicationTypes();
         configuration.setBackendToBackend(convert(types.getBackendToBackendType()));
         configuration.setBrowser(convert(types.getBrowserType()));
