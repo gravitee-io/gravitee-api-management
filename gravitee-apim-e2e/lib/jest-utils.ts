@@ -16,15 +16,35 @@
 import { expect } from '@jest/globals';
 import { ApiResponse } from 'lib/management-webclient-sdk/src/lib/runtime';
 
-export async function fail(promise, expectedStatus: number, expectedMessage?: string) {
+interface PortalBusinessError {
+  code: string;
+  message: string;
+  status: string;
+  parameters: { [key: string]: string };
+}
+
+export async function fail(
+  promise,
+  expectedStatus: number,
+  expectedError?: string | Partial<PortalBusinessError> | Array<Partial<PortalBusinessError>>,
+) {
   try {
     await promise;
     throw new Error(`The test didn't fail as expected!`);
   } catch (error) {
     expect(error.status).toEqual(expectedStatus);
-    if (expectedMessage != null) {
-      const { message } = await error.json();
-      expect(message).toEqual(expectedMessage);
+    if (expectedError != null) {
+      if (typeof expectedError === 'string') {
+        const { message } = await error.json();
+        expect(message).toEqual(expectedError);
+      } else {
+        const { errors } = await error.json();
+        if (Array.isArray(expectedError)) {
+          expect(errors).toEqual(expectedError);
+        } else {
+          expect(errors[0]).toEqual(expect.objectContaining(expectedError));
+        }
+      }
     }
   }
 }
@@ -35,6 +55,10 @@ export async function unauthorized(promise: Promise<ApiResponse<any>>) {
 
 export async function forbidden(promise: Promise<ApiResponse<any>>) {
   return fail(promise, 403);
+}
+
+export async function notFound(promise: Promise<ApiResponse<any>>) {
+  return fail(promise, 404);
 }
 
 export async function succeed(promise: Promise<ApiResponse<any>>, expectedStatus: number = 200) {
