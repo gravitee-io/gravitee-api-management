@@ -1,0 +1,13 @@
+# Snyk (https://snyk.io) policy file
+version: v1.14.0
+
+exclude:
+  code:
+    - "**/src/test/**"
+    - "**/*.spec.ts"
+    - "**/*.stories.ts"
+    - "**/gravitee-apim-portal-webui/scripts/**/*.*"
+    - "**/gravitee-apim-console-webui/scripts/**/*.*"
+    - "**/gravitee-apim-e2e/**/*.*"
+    - ".circleci/package_bundles.py"
+
