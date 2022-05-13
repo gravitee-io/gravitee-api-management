@@ -21,6 +21,9 @@ export async function fail(promise, expectedStatus: number, expectedMessage?: st
     await promise;
     throw new Error(`The test didn't fail as expected!`);
   } catch (error) {
+    if (error.status == undefined) {
+      throw error;
+    }
     expect(error.status).toEqual(expectedStatus);
     if (expectedMessage != null) {
       const { message } = await error.json();
@@ -31,6 +34,19 @@ export async function fail(promise, expectedStatus: number, expectedMessage?: st
 
 export async function unauthorized(promise: Promise<ApiResponse<any>>) {
   return fail(promise, 401);
+}
+
+export async function authorized(promise: Promise<ApiResponse<any>>, unexpectedStatus: number = 401) {
+  try {
+    const response = await promise;
+    expect(response.raw.status).not.toEqual(unexpectedStatus);
+  } catch (error) {
+    if (error.status == undefined) {
+      throw error;
+    }
+    expect(error.status).toBeDefined();
+    expect(error.status).not.toEqual(unexpectedStatus);
+  }
 }
 
 export async function forbidden(promise: Promise<ApiResponse<any>>) {
