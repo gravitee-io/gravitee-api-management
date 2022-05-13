@@ -19,6 +19,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.spy;
 
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
@@ -52,6 +53,7 @@ public class AbstractProcessorTest {
     protected HttpHeaders spyResponseHeaders;
 
     protected DefaultRequestExecutionContext ctx;
+    protected CustomComponentProvider componentProvider;
 
     @BeforeEach
     public void init() {
@@ -61,6 +63,8 @@ public class AbstractProcessorTest {
         lenient().when(mockRequest.headers()).thenReturn(spyRequestHeaders);
         lenient().when(mockResponse.headers()).thenReturn(spyResponseHeaders);
         api = new Api();
-        ctx = new DefaultRequestExecutionContext(api, mockRequest, mockResponse, null, null);
+        componentProvider = new CustomComponentProvider();
+        componentProvider.add(io.gravitee.definition.model.Api.class, api);
+        ctx = new DefaultRequestExecutionContext(mockRequest, mockResponse, componentProvider, null);
     }
 }

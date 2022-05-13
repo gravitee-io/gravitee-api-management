@@ -49,8 +49,8 @@ public class ExecutionContextFactory {
      *
      * @return the created {@link RequestExecutionContext}.
      */
-    public RequestExecutionContext createRequestContext(Api api, Request request, Response response) {
-        return new DefaultRequestExecutionContext(api, request, response, componentProvider, templateVariableProviders);
+    public RequestExecutionContext createRequestContext(Request request, Response response) {
+        return new DefaultRequestExecutionContext(request, response, componentProvider, templateVariableProviders);
     }
 
     /**
@@ -63,8 +63,8 @@ public class ExecutionContextFactory {
      *
      * @return the created {@link MessageExecutionContext}.
      */
-    public MessageExecutionContext createMessageContext(Api api, Request request, Response response) {
-        return new DefaultMessageExecutionContext(api, request, response, componentProvider, templateVariableProviders);
+    public MessageExecutionContext createMessageContext(Request request, Response response) {
+        return new DefaultMessageExecutionContext(request, response, componentProvider, templateVariableProviders);
     }
 
     public void addTemplateVariableProvider(TemplateVariableProvider templateVariableProvider) {

@@ -36,7 +36,6 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
     private static final String TEMPLATE_ATTRIBUTE_CONTEXT = "context";
 
     private final ComponentProvider componentProvider;
-    private final Api api;
     private final Map<String, Object> attributes = new HashMap<>();
     private final Map<String, Object> internalAttributes = new HashMap<>();
     private final Request request;
@@ -47,13 +46,11 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
     private ExecutionFailure executionFailure;
 
     protected AbstractExecutionContext(
-        Api api,
         Request request,
         Response response,
         ComponentProvider componentProvider,
         List<TemplateVariableProvider> templateVariableProviders
     ) {
-        this.api = api;
         this.request = request;
         this.response = response;
         this.componentProvider = componentProvider;
@@ -79,11 +76,6 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
     @Override
     public boolean isInterrupted() {
         return interrupted;
-    }
-
-    @Override
-    public Api api() {
-        return api;
     }
 
     @Override
