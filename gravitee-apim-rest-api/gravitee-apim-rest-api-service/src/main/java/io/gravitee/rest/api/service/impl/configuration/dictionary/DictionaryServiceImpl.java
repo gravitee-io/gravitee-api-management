@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.IdGenerator;
@@ -104,7 +105,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 properties
             );
             return convert(dictionary);
-        } catch (Exception ex) {
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to deploy dictionary {}", id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to deploy " + id, ex);
+        } catch (JsonProcessingException ex) {
             LOGGER.error("An error occurs while trying to deploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to deploy " + id, ex);
         }
@@ -137,7 +141,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 properties
             );
             return convert(dictionary);
-        } catch (Exception ex) {
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to undeploy dictionary {}", id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to undeploy " + id, ex);
+        } catch (JsonProcessingException ex) {
             LOGGER.error("An error occurs while trying to undeploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to undeploy " + id, ex);
         }
@@ -172,10 +179,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             );
 
             // Audit
-            createAuditLog(Dictionary.AuditEvent.DICTIONARY_UPDATED, dictionary.getCreatedAt(), optDictionary.get(), dictionary);
+            createAuditLog(Dictionary.AuditEvent.DICTIONARY_UPDATED, dictionary.getUpdatedAt(), optDictionary.get(), dictionary);
 
             return convert(dictionary);
-        } catch (Exception ex) {
+        } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to undeploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to undeploy " + id, ex);
         }
@@ -210,10 +217,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             );
 
             // Audit
-            createAuditLog(Dictionary.AuditEvent.DICTIONARY_UPDATED, dictionary.getCreatedAt(), optDictionary.get(), dictionary);
+            createAuditLog(Dictionary.AuditEvent.DICTIONARY_UPDATED, dictionary.getUpdatedAt(), optDictionary.get(), dictionary);
 
             return convert(dictionary);
-        } catch (Exception ex) {
+        } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to undeploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to undeploy " + id, ex);
         }
@@ -282,7 +289,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             }
 
             // Audit
-            createAuditLog(Dictionary.AuditEvent.DICTIONARY_UPDATED, dictionary.getCreatedAt(), optDictionary.get(), updatedDictionary);
+            createAuditLog(
+                Dictionary.AuditEvent.DICTIONARY_UPDATED,
+                updatedDictionary.getUpdatedAt(),
+                optDictionary.get(),
+                updatedDictionary
+            );
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
@@ -336,7 +348,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 mapper.writeValueAsString(dictionary),
                 properties
             );
-        } catch (Exception ex) {
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
+        } catch (JsonProcessingException ex) {
             LOGGER.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
         }
