@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
@@ -35,16 +36,18 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class RequestProcessorChainFactory implements InitializingBean {
 
+    private final List<ProcessorProvider<ExecutionContext, Processor<ExecutionContext>>> providers = new ArrayList<>();
+
     @Autowired
+    @Qualifier("v3TransactionHandlerFactory")
     private TransactionProcessorFactory transactionHandlerFactory;
 
     @Autowired
+    @Qualifier("v3TraceContextProcessorFactory")
     private TraceContextProcessorFactory traceContextHandlerFactory;
 
     @Value("${handlers.request.trace-context.enabled:false}")
     private boolean traceContext;
-
-    private final List<ProcessorProvider<ExecutionContext, Processor<ExecutionContext>>> providers = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() throws Exception {

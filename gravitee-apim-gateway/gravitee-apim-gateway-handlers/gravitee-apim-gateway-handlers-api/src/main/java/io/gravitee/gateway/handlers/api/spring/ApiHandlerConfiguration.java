@@ -33,6 +33,7 @@ import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyFactoryCreator;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryCreator;
+import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.node.api.Node;
@@ -120,7 +121,8 @@ public class ApiHandlerConfiguration {
     public ReactorHandlerFactory<Api> reactorHandlerFactory(
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactoryCreator policyFactoryCreator,
-        PolicyChainProviderLoader policyChainProviderLoader
+        PolicyChainProviderLoader policyChainProviderLoader,
+        PlatformProcessorChainFactory platformProcessorChainFactory
     ) {
         return new ApiReactorHandlerFactory(
             applicationContext,
@@ -128,7 +130,8 @@ public class ApiHandlerConfiguration {
             node,
             v3PolicyFactoryCreator,
             policyFactoryCreator,
-            policyChainProviderLoader
+            policyChainProviderLoader,
+            platformProcessorChainFactory
         );
     }
 }

@@ -54,6 +54,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFact
 import io.gravitee.gateway.reactive.platform.PlatformPolicyManager;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory;
+import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
@@ -74,7 +75,6 @@ import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.ResolvableType;
 
 /**
@@ -94,6 +94,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     private final io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator;
     private final PolicyFactoryCreator policyFactoryCreator;
     private final PolicyChainProviderLoader policyChainProviderLoader;
+    private final PlatformProcessorChainFactory platformProcessorChainFactory;
     private final ApiProcessorChainFactory apiProcessorChainFactory;
     private ApplicationContext applicationContext;
 
@@ -103,7 +104,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         Node node,
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactoryCreator policyFactoryCreator,
-        PolicyChainProviderLoader policyChainProviderLoader
+        PolicyChainProviderLoader policyChainProviderLoader,
+        PlatformProcessorChainFactory platformProcessorChainFactory
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
@@ -111,6 +113,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         this.v3PolicyFactoryCreator = v3PolicyFactoryCreator;
         this.policyFactoryCreator = policyFactoryCreator;
         this.policyChainProviderLoader = policyChainProviderLoader;
+        this.platformProcessorChainFactory = platformProcessorChainFactory;
         this.apiProcessorChainFactory = createApiProcessorChainFactory();
     }
 
@@ -226,6 +229,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                         executionContextFactory(api, apiComponentProvider, referenceRegister),
                         new InvokerAdapter(invoker),
                         resourceLifecycleManager,
+                        platformProcessorChainFactory,
                         apiProcessorChainFactory,
                         policyManager,
                         platformPolicyChainFactory,
