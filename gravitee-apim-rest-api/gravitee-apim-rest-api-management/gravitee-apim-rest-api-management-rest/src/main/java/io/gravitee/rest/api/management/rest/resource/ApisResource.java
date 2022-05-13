@@ -142,6 +142,7 @@ public class ApisResource extends AbstractResource {
         apiQuery.setName(apisParam.getName());
         apiQuery.setTag(apisParam.getTag());
         apiQuery.setState(apisParam.getState());
+        apiQuery.setCrossId(apisParam.getCrossId());
         if (apisParam.getCategory() != null) {
             apiQuery.setCategory(categoryService.findById(apisParam.getCategory(), GraviteeContext.getCurrentEnvironment()).getId());
         }

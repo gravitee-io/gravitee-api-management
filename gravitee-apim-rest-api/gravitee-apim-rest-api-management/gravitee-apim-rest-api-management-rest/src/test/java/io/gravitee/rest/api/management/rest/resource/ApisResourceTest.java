@@ -15,19 +15,24 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiListItem;
 import io.gravitee.rest.api.model.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Date;
+import java.util.List;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import org.junit.Test;
@@ -201,5 +206,34 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         assertEquals(updatedApi, response.readEntity(ApiEntity.class));
+    }
+
+    @Test
+    public void get_should_search_apis_using_crossId_criteria() {
+        final String searchedCrossId = "searched-cross-id";
+
+        List<ApiEntity> resultApis = List.of(mockApi("api1"), mockApi("api2"), mockApi("api15"));
+        Page<ApiEntity> apisPage = new Page<>(resultApis, 7, 3, 54);
+        when(apiService.search(any(), isNull(), isNull())).thenReturn(apisPage);
+
+        final Response response = envTarget().queryParam("crossId", searchedCrossId).request().get();
+
+        assertEquals(OK_200, response.getStatus());
+
+        List<ApiListItem> resultList = response.readEntity(new GenericType<>() {});
+        assertEquals(3, resultList.size());
+        assertEquals("api1", resultList.get(0).getId());
+        assertEquals("api2", resultList.get(1).getId());
+        assertEquals("api15", resultList.get(2).getId());
+
+        verify(apiService, times(1)).search(argThat(apiQuery -> searchedCrossId.equals(apiQuery.getCrossId())), isNull(), isNull());
+    }
+
+    private ApiEntity mockApi(String apiId) {
+        ApiEntity apiEntity = mock(ApiEntity.class);
+        when(apiEntity.getId()).thenReturn(apiId);
+        when(apiEntity.getUpdatedAt()).thenReturn(new Date());
+        when(apiEntity.getProxy()).thenReturn(new Proxy());
+        return apiEntity;
     }
 }
