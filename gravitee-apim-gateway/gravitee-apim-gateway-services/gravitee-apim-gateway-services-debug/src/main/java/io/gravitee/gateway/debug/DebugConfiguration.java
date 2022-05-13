@@ -38,6 +38,7 @@ import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryCreator;
+import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
@@ -93,7 +94,8 @@ public class DebugConfiguration {
     public ReactorHandlerFactory<Api> reactorHandlerFactory(
         @Qualifier("debugV3PolicyFactoryCreator") io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactoryCreator policyFactoryCreator,
-        @Qualifier("debugPolicyChainProviderLoader") PolicyChainProviderLoader policyChainProviderLoader
+        @Qualifier("debugPolicyChainProviderLoader") PolicyChainProviderLoader policyChainProviderLoader,
+        PlatformProcessorChainFactory platformProcessorChainFactory
     ) {
         return new DebugApiContextHandlerFactory(
             applicationContext.getParent(),
@@ -101,7 +103,8 @@ public class DebugConfiguration {
             node,
             v3PolicyFactoryCreator,
             policyFactoryCreator,
-            policyChainProviderLoader
+            policyChainProviderLoader,
+            platformProcessorChainFactory
         );
     }
 

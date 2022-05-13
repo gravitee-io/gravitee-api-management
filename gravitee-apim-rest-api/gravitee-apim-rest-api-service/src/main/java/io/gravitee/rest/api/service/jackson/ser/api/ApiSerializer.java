@@ -42,12 +42,25 @@ import org.springframework.context.ApplicationContext;
  */
 public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
+    private static final Pattern uid = Pattern.compile("uid=(.*?),");
     public static String METADATA_EXPORT_VERSION = "exportVersion";
     public static String METADATA_FILTERED_FIELDS_LIST = "filteredFieldsList";
     protected ApplicationContext applicationContext;
 
     protected ApiSerializer(Class<ApiEntity> t) {
         super(t);
+    }
+
+    public static String getUsernameFromSourceId(String sourceId) {
+        if (sourceId == null) {
+            return null;
+        }
+
+        Matcher matcher = uid.matcher(sourceId);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return sourceId;
     }
 
     public abstract Version version();
@@ -71,10 +84,12 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         if (apiEntity.getVersion() != null) {
             jsonGenerator.writeObjectField("version", apiEntity.getVersion());
         }
-        if (apiEntity.getExecutionMode() != null) {
-            jsonGenerator.writeObjectField("execution_mode", apiEntity.getExecutionMode().getLabel());
-        } else {
-            jsonGenerator.writeObjectField("execution_mode", ExecutionMode.V3.getLabel());
+        if (!this.version().getVersion().startsWith("1.")) {
+            if (apiEntity.getExecutionMode() != null) {
+                jsonGenerator.writeObjectField("execution_mode", apiEntity.getExecutionMode().getLabel());
+            } else {
+                jsonGenerator.writeObjectField("execution_mode", ExecutionMode.V3.getLabel());
+            }
         }
         if (apiEntity.getDescription() != null) {
             jsonGenerator.writeObjectField("description", apiEntity.getDescription());
@@ -248,6 +263,10 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         }
     }
 
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
     public enum Version {
         DEFAULT("default"), // AsciiDoc in 3.10
         V_1_15("1.15"),
@@ -265,10 +284,6 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         public String getVersion() {
             return version;
         }
-    }
-
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
     }
 
     class Member {
@@ -318,19 +333,5 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         public void setUsername(String username) {
             this.username = username;
         }
-    }
-
-    private static Pattern uid = Pattern.compile("uid=(.*?),");
-
-    public static String getUsernameFromSourceId(String sourceId) {
-        if (sourceId == null) {
-            return null;
-        }
-
-        Matcher matcher = uid.matcher(sourceId);
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        return sourceId;
     }
 }

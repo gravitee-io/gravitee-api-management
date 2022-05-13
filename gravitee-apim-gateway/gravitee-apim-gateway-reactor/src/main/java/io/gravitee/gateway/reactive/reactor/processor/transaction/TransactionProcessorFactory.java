@@ -25,18 +25,15 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class TransactionProcessorFactory {
 
-    static final String DEFAULT_TRANSACTION_ID_HEADER = "X-Gravitee-Transaction-Id";
-    static final String DEFAULT_REQUEST_ID_HEADER = "X-Gravitee-Request-Id";
+    public static final String DEFAULT_TRANSACTION_ID_HEADER = "X-Gravitee-Transaction-Id";
+    public static final String DEFAULT_REQUEST_ID_HEADER = "X-Gravitee-Request-Id";
 
     private final String transactionHeader;
     private final String requestHeader;
 
-    public TransactionProcessorFactory(
-        @Value("${handlers.request.transaction.header:" + DEFAULT_TRANSACTION_ID_HEADER + "}") String transactionHeader,
-        @Value("${handlers.request.request.header:" + DEFAULT_REQUEST_ID_HEADER + "}") String requestHeader
-    ) {
-        this.transactionHeader = transactionHeader;
-        this.requestHeader = requestHeader;
+    public TransactionProcessorFactory(final String transactionHeader, final String requestHeader) {
+        this.transactionHeader = transactionHeader == null ? DEFAULT_TRANSACTION_ID_HEADER : transactionHeader;
+        this.requestHeader = requestHeader == null ? DEFAULT_REQUEST_ID_HEADER : transactionHeader;
     }
 
     public TransactionProcessor create() {

@@ -26,15 +26,20 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
+import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
+import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
+import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.observers.TestObserver;
@@ -42,6 +47,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.reactivex.core.MultiMap;
 import io.vertx.reactivex.core.http.HttpServerRequest;
 import io.vertx.reactivex.core.http.HttpServerResponse;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,6 +82,15 @@ class DefaultHttpRequestDispatcherTest {
 
     @Mock
     private IdGenerator idGenerator;
+
+    @Mock
+    private RequestProcessorChainFactory requestProcessorChainFactory;
+
+    @Mock
+    private ResponseProcessorChainFactory responseProcessorChainFactory;
+
+    @Mock
+    private NotFoundProcessorChainFactory notFoundProcessorChainFactory;
 
     @Mock
     private HttpServerRequest rxRequest;
@@ -119,7 +134,19 @@ class DefaultHttpRequestDispatcherTest {
         lenient().when(response.headers()).thenReturn(io.vertx.core.MultiMap.caseInsensitiveMultiMap());
         lenient().when(response.trailers()).thenReturn(io.vertx.core.MultiMap.caseInsensitiveMultiMap());
 
-        cut = new DefaultHttpRequestDispatcher(eventManager, gatewayConfiguration, reactorHandlerRegistry, entrypointResolver, idGenerator);
+        lenient().when(requestProcessorChainFactory.create()).thenReturn(new ProcessorProviderChain<>(List.of()));
+        lenient().when(responseProcessorChainFactory.create()).thenReturn(new ProcessorProviderChain<>(List.of()));
+
+        cut =
+            new DefaultHttpRequestDispatcher(
+                eventManager,
+                gatewayConfiguration,
+                reactorHandlerRegistry,
+                entrypointResolver,
+                idGenerator,
+                new RequestProcessorChainFactory(),
+                responseProcessorChainFactory
+            );
     }
 
     @Test
