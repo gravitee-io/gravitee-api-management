@@ -42,6 +42,6 @@ class DefaultRequestExecutionContextTest extends AbstractExecutionContextTest {
 
     @BeforeEach
     public void init() {
-        cut = new DefaultRequestExecutionContext(api, request, response, componentProvider, List.of(templateVariableProvider));
+        cut = new DefaultRequestExecutionContext(request, response, componentProvider, List.of(templateVariableProvider));
     }
 }

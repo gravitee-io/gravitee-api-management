@@ -42,6 +42,6 @@ class DefaultMessageExecutionContextTest extends AbstractExecutionContextTest {
 
     @BeforeEach
     public void init() {
-        cut = new DefaultMessageExecutionContext(api, request, response, componentProvider, List.of(templateVariableProvider));
+        cut = new DefaultMessageExecutionContext(request, response, componentProvider, List.of(templateVariableProvider));
     }
 }

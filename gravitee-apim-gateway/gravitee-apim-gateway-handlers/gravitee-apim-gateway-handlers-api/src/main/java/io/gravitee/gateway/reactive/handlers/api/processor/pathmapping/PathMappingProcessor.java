@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.handlers.api.processor.pathmapping;
 
 import static java.util.Comparator.comparing;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
@@ -44,7 +45,12 @@ public class PathMappingProcessor implements Processor {
     @Override
     public Completable execute(final RequestExecutionContext ctx) {
         return Maybe
-            .fromCallable(() -> ctx.api().getPathMappings())
+            .fromCallable(
+                () -> {
+                    Api api = ctx.getComponent(Api.class);
+                    return api.getPathMappings();
+                }
+            )
             .filter(pathMapping -> !pathMapping.isEmpty())
             .doOnSuccess(
                 pathMapping -> {
