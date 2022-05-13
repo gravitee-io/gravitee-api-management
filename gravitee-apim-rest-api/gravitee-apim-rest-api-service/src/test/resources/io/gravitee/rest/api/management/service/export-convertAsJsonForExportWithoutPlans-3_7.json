@@ -2,6 +2,7 @@
   "crossId": "test-api-cross-id",
   "description": "Gravitee.io",
   "gravitee": "1.0.0",
+  "execution_mode": "v3",
   "resources": [],
   "properties" : [ ],
   "flow_mode": "DEFAULT",
