@@ -22,6 +22,7 @@ import { Proxy } from '@management-models/Proxy';
 import { NewApiEntity } from '@management-models/NewApiEntity';
 import faker from '@faker-js/faker';
 import { UpdateApiEntity, UpdateApiEntityFlowModeEnum } from '@management-models/UpdateApiEntity';
+import { NewRatingEntity } from '@management-models/NewRatingEntity';
 
 export interface ApiImportEntity extends ApiEntity {
   members?: Array<MemberEntity>;
@@ -152,6 +153,14 @@ export class ApisFaker {
       plans: apiEntity.plans ?? [],
       disable_membership_notifications: apiEntity.disable_membership_notifications,
       ...attributes,
+    };
+  }
+
+  static newRating(): NewRatingEntity {
+    return {
+      title: faker.random.word(),
+      comment: `${faker.commerce.productDescription()}`,
+      rate: `${faker.datatype.number({ min: 1, max: 5, precision: 1 })}`,
     };
   }
 }
