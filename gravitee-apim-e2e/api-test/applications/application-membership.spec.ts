@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import faker from '@faker-js/faker';
 import { ApplicationsApi } from '@management-apis/ApplicationsApi';
 import { forManagementAsAdminUser, forManagementAsAppUser, forPortalAsApiUser, forPortalAsSimpleUser } from '@client-conf/*';
 import { forbidden, succeed } from '../../lib/jest-utils';
@@ -23,9 +22,8 @@ import { UsersApi } from '@management-apis/UsersApi';
 import { RoleScope } from '@management-models/RoleScope';
 import { ApplicationApi } from '@portal-apis/ApplicationApi';
 import { ApplicationEntity } from '@management-models/ApplicationEntity';
-import { UpdateApplicationEntityFromJSON, UpdateApplicationEntityFromJSONTyped } from '@management-models/UpdateApplicationEntity';
+import { UpdateApplicationEntityFromJSON } from '@management-models/UpdateApplicationEntity';
 import { GroupEntity } from '@management-models/GroupEntity';
-import { MemberEntity } from '@management-models/MemberEntity';
 import { SearchableUser } from '@management-models/SearchableUser';
 import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
 import { GroupsFaker } from '@management-fakers/GroupsFaker';
@@ -53,7 +51,7 @@ describe('Applications - Membership', () => {
     group = await configurationManagementApiAsAdminUser.createGroup({
       orgId,
       envId,
-      newGroupEntity: GroupsFaker.newGroup({ event_rules: [{ event: 'API_CREATE' }] }),
+      newGroupEntity: GroupsFaker.newGroup({ event_rules: [{ event: 'APPLICATION_CREATE' }] }),
     });
 
     // Get user member
