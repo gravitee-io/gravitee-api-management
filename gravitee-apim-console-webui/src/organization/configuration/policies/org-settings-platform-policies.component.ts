@@ -134,6 +134,8 @@ export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
       )
-      .subscribe();
+      .subscribe(() => {
+        this.definition = { ...this.definition };
+      });
   }
 }
