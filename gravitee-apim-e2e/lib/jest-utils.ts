@@ -77,7 +77,7 @@ export async function notFound(
   promise: Promise<ApiResponse<any>>,
   expectedError?: string | Partial<PortalBusinessError> | Array<Partial<PortalBusinessError>>,
 ) {
-  return fail(promise, 404, expectedError);
+  return fail(promise, 404);
 }
 
 export async function succeed(promise: Promise<ApiResponse<any>>, expectedStatus: number = 200) {
