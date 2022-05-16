@@ -4,9 +4,8 @@ Here is a docker-compose to run APIM E2E UI tests using jest, with MongoDB as da
 
 ## How to run ?
 
-We assume that the following command line uses the current location of the user. To work this command line needs to be run
-from gravitee-api-management/gravitee-apim-e2e directory.
+From the folder gravitee-apim-e2e folder, run UI E2E tests using this command ```npm run test:ui```
 
-```bash
-APIM_REGISTRY={APIM_REGISTRY} APIM_TAG={APIM_TAG} docker-compose -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-uis.yml -f ./docker/ui-tests/docker-compose-ui-tests.yml -p ui-tests --project-directory $PWD up --no-build --abort-on-container-exit --exit-code-from cypress
-```
+You can also only run the full APIM stack, in order to run tests from your IDE, with ```npm run serve:apim```
+
+> **_NOTE:_**  You can set the used APIM version with the APIM_TAG parameter in `gravitee-apim-e2e/.env` file, and the associated APIM_REGISTRY.

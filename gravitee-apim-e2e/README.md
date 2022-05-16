@@ -14,8 +14,11 @@ npm install
 ```
 
 Then, the following NPM scripts are available:
- - `npm run test`: Opens the Cypress Test Runner to run tests against a locally running APIM Rest API
- - `npm run test:api:management`: Run end to end tests of management rest-api against a locally running APIM.
+ - `npm run test:ui`: Run the APIM stack and the cypress UI tests in docker ([more details](./docker/ui-tests/README.md))
+ - `npm run test:ui:dev`: Run the cypress UI tests against a locally running APIM
+ - `npm run test:api`: Run the APIM stack and the jest API tests in docker ([more details](./docker/api-tests/README.md))
+ - `npm run test:api:dev`: Run the jest API tests against a locally running APIM
+ - `npm run serve:apim`: Run the APIM stack in docker in order to run tests locally from your IDE
 
 ## Structure
 ````
@@ -33,9 +36,10 @@ Then, the following NPM scripts are available:
 
 | Folder 	                             | Description 	                                                                      |
 |--------------------------------------|------------------------------------------------------------------------------------|
-| api-test/management     	            | Api management e2e tests                                                           |
-| api-test/portal     	                | Api portal e2e tests (soon)                                                        |
-| api-test/gateway     	               | Api gateway e2e tests (soon)                                                       |
+| api-test/apis     	                  | Api management API related e2e tests                                               |
+| api-test/applications     	          | Api management applications related e2e tests                                      |
+| api-test/portal     	                | Api portal e2e tests                                                               |
+| api-test/gateway     	               | Gateway e2e tests                                                                  |
 | ui-test/assertions     	             | Utils classes to do common assertions for a particular object     	                |
 | ui-test/fakers     	                 | Utils classes to generate fake data for particular object  	                       |
 | ui-test/fixtures     	               | Files containing static data to be used in tests through `cy.fixture(filePath)`  	 |
