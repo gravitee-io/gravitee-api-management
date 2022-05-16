@@ -51,7 +51,7 @@
       </md-card-content>
     </md-card>
   </div>
-  <md-card>
+  <md-card data-testid="jvm-box">
     <md-card-content>
       <div layout="row">
         <ng-md-icon class="gravitee-monitoring-icon-title" icon="memory"></ng-md-icon>
@@ -227,7 +227,7 @@
     </md-card-content>
   </md-card>
   <div layout="row">
-    <md-card flex="50">
+    <md-card flex="50" data-testid="cpu-box">
       <md-card-content layout="column">
         <div layout="row">
           <ng-md-icon class="gravitee-monitoring-icon-title" icon="memory"></ng-md-icon>
@@ -248,7 +248,7 @@
         </div>
       </md-card-content>
     </md-card>
-    <md-card flex="50">
+    <md-card flex="50" data-testid="process-box">
       <md-card-content layout="column">
         <div layout="row">
           <ng-md-icon class="gravitee-monitoring-icon-title" icon="memory"></ng-md-icon>
@@ -266,7 +266,7 @@
     </md-card>
   </div>
   <div layout="row">
-    <md-card flex="50">
+    <md-card flex="50" data-testid="thread-box">
       <md-card-content layout="column">
         <div layout="row">
           <ng-md-icon class="gravitee-monitoring-icon-title" icon="memory"></ng-md-icon>
@@ -282,7 +282,7 @@
         </div>
       </md-card-content>
     </md-card>
-    <md-card flex="50">
+    <md-card flex="50" data-testid="gc-box">
       <md-card-content layout="column">
         <div layout="row">
           <ng-md-icon class="gravitee-monitoring-icon-title" icon="memory"></ng-md-icon>
