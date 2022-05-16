@@ -43,7 +43,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
 
     @BeforeEach
     public void beforeEach() {
-        corsPreflightRequestProcessor = new CorsPreflightRequestProcessor();
+        corsPreflightRequestProcessor = CorsPreflightRequestProcessor.instance();
         lenient().when(mockRequest.method()).thenReturn(HttpMethod.OPTIONS);
         Proxy proxy = new Proxy();
         Cors cors = new Cors();

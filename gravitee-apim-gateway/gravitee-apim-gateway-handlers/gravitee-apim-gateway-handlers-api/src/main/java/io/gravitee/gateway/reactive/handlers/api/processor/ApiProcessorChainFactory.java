@@ -39,20 +39,10 @@ public class ApiProcessorChainFactory {
 
     private final Options options;
     private final Node node;
-    private final Map<String, Processor> processors = new HashMap<>();
 
     public ApiProcessorChainFactory(final Options options, Node node) {
         this.options = options;
         this.node = node;
-        createProcessors();
-    }
-
-    private void createProcessors() {
-        processors.put(CorsPreflightRequestProcessor.ID, new CorsPreflightRequestProcessor());
-        processors.put(XForwardedPrefixProcessor.ID, new XForwardedPrefixProcessor());
-        processors.put(ShutdownProcessor.ID, new ShutdownProcessor(node));
-        processors.put(CorsSimpleRequestProcessor.ID, new CorsSimpleRequestProcessor());
-        processors.put(PathMappingProcessor.ID, new PathMappingProcessor());
     }
 
     public ProcessorChain preProcessorChain(final Api api) {
@@ -60,24 +50,24 @@ public class ApiProcessorChainFactory {
 
         Cors cors = api.getProxy().getCors();
         if (cors != null && cors.isEnabled()) {
-            preProcessorList.add(processors.get(CorsPreflightRequestProcessor.ID));
+            preProcessorList.add(CorsPreflightRequestProcessor.instance());
         }
         if (options.overrideXForwardedPrefix()) {
-            preProcessorList.add(processors.get(XForwardedPrefixProcessor.ID));
+            preProcessorList.add(XForwardedPrefixProcessor.instance());
         }
         return new ProcessorChain("pre-api-processor-chain", preProcessorList);
     }
 
     public ProcessorChain postProcessorChain(final Api api) {
         List<Processor> postProcessorList = new ArrayList<>();
-        postProcessorList.add(new ShutdownProcessor(node));
+        postProcessorList.add(ShutdownProcessor.instance().node(node));
         Cors cors = api.getProxy().getCors();
         if (cors != null && cors.isEnabled()) {
-            postProcessorList.add(processors.get(CorsSimpleRequestProcessor.ID));
+            postProcessorList.add(CorsSimpleRequestProcessor.instance());
         }
         Map<String, Pattern> pathMappings = api.getPathMappings();
         if (pathMappings != null && !pathMappings.isEmpty()) {
-            postProcessorList.add(processors.get(PathMappingProcessor.ID));
+            postProcessorList.add(PathMappingProcessor.instance());
         }
 
         return new ProcessorChain("post-api-processor-chain", postProcessorList);

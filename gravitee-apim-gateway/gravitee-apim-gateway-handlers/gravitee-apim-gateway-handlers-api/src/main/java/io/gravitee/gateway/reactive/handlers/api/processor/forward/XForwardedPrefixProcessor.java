@@ -15,10 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.processor.forward;
 
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.reactivex.Completable;
@@ -32,6 +29,12 @@ public class XForwardedPrefixProcessor implements Processor {
 
     public static final String ID = "x-forwarded-prefix-processor";
 
+    private XForwardedPrefixProcessor() {}
+
+    public static XForwardedPrefixProcessor instance() {
+        return Holder.INSTANCE;
+    }
+
     @Override
     public String getId() {
         return ID;
@@ -44,5 +47,10 @@ public class XForwardedPrefixProcessor implements Processor {
                 // Override the X-Forwarded-Prefix with context path
                 ctx.request().headers().set(HttpHeaderNames.X_FORWARDED_PREFIX, ctx.request().contextPath())
         );
+    }
+
+    private static class Holder {
+
+        private static final XForwardedPrefixProcessor INSTANCE = new XForwardedPrefixProcessor();
     }
 }
