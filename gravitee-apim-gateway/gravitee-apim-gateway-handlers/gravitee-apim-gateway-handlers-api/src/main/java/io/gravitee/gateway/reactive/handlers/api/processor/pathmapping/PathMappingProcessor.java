@@ -35,40 +35,35 @@ import java.util.regex.Pattern;
  */
 public class PathMappingProcessor implements Processor {
 
+    public static final String ID = "path-mapping-processor";
+
     public PathMappingProcessor() {}
 
     @Override
     public String getId() {
-        return "path-mapping-processor";
+        return ID;
     }
 
     @Override
     public Completable execute(final RequestExecutionContext ctx) {
-        return Maybe
-            .fromCallable(
-                () -> {
-                    Api api = ctx.getComponent(Api.class);
-                    return api.getPathMappings();
+        return Completable.fromRunnable(
+            () -> {
+                Api api = ctx.getComponent(Api.class);
+                Map<String, Pattern> pathMappings = api.getPathMappings();
+                String path = ctx.request().pathInfo();
+                if (path.length() == 0 || path.charAt(path.length() - 1) != '/') {
+                    path += '/';
                 }
-            )
-            .filter(pathMapping -> !pathMapping.isEmpty())
-            .doOnSuccess(
-                pathMapping -> {
-                    String path = ctx.request().pathInfo();
-                    if (path.length() == 0 || path.charAt(path.length() - 1) != '/') {
-                        path += '/';
-                    }
-                    final String finalPath = path;
-                    pathMapping
-                        .entrySet()
-                        .stream()
-                        .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
-                        .map(Map.Entry::getKey)
-                        .min(comparing(this::countOccurrencesOf))
-                        .ifPresent(resolvedMappedPath -> ctx.request().metrics().setMappedPath(resolvedMappedPath));
-                }
-            )
-            .ignoreElement();
+                final String finalPath = path;
+                pathMappings
+                    .entrySet()
+                    .stream()
+                    .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
+                    .map(Map.Entry::getKey)
+                    .min(comparing(this::countOccurrencesOf))
+                    .ifPresent(resolvedMappedPath -> ctx.request().metrics().setMappedPath(resolvedMappedPath));
+            }
+        );
     }
 
     private Integer countOccurrencesOf(final String str) {
