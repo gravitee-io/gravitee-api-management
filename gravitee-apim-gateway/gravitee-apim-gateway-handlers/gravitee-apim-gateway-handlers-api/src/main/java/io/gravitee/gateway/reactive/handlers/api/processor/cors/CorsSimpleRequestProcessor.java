@@ -30,9 +30,11 @@ import io.reactivex.Completable;
  */
 public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
 
+    public static final String ID = "cors-simple-request";
+
     @Override
     public String getId() {
-        return "cors-simple-request";
+        return ID;
     }
 
     @Override
@@ -41,9 +43,7 @@ public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
             () -> {
                 Api api = ctx.getComponent(Api.class);
                 Cors cors = api.getProxy().getCors();
-                if (cors != null && cors.isEnabled()) {
-                    handleSimpleCrossOriginRequest(cors, ctx.request(), ctx.response());
-                }
+                handleSimpleCrossOriginRequest(cors, ctx.request(), ctx.response());
             }
         );
     }

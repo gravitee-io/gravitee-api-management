@@ -37,28 +37,28 @@ import java.util.stream.Collectors;
  */
 public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor {
 
+    public static final String ID = "cors-preflight-request";
+
     @Override
     public String getId() {
-        return "cors-preflight-request";
+        return ID;
     }
 
     @Override
     public Completable execute(final RequestExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
-                Api api = ctx.getComponent(Api.class);
-                Cors cors = api.getProxy().getCors();
-                if (cors != null && cors.isEnabled()) {
-                    // Test if we are in the context of a preflight request
-                    if (isPreflightRequest(ctx.request())) {
-                        handlePreflightRequest(cors, ctx.request(), ctx.response());
-                        // If we don't want to run policies, exit request processing
-                        if (!cors.isRunPolicies()) {
-                            ctx.interrupt();
-                        } else {
-                            ctx.setAttribute("skip-security-chain", true);
-                            ctx.setAttribute(ExecutionContext.ATTR_INVOKER, new CorsPreflightInvoker());
-                        }
+                // Test if we are in the context of a preflight request
+                if (isPreflightRequest(ctx.request())) {
+                    Api api = ctx.getComponent(Api.class);
+                    Cors cors = api.getProxy().getCors();
+                    handlePreflightRequest(cors, ctx.request(), ctx.response());
+                    // If we don't want to run policies, exit request processing
+                    if (!cors.isRunPolicies()) {
+                        ctx.interrupt();
+                    } else {
+                        ctx.setAttribute("skip-security-chain", true);
+                        ctx.setAttribute(ExecutionContext.ATTR_INVOKER, new CorsPreflightInvoker());
                     }
                 }
             }

@@ -30,9 +30,11 @@ import io.reactivex.Completable;
  */
 public class XForwardedPrefixProcessor implements Processor {
 
+    public static final String ID = "x-forwarded-prefix-processor";
+
     @Override
     public String getId() {
-        return "x-forwarded-prefix-processor";
+        return ID;
     }
 
     @Override
