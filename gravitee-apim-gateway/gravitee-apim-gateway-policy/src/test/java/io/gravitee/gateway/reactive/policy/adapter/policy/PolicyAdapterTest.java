@@ -237,37 +237,6 @@ class PolicyAdapterTest {
     }
 
     @Test
-    public void shouldCompleteWithoutBodyWhenInterrupted() throws PolicyException {
-        final Policy policy = mock(Policy.class);
-        final io.gravitee.gateway.reactive.api.context.Request request = mock(io.gravitee.gateway.reactive.api.context.Request.class);
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
-        final ReadWriteStream<Buffer> stream = mock(ReadWriteStream.class);
-
-        when(ctx.request()).thenReturn(request);
-        when(policy.isStreamable()).thenReturn(true);
-        when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
-        when(request.body(any(Maybe.class))).thenReturn(Completable.complete());
-        when(ctx.isInterrupted()).thenReturn(true);
-
-        doAnswer(
-                invocation -> {
-                    Handler<Void> endHandler = invocation.getArgument(0);
-                    endHandler.handle(null);
-                    return null;
-                }
-            )
-            .when(stream)
-            .endHandler(any(Handler.class));
-
-        final PolicyAdapter cut = new PolicyAdapter(policy);
-        final TestObserver<Void> obs = cut.onRequest(ctx).test();
-
-        obs.assertComplete();
-
-        verify(request, times(0)).body(any(Maybe.class));
-    }
-
-    @Test
     public void shouldErrorWhenExceptionOccursDuringStream() throws PolicyException {
         final Policy policy = mock(Policy.class);
         final io.gravitee.gateway.reactive.api.context.Request request = mock(io.gravitee.gateway.reactive.api.context.Request.class);

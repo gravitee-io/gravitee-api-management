@@ -102,10 +102,6 @@ public class FlowChain {
      * @return a {@link Completable} that completes when the flow policy chain completes.
      */
     private Completable executeFlow(RequestExecutionContext ctx, Flow flow, ExecutionPhase phase) {
-        if (!ctx.isInterrupted()) {
-            return policyChainFactory.create(flow, phase).execute(ctx);
-        } else {
-            return Completable.complete();
-        }
+        return policyChainFactory.create(flow, phase).execute(ctx);
     }
 }
