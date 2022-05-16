@@ -16,21 +16,20 @@
 package io.gravitee.gateway.reactive.handlers.api.processor.error.template;
 
 import static io.gravitee.gateway.api.http.HttpHeaderNames.ACCEPT;
-import static io.gravitee.gateway.api.http.HttpHeaderNames.ORIGIN;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ResponseTemplate;
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.handlers.api.processor.error.templates.DummyProcessorFailure;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -40,7 +39,12 @@ import org.junit.jupiter.api.Test;
  */
 public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessorTest {
 
-    private ResponseTemplateBasedFailureProcessor processor;
+    private ResponseTemplateBasedFailureProcessor templateBasedFailureProcessor;
+
+    @BeforeEach
+    public void beforeEach() {
+        templateBasedFailureProcessor = ResponseTemplateBasedFailureProcessor.instance();
+    }
 
     @Test
     public void shouldFallbackToDefaultWithNoProcessorFailureKey() {
@@ -52,15 +56,13 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("POLICY_ERROR_KEY", mapTemplates);
-
-        processor = new ResponseTemplateBasedFailureProcessor(templates);
+        api.setResponseTemplates(templates);
 
         // Set failure
-        DummyProcessorFailure failure = new DummyProcessorFailure();
-        failure.statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
+        ExecutionFailure executionFailure = new ExecutionFailure().statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        processor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
     }
@@ -75,17 +77,13 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("POLICY_ERROR_KEY", mapTemplates);
-
-        processor = new ResponseTemplateBasedFailureProcessor(templates);
+        api.setResponseTemplates(templates);
 
         // Set failure
-        DummyProcessorFailure failure = new DummyProcessorFailure();
-        failure.key("POLICY_ERROR_KEY");
-        failure.statusCode(HttpStatusCode.BAD_REQUEST_400);
+        ExecutionFailure executionFailure = new ExecutionFailure().key("POLICY_ERROR_KEY").statusCode(HttpStatusCode.BAD_REQUEST_400);
+        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
-
-        processor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
     }
@@ -100,17 +98,15 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("DEFAULT", mapTemplates);
-
-        processor = new ResponseTemplateBasedFailureProcessor(templates);
+        api.setResponseTemplates(templates);
 
         // Set failure
-        DummyProcessorFailure failure = new DummyProcessorFailure();
-        failure.key("POLICY_ERROR_KEY");
-        failure.statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        ExecutionFailure executionFailure = new ExecutionFailure()
+            .key("POLICY_ERROR_KEY")
+            .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
-
-        processor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
     }
@@ -125,17 +121,16 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("POLICY_ERROR_KEY", mapTemplates);
-
-        processor = new ResponseTemplateBasedFailureProcessor(templates);
+        api.setResponseTemplates(templates);
 
         // Set failure
-        DummyProcessorFailure failure = new DummyProcessorFailure();
-        failure.key("POLICY_ERROR_KEY");
-        failure.statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        ExecutionFailure executionFailure = new ExecutionFailure()
+            .key("POLICY_ERROR_KEY")
+            .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_XML));
-        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
+        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        processor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
     }
@@ -154,18 +149,17 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("POLICY_ERROR_KEY", mapTemplates);
-
-        processor = new ResponseTemplateBasedFailureProcessor(templates);
+        api.setResponseTemplates(templates);
 
         // Set failure
-        DummyProcessorFailure failure = new DummyProcessorFailure()
+        ExecutionFailure executionFailure = new ExecutionFailure()
             .key("POLICY_ERROR_KEY")
             .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_XML));
-        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
+        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        processor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_GATEWAY_502);
     }
@@ -180,18 +174,17 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("POLICY_ERROR_KEY", mapTemplates);
-
-        processor = new ResponseTemplateBasedFailureProcessor(templates);
+        api.setResponseTemplates(templates);
 
         // Set failure
-        DummyProcessorFailure failure = new DummyProcessorFailure()
+        ExecutionFailure executionFailure = new ExecutionFailure()
             .key("POLICY_ERROR_KEY")
             .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_JSON));
-        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
+        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        processor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
     }
@@ -206,18 +199,17 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("POLICY_ERROR_KEY", mapTemplates);
-
-        processor = new ResponseTemplateBasedFailureProcessor(templates);
+        api.setResponseTemplates(templates);
 
         // Set failure
-        DummyProcessorFailure failure = new DummyProcessorFailure()
+        ExecutionFailure executionFailure = new ExecutionFailure()
             .key("POLICY_ERROR_KEY")
             .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
         spyRequestHeaders.add(ACCEPT, List.of("text/html", " application/json", "*/*;q=0.8", "application/xml;q=0.9"));
-        ctx.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
+        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        processor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
     }

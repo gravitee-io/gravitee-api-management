@@ -41,12 +41,15 @@ import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory;
+import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionException;
+import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.Entrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.reporter.api.http.Metrics;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
 import java.util.List;
 import org.slf4j.Logger;
@@ -72,6 +75,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private final ProcessorChain platformPostProcessorChain;
     private final ProcessorChain apiPreProcessorChain;
     private final ProcessorChain apiPostProcessorChain;
+    private final ProcessorChain apiErrorProcessorChain;
 
     public SyncApiReactor(
         final Api api,
@@ -98,6 +102,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.platformPostProcessorChain = platformProcessorChainFactory.postProcessorChain();
         this.apiPreProcessorChain = apiProcessorChainFactory.preProcessorChain(api);
         this.apiPostProcessorChain = apiProcessorChainFactory.postProcessorChain(api);
+        this.apiErrorProcessorChain = apiProcessorChainFactory.errorProcessorChain(api);
         this.platformFlowChain =
             new FlowChain("Platform", FlowResolverFactory.forPlatform(api, organizationManager), platformPolicyChainFactory);
         this.apiPlanFlowChain = new FlowChain("Api Plan", FlowResolverFactory.forApiPlan(api), policyChainFactory);
@@ -140,30 +145,41 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     private Completable handleRequest(RequestExecutionContext ctx) {
         // Execute platform pre processor chain
-        return defer(() -> platformPreProcessorChain.execute(ctx))
+        return executeProcessorsChain(ctx, platformPreProcessorChain)
             // Execute platform flow chain
-            .andThen(continueChain(ctx, platformFlowChain, REQUEST))
+            .andThen(executeFlowChain(ctx, platformFlowChain, REQUEST))
             // Execute pre api processor chain
-            .andThen(defer(() -> apiPreProcessorChain.execute(ctx)))
-            .andThen(continueChain(ctx, apiPlanFlowChain, REQUEST))
-            .andThen(continueChain(ctx, apiFlowChain, REQUEST))
+            .andThen(executeProcessorsChain(ctx, apiPreProcessorChain))
+            .andThen(executeFlowChain(ctx, apiPlanFlowChain, REQUEST))
+            .andThen(executeFlowChain(ctx, apiFlowChain, REQUEST))
             // All request flows have been executed. Invokes backend.
             .andThen(invokeBackend(ctx))
             // Execute response flows (api plan, api, platform).
-            .andThen(continueChain(ctx, apiPlanFlowChain, RESPONSE))
-            .andThen(continueChain(ctx, apiFlowChain, RESPONSE))
+            .andThen(executeFlowChain(ctx, apiPlanFlowChain, RESPONSE))
+            .andThen(executeFlowChain(ctx, apiFlowChain, RESPONSE))
             // Execute post api processor chain
-            .andThen(defer(() -> apiPostProcessorChain.execute(ctx)))
-            // In case of any interruption, resume the execution.
-            .doOnComplete(ctx::resume)
+            .andThen(executeProcessorsChain(ctx, apiPostProcessorChain))
+            .onErrorResumeNext(error -> processThrowable(ctx, error))
             // Platform post flows must always be executed
-            .andThen(continueChain(ctx, platformFlowChain, RESPONSE))
+            .andThen(executeFlowChain(ctx, platformFlowChain, RESPONSE))
             // Catch all possible unexpected errors.
             .onErrorResumeNext(t -> handleError(ctx, t))
             // End the response.
             .andThen(endResponse(ctx))
             // Finally, execute post platform  processor chain
-            .andThen(defer(() -> platformPostProcessorChain.execute(ctx)));
+            .andThen(executeProcessorsChain(ctx, platformPostProcessorChain));
+    }
+
+    /**
+     * Executes the processor chain without taking care if the current context is interrupted or not.
+     *
+     * @param ctx the current context
+     * @param processorChain the processor chain
+     *
+     * @return a {@link Completable} that will complete once the flow chain phase has been fully executed.
+     */
+    private Completable executeProcessorsChain(final RequestExecutionContext ctx, final ProcessorChain processorChain) {
+        return defer(() -> processorChain.execute(ctx));
     }
 
     /**
@@ -176,29 +192,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      *
      * @return a {@link Completable} that will complete once the flow chain phase has been fully executed.
      */
-    private Completable executeChain(RequestExecutionContext ctx, FlowChain flowChain, ExecutionPhase phase) {
+    private Completable executeFlowChain(final RequestExecutionContext ctx, final FlowChain flowChain, final ExecutionPhase phase) {
         return defer(() -> flowChain.execute(ctx, phase));
-    }
-
-    /**
-     * Continues the execution of the specified flow chain for the specified phase if the context is not marked as interrupted.
-     * If the context is completed, the flow chain phase is not executed.
-     *
-     * @param ctx the current context
-     * @param flowChain the flow chain
-     * @param phase the phase to execute
-     *
-     * @return a {@link Completable} that will complete once the flow chain phase has been fully executed or that completes immediately if the context is marked as completed.
-     */
-    private Completable continueChain(RequestExecutionContext ctx, FlowChain flowChain, ExecutionPhase phase) {
-        return defer(
-            () -> {
-                if (!ctx.isInterrupted()) {
-                    return flowChain.execute(ctx, phase);
-                }
-                return Completable.complete();
-            }
-        );
     }
 
     /**
@@ -248,14 +243,34 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         return defer(() -> ctx.response().end());
     }
 
-    private Completable handleError(RequestExecutionContext ctx, Throwable t) {
-        if (t != null) {
-            log.error("Unexpected error", t);
+    /**
+     * Process the given throwable by checking the type of interruption and execute the right processor chain accordingly
+     *
+     * @param ctx the current context
+     * @param throwable the source error
+     * @return a {@link Completable} that will complete once processor chain has been fully executed or source error rethrown
+     */
+    private Completable processThrowable(final RequestExecutionContext ctx, final Throwable throwable) {
+        if (throwable instanceof InterruptionException) {
+            // In case of any interruption without failure, execute api post processor chain and resume the execution
+            return executeProcessorsChain(ctx, apiPostProcessorChain);
+        } else if (throwable instanceof InterruptionFailureException) {
+            // In case of any interruption with execution failure, execute api error processor chain and resume the execution
+            return executeProcessorsChain(ctx, apiErrorProcessorChain);
+        } else {
+            // In case of any error exception, rethrow original exception
+            return Completable.error(throwable);
         }
+    }
 
-        // TODO: execute error processors
-
-        return Completable.complete();
+    private Completable handleError(final RequestExecutionContext ctx, final Throwable throwable) {
+        return Completable.fromRunnable(
+            () -> {
+                log.error("Unexpected error while handling request", throwable);
+                ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+                ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+            }
+        );
     }
 
     @Override
