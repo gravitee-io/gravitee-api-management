@@ -1266,51 +1266,6 @@ jobs:
                             name: Version not set - nothing to run
                             command: exit 0
 
-    run_postman_tests:
-        docker:
-            - image: cimg/openjdk:11.0-node
-              environment:
-                  - tcp.port: 8083
-            - image: mongo:4.4
-            - image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
-              environment:
-                  - transport.host: localhost #2
-                  - network.host: 127.0.0.1 #3
-                  - http.port: 9200 #4
-                  - cluster.name: es-cluster #5
-                  - discovery.type: single-node #6
-                  - xpack.security.enabled: false #7
-                  - ES_JAVA_OPTS: "-Xms256m -Xmx256m" #8
-        resource_class: medium
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - run:
-                  name: Wait for Mongo to be up and running
-                  command: timeout 15s bash -c 'until nc -vz localhost 27017; do sleep 2; done'
-            - run:
-                  name: Install Newman
-                  command: sudo npm i -g newman
-            - run:
-                  name: Run API and Postman tests
-                  command: |
-                      # Remove Enterprise edition features
-                      # FIXME: add a licence to be able to run Enterprise edition
-                      rm rest-api-docker-context/distribution/lib/gravitee-license-node-enterprise*.jar
-                      rm rest-api-docker-context/distribution/plugins/gravitee-ae-connectors-ws*.zip
-                      rm rest-api-docker-context/distribution/plugins/gravitee-notifier-*.zip
-                      rm rest-api-docker-context/distribution/plugins/gravitee-policy-assign-metrics-*.zip
-                      rm rest-api-docker-context/distribution/plugins/gravitee-policy-data-logging-masking-*.zip
-                      # Start APIM in background
-                      GIO_MAX_MEM=1024m rest-api-docker-context/distribution/bin/gravitee &
-                      # Wait for APIM to be up and running
-                      timeout 60s bash -c 'until nc -vz localhost 8083; do sleep 2; done'
-                      # Run Postman tests
-                      cd gravitee-apim-rest-api
-                      make postman
-            - notify-on-failure
-
     e2e-test:
         machine:
             image: ubuntu-2004:202101-01
@@ -1411,14 +1366,6 @@ workflows:
             - test-repository:
                   requires:
                       - build
-            - run_postman_tests:
-                  requires:
-                      - build
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /.*-run-postman$/
             - sonarcloud-analysis:
                   name: Sonar - << matrix.working_directory >>
                   matrix:
