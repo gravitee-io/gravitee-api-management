@@ -35,7 +35,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./docker/test/common/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/common/conf/nginx.conf:/etc/nginx/nginx.conf
     networks:
       - apim
 
