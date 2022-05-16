@@ -19,6 +19,8 @@ module.exports = {
   // The glob patterns Jest uses to detect test files
   testMatch: ['<rootDir>/dist/api-test/**/?(*.)+(spec|test).[tj]s?(x)'],
 
+  testTimeout: 30000,
+
   // A map from regular expressions to paths to transformers
   transform: {
     '^.+\\.xml$': '<rootDir>/lib/jest-raw-loader.js',
