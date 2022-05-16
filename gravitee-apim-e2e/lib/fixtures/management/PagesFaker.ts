@@ -16,19 +16,8 @@
 import { PageEntity } from '@management-models/PageEntity';
 import { Visibility } from '@management-models/Visibility';
 import faker from '@faker-js/faker';
-
-export enum PageType {
-  ASCIIDOC = 'ASCIIDOC',
-  ASYNCAPI = 'ASYNCAPI',
-  MARKDOWN = 'MARKDOWN',
-  MARKDOWN_TEMPLATE = 'MARKDOWN_TEMPLATE',
-  SWAGGER = 'SWAGGER',
-  FOLDER = 'FOLDER',
-  LINK = 'LINK',
-  ROOT = 'ROOT',
-  SYSTEM_FOLDER = 'SYSTEM_FOLDER',
-  TRANSLATION = 'TRANSLATION',
-}
+import { NewPageEntity } from '@management-models/NewPageEntity';
+import { PageType } from '@management-models/PageType';
 
 export class PagesFaker {
   static page(attributes?: Partial<PageEntity>): PageEntity {
@@ -53,5 +42,14 @@ export class PagesFaker {
 
   static folder(attributes?: Partial<PageEntity>): PageEntity {
     return this.page({ ...attributes, content: null, type: PageType.FOLDER });
+  }
+
+  static newPage(attributes?: Partial<NewPageEntity>): NewPageEntity {
+    return {
+      name: 'Unpublished Page',
+      type: PageType.SWAGGER,
+      published: false,
+      ...attributes,
+    };
   }
 }
