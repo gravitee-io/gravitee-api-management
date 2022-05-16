@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.processor.error;
 
+import static io.gravitee.gateway.reactive.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,94 +26,42 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.handlers.api.processor.error.ProcessorFailureAsJson;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.core.processor.Processor;
+import io.gravitee.gateway.reactive.handlers.api.processor.cors.CorsSimpleRequestProcessor;
+import io.gravitee.gateway.reactive.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
 import io.reactivex.Maybe;
 import java.util.List;
+import org.bouncycastle.asn1.x509.Holder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SimpleFailureProcessor implements Processor {
+public class SimpleFailureProcessor extends AbstractFailureProcessor {
 
-    /**
-     * Code for an unknown caller / application     */
-    private static final String APPLICATION_NAME_ANONYMOUS = "1";
-    private static final String PROCESSOR_FAILURE_ATTRIBUTE = ExecutionContext.ATTR_PREFIX + "failure";
-    private static final ObjectMapper mapper = new ObjectMapper();
+    public static final String ID = "simple-failure-processor";
+
+    protected SimpleFailureProcessor() {}
+
+    public static SimpleFailureProcessor instance() {
+        return Holder.INSTANCE;
+    }
 
     @Override
     public String getId() {
-        return "simple-failure-processor";
+        return ID;
     }
 
-    @Override
-    public Completable execute(final RequestExecutionContext executionContext) {
-        return Maybe
-            .fromCallable(() -> executionContext.<ProcessorFailure>getAttribute(PROCESSOR_FAILURE_ATTRIBUTE))
-            .flatMap(
-                processorFailure -> {
-                    // If no application has been associated to the request (for example in case security chain can not be processed
-                    // correctly) set the default application to track it.
-                    if (executionContext.request().metrics().getApplication() == null) {
-                        executionContext.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
-                    }
+    private static class Holder {
 
-                    return Maybe.fromCallable(() -> processFailure(executionContext, processorFailure));
-                }
-            )
-            .flatMapCompletable(buffer -> executionContext.response().body(buffer));
-    }
-
-    protected Buffer processFailure(final RequestExecutionContext context, final ProcessorFailure failure) {
-        final Request request = context.request();
-        final Response response = context.response();
-
-        request.metrics().setErrorKey(failure.key());
-        response.status(failure.statusCode());
-        response.reason(HttpResponseStatus.valueOf(failure.statusCode()).reasonPhrase());
-        response.headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-
-        if (failure.message() != null) {
-            List<String> accepts = request.headers().getAll(HttpHeaderNames.ACCEPT);
-
-            Buffer payload;
-            String contentType;
-
-            if (accepts != null && (accepts.contains(MediaType.APPLICATION_JSON) || accepts.contains(MediaType.WILDCARD))) {
-                // Write error as json when accepted by the client.
-                contentType = MediaType.APPLICATION_JSON;
-
-                if (failure.contentType() != null && failure.contentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
-                    // Message is already json string.
-                    payload = Buffer.buffer(failure.message());
-                } else {
-                    try {
-                        String contentAsJson = mapper.writeValueAsString(new ProcessorFailureAsJson(failure));
-                        payload = Buffer.buffer(contentAsJson);
-                    } catch (JsonProcessingException jpe) {
-                        // There is a problem with json. Just return the content in text/plain.
-                        contentType = MediaType.TEXT_PLAIN;
-                        payload = Buffer.buffer(failure.message());
-                    }
-                }
-            } else {
-                // Fallback to text/plain error.
-                contentType = MediaType.TEXT_PLAIN;
-                payload = Buffer.buffer(failure.message());
-            }
-
-            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
-            return payload;
-        }
-        return null;
+        private static final SimpleFailureProcessor INSTANCE = new SimpleFailureProcessor();
     }
 }

@@ -26,7 +26,10 @@ import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
+import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionException;
+import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionFailureException;
 import io.gravitee.tracing.api.Tracer;
+import io.reactivex.Completable;
 import java.util.*;
 
 abstract class AbstractExecutionContext implements RequestExecutionContext {
@@ -43,7 +46,6 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
     private Collection<TemplateVariableProvider> templateVariableProviders;
     private TemplateEngine templateEngine;
     private boolean interrupted;
-    private ExecutionFailure executionFailure;
 
     protected AbstractExecutionContext(
         Request request,
@@ -58,19 +60,24 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
     }
 
     @Override
-    public void interrupt() {
-        interrupted = true;
+    public Completable interrupt() {
+        return Completable.fromRunnable(
+            () -> {
+                interrupted = true;
+                throw new InterruptionException();
+            }
+        );
     }
 
     @Override
-    public void resume() {
-        interrupted = false;
-    }
-
-    @Override
-    public void interruptWith(ExecutionFailure failure) {
-        interrupt();
-        executionFailure = failure;
+    public Completable interruptWith(ExecutionFailure executionFailure) {
+        return Completable.fromRunnable(
+            () -> {
+                interrupted = true;
+                internalAttributes.put(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+                throw new InterruptionFailureException(executionFailure);
+            }
+        );
     }
 
     @Override
@@ -173,9 +180,5 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
 
     public void setTemplateVariableProviders(Collection<TemplateVariableProvider> templateVariableProviders) {
         this.templateVariableProviders = templateVariableProviders;
-    }
-
-    public ExecutionFailure getExecutionFailure() {
-        return executionFailure;
     }
 }

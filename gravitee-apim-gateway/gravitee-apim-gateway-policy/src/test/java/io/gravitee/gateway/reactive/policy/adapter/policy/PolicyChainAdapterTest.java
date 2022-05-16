@@ -22,7 +22,10 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionFailureException;
 import io.gravitee.policy.api.PolicyResult;
+import io.reactivex.Completable;
 import io.reactivex.CompletableEmitter;
 import org.junit.jupiter.api.Test;
 
@@ -46,41 +49,33 @@ class PolicyChainAdapterTest {
 
     @Test
     public void shouldInterruptAndCompleteWhenFailWith() {
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
-        final io.gravitee.gateway.reactive.api.context.Response response = mock(io.gravitee.gateway.reactive.api.context.Response.class);
-        final CompletableEmitter emitter = mock(CompletableEmitter.class);
-        final PolicyResult policyResult = mock(PolicyResult.class);
+        final RequestExecutionContext ctx = new DefaultRequestExecutionContext(null, null, null, null);
+        final PolicyResult policyResult = PolicyResult.failure("key", 500, "error");
 
-        when(ctx.response()).thenReturn(response);
-        when(policyResult.statusCode()).thenReturn(HttpStatusCode.SERVICE_UNAVAILABLE_503);
-
-        final PolicyChainAdapter cut = new PolicyChainAdapter(ctx, emitter);
-
-        cut.failWith(policyResult);
-
-        // TODO: This is subject to change when ExecutionFailure will be implemented.
-        verify(response).status(HttpStatusCode.SERVICE_UNAVAILABLE_503);
-        verify(emitter).onComplete();
-        verify(ctx).interrupt();
+        Completable
+            .create(
+                emitter -> {
+                    final PolicyChainAdapter policyChainAdapter = new PolicyChainAdapter(ctx, emitter);
+                    policyChainAdapter.failWith(policyResult);
+                }
+            )
+            .test()
+            .assertFailure(InterruptionFailureException.class);
     }
 
     @Test
     public void shouldInterruptAndCompleteWhenStreamFailWith() {
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
-        final io.gravitee.gateway.reactive.api.context.Response response = mock(io.gravitee.gateway.reactive.api.context.Response.class);
-        final CompletableEmitter emitter = mock(CompletableEmitter.class);
-        final PolicyResult policyResult = mock(PolicyResult.class);
+        final RequestExecutionContext ctx = new DefaultRequestExecutionContext(null, null, null, null);
+        final PolicyResult policyResult = PolicyResult.failure("key", 500, "error");
 
-        when(ctx.response()).thenReturn(response);
-        when(policyResult.statusCode()).thenReturn(HttpStatusCode.SERVICE_UNAVAILABLE_503);
-
-        final PolicyChainAdapter cut = new PolicyChainAdapter(ctx, emitter);
-
-        cut.streamFailWith(policyResult);
-
-        // TODO: This is subject to change when ExecutionFailure will be implemented.
-        verify(response).status(HttpStatusCode.SERVICE_UNAVAILABLE_503);
-        verify(emitter).onComplete();
-        verify(ctx).interrupt();
+        Completable
+            .create(
+                emitter -> {
+                    final PolicyChainAdapter policyChainAdapter = new PolicyChainAdapter(ctx, emitter);
+                    policyChainAdapter.streamFailWith(policyResult);
+                }
+            )
+            .test()
+            .assertFailure(InterruptionFailureException.class);
     }
 }

@@ -16,14 +16,19 @@
 package io.gravitee.gateway.reactive.policy.adapter.context;
 
 import static io.gravitee.gateway.reactive.api.context.ExecutionContext.ATTR_ADAPTED_CONTEXT;
+import static io.gravitee.gateway.reactive.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE;
 
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.gateway.api.processor.ProcessorFailure;
+import io.gravitee.gateway.core.processor.RuntimeProcessorFailure;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.tracing.api.Tracer;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -84,17 +89,31 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
 
     @Override
     public void setAttribute(String name, Object value) {
-        ctx.setAttribute(name, value);
+        if (ATTR_FAILURE_ATTRIBUTE.equals(name) && value instanceof ProcessorFailure) {
+            ProcessorFailure processorFailure = (ProcessorFailure) value;
+            ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE, new ProcessFailureAdapter(processorFailure).toExecutionFailure());
+        } else {
+            ctx.setAttribute(name, value);
+        }
     }
 
     @Override
     public void removeAttribute(String name) {
-        ctx.removeAttribute(name);
+        if (ATTR_FAILURE_ATTRIBUTE.equals(name)) {
+            ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
+        } else {
+            ctx.removeAttribute(name);
+        }
     }
 
     @Override
     public Object getAttribute(String name) {
-        return ctx.getAttribute(name);
+        if (ATTR_FAILURE_ATTRIBUTE.equals(name)) {
+            ExecutionFailure executionFailure = ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
+            return new ProcessFailureAdapter(executionFailure);
+        } else {
+            return ctx.getAttribute(name);
+        }
     }
 
     @Override

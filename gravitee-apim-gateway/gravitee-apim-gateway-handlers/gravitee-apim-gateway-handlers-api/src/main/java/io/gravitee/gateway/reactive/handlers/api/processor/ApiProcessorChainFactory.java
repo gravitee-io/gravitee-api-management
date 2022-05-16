@@ -21,6 +21,8 @@ import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.handlers.api.processor.cors.CorsPreflightRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.cors.CorsSimpleRequestProcessor;
+import io.gravitee.gateway.reactive.handlers.api.processor.error.SimpleFailureProcessor;
+import io.gravitee.gateway.reactive.handlers.api.processor.error.template.ResponseTemplateBasedFailureProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.shutdown.ShutdownProcessor;
@@ -71,6 +73,26 @@ public class ApiProcessorChainFactory {
         }
 
         return new ProcessorChain("post-api-processor-chain", postProcessorList);
+    }
+
+    public ProcessorChain errorProcessorChain(final Api api) {
+        List<Processor> errorProcessorList = new ArrayList<>();
+        Cors cors = api.getProxy().getCors();
+        if (cors != null && cors.isEnabled()) {
+            errorProcessorList.add(CorsSimpleRequestProcessor.instance());
+        }
+        Map<String, Pattern> pathMappings = api.getPathMappings();
+        if (pathMappings != null && !pathMappings.isEmpty()) {
+            errorProcessorList.add(PathMappingProcessor.instance());
+        }
+
+        if (api.getResponseTemplates() != null && !api.getResponseTemplates().isEmpty()) {
+            errorProcessorList.add(ResponseTemplateBasedFailureProcessor.instance());
+        } else {
+            errorProcessorList.add(SimpleFailureProcessor.instance());
+        }
+
+        return new ProcessorChain("error-api-processor-chain", errorProcessorList);
     }
 
     public static class Options {
