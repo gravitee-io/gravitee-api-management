@@ -73,8 +73,11 @@ export async function forbidden(promise: Promise<ApiResponse<any>>) {
   return fail(promise, 403);
 }
 
-export async function notFound(promise: Promise<ApiResponse<any>>) {
-  return fail(promise, 404);
+export async function notFound(
+  promise: Promise<ApiResponse<any>>,
+  expectedError?: string | Partial<PortalBusinessError> | Array<Partial<PortalBusinessError>>,
+) {
+  return fail(promise, 404, expectedError);
 }
 
 export async function succeed(promise: Promise<ApiResponse<any>>, expectedStatus: number = 200) {
