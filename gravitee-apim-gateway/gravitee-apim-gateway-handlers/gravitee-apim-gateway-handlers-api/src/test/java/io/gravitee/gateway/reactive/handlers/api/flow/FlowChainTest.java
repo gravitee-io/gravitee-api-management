@@ -136,28 +136,6 @@ class FlowChainTest {
     }
 
     @Test
-    public void shouldNotExecuteSecondFlowWhenContextIsInterrupted() {
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
-
-        final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
-        when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
-
-        final PolicyChain policyChain1 = mock(PolicyChain.class);
-
-        when(policyChainFactory.create(flow1, ExecutionPhase.REQUEST)).thenReturn(policyChain1);
-        when(policyChain1.execute(ctx)).thenReturn(Completable.complete());
-        when(ctx.isInterrupted()).thenReturn(false, true);
-
-        final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
-
-        obs.assertResult();
-
-        // Make sure policy chain has not been created for flow2.
-        verify(policyChainFactory, times(0)).create(flow2, ExecutionPhase.REQUEST);
-    }
-
-    @Test
     public void shouldExecuteOnlyFlow1IfError() {
         final Flow flow1 = mock(Flow.class);
         final Flow flow2 = mock(Flow.class);

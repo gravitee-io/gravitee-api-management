@@ -146,11 +146,6 @@ public class PolicyAdapter implements Policy {
             .andThen(
                 Completable.defer(
                     () -> {
-                        if (ctx.isInterrupted()) {
-                            // The context can be interrupted if the policy has invoked the stream.failWith(...) method.
-                            return Completable.complete();
-                        }
-
                         if (newBuffer == null || newBuffer.length() == 0) {
                             return Completable.complete();
                         }

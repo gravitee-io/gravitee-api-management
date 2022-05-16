@@ -26,7 +26,10 @@ import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
+import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionException;
+import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionFailureException;
 import io.gravitee.tracing.api.Tracer;
+import io.reactivex.Completable;
 import java.util.*;
 
 abstract class AbstractExecutionContext implements RequestExecutionContext {
@@ -42,8 +45,6 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
     private final Response response;
     private Collection<TemplateVariableProvider> templateVariableProviders;
     private TemplateEngine templateEngine;
-    private boolean interrupted;
-    private ExecutionFailure executionFailure;
 
     protected AbstractExecutionContext(
         Request request,
@@ -58,24 +59,14 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
     }
 
     @Override
-    public void interrupt() {
-        interrupted = true;
+    public Completable interrupt() {
+        return Completable.error(new InterruptionException());
     }
 
     @Override
-    public void resume() {
-        interrupted = false;
-    }
-
-    @Override
-    public void interruptWith(ExecutionFailure failure) {
-        interrupt();
-        executionFailure = failure;
-    }
-
-    @Override
-    public boolean isInterrupted() {
-        return interrupted;
+    public Completable interruptWith(ExecutionFailure executionFailure) {
+        internalAttributes.put(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        return Completable.error(new InterruptionFailureException(executionFailure));
     }
 
     @Override
@@ -173,9 +164,5 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
 
     public void setTemplateVariableProviders(Collection<TemplateVariableProvider> templateVariableProviders) {
         this.templateVariableProviders = templateVariableProviders;
-    }
-
-    public ExecutionFailure getExecutionFailure() {
-        return executionFailure;
     }
 }

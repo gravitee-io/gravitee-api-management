@@ -15,28 +15,28 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.processor.error;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class SimpleFailureProcessor extends AbstractFailureProcessor {
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.gateway.api.processor.ProcessorFailure;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
 
-    public static final String ID = "simple-failure-processor";
+public class ExecutionFailureAsJson {
 
-    protected SimpleFailureProcessor() {}
+    @JsonProperty
+    private final String message;
 
-    public static SimpleFailureProcessor instance() {
-        return Holder.INSTANCE;
+    @JsonProperty("http_status_code")
+    private final int httpStatusCode;
+
+    public ExecutionFailureAsJson(final ExecutionFailure executionFailure) {
+        this.message = executionFailure.message();
+        this.httpStatusCode = executionFailure.statusCode();
     }
 
-    @Override
-    public String getId() {
-        return ID;
+    private String getMessage() {
+        return message;
     }
 
-    private static class Holder {
-
-        private static final SimpleFailureProcessor INSTANCE = new SimpleFailureProcessor();
+    private int httpStatusCode() {
+        return httpStatusCode;
     }
 }

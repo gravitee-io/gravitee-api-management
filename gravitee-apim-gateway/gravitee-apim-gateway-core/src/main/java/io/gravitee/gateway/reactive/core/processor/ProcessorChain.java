@@ -39,15 +39,12 @@ public class ProcessorChain {
     }
 
     public Completable execute(RequestExecutionContext ctx) {
-        log.debug("Executing processor chain {}", id);
-
-        return processors.flatMapCompletable(processor -> executeNext(ctx, processor), false, 1);
+        return processors
+            .doOnSubscribe(subscription -> log.debug("Executing processor chain {}", id))
+            .flatMapCompletable(processor -> executeNext(ctx, processor), false, 1);
     }
 
     private Completable executeNext(RequestExecutionContext ctx, Processor processor) {
-        if (ctx.isInterrupted()) {
-            return Completable.complete();
-        }
         log.debug("Executing processor {}", processor.getId());
         return processor.execute(ctx);
     }
