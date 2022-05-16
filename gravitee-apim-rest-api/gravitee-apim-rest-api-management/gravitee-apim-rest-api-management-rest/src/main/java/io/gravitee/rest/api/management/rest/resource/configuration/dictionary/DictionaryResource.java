@@ -150,7 +150,7 @@ public class DictionaryResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.DELETE) })
     public Response deleteDictionary(@PathParam("dictionary") String dictionary) {
         dictionaryService.delete(dictionary);
         return Response.noContent().build();
