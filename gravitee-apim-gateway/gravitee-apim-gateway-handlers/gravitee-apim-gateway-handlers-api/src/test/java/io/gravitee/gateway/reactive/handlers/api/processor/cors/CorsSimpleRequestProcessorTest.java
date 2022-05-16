@@ -47,7 +47,7 @@ class CorsSimpleRequestProcessorTest extends AbstractProcessorTest {
 
     @BeforeEach
     public void beforeEach() {
-        corsSimpleRequestProcessor = new CorsSimpleRequestProcessor();
+        corsSimpleRequestProcessor = CorsSimpleRequestProcessor.instance();
         lenient().when(mockRequest.method()).thenReturn(HttpMethod.OPTIONS);
         Proxy proxy = new Proxy();
         Cors cors = new Cors();
@@ -76,13 +76,6 @@ class CorsSimpleRequestProcessorTest extends AbstractProcessorTest {
         verify(spyResponseHeaders, times(2)).set(any(), anyString());
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo("true");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
-    }
-
-    @Test
-    public void shouldCompleteWithoutChangingResponseWhenCorsDisabled() {
-        api.getProxy().getCors().setEnabled(false);
-        corsSimpleRequestProcessor.execute(ctx).test().assertResult();
-        verifyNoInteractions(mockResponse);
     }
 
     @Test
