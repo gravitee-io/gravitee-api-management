@@ -18,14 +18,11 @@ package io.gravitee.gateway.reactive.handlers.api.processor.shutdown;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpVersion;
-import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.node.api.Node;
 import io.reactivex.Completable;
-import io.vertx.core.http.HttpHeaders;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -34,6 +31,7 @@ import io.vertx.core.http.HttpHeaders;
  */
 public class ShutdownProcessor implements Processor {
 
+    public static final String ID = "shutdown-processor";
     private final Node node;
 
     public ShutdownProcessor(final Node node) {
@@ -42,7 +40,7 @@ public class ShutdownProcessor implements Processor {
 
     @Override
     public String getId() {
-        return "shutdown-processor";
+        return ID;
     }
 
     @Override

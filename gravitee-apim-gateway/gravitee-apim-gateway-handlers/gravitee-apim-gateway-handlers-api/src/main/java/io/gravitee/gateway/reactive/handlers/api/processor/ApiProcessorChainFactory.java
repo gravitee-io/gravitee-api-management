@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.processor;
 
+import io.gravitee.definition.model.Cors;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.handlers.api.processor.cors.CorsPreflightRequestProcessor;
@@ -24,7 +26,10 @@ import io.gravitee.gateway.reactive.handlers.api.processor.pathmapping.PathMappi
 import io.gravitee.gateway.reactive.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.node.api.Node;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -34,44 +39,48 @@ public class ApiProcessorChainFactory {
 
     private final Options options;
     private final Node node;
-    private ProcessorChain preProcessorChain;
-    private ProcessorChain postProcessorChain;
+    private final Map<String, Processor> processors = new HashMap<>();
 
     public ApiProcessorChainFactory(final Options options, Node node) {
         this.options = options;
         this.node = node;
+        createProcessors();
     }
 
-    public ProcessorChain preProcessorChain() {
-        if (preProcessorChain == null) {
-            initPreProcessorChain();
-        }
-        return preProcessorChain;
+    private void createProcessors() {
+        processors.put(CorsPreflightRequestProcessor.ID, new CorsPreflightRequestProcessor());
+        processors.put(XForwardedPrefixProcessor.ID, new XForwardedPrefixProcessor());
+        processors.put(ShutdownProcessor.ID, new ShutdownProcessor(node));
+        processors.put(CorsSimpleRequestProcessor.ID, new CorsSimpleRequestProcessor());
+        processors.put(PathMappingProcessor.ID, new PathMappingProcessor());
     }
 
-    private void initPreProcessorChain() {
+    public ProcessorChain preProcessorChain(final Api api) {
         List<Processor> preProcessorList = new ArrayList<>();
 
-        preProcessorList.add(new CorsPreflightRequestProcessor());
+        Cors cors = api.getProxy().getCors();
+        if (cors != null && cors.isEnabled()) {
+            preProcessorList.add(processors.get(CorsPreflightRequestProcessor.ID));
+        }
         if (options.overrideXForwardedPrefix()) {
-            preProcessorList.add(new XForwardedPrefixProcessor());
+            preProcessorList.add(processors.get(XForwardedPrefixProcessor.ID));
         }
-        preProcessorChain = new ProcessorChain("pre-api-processor-chain", preProcessorList);
+        return new ProcessorChain("pre-api-processor-chain", preProcessorList);
     }
 
-    public ProcessorChain postProcessorChain() {
-        if (postProcessorChain == null) {
-            initPostProcessorChain();
-        }
-        return postProcessorChain;
-    }
-
-    private void initPostProcessorChain() {
+    public ProcessorChain postProcessorChain(final Api api) {
         List<Processor> postProcessorList = new ArrayList<>();
         postProcessorList.add(new ShutdownProcessor(node));
-        postProcessorList.add(new CorsSimpleRequestProcessor());
-        postProcessorList.add(new PathMappingProcessor());
-        postProcessorChain = new ProcessorChain("post-api-processor-chain", postProcessorList);
+        Cors cors = api.getProxy().getCors();
+        if (cors != null && cors.isEnabled()) {
+            postProcessorList.add(processors.get(CorsSimpleRequestProcessor.ID));
+        }
+        Map<String, Pattern> pathMappings = api.getPathMappings();
+        if (pathMappings != null && !pathMappings.isEmpty()) {
+            postProcessorList.add(processors.get(PathMappingProcessor.ID));
+        }
+
+        return new ProcessorChain("post-api-processor-chain", postProcessorList);
     }
 
     public static class Options {
