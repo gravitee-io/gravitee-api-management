@@ -19,6 +19,7 @@ import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandProducer;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.hello.HelloCommand;
+import io.gravitee.cockpit.api.command.hello.HelloPayload;
 import io.gravitee.cockpit.api.command.hello.HelloReply;
 import io.gravitee.node.api.Node;
 import io.gravitee.rest.api.model.*;
@@ -40,7 +41,6 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
 
     private static final String UI_URL = "UI_URL";
     private static final String API_URL = "API_URL";
-    private static final String INSTALLATION_TYPE = "INSTALLATION_TYPE";
 
     @Value("${console.ui.url:http://localhost:3000}")
     private String uiURL;
@@ -48,7 +48,7 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
     @Value("${console.api.url:http://localhost:8083/management}")
     private String apiURL;
 
-    @Value("${installation.type:onprem}")
+    @Value("${installation.type:" + HelloPayload.ONPREM_INSTALLATION_TYPE + "}")
     private String installationType;
 
     private final Node node;
@@ -82,7 +82,7 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
         command.getPayload().getAdditionalInformation().putAll(installation.getAdditionalInformation());
         command.getPayload().getAdditionalInformation().put(UI_URL, uiURL);
         command.getPayload().getAdditionalInformation().put(API_URL, apiURL);
-        command.getPayload().getAdditionalInformation().put(INSTALLATION_TYPE, installationType);
+        command.getPayload().getAdditionalInformation().put(HelloPayload.ADDITIONAL_INFO_INSTALLATION_TYPE, installationType);
         command.getPayload().setDefaultOrganizationId(GraviteeContext.getDefaultOrganization());
         command.getPayload().setDefaultEnvironmentId(GraviteeContext.getDefaultEnvironment());
 
