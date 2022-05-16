@@ -135,7 +135,7 @@ export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe(() => {
-        this.definition = { ...this.definition };
+        this.ngOnInit();
       });
   }
 }
