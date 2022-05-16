@@ -18,13 +18,9 @@ package io.gravitee.gateway.reactive.handlers.api.processor.pathmapping;
 import static java.util.Comparator.comparing;
 
 import io.gravitee.definition.model.Api;
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.Maybe;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -37,7 +33,11 @@ public class PathMappingProcessor implements Processor {
 
     public static final String ID = "path-mapping-processor";
 
-    public PathMappingProcessor() {}
+    private PathMappingProcessor() {}
+
+    public static PathMappingProcessor instance() {
+        return Holder.INSTANCE;
+    }
 
     @Override
     public String getId() {
@@ -68,5 +68,10 @@ public class PathMappingProcessor implements Processor {
 
     private Integer countOccurrencesOf(final String str) {
         return str.length() - str.replace(":", "").length();
+    }
+
+    private static class Holder {
+
+        private static final PathMappingProcessor INSTANCE = new PathMappingProcessor();
     }
 }

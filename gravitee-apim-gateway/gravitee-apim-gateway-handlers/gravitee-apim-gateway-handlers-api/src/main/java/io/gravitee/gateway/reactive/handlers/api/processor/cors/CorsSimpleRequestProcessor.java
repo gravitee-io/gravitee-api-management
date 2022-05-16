@@ -32,6 +32,12 @@ public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
 
     public static final String ID = "cors-simple-request";
 
+    private CorsSimpleRequestProcessor() {}
+
+    public static CorsSimpleRequestProcessor instance() {
+        return Holder.INSTANCE;
+    }
+
     @Override
     public String getId() {
         return ID;
@@ -83,5 +89,10 @@ public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
             response.headers().remove(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN);
             response.headers().remove(HttpHeaderNames.ACCESS_CONTROL_EXPOSE_HEADERS);
         }
+    }
+
+    private static class Holder {
+
+        private static final CorsSimpleRequestProcessor INSTANCE = new CorsSimpleRequestProcessor();
     }
 }

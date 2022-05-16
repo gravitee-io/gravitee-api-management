@@ -35,7 +35,7 @@ public class XForwardedPrefixProcessorTest extends AbstractProcessorTest {
 
     @BeforeEach
     public void beforeEach() {
-        xForwardedPrefixProcessor = new XForwardedPrefixProcessor();
+        xForwardedPrefixProcessor = XForwardedPrefixProcessor.instance();
         when(mockRequest.contextPath()).thenReturn(CONTEXT_PATH);
     }
 

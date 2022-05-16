@@ -36,7 +36,7 @@ class PathMappingProcessorTest extends AbstractProcessorTest {
     @BeforeEach
     public void beforeEach() {
         lenient().when(mockRequest.pathInfo()).thenReturn(PATH_INFO);
-        pathMappingProcessor = new PathMappingProcessor();
+        pathMappingProcessor = PathMappingProcessor.instance();
     }
 
     @Test
