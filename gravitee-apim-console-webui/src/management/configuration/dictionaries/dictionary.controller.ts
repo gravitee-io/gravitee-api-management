@@ -74,15 +74,15 @@ class DictionaryController {
 
     this.timeUnits = [
       {
-        id: 'seconds',
+        id: 'SECONDS',
         name: 'Seconds',
       },
       {
-        id: 'minutes',
+        id: 'MINUTES',
         name: 'Minutes',
       },
       {
-        id: 'hours',
+        id: 'HOURS',
         name: 'Hours',
       },
     ];
