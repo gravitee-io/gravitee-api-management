@@ -6115,65 +6115,6 @@
 			"protocolProfileBehavior": {}
 		},
 		{
-			"name": "tickets",
-			"item": [
-				{
-					"name": "400",
-					"item": [
-						{
-							"name": "POST /tickets",
-							"request": {
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{GRAVITEEIO_PORTAL_URL}}/tickets",
-									"host": [
-										"{{GRAVITEEIO_PORTAL_URL}}"
-									],
-									"path": [
-										"tickets"
-									]
-								}
-							},
-							"response": []
-						}
-					],
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "febd754f-083e-4ef9-8f34-cd5d05d85658",
-								"type": "text/javascript",
-								"exec": [
-									""
-								]
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"id": "09909fde-56c3-4af5-8c19-0d929124a883",
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 400\", function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"",
-									"pm.test(\"Input must not be null.\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.errors[0].message).to.eql(\"Input must not be null.\");",
-									"});"
-								]
-							}
-						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
 			"name": "users & user",
 			"item": [
 				{
@@ -7207,7 +7148,7 @@
 				}
 			],
 			"protocolProfileBehavior": {}
-		},
+		}
 	],
 	"auth": {
 		"type": "basic",
