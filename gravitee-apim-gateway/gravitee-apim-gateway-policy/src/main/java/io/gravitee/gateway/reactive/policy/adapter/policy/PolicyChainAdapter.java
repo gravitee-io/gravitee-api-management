@@ -17,8 +17,10 @@ package io.gravitee.gateway.reactive.policy.adapter.policy;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.policy.adapter.context.ProcessFailureAdapter;
 import io.gravitee.policy.api.PolicyResult;
 import io.reactivex.CompletableEmitter;
 
@@ -31,28 +33,24 @@ public class PolicyChainAdapter implements io.gravitee.policy.api.PolicyChain {
     private final RequestExecutionContext ctx;
     private final CompletableEmitter emitter;
 
-    public PolicyChainAdapter(RequestExecutionContext ctx, CompletableEmitter emitter) {
+    public PolicyChainAdapter(final RequestExecutionContext ctx, final CompletableEmitter emitter) {
         this.ctx = ctx;
         this.emitter = emitter;
     }
 
     @Override
-    public void doNext(Request request, Response response) {
+    public void doNext(final Request request, final Response response) {
         emitter.onComplete();
     }
 
     @Override
-    public void streamFailWith(PolicyResult policyResult) {
+    public void streamFailWith(final PolicyResult policyResult) {
         failWith(policyResult);
     }
 
     @Override
-    public void failWith(PolicyResult policyResult) {
-        // TODO: ExecutionFailure.
-        ctx.response().status(policyResult.statusCode());
-
-        //ctx.response().content(Buffer.buffer(policyResult.message()));
-        ctx.interrupt();
-        emitter.onComplete();
+    public void failWith(final PolicyResult policyResult) {
+        ExecutionFailure executionFailure = new ProcessFailureAdapter(policyResult).toExecutionFailure();
+        ctx.interruptWith(executionFailure).subscribe(emitter::onComplete, emitter::onError);
     }
 }
