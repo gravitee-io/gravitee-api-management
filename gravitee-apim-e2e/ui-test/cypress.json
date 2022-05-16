@@ -1,4 +1,5 @@
 {
+  "baseUrl": "http://localhost:8083",
   "projectId": "ui-test",
   "integrationFolder": "ui-test/integration",
   "fixturesFolder": "ui-test/fixtures",

@@ -19,7 +19,14 @@
   <div class="gv-forms gv-forms-fluid" layout="column">
     <div>
       <h1>API Gateway</h1>
-      <md-switch style="margin: 0 auto" ng-model="$ctrl.showHistory" ng-change="switchDisplayInstances()"> Show history </md-switch>
+      <md-switch
+        style="margin: 0 auto"
+        ng-model="$ctrl.showHistory"
+        ng-change="switchDisplayInstances()"
+        data-testid="instances_show-history-switch"
+      >
+        Show history
+      </md-switch>
     </div>
 
     <div class="gv-form-content">
@@ -34,6 +41,7 @@
                   ng-model="$ctrl.searchGatewayInstances"
                   placeholder="Search Gateway instances..."
                   autofocus
+                  data-testid="instances_search-gateway-textfield"
                 />
               </div>
             </md-card-header-text>
@@ -43,6 +51,7 @@
               <div
                 class="gravitee-instances-box"
                 ng-repeat="instance in $ctrl.instances.content | filter:$ctrl.searchGatewayInstances | orderBy:'-started_at'"
+                data-testid="instances_instances-box"
               >
                 <a ui-sref="management.instances.detail.environment({instanceId: instance.event})">
                   <md-card class="gravitee-instances-box gravitee-card gravitee-api-card">
@@ -84,7 +93,7 @@
             <md-table-container>
               <table md-table class="gv-table-dense">
                 <thead md-head>
-                  <tr md-row>
+                  <tr md-row data-testid="instances_history-table-head">
                     <th md-column>Host</th>
                     <th md-column>Status</th>
                     <th md-column>Tags</th>
