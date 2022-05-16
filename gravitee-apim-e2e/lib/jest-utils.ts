@@ -46,7 +46,8 @@ export async function fail(
       } else {
         const { errors } = await error.json();
         if (Array.isArray(expectedError)) {
-          expect(errors).toEqual(expectedError);
+          expect(errors).toHaveLength(expectedError.length);
+          expect(errors).toEqual(expect.arrayContaining(expectedError.map((expectedError) => expect.objectContaining(expectedError))));
         } else {
           expect(errors[0]).toEqual(expect.objectContaining(expectedError));
         }
@@ -80,7 +81,7 @@ export async function notFound(
   promise: Promise<ApiResponse<any>>,
   expectedError?: string | Partial<PortalBusinessError> | Array<Partial<PortalBusinessError>>,
 ) {
-  return fail(promise, 404);
+  return fail(promise, 404, expectedError);
 }
 
 export async function succeed(promise: Promise<ApiResponse<any>>, expectedStatus: number = 200) {
