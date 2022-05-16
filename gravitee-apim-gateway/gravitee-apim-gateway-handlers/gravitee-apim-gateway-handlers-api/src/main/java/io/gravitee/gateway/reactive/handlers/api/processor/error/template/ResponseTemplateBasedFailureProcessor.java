@@ -17,13 +17,14 @@ package io.gravitee.gateway.reactive.handlers.api.processor.error.template;
 
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.api.processor.ProcessorFailure;
-import io.gravitee.gateway.handlers.api.processor.error.templates.EvaluableProcessorFailure;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
+import io.gravitee.gateway.reactive.handlers.api.processor.error.AbstractFailureProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.error.SimpleFailureProcessor;
 import java.util.List;
 import java.util.Map;
@@ -33,55 +34,62 @@ import java.util.Map;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcessor {
+public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProcessor {
 
+    public static final String ID = "response-template-failure-processor";
     static final String WILDCARD_CONTENT_TYPE = "*/*";
     static final String DEFAULT_RESPONSE_TEMPLATE = "DEFAULT";
-    private final Map<String, Map<String, ResponseTemplate>> templates;
 
-    public ResponseTemplateBasedFailureProcessor(final Map<String, Map<String, ResponseTemplate>> templates) {
-        this.templates = templates;
+    private ResponseTemplateBasedFailureProcessor() {
+        super();
+    }
+
+    public static ResponseTemplateBasedFailureProcessor instance() {
+        return Holder.INSTANCE;
     }
 
     @Override
     public String getId() {
-        return "response-template-failure-processor";
+        return ID;
     }
 
     @Override
-    protected Buffer processFailure(final RequestExecutionContext context, final ProcessorFailure failure) {
-        if (failure.key() != null) {
-            Map<String, ResponseTemplate> responseTemplates = templates.get(failure.key());
+    protected Buffer processFailure(final RequestExecutionContext ctx, final ExecutionFailure executionFailure) {
+        if (executionFailure.key() != null) {
+            Api api = ctx.getComponent(Api.class);
+            Map<String, Map<String, ResponseTemplate>> templates = api.getResponseTemplates();
+
+            Map<String, ResponseTemplate> responseTemplates = templates.get(executionFailure.key());
 
             // No template associated to the error key, process the error message as usual
             if (responseTemplates == null) {
                 // Try to fallback to default response template
                 Map<String, ResponseTemplate> defaultResponseTemplate = templates.get(DEFAULT_RESPONSE_TEMPLATE);
                 if (defaultResponseTemplate != null) {
-                    return handleAcceptHeader(context, defaultResponseTemplate, failure);
+                    return handleAcceptHeader(ctx, defaultResponseTemplate, executionFailure);
                 } else {
-                    return super.processFailure(context, failure);
+                    return super.processFailure(ctx, executionFailure);
                 }
             } else {
-                return handleAcceptHeader(context, responseTemplates, failure);
+                return handleAcceptHeader(ctx, responseTemplates, executionFailure);
             }
         } else {
             // No error key, process the error message as usual
-            return super.processFailure(context, failure);
+            return super.processFailure(ctx, executionFailure);
         }
     }
 
     private Buffer handleAcceptHeader(
         final RequestExecutionContext context,
         final Map<String, ResponseTemplate> templates,
-        final ProcessorFailure failure
+        final ExecutionFailure executionFailure
     ) {
         // Extract the content-type from the request
         final List<MediaType> acceptMediaTypes = MediaType.parseMediaTypes(context.request().headers().getAll(HttpHeaderNames.ACCEPT));
 
         // If no accept header, check if there is a template for type matching '*/*'
         if (acceptMediaTypes == null || acceptMediaTypes.isEmpty()) {
-            return handleWildcardTemplate(context, templates, failure);
+            return handleWildcardTemplate(context, templates, executionFailure);
         } else {
             // Check against the accepted media types from incoming request sort by the quality factor
             MediaType.sortByQualityValue(acceptMediaTypes);
@@ -90,30 +98,34 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
                 ResponseTemplate template = templates.get(type.toMediaString());
 
                 if (template != null) {
-                    return handleTemplate(context, template, failure);
+                    return handleTemplate(context, template, executionFailure);
                 }
             }
 
             // No template matching the accepted media types, fallback to wildcard
-            return handleWildcardTemplate(context, templates, failure);
+            return handleWildcardTemplate(context, templates, executionFailure);
         }
     }
 
     private Buffer handleWildcardTemplate(
         final RequestExecutionContext context,
         final Map<String, ResponseTemplate> templates,
-        final ProcessorFailure failure
+        final ExecutionFailure executionFailure
     ) {
         ResponseTemplate template = templates.get(WILDCARD_CONTENT_TYPE);
         if (template == null) {
             // No template associated to the error key, process the error message as usual
-            return super.processFailure(context, failure);
+            return super.processFailure(context, executionFailure);
         } else {
-            return handleTemplate(context, template, failure);
+            return handleTemplate(context, template, executionFailure);
         }
     }
 
-    private Buffer handleTemplate(final RequestExecutionContext context, final ResponseTemplate template, final ProcessorFailure failure) {
+    private Buffer handleTemplate(
+        final RequestExecutionContext context,
+        final ResponseTemplate template,
+        final ExecutionFailure executionFailure
+    ) {
         context.response().status(template.getStatusCode());
         context.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
@@ -127,12 +139,11 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
 
         if (template.getBody() != null && !template.getBody().isEmpty()) {
             // Prepare templating context
-            context.getTemplateEngine().getTemplateContext().setVariable("error", new EvaluableProcessorFailure(failure));
-
+            context.getTemplateEngine().getTemplateContext().setVariable("error", new EvaluableExecutionFailure(executionFailure));
             context.getTemplateEngine().getTemplateContext().setVariable("request", new EvaluableRequest(context.request()));
 
-            if (failure.parameters() != null && !failure.parameters().isEmpty()) {
-                context.getTemplateEngine().getTemplateContext().setVariable("parameters", failure.parameters());
+            if (executionFailure.parameters() != null && !executionFailure.parameters().isEmpty()) {
+                context.getTemplateEngine().getTemplateContext().setVariable("parameters", executionFailure.parameters());
             }
 
             // Apply templating
@@ -142,5 +153,10 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
             return payload;
         }
         return null;
+    }
+
+    private static class Holder {
+
+        private static final ResponseTemplateBasedFailureProcessor INSTANCE = new ResponseTemplateBasedFailureProcessor();
     }
 }
