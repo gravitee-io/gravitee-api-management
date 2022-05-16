@@ -32,10 +32,15 @@ import io.reactivex.Completable;
 public class ShutdownProcessor implements Processor {
 
     public static final String ID = "shutdown-processor";
-    private final Node node;
+    private Node node;
 
-    public ShutdownProcessor(final Node node) {
+    public static ShutdownProcessor instance() {
+        return Holder.INSTANCE;
+    }
+
+    public ShutdownProcessor node(final Node node) {
         this.node = node;
+        return this;
     }
 
     @Override
@@ -58,5 +63,10 @@ public class ShutdownProcessor implements Processor {
                 }
             }
         );
+    }
+
+    private static class Holder {
+
+        private static final ShutdownProcessor INSTANCE = new ShutdownProcessor();
     }
 }

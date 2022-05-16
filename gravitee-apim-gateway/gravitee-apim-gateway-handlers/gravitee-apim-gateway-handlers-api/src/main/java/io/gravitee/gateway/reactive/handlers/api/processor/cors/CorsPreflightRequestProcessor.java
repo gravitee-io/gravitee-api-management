@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.processor.cors;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Api;
@@ -27,7 +26,9 @@ import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.reactivex.Completable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +39,12 @@ import java.util.stream.Collectors;
 public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor {
 
     public static final String ID = "cors-preflight-request";
+
+    private CorsPreflightRequestProcessor() {}
+
+    public static CorsPreflightRequestProcessor instance() {
+        return Holder.INSTANCE;
+    }
 
     @Override
     public String getId() {
@@ -174,5 +181,10 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
     private List<String> splitAndTrim(final String value) {
         if (value == null) return null;
         return Arrays.stream(value.split(",")).map(String::trim).collect(Collectors.toList());
+    }
+
+    private static class Holder {
+
+        private static final CorsPreflightRequestProcessor INSTANCE = new CorsPreflightRequestProcessor();
     }
 }

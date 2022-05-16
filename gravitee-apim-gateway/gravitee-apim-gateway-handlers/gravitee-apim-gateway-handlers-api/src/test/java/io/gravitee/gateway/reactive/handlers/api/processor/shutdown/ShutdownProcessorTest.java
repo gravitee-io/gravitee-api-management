@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -47,12 +48,14 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
 
     @BeforeEach
     public void beforeEach() {
-        shutdownProcessor = new ShutdownProcessor(mockNode);
+        Mockito.clearInvocations(mockNode);
+        shutdownProcessor = ShutdownProcessor.instance();
     }
 
     @Test
     public void shouldDoNothingWhenNodeStateIsStarted() {
-        when(mockNode.lifecycleState()).thenReturn(Lifecycle.State.STARTED);
+        lenient().when(mockNode.lifecycleState()).thenReturn(Lifecycle.State.STARTED);
+        shutdownProcessor.node(mockNode);
         shutdownProcessor.execute(ctx).test().assertResult();
         verifyNoInteractions(mockRequest);
         verifyNoInteractions(mockResponse);
@@ -61,7 +64,8 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
     @ParameterizedTest
     @EnumSource(value = Lifecycle.State.class, names = { "STARTED" }, mode = EnumSource.Mode.EXCLUDE)
     public void shouldAddConnectionHeaderWhenNodeStateIsNotStartedAndRequestHttp2(Lifecycle.State state) {
-        when(mockNode.lifecycleState()).thenReturn(state);
+        lenient().when(mockNode.lifecycleState()).thenReturn(state);
+        shutdownProcessor.node(mockNode);
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_2);
         shutdownProcessor.execute(ctx).test().assertResult();
         verify(mockRequest).version();
@@ -71,7 +75,8 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
     @ParameterizedTest
     @EnumSource(value = Lifecycle.State.class, names = { "STARTED" }, mode = EnumSource.Mode.EXCLUDE)
     public void shouldAddConnectionHeaderWhenNodeStateIsNotStartedAndRequestHttp10(Lifecycle.State state) {
-        when(mockNode.lifecycleState()).thenReturn(state);
+        lenient().when(mockNode.lifecycleState()).thenReturn(state);
+        shutdownProcessor.node(mockNode);
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_1_0);
         shutdownProcessor.execute(ctx).test().assertResult();
         verify(mockRequest).version();
@@ -81,7 +86,8 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
     @ParameterizedTest
     @EnumSource(value = Lifecycle.State.class, names = { "STARTED" }, mode = EnumSource.Mode.EXCLUDE)
     public void shouldAddConnectionHeaderWhenNodeStateIsNotStartedAndRequestHttp11(Lifecycle.State state) {
-        when(mockNode.lifecycleState()).thenReturn(state);
+        lenient().when(mockNode.lifecycleState()).thenReturn(state);
+        shutdownProcessor.node(mockNode);
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
         shutdownProcessor.execute(ctx).test().assertResult();
         verify(mockRequest).version();
