@@ -17,15 +17,32 @@
 version: '3.8'
 
 services:
-  cypress:
-    image: cypress/included:9.6.0
+  jest-e2e:
+    image: cimg/node:16.10
     working_dir: /test
-    command: "--spec 'ui-test/integration/apim/ui/**/*.ts'"
     volumes:
-      - ./gravitee-apim-e2e:/test
-      - ./docker/test/ui-tests/conf/cypress.json:/test/cypress.json
+      - ./:/test
+    command: npm run test:ci
+    environment:
+      - MANAGEMENT_BASE_PATH=http://management_api:8083/management
+      - PORTAL_BASE_PATH=http://management_api:8083/portal/environments
+      - GATEWAY_BASE_PATH=http://gateway:8082
+      - WIREMOCK_BASE_PATH=http://wiremock:8080
     depends_on:
-      nginx:
+      management_api:
         condition: service_healthy
+      gateway:
+        condition: service_healthy
+      wiremock:
+        condition: service_started
+    networks:
+      - apim
+
+  wiremock:
+    image: wiremock/wiremock:2.33.2
+    volumes:
+      - ./api-test/resources/wiremock:/home/wiremock
+    ports:
+      - "8080:8080"
     networks:
       - apim

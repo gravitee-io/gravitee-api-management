@@ -1327,9 +1327,10 @@ jobs:
             - run:
                 name: Run API & e2e tests
                 command: |
+                    cd gravitee-apim-e2e
                     APIM_REGISTRY=graviteeio.azurecr.io \
                     APIM_TAG=$APIM_VERSION \
-                    docker-compose -f ./docker/test/common/docker-compose-apis.yml -f ./docker/test/api-tests/docker-compose-api-tests.yml \
+                    docker-compose -f ./docker/common/docker-compose-apis.yml -f ./docker/api-tests/docker-compose-api-tests.yml \
                       -p api-integration-test --project-directory $PWD up --no-build --abort-on-container-exit --exit-code-from jest-e2e
             - notify-on-failure
 
@@ -1355,9 +1356,10 @@ jobs:
             - run:
                 name: Run UI tests
                 command: |
+                    cd gravitee-apim-e2e
                     APIM_REGISTRY=graviteeio.azurecr.io \
                     APIM_TAG=$APIM_VERSION \
-                    docker-compose -f ./docker/test/common/docker-compose-apis.yml -f ./docker/test/common/docker-compose-uis.yml -f ./docker/test/ui-tests/docker-compose-ui-tests.yml \
+                    docker-compose -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-uis.yml -f ./docker/ui-tests/docker-compose-ui-tests.yml \
                       -p ui-tests --project-directory $PWD up --no-build --abort-on-container-exit --exit-code-from cypress
             - notify-on-failure
 
