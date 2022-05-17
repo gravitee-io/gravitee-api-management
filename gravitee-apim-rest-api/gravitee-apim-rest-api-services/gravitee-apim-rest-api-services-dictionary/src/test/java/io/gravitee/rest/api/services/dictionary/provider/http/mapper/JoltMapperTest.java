@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper;
+package io.gravitee.rest.api.services.dictionary.provider.http.mapper;
 
 import static org.junit.Assert.assertEquals;
 
-import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
+import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
