@@ -64,7 +64,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         verify(mockResponse, times(2)).headers();
 
         verify(spyResponseHeaders, times(2)).set(any(), anyString());
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo(ALLOW_ORIGIN_PUBLIC_WILDCARD);
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("GET");
         verify(mockResponse, times(1)).status(eq(200));
         assertThat(ctx.<Boolean>getAttribute("skip-security-chain")).isNull();
@@ -98,7 +98,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         verify(mockMetrics, times(1)).setApplication(eq("1"));
         verify(mockResponse, times(3)).headers();
         verify(spyResponseHeaders, times(3)).set(any(), anyString());
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo(ALLOW_ORIGIN_PUBLIC_WILDCARD);
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("GET");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE)).isEqualTo("10");
         verify(mockResponse, times(1)).status(eq(200));
@@ -116,7 +116,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         verify(mockMetrics, times(1)).setApplication(eq("1"));
         verify(mockResponse, times(3)).headers();
         verify(spyResponseHeaders, times(3)).set(any(), anyString());
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo(ALLOW_ORIGIN_PUBLIC_WILDCARD);
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("GET");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS))
             .isEqualTo(String.join(", ", accessControlAllowHeaders));
