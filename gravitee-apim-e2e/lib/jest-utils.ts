@@ -94,6 +94,6 @@ export async function created(promise: Promise<ApiResponse<any>>) {
   return succeed(promise, 201);
 }
 
-export async function deleted(promise: Promise<ApiResponse<any>>) {
+export async function noContent(promise: Promise<ApiResponse<any>>) {
   return succeed(promise, 204);
 }
