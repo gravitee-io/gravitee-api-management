@@ -206,7 +206,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private Completable invokeBackend(RequestExecutionContext ctx) {
         return defer(
             () -> {
-                if (!ctx.isInterrupted() && !(boolean) Boolean.FALSE.equals(ctx.getAttribute("invoker.skip"))) {
+                if (!Boolean.FALSE.equals(ctx.<Boolean>getAttribute("invoker.skip"))) {
                     Invoker invoker = getInvoker(ctx);
 
                     if (invoker != null) {
@@ -267,6 +267,13 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         return Completable.fromRunnable(
             () -> {
                 log.error("Unexpected error while handling request", throwable);
+                if (ctx.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
+                    ctx
+                        .request()
+                        .metrics()
+                        .setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
+                }
+
                 ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
                 ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
             }
