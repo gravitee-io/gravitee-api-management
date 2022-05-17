@@ -24,7 +24,23 @@ export async function fetchGateway(
   body?: string,
   headers?: HeadersInit,
   timeBetweenRetries = 500,
-  failAfterMs = 7000,
+  failAfterMs = 5000,
+  timeout = 1500,
+): Promise<Response> {
+  return new Promise((successCallback) => {
+    setTimeout(() => {
+      successCallback(_fetchGateway(contextPath, method, timeBetweenRetries, failAfterMs, body, headers));
+    }, timeout);
+  });
+}
+
+async function _fetchGateway(
+  contextPath: string,
+  method: HttpMethod = 'GET',
+  timeBetweenRetries: number,
+  failAfterMs: number,
+  body?: string,
+  headers?: HeadersInit,
 ): Promise<Response> {
   try {
     console.log('Try to fetch gateway', contextPath, failAfterMs);
@@ -44,7 +60,7 @@ export async function fetchGateway(
           failureCallback(e);
         }
         failAfterMs -= timeBetweenRetries;
-        successCallback(fetchGateway(contextPath, method, body, headers, timeBetweenRetries, failAfterMs));
+        successCallback(_fetchGateway(contextPath, method, timeBetweenRetries, failAfterMs, body));
       }, timeBetweenRetries);
     });
   }
