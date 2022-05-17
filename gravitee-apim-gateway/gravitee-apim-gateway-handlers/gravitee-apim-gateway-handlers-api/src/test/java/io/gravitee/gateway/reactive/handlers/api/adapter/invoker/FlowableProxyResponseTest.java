@@ -78,7 +78,6 @@ class FlowableProxyResponseTest {
     public void init() {
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(request.metrics()).thenReturn(metrics);
-        lenient().when(ctx.isInterrupted()).thenReturn(false);
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(response.ended()).thenReturn(false);
         lenient().when(proxyResponse.bodyHandler(bodyHandlerCaptor.capture())).thenReturn(proxyResponse);
@@ -169,50 +168,6 @@ class FlowableProxyResponseTest {
         // Check the backpressure worked as expected by counting the number of pause and resume calls.
         verify(proxyResponse, times(TOTAL_CHUNKS / REQUEST_COUNT + 1)).pause();
         verify(proxyResponse, times(TOTAL_CHUNKS / REQUEST_COUNT + 1)).resume();
-    }
-
-    @Test
-    public void shouldCompleteAndCancelProxyResponseWhenContextIsInterrupted() {
-        final AtomicInteger chunkCount = new AtomicInteger(0);
-
-        // Generates one chunk, mark the context interrupted then generate another chunk (the second one should not be propagated).
-        setupChunkProducer(
-            () -> {
-                bodyHandlerCaptor.getValue().handle(Buffer.buffer("chunk" + chunkCount.getAndIncrement()));
-                when(ctx.isInterrupted()).thenReturn(true);
-                bodyHandlerCaptor.getValue().handle(Buffer.buffer("chunk" + chunkCount.getAndIncrement()));
-            }
-        );
-
-        final TestScheduler scheduler = new TestScheduler();
-        final TestSubscriber<Buffer> obs = cut.subscribeOn(scheduler).test(REQUEST_COUNT);
-
-        scheduler.triggerActions();
-        obs.assertComplete();
-
-        // Only 1 chunk must be received because the context has been interrupted.
-        obs.assertValueCount(1);
-
-        verify(proxyResponse).cancel();
-        verify(proxyConnection).cancel();
-        verify(metrics).setApiResponseTimeMs(anyLong());
-    }
-
-    @Test
-    public void shouldErrorAndCancelProxyResponseWhenExceptionOccurs() {
-        setupChunkProducer(() -> bodyHandlerCaptor.getValue().handle(Buffer.buffer("chunk")));
-
-        // Simulate an exception during chunk handling.
-        doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE)).when(ctx).isInterrupted();
-
-        final TestScheduler scheduler = new TestScheduler();
-        final TestSubscriber<Buffer> obs = cut.subscribeOn(scheduler).test(REQUEST_COUNT);
-
-        scheduler.triggerActions();
-        obs.assertErrorMessage(MOCK_EXCEPTION_MESSAGE);
-
-        verify(proxyResponse).cancel();
-        verify(proxyConnection).cancel();
     }
 
     @Test
