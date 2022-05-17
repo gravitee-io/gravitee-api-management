@@ -17,7 +17,6 @@ package io.gravitee.gateway.handlers.api.processor.error;
 
 import static io.gravitee.gateway.api.ExecutionContext.ATTR_FAILURE_ATTRIBUTE;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeadersValues;

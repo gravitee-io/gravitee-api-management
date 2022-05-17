@@ -29,6 +29,7 @@ import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightInvoker;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
 import io.gravitee.gateway.reactive.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionException;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,10 +56,10 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
-    public void shouldCompleteWithDefaultHeadersWhenCorsEnabledAndValidRequest() {
+    public void shouldInterruptWithDefaultHeadersWhenCorsEnabledAndValidRequest() {
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
-        corsPreflightRequestProcessor.execute(ctx).test().assertResult();
+        corsPreflightRequestProcessor.execute(ctx).test().assertError(InterruptionException.class);
         verify(mockMetrics, times(1)).setApplication(eq("1"));
         verify(mockResponse, times(2)).headers();
 
@@ -71,12 +72,12 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
-    public void shouldCompleteWithCredentialsWhenCorsEnabledAndValidRequest() {
+    public void shouldInterruptWithCredentialsWhenCorsEnabledAndValidRequest() {
         api.getProxy().getCors().setAccessControlAllowCredentials(true);
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         DefaultRequestExecutionContext ctx = new DefaultRequestExecutionContext(mockRequest, mockResponse, componentProvider, null);
-        corsPreflightRequestProcessor.execute(ctx).test().assertResult();
+        corsPreflightRequestProcessor.execute(ctx).test().assertError(InterruptionException.class);
         verify(mockMetrics, times(1)).setApplication(eq("1"));
         verify(mockResponse, times(3)).headers();
         verify(spyResponseHeaders, times(3)).set(any(), anyString());
@@ -89,11 +90,11 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
-    public void shouldCompleteWithControlMaxAgeHeaderWhenCorsEnabledAndValidRequest() {
+    public void shouldInterruptWithControlMaxAgeHeaderWhenCorsEnabledAndValidRequest() {
         api.getProxy().getCors().setAccessControlMaxAge(10);
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
-        corsPreflightRequestProcessor.execute(ctx).test().assertResult();
+        corsPreflightRequestProcessor.execute(ctx).test().assertError(InterruptionException.class);
         verify(mockMetrics, times(1)).setApplication(eq("1"));
         verify(mockResponse, times(3)).headers();
         verify(spyResponseHeaders, times(3)).set(any(), anyString());
@@ -106,12 +107,12 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
-    public void shouldCompleteWithAccessControlAllowHeadersWhenCorsEnabledAndValidRequest() {
+    public void shouldInterruptWithAccessControlAllowHeadersWhenCorsEnabledAndValidRequest() {
         Set<String> accessControlAllowHeaders = Set.of("X-Test", "X-Test-2");
         api.getProxy().getCors().setAccessControlAllowHeaders(accessControlAllowHeaders);
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
-        corsPreflightRequestProcessor.execute(ctx).test().assertResult();
+        corsPreflightRequestProcessor.execute(ctx).test().assertError(InterruptionException.class);
         verify(mockMetrics, times(1)).setApplication(eq("1"));
         verify(mockResponse, times(3)).headers();
         verify(spyResponseHeaders, times(3)).set(any(), anyString());

@@ -67,47 +67,19 @@ public class PolicyChain {
      * The {@link Completable} may complete in error in case of any error occurred while executing the policies.
      */
     public Completable execute(RequestExecutionContext ctx) {
-        log.debug("Executing chain {}", id);
-
         return policies
-            .flatMapCompletable(policy -> executePolicy(ctx, policy), false, 1)
-            .onErrorResumeNext(throwable -> interruptOnError(ctx, throwable));
-    }
-
-    private Completable interruptOnError(RequestExecutionContext ctx, Throwable throwable) {
-        try {
-            // FIXME: ExecutionFailure
-            ctx.interrupt();
-            ctx.response().status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            log.error("An unexpected error occurred during policy chain execution. Interrupt the chain.", throwable);
-
-            return Completable.complete();
-        } catch (Throwable t) {
-            return Completable.error(t);
-        }
+            .doOnSubscribe(subscription -> log.debug("Executing chain {}", id))
+            .flatMapCompletable(policy -> executePolicy(ctx, policy), false, 1);
     }
 
     private Completable executePolicy(RequestExecutionContext ctx, Policy policy) {
-        if (ctx.isInterrupted()) {
-            return Completable.complete();
-        }
-
         log.debug("Executing policy {} on phase {}", policy.getId(), phase);
 
         if (ExecutionPhase.REQUEST == phase || ExecutionPhase.RESPONSE == phase) {
-            // Ensure right context is given
-            if (!(ctx instanceof RequestExecutionContext)) {
-                return Completable.error(
-                    new IllegalArgumentException(
-                        String.format("Context '%s' is compatible with the given phase '%s'", ctx.getClass().getSimpleName(), phase)
-                    )
-                );
-            }
-            RequestExecutionContext RequestExecutionContext = (RequestExecutionContext) ctx;
             if (ExecutionPhase.REQUEST == phase) {
-                return policy.onRequest(RequestExecutionContext);
+                return policy.onRequest(ctx);
             } else {
-                return policy.onResponse(RequestExecutionContext);
+                return policy.onResponse(ctx);
             }
         } else if (ExecutionPhase.ASYNC_REQUEST == phase || ExecutionPhase.ASYNC_RESPONSE == phase) {
             // Ensure right context is given
