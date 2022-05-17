@@ -26,6 +26,7 @@ import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.handlers.api.processor.error.AbstractFailureProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.error.SimpleFailureProcessor;
+import io.reactivex.Completable;
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +55,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     @Override
-    protected Buffer processFailure(final RequestExecutionContext ctx, final ExecutionFailure executionFailure) {
+    protected Completable processFailure(final RequestExecutionContext ctx, final ExecutionFailure executionFailure) {
         if (executionFailure.key() != null) {
             Api api = ctx.getComponent(Api.class);
             Map<String, Map<String, ResponseTemplate>> templates = api.getResponseTemplates();
@@ -79,7 +80,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
         }
     }
 
-    private Buffer handleAcceptHeader(
+    private Completable handleAcceptHeader(
         final RequestExecutionContext context,
         final Map<String, ResponseTemplate> templates,
         final ExecutionFailure executionFailure
@@ -107,7 +108,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
         }
     }
 
-    private Buffer handleWildcardTemplate(
+    private Completable handleWildcardTemplate(
         final RequestExecutionContext context,
         final Map<String, ResponseTemplate> templates,
         final ExecutionFailure executionFailure
@@ -121,7 +122,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
         }
     }
 
-    private Buffer handleTemplate(
+    private Completable handleTemplate(
         final RequestExecutionContext context,
         final ResponseTemplate template,
         final ExecutionFailure executionFailure
@@ -150,9 +151,9 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
             String body = context.getTemplateEngine().getValue(template.getBody(), String.class);
             Buffer payload = Buffer.buffer(body);
             context.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
-            return payload;
+            return context.response().body(payload);
         }
-        return null;
+        return Completable.complete();
     }
 
     private static class Holder {
