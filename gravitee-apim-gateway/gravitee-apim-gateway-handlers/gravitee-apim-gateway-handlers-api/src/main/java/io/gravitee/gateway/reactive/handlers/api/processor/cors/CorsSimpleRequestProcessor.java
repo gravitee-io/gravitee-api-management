@@ -61,17 +61,13 @@ public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
         // do not set any additional headers and terminate this set of steps.
         String originHeader = request.headers().get(HttpHeaderNames.ORIGIN);
         if (isOriginAllowed(cors, originHeader)) {
-            // 3. If the resource supports credentials add a single Access-Control-Allow-Origin header, with the value
-            // of the Origin header as value, and add a single Access-Control-Allow-Credentials header with the
+            // 3. If the resource supports credentials add a single Access-Control-Allow-Credentials header with the
             // case-sensitive string "true" as value.
-            // Otherwise, add a single Access-Control-Allow-Origin header, with either the value of the Origin header
-            // or the string "*" as value.
+            // Also add a single Access-Control-Allow-Origin header with the value of the Origin header
             if (cors.isAccessControlAllowCredentials()) {
                 response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE.toString());
-                response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, request.headers().get(HttpHeaderNames.ORIGIN));
-            } else {
-                response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, ALLOW_ORIGIN_PUBLIC_WILDCARD);
             }
+            response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, originHeader);
 
             // 4. If the list of exposed headers is not empty add one or more Access-Control-Expose-Headers headers,
             // with as values the header field names given in the list of exposed headers.

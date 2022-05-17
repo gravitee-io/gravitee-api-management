@@ -64,7 +64,7 @@ class CorsSimpleRequestProcessorTest extends AbstractProcessorTest {
         corsSimpleRequestProcessor.execute(ctx).test().assertResult();
         verify(mockResponse, times(1)).headers();
         verify(spyResponseHeaders, times(1)).set(any(), anyString());
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo(ALLOW_ORIGIN_PUBLIC_WILDCARD);
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
     }
 
     @Test
