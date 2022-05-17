@@ -29,6 +29,7 @@ import { PageType } from '@management-models/PageType';
 import { ApiApi, GetPageByApiIdAndPageIdIncludeEnum } from '@portal-apis/ApiApi';
 import { MetadataFormat } from '@management-models/MetadataFormat';
 import { APIMetadataApi } from '@management-apis/APIMetadataApi';
+import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -111,7 +112,8 @@ describe('Documentation', () => {
     // publish api
     await apisManagementApiAsApiUser.updateApiRaw({
       api: createdApi.id,
-      updateApiEntity: ApisFaker.updateApiFromApiEntity(createdApi, {
+      updateApiEntity: UpdateApiEntityFromJSON({
+        ...createdApi,
         lifecycle_state: ApiLifecycleState.PUBLISHED,
         visibility: Visibility.PUBLIC,
       }),
@@ -123,9 +125,7 @@ describe('Documentation', () => {
   afterAll(async () => {
     await apisManagementApiAsApiUser.updateApiRaw({
       api: createdApi.id,
-      updateApiEntity: ApisFaker.updateApiFromApiEntity(createdApi, {
-        lifecycle_state: ApiLifecycleState.UNPUBLISHED,
-      }),
+      updateApiEntity: UpdateApiEntityFromJSON({ ...createdApi, lifecycle_state: ApiLifecycleState.UNPUBLISHED }),
       orgId,
       envId,
     });

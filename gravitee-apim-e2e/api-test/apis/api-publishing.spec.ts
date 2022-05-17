@@ -28,6 +28,7 @@ import { ApiApi } from '@portal-apis/ApiApi';
 import { ApiEntity } from '@management-models/ApiEntity';
 import { fail, succeed } from '../../lib/jest-utils';
 import { ApiLifecycleState } from '@management-models/ApiLifecycleState';
+import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -89,7 +90,7 @@ describe('API - Publishing', () => {
       });
       publishedApi = await apisResourceUser.updateApi({
         api: userApi.id,
-        updateApiEntity: ApisFaker.updateApiFromApiEntity(userApi, { lifecycle_state: ApiLifecycleState.PUBLISHED }),
+        updateApiEntity: UpdateApiEntityFromJSON({ ...userApi, lifecycle_state: ApiLifecycleState.PUBLISHED }),
         orgId,
         envId,
       });

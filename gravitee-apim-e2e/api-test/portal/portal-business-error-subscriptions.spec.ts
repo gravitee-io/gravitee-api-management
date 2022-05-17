@@ -37,6 +37,7 @@ import { PlanSecurityType } from '@management-models/PlanSecurityType';
 import { PlanValidationType } from '@management-models/PlanValidationType';
 import { SubscriptionStatus } from '@management-models/SubscriptionStatus';
 import faker from '@faker-js/faker';
+import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -70,7 +71,8 @@ describe('Portal: Business Error - subscriptions', () => {
     // publish an api
     await apisAsAdminUser.updateApi({
       api: createdApi.id,
-      updateApiEntity: ApisFaker.updateApiFromApiEntity(createdApi, {
+      updateApiEntity: UpdateApiEntityFromJSON({
+        ...createdApi,
         lifecycle_state: ApiLifecycleState.PUBLISHED,
         visibility: Visibility.PUBLIC,
       }),
