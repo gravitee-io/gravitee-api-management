@@ -45,7 +45,6 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
     private final Response response;
     private Collection<TemplateVariableProvider> templateVariableProviders;
     private TemplateEngine templateEngine;
-    private boolean interrupted;
 
     protected AbstractExecutionContext(
         Request request,
@@ -61,22 +60,13 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
 
     @Override
     public Completable interrupt() {
-        interrupted = true;
-
         return Completable.error(new InterruptionException());
     }
 
     @Override
     public Completable interruptWith(ExecutionFailure executionFailure) {
-        interrupted = true;
         internalAttributes.put(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
-
         return Completable.error(new InterruptionFailureException(executionFailure));
-    }
-
-    @Override
-    public boolean isInterrupted() {
-        return interrupted;
     }
 
     @Override
