@@ -37,6 +37,7 @@ import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '@portal-apis/Su
 import faker from '@faker-js/faker';
 import { Subscription } from '@portal-models/Subscription';
 import { APISubscriptionsApi } from '@management-apis/APISubscriptionsApi';
+import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -70,7 +71,8 @@ describe.each([PlanValidationType.AUTO, PlanValidationType.MANUAL])('Subscriptio
     // publish an api
     await apisAsUser.updateApi({
       api: createdApi.id,
-      updateApiEntity: ApisFaker.updateApiFromApiEntity(createdApi, {
+      updateApiEntity: UpdateApiEntityFromJSON({
+        ...createdApi,
         lifecycle_state: ApiLifecycleState.PUBLISHED,
         visibility: Visibility.PUBLIC,
       }),

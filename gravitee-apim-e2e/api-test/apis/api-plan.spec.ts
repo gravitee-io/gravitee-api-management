@@ -49,6 +49,7 @@ import { PlanSecurityType } from '@management-models/PlanSecurityType';
 import { PlanValidationType } from '@management-models/PlanValidationType';
 import { UpdatePlanEntity } from '@management-models/UpdatePlanEntity';
 import { SubscriptionStatus } from '@management-models/SubscriptionStatus';
+import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -92,7 +93,8 @@ describe('API - Plan', () => {
       envId,
       orgId,
       api: createdApi.id,
-      updateApiEntity: ApisFaker.updateApiFromApiEntity(createdApi, {
+      updateApiEntity: UpdateApiEntityFromJSON({
+        ...createdApi,
         lifecycle_state: ApiLifecycleState.PUBLISHED,
         visibility: Visibility.PUBLIC,
       }),

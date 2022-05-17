@@ -32,6 +32,7 @@ import { SearchableUser } from '@management-models/SearchableUser';
 import { UsersApi } from '@management-apis/UsersApi';
 import { cloneDeep, find } from 'lodash';
 import { APIMembershipsApi } from '@management-apis/APIMembershipsApi';
+import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -62,7 +63,7 @@ describe('API - Visibility', () => {
     // publish it
     publishedApi = await apisResourceAsApiUser.updateApi({
       api: createdApi.id,
-      updateApiEntity: ApisFaker.updateApiFromApiEntity(createdApi, { lifecycle_state: ApiLifecycleState.PUBLISHED }),
+      updateApiEntity: UpdateApiEntityFromJSON({ ...createdApi, lifecycle_state: ApiLifecycleState.PUBLISHED }),
       orgId,
       envId,
     });
