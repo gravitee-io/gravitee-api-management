@@ -37,7 +37,6 @@ const modifiedFiles = modifiedFilesAsString.stdout.split("\n");
 
 // Portal
 const shouldBuildPortal = modifiedFiles.some((file) => file.includes("gravitee-apim-portal"));
-
 // Console
 const shouldBuildConsole = modifiedFiles.some((file) => file.includes("gravitee-apim-console"));
 
@@ -55,8 +54,8 @@ const shouldBuildAll = modifiedFiles.some((file) => baseDepsIdentifiers.some((id
 
 const parametersTemplate = {
     build_maven: shouldBuildMavenProjects || shouldBuildAll,
-    build_portal: shouldBuildPortal || shouldBuildAll,
-    build_console: shouldBuildConsole || shouldBuildAll,
+    skip_portal: !shouldBuildPortal,
+    skip_console: !shouldBuildConsole,
 };
 
 console.log(chalk.blue(`Build will be executed with the following parameters:`));

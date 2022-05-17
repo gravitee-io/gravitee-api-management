@@ -253,14 +253,14 @@ parameters:
         type: boolean
         default: true
         description: "Should build maven projects ?"
-    build_portal:
+    skip_portal:
         type: boolean
-        default: true
-        description: "Should build portal ?"
-    build_console:
+        default: false
+        description: "Should skip portal ?"
+    skip_console:
         type: boolean
-        default: true
-        description: "Should build console ?"
+        default: false
+        description: "Should skip console ?"
 
 jobs:
     setup:
@@ -314,25 +314,35 @@ jobs:
                 description: "Directory where the Sonarcloud analysis will be run"
                 default: "gravitee-apim-rest-api"
                 type: string
+            skip:
+                type: boolean
+                default: false
+                description: if you want to skip
         docker:
             - image: sonarsource/sonar-scanner-cli
         resource_class: large
         steps:
             - run:
-                  name: Add SSH tool
-                  command: apk add --no-cache openssh
-            - checkout
-            - attach_workspace:
-                  at: .
-            - keeper/env-export:
-                  secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
-                  var-name: SONAR_TOKEN
-            - get-apim-version
-            - run:
-                  name: Run Sonarcloud Analysis
-                  command: sonar-scanner -Dsonar.projectVersion=${APIM_VERSION}
-                  working_directory: << parameters.working_directory >>
-            - notify-on-failure
+                command: echo "run sonarcloud-analysis - skip:<< parameters.skip >>"
+            - when:
+                condition:
+                  not: << parameters.skip >>
+                steps:
+                    - run:
+                          name: Add SSH tool
+                          command: apk add --no-cache openssh
+                    - checkout
+                    - attach_workspace:
+                          at: .
+                    - keeper/env-export:
+                          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
+                          var-name: SONAR_TOKEN
+                    - get-apim-version
+                    - run:
+                          name: Run Sonarcloud Analysis
+                          command: sonar-scanner -Dsonar.projectVersion=${APIM_VERSION}
+                          working_directory: << parameters.working_directory >>
+                    - notify-on-failure
 
     validate:
         docker:
@@ -594,34 +604,43 @@ jobs:
             resource-class:
                 type: string
                 default: medium
+            skip:
+              type: boolean
+              default: false
+              description: if you want to skip
         executor:
             name: node-lts
             class: << parameters.resource-class>>
         steps:
-            - checkout
-            - webui-install:
-                  apim-ui-project: << parameters.apim-ui-project >>
-            - attach_workspace:
-                  at: .
             - run:
-                  name: Check License
-                  command: npm run lint:license
-                  working_directory: << parameters.apim-ui-project >>
-            - run:
-                  name: Run Prettier and ESLint
-                  command: npm run lint
-                  working_directory: << parameters.apim-ui-project >>
-            - run:
-                  name: Run unit tests
-                  command: npm run test:coverage
-                  working_directory: << parameters.apim-ui-project >>
-            - notify-on-failure
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - << parameters.apim-ui-project >>/coverage
-            - store_test_results:
-                  path: << parameters.apim-ui-project >>/coverage
+                command: echo "run webui-lint-test on << parameters.apim-ui-project >> - skip:<< parameters.skip >>"
+            - when:
+                  condition:
+                      not: << parameters.skip >>
+                  steps:
+                      - webui-install:
+                            apim-ui-project: << parameters.apim-ui-project >>
+                      - attach_workspace:
+                            at: .
+                      - run:
+                            name: Check License
+                            command: npm run lint:license
+                            working_directory: << parameters.apim-ui-project >>
+                      - run:
+                            name: Run Prettier and ESLint
+                            command: npm run lint
+                            working_directory: << parameters.apim-ui-project >>
+                      - run:
+                            name: Run unit tests
+                            command: npm run test:coverage
+                            working_directory: << parameters.apim-ui-project >>
+                      - notify-on-failure
+                      - persist_to_workspace:
+                            root: .
+                            paths:
+                                - << parameters.apim-ui-project >>/coverage
+                      - store_test_results:
+                            path: << parameters.apim-ui-project >>/coverage
 
     webui-publish-artifactory:
         parameters:
@@ -739,24 +758,35 @@ jobs:
             - notify-on-failure
 
     console-webui-build-storybook:
+        parameters:
+            skip:
+              type: boolean
+              default: false
+              description: if you want to skip
         executor:
             name: node-lts
             class: large
         steps:
-            - checkout
-            - webui-install:
-                  apim-ui-project: gravitee-apim-console-webui
             - run:
-                  name: Build
-                  command: npm run build-storybook
-                  working_directory: gravitee-apim-console-webui
-                  environment:
-                      NODE_OPTIONS: --max_old_space_size=3072
-            - notify-on-failure
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - gravitee-apim-console-webui/storybook-static
+                  command: echo "run console-webui-build-storybook - skip:<< parameters.skip >>"
+            - when:
+                  condition:
+                      not: << parameters.skip >>
+                  steps:
+                      - checkout
+                      - webui-install:
+                            apim-ui-project: gravitee-apim-console-webui
+                      - run:
+                            name: Build
+                            command: npm run build-storybook
+                            working_directory: gravitee-apim-console-webui
+                            environment:
+                                NODE_OPTIONS: --max_old_space_size=3072
+                      - notify-on-failure
+                      - persist_to_workspace:
+                            root: .
+                            paths:
+                                - gravitee-apim-console-webui/storybook-static
 
     console-webui-chromatic-deployment:
         executor:
@@ -1494,10 +1524,12 @@ workflows:
             - webui-lint-test:
                   name: Lint & Test APIM Console
                   apim-ui-project: gravitee-apim-console-webui
+                  skip: << pipeline.parameters.skip_console >>
                   requires:
                       - setup
             - console-webui-build-storybook:
                   name: Build Console Storybook
+                  skip: << pipeline.parameters.skip_console >>
                   requires:
                       - setup
             - trigger-chromatic:
@@ -1542,19 +1574,29 @@ workflows:
                   name: Lint & Test APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
                   resource-class: large
+                  skip: << pipeline.parameters.skip_portal >>
                   requires:
                       - setup
             - sonarcloud-analysis:
                   name: Sonar - << matrix.working_directory >>
+                  skip: << pipeline.parameters.skip_console >>
                   matrix:
                       parameters:
                           working_directory:
                               - gravitee-apim-console-webui
-                              - gravitee-apim-portal-webui
                   context: cicd-orchestrator
                   requires:
                       - Lint & Test APIM Console
-                      - Lint & Test APIM Portal
+            - sonarcloud-analysis:
+                name: Sonar - << matrix.working_directory >>
+                skip: << pipeline.parameters.skip_portal >>
+                matrix:
+                  parameters:
+                    working_directory:
+                      - gravitee-apim-portal-webui
+                context: cicd-orchestrator
+                requires:
+                  - Lint & Test APIM Portal
             - webui-build:
                   name: Build APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
