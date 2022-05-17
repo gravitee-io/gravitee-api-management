@@ -61,23 +61,17 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
 
     @Override
     public Completable interrupt() {
-        return Completable.fromRunnable(
-            () -> {
-                interrupted = true;
-                throw new InterruptionException();
-            }
-        );
+        interrupted = true;
+
+        return Completable.error(new InterruptionException());
     }
 
     @Override
     public Completable interruptWith(ExecutionFailure executionFailure) {
-        return Completable.fromRunnable(
-            () -> {
-                interrupted = true;
-                internalAttributes.put(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
-                throw new InterruptionFailureException(executionFailure);
-            }
-        );
+        interrupted = true;
+        internalAttributes.put(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+        return Completable.error(new InterruptionFailureException(executionFailure));
     }
 
     @Override

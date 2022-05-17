@@ -55,26 +55,20 @@ public abstract class AbstractFailureProcessor implements Processor {
 
     @Override
     public Completable execute(final RequestExecutionContext executionContext) {
-        return Maybe
-            .fromCallable(
-                () -> {
-                    ExecutionFailure executionFailure = executionContext.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
-                    if (executionFailure != null) {
-                        // If no application has been associated to the request (for example in case security chain can not be processed
-                        // correctly) set the default application to track it.
-                        if (executionContext.request().metrics().getApplication() == null) {
-                            executionContext.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
-                        }
+        ExecutionFailure executionFailure = executionContext.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
+        if (executionFailure != null) {
+            // If no application has been associated to the request (for example in case security chain can not be processed
+            // correctly) set the default application to track it.
+            if (executionContext.request().metrics().getApplication() == null) {
+                executionContext.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
+            }
 
-                        return processFailure(executionContext, executionFailure);
-                    }
-                    return null;
-                }
-            )
-            .flatMapCompletable(buffer -> executionContext.response().body(buffer));
+            return processFailure(executionContext, executionFailure);
+        }
+        return Completable.complete();
     }
 
-    protected Buffer processFailure(final RequestExecutionContext context, final ExecutionFailure executionFailure) {
+    protected Completable processFailure(final RequestExecutionContext context, final ExecutionFailure executionFailure) {
         final Request request = context.request();
         final Response response = context.response();
 
@@ -114,8 +108,8 @@ public abstract class AbstractFailureProcessor implements Processor {
 
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
-            return payload;
+            return context.response().body(payload);
         }
-        return null;
+        return Completable.complete();
     }
 }
