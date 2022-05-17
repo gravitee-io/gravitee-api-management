@@ -80,7 +80,7 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
 
     private void handleChunk(Buffer chunk) {
         try {
-            if (ctx.isInterrupted() || ctx.response().ended()) {
+            if (ctx.response().ended()) {
                 // The current response is already ended for some reason (ex: connection close by the client). Close the proxy connection to avoid getting useless chunks.
                 cancelProxyResponse();
                 subscriber.onComplete();
