@@ -331,6 +331,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setName(newApiEntity.getName());
         apiEntity.setDescription(newApiEntity.getDescription());
         apiEntity.setVersion(newApiEntity.getVersion());
+        apiEntity.setGraviteeDefinitionVersion(newApiEntity.getGraviteeDefinitionVersion());
+        apiEntity.setFlows(newApiEntity.getFlows());
+        apiEntity.setFlowMode(newApiEntity.getFlowMode());
 
         Set<String> groups = newApiEntity.getGroups();
         if (groups != null && !groups.isEmpty()) {
