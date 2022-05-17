@@ -120,17 +120,13 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
             return;
         }
 
-        // 7. If the resource supports credentials add a single Access-Control-Allow-Origin header, with the value of
-        // the Origin header as value, and add a single Access-Control-Allow-Credentials header with the case-sensitive
+        // 7. If the resource supports credentials add a single Access-Control-Allow-Credentials header with the case-sensitive
         // string "true" as value.
-        // Otherwise, add a single Access-Control-Allow-Origin header, with either the value of the Origin header or
-        // the string "*" as value.
+        // ALso, add a single Access-Control-Allow-Origin header with the value of the Origin header
         if (cors.isAccessControlAllowCredentials()) {
             response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE.toString());
-            response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, request.headers().get(HttpHeaderNames.ORIGIN));
-        } else {
-            response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, ALLOW_ORIGIN_PUBLIC_WILDCARD);
         }
+        response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, originHeader);
 
         // 8. Optionally add a single Access-Control-Max-Age header with as value the amount of seconds the user agent
         // is allowed to cache the result of the request.
