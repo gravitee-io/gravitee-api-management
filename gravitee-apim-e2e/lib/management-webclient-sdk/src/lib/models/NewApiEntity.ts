@@ -56,6 +56,12 @@ export interface NewApiEntity {
      */
     flows?: Array<Flow>;
     /**
+     * API's gravitee definition version
+     * @type {string}
+     * @memberof NewApiEntity
+     */
+    gravitee?: string;
+    /**
      * API's groups. Used to add team in your API.
      * @type {Array<string>}
      * @memberof NewApiEntity
@@ -96,6 +102,7 @@ export function NewApiEntityFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'endpoint': json['endpoint'],
         'flow_mode': !exists(json, 'flow_mode') ? undefined : json['flow_mode'],
         'flows': !exists(json, 'flows') ? undefined : ((json['flows'] as Array<any>).map(FlowFromJSON)),
+        'gravitee': !exists(json, 'gravitee') ? undefined : json['gravitee'],
         'groups': !exists(json, 'groups') ? undefined : json['groups'],
         'name': json['name'],
         'paths': !exists(json, 'paths') ? undefined : json['paths'],
@@ -117,6 +124,7 @@ export function NewApiEntityToJSON(value?: NewApiEntity | null): any {
         'endpoint': value.endpoint,
         'flow_mode': value.flow_mode,
         'flows': value.flows === undefined ? undefined : ((value.flows as Array<any>).map(FlowToJSON)),
+        'gravitee': value.gravitee,
         'groups': value.groups,
         'name': value.name,
         'paths': value.paths,

@@ -68,6 +68,10 @@ public class NewApiEntity {
     @Schema(description = "API's flow mode.", example = "BEST_MATCH")
     private FlowMode flowMode;
 
+    @JsonProperty(value = "gravitee")
+    @Schema(description = "API's gravitee definition version")
+    private String graviteeDefinitionVersion;
+
     public String getName() {
         return name;
     }
@@ -138,6 +142,14 @@ public class NewApiEntity {
 
     public void setFlowMode(FlowMode flowMode) {
         this.flowMode = flowMode;
+    }
+
+    public String getGraviteeDefinitionVersion() {
+        return graviteeDefinitionVersion;
+    }
+
+    public void setGraviteeDefinitionVersion(String graviteeDefinitionVersion) {
+        this.graviteeDefinitionVersion = graviteeDefinitionVersion;
     }
 
     @Override
