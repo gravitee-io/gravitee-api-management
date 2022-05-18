@@ -62,7 +62,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         this.propertyPrefix = propertyPrefix + ".mongodb.";
     }
 
-    private SocketSettings buildSocketSettings() {
+    protected SocketSettings buildSocketSettings() {
         SocketSettings.Builder socketBuilder = SocketSettings.builder();
 
         Integer connectTimeout = readPropertyValue(propertyPrefix + "connectTimeout", Integer.class, 1000);
@@ -74,7 +74,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         return socketBuilder.build();
     }
 
-    private ClusterSettings buildClusterSettings(boolean isReactive) {
+    protected ClusterSettings buildClusterSettings(boolean isReactive) {
         ClusterSettings.Builder clusterBuilder = ClusterSettings.builder();
 
         // We do not want to wait for a server
@@ -104,7 +104,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         return clusterBuilder.build();
     }
 
-    private ConnectionPoolSettings buildConnectionPoolSettings(boolean isReactive) {
+    protected ConnectionPoolSettings buildConnectionPoolSettings(boolean isReactive) {
         ConnectionPoolSettings.Builder connectionPoolBuilder = ConnectionPoolSettings.builder();
 
         Integer maxWaitTime = readPropertyValue(propertyPrefix + "maxWaitTime", Integer.class);
@@ -124,7 +124,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         return connectionPoolBuilder.build();
     }
 
-    private ServerSettings buildServerSettings() {
+    protected ServerSettings buildServerSettings() {
         ServerSettings.Builder serverBuilder = ServerSettings.builder();
 
         Integer heartbeatFrequency = readPropertyValue(propertyPrefix + "heartbeatFrequency", Integer.class);
@@ -136,7 +136,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         return serverBuilder.build();
     }
 
-    private SslSettings buildSslSettings() {
+    protected SslSettings buildSslSettings() {
         SslSettings.Builder sslBuilder = SslSettings.builder();
 
         boolean sslEnabled = readPropertyValue(propertyPrefix + "sslEnabled", Boolean.class, false);
@@ -212,7 +212,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         }
     }
 
-    private MongoClientSettings buildClientSettings(boolean isReactive) {
+    protected MongoClientSettings buildClientSettings(boolean isReactive) {
         // Base Builder
         MongoClientSettings.Builder builder = MongoClientSettings.builder();
 
