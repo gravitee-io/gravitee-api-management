@@ -111,12 +111,21 @@
       </div>
     </div>
   </div>
+  <div ng-if="$ctrl.alerts.length == 0" ng-style="{'text-align': 'center'  }">
+    <md-button
+      ng-if="$ctrl.hasPermissionForCurrentScope('alert-c')"
+      class="md-fab"
+      aria-label="create-alert"
+      ng-click="$ctrl.goTo('alertnew')"
+    >
+      <ng-md-icon icon="add" style="fill: #fff"></ng-md-icon>
+    </md-button>
+  </div>
 </div>
-<div ng-style="{'text-align': $ctrl.alerts.length == 0 ? 'center' : 'none' }">
+<div ng-if="$ctrl.alerts.length > 0">
   <md-button
     ng-if="$ctrl.hasPermissionForCurrentScope('alert-c')"
-    ng-class="{'md-fab-bottom-right': $ctrl.alerts.length > 0}"
-    class="md-fab"
+    class="md-fab md-fab-bottom-right"
     aria-label="create-alert"
     ng-click="$ctrl.goTo('alertnew')"
   >
