@@ -37,7 +37,6 @@ export * from './ApiRequestItemSearchLogResponse';
 export * from './ApiReview';
 export * from './ApiStateEntity';
 export * from './ApiStatus';
-export * from './ApisOrderParam';
 export * from './Application';
 export * from './ApplicationEntity';
 export * from './ApplicationGrantTypeEntity';
