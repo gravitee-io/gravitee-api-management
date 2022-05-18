@@ -47,12 +47,35 @@ commands:
                       echo "export BUILD_NUMBER=$BUILD_NUMBER" >> $BASH_ENV
                       echo "export GIT_COMMIT=$GIT_COMMIT" >> $BASH_ENV
 
-    restore-maven-cache:
-        description: Restore Maven cache
+
+    restore-maven-job-cache:
+        description: Restore Maven cache for a dedicated job
+        parameters:
+            jobName:
+                description: The job name
+                type: string
+                default: ""
         steps:
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v6-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v6-<< parameters.jobName >>-{{ .Branch }}-
+                      - gravitee-api-management-v6-<< parameters.jobName >>-
+                      - gravitee-api-management-v6-
+
+    save-maven-job-cache:
+        description: Restore Maven cache for a dedicated job
+        parameters:
+            jobName:
+                description: The job name
+                type: string
+                default: ""
+        steps:
+            - save_cache:
+                  paths:
+                      - ~/.m2
+                  key: gravitee-api-management-v6-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  when: always
 
     notify-on-failure:
         steps:
@@ -212,12 +235,14 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - restore-maven-cache
+            - restore-maven-job-cache:
+                  jobName: validate
             - run:
                   name: "validate project"
                   command: |
                       mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml validate --no-transfer-progress -T 2C
-
+            - save-maven-job-cache:
+                  jobName: validate
             - notify-on-failure
 
     build:
@@ -228,21 +253,28 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - restore-maven-cache
+            - restore-maven-job-cache:
+                  jobName: build
             - prepare-env-var
             - run:
                   name: "Build project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C
+                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml clean install --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C
                       cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/gravitee-apim-rest-api-distribution-*.tar.gz ./
                       cp ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/gravitee-apim-gateway-standalone-distribution-zip/target/gravitee-apim-gateway-distribution-*.tar.gz ./
 
             - notify-on-failure
             - save_cache:
                   paths:
-                      - ~/.m2
-                  key: gravitee-api-management-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
-                  when: always
+                      - ~/.m2/repository/io/gravitee/apim
+                  key: gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+                  when: on_success
+            - run:
+                  name: "Exclude APIM artefacts from build cache"
+                  command: |
+                      rm -rf ~/.m2/repository/io/gravitee/apim
+            - save-maven-job-cache:
+                  jobName: build
             - persist_to_workspace:
                   root: ./
                   paths:
@@ -258,7 +290,11 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - restore-maven-cache
+            - restore-maven-job-cache:
+                  jobName: test
+            - restore_cache:
+                  keys:
+                      - gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
             - run:
                   name: Run tests
                   command: |
@@ -271,6 +307,8 @@ jobs:
                       find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
                   when: always
             - notify-on-failure
+            - save-maven-job-cache:
+                  jobName: test
             - store_test_results:
                   path: ~/test-results
 
@@ -284,12 +322,15 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - restore-maven-cache
+            - restore-maven-job-cache:
+                  jobName: publish-on-artifactory
             - run:
                   name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
                   command: |
                       mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml   -DaltDeploymentRepository=${ALT_DEPLOYMENT_REPOSITORY}
             - notify-on-failure
+            - save-maven-job-cache:
+                  jobName: publish-on-artifactory
 
     publish-on-nexus:
         docker:
@@ -299,12 +340,15 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - restore-maven-cache
+            - restore-maven-job-cache:
+                  jobName: publish-on-nexus
             - run:
                   name: "Maven Package and deploy to Nexus Snapshots"
                   command: |
                       mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml
             - notify-on-failure
+            - save-maven-job-cache:
+                  jobName: publish-on-nexus
 
     publish-images-azure-registry:
         docker:
@@ -623,9 +667,8 @@ jobs:
             DRY_RUN: << pipeline.parameters.dry_run >>
         steps:
             - checkout
-            - restore_cache:
-                  keys:
-                      - gio-gravitee-release-dependencies-{{ .Branch }}
+            - restore-maven-job-cache:
+                  jobName: release
             - attach_workspace:
                   at: /tmp
             - keeper/env-export:
@@ -648,6 +691,9 @@ jobs:
                   name: Maven deploy to Gravitee's private Artifactory
                   command: |
                       mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U -P gio-artifactory-release,gio-release clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
+            - save-maven-job-cache:
+                  jobName: release
+
             - add_ssh_keys:
                   fingerprints:
                       - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
@@ -709,6 +755,7 @@ jobs:
                       else
                         echo "# --->>> THIS IS A DRY RUN"
                       fi;
+
 
     publish_prod_docker_images:
         parameters:
@@ -817,7 +864,9 @@ jobs:
                   command: |
                       # the previous cache key was computed with the SNAPSHOT version of the release. 
                       echo "<< pipeline.parameters.graviteeio_version >>-SNAPSHOT" > .apim-version.txt
-            - restore-maven-cache
+            - restore-maven-job-cache:
+                  jobName: nexus-staging
+
             - attach_workspace:
                   at: .
             - prepare-gpg
@@ -825,6 +874,8 @@ jobs:
                   name: Release on Nexus
                   command: |
                       mvn clean deploy --activate-profiles gravitee-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
+            - save-maven-job-cache:
+                  jobName: nexus-staging
 
     publish_rpm_packages:
       parameters:
