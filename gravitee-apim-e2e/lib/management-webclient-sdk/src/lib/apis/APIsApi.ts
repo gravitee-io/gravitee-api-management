@@ -1039,7 +1039,7 @@ export interface SearchApisRequest {
     orgId: string;
 }
 
-export interface SearchApis1Request {
+export interface SearchPagedApisRequest {
     q: string;
     order?: ApisOrderParam;
     size?: number;
@@ -6289,17 +6289,17 @@ export class APIsApi extends runtime.BaseAPI {
     /**
      * Search for API using the search engine
      */
-    async searchApis1Raw(requestParameters: SearchApis1Request): Promise<runtime.ApiResponse<ApiListItem>> {
+    async searchPagedApisRaw(requestParameters: SearchPagedApisRequest): Promise<runtime.ApiResponse<ApiListItem>> {
         if (requestParameters.q === null || requestParameters.q === undefined) {
-            throw new runtime.RequiredError('q','Required parameter requestParameters.q was null or undefined when calling searchApis1.');
+            throw new runtime.RequiredError('q','Required parameter requestParameters.q was null or undefined when calling searchPagedApis.');
         }
 
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling searchApis1.');
+            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling searchPagedApis.');
         }
 
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling searchApis1.');
+            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling searchPagedApis.');
         }
 
         const queryParameters: runtime.HTTPQuery = {};
@@ -6338,8 +6338,8 @@ export class APIsApi extends runtime.BaseAPI {
     /**
      * Search for API using the search engine
      */
-    async searchApis1(requestParameters: SearchApis1Request): Promise<ApiListItem> {
-        const response = await this.searchApis1Raw(requestParameters);
+    async searchPagedApis(requestParameters: SearchPagedApisRequest): Promise<ApiListItem> {
+        const response = await this.searchPagedApisRaw(requestParameters);
         return await response.value();
     }
 
