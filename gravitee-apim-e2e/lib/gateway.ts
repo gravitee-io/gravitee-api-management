@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import 'dotenv/config';
-import fetchApi, { Response } from 'node-fetch';
+import fetchApi, { HeadersInit, Response } from 'node-fetch';
 
 export type HttpMethod = 'GET' | 'PUT' | 'POST' | 'DELETE';
 
@@ -22,6 +22,7 @@ export async function fetchGateway(
   contextPath: string,
   method: HttpMethod = 'GET',
   body?: string,
+  headers?: HeadersInit,
   timeBetweenRetries = 500,
   failAfterMs = 7000,
 ): Promise<Response> {
@@ -30,6 +31,7 @@ export async function fetchGateway(
     const response = await fetchApi(`${process.env.GATEWAY_BASE_PATH}${contextPath}`, {
       method,
       body,
+      headers,
     });
     if (response.status == 404) {
       throw new Error(`Gateway [${process.env.GATEWAY_BASE_PATH}${contextPath}] not found. Retry...`);
@@ -42,7 +44,7 @@ export async function fetchGateway(
           failureCallback(e);
         }
         failAfterMs -= timeBetweenRetries;
-        successCallback(fetchGateway(contextPath, method, body, timeBetweenRetries, failAfterMs));
+        successCallback(fetchGateway(contextPath, method, body, headers, timeBetweenRetries, failAfterMs));
       }, timeBetweenRetries);
     });
   }
