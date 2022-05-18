@@ -283,9 +283,9 @@ jobs:
                       - ./gravitee-apim-gateway-distribution-*.tar.gz
 
     test:
-        machine:
-            image: ubuntu-2004:202107-02
-        resource_class: xlarge
+        docker:
+            - image: cimg/openjdk:11.0
+        resource_class: medium
         steps:
             - checkout
             - attach_workspace:
@@ -296,10 +296,15 @@ jobs:
                   keys:
                       - gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
             - run:
-                  name: Run tests
+                  name: Run APIM definition tests
                   command: |
-                      # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml package --no-transfer-progress -T 2C
+                      # workaround because repo mongo and jdbc use it for tests and we don't want the -amd option to add them in maven reactor
+                      mvn -s .gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -T 2C -f gravitee-apim-definition/pom.xml
+            - run:
+                  name: Run All except APIM definition tests
+                  command: |
+                      # workaround because repo mongo and jdbc use it for tests and we don't want the -amd option to add them in maven reactor
+                      mvn -pl 'gravitee-apim-rest-api, gravitee-apim-gateway' -amd --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
                   command: |
@@ -309,6 +314,37 @@ jobs:
             - notify-on-failure
             - save-maven-job-cache:
                   jobName: test
+            - store_test_results:
+                  path: ~/test-results
+
+    test-repository:
+        machine:
+            image: ubuntu-2004:current
+        resource_class: large
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: .
+            - restore-maven-job-cache:
+                  jobName: test-repository
+            - restore_cache:
+                  keys:
+                      - gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+            - run:
+                  name: Run tests
+                  command: |
+                      cd gravitee-apim-repository
+                      # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
+                      mvn package -s ../.gravitee.settings.xml --no-transfer-progress -Dskip.validation=true -T 2C
+            - run:
+                  name: Save test results
+                  command: |
+                      mkdir -p ~/test-results/junit/
+                      find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+                  when: always
+            - notify-on-failure
+            - save-maven-job-cache:
+                  jobName: test-repository
             - store_test_results:
                   path: ~/test-results
 
@@ -1109,6 +1145,9 @@ workflows:
             - test:
                   requires:
                       - build
+            - test-repository:
+                  requires:
+                      - build
             - sonarcloud-analysis:
                   name: Sonar - << matrix.working_directory >>
                   matrix:
@@ -1120,6 +1159,7 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - test
+                      - test-repository
             - publish-on-artifactory:
                   filters:
                       branches:
@@ -1128,6 +1168,7 @@ workflows:
                               - /^\d+\.\d+\.x$/
                   requires:
                       - test
+                      - test-repository
             - publish-on-nexus:
                   filters:
                       branches:
@@ -1136,10 +1177,12 @@ workflows:
                               - /^\d+\.\d+\.x$/
                   requires:
                       - test
+                      - test-repository
             - publish-images-azure-registry:
                   context: cicd-orchestrator
                   requires:
                       - test
+                      - test-repository
                   filters:
                       branches:
                           only:
