@@ -345,7 +345,7 @@ public class ApisResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response searchApis(@Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
-            return Response.ok().entity(this.searchApis(query, new ApisOrderParam("name"), null).getData()).build();
+            return Response.ok().entity(this.searchPagedApis(query, new ApisOrderParam("name"), null).getData()).build();
         } catch (TechnicalManagementException te) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();
         }
@@ -361,7 +361,7 @@ public class ApisResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiListItem.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public PagedResult<ApiListItem> searchApis(
+    public PagedResult<ApiListItem> searchPagedApis(
         @Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query,
         @Parameter(name = "order") @QueryParam("order") @DefaultValue("name") final ApisOrderParam apisOrderParam,
         @Valid @BeanParam Pageable pageable
