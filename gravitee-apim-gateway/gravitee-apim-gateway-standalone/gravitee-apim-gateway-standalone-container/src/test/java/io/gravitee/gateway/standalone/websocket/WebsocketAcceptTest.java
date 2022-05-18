@@ -20,65 +20,79 @@ import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.WebSocket;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.junit.*;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
+import org.junit.runner.RunWith;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
+@RunWith(VertxUnitRunner.class)
 public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
+
+    private final long ACCEPT_TIMEOUT = 5000;
 
     @Rule
     public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
 
-    @Test
-    public void websocket_accepted_request() throws InterruptedException {
+    private final Vertx vertx = Vertx.vertx();
+
+    @Before
+    public void setUp(TestContext context) {
         Vertx vertx = Vertx.vertx();
 
-        HttpServer httpServer = vertx.createHttpServer();
-        httpServer
+        vertx
+            .createHttpServer()
             .webSocketHandler(
                 event -> {
                     event.accept();
                     event.writeTextMessage("PING");
                 }
             )
-            .listen(16664);
+            .listen(16664, context.asyncAssertSuccess());
+    }
 
-        // Wait for result
-        final CountDownLatch latch = new CountDownLatch(1);
+    @After
+    public void tearDown(TestContext context) {
+        vertx.close(context.asyncAssertSuccess());
+    }
 
+    @Test
+    public void websocket_accepted_request(TestContext context) {
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
 
-        httpClient.webSocket(
-            "/test",
-            event -> {
-                if (event.failed()) {
-                    logger.error("An error occurred during websocket call", event.cause());
-                    Assert.fail();
-                } else {
-                    final WebSocket webSocket = event.result();
-                    webSocket.frameHandler(
+        // Expect two frames: one with the text data, and another one for the close event
+        Async async = context.async(2);
+
+        httpClient
+            .webSocket("/test")
+            .onSuccess(
+                socket -> {
+                    socket.frameHandler(
                         frame -> {
-                            Assert.assertTrue(frame.isText());
-                            Assert.assertEquals("PING", frame.textData());
-                            latch.countDown();
+                            if (!frame.isClose()) {
+                                context.assertTrue(frame.isText());
+                                context.assertEquals("PING", frame.textData());
+                                async.countDown();
+                            }
+                            async.countDown();
                         }
                     );
                 }
-            }
-        );
+            )
+            .onFailure(
+                err -> {
+                    context.fail(err);
+                    async.complete();
+                }
+            );
 
-        Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
-        httpServer.close();
+        async.awaitSuccess(ACCEPT_TIMEOUT);
     }
 }
