@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.rest.api.management.rest.resource.param.AbstractParam;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Arrays;
 
 public class ApisOrderParam extends AbstractParam<ApisOrderParam.ApisOrder> {

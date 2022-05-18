@@ -363,7 +363,13 @@ public class ApisResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public PagedResult<ApiListItem> searchPagedApis(
         @Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query,
-        @Parameter(name = "order") @QueryParam("order") @DefaultValue("name") final ApisOrderParam apisOrderParam,
+        @Parameter(
+            name = "order",
+            schema = @Schema(
+                implementation = String.class,
+                description = "By default, sort is ASC. If *field* starts with '-', the order sort is DESC. Currently, only **name** and **paths** are supported"
+            )
+        ) @QueryParam("order") @DefaultValue("name") final ApisOrderParam apisOrderParam,
         @Valid @BeanParam Pageable pageable
     ) {
         final ApiQuery apiQuery = new ApiQuery();

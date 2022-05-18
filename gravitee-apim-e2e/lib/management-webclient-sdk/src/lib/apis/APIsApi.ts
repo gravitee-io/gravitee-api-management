@@ -74,9 +74,6 @@ import {
     ApiStateEntity,
     ApiStateEntityFromJSON,
     ApiStateEntityToJSON,
-    ApisOrderParam,
-    ApisOrderParamFromJSON,
-    ApisOrderParamToJSON,
     ApplicationEntity,
     ApplicationEntityFromJSON,
     ApplicationEntityToJSON,
@@ -1041,7 +1038,7 @@ export interface SearchApisRequest {
 
 export interface SearchPagedApisRequest {
     q: string;
-    order?: ApisOrderParam;
+    order?: string;
     size?: number;
     page?: number;
     envId: string;
@@ -6309,7 +6306,7 @@ export class APIsApi extends runtime.BaseAPI {
         }
 
         if (requestParameters.order !== undefined) {
-            queryParameters['order'] = requestParameters.order.value;
+            queryParameters['order'] = requestParameters.order;
         }
 
         if (requestParameters.size !== undefined) {
