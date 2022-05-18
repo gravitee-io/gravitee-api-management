@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
@@ -44,8 +45,8 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     private MongoFactory mongoFactory;
 
     @Bean(name = "managementMongo")
-    public MongoFactory mongoFactory() {
-        return new MongoFactory(Scope.MANAGEMENT.getName());
+    public MongoFactory mongoFactory(Environment environment) {
+        return new MongoFactory(environment, Scope.MANAGEMENT.getName());
     }
 
     @Override

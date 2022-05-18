@@ -39,7 +39,6 @@ import org.bson.codecs.pojo.PojoCodecProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
 
@@ -52,14 +51,14 @@ public class MongoFactory implements FactoryBean<MongoClient> {
 
     private final Logger logger = LoggerFactory.getLogger(MongoFactory.class);
 
-    @Autowired
-    private Environment environment;
+    private final Environment environment;
 
     private final String propertyPrefix;
 
     private MongoClient mongoClient;
 
-    public MongoFactory(String propertyPrefix) {
+    public MongoFactory(Environment environment, String propertyPrefix) {
+        this.environment = environment;
         this.propertyPrefix = propertyPrefix + ".mongodb.";
     }
 
