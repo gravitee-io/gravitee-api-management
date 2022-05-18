@@ -15,12 +15,13 @@
  */
 package io.gravitee.reporter.elasticsearch.mapping.es7;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.mapping.PerTypeIndexPreparer;
-import io.reactivex.Completable;
-import io.reactivex.CompletableSource;
+import io.reactivex.*;
 import io.reactivex.functions.Function;
+import java.util.Collections;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -46,6 +47,7 @@ public class ES7IndexPreparer extends PerTypeIndexPreparer {
         return type -> {
             final String typeName = type.getType();
             final String templateName = configuration.getIndexName() + '-' + typeName;
+            final String aliasName = configuration.getIndexName() + '-' + typeName;
 
             logger.debug("Trying to put template mapping for type[{}] name[{}]", typeName, templateName);
 
@@ -54,8 +56,24 @@ public class ES7IndexPreparer extends PerTypeIndexPreparer {
 
             final String template = freeMarkerComponent.generateFromTemplate("/es7x/mapping/index-template-" + typeName + ".ftl", data);
 
-            return client.putTemplate(templateName, template);
+            final Completable templateCreationCompletable = client.putTemplate(templateName, template);
+            if (configuration.isIlmManagedIndex()) {
+                return templateCreationCompletable.andThen(ensureAlias(aliasName));
+            }
+            return templateCreationCompletable;
         };
+    }
+
+    private Completable ensureAlias(String aliasName) {
+        final String aliasTemplate = freeMarkerComponent.generateFromTemplate(
+            "/es7x/alias/alias.ftl",
+            Collections.singletonMap("aliasName", aliasName)
+        );
+
+        return client
+            .getAlias(aliasName)
+            .switchIfEmpty(client.createIndexWithAlias(aliasName + "-000001", aliasTemplate).toMaybe())
+            .ignoreElement();
     }
 
     private Completable pipeline() {
