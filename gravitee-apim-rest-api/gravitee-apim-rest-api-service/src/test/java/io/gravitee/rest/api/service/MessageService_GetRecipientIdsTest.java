@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MessageRecipientFormatException;
 import io.gravitee.rest.api.service.impl.MessageServiceImpl;
 import java.util.*;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -69,6 +70,11 @@ public class MessageService_GetRecipientIdsTest {
 
     @Mock
     SubscriptionService subscriptionService;
+
+    @Before
+    public void init() {
+        GraviteeContext.cleanContext();
+    }
 
     @Test
     public void shouldThrowExceptionIfNull() {
