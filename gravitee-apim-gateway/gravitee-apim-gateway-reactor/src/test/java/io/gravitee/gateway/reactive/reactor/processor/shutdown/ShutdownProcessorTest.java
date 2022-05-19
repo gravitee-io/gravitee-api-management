@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.processor.shutdown;
+package io.gravitee.gateway.reactive.reactor.processor.shutdown;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
-import io.gravitee.gateway.reactive.handlers.api.processor.forward.XForwardedPrefixProcessor;
+import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.node.api.Node;
-import io.vertx.core.http.HttpHeaders;
-import java.time.Month;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -49,48 +45,50 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
     @BeforeEach
     public void beforeEach() {
         Mockito.clearInvocations(mockNode);
-        shutdownProcessor = ShutdownProcessor.instance();
+        shutdownProcessor = new ShutdownProcessor(mockNode);
     }
 
     @Test
     public void shouldDoNothingWhenNodeStateIsStarted() {
         lenient().when(mockNode.lifecycleState()).thenReturn(Lifecycle.State.STARTED);
-        shutdownProcessor.node(mockNode);
         shutdownProcessor.execute(ctx).test().assertResult();
-        verifyNoInteractions(mockRequest);
-        verifyNoInteractions(mockResponse);
+        Mockito.verifyNoInteractions(mockRequest);
+        Mockito.verifyNoInteractions(mockResponse);
     }
 
     @ParameterizedTest
     @EnumSource(value = Lifecycle.State.class, names = { "STARTED" }, mode = EnumSource.Mode.EXCLUDE)
     public void shouldAddConnectionHeaderWhenNodeStateIsNotStartedAndRequestHttp2(Lifecycle.State state) {
         lenient().when(mockNode.lifecycleState()).thenReturn(state);
-        shutdownProcessor.node(mockNode);
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_2);
         shutdownProcessor.execute(ctx).test().assertResult();
         verify(mockRequest).version();
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_GO_AWAY);
+        AssertionsForClassTypes
+            .assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION))
+            .isEqualTo(HttpHeadersValues.CONNECTION_GO_AWAY);
     }
 
     @ParameterizedTest
     @EnumSource(value = Lifecycle.State.class, names = { "STARTED" }, mode = EnumSource.Mode.EXCLUDE)
     public void shouldAddConnectionHeaderWhenNodeStateIsNotStartedAndRequestHttp10(Lifecycle.State state) {
         lenient().when(mockNode.lifecycleState()).thenReturn(state);
-        shutdownProcessor.node(mockNode);
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_1_0);
         shutdownProcessor.execute(ctx).test().assertResult();
         verify(mockRequest).version();
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
+        AssertionsForClassTypes
+            .assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION))
+            .isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
     }
 
     @ParameterizedTest
     @EnumSource(value = Lifecycle.State.class, names = { "STARTED" }, mode = EnumSource.Mode.EXCLUDE)
     public void shouldAddConnectionHeaderWhenNodeStateIsNotStartedAndRequestHttp11(Lifecycle.State state) {
         lenient().when(mockNode.lifecycleState()).thenReturn(state);
-        shutdownProcessor.node(mockNode);
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
         shutdownProcessor.execute(ctx).test().assertResult();
         verify(mockRequest).version();
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
+        AssertionsForClassTypes
+            .assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION))
+            .isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
     }
 }

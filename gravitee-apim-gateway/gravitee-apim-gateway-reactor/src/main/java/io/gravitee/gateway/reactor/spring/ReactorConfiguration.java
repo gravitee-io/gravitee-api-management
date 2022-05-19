@@ -27,7 +27,8 @@ import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.handler.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
-import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
+import io.gravitee.gateway.reactive.reactor.processor.GlobalProcessorChainFactory;
+import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
@@ -35,7 +36,6 @@ import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.context.provider.NodeTemplateVariableProvider;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
-import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFactory;
@@ -46,6 +46,7 @@ import io.gravitee.plugin.alert.AlertEventProducer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -86,7 +87,7 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public PlatformProcessorChainFactory platformProcessorChainFactory(
+    public GlobalProcessorChainFactory globalProcessorChainFactory(
         io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
         @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
         ReporterService reporterService,
@@ -94,7 +95,7 @@ public class ReactorConfiguration {
         Node node,
         @Value("${http.port:8082}") String httpPort
     ) {
-        return new PlatformProcessorChainFactory(transactionHandlerFactory, traceContext, reporterService, eventProducer, node, httpPort);
+        return new GlobalProcessorChainFactory(transactionHandlerFactory, traceContext, reporterService, eventProducer, node, httpPort);
     }
 
     @Bean
@@ -104,8 +105,10 @@ public class ReactorConfiguration {
         ReactorHandlerRegistry reactorHandlerRegistry,
         EntrypointResolver entrypointResolver,
         IdGenerator idGenerator,
-        RequestProcessorChainFactory requestProcessorChainFactory,
-        ResponseProcessorChainFactory responseProcessorChainFactory
+        RequestProcessorChainFactory v3RequestProcessorChainFactory,
+        ResponseProcessorChainFactory v3ResponseProcessorChainFactory,
+        GlobalProcessorChainFactory globalProcessorChainFactory,
+        NotFoundProcessorChainFactory notFoundProcessorChainFactory
     ) {
         return new DefaultHttpRequestDispatcher(
             eventManager,
@@ -113,8 +116,10 @@ public class ReactorConfiguration {
             reactorHandlerRegistry,
             entrypointResolver,
             idGenerator,
-            requestProcessorChainFactory,
-            responseProcessorChainFactory
+            v3RequestProcessorChainFactory,
+            v3ResponseProcessorChainFactory,
+            globalProcessorChainFactory,
+            notFoundProcessorChainFactory
         );
     }
 
@@ -144,18 +149,27 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public RequestProcessorChainFactory requestProcessorChainFactory() {
-        return new RequestProcessorChainFactory();
+    public io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory v3RequestProcessorChainFactory() {
+        return new io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory();
     }
 
     @Bean
-    public ResponseProcessorChainFactory responseProcessorChainFactory() {
-        return new ResponseProcessorChainFactory();
+    public io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory v3ResponseProcessorChainFactory() {
+        return new io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory();
     }
 
     @Bean
-    public NotFoundProcessorChainFactory notFoundProcessorChainFactory() {
-        return new NotFoundProcessorChainFactory();
+    public io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory v3NotFoundProcessorChainFactory() {
+        return new io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory();
+    }
+
+    @Bean
+    public NotFoundProcessorChainFactory notFoundProcessorChainFactory(
+        Environment environment,
+        ReporterService reporterService,
+        @Value("${handlers.notfound.log.enabled:false}") boolean logEnabled
+    ) {
+        return new NotFoundProcessorChainFactory(environment, reporterService, logEnabled);
     }
 
     @Bean

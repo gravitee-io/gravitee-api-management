@@ -18,9 +18,14 @@ package io.gravitee.gateway.reactive.reactor.handler.context;
 import io.gravitee.definition.model.Api;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.core.context.MutableRequest;
+import io.gravitee.gateway.reactive.core.context.MutableRequestExecutionContext;
+import io.gravitee.gateway.reactive.core.context.MutableResponse;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -29,14 +34,9 @@ import java.util.List;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultRequestExecutionContext extends AbstractExecutionContext implements RequestExecutionContext {
+public class DefaultRequestExecutionContext extends AbstractExecutionContext {
 
-    public DefaultRequestExecutionContext(
-        Request request,
-        Response response,
-        ComponentProvider componentProvider,
-        List<TemplateVariableProvider> templateVariableProviders
-    ) {
-        super(request, response, componentProvider, templateVariableProviders);
+    public DefaultRequestExecutionContext(final MutableRequest request, final MutableResponse response) {
+        super(request, response);
     }
 }

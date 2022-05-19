@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.reactor;
 
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.core.context.MutableRequestExecutionContext;
 import io.reactivex.Completable;
 
 /**
@@ -24,5 +25,5 @@ import io.reactivex.Completable;
  * @author GraviteeSource Team
  */
 public interface ApiReactor {
-    Completable handle(final Request request, final Response response);
+    Completable handle(final MutableRequestExecutionContext ctx);
 }

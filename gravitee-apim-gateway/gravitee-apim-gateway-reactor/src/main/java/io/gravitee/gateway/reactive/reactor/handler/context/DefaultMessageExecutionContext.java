@@ -22,8 +22,12 @@ import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.message.MessageFlow;
+import io.gravitee.gateway.reactive.core.context.MutableMessageExecutionContext;
+import io.gravitee.gateway.reactive.core.context.MutableRequest;
+import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.reactor.handler.message.DefaultMessageFlow;
 import io.reactivex.Flowable;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -32,18 +36,13 @@ import java.util.List;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultMessageExecutionContext extends AbstractExecutionContext implements MessageExecutionContext {
+public class DefaultMessageExecutionContext extends AbstractExecutionContext implements MutableMessageExecutionContext {
 
     private final MessageFlow incomingMessageFlow;
     private final MessageFlow outgoingMessageFlow;
 
-    public DefaultMessageExecutionContext(
-        Request request,
-        Response response,
-        ComponentProvider componentProvider,
-        List<TemplateVariableProvider> templateVariableProviders
-    ) {
-        super(request, response, componentProvider, templateVariableProviders);
+    public DefaultMessageExecutionContext(final MutableRequest request, final MutableResponse response) {
+        super(request, response);
         incomingMessageFlow = new DefaultMessageFlow(Flowable.empty());
         outgoingMessageFlow = new DefaultMessageFlow(Flowable.empty());
     }
@@ -56,5 +55,13 @@ public class DefaultMessageExecutionContext extends AbstractExecutionContext imp
     @Override
     public MessageFlow outgoingMessageFlow() {
         return outgoingMessageFlow;
+    }
+
+    public DefaultMessageExecutionContext componentProvider(final ComponentProvider componentProvider) {
+        return (DefaultMessageExecutionContext) super.componentProvider(componentProvider);
+    }
+
+    public DefaultMessageExecutionContext templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders) {
+        return (DefaultMessageExecutionContext) super.templateVariableProviders(templateVariableProviders);
     }
 }

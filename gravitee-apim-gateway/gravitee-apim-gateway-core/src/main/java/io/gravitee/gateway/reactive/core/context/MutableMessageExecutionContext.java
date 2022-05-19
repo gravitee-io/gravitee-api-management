@@ -15,31 +15,10 @@
  */
 package io.gravitee.gateway.reactive.core.context;
 
-import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MutableRequest extends Request {
-    /**
-     * Allow setting context path.
-     *
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest contextPath(final String contextPath);
-
-    /**
-     * Allow setting transaction id.
-     *
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest transactionId(final String id);
-
-    /**
-     * Allow overriding remote adresse
-     *
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest remoteAddress(final String remoteAddress);
-}
+public interface MutableMessageExecutionContext extends MessageExecutionContext {}

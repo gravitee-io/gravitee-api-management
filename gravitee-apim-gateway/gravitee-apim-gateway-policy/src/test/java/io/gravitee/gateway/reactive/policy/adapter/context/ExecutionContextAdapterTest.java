@@ -32,7 +32,7 @@ class ExecutionContextAdapterTest {
 
     @Test
     public void shouldAddInternalExecutionFailureFromProcessorFailure() {
-        DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null, null, null);
+        DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null);
         ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(requestExecutionContext);
 
         contextAdapter.setAttribute(ExecutionContext.ATTR_FAILURE_ATTRIBUTE, new RuntimeProcessorFailure("error"));
@@ -45,7 +45,7 @@ class ExecutionContextAdapterTest {
 
     @Test
     public void shouldGetProcessorFailureFromInternalExecutionFailure() {
-        DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null, null, null);
+        DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null);
         requestExecutionContext.setInternalAttribute(
             io.gravitee.gateway.reactive.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE,
             new ExecutionFailure().statusCode(200)
@@ -60,7 +60,7 @@ class ExecutionContextAdapterTest {
 
     @Test
     public void shouldRemoveInternalExecutionFailure() {
-        DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null, null, null);
+        DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null);
         requestExecutionContext.setInternalAttribute(
             io.gravitee.gateway.reactive.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE,
             new ExecutionFailure().statusCode(200)
