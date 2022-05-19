@@ -36,6 +36,7 @@
         <module>gravitee-apim-gateway-buffer</module>
         <module>gravitee-apim-gateway-core</module>
         <module>gravitee-apim-gateway-connector</module>
+        <module>gravitee-apim-gateway-coverage</module>
         <module>gravitee-apim-gateway-dictionary</module>
         <module>gravitee-apim-gateway-env</module>
         <module>gravitee-apim-gateway-flow</module>
