@@ -1154,20 +1154,24 @@ workflows:
             - test:
                   requires:
                       - build
-            - test-repository:
-                  requires:
-                      - build
             - sonarcloud-analysis:
                   name: Sonar - << matrix.working_directory >>
                   matrix:
                       parameters:
                           working_directory:
                               - gravitee-apim-rest-api
-                              - gravitee-apim-repository
                               - gravitee-apim-gateway
                   context: cicd-orchestrator
                   requires:
                       - test
+            - test-repository:
+                  requires:
+                      - build
+            - sonarcloud-analysis:
+                  name: Sonar - gravitee-apim-repository
+                  working_directory: gravitee-apim-repository
+                  context: cicd-orchestrator
+                  requires:
                       - test-repository
             - publish-on-artifactory:
                   filters:
