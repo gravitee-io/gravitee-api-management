@@ -120,22 +120,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
         removeTriggers(api);
     }
 
-    private long getDelayMillis(Trigger trigger) {
-        switch (trigger.getUnit()) {
-            case MILLISECONDS:
-                return trigger.getRate();
-            case SECONDS:
-                return trigger.getRate() * 1000;
-            case MINUTES:
-                return trigger.getRate() * 1000 * 60;
-            case HOURS:
-                return trigger.getRate() * 1000 * 60 * 60;
-            case DAYS:
-                return trigger.getRate() * 1000 * 60 * 60 * 24;
-        }
 
-        return -1;
-    }
 
     private void addTrigger(Api api, EndpointRule rule) {
         try {
@@ -144,7 +129,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
             runner.setAlertEventProducer(alertEventProducer);
             runner.setNode(node);
 
-            long timerId = vertx.setPeriodic(getDelayMillis(rule.trigger()), runner);
+            long timerId = vertx.setPeriodic(runner.getDelayMillis(), runner);
             apiTimers.get(api).add(new EndpointRuleTrigger(timerId, runner, rule.endpoint()));
 
             LOGGER.debug("Add health-check trigger id[{}] for endpoint name[{}] target[{}] each rate[{}] unit[{}]",
