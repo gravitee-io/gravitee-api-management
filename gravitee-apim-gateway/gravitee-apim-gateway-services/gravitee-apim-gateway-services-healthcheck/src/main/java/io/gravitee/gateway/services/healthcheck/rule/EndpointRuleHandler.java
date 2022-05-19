@@ -45,11 +45,14 @@ import io.vertx.core.net.ProxyOptions;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -440,6 +443,16 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
     public void setNode(Node node) {
         this.node = node;
+    }
+
+    public long getDelayMillis() {
+        CronTrigger expression = new CronTrigger(rule.schedule());
+        Date nextExecutionDate = expression.nextExecutionTime(new SimpleTriggerContext());
+        if (nextExecutionDate == null) { // NOSONAR nextExecutionDate is null if the trigger won't fire anymore
+            return -1;
+        }
+
+        return nextExecutionDate.getTime() - new Date().getTime();
     }
 
     public void close() {
