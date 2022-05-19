@@ -62,7 +62,6 @@ commands:
                       - gravitee-api-management-v6-<< parameters.jobName >>-{{ .Branch }}-
                       - gravitee-api-management-v6-<< parameters.jobName >>-
                       - gravitee-api-management-v6-
-
     save-maven-job-cache:
         description: Restore Maven cache for a dedicated job
         parameters:
@@ -217,6 +216,11 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
+            - restore_cache:
+                  keys:
+                      - gravitee-api-management-v6-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v6-sonarcloud-analysis-{{ .Branch }}-
+                      - gravitee-api-management-v6-sonarcloud-analysis-
             - keeper/env-export:
                   secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
                   var-name: SONAR_TOKEN
@@ -226,6 +230,11 @@ jobs:
                   command: sonar-scanner -Dsonar.projectVersion=${APIM_VERSION}
                   working_directory: << parameters.working_directory >>
             - notify-on-failure
+            - save_cache:
+                  paths:
+                      - /opt/sonar-scanner/.sonar/cache
+                  key: gravitee-api-management-v6-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  when: always
 
     validate:
         docker:
