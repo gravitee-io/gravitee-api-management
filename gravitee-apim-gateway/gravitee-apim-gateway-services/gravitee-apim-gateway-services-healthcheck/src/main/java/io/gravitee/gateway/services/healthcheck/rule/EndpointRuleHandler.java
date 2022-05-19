@@ -20,6 +20,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.services.schedule.Trigger;
 import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.EndpointStatusDecorator;
@@ -366,6 +367,23 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
     public void setNode(Node node) {
         this.node = node;
+    }
+
+    public long getDelayMillis() {
+        switch (rule.trigger().getUnit()) {
+            case MILLISECONDS:
+                return rule.trigger().getRate();
+            case SECONDS:
+                return rule.trigger().getRate() * 1000;
+            case MINUTES:
+                return rule.trigger().getRate() * 1000 * 60;
+            case HOURS:
+                return rule.trigger().getRate() * 1000 * 60 * 60;
+            case DAYS:
+                return rule.trigger().getRate() * 1000 * 60 * 60 * 24;
+        }
+
+        return -1;
     }
 
     public void close() {
