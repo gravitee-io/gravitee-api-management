@@ -41,6 +41,7 @@
         <module>gravitee-apim-repository-redis</module>
         <module>gravitee-apim-repository-hazelcast</module>
         <module>gravitee-apim-repository-gateway-bridge-http</module>
+        <module>gravitee-apim-repository-coverage</module>
     </modules>
 
     <properties>
