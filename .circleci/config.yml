@@ -1223,6 +1223,15 @@ workflows:
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
                       - Install APIM Console
+            - sonarcloud-analysis:
+                  name: Sonar - << matrix.working_directory >>
+                  matrix:
+                      parameters:
+                          working_directory:
+                              - gravitee-apim-console-webui
+                  context: cicd-orchestrator
+                  requires:
+                      - Lint & test APIM Console
             - webui-build:
                   name: Build APIM Console
                   apim-ui-project: gravitee-apim-console-webui
@@ -1265,11 +1274,9 @@ workflows:
                   matrix:
                       parameters:
                           working_directory:
-                              - gravitee-apim-console-webui
                               - gravitee-apim-portal-webui
                   context: cicd-orchestrator
                   requires:
-                      - Lint & test APIM Console
                       - Lint & test APIM Portal
             - webui-build:
                   name: Build APIM Portal
