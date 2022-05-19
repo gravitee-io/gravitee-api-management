@@ -151,11 +151,13 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         po.setReferenceId(API_ID);
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Arrays.asList(poRoleEntity));
+        po.setType(MembershipMemberType.USER);
         MemberEntity owner = new MemberEntity();
         owner.setId("user");
         owner.setReferenceId(API_ID);
         owner.setReferenceType(MembershipReferenceType.API);
         owner.setRoles(Arrays.asList(ownerRoleEntity));
+        owner.setType(MembershipMemberType.USER);
         when(membershipService.getMembersByReference(any(), any())).thenReturn(Collections.singleton(po));
 
         UserEntity admin = new UserEntity();
@@ -227,10 +229,12 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         po.setReferenceId(API_ID);
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Arrays.asList(poRoleEntity));
+        po.setType(MembershipMemberType.USER);
         MemberEntity owner = new MemberEntity();
         owner.setId("user");
         owner.setReferenceId(API_ID);
         owner.setReferenceType(MembershipReferenceType.API);
+        owner.setType(MembershipMemberType.USER);
         owner.setRoles(Arrays.asList(ownerRoleEntity));
         when(membershipService.getMembersByReference(any(), any())).thenReturn(Collections.singleton(po));
 

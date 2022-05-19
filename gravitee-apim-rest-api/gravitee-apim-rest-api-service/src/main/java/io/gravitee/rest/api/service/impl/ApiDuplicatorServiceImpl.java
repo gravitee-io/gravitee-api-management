@@ -384,11 +384,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     ) throws JsonProcessingException {
         // Members
         final JsonNode membersToImport = jsonNode.path("members");
-        if (membersToImport != null && membersToImport.isArray()) {
+        if (membersToImport != null && membersToImport.isArray() && membersToImport.size() > 0) {
             // get current members of the api
             Set<MemberToImport> membersAlreadyPresent = membershipService
                 .getMembersByReference(MembershipReferenceType.API, createdOrUpdatedApiEntity.getId())
                 .stream()
+                .filter(member -> member.getType() == MembershipMemberType.USER)
                 .map(
                     member -> {
                         UserEntity userEntity = userService.findById(member.getId());
