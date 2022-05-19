@@ -239,10 +239,10 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         // credentials option
         String username = readPropertyValue(propertyPrefix + "username");
         String password = readPropertyValue(propertyPrefix + "password");
-        MongoCredential credentials = null;
-        if (username != null || password != null) {
+        MongoCredential credentials;
+        if (username != null) {
             String authSource = readPropertyValue(propertyPrefix + "authSource", String.class, "gravitee");
-            credentials = MongoCredential.createCredential(username, authSource, password.toCharArray());
+            credentials = MongoCredential.createCredential(username, authSource, password != null ? password.toCharArray() : new char[0]);
             builder.credential(credentials);
         }
 
@@ -258,7 +258,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
 
             if (readPreference != null) {
                 TagSet tagSet = null;
-                ReadPreference readPrefObj = null;
+                ReadPreference readPrefObj;
 
                 if (readPreferenceTags != null) {
                     tagSet = buildTagSet(readPreferenceTags);
@@ -280,6 +280,8 @@ public class MongoFactory implements FactoryBean<MongoClient> {
                     case "secondaryPreferred":
                         readPrefObj = tagSet != null ? ReadPreference.secondaryPreferred(tagSet) : ReadPreference.secondaryPreferred();
                         break;
+                    default:
+                        throw new IllegalArgumentException("ReadPreference " + readPreference + " is not supported");
                 }
 
                 builder.readPreference(readPrefObj);
@@ -287,7 +289,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
 
             WriteConcern wc;
             if (StringUtils.isNumeric(writeConcern)) {
-                wc = new WriteConcern(Integer.valueOf(writeConcern));
+                wc = new WriteConcern(Integer.parseInt(writeConcern));
             } else {
                 Assert.isTrue(writeConcern.equals("majority"), "writeConcern must be numeric or equals to 'majority'");
                 wc = new WriteConcern(writeConcern);
@@ -368,7 +370,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         int idx = 0;
 
         while (found) {
-            String serverHost = environment.getProperty(propertyPrefix + "servers[" + (idx++) + "].host");
+            String serverHost = environment.getProperty(propertyPrefix + getServerWithIndex(idx++) + ".host");
             found = (serverHost != null);
         }
 
@@ -376,10 +378,14 @@ public class MongoFactory implements FactoryBean<MongoClient> {
     }
 
     private ServerAddress buildServerAddress(int idx) {
-        String host = environment.getProperty(propertyPrefix + "servers[" + idx + "].host");
-        int port = readPropertyValue(propertyPrefix + "servers[" + idx + "].port", int.class, 27017);
+        String host = environment.getProperty(propertyPrefix + getServerWithIndex(idx) + ".host");
+        int port = readPropertyValue(propertyPrefix + getServerWithIndex(idx) + ".port", int.class, 27017);
 
         return new ServerAddress(host, port);
+    }
+
+    private String getServerWithIndex(int idx) {
+        return "servers[" + idx + "]";
     }
 
     private TagSet buildTagSet(String readPreferenceTags) {
