@@ -123,7 +123,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
             configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false)
         );
 
-        return new ApiProcessorChainFactory(options, node);
+        return new ApiProcessorChainFactory(options);
     }
 
     @Override

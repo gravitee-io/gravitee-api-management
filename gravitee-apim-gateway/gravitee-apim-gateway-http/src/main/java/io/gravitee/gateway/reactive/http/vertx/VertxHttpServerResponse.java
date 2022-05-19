@@ -156,28 +156,31 @@ public class VertxHttpServerResponse implements MutableResponse {
 
     @Override
     public Completable end() {
-        if (!valid()) {
-            return Completable.error(new IllegalStateException("The response is already ended"));
-        }
+        return Completable.defer(
+            () -> {
+                if (!valid()) {
+                    return Completable.error(new IllegalStateException("The response is already ended"));
+                }
+                if (!nativeResponse.headWritten()) {
+                    writeHeaders();
+                }
 
-        if (!nativeResponse.headWritten()) {
-            writeHeaders();
-        }
+                if (chunks != null) {
+                    return nativeResponse.rxSend(
+                        chunks
+                            .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                            .doOnNext(
+                                buffer ->
+                                    serverRequest
+                                        .metrics()
+                                        .setResponseContentLength(serverRequest.metrics().getResponseContentLength() + buffer.length())
+                            )
+                    );
+                }
 
-        if (chunks != null) {
-            return nativeResponse.rxSend(
-                chunks
-                    .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
-                    .doOnNext(
-                        buffer ->
-                            serverRequest
-                                .metrics()
-                                .setResponseContentLength(serverRequest.metrics().getResponseContentLength() + buffer.length())
-                    )
-            );
-        }
-
-        return nativeResponse.rxEnd();
+                return nativeResponse.rxEnd();
+            }
+        );
     }
 
     private Completable setChunks(Flowable<Buffer> chunks) {
