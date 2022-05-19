@@ -36,6 +36,7 @@
     <modules>
         <module>gravitee-apim-definition-model</module>
         <module>gravitee-apim-definition-jackson</module>
+        <module>gravitee-apim-definition-coverage</module>
     </modules>
 
     <dependencies>
