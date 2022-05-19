@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.reactor.handler.context;
 import io.gravitee.definition.model.Api;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
@@ -36,6 +37,10 @@ public class ExecutionContextFactory {
 
     protected final List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
     protected final ComponentProvider componentProvider;
+
+    public ExecutionContextFactory() {
+        this(new CustomComponentProvider());
+    }
 
     public ExecutionContextFactory(ComponentProvider componentProvider) {
         this.componentProvider = componentProvider;
@@ -57,7 +62,6 @@ public class ExecutionContextFactory {
      * Creates a new {@link MessageExecutionContext} for each of the incoming async request to the gateway.
      *
      *
-     * @param api
      * @param request the request to attach to the context.
      * @param response the response to attach to the context.
      *

@@ -20,6 +20,7 @@ import static io.gravitee.gateway.reactive.api.context.ExecutionContext.ATTR_INT
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeadersValues;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
@@ -75,7 +76,10 @@ public abstract class AbstractFailureProcessor implements Processor {
         request.metrics().setErrorKey(executionFailure.key());
         response.status(executionFailure.statusCode());
         response.reason(HttpResponseStatus.valueOf(executionFailure.statusCode()).reasonPhrase());
-        response.headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+        // In case of client error we don't want to force close the connection
+        if (response.status() / 100 != 4) {
+            response.headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+        }
 
         if (executionFailure.message() != null) {
             List<String> accepts = request.headers().getAll(HttpHeaderNames.ACCEPT);

@@ -31,16 +31,18 @@ import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
 import io.gravitee.gateway.http.vertx.grpc.VertxGrpcServerRequest;
 import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory;
+import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
-import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.reporter.api.http.Metrics;
@@ -77,6 +79,8 @@ public class DefaultHttpRequestDispatcher
     private final IdGenerator idGenerator;
     private final RequestProcessorChainFactory requestProcessorChainFactory;
     private final ResponseProcessorChainFactory responseProcessorChainFactory;
+    private final NotFoundProcessorChainFactory notFoundProcessorChainFactory;
+    private final ExecutionContextFactory notFoundExecutionContextFactory;
 
     public DefaultHttpRequestDispatcher(
         EventManager eventManager,
@@ -85,7 +89,8 @@ public class DefaultHttpRequestDispatcher
         EntrypointResolver entrypointResolver,
         IdGenerator idGenerator,
         RequestProcessorChainFactory requestProcessorChainFactory,
-        ResponseProcessorChainFactory responseProcessorChainFactory
+        ResponseProcessorChainFactory responseProcessorChainFactory,
+        NotFoundProcessorChainFactory notFoundProcessorChainFactory
     ) {
         this.eventManager = eventManager;
         this.gatewayConfiguration = gatewayConfiguration;
@@ -94,6 +99,8 @@ public class DefaultHttpRequestDispatcher
         this.idGenerator = idGenerator;
         this.requestProcessorChainFactory = requestProcessorChainFactory;
         this.responseProcessorChainFactory = responseProcessorChainFactory;
+        this.notFoundProcessorChainFactory = notFoundProcessorChainFactory;
+        this.notFoundExecutionContextFactory = new ExecutionContextFactory();
     }
 
     /**
@@ -196,10 +203,10 @@ public class DefaultHttpRequestDispatcher
         gatewayConfiguration.zone().ifPresent(metrics::setZone);
     }
 
-    private Completable handleNotFound(HttpServerRequest httpServerRequest) {
-        // FIXME: properly handle not found.
-        httpServerRequest.response().setStatusCode(HttpStatusCode.NOT_FOUND_404);
-        return httpServerRequest.response().rxEnd();
+    private Completable handleNotFound(final HttpServerRequest httpServerRequest) {
+        VertxHttpServerRequest request = new VertxHttpServerRequest(httpServerRequest, httpServerRequest.path(), idGenerator);
+        RequestExecutionContext notFoundRequestContext = notFoundExecutionContextFactory.createRequestContext(request, request.response());
+        return notFoundProcessorChainFactory.processorChain().execute(notFoundRequestContext);
     }
 
     private io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(HttpServerRequest httpServerRequest) {
