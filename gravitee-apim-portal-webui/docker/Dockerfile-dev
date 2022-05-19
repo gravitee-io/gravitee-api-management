@@ -19,7 +19,7 @@ LABEL maintainer="contact@graviteesource.com"
 
 ADD dist dist
 
-FROM nginx:1.21-alpine
+FROM nginx:1.20-alpine
 LABEL maintainer="contact@graviteesource.com"
 
 ENV GRAVITEE_APIM_UI /opt/gravitee-apim-ui
