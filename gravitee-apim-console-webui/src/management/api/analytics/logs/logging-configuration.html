@@ -44,30 +44,40 @@
         </div>
 
         <div class="api-analytics-logging-configuration_form-details">
-          <div class="gv-page-draft-banner" ng-if="loggingCtrl.maxDuration && loggingCtrl.maxDuration > 0">
-            <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
-            A maximum duration of <code>{{loggingCtrl.maxDuration}}</code>milliseconds will be applied to your condition.
-          </div>
-
           <div layout="row" flex-xs="50">
             <md-input-container class="md-block" flex-gt-sm>
               <label class="md-no-float">Mode</label>
 
-              <gv-option ng-attr-options="{{loggingModes}}" ng-model="loggingCtrl.api.proxy.logging.mode" gv-model></gv-option>
+              <gv-option
+                class="api-analytics-logging-configuration_form-details_options"
+                ng-attr-options="{{loggingModes}}"
+                ng-model="loggingCtrl.api.proxy.logging.mode"
+                gv-model
+              ></gv-option>
             </md-input-container>
           </div>
 
           <div layout="row" flex-xs="50">
             <md-input-container class="md-block" flex-gt-sm>
               <label class="md-no-float">Content</label>
-              <gv-option ng-attr-options="{{contentModes}}" ng-model="loggingCtrl.api.proxy.logging.content" gv-model></gv-option>
+              <gv-option
+                class="api-analytics-logging-configuration_form-details_options"
+                ng-attr-options="{{contentModes}}"
+                ng-model="loggingCtrl.api.proxy.logging.content"
+                gv-model
+              ></gv-option>
             </md-input-container>
           </div>
 
           <div layout="row" flex-xs="50">
             <md-input-container class="md-block" flex-gt-sm>
               <label class="md-no-float">Scope</label>
-              <gv-option ng-attr-options="{{scopeModes}}" ng-model="loggingCtrl.api.proxy.logging.scope" gv-model></gv-option>
+              <gv-option
+                class="api-analytics-logging-configuration_form-details_options"
+                ng-attr-options="{{scopeModes}}"
+                ng-model="loggingCtrl.api.proxy.logging.scope"
+                gv-model
+              ></gv-option>
             </md-input-container>
           </div>
 
@@ -78,6 +88,7 @@
                 <gv-expression-language
                   rows="1"
                   gv-model
+                  class="api-analytics-logging-configuration_form-details_input"
                   ng-attr-grammar="{{loggingCtrl.spelGrammar}}"
                   ng-model="loggingCtrl.api.proxy.logging.condition"
                   placeholder="{#request.headers['Content-Type'][0] === 'application/json'}"
@@ -126,6 +137,11 @@
           >
             Reset
           </gv-button>
+        </div>
+
+        <div class="gv-page-draft-banner" ng-if="loggingCtrl.maxDuration && loggingCtrl.maxDuration > 0">
+          <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
+          A maximum duration of <code>{{loggingCtrl.maxDuration}}</code>milliseconds will be applied to your condition.
         </div>
       </div>
     </div>
