@@ -18,14 +18,9 @@ package io.gravitee.gateway.reactive.reactor.handler.context;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
-import io.gravitee.el.TemplateVariableProvider;
-import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import java.util.Map;
-import org.junit.Ignore;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -36,32 +31,26 @@ abstract class AbstractExecutionContextTest {
     protected static final String ATTRIBUTE_KEY = "key";
     protected static final String ATTRIBUTE_VALUE = "value";
 
-    @Mock
-    protected ComponentProvider componentProvider;
-
-    @Mock
-    protected TemplateVariableProvider templateVariableProvider;
-
-    protected ExecutionContext cut;
+    protected ExecutionContext executionContext;
 
     @Test
     public void shouldPutAndGetAttributes() {
         for (int i = 0; i < 10; i++) {
-            cut.putAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
+            executionContext.putAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
 
         for (int i = 0; i < 10; i++) {
-            assertEquals(ATTRIBUTE_VALUE + i, cut.getAttribute(ATTRIBUTE_KEY + i));
+            assertEquals(ATTRIBUTE_VALUE + i, executionContext.getAttribute(ATTRIBUTE_KEY + i));
         }
     }
 
     @Test
     public void shouldGetAllAttributes() {
         for (int i = 0; i < 10; i++) {
-            cut.putAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
+            executionContext.putAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
 
-        final Map<String, Object> attributes = cut.getAttributes();
+        final Map<String, Object> attributes = executionContext.getAttributes();
 
         for (int i = 0; i < 10; i++) {
             assertEquals(ATTRIBUTE_VALUE + i, attributes.get(ATTRIBUTE_KEY + i));
@@ -71,63 +60,63 @@ abstract class AbstractExecutionContextTest {
     @Test
     public void shouldRemoveAttributes() {
         for (int i = 0; i < 10; i++) {
-            cut.putAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
+            executionContext.putAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
 
         for (int i = 0; i < 10; i++) {
-            cut.removeAttribute(ATTRIBUTE_KEY + i);
-            assertNull(cut.getAttribute(ATTRIBUTE_KEY + i));
+            executionContext.removeAttribute(ATTRIBUTE_KEY + i);
+            assertNull(executionContext.getAttribute(ATTRIBUTE_KEY + i));
         }
     }
 
     @Test
     public void shouldGetCastAttributes() {
-        cut.putAttribute(ATTRIBUTE_KEY, 1.0f);
-        assertEquals(1.0f, (float) cut.getAttribute(ATTRIBUTE_KEY));
+        executionContext.putAttribute(ATTRIBUTE_KEY, 1.0f);
+        assertEquals(1.0f, (float) executionContext.getAttribute(ATTRIBUTE_KEY));
 
-        cut.putAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
-        assertEquals(ATTRIBUTE_VALUE, cut.getAttribute(ATTRIBUTE_KEY));
+        executionContext.putAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
+        assertEquals(ATTRIBUTE_VALUE, executionContext.getAttribute(ATTRIBUTE_KEY));
 
         final Object object = mock(Object.class);
-        cut.putAttribute(ATTRIBUTE_KEY, object);
-        assertEquals(object, cut.getAttribute(ATTRIBUTE_KEY));
+        executionContext.putAttribute(ATTRIBUTE_KEY, object);
+        assertEquals(object, executionContext.getAttribute(ATTRIBUTE_KEY));
     }
 
     @Test
     public void shouldReturnClassCastExceptionWhenInvalidCastAttribute() {
-        cut.putAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
+        executionContext.putAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
 
         assertThrows(
             ClassCastException.class,
             () -> {
-                final Float value = cut.getAttribute(ATTRIBUTE_KEY);
+                final Float value = executionContext.getAttribute(ATTRIBUTE_KEY);
             }
         );
     }
 
     @Test
     public void shouldReturnNullWhenGetUnknownAttribute() {
-        assertNull(cut.getAttribute(ATTRIBUTE_KEY));
+        assertNull(executionContext.getAttribute(ATTRIBUTE_KEY));
     }
 
     @Test
     public void shouldPutAndGetInternalAttributes() {
         for (int i = 0; i < 10; i++) {
-            cut.putInternalAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
+            executionContext.putInternalAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
 
         for (int i = 0; i < 10; i++) {
-            assertEquals(ATTRIBUTE_VALUE + i, cut.getInternalAttribute(ATTRIBUTE_KEY + i));
+            assertEquals(ATTRIBUTE_VALUE + i, executionContext.getInternalAttribute(ATTRIBUTE_KEY + i));
         }
     }
 
     @Test
     public void shouldGetAllInternalAttributes() {
         for (int i = 0; i < 10; i++) {
-            cut.putInternalAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
+            executionContext.putInternalAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
 
-        final Map<String, Object> internalAttributes = cut.getInternalAttributes();
+        final Map<String, Object> internalAttributes = executionContext.getInternalAttributes();
 
         for (int i = 0; i < 10; i++) {
             assertEquals(ATTRIBUTE_VALUE + i, internalAttributes.get(ATTRIBUTE_KEY + i));
@@ -137,42 +126,42 @@ abstract class AbstractExecutionContextTest {
     @Test
     public void shouldRemoveInternalAttributes() {
         for (int i = 0; i < 10; i++) {
-            cut.putInternalAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
+            executionContext.putInternalAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
 
         for (int i = 0; i < 10; i++) {
-            cut.removeInternalAttribute(ATTRIBUTE_KEY + i);
-            assertNull(cut.getInternalAttribute(ATTRIBUTE_KEY + i));
+            executionContext.removeInternalAttribute(ATTRIBUTE_KEY + i);
+            assertNull(executionContext.getInternalAttribute(ATTRIBUTE_KEY + i));
         }
     }
 
     @Test
     public void shouldGetCastInternalAttributes() {
-        cut.putInternalAttribute(ATTRIBUTE_KEY, 1.0f);
-        assertEquals(1.0f, (float) cut.getInternalAttribute(ATTRIBUTE_KEY));
+        executionContext.putInternalAttribute(ATTRIBUTE_KEY, 1.0f);
+        assertEquals(1.0f, (float) executionContext.getInternalAttribute(ATTRIBUTE_KEY));
 
-        cut.putInternalAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
-        assertEquals(ATTRIBUTE_VALUE, cut.getInternalAttribute(ATTRIBUTE_KEY));
+        executionContext.putInternalAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
+        assertEquals(ATTRIBUTE_VALUE, executionContext.getInternalAttribute(ATTRIBUTE_KEY));
 
         final Object object = mock(Object.class);
-        cut.putInternalAttribute(ATTRIBUTE_KEY, object);
-        assertEquals(object, cut.getInternalAttribute(ATTRIBUTE_KEY));
+        executionContext.putInternalAttribute(ATTRIBUTE_KEY, object);
+        assertEquals(object, executionContext.getInternalAttribute(ATTRIBUTE_KEY));
     }
 
     @Test
     public void shouldReturnClassCastExceptionWhenInvalidCastInternalAttribute() {
-        cut.putInternalAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
+        executionContext.putInternalAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
 
         assertThrows(
             ClassCastException.class,
             () -> {
-                final Float value = cut.getInternalAttribute(ATTRIBUTE_KEY);
+                final Float value = executionContext.getInternalAttribute(ATTRIBUTE_KEY);
             }
         );
     }
 
     @Test
     public void shouldReturnNullWhenGetUnknownInternalAttribute() {
-        assertNull(cut.getInternalAttribute(ATTRIBUTE_KEY));
+        assertNull(executionContext.getInternalAttribute(ATTRIBUTE_KEY));
     }
 }

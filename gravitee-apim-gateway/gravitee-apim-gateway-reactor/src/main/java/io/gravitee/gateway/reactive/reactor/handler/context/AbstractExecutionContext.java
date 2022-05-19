@@ -15,47 +15,43 @@
  */
 package io.gravitee.gateway.reactive.reactor.handler.context;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
+import io.gravitee.gateway.reactive.core.context.MutableRequest;
+import io.gravitee.gateway.reactive.core.context.MutableRequestExecutionContext;
+import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionException;
 import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionFailureException;
 import io.gravitee.tracing.api.Tracer;
 import io.reactivex.Completable;
 import java.util.*;
 
-abstract class AbstractExecutionContext implements RequestExecutionContext {
+abstract class AbstractExecutionContext implements MutableRequestExecutionContext {
 
     private static final String TEMPLATE_ATTRIBUTE_REQUEST = "request";
     private static final String TEMPLATE_ATTRIBUTE_RESPONSE = "response";
     private static final String TEMPLATE_ATTRIBUTE_CONTEXT = "context";
 
-    private final ComponentProvider componentProvider;
     private final Map<String, Object> attributes = new HashMap<>();
     private final Map<String, Object> internalAttributes = new HashMap<>();
-    private final Request request;
-    private final Response response;
+    private final MutableRequest request;
+    private final MutableResponse response;
+    private ComponentProvider componentProvider;
     private Collection<TemplateVariableProvider> templateVariableProviders;
     private TemplateEngine templateEngine;
 
-    protected AbstractExecutionContext(
-        Request request,
-        Response response,
-        ComponentProvider componentProvider,
-        List<TemplateVariableProvider> templateVariableProviders
-    ) {
+    protected AbstractExecutionContext(MutableRequest request, MutableResponse response) {
         this.request = request;
         this.response = response;
-        this.componentProvider = componentProvider;
-        this.templateVariableProviders = templateVariableProviders;
     }
 
     @Override
@@ -70,12 +66,12 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
     }
 
     @Override
-    public Request request() {
+    public MutableRequest request() {
         return request;
     }
 
     @Override
-    public Response response() {
+    public MutableResponse response() {
         return response;
     }
 
@@ -162,7 +158,13 @@ abstract class AbstractExecutionContext implements RequestExecutionContext {
         return getComponent(Tracer.class);
     }
 
-    public void setTemplateVariableProviders(Collection<TemplateVariableProvider> templateVariableProviders) {
+    public MutableRequestExecutionContext componentProvider(final ComponentProvider componentProvider) {
+        this.componentProvider = componentProvider;
+        return this;
+    }
+
+    public MutableRequestExecutionContext templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders) {
         this.templateVariableProviders = templateVariableProviders;
+        return this;
     }
 }

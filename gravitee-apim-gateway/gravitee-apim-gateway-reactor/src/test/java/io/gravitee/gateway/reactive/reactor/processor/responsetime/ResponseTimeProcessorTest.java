@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.processor;
+package io.gravitee.gateway.reactive.reactor.processor.responsetime;
 
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.spy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.when;
 
-import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
-import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.reactor.handler.context.DefaultRequestExecutionContext;
 import io.gravitee.reporter.api.http.Metrics;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -37,37 +37,28 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-public class AbstractProcessorTest {
-
-    protected Api api;
+class ResponseTimeProcessorTest {
 
     @Mock
-    protected Metrics mockMetrics;
+    private MutableRequest request;
 
     @Mock
-    protected MutableRequest mockRequest;
+    private MutableResponse response;
 
-    protected HttpHeaders spyRequestHeaders;
+    private DefaultRequestExecutionContext ctx;
 
-    @Mock
-    protected MutableResponse mockResponse;
+    @Test
+    public void shouldAddResponseTimeToMetric() {
+        // Prepare metrics
+        Metrics metrics = Metrics.on(System.currentTimeMillis()).build();
+        metrics.setApiResponseTimeMs(100);
+        when(request.metrics()).thenReturn(metrics);
 
-    protected HttpHeaders spyResponseHeaders;
+        ctx = new DefaultRequestExecutionContext(request, response);
 
-    protected DefaultRequestExecutionContext ctx;
-    protected CustomComponentProvider componentProvider;
-
-    @BeforeEach
-    public void init() {
-        spyRequestHeaders = spy(HttpHeaders.create());
-        spyResponseHeaders = spy(HttpHeaders.create());
-        lenient().when(mockRequest.metrics()).thenReturn(mockMetrics);
-        lenient().when(mockRequest.headers()).thenReturn(spyRequestHeaders);
-        lenient().when(mockResponse.headers()).thenReturn(spyResponseHeaders);
-        api = new Api();
-        componentProvider = new CustomComponentProvider();
-        componentProvider.add(io.gravitee.definition.model.Api.class, api);
-        ctx = new DefaultRequestExecutionContext(mockRequest, mockResponse);
-        ctx.componentProvider(componentProvider);
+        ResponseTimeProcessor responseTimeProcessor = new ResponseTimeProcessor();
+        responseTimeProcessor.execute(ctx).test().assertResult();
+        assertThat(metrics.getProxyResponseTimeMs()).isLessThanOrEqualTo(System.currentTimeMillis() - metrics.getApiResponseTimeMs());
+        assertThat(metrics.getProxyLatencyMs()).isEqualTo(metrics.getProxyResponseTimeMs() - metrics.getApiResponseTimeMs());
     }
 }

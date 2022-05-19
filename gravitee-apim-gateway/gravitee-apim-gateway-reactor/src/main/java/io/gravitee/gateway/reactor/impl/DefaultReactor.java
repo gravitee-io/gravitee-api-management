@@ -37,6 +37,7 @@ import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -59,12 +60,15 @@ public class DefaultReactor extends AbstractService<Reactor> implements Reactor,
     private GatewayConfiguration gatewayConfiguration;
 
     @Autowired
+    @Qualifier("v3RequestProcessorChainFactory")
     private RequestProcessorChainFactory requestProcessorChainFactory;
 
     @Autowired
+    @Qualifier("v3ResponseProcessorChainFactory")
     private ResponseProcessorChainFactory responseProcessorChainFactory;
 
     @Autowired
+    @Qualifier("v3NotFoundProcessorChainFactory")
     private NotFoundProcessorChainFactory notFoundProcessorChainFactory;
 
     @Override
