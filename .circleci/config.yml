@@ -1161,6 +1161,7 @@ workflows:
                           working_directory:
                               - gravitee-apim-rest-api
                               - gravitee-apim-gateway
+                              - gravitee-apim-definition
                   context: cicd-orchestrator
                   requires:
                       - test
