@@ -16,6 +16,7 @@
 package io.gravitee.repository.jdbc.embedded;
 
 import static ru.yandex.qatools.embed.postgresql.distribution.Version.Main.V10;
+import static ru.yandex.qatools.embed.postgresql.distribution.Version.Main.V11;
 
 import io.gravitee.repository.jdbc.AbstractJdbcTestRepositoryConfiguration;
 import java.io.IOException;
@@ -23,6 +24,7 @@ import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import ru.yandex.qatools.embed.postgresql.EmbeddedPostgres;
+import ru.yandex.qatools.embed.postgresql.distribution.Version;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -30,6 +32,8 @@ import ru.yandex.qatools.embed.postgresql.EmbeddedPostgres;
  */
 @Conditional(PostgreSQLCondition.class)
 public class PostgreSQLTestRepositoryConfiguration extends AbstractJdbcTestRepositoryConfiguration {
+
+    private static final String MACOS_M1_ARCH = "aarch64";
 
     @Inject
     private EmbeddedPostgres embeddedPostgres;
@@ -41,8 +45,12 @@ public class PostgreSQLTestRepositoryConfiguration extends AbstractJdbcTestRepos
 
     @Bean(destroyMethod = "stop")
     public EmbeddedPostgres embeddedPostgres() throws IOException {
-        final EmbeddedPostgres embeddedPostgres = new EmbeddedPostgres(V10);
+        final EmbeddedPostgres embeddedPostgres = new EmbeddedPostgres(version());
         embeddedPostgres.start("localhost", 5423, "gravitee", "gravitee", "gravitee");
         return embeddedPostgres;
+    }
+
+    private static Version.Main version() {
+        return MACOS_M1_ARCH.equals(System.getProperty("os.arch")) ? V11 : V10;
     }
 }
