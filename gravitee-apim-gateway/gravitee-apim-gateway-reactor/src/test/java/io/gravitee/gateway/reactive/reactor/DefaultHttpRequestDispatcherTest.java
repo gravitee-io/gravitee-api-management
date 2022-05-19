@@ -30,20 +30,23 @@ import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
-import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
+import io.gravitee.gateway.report.ReporterService;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.observers.TestObserver;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpVersion;
 import io.vertx.reactivex.core.MultiMap;
 import io.vertx.reactivex.core.http.HttpServerRequest;
 import io.vertx.reactivex.core.http.HttpServerResponse;
@@ -56,6 +59,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -107,6 +111,12 @@ class DefaultHttpRequestDispatcherTest {
     @Mock
     private HandlerEntrypoint handlerEntrypoint;
 
+    @Mock
+    private Environment environment;
+
+    @Mock
+    private ReporterService reporterService;
+
     private DefaultHttpRequestDispatcher cut;
 
     @BeforeEach
@@ -114,6 +124,7 @@ class DefaultHttpRequestDispatcherTest {
         // Mock vertx request behavior.
         lenient().when(rxRequest.host()).thenReturn(HOST);
         lenient().when(rxRequest.path()).thenReturn(PATH);
+        lenient().when(rxRequest.version()).thenReturn(HttpVersion.HTTP_2);
         lenient().when(rxRequest.method()).thenReturn(HttpMethod.GET);
         lenient().when(rxRequest.headers()).thenReturn(MultiMap.caseInsensitiveMultiMap());
         lenient().when(rxRequest.toFlowable()).thenReturn(Flowable.empty());
@@ -145,7 +156,8 @@ class DefaultHttpRequestDispatcherTest {
                 entrypointResolver,
                 idGenerator,
                 new RequestProcessorChainFactory(),
-                responseProcessorChainFactory
+                responseProcessorChainFactory,
+                notFoundProcessorChainFactory
             );
     }
 
@@ -287,30 +299,27 @@ class DefaultHttpRequestDispatcherTest {
 
     @Test
     public void shouldHandleNotFoundWhenNoHandlerResolved() {
-        // FIXME: subjects to change with full support of NotFound.
+        ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
+        when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
         when(entrypointResolver.resolve(HOST, PATH)).thenReturn(null);
-        when(rxResponse.rxEnd()).thenReturn(Completable.complete());
 
-        final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
+        cut.dispatch(rxRequest).test().assertResult();
 
-        obs.assertResult();
-
-        verify(rxResponse).setStatusCode(HttpStatusCode.NOT_FOUND_404);
+        verify(notFoundProcessorChainFactory).processorChain();
+        verify(processorChain).execute(any());
     }
 
     @Test
     public void shouldHandleNotFoundWhenNoTargetOnResolvedHandler() {
-        // FIXME: subjects to change with full support of NotFound.
         this.prepareV3Mock(handlerEntrypoint, null);
 
+        ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
+        when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
         when(entrypointResolver.resolve(HOST, PATH)).thenReturn(null);
-        when(rxResponse.rxEnd()).thenReturn(Completable.complete());
+        cut.dispatch(rxRequest).test().assertResult();
 
-        final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
-
-        obs.assertResult();
-
-        verify(rxResponse).setStatusCode(HttpStatusCode.NOT_FOUND_404);
+        verify(notFoundProcessorChainFactory).processorChain();
+        verify(processorChain).execute(any());
     }
 
     @Test

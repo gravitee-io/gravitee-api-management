@@ -25,10 +25,9 @@ import io.gravitee.gateway.reactive.handlers.api.processor.error.SimpleFailurePr
 import io.gravitee.gateway.reactive.handlers.api.processor.error.template.ResponseTemplateBasedFailureProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.pathmapping.PathMappingProcessor;
-import io.gravitee.gateway.reactive.handlers.api.processor.shutdown.ShutdownProcessor;
+import io.gravitee.gateway.reactive.reactor.processor.shutdown.ShutdownProcessor;
 import io.gravitee.node.api.Node;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -40,11 +39,9 @@ import java.util.regex.Pattern;
 public class ApiProcessorChainFactory {
 
     private final Options options;
-    private final Node node;
 
-    public ApiProcessorChainFactory(final Options options, Node node) {
+    public ApiProcessorChainFactory(final Options options) {
         this.options = options;
-        this.node = node;
     }
 
     public ProcessorChain preProcessorChain(final Api api) {
@@ -62,7 +59,6 @@ public class ApiProcessorChainFactory {
 
     public ProcessorChain postProcessorChain(final Api api) {
         List<Processor> postProcessorList = new ArrayList<>();
-        postProcessorList.add(ShutdownProcessor.instance().node(node));
         Cors cors = api.getProxy().getCors();
         if (cors != null && cors.isEnabled()) {
             postProcessorList.add(CorsSimpleRequestProcessor.instance());

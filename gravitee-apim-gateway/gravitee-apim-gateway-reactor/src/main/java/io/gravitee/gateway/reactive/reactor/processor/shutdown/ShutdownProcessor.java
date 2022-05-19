@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.processor.shutdown;
+package io.gravitee.gateway.reactive.reactor.processor.shutdown;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpHeadersValues;
@@ -32,15 +32,10 @@ import io.reactivex.Completable;
 public class ShutdownProcessor implements Processor {
 
     public static final String ID = "shutdown-processor";
-    private Node node;
+    private final Node node;
 
-    public static ShutdownProcessor instance() {
-        return Holder.INSTANCE;
-    }
-
-    public ShutdownProcessor node(final Node node) {
+    public ShutdownProcessor(final Node node) {
         this.node = node;
-        return this;
     }
 
     @Override
@@ -63,10 +58,5 @@ public class ShutdownProcessor implements Processor {
                 }
             }
         );
-    }
-
-    private static class Holder {
-
-        private static final ShutdownProcessor INSTANCE = new ShutdownProcessor();
     }
 }
