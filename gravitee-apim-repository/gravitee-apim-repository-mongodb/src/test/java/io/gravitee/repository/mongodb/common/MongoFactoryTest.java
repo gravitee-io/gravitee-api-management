@@ -215,7 +215,7 @@ public class MongoFactoryTest {
 
     @Test
     public void buildClientSettingsShouldReturnSettingsConfiguredWithDefaultValues() {
-        MongoClientSettings mongoClientSettings = mongoFactory.buildClientSettings(false);
+        MongoClientSettings mongoClientSettings = mongoFactory.buildClientSettingsFromProperties(false);
 
         assertThat(mongoClientSettings).isNotNull();
         assertThat(mongoClientSettings.getApplicationName()).isEqualTo("gravitee.io");
@@ -238,7 +238,7 @@ public class MongoFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + "journal", "true");
         environment.setProperty(PROPERTY_PREFIX + "wtimeout", "1000");
 
-        MongoClientSettings mongoClientSettings = mongoFactory.buildClientSettings(false);
+        MongoClientSettings mongoClientSettings = mongoFactory.buildClientSettingsFromProperties(false);
 
         assertThat(mongoClientSettings).isNotNull();
         assertThat(mongoClientSettings.getApplicationName()).isEqualTo("my-application");
@@ -264,7 +264,7 @@ public class MongoFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + "journal", "true");
         environment.setProperty(PROPERTY_PREFIX + "wtimeout", "1000");
 
-        MongoClientSettings mongoClientSettings = mongoFactory.buildClientSettings(true);
+        MongoClientSettings mongoClientSettings = mongoFactory.buildClientSettingsFromProperties(true);
 
         assertThat(mongoClientSettings).isNotNull();
         assertThat(mongoClientSettings.getApplicationName()).isEqualTo("my-application");
@@ -281,11 +281,16 @@ public class MongoFactoryTest {
     public void getObjectShouldReturnAMongoClientConfiguredWithURI() throws Exception {
         environment.setProperty(PROPERTY_PREFIX + "uri", "mongodb://localhost:27017/gravitee?connectTimeoutMS=2000");
 
-        MongoClient mongoClient = mongoFactory.getObject();
+        MongoFactory spiedMongoFactory = spy(mongoFactory);
+
+        MongoClient mongoClient = spiedMongoFactory.getObject();
 
         assertThat(mongoClient).isNotNull();
         assertThat(mongoClient.getClusterDescription().getClusterSettings().getHosts())
             .isEqualTo(List.of(new ServerAddress("localhost", 27017)));
+
+        verify(spiedMongoFactory).buildSslSettings();
+        verify(spiedMongoFactory).buildServerSettings();
     }
 
     @Test
@@ -294,7 +299,7 @@ public class MongoFactoryTest {
 
         spiedMongoFactory.getObject();
 
-        verify(spiedMongoFactory).buildClientSettings(false);
+        verify(spiedMongoFactory).buildClientSettingsFromProperties(false);
     }
 
     @Test
@@ -314,7 +319,7 @@ public class MongoFactoryTest {
 
         spiedMongoFactory.getReactiveClient();
 
-        verify(spiedMongoFactory).buildClientSettings(true);
+        verify(spiedMongoFactory).buildClientSettingsFromProperties(true);
     }
 
     @Test

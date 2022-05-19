@@ -212,7 +212,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         }
     }
 
-    protected MongoClientSettings buildClientSettings(boolean isReactive) {
+    protected MongoClientSettings buildClientSettingsFromProperties(boolean isReactive) {
         // Base Builder
         MongoClientSettings.Builder builder = MongoClientSettings.builder();
 
@@ -309,6 +309,28 @@ public class MongoFactory implements FactoryBean<MongoClient> {
             .build();
     }
 
+    private MongoClientSettings buildClientSettingsFromURI(String uri, boolean isReactive) {
+        ServerSettings serverSettings = buildServerSettings();
+        SslSettings sslSettings = buildSslSettings();
+
+        MongoClientSettings.Builder settingsBuilder = MongoClientSettings
+            .builder()
+            .applyToServerSettings(builder -> builder.applySettings(serverSettings))
+            .applyToSslSettings(builder -> builder.applySettings(sslSettings))
+            .applyConnectionString(new ConnectionString(uri));
+
+        if (isReactive) {
+            // codec configuration for pojo mapping
+            CodecRegistry pojoCodecRegistry = fromRegistries(
+                com.mongodb.reactivestreams.client.MongoClients.getDefaultCodecRegistry(),
+                fromProviders(PojoCodecProvider.builder().automatic(true).build())
+            );
+            settingsBuilder.codecRegistry(pojoCodecRegistry);
+        }
+
+        return settingsBuilder.build();
+    }
+
     @Override
     public MongoClient getObject() throws Exception {
         // According to https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/beans/factory/FactoryBean.html#isSingleton--
@@ -318,11 +340,10 @@ public class MongoFactory implements FactoryBean<MongoClient> {
             String uri = readPropertyValue(propertyPrefix + "uri");
 
             if (uri != null && !uri.isEmpty()) {
-                // The builder can be configured with default options, which may be overridden by options specified in
-                // the URI string.
-                mongoClient = MongoClients.create(new ConnectionString(uri));
+                // The builder can be configured with default options, which may be overridden by options specified in the URI string.
+                mongoClient = MongoClients.create(buildClientSettingsFromURI(uri, false));
             } else {
-                mongoClient = MongoClients.create(buildClientSettings(false));
+                mongoClient = MongoClients.create(buildClientSettingsFromProperties(false));
             }
         }
 
@@ -334,16 +355,9 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         String uri = readPropertyValue(propertyPrefix + "uri");
 
         if (uri != null && !uri.isEmpty()) {
-            // codec configuration for pojo mapping
-            CodecRegistry pojoCodecRegistry = fromRegistries(
-                com.mongodb.reactivestreams.client.MongoClients.getDefaultCodecRegistry(),
-                fromProviders(PojoCodecProvider.builder().automatic(true).build())
-            );
-            MongoClientSettings.builder().codecRegistry(pojoCodecRegistry);
-
-            return com.mongodb.reactivestreams.client.MongoClients.create(new ConnectionString(uri));
+            return com.mongodb.reactivestreams.client.MongoClients.create(buildClientSettingsFromURI(uri, true));
         } else {
-            return com.mongodb.reactivestreams.client.MongoClients.create(buildClientSettings(true));
+            return com.mongodb.reactivestreams.client.MongoClients.create(buildClientSettingsFromProperties(true));
         }
     }
 
