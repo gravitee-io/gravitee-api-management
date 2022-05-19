@@ -83,8 +83,9 @@ function DialogConfigureLoggingEditorController($scope, $mdDialog, plans, subscr
     const type: ConditionType = _.find($scope.types, (conditionType: ConditionType) => conditionType.id === $scope.selectedType);
     if (type !== undefined) {
       $scope.conditions.push(new Condition(type, '==', ''));
+    } else {
+      $scope.selectedType = null;
     }
-    $scope.selectedType = null;
   };
 
   this.removeCondition = (idx: number) => {
