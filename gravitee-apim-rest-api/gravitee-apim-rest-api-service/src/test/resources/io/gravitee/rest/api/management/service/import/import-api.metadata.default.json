@@ -1,0 +1,21 @@
+{
+    "name": "with-metadata",
+    "metadata": [
+        {
+            "key": "metadata-key",
+            "name": "metadata-name",
+            "format": "STRING",
+            "value": "metadata-value",
+            "defaultValue": "metadata-default-value",
+            "apiId": "id-api"
+        },
+        {
+            "key": "metadata-key-2",
+            "name": "metadata-name-2",
+            "format": "STRING",
+            "value": "metadata-value-2",
+            "defaultValue": "metadata-default-value-2",
+            "apiId": "id-api"
+        }
+    ]
+}
