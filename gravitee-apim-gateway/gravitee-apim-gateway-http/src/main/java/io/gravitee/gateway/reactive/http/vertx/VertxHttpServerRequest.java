@@ -39,9 +39,9 @@ public class VertxHttpServerRequest implements MutableRequest {
 
     protected final long timestamp;
     protected final Metrics metrics;
-    protected final String contextPath;
-    protected final String pathInfo;
     protected final HttpServerRequest nativeRequest;
+    protected String contextPath;
+    protected String pathInfo;
     protected String id;
     protected String transactionId;
     protected String remoteAddress;
@@ -51,7 +51,7 @@ public class VertxHttpServerRequest implements MutableRequest {
     protected HttpHeaders headers;
     protected Flowable<Buffer> chunks;
 
-    public VertxHttpServerRequest(HttpServerRequest nativeRequest, String contextPath, IdGenerator idGenerator) {
+    public VertxHttpServerRequest(HttpServerRequest nativeRequest, IdGenerator idGenerator) {
         this.nativeRequest = nativeRequest;
         this.timestamp = System.currentTimeMillis();
         this.id = idGenerator.randomString();
@@ -64,8 +64,6 @@ public class VertxHttpServerRequest implements MutableRequest {
         this.metrics.setHost(nativeRequest.host());
         this.metrics.setUri(uri());
         this.metrics.setUserAgent(nativeRequest.getHeader(io.vertx.reactivex.core.http.HttpHeaders.USER_AGENT));
-        this.contextPath = contextPath;
-        this.pathInfo = path().substring((contextPath.length() == 1) ? 0 : contextPath.length() - 1);
         // Make sure that any subscription to the request body will be cached to avoid multiple consumptions.
         this.chunks =
             nativeRequest
@@ -108,6 +106,13 @@ public class VertxHttpServerRequest implements MutableRequest {
     @Override
     public String pathInfo() {
         return pathInfo;
+    }
+
+    @Override
+    public MutableRequest contextPath(String contextPath) {
+        this.contextPath = contextPath;
+        this.pathInfo = path().substring((contextPath.length() == 1) ? 0 : contextPath.length() - 1);
+        return this;
     }
 
     @Override

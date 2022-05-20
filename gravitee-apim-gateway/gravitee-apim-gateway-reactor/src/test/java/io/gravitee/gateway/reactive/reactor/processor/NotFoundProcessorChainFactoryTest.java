@@ -25,20 +25,19 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.core.context.MutableRequest;
+import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
-import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
-import io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory;
+import io.gravitee.gateway.reactive.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.Completable;
-import io.vertx.reactivex.core.MultiMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.core.env.StandardEnvironment;
 
 /**
@@ -52,17 +51,15 @@ class NotFoundProcessorChainFactoryTest {
     private ReporterService reporterService;
 
     @Mock
-    private Request request;
+    private MutableRequest request;
 
     @Mock
-    private Response response;
+    private MutableResponse response;
 
-    private ExecutionContextFactory executionContextFactory;
     private Metrics metrics;
 
     @BeforeEach
     public void beforeEach() {
-        executionContextFactory = new ExecutionContextFactory();
         metrics = Metrics.on(System.currentTimeMillis()).build();
         when(request.metrics()).thenReturn(metrics);
         when(response.end()).thenReturn(Completable.complete());
@@ -78,7 +75,7 @@ class NotFoundProcessorChainFactoryTest {
             false
         );
         ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
-        RequestExecutionContext notFoundRequestContext = executionContextFactory.createRequestContext(request, response);
+        RequestExecutionContext notFoundRequestContext = new DefaultRequestExecutionContext(request, response);
 
         processorChain.execute(notFoundRequestContext).test().assertResult();
         verify(response).status(HttpStatusCode.NOT_FOUND_404);
