@@ -17,270 +17,184 @@
 
 -->
 <project
-    xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+        xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 >
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>io.gravitee.apim.distribution</groupId>
-		<artifactId>gravitee-apim-distribution</artifactId>
+    <parent>
+        <groupId>io.gravitee.apim.distribution</groupId>
+        <artifactId>gravitee-apim-distribution</artifactId>
         <version>3.5.31-SNAPSHOT</version>
-		<relativePath>../../../gravitee-apim-distribution/pom.xml</relativePath>
-	</parent>
+        <relativePath>../../../gravitee-apim-distribution/pom.xml</relativePath>
+    </parent>
 
-	<groupId>io.gravitee.apim.rest.api.standalone.distribution</groupId>
+    <groupId>io.gravitee.apim.rest.api.standalone.distribution</groupId>
     <artifactId>gravitee-apim-rest-api-standalone-distribution</artifactId>
-
-	<packaging>pom</packaging>
+    <packaging>pom</packaging>
 
     <name>Gravitee.io APIM - Management API - Standalone - Distribution</name>
 
-	<properties>
-		<!-- Properties used for building RPM & DEB package -->
-		<packaging.gravitee.management.home.dir>/usr/share/gravitee-management</packaging.gravitee.management.home.dir>
-		<packaging.gravitee.management.bin.dir>${packaging.gravitee.management.home.dir}/bin</packaging.gravitee.management.bin.dir>
+    <properties>
+        <!-- Properties used for building RPM & DEB package -->
+        <packaging.gravitee.management.home.dir>/usr/share/gravitee-management</packaging.gravitee.management.home.dir>
+        <packaging.gravitee.management.bin.dir>${packaging.gravitee.management.home.dir}/bin</packaging.gravitee.management.bin.dir>
 		<packaging.gravitee.management.plugins.dir>${packaging.gravitee.management.home.dir}/plugins</packaging.gravitee.management.plugins.dir>
-		<packaging.gravitee.management.conf.dir>/etc/gravitee-management</packaging.gravitee.management.conf.dir>
-		<packaging.gravitee.management.log.dir>/var/log/gravitee-management</packaging.gravitee.management.log.dir>
-		<packaging.gravitee.management.pid.dir>/var/run/gravitee-management</packaging.gravitee.management.pid.dir>
-		<packaging.gravitee.management.services.dir>/etc/init.d</packaging.gravitee.management.services.dir>
-		<packaging.gravitee.management.user>gravitee</packaging.gravitee.management.user>
-		<packaging.gravitee.management.group>gravitee</packaging.gravitee.management.group>
-	</properties>
+        <packaging.gravitee.management.conf.dir>/etc/gravitee-management</packaging.gravitee.management.conf.dir>
+        <packaging.gravitee.management.log.dir>/var/log/gravitee-management</packaging.gravitee.management.log.dir>
+        <packaging.gravitee.management.pid.dir>/var/run/gravitee-management</packaging.gravitee.management.pid.dir>
+        <packaging.gravitee.management.services.dir>/etc/init.d</packaging.gravitee.management.services.dir>
+        <packaging.gravitee.management.user>gravitee</packaging.gravitee.management.user>
+        <packaging.gravitee.management.group>gravitee</packaging.gravitee.management.group>
 
-	<modules>
-		<module>gravitee-apim-rest-api-standalone-distribution-zip</module>
-	</modules>
+        <!--suppress UnresolvedMavenProperty -->
+        <gravitee.management.log.dir>${gravitee.home}/logs</gravitee.management.log.dir>
+    </properties>
 
-	<dependencies>
-		<!-- Gravitee dependencies -->
-		<dependency>
-			<groupId>io.gravitee.apim.rest.api.standalone</groupId>
-			<artifactId>gravitee-apim-rest-api-standalone-bootstrap</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+    <modules>
+        <module>gravitee-apim-rest-api-standalone-distribution-zip</module>
+    </modules>
 
-		<dependency>
-			<groupId>io.gravitee.apim.rest.api.standalone</groupId>
-			<artifactId>gravitee-apim-rest-api-standalone-container</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+    <dependencies>
+        <!-- Gravitee dependencies -->
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.standalone</groupId>
+            <artifactId>gravitee-apim-rest-api-standalone-bootstrap</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.apim.rest.api.idp</groupId>
-			<artifactId>gravitee-apim-rest-api-idp-ldap</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.standalone</groupId>
+            <artifactId>gravitee-apim-rest-api-standalone-container</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.apim.rest.api.idp</groupId>
-			<artifactId>gravitee-apim-rest-api-idp-repository</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
+        <!-- APIM rest API plugins -->
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.idp</groupId>
+            <artifactId>gravitee-apim-rest-api-idp-ldap</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.apim.rest.api.idp</groupId>
-			<artifactId>gravitee-apim-rest-api-idp-memory</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.idp</groupId>
+            <artifactId>gravitee-apim-rest-api-idp-repository</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.apim.rest.api.services</groupId>
-			<artifactId>gravitee-apim-rest-api-services-subscriptions</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.idp</groupId>
+            <artifactId>gravitee-apim-rest-api-idp-memory</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.apim.rest.api.services</groupId>
-			<artifactId>gravitee-apim-rest-api-services-search-indexer</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.services</groupId>
+            <artifactId>gravitee-apim-rest-api-services-subscriptions</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.apim.rest.api.services</groupId>
-			<artifactId>gravitee-apim-rest-api-services-sync</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.services</groupId>
+            <artifactId>gravitee-apim-rest-api-services-search-indexer</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.apim.rest.api.services</groupId>
-			<artifactId>gravitee-apim-rest-api-services-dynamic-properties</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.services</groupId>
+            <artifactId>gravitee-apim-rest-api-services-sync</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.node.services</groupId>
-			<artifactId>gravitee-node-services-healthcheck</artifactId>
-			<version>${gravitee-node.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.services</groupId>
+            <artifactId>gravitee-apim-rest-api-services-dynamic-properties</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.node.services</groupId>
-			<artifactId>gravitee-node-services-monitoring</artifactId>
-			<version>${gravitee-node.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.node.services</groupId>
+            <artifactId>gravitee-node-services-healthcheck</artifactId>
+            <version>${gravitee-node.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.apim.rest.api.services</groupId>
-			<artifactId>gravitee-apim-rest-api-services-dictionary</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.node.services</groupId>
+            <artifactId>gravitee-node-services-monitoring</artifactId>
+            <version>${gravitee-node.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.apim.rest.api.services</groupId>
-			<artifactId>gravitee-apim-rest-api-services-auto-fetch</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.services</groupId>
+            <artifactId>gravitee-apim-rest-api-services-dictionary</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.apim.repository</groupId>
-			<artifactId>gravitee-apim-repository-jdbc</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.services</groupId>
+            <artifactId>gravitee-apim-rest-api-services-auto-fetch</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
 
-		<dependency>
-			<groupId>io.gravitee.apim.repository</groupId>
-			<artifactId>gravitee-apim-repository-mongodb</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-elasticsearch</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
+    </dependencies>
 
-	<build>
-		<finalName>distribution</finalName>
-
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-apim-plugins</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${basedir}/target/staging/apim_plugins</outputDirectory>
-							<artifactItems>
-								<artifactItem>
-									<groupId>io.gravitee.apim.rest.api.idp</groupId>
-									<artifactId>gravitee-apim-rest-api-idp-ldap</artifactId>
-									<version>${project.version}</version>
-									<type>zip</type>
-								</artifactItem>
-								<artifactItem>
-									<groupId>io.gravitee.apim.rest.api.idp</groupId>
-									<artifactId>gravitee-apim-rest-api-idp-repository</artifactId>
-									<version>${project.version}</version>
-									<type>zip</type>
-								</artifactItem>
-								<artifactItem>
-									<groupId>io.gravitee.apim.rest.api.idp</groupId>
-									<artifactId>gravitee-apim-rest-api-idp-memory</artifactId>
-									<version>${project.version}</version>
-									<type>zip</type>
-								</artifactItem>
-								<artifactItem>
-									<groupId>io.gravitee.apim.rest.api.services</groupId>
-									<artifactId>gravitee-apim-rest-api-services-subscriptions</artifactId>
-									<version>${project.version}</version>
-									<type>zip</type>
-								</artifactItem>
-								<artifactItem>
-									<groupId>io.gravitee.apim.rest.api.services</groupId>
-									<artifactId>gravitee-apim-rest-api-services-search-indexer</artifactId>
-									<version>${project.version}</version>
-									<type>zip</type>
-								</artifactItem>
-								<artifactItem>
-									<groupId>io.gravitee.apim.rest.api.services</groupId>
-									<artifactId>gravitee-apim-rest-api-services-auto-fetch</artifactId>
-									<version>${project.version}</version>
-									<type>zip</type>
-								</artifactItem>
-								<artifactItem>
-									<groupId>io.gravitee.apim.rest.api.services</groupId>
-									<artifactId>gravitee-apim-rest-api-services-sync</artifactId>
-									<version>${project.version}</version>
-									<type>zip</type>
-								</artifactItem>
-								<artifactItem>
-									<groupId>io.gravitee.apim.rest.api.services</groupId>
-									<artifactId>gravitee-apim-rest-api-services-dynamic-properties</artifactId>
-									<version>${project.version}</version>
-									<type>zip</type>
-								</artifactItem>
-								<artifactItem>
-									<groupId>io.gravitee.node.services</groupId>
-									<artifactId>gravitee-node-services-healthcheck</artifactId>
-									<version>${gravitee-node.version}</version>
-									<type>zip</type>
-								</artifactItem>
-								<artifactItem>
-									<groupId>io.gravitee.node.services</groupId>
-									<artifactId>gravitee-node-services-monitoring</artifactId>
-									<version>${gravitee-node.version}</version>
-									<type>zip</type>
-								</artifactItem>
-								<artifactItem>
-									<groupId>io.gravitee.apim.rest.api.services</groupId>
-									<artifactId>gravitee-apim-rest-api-services-dictionary</artifactId>
-									<version>${project.version}</version>
-									<type>zip</type>
-								</artifactItem>
-							</artifactItems>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.6</version>
-				<inherited>false</inherited>
-				<executions>
-					<execution>
-						<id>bin</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<appendAssemblyId>false</appendAssemblyId>
-							<descriptors>
-								<descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
-							</descriptors>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <!-- avoid the execution defined in APIM parent pom.xml to be executed -->
+                        <id>make-plugin-assembly</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>make-distribution</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <attach>false</attach>
+                            <finalName>distribution</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>src/main/assembly/plugin-assembly-distribution.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
