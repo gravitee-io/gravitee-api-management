@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -143,8 +144,11 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
+        when(roleService.findByScopeAndName(RoleScope.API, "API_PRIMARY_OWNER")).thenReturn(Optional.of(poRoleEntity));
+
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
+        when(roleService.findByScopeAndName(RoleScope.API, "API_OWNER")).thenReturn(Optional.of(ownerRoleEntity));
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
@@ -221,8 +225,11 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
+        when(roleService.findByScopeAndName(RoleScope.API, "API_PRIMARY_OWNER")).thenReturn(Optional.of(poRoleEntity));
+
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
+        when(roleService.findByScopeAndName(RoleScope.API, "API_OWNER")).thenReturn(Optional.of(ownerRoleEntity));
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");

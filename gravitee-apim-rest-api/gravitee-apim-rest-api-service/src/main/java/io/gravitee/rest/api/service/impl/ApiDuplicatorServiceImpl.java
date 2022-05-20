@@ -442,7 +442,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private boolean isPresentWithSameRole(Set<MemberToImport> membersAlreadyPresent, MemberToImport memberToImport) {
+    protected boolean isPresentWithSameRole(Set<MemberToImport> membersAlreadyPresent, MemberToImport memberToImport) {
         return (
             memberToImport.getRoles() != null &&
             !memberToImport.getRoles().isEmpty() &&
@@ -460,26 +460,37 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         );
     }
 
-    private List<String> getRolesToImport(MemberToImport memberToImport) {
+    protected List<String> getRolesToImport(MemberToImport memberToImport) {
         List<String> rolesToImport = memberToImport.getRoles();
         if (rolesToImport == null) {
             rolesToImport = new ArrayList<>();
             memberToImport.setRoles(rolesToImport);
+        } else {
+            rolesToImport = new ArrayList<>(rolesToImport);
         }
 
         // Before v3, only one role per member could be imported
         String roleToAdd = memberToImport.getRole();
         if (roleToAdd != null && !roleToAdd.isEmpty()) {
-            Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(RoleScope.API, roleToAdd);
-            if (optRoleToAddEntity.isPresent()) {
-                rolesToImport.add(optRoleToAddEntity.get().getId());
-            } else {
-                LOGGER.warn("Role {} does not exist", roleToAdd);
-            }
+            rolesToImport.add(roleToAdd);
         }
 
-        rolesToImport.sort(Comparator.naturalOrder());
-        return rolesToImport;
+        return rolesToImport
+            .stream()
+            .map(
+                role -> {
+                    final Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(RoleScope.API, role);
+                    if (optRoleToAddEntity.isPresent()) {
+                        return role;
+                    } else {
+                        LOGGER.warn("Role {} does not exist", roleToAdd);
+                        return null;
+                    }
+                }
+            )
+            .filter(Objects::nonNull)
+            .sorted(Comparator.naturalOrder())
+            .collect(Collectors.toList());
     }
 
     private void addOrUpdateMembers(
@@ -549,7 +560,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private Set<MemberToImport> getAPICurrentMembers(String apiId) {
+    protected Set<MemberToImport> getAPICurrentMembers(String apiId) {
         return membershipService
             .getMembersByReference(MembershipReferenceType.API, apiId)
             .stream()
@@ -568,9 +579,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             .collect(toSet());
     }
 
-    private void updatePages(String apiId, JsonNode jsonNode, String environmentId, boolean isUpdate) throws JsonProcessingException {
+    protected void updatePages(String apiId, JsonNode jsonNode, String environmentId, boolean isUpdate) throws JsonProcessingException {
         final JsonNode pagesDefinition = jsonNode.path(API_DEFINITION_FIELD_PAGES);
-        if (pagesDefinition != null && pagesDefinition.isArray()) {
+        if (pagesDefinition != null && pagesDefinition.isArray() && pagesDefinition.size() > 0) {
             List<PageEntity> pagesList = objectMapper.readValue(
                 pagesDefinition.toString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
@@ -583,9 +594,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private void updatePlans(String apiId, JsonNode jsonNode, String environmentId, boolean isUpdate) throws JsonProcessingException {
+    protected void updatePlans(String apiId, JsonNode jsonNode, String environmentId, boolean isUpdate) throws JsonProcessingException {
         final JsonNode plansDefinition = jsonNode.path(API_DEFINITION_FIELD_PLANS);
-        if (plansDefinition != null && plansDefinition.isArray()) {
+        if (plansDefinition != null && plansDefinition.isArray() && plansDefinition.size() > 0) {
             List<PlanEntity> plansToImport = objectMapper.readValue(
                 plansDefinition.toString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, PlanEntity.class)
@@ -604,7 +615,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private void updateMetadata(String apiId, JsonNode jsonNode) {
+    protected void updateMetadata(String apiId, JsonNode jsonNode) {
         final JsonNode metadataDefinition = jsonNode.path(API_DEFINITION_FIELD_METADATA);
         if (metadataDefinition != null && metadataDefinition.isArray()) {
             try {
@@ -623,7 +634,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private static class MemberToImport {
+    protected static class MemberToImport {
 
         private String source;
 
