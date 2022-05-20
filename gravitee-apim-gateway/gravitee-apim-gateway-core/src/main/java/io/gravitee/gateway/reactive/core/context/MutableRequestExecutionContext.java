@@ -15,31 +15,21 @@
  */
 package io.gravitee.gateway.reactive.core.context;
 
-import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import java.util.Collection;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MutableRequest extends Request {
-    /**
-     * Allow setting context path.
-     *
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest contextPath(final String contextPath);
+public interface MutableRequestExecutionContext extends RequestExecutionContext {
+    MutableRequestExecutionContext componentProvider(final ComponentProvider componentProvider);
 
-    /**
-     * Allow setting transaction id.
-     *
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest transactionId(final String id);
+    MutableRequestExecutionContext templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders);
 
-    /**
-     * Allow overriding remote adresse
-     *
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest remoteAddress(final String remoteAddress);
+    MutableRequest request();
+
+    MutableResponse response();
 }

@@ -53,7 +53,6 @@ public class AbstractProcessorTest {
 
     protected DefaultRequestExecutionContext ctx;
     protected Metrics metrics;
-    protected CustomComponentProvider componentProvider;
 
     @BeforeEach
     public void init() {
@@ -63,9 +62,6 @@ public class AbstractProcessorTest {
         lenient().when(mockRequest.metrics()).thenReturn(metrics);
         lenient().when(mockRequest.headers()).thenReturn(spyRequestHeaders);
         lenient().when(mockResponse.headers()).thenReturn(spyResponseHeaders);
-        api = new Api();
-        componentProvider = new CustomComponentProvider();
-        componentProvider.add(io.gravitee.definition.model.Api.class, api);
-        ctx = new DefaultRequestExecutionContext(mockRequest, mockResponse, componentProvider, null);
+        ctx = new DefaultRequestExecutionContext(mockRequest, mockResponse);
     }
 }

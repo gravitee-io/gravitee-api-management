@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Value;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PlatformProcessorChainFactory {
+public class GlobalProcessorChainFactory {
 
     private final TransactionProcessorFactory transactionHandlerFactory;
     private final boolean traceContext;
@@ -46,7 +46,7 @@ public class PlatformProcessorChainFactory {
     private ProcessorChain preProcessorChain;
     private ProcessorChain postProcessorChain;
 
-    public PlatformProcessorChainFactory(
+    public GlobalProcessorChainFactory(
         TransactionProcessorFactory transactionHandlerFactory,
         @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
         ReporterService reporterService,

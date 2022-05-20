@@ -27,8 +27,8 @@ import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.handler.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactive.reactor.processor.GlobalProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
-import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
@@ -87,7 +87,7 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public PlatformProcessorChainFactory platformProcessorChainFactory(
+    public GlobalProcessorChainFactory globalProcessorChainFactory(
         io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
         @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
         ReporterService reporterService,
@@ -95,7 +95,7 @@ public class ReactorConfiguration {
         Node node,
         @Value("${http.port:8082}") String httpPort
     ) {
-        return new PlatformProcessorChainFactory(transactionHandlerFactory, traceContext, reporterService, eventProducer, node, httpPort);
+        return new GlobalProcessorChainFactory(transactionHandlerFactory, traceContext, reporterService, eventProducer, node, httpPort);
     }
 
     @Bean
@@ -107,6 +107,7 @@ public class ReactorConfiguration {
         IdGenerator idGenerator,
         RequestProcessorChainFactory v3RequestProcessorChainFactory,
         ResponseProcessorChainFactory v3ResponseProcessorChainFactory,
+        GlobalProcessorChainFactory globalProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory
     ) {
         return new DefaultHttpRequestDispatcher(
@@ -117,6 +118,7 @@ public class ReactorConfiguration {
             idGenerator,
             v3RequestProcessorChainFactory,
             v3ResponseProcessorChainFactory,
+            globalProcessorChainFactory,
             notFoundProcessorChainFactory
         );
     }

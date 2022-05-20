@@ -18,7 +18,6 @@ package io.gravitee.gateway.reactive.reactor;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
@@ -31,18 +30,18 @@ import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
 import io.gravitee.gateway.http.vertx.grpc.VertxGrpcServerRequest;
 import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
-import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
+import io.gravitee.gateway.reactive.core.context.MutableRequestExecutionContext;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
-import io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory;
+import io.gravitee.gateway.reactive.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.reactive.reactor.processor.GlobalProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
-import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
+import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.reporter.api.http.Metrics;
@@ -53,7 +52,6 @@ import io.vertx.reactivex.core.http.HttpHeaders;
 import io.vertx.reactivex.core.http.HttpServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Request dispatcher responsible to dispatch any HTTP request to the appropriate {@link io.gravitee.gateway.reactor.handler.ReactorHandler}.
@@ -79,8 +77,8 @@ public class DefaultHttpRequestDispatcher
     private final IdGenerator idGenerator;
     private final RequestProcessorChainFactory requestProcessorChainFactory;
     private final ResponseProcessorChainFactory responseProcessorChainFactory;
+    private final GlobalProcessorChainFactory globalProcessorChainFactory;
     private final NotFoundProcessorChainFactory notFoundProcessorChainFactory;
-    private final ExecutionContextFactory notFoundExecutionContextFactory;
 
     public DefaultHttpRequestDispatcher(
         EventManager eventManager,
@@ -90,6 +88,7 @@ public class DefaultHttpRequestDispatcher
         IdGenerator idGenerator,
         RequestProcessorChainFactory requestProcessorChainFactory,
         ResponseProcessorChainFactory responseProcessorChainFactory,
+        GlobalProcessorChainFactory globalProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory
     ) {
         this.eventManager = eventManager;
@@ -99,8 +98,8 @@ public class DefaultHttpRequestDispatcher
         this.idGenerator = idGenerator;
         this.requestProcessorChainFactory = requestProcessorChainFactory;
         this.responseProcessorChainFactory = responseProcessorChainFactory;
+        this.globalProcessorChainFactory = globalProcessorChainFactory;
         this.notFoundProcessorChainFactory = notFoundProcessorChainFactory;
-        this.notFoundExecutionContextFactory = new ExecutionContextFactory();
     }
 
     /**
@@ -118,35 +117,49 @@ public class DefaultHttpRequestDispatcher
 
         final HandlerEntrypoint handlerEntrypoint = entrypointResolver.resolve(httpServerRequest.host(), httpServerRequest.path());
 
-        Completable dispatchObs;
+        if (handlerEntrypoint == null || handlerEntrypoint.target() == null || handlerEntrypoint.executionMode() == ExecutionMode.JUPITER) {
+            // For now, supports only sync requests.
+            VertxHttpServerRequest request = new VertxHttpServerRequest(httpServerRequest, idGenerator);
 
-        if (handlerEntrypoint == null || handlerEntrypoint.target() == null) {
-            // FIXME: Handle Not Found when no api has been resolved for the targeted host and path.
-            dispatchObs = handleNotFound(httpServerRequest);
-        } else if (handlerEntrypoint.executionMode() == ExecutionMode.JUPITER) {
-            // Jupiter execution mode.
-            dispatchObs = handleJupiterRequest(httpServerRequest, handlerEntrypoint);
+            // Set gateway tenants and zones in request metrics.
+            prepareMetrics(request.metrics());
+
+            MutableRequestExecutionContext ctx = new DefaultRequestExecutionContext(request, request.response());
+
+            return globalProcessorChainFactory
+                .preProcessorChain()
+                .execute(ctx)
+                .andThen(
+                    Completable.defer(
+                        () -> {
+                            if (handlerEntrypoint == null || handlerEntrypoint.target() == null) {
+                                return handleNotFound(ctx);
+                            } else {
+                                // Jupiter execution mode.
+                                return handleJupiterRequest(ctx, handlerEntrypoint)
+                                    .andThen(globalProcessorChainFactory.postProcessorChain().execute(ctx));
+                            }
+                        }
+                    )
+                );
         } else {
             // V3 execution mode.
-            dispatchObs = handleV3Request(httpServerRequest, handlerEntrypoint);
+            return handleV3Request(httpServerRequest, handlerEntrypoint);
         }
-
-        return dispatchObs;
     }
 
-    private Completable handleJupiterRequest(HttpServerRequest httpServerRequest, HandlerEntrypoint handlerEntrypoint) {
+    private Completable handleNotFound(final MutableRequestExecutionContext ctx) {
+        ctx.request().contextPath(ctx.request().path());
+        return notFoundProcessorChainFactory.processorChain().execute(ctx);
+    }
+
+    private Completable handleJupiterRequest(final MutableRequestExecutionContext ctx, final HandlerEntrypoint handlerEntrypoint) {
+        ctx.request().contextPath(handlerEntrypoint.path());
         final ApiReactor apiReactor = handlerEntrypoint.target();
-
-        // For now, supports only sync requests.
-        VertxHttpServerRequest request = new VertxHttpServerRequest(httpServerRequest, handlerEntrypoint.path(), idGenerator);
-
-        // Set gateway tenants and zones in request metrics.
-        prepareMetrics(request.metrics());
-
-        return apiReactor.handle(request, request.response());
+        return apiReactor.handle(ctx);
     }
 
-    private Completable handleV3Request(HttpServerRequest httpServerRequest, HandlerEntrypoint handlerEntrypoint) {
+    private Completable handleV3Request(final HttpServerRequest httpServerRequest, final HandlerEntrypoint handlerEntrypoint) {
         final ReactorHandler reactorHandler = handlerEntrypoint.target();
 
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request = createV3Request(httpServerRequest);
@@ -159,6 +172,7 @@ public class DefaultHttpRequestDispatcher
 
         // Set gateway tenants and zones in request metrics.
         prepareMetrics(request.metrics());
+
         // Prepare handler chain and catch the end of the v3 request handling to complete the reactive chain.
         return Completable.create(
             emitter -> {
@@ -201,12 +215,6 @@ public class DefaultHttpRequestDispatcher
 
         // Set gateway zone
         gatewayConfiguration.zone().ifPresent(metrics::setZone);
-    }
-
-    private Completable handleNotFound(final HttpServerRequest httpServerRequest) {
-        VertxHttpServerRequest request = new VertxHttpServerRequest(httpServerRequest, httpServerRequest.path(), idGenerator);
-        RequestExecutionContext notFoundRequestContext = notFoundExecutionContextFactory.createRequestContext(request, request.response());
-        return notFoundProcessorChainFactory.processorChain().execute(notFoundRequestContext);
     }
 
     private io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(HttpServerRequest httpServerRequest) {
