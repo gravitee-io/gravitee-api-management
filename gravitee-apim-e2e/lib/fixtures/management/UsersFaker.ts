@@ -19,8 +19,17 @@ import { RegisterUserInput } from '@portal-models/RegisterUserInput';
 
 export class UsersFaker {
   static newNewPreRegisterUserEntity(attributes?: Partial<NewPreRegisterUserEntity>): NewPreRegisterUserEntity {
+    const firstname = faker.name.firstName();
+    const lastname = faker.name.lastName();
+    const email = faker.internet.email(firstname, lastname);
+
     return {
-      email: faker.internet.email(),
+      firstname,
+      lastname,
+      email,
+      source: 'gravitee',
+      sourceId: email,
+      service: false,
       ...attributes,
     };
   }
