@@ -50,6 +50,11 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-license</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.apim.rest.api.management</groupId>
             <artifactId>gravitee-apim-rest-api-management-rest</artifactId>
             <version>${project.version}</version>
@@ -430,19 +435,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-        <profile>
-            <id>ee</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <dependencies>
-                <!-- GraviteeSource dependencies -->
-                <dependency>
-                    <groupId>com.graviteesource.license</groupId>
-                    <artifactId>gravitee-license-node</artifactId>
-                </dependency>
-            </dependencies>
         </profile>
     </profiles>
 </project>
