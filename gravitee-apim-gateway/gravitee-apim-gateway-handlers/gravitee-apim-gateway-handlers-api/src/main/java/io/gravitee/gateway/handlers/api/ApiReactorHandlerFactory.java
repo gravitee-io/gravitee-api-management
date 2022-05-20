@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.endpoint.resolver.EndpointResolver;
 import io.gravitee.gateway.connector.ConnectorRegistry;
@@ -53,8 +54,7 @@ import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.platform.PlatformPolicyManager;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryCreator;
-import io.gravitee.gateway.reactive.reactor.handler.context.ExecutionContextFactory;
-import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
+import io.gravitee.gateway.reactive.reactor.processor.GlobalProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
@@ -72,6 +72,8 @@ import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.resource.api.ResourceManager;
 import io.vertx.core.Vertx;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -94,7 +96,6 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     private final io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator;
     private final PolicyFactoryCreator policyFactoryCreator;
     private final PolicyChainProviderLoader policyChainProviderLoader;
-    private final PlatformProcessorChainFactory platformProcessorChainFactory;
     private final ApiProcessorChainFactory apiProcessorChainFactory;
     private ApplicationContext applicationContext;
 
@@ -104,8 +105,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         Node node,
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactoryCreator policyFactoryCreator,
-        PolicyChainProviderLoader policyChainProviderLoader,
-        PlatformProcessorChainFactory platformProcessorChainFactory
+        PolicyChainProviderLoader policyChainProviderLoader
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
@@ -113,7 +113,6 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         this.v3PolicyFactoryCreator = v3PolicyFactoryCreator;
         this.policyFactoryCreator = policyFactoryCreator;
         this.policyChainProviderLoader = policyChainProviderLoader;
-        this.platformProcessorChainFactory = platformProcessorChainFactory;
         this.apiProcessorChainFactory = createApiProcessorChainFactory();
     }
 
@@ -226,10 +225,10 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
 
                     return new SyncApiReactor(
                         api,
-                        executionContextFactory(api, apiComponentProvider, referenceRegister),
+                        apiComponentProvider,
+                        templateVariableProviders(api, referenceRegister),
                         new InvokerAdapter(invoker),
                         resourceLifecycleManager,
-                        platformProcessorChainFactory,
                         apiProcessorChainFactory,
                         policyManager,
                         platformPolicyChainFactory,
@@ -274,20 +273,15 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         return executionContextFactory;
     }
 
-    private ExecutionContextFactory executionContextFactory(
-        Api api,
-        ComponentProvider componentProvider,
-        DefaultReferenceRegister referenceRegister
-    ) {
-        final ExecutionContextFactory executionContextFactory = new ExecutionContextFactory(componentProvider);
-        executionContextFactory.addTemplateVariableProvider(new ApiTemplateVariableProvider(api));
-        executionContextFactory.addTemplateVariableProvider(referenceRegister);
-        applicationContext
-            .getBean(ApiTemplateVariableProviderFactory.class)
-            .getTemplateVariableProviders()
-            .forEach(executionContextFactory::addTemplateVariableProvider);
+    private List<TemplateVariableProvider> templateVariableProviders(Api api, DefaultReferenceRegister referenceRegister) {
+        List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
+        templateVariableProviders.add(new ApiTemplateVariableProvider(api));
+        templateVariableProviders.add(referenceRegister);
+        templateVariableProviders.addAll(
+            applicationContext.getBean(ApiTemplateVariableProviderFactory.class).getTemplateVariableProviders()
+        );
 
-        return executionContextFactory;
+        return templateVariableProviders;
     }
 
     protected ApiReactorHandler getApiReactorHandler(Api api) {

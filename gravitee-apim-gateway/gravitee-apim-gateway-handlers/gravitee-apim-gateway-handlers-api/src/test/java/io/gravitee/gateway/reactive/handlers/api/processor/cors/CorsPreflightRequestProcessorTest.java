@@ -76,7 +76,6 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         api.getProxy().getCors().setAccessControlAllowCredentials(true);
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
-        DefaultRequestExecutionContext ctx = new DefaultRequestExecutionContext(mockRequest, mockResponse, componentProvider, null);
         corsPreflightRequestProcessor.execute(ctx).test().assertError(InterruptionException.class);
         verify(mockMetrics, times(1)).setApplication(eq("1"));
         verify(mockResponse, times(3)).headers();
@@ -128,10 +127,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
     @Test
     public void shouldCompleteWithoutChangingResponseWhenCorsDisabled() {
         api.getProxy().getCors().setEnabled(false);
-        corsPreflightRequestProcessor
-            .execute(new DefaultRequestExecutionContext(mockRequest, mockResponse, componentProvider, null))
-            .test()
-            .assertResult();
+        corsPreflightRequestProcessor.execute(ctx).test().assertResult();
         verifyNoInteractions(mockMetrics);
         verifyNoInteractions(mockResponse);
     }
@@ -141,10 +137,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         when(mockRequest.method()).thenReturn(HttpMethod.GET);
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
-        corsPreflightRequestProcessor
-            .execute(new DefaultRequestExecutionContext(mockRequest, mockResponse, componentProvider, null))
-            .test()
-            .assertResult();
+        corsPreflightRequestProcessor.execute(ctx).test().assertResult();
         verifyNoInteractions(mockMetrics);
         verifyNoInteractions(mockResponse);
     }
@@ -152,10 +145,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
     @Test
     public void shouldCompleteWithoutAddingHeadersWhenCorsEnableButNoOrigin() {
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
-        corsPreflightRequestProcessor
-            .execute(new DefaultRequestExecutionContext(mockRequest, mockResponse, componentProvider, null))
-            .test()
-            .assertResult();
+        corsPreflightRequestProcessor.execute(ctx).test().assertResult();
         verifyNoInteractions(mockMetrics);
         verifyNoInteractions(mockResponse);
     }
@@ -163,10 +153,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
     @Test
     public void shouldCompleteWithoutAddingHeadersWhenCorsEnableButNoHeaderMethod() {
         spyRequestHeaders.set(ORIGIN, "origin");
-        corsPreflightRequestProcessor
-            .execute(new DefaultRequestExecutionContext(mockRequest, mockResponse, componentProvider, null))
-            .test()
-            .assertResult();
+        corsPreflightRequestProcessor.execute(ctx).test().assertResult();
         verifyNoInteractions(mockMetrics);
         verifyNoInteractions(mockResponse);
     }

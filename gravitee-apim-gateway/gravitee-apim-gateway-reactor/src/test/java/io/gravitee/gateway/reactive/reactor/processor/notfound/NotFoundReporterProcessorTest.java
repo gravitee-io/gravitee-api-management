@@ -26,6 +26,8 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.core.context.MutableRequest;
+import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.reactor.handler.context.DefaultRequestExecutionContext;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.http.Metrics;
@@ -47,10 +49,10 @@ import org.springframework.core.env.StandardEnvironment;
 class NotFoundReporterProcessorTest {
 
     @Mock
-    private Request request;
+    private MutableRequest request;
 
     @Mock
-    private Response response;
+    private MutableResponse response;
 
     @Mock
     private ReporterService reporterService;
@@ -63,7 +65,7 @@ class NotFoundReporterProcessorTest {
     public void beforeEach() {
         metrics = Metrics.on(System.currentTimeMillis()).build();
         when(request.metrics()).thenReturn(metrics);
-        ctx = new DefaultRequestExecutionContext(request, response, new CustomComponentProvider(), List.of());
+        ctx = new DefaultRequestExecutionContext(request, response);
     }
 
     @Test

@@ -21,6 +21,8 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.core.context.MutableRequest;
+import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.reactor.handler.context.DefaultRequestExecutionContext;
 import io.gravitee.reporter.api.http.Metrics;
 import java.util.List;
@@ -38,10 +40,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ResponseTimeProcessorTest {
 
     @Mock
-    private Request request;
+    private MutableRequest request;
 
     @Mock
-    private Response response;
+    private MutableResponse response;
 
     private DefaultRequestExecutionContext ctx;
 
@@ -52,7 +54,7 @@ class ResponseTimeProcessorTest {
         metrics.setApiResponseTimeMs(100);
         when(request.metrics()).thenReturn(metrics);
 
-        ctx = new DefaultRequestExecutionContext(request, response, new CustomComponentProvider(), List.of());
+        ctx = new DefaultRequestExecutionContext(request, response);
 
         ResponseTimeProcessor responseTimeProcessor = new ResponseTimeProcessor();
         responseTimeProcessor.execute(ctx).test().assertResult();

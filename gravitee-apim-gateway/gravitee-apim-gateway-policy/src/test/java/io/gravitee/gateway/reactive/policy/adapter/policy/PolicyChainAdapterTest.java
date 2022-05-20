@@ -49,7 +49,7 @@ class PolicyChainAdapterTest {
 
     @Test
     public void shouldInterruptAndCompleteWhenFailWith() {
-        final RequestExecutionContext ctx = new DefaultRequestExecutionContext(null, null, null, null);
+        final RequestExecutionContext ctx = new DefaultRequestExecutionContext(null, null);
         final PolicyResult policyResult = PolicyResult.failure("key", 500, "error");
 
         Completable
@@ -65,7 +65,7 @@ class PolicyChainAdapterTest {
 
     @Test
     public void shouldInterruptAndCompleteWhenStreamFailWith() {
-        final RequestExecutionContext ctx = new DefaultRequestExecutionContext(null, null, null, null);
+        final RequestExecutionContext ctx = new DefaultRequestExecutionContext(null, null);
         final PolicyResult policyResult = PolicyResult.failure("key", 500, "error");
 
         Completable
