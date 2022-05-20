@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from '@jest/globals';
+import { expect, test } from '@jest/globals';
 import { ApiResponse } from 'lib/management-webclient-sdk/src/lib/runtime';
 
 interface PortalBusinessError {
@@ -97,3 +97,5 @@ export async function created(promise: Promise<ApiResponse<any>>) {
 export async function noContent(promise: Promise<ApiResponse<any>>) {
   return succeed(promise, 204);
 }
+
+export const testif = (condition) => (condition ? test : test.skip);

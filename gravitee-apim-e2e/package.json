@@ -5,6 +5,7 @@
     "description": "Gravitee.io APIM - e2e",
     "scripts": {
         "build": "tsc --removeComments --outDir dist --target es5",
+        "bulk": "jest -c jest.config.bulk.js -e --forceExit --logHeapUsage --useStderr --runInBand --detectOpenHandles",
         "test:ui": "docker-compose -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-uis.yml -f ./docker/ui-tests/docker-compose-ui-tests.yml -p ui-tests --project-directory $PWD up --no-build --abort-on-container-exit --exit-code-from cypress",
         "test:ui:dev": "cypress open --config-file ui-test/integration/apim/ui/cypress-config.json",
         "test:ui:bulk": "cypress run --config-file ui-test/integration/apim/bulk/cypress-config.json",

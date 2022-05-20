@@ -18,8 +18,16 @@ Then, the following NPM scripts are available:
  - `npm run test:ui:dev`: Run the cypress UI tests against a locally running APIM
  - `npm run test:api`: Run the APIM stack and the jest API tests in docker ([more details](./docker/api-tests/README.md))
  - `npm run test:api:dev`: Run the jest API tests against a locally running APIM
- - `npm run serve:apim`: Run the APIM stack in docker in order to run tests locally from your IDE
-
+ - `npm run apim:serve`: Run the APIM stack in docker in order to run tests locally from your IDE
+ - `npm run apim:clean`: Stop and remove the containers & volumes.
+ - `npm run bulk`: Run jest bulk scripts to create data to local environment
+   - You can pass some options like `npm run bulk -- --apis=50 --applications=5`, available options:
+       - apis (number): The number of APis to create
+       - applications (number): The number of applications to create
+       - skipStart (boolean): to not start created APIs
+       - skipDeploy (boolean): to not deploy created APIs
+       - skipSubscriptions (boolean): to not create subscriptions between APIs and applications
+       - skipRatings (boolean): to not rate the APIs
 ## Structure
 ````
 |api-test
