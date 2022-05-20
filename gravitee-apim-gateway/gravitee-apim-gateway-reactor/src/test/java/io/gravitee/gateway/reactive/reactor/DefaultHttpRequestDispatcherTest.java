@@ -15,13 +15,13 @@
  */
 package io.gravitee.gateway.reactive.reactor;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.api.ExecutionContext;
@@ -30,10 +30,14 @@ import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.core.context.MutableRequest;
+import io.gravitee.gateway.reactive.core.context.MutableRequestExecutionContext;
+import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactive.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.reactive.reactor.processor.GlobalProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
-import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
@@ -42,6 +46,7 @@ import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.observers.TestObserver;
@@ -92,6 +97,9 @@ class DefaultHttpRequestDispatcherTest {
 
     @Mock
     private ResponseProcessorChainFactory responseProcessorChainFactory;
+
+    @Mock
+    private GlobalProcessorChainFactory globalProcessorChainFactory;
 
     @Mock
     private NotFoundProcessorChainFactory notFoundProcessorChainFactory;
@@ -147,6 +155,8 @@ class DefaultHttpRequestDispatcherTest {
 
         lenient().when(requestProcessorChainFactory.create()).thenReturn(new ProcessorProviderChain<>(List.of()));
         lenient().when(responseProcessorChainFactory.create()).thenReturn(new ProcessorProviderChain<>(List.of()));
+        lenient().when(globalProcessorChainFactory.preProcessorChain()).thenReturn(new ProcessorChain("pre", List.of()));
+        lenient().when(globalProcessorChainFactory.postProcessorChain()).thenReturn(new ProcessorChain("post", List.of()));
 
         cut =
             new DefaultHttpRequestDispatcher(
@@ -157,6 +167,7 @@ class DefaultHttpRequestDispatcherTest {
                 idGenerator,
                 new RequestProcessorChainFactory(),
                 responseProcessorChainFactory,
+                globalProcessorChainFactory,
                 notFoundProcessorChainFactory
             );
     }
@@ -167,7 +178,7 @@ class DefaultHttpRequestDispatcherTest {
 
         this.prepareJupiterMock(handlerEntrypoint, apiReactor);
 
-        when(apiReactor.handle(any(Request.class), any(Response.class))).thenReturn(Completable.complete());
+        when(apiReactor.handle(any(MutableRequestExecutionContext.class))).thenReturn(Completable.complete());
 
         final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
 
@@ -177,21 +188,18 @@ class DefaultHttpRequestDispatcherTest {
     @Test
     public void shouldSetMetricsWhenHandlingJupiterRequest() {
         final ApiReactor apiReactor = mock(ApiReactor.class, withSettings().extraInterfaces(ReactorHandler.class));
-        final ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
+        final ArgumentCaptor<MutableRequestExecutionContext> ctxCaptor = ArgumentCaptor.forClass(MutableRequestExecutionContext.class);
 
         this.prepareJupiterMock(handlerEntrypoint, apiReactor);
 
         when(gatewayConfiguration.tenant()).thenReturn(Optional.of("TENANT"));
         when(gatewayConfiguration.zone()).thenReturn(Optional.of("ZONE"));
-        when(apiReactor.handle(requestCaptor.capture(), any(Response.class))).thenReturn(Completable.complete());
+        when(apiReactor.handle(ctxCaptor.capture())).thenReturn(Completable.complete());
+        cut.dispatch(rxRequest).test().assertResult();
 
-        final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
-
-        obs.assertResult();
-
-        final Request jupiterRequest = requestCaptor.getValue();
-        assertEquals("TENANT", jupiterRequest.metrics().getTenant());
-        assertEquals("ZONE", jupiterRequest.metrics().getZone());
+        final MutableRequestExecutionContext ctxCaptorValue = ctxCaptor.getValue();
+        assertThat(ctxCaptorValue.request().metrics().getTenant()).isEqualTo("TENANT");
+        assertThat(ctxCaptorValue.request().metrics().getZone()).isEqualTo("ZONE");
     }
 
     @Test
@@ -200,7 +208,7 @@ class DefaultHttpRequestDispatcherTest {
 
         this.prepareJupiterMock(handlerEntrypoint, apiReactor);
 
-        when(apiReactor.handle(any(Request.class), any(Response.class)))
+        when(apiReactor.handle(any(MutableRequestExecutionContext.class)))
             .thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 
         final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
@@ -320,6 +328,24 @@ class DefaultHttpRequestDispatcherTest {
 
         verify(notFoundProcessorChainFactory).processorChain();
         verify(processorChain).execute(any());
+    }
+
+    @Test
+    public void shouldSetMetricsWhenHandlingNotFoundRequest() {
+        ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
+        when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
+        when(entrypointResolver.resolve(HOST, PATH)).thenReturn(null);
+
+        final ArgumentCaptor<MutableRequestExecutionContext> ctxCaptor = ArgumentCaptor.forClass(MutableRequestExecutionContext.class);
+
+        when(gatewayConfiguration.tenant()).thenReturn(Optional.of("TENANT"));
+        when(gatewayConfiguration.zone()).thenReturn(Optional.of("ZONE"));
+        when(processorChain.execute(ctxCaptor.capture())).thenCallRealMethod();
+        cut.dispatch(rxRequest).test().assertResult();
+
+        final MutableRequestExecutionContext ctxCaptorValue = ctxCaptor.getValue();
+        assertThat(ctxCaptorValue.request().metrics().getTenant()).isEqualTo("TENANT");
+        assertThat(ctxCaptorValue.request().metrics().getZone()).isEqualTo("ZONE");
     }
 
     @Test

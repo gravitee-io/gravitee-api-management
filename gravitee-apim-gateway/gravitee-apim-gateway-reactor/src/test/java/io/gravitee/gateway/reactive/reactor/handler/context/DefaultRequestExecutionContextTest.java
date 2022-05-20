@@ -18,6 +18,8 @@ package io.gravitee.gateway.reactive.reactor.handler.context;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.core.context.MutableRequest;
+import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,16 +34,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DefaultRequestExecutionContextTest extends AbstractExecutionContextTest {
 
     @Mock
-    protected Request request;
+    protected MutableRequest request;
 
     @Mock
-    protected Response response;
+    protected MutableResponse response;
 
     @Mock
     protected Api api;
 
     @BeforeEach
     public void init() {
-        cut = new DefaultRequestExecutionContext(request, response, componentProvider, List.of(templateVariableProvider));
+        executionContext = new DefaultRequestExecutionContext(request, response);
     }
 }

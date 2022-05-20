@@ -23,6 +23,8 @@ import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
+import io.gravitee.gateway.reactive.core.context.MutableRequest;
+import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.reactor.handler.context.DefaultRequestExecutionContext;
 import io.gravitee.reporter.api.http.Metrics;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,12 +45,12 @@ public class AbstractProcessorTest {
     protected Metrics mockMetrics;
 
     @Mock
-    protected Request mockRequest;
+    protected MutableRequest mockRequest;
 
     protected HttpHeaders spyRequestHeaders;
 
     @Mock
-    protected Response mockResponse;
+    protected MutableResponse mockResponse;
 
     protected HttpHeaders spyResponseHeaders;
 
@@ -65,6 +67,7 @@ public class AbstractProcessorTest {
         api = new Api();
         componentProvider = new CustomComponentProvider();
         componentProvider.add(io.gravitee.definition.model.Api.class, api);
-        ctx = new DefaultRequestExecutionContext(mockRequest, mockResponse, componentProvider, null);
+        ctx = new DefaultRequestExecutionContext(mockRequest, mockResponse);
+        ctx.componentProvider(componentProvider);
     }
 }
