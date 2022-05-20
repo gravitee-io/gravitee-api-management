@@ -17,19 +17,13 @@
 FROM eclipse-temurin:11-jre-focal
 LABEL maintainer="contact@graviteesource.com"
 
-ARG GRAVITEEIO_VERSION=0
 ENV GRAVITEEIO_HOME /opt/graviteeio-gateway
+ARG GRAVITEEIO_VERSION=0
 
-ADD ./gravitee-apim-gateway-distribution-${GRAVITEEIO_VERSION}.tar.gz /tmp/
+ADD ./distribution ${GRAVITEEIO_HOME}/
 
-RUN apt-get update \
-    && apt-get --yes upgrade \
-    && apt-get --yes install htop \
-    && mv /tmp/gravitee-apim-gateway-distribution-${GRAVITEEIO_VERSION} ${GRAVITEEIO_HOME} \
-    && rm -rf /tmp/* \
-    && rm -rf /var/lib/apt/lists/* \
-	&& chgrp -R 0 ${GRAVITEEIO_HOME} \
-    && chmod -R g=u ${GRAVITEEIO_HOME}
+RUN chgrp -R 0 ${GRAVITEEIO_HOME} && \
+    chmod -R g=u ${GRAVITEEIO_HOME}
 
 WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8082
