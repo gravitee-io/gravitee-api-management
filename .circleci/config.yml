@@ -47,35 +47,38 @@ commands:
                       echo "export BUILD_NUMBER=$BUILD_NUMBER" >> $BASH_ENV
                       echo "export GIT_COMMIT=$GIT_COMMIT" >> $BASH_ENV
 
-    restore-maven-cache:
-        description: Restore Maven cache
+    restore-maven-job-cache:
+        description: Restore Maven cache for a dedicated job
+        parameters:
+            jobName:
+                description: The job name
+                type: string
+                default: ""
         steps:
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v6-{{ checksum ".apim-version.txt" }}
-
-    save-maven-cache:
-        description: "Save maven cache for the workflow. We only save external dependencies to force gravitee artefacts download"
+                      - gravitee-api-management-v6-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v6-<< parameters.jobName >>-{{ .Branch }}-
+                      - gravitee-api-management-v6-<< parameters.jobName >>-
+                      - gravitee-api-management-v6-
+    save-maven-job-cache:
+        description: Restore Maven cache for a dedicated job
+        parameters:
+            jobName:
+                description: The job name
+                type: string
+                default: ""
         steps:
-            - run:
-                  name: "Exclude Gravitee internal dependencies from cache"
-                  command: |
-                      if [ -d ~/.m2/io/gravitee ]; then
-                        rm -rf ~/.m2/io/gravitee
-                      fi;
-                      if [ -d ~/.m2/com/graviteesource ]; then
-                        rm -rf ~/.m2/com/graviteesource
-                      fi;
             - save_cache:
                   paths:
                       - ~/.m2
-                  key: gravitee-api-management-v6-{{ checksum ".apim-version.txt" }}
+                  key: gravitee-api-management-v6-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
                   when: always
 
     notify-on-failure:
         steps:
             - slack/notify:
-                  branch_pattern: master
+                  branch_pattern: master, /^\d+\.\d+\.x$/
                   event: fail
                   template: basic_fail_1
 
@@ -109,32 +112,11 @@ commands:
                       ksm secret notation keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_private_key > private.key
                       # Need --batch to be able to import private key
                       gpg --import --batch private.key
-    prepare-tar-for-s3-glacier:
-        steps:
-            - run:
-                  name: Prepare tar to export to S3 Glacier
-                  command: |
-                      # completely remove [node_modules/] huge folder before pushing to s3 : it won't be useful to perform nexus staging
-                      rm -fr gravitee-apim-console-webui/node_modules/
-                      rm -fr gravitee-apim-portal-webui/node_modules/
-
-                      tar -cjf /tmp/${CIRCLE_PROJECT_REPONAME}.tar.bz2 .
-            - persist_to_workspace:
-                  root: /tmp
-                  paths:
-                      - ./*.tar.bz2
 
 parameters:
     gio_action:
         type: enum
-        enum:
-            [
-                release,
-                package_bundle,
-                nexus_staging,
-                pull_requests,
-                build_rpm_&_docker_images,
-            ]
+        enum: [release, package_bundle, nexus_staging, pull_requests, build_rpm_&_docker_images]
         default: pull_requests
     dry_run:
         type: boolean
@@ -226,6 +208,11 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
+            - restore_cache:
+                  keys:
+                      - gravitee-api-management-v6-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v6-sonarcloud-analysis-{{ .Branch }}-
+                      - gravitee-api-management-v6-sonarcloud-analysis-
             - keeper/env-export:
                   secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
                   var-name: SONAR_TOKEN
@@ -235,6 +222,11 @@ jobs:
                   command: sonar-scanner -Dsonar.projectVersion=${APIM_VERSION}
                   working_directory: << parameters.working_directory >>
             - notify-on-failure
+            - save_cache:
+                  paths:
+                      - /opt/sonar-scanner/.sonar/cache
+                  key: gravitee-api-management-v6-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  when: always
 
     validate:
         docker:
@@ -244,14 +236,15 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - restore-maven-cache
+            - restore-maven-job-cache:
+                  jobName: validate
             - run:
                   name: "validate project"
                   command: |
                       mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml validate --no-transfer-progress -T 2C
-
+            - save-maven-job-cache:
+                  jobName: validate
             - notify-on-failure
-            - save-maven-cache
 
     build:
         docker:
@@ -261,38 +254,51 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - restore-maven-cache
+            - restore-maven-job-cache:
+                  jobName: build
             - prepare-env-var
             - run:
                   name: "Build project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml clean package --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
+                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml clean install --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
                       mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
                       mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
 
             - notify-on-failure
-            - save-maven-cache
+            - save_cache:
+                  paths:
+                      - ~/.m2/repository/io/gravitee/apim
+                  key: gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+                  when: on_success
+            - run:
+                  name: "Exclude APIM artefacts from build cache"
+                  command: |
+                      rm -rf ~/.m2/repository/io/gravitee/apim
+            - save-maven-job-cache:
+                  jobName: build
             - persist_to_workspace:
                   root: ./
                   paths:
+                      - ./gravitee-*/*/target/*
                       - ./rest-api-docker-context
                       - ./gateway-docker-context
-
     test:
-        machine:
-            image: ubuntu-2004:202107-02
-        resource_class: xlarge
+        docker:
+            - image: cimg/openjdk:11.0
+        resource_class: large
         steps:
             - checkout
             - attach_workspace:
                   at: .
-            - restore-maven-cache
+            - restore-maven-job-cache:
+                  jobName: test
+            - restore_cache:
+                  keys:
+                      - gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
             - run:
                   name: Run tests
                   command: |
-                      # Need to use `verify` phase to get repo-test's jar build and shared to mongodb and jdbc repos 
-                      # and then collect and merge all coverage reports
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml verify --no-transfer-progress -Dskip.validation=true -T 2C
+                      mvn -pl 'gravitee-apim-definition, gravitee-apim-rest-api, gravitee-apim-gateway' -amd --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -T 4
             - run:
                   name: Save test results
                   command: |
@@ -300,14 +306,52 @@ jobs:
                       find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
                   when: always
             - notify-on-failure
+            - save-maven-job-cache:
+                  jobName: test
             - store_test_results:
                   path: ~/test-results
             - persist_to_workspace:
                   root: .
                   paths:
                       - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
-                      - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
                       - gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
+                      - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
+
+    test-repository:
+        machine:
+            image: ubuntu-2004:current
+        resource_class: large
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: .
+            - restore-maven-job-cache:
+                  jobName: test-repository
+            - restore_cache:
+                  keys:
+                      - gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+            - run:
+                  name: Run tests
+                  command: |
+                      # Need to use `verify` phase to get repo-test's jar build and shared to mongodb and jdbc repos 
+                      # and then collect and merge all coverage reports
+                      cd gravitee-apim-repository
+                      mvn -s ../.gravitee.settings.xml verify --no-transfer-progress -Dskip.validation=true -T 2C
+            - run:
+                  name: Save test results
+                  command: |
+                      mkdir -p ~/test-results/junit/
+                      find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+                  when: always
+            - notify-on-failure
+            - save-maven-job-cache:
+                  jobName: test-repository
+            - store_test_results:
+                  path: ~/test-results
+            - persist_to_workspace:
+                  root: .
+                  paths:
+                      - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
 
     publish-on-artifactory:
         docker:
@@ -319,13 +363,15 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - restore-maven-cache
+            - restore-maven-job-cache:
+                  jobName: publish-on-artifactory
             - run:
                   name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
                   command: |
                       mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml   -DaltDeploymentRepository=${ALT_DEPLOYMENT_REPOSITORY}
-            - save-maven-cache
             - notify-on-failure
+            - save-maven-job-cache:
+                  jobName: publish-on-artifactory
 
     publish-on-nexus:
         docker:
@@ -335,13 +381,15 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - restore-maven-cache
+            - restore-maven-job-cache:
+                  jobName: publish-on-nexus
             - run:
                   name: "Maven Package and deploy to Nexus Snapshots"
                   command: |
                       mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml
-            - save-maven-cache
             - notify-on-failure
+            - save-maven-job-cache:
+                  jobName: publish-on-nexus
 
     publish-images-azure-registry:
         docker:
@@ -667,7 +715,7 @@ jobs:
                         echo "Creating container $BRANCH_ID"
                         az storage container create -n $BRANCH_ID --public-access blob
                       fi             
-                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d $BRANCH_ID --overwrite
+                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d $BRANCH_ID
             - notify-on-failure
 
     console-webui-comment-pr-after-deployment:
@@ -778,9 +826,8 @@ jobs:
             DRY_RUN: << pipeline.parameters.dry_run >>
         steps:
             - checkout
-            - restore_cache:
-                  keys:
-                      - gio-gravitee-release-dependencies-{{ .Branch }}
+            - restore-maven-job-cache:
+                  jobName: release
             - attach_workspace:
                   at: /tmp
             - keeper/env-export:
@@ -803,6 +850,9 @@ jobs:
                   name: Maven deploy to Gravitee's private Artifactory
                   command: |
                       mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U -P gio-artifactory-release,gio-release clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
+            - save-maven-job-cache:
+                  jobName: release
+
             - add_ssh_keys:
                   fingerprints:
                       - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
@@ -972,7 +1022,9 @@ jobs:
                   command: |
                       # the previous cache key was computed with the SNAPSHOT version of the release. 
                       echo "<< pipeline.parameters.graviteeio_version >>-SNAPSHOT" > .apim-version.txt
-            - restore-maven-cache
+            - restore-maven-job-cache:
+                  jobName: nexus-staging
+
             - attach_workspace:
                   at: .
             - prepare-gpg
@@ -980,6 +1032,8 @@ jobs:
                   name: Release on Nexus
                   command: |
                       mvn clean deploy --activate-profiles gravitee-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
+            - save-maven-job-cache:
+                  jobName: nexus-staging
 
     publish_rpm_packages:
         parameters:
@@ -1193,7 +1247,6 @@ jobs:
                   from: graviteeio-ee
                   to: "s3://gravitee-releases-downloads/graviteeio-ee"
 
-
 workflows:
     pull_requests:
         when:
@@ -1219,11 +1272,20 @@ workflows:
                       parameters:
                           working_directory:
                               - gravitee-apim-rest-api
-                              - gravitee-apim-repository
                               - gravitee-apim-gateway
+                              - gravitee-apim-definition
                   context: cicd-orchestrator
                   requires:
                       - test
+            - test-repository:
+                  requires:
+                      - build
+            - sonarcloud-analysis:
+                  name: Sonar - gravitee-apim-repository
+                  working_directory: gravitee-apim-repository
+                  context: cicd-orchestrator
+                  requires:
+                      - test-repository
             - publish-on-artifactory:
                   filters:
                       branches:
@@ -1232,6 +1294,7 @@ workflows:
                               - /^\d+\.\d+\.x$/
                   requires:
                       - test
+                      - test-repository
             - publish-on-nexus:
                   filters:
                       branches:
@@ -1240,10 +1303,12 @@ workflows:
                               - /^\d+\.\d+\.x$/
                   requires:
                       - test
+                      - test-repository
             - publish-images-azure-registry:
                   context: cicd-orchestrator
                   requires:
                       - test
+                      - test-repository
                   filters:
                       branches:
                           only:
@@ -1259,6 +1324,15 @@ workflows:
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
                       - Install APIM Console
+            - sonarcloud-analysis:
+                  name: Sonar - << matrix.working_directory >>
+                  matrix:
+                      parameters:
+                          working_directory:
+                              - gravitee-apim-console-webui
+                  context: cicd-orchestrator
+                  requires:
+                      - Lint & test APIM Console
             - console-webui-build-storybook:
                   requires:
                       - Install APIM Console
@@ -1312,11 +1386,9 @@ workflows:
                   matrix:
                       parameters:
                           working_directory:
-                              - gravitee-apim-console-webui
                               - gravitee-apim-portal-webui
                   context: cicd-orchestrator
                   requires:
-                      - Lint & test APIM Console
                       - Lint & test APIM Portal
             - webui-build:
                   name: Build APIM Portal
