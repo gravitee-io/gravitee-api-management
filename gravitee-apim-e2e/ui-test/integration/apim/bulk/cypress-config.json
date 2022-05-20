@@ -1,5 +1,0 @@
-{
-  "extends": "../cypress-config.json",
-  "integrationFolder": "ui-test/integration/apim/bulk",
-  "pluginsFile": "ui-test/plugins/index.ts"
-}

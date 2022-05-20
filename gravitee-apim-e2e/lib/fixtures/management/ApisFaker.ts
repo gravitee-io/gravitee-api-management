@@ -23,6 +23,7 @@ import { NewApiEntity } from '@management-models/NewApiEntity';
 import faker from '@faker-js/faker';
 import { UpdateApiEntity, UpdateApiEntityFlowModeEnum } from '@management-models/UpdateApiEntity';
 import { NewRatingEntity } from '@management-models/NewRatingEntity';
+import { RatingInput } from '@portal-models/RatingInput';
 
 export interface ApiImportEntity extends ApiEntity {
   members?: Array<MemberEntity>;
@@ -139,6 +140,14 @@ export class ApisFaker {
       title: faker.random.word(),
       comment: `${faker.commerce.productDescription()}`,
       rate: `${faker.datatype.number({ min: 1, max: 5, precision: 1 })}`,
+    };
+  }
+
+  static newRatingInput(): RatingInput {
+    return {
+      title: faker.random.word(),
+      comment: `${faker.commerce.productDescription()}`,
+      value: faker.datatype.number({ min: 1, max: 5, precision: 1 }),
     };
   }
 }
