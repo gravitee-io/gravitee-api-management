@@ -85,6 +85,8 @@ module.exports = {
     '@portal-apis/(.*)': '<rootDir>/lib/portal-webclient-sdk/src/lib/apis/$1',
     '@portal-models/(.*)': '<rootDir>/lib/portal-webclient-sdk/src/lib/models/$1',
     '@api-test-resources/(.*)': '<rootDir>/api-test/resources/$1',
+    '@lib/jest-utils': '<rootDir>/lib/jest-utils',
+    '@lib/gateway': '<rootDir>/lib/gateway',
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader

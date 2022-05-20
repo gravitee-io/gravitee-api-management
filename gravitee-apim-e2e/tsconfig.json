@@ -18,7 +18,9 @@
       "@management-models/*": ["lib/management-webclient-sdk/src/lib/models/*"],
       "@portal-apis/*": ["lib/portal-webclient-sdk/src/lib/apis/*"],
       "@portal-models/*": ["lib/portal-webclient-sdk/src/lib/models/*"],
-      "@api-test-resources/*": ["<rootDir>/api-test/resources/$1"]
+      "@api-test-resources/*": ["<rootDir>/api-test/resources/$1"],
+      "@lib/jest-utils": ["lib/jest-utils"],
+      "@lib/gateway": ["lib/gateway"]
     }
   },
   "include": ["**/*.ts"]

@@ -11,6 +11,8 @@ module.exports = {
     '@portal-apis/(.*)': '<rootDir>/dist/lib/portal-webclient-sdk/src/lib/apis/$1',
     '@portal-models/(.*)': '<rootDir>/dist/lib/portal-webclient-sdk/src/lib/models/$1',
     '@api-test-resources/(.*)': '<rootDir>/api-test/resources/$1',
+    '@lib/jest-utils': '<rootDir>/dist/lib/jest-utils',
+    '@lib/gateway': '<rootDir>/dist/lib/gateway',
   },
 
   // The test environment that will be used for testing
