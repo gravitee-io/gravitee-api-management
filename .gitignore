@@ -6,6 +6,7 @@ gravitee-**/target/
 .DS_Store
 .*.settings.xml
 gravitee.*.log.*/*.log
+**/.logs
 
 # eclipse
 .settings/
@@ -31,7 +32,6 @@ gravitee-**-webui/node/
 .working/
 # used in makefile for docker-compose quick setups
 docker/quick-setup/**/.data
-docker/quick-setup/**/.logs
 docker/quick-setup/**/.plugins
 docker/quick-setup/**/.license
 docker/quick-setup/**/.driver
