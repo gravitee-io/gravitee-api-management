@@ -173,9 +173,9 @@ jobs:
             - run:
                   name: "Build project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
-                      cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/gravitee-apim-rest-api-distribution-*.tar.gz ./
-                      cp ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/gravitee-apim-gateway-standalone-distribution-zip/target/gravitee-apim-gateway-distribution-*.tar.gz ./
+                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml clean install --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
+                      mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
+                      mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
 
             - notify-on-failure
             - save_cache:
@@ -187,8 +187,8 @@ jobs:
                   root: ./
                   paths:
                       - ./gravitee-*/*/target/*
-                      - ./gravitee-apim-rest-api-distribution-*.tar.gz
-                      - ./gravitee-apim-gateway-distribution-*.tar.gz
+                      - ./rest-api-docker-context
+                      - ./gateway-docker-context
 
     test:
         machine:
@@ -269,12 +269,12 @@ jobs:
                       docker build -f gravitee-apim-rest-api/docker/Dockerfile-dev \
                       --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
                       -t ${REST_API_PRIVATE_IMAGE_TAG} \
-                      .
+                      rest-api-docker-context
 
                       docker build -f gravitee-apim-gateway/docker/Dockerfile-dev \
                       --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
                       -t ${GATEWAY_PRIVATE_IMAGE_TAG} \
-                      .
+                      gateway-docker-context
 
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                       docker push ${REST_API_PRIVATE_IMAGE_TAG}
@@ -373,7 +373,7 @@ jobs:
                         echo "Creating container $BRANCH_ID"
                         az storage container create -n $BRANCH_ID --public-access blob
                       fi   
-                      az storage blob upload-batch -s gravitee-apim-console-webui/dist -d $BRANCH_ID --overwrite
+                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d $BRANCH_ID
             - notify-on-failure
 
     console-webui-comment-pr-after-deployment:

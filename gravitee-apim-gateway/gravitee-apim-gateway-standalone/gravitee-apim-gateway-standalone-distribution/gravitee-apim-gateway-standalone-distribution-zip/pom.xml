@@ -32,62 +32,37 @@
     <name>Gravitee.io APIM - Gateway - Standalone - Distribution - ZIP</name>
     <packaging>pom</packaging>
 
-    <properties>
-        <!--suppress UnresolvedMavenProperty -->
-		<gravitee.gateway.log.dir>${gravitee.home}/logs</gravitee.gateway.log.dir>
-    </properties>
-
-    <dependencies>
-
-        <!-- Gravitee dependencies on distribution -->
-        <dependency>
-            <groupId>io.gravitee.apim.gateway.standalone.distribution</groupId>
-            <artifactId>gravitee-apim-gateway-standalone-distribution</artifactId>
-            <version>${project.version}</version>
-            <type>pom</type>
-        </dependency>
-    </dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>make-plugin-assembly</id>
-						<phase>none</phase>
-					</execution>
-					<execution>
-						<id>component</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<finalName>gravitee-apim-gateway-standalone-${project.version}</finalName>
-							<appendAssemblyId>false</appendAssemblyId>
-							<descriptors>
-								<descriptor>src/main/assembly/plugin-assembly-standalone.xml</descriptor>
-							</descriptors>
-						</configuration>
-					</execution>
-					<execution>
-						<id>distribution</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<attach>false</attach>
-							<finalName>gravitee-apim-gateway-distribution-${project.version}</finalName>
-							<appendAssemblyId>false</appendAssemblyId>
-							<descriptors>
-								<descriptor>src/main/assembly/plugin-assembly-distribution.xml</descriptor>
-							</descriptors>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <!-- avoid the execution defined in APIM parent pom.xml to be executed -->
+                        <id>make-plugin-assembly</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <!-- avoid the execution defined in APIM gateway standalone distribution pom.xml to be executed -->
+                        <id>make-distribution</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>make-component</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>gravitee-apim-gateway-standalone-${project.version}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>src/main/assembly/plugin-assembly-standalone.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
