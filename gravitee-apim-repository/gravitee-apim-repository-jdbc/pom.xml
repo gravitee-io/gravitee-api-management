@@ -55,13 +55,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <dependency>
-            <groupId>io.gravitee.apim.definition</groupId>
-            <artifactId>gravitee-apim-definition-jackson</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- Runtime scope -->
         <dependency>
             <groupId>ch.qos.logback</groupId>

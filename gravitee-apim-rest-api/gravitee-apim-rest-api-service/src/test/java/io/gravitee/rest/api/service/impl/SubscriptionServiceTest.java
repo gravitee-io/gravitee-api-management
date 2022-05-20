@@ -145,6 +145,7 @@ public class SubscriptionServiceTest {
                 public void setAuthentication(Authentication authentication) {}
             }
         );
+        GraviteeContext.cleanContext();
     }
 
     @Test

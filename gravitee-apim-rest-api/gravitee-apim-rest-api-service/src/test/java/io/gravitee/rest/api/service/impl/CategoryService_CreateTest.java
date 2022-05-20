@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
 import java.util.Collections;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -59,6 +60,11 @@ public class CategoryService_CreateTest {
 
     @Mock
     private EnvironmentService mockEnvironmentService;
+
+    @Before
+    public void setUp() throws Exception {
+        GraviteeContext.cleanContext();
+    }
 
     @Test
     public void shouldCreateCategory() throws TechnicalException {
