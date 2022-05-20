@@ -46,6 +46,7 @@
         <module>gravitee-apim-rest-api-portal</module>
         <module>gravitee-apim-rest-api-standalone</module>
         <module>gravitee-apim-rest-api-spec-converter</module>
+        <module>gravitee-apim-rest-api-coverage</module>
     </modules>
 
     <dependencyManagement>

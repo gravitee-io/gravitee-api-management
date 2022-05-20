@@ -24,6 +24,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import java.util.List;
@@ -33,9 +34,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -60,6 +59,11 @@ public class ApiService_GetGroupsWithMembersTest {
     private final ApiServiceImpl apiService = new ApiServiceImpl();
 
     private static final String ENVIRONMENT = "DEFAULT";
+
+    @Before
+    public void setUp() throws Exception {
+        GraviteeContext.cleanContext();
+    }
 
     @Test
     public void shouldGetApiGroupsWithMembers_WithPrimaryOwnerPrivilege_ifGroupIsTheApiPrimaryOwner() throws TechnicalException {

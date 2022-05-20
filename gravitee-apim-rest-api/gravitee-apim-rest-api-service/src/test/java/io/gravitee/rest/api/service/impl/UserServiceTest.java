@@ -63,6 +63,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -182,6 +183,11 @@ public class UserServiceTest {
 
     @Mock
     private EnvironmentService environmentService;
+
+    @Before
+    public void setUp() throws Exception {
+        GraviteeContext.cleanContext();
+    }
 
     @Test
     public void shouldFindByUsername() throws TechnicalException {
