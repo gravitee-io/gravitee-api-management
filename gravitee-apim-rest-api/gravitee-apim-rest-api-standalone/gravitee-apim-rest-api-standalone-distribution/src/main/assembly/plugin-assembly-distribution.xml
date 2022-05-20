@@ -30,77 +30,79 @@
     <includeBaseDirectory>false</includeBaseDirectory>
 
     <fileSets>
-        <!-- Copy startup scripts and config files -->
         <fileSet>
-            <directory>src/main/resources</directory>
-            <outputDirectory></outputDirectory>
+            <directory>src/main/resources/bin</directory>
+            <outputDirectory>bin</outputDirectory>
             <includes>
                 <include>**/*</include>
             </includes>
             <fileMode>755</fileMode>
         </fileSet>
 
-        <!-- Just to create an empty logs directory -->
         <fileSet>
-            <directory>src/main/assembly</directory>
-            <outputDirectory>logs</outputDirectory>
-            <excludes>
-                <exclude>*</exclude>
-            </excludes>
+            <directory>src/main/resources/config</directory>
+            <outputDirectory>config</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <fileMode>644</fileMode>
+            <filtered>true</filtered>
         </fileSet>
 
-        <!-- Just to create an empty data directory -->
         <fileSet>
-            <directory>src/main/assembly</directory>
+            <directory>src/main/resources/dashboards</directory>
+            <outputDirectory>dashboards</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <fileMode>755</fileMode>
+        </fileSet>
+
+        <fileSet>
+            <directory>src/main/resources/data</directory>
             <outputDirectory>data</outputDirectory>
             <excludes>
                 <exclude>*</exclude>
             </excludes>
+            <fileMode>644</fileMode>
         </fileSet>
 
         <fileSet>
-            <directory>target/staging/apim_plugins</directory>
-            <outputDirectory>plugins</outputDirectory>
+            <directory>src/main/resources/lib</directory>
+            <outputDirectory>lib</outputDirectory>
             <includes>
-                <include>*.zip</include>
+                <include>*.*</include>
             </includes>
+            <fileMode>644</fileMode>
         </fileSet>
 
         <fileSet>
-            <directory>target/staging/connectors</directory>
-            <outputDirectory>plugins</outputDirectory>
+            <directory>src/main/resources/license</directory>
+            <outputDirectory>lib</outputDirectory>
             <includes>
-                <include>*.zip</include>
+                <include>*.*</include>
             </includes>
+            <fileMode>644</fileMode>
         </fileSet>
 
         <fileSet>
-            <directory>target/staging/fetchers</directory>
-            <outputDirectory>plugins</outputDirectory>
-            <includes>
-                <include>*.zip</include>
-            </includes>
-        </fileSet>
-
-        <fileSet>
-            <directory>target/staging/policies</directory>
-            <outputDirectory>plugins</outputDirectory>
-            <includes>
-                <include>*.zip</include>
-            </includes>
-        </fileSet>
-
-        <fileSet>
-            <directory>target/staging/repositories</directory>
-            <outputDirectory>plugins</outputDirectory>
-            <includes>
-                <include>*.zip</include>
-            </includes>
+            <directory>src/main/resources/logs</directory>
+            <outputDirectory>logs</outputDirectory>
             <excludes>
-                <exclude>*gravitee-apim-repository-gateway-bridge-http*</exclude>
+                <exclude>*</exclude>
             </excludes>
+            <fileMode>644</fileMode>
         </fileSet>
-        <!-- Just to create an empty data directory -->
+
+        <fileSet>
+            <directory>src/main/resources/plugins</directory>
+            <outputDirectory>plugins</outputDirectory>
+            <includes>
+                <include>**.*</include>
+            </includes>
+            <fileMode>755</fileMode>
+        </fileSet>
+        <!-- Just to create an empty directory -->
         <fileSet>
             <directory>src/main/assembly</directory>
             <outputDirectory>plugins/ext/repository-jdbc</outputDirectory>
@@ -110,30 +112,12 @@
         </fileSet>
 
         <fileSet>
-            <directory>target/staging/resources</directory>
-            <outputDirectory>plugins</outputDirectory>
-            <includes>
-                <include>*.zip</include>
-            </includes>
-        </fileSet>
-
-        <fileSet>
-            <directory>target/staging/services</directory>
-            <outputDirectory>plugins</outputDirectory>
-            <includes>
-                <include>*.zip</include>
-            </includes>
-            <excludes>
-                <exclude>*gravitee-gateway-services-ratelimit*</exclude>
-            </excludes>
-        </fileSet>
-
-        <fileSet>
             <directory>src/main/resources/templates</directory>
             <outputDirectory>templates</outputDirectory>
             <includes>
                 <include>**/*</include>
             </includes>
+            <fileMode>755</fileMode>
         </fileSet>
 
         <fileSet>
@@ -142,22 +126,7 @@
             <includes>
                 <include>**/*</include>
             </includes>
-        </fileSet>
-
-        <fileSet>
-            <directory>src/main/resources/dashboards</directory>
-            <outputDirectory>dashboards</outputDirectory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-        </fileSet>
-
-        <fileSet>
-            <directory>${project.build.directory}/lib</directory>
-            <outputDirectory>lib</outputDirectory>
-            <includes>
-                <include>*.*</include>
-            </includes>
+            <fileMode>755</fileMode>
         </fileSet>
     </fileSets>
 
@@ -167,21 +136,40 @@
             <unpack>false</unpack>
             <includes>
                 <include>io.gravitee.*:*:jar</include>
+                <include>com.graviteesource.*:*:*</include>
             </includes>
             <scope>compile</scope>
             <useProjectArtifact>false</useProjectArtifact>
+            <fileMode>644</fileMode>
         </dependencySet>
         <dependencySet>
             <outputDirectory>lib/ext</outputDirectory>
             <unpack>false</unpack>
             <excludes>
                 <exclude>io.gravitee.*:*:*</exclude>
+                <exclude>com.graviteesource.*:*:*</exclude>
                 <exclude>commons-logging:commons-logging:*</exclude>
                 <exclude>javax.mail:mailapi:*</exclude>
             </excludes>
-            <!-- Used to not include transitive dependencies for runtime dependency (IDP plugins) -->
+            <!-- Used to not include transitive dependencies for runtime dependency (All plugins) -->
             <scope>compile</scope>
             <useProjectArtifact>false</useProjectArtifact>
+            <fileMode>644</fileMode>
+        </dependencySet>
+
+        <dependencySet>
+            <outputDirectory>plugins</outputDirectory>
+            <unpack>false</unpack>
+            <excludes>
+                <exclude>*:*:jar</exclude>
+                <exclude>io.gravitee.reporter:*:zip</exclude>
+                <exclude>io.gravitee.tracer:*:zip</exclude>
+                <exclude>io.gravitee.apim.repository.gateway.bridge.http:*:zip</exclude>
+                <exclude>io.gravitee.policy:gravitee-gateway-services-ratelimit:zip</exclude>
+            </excludes>
+            <useProjectArtifact>false</useProjectArtifact>
+            <fileMode>755</fileMode>
         </dependencySet>
     </dependencySets>
+
 </assembly>
