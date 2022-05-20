@@ -474,7 +474,9 @@ public class ApiResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response updateWithDefinitionPUT(@Parameter(name = "definition", required = true) String apiDefinition) {
+    public Response updateWithDefinitionPUT(
+        @Parameter(schema = @Schema(implementation = JsonNode.class), name = "definition", required = true) String apiDefinition
+    ) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
 
         ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(

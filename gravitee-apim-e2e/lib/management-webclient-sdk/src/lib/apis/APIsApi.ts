@@ -1194,7 +1194,7 @@ export interface UpdateWithDefinitionPUTRequest {
     api: string;
     envId: string;
     orgId: string;
-    body: string;
+    body: any;
 }
 
 export interface UploadApiMediaImageRequest {
