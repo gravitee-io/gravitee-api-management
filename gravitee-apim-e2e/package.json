@@ -4,6 +4,8 @@
     "private": true,
     "description": "Gravitee.io APIM - e2e",
     "scripts": {
+        "apim:clean": "sh ./scripts/apim.sh clean",
+        "apim:serve": "sh ./scripts/apim.sh",
         "build": "tsc --removeComments --outDir dist --target es5",
         "bulk": "jest -c jest.config.bulk.js -e --forceExit --logHeapUsage --useStderr --runInBand --detectOpenHandles",
         "test:ui": "docker-compose -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-uis.yml -f ./docker/ui-tests/docker-compose-ui-tests.yml -p ui-tests --project-directory $PWD up --no-build --abort-on-container-exit --exit-code-from cypress",
@@ -22,8 +24,7 @@
         "prettier:fix": "prettier --write \"**/*.{js,ts,html,css,scss,json}\"",
         "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\"",
         "update:sdk:management": "sh ./scripts/update-management-sdk.sh",
-        "update:sdk:portal": "sh ./scripts/update-portal-sdk.sh",
-        "serve:apim": "docker-compose -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-wiremock.yml -f ./docker/common/docker-compose-uis.yml --project-directory $PWD up"
+        "update:sdk:portal": "sh ./scripts/update-portal-sdk.sh"
     },
     "license": "MIT License",
     "devDependencies": {
