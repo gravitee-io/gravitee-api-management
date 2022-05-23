@@ -57,7 +57,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         Dictionary res = mapper.map(page, Dictionary.class);
 
         // Convert properties
-        if (res != null && res.getProperties() != null && !res.getProperties().isEmpty()) {
+        if (res != null && res.getProperties() != null) {
             final Map<String, String> properties = new HashMap<>(res.getProperties().size());
             res.getProperties().forEach((key, value) -> properties.put(key.replaceAll(DOT_REPLACEMENT, "."), value));
             res.setProperties(properties);
@@ -74,7 +74,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         DictionaryMongo dictionaryMongo = mapper.map(dictionary, DictionaryMongo.class);
 
         // Convert properties to avoid dots in the key / value
-        if (dictionaryMongo.getProperties() != null && !dictionaryMongo.getProperties().isEmpty()) {
+        if (dictionaryMongo.getProperties() != null) {
             final Map<String, String> properties = new HashMap<>(dictionaryMongo.getProperties().size());
             dictionaryMongo.getProperties().forEach((key, value) -> properties.put(key.replaceAll("\\.", DOT_REPLACEMENT), value));
             dictionaryMongo.setProperties(properties);
@@ -85,7 +85,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         Dictionary res = mapper.map(createdDictionaryMongo, Dictionary.class);
 
         // Convert properties
-        if (res != null && res.getProperties() != null && !res.getProperties().isEmpty()) {
+        if (res != null && res.getProperties() != null) {
             final Map<String, String> properties = new HashMap<>(res.getProperties().size());
             res.getProperties().forEach((key, value) -> properties.put(key.replaceAll(DOT_REPLACEMENT, "."), value));
             res.setProperties(properties);
@@ -115,7 +115,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             dictionaryMongo.setDeployedAt(dictionary.getDeployedAt());
 
             // Convert properties to avoid dots in the key / value
-            if (dictionary.getProperties() != null && !dictionary.getProperties().isEmpty()) {
+            if (dictionary.getProperties() != null) {
                 final Map<String, String> properties = new HashMap<>(dictionary.getProperties().size());
                 dictionary.getProperties().forEach((key, value) -> properties.put(key.replaceAll("\\.", DOT_REPLACEMENT), value));
                 dictionaryMongo.setProperties(properties);
@@ -142,7 +142,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             final Dictionary res = mapper.map(dictionaryMongoUpdated, Dictionary.class);
 
             // Convert properties
-            if (res != null && res.getProperties() != null && !res.getProperties().isEmpty()) {
+            if (res != null && res.getProperties() != null) {
                 final Map<String, String> properties = new HashMap<>(res.getProperties().size());
                 res.getProperties().forEach((key, value) -> properties.put(key.replaceAll(DOT_REPLACEMENT, "."), value));
                 res.setProperties(properties);

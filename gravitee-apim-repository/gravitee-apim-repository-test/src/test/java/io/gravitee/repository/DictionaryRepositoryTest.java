@@ -16,7 +16,10 @@
 package io.gravitee.repository;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Dictionary;
@@ -24,7 +27,6 @@ import io.gravitee.repository.management.model.DictionaryType;
 import java.util.*;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.internal.util.collections.Sets;
 
 public class DictionaryRepositoryTest extends AbstractRepositoryTest {
 
@@ -119,6 +121,7 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid saved dictionary name.", "My dic 1", optional.get().getName());
 
         final Dictionary dictionary = optional.get();
+        dictionary.setId("dic-1");
         dictionary.setName("My dic 1");
         dictionary.setEnvironmentId("new_DEFAULT");
         dictionary.setDescription("Description for my dic 1");
@@ -136,6 +139,35 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         int nbDictionariesAfterUpdate = dictionaryRepository.findAll().size();
 
         Assert.assertEquals(nbDictionariesBeforeUpdate, nbDictionariesAfterUpdate);
+
+        Optional<Dictionary> optionalUpdated = dictionaryRepository.findById("dic-1");
+        Assert.assertTrue("Dictionary to update not found", optionalUpdated.isPresent());
+
+        final Dictionary dictionaryUpdated = optionalUpdated.get();
+        Assert.assertEquals("Invalid saved environment id.", dictionary.getEnvironmentId(), dictionaryUpdated.getEnvironmentId());
+        Assert.assertEquals("Invalid saved dictionary name.", dictionary.getName(), dictionaryUpdated.getName());
+        Assert.assertEquals("Invalid dictionary description.", dictionary.getDescription(), dictionaryUpdated.getDescription());
+        Assert.assertTrue("Invalid dictionary createdAt.", compareDate(dictionary.getCreatedAt(), dictionaryUpdated.getCreatedAt()));
+        Assert.assertTrue("Invalid dictionary updatedAt.", compareDate(dictionary.getUpdatedAt(), dictionaryUpdated.getUpdatedAt()));
+        Assert.assertEquals("Invalid dictionary type.", dictionary.getType(), dictionaryUpdated.getType());
+        Assert.assertEquals("Invalid dictionary properties.", dictionary.getProperties(), dictionaryUpdated.getProperties());
+    }
+
+    @Test
+    public void shouldUpdateWithEmptyProperties() throws Exception {
+        Optional<Dictionary> optional = dictionaryRepository.findById("dic-1");
+
+        final Dictionary dictionary = optional.get();
+        dictionary.setId("dic-1");
+        dictionary.setName("My dic 1");
+        dictionary.setEnvironmentId("new_DEFAULT");
+        dictionary.setDescription("Description for my dic 1");
+        dictionary.setCreatedAt(new Date(1000000000000L));
+        dictionary.setUpdatedAt(new Date(1486771200000L));
+        dictionary.setType(DictionaryType.DYNAMIC);
+        dictionary.setProperties(new HashMap<>());
+
+        dictionaryRepository.update(dictionary);
 
         Optional<Dictionary> optionalUpdated = dictionaryRepository.findById("dic-1");
         Assert.assertTrue("Dictionary to update not found", optionalUpdated.isPresent());
