@@ -42,22 +42,17 @@ async function _fetchGateway(
   body?: string,
   headers?: HeadersInit,
 ): Promise<Response> {
-  try {
-    console.log('Try to fetch gateway', contextPath, failAfterMs);
-    const response = await fetchApi(`${process.env.GATEWAY_BASE_PATH}${contextPath}`, {
-      method,
-      body,
-      headers,
-    });
-    if (response.status == 404) {
-      throw new Error(`Gateway [${process.env.GATEWAY_BASE_PATH}${contextPath}] not found. Retry...`);
-    }
-    return response;
-  } catch (e) {
+  console.log('Try to fetch gateway', contextPath, failAfterMs);
+  const response = await fetchApi(`${process.env.GATEWAY_BASE_PATH}${contextPath}`, {
+    method,
+    body,
+    headers,
+  });
+  if (response.status == 404) {
     return new Promise((successCallback, failureCallback) => {
       setTimeout(() => {
         if (failAfterMs - timeBetweenRetries <= 0) {
-          failureCallback(e);
+          failureCallback(new Error(`Gateway [${process.env.GATEWAY_BASE_PATH}${contextPath}] not found`));
         } else {
           failAfterMs -= timeBetweenRetries;
           successCallback(_fetchGateway(contextPath, method, timeBetweenRetries, failAfterMs, body, headers));
@@ -65,4 +60,5 @@ async function _fetchGateway(
       }, timeBetweenRetries);
     });
   }
+  return response;
 }
