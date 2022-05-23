@@ -84,6 +84,7 @@ module.exports = {
     '@management-models/(.*)': '<rootDir>/lib/management-webclient-sdk/src/lib/models/$1',
     '@portal-apis/(.*)': '<rootDir>/lib/portal-webclient-sdk/src/lib/apis/$1',
     '@portal-models/(.*)': '<rootDir>/lib/portal-webclient-sdk/src/lib/models/$1',
+    '@portal-fakers/(.*)': '<rootDir>/lib/fixtures/portal/$1',
     '@api-test-resources/(.*)': '<rootDir>/api-test/resources/$1',
     '@lib/jest-utils': '<rootDir>/lib/jest-utils',
     '@lib/gateway': '<rootDir>/lib/gateway',
