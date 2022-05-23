@@ -58,9 +58,10 @@ async function _fetchGateway(
       setTimeout(() => {
         if (failAfterMs - timeBetweenRetries <= 0) {
           failureCallback(e);
+        } else {
+          failAfterMs -= timeBetweenRetries;
+          successCallback(_fetchGateway(contextPath, method, timeBetweenRetries, failAfterMs, body, headers));
         }
-        failAfterMs -= timeBetweenRetries;
-        successCallback(_fetchGateway(contextPath, method, timeBetweenRetries, failAfterMs, body, headers));
       }, timeBetweenRetries);
     });
   }
