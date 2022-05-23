@@ -28,12 +28,15 @@ import org.springframework.core.env.Environment;
  */
 public class CookieGenerator {
 
-    private static final boolean DEFAULT_JWT_COOKIE_SECURE = false;
+    private static final boolean DEFAULT_JWT_COOKIE_SECURE = true;
     private static final String DEFAULT_JWT_COOKIE_PATH = "/";
     private static final String DEFAULT_JWT_COOKIE_DOMAIN = "";
 
-    @Autowired
-    private Environment environment;
+    private final Environment environment;
+
+    public CookieGenerator(Environment environment) {
+        this.environment = environment;
+    }
 
     public Cookie generate(final String name, final String value, final boolean httpOnly) {
         final Cookie cookie = new Cookie(name, value);
