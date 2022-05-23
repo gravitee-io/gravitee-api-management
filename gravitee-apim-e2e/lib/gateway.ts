@@ -60,7 +60,7 @@ async function _fetchGateway(
           failureCallback(e);
         }
         failAfterMs -= timeBetweenRetries;
-        successCallback(_fetchGateway(contextPath, method, timeBetweenRetries, failAfterMs, body));
+        successCallback(_fetchGateway(contextPath, method, timeBetweenRetries, failAfterMs, body, headers));
       }, timeBetweenRetries);
     });
   }
