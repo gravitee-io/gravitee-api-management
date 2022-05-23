@@ -26,6 +26,7 @@ import io.gravitee.repository.mongodb.management.internal.model.DictionaryProvid
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryTriggerMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.*;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +40,12 @@ import org.springframework.util.CollectionUtils;
 @Component
 public class MongoDictionaryRepository implements DictionaryRepository {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoDictionaryRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MongoDictionaryRepository.class);
 
     private static final String DOT_REPLACEMENT = "\\$#\\$";
+    private static final String DOT = "\\.";
+    private static final Pattern DOT_REPLACEMENT_PATTERN = Pattern.compile(DOT_REPLACEMENT);
+    private static final Pattern DOT_PATTERN = Pattern.compile(DOT);
 
     @Autowired
     private DictionaryMongoRepository internalDictionaryRepo;
@@ -56,10 +60,9 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         DictionaryMongo page = internalDictionaryRepo.findById(id).orElse(null);
         Dictionary res = mapper.map(page, Dictionary.class);
 
-        // Convert properties
         if (res != null && res.getProperties() != null) {
             final Map<String, String> properties = new HashMap<>(res.getProperties().size());
-            res.getProperties().forEach((key, value) -> properties.put(key.replaceAll(DOT_REPLACEMENT, "."), value));
+            res.getProperties().forEach((key, value) -> properties.put(computeOriginalKey(key), value));
             res.setProperties(properties);
         }
 
@@ -73,10 +76,9 @@ public class MongoDictionaryRepository implements DictionaryRepository {
 
         DictionaryMongo dictionaryMongo = mapper.map(dictionary, DictionaryMongo.class);
 
-        // Convert properties to avoid dots in the key / value
         if (dictionaryMongo.getProperties() != null) {
             final Map<String, String> properties = new HashMap<>(dictionaryMongo.getProperties().size());
-            dictionaryMongo.getProperties().forEach((key, value) -> properties.put(key.replaceAll("\\.", DOT_REPLACEMENT), value));
+            dictionaryMongo.getProperties().forEach((key, value) -> properties.put(computeMongoDBCompliantKey(key), value));
             dictionaryMongo.setProperties(properties);
         }
 
@@ -84,10 +86,9 @@ public class MongoDictionaryRepository implements DictionaryRepository {
 
         Dictionary res = mapper.map(createdDictionaryMongo, Dictionary.class);
 
-        // Convert properties
         if (res != null && res.getProperties() != null) {
             final Map<String, String> properties = new HashMap<>(res.getProperties().size());
-            res.getProperties().forEach((key, value) -> properties.put(key.replaceAll(DOT_REPLACEMENT, "."), value));
+            res.getProperties().forEach((key, value) -> properties.put(computeOriginalKey(key), value));
             res.setProperties(properties);
         }
 
@@ -114,10 +115,9 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             dictionaryMongo.setUpdatedAt(dictionary.getUpdatedAt());
             dictionaryMongo.setDeployedAt(dictionary.getDeployedAt());
 
-            // Convert properties to avoid dots in the key / value
             if (dictionary.getProperties() != null) {
                 final Map<String, String> properties = new HashMap<>(dictionary.getProperties().size());
-                dictionary.getProperties().forEach((key, value) -> properties.put(key.replaceAll("\\.", DOT_REPLACEMENT), value));
+                dictionary.getProperties().forEach((key, value) -> properties.put(computeMongoDBCompliantKey(key), value));
                 dictionaryMongo.setProperties(properties);
             }
 
@@ -141,10 +141,9 @@ public class MongoDictionaryRepository implements DictionaryRepository {
 
             final Dictionary res = mapper.map(dictionaryMongoUpdated, Dictionary.class);
 
-            // Convert properties
             if (res != null && res.getProperties() != null) {
                 final Map<String, String> properties = new HashMap<>(res.getProperties().size());
-                res.getProperties().forEach((key, value) -> properties.put(key.replaceAll(DOT_REPLACEMENT, "."), value));
+                res.getProperties().forEach((key, value) -> properties.put(computeOriginalKey(key), value));
                 res.setProperties(properties);
             }
 
@@ -174,6 +173,30 @@ public class MongoDictionaryRepository implements DictionaryRepository {
 
         LOGGER.debug("Find all dictionaries - Done");
         return res;
+    }
+
+    /**
+     * Compute a key compliant with MongoDB i.e. without dots in the name.
+     * The key can be converted back using {@link #computeOriginalKey(String)}.
+     *
+     * @see #computeOriginalKey(String)
+     * @param input The input key
+     * @return A key compliant with MongoDB
+     */
+    private static String computeMongoDBCompliantKey(String input) {
+        return DOT_PATTERN.matcher(input).replaceAll(DOT_REPLACEMENT);
+    }
+
+    /**
+     * Compute the original version of a key updated to be compliant with MongoDB.
+     * The original conversion is done using {@link #computeMongoDBCompliantKey(String)}.
+     *
+     * @see #computeMongoDBCompliantKey(String)
+     * @param key The key converted and used so save in the database
+     * @return The original key
+     */
+    private static String computeOriginalKey(String key) {
+        return DOT_REPLACEMENT_PATTERN.matcher(key).replaceAll(DOT);
     }
 
     private DictionaryProviderMongo convert(DictionaryProvider dictionaryProvider) {

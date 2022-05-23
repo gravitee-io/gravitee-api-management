@@ -95,6 +95,11 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         dictionary.setCreatedAt(new Date(1000000000000L));
         dictionary.setUpdatedAt(new Date(1439032010883L));
         dictionary.setType(DictionaryType.MANUAL);
+        final Map<String, String> properties = new HashMap<>();
+        properties.put("localhost", "localhost");
+        properties.put("localhost:8082", "localhost:8082");
+        properties.put("127.0.0.1:8082", "127.0.0.1:8082");
+        dictionary.setProperties(properties);
 
         int nbDictionariesBeforeCreation = dictionaryRepository.findAll().size();
         dictionaryRepository.create(dictionary);
@@ -112,6 +117,7 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue("Invalid dictionary createdAt.", compareDate(dictionary.getCreatedAt(), dictionarySaved.getCreatedAt()));
         Assert.assertTrue("Invalid dictionary updatedAt.", compareDate(dictionary.getUpdatedAt(), dictionarySaved.getUpdatedAt()));
         Assert.assertEquals("Invalid dictionary type.", dictionary.getType(), dictionarySaved.getType());
+        Assert.assertEquals("Invalid dictionary properties.", dictionary.getProperties(), dictionarySaved.getProperties());
     }
 
     @Test
@@ -144,6 +150,7 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue("Dictionary to update not found", optionalUpdated.isPresent());
 
         final Dictionary dictionaryUpdated = optionalUpdated.get();
+
         Assert.assertEquals("Invalid saved environment id.", dictionary.getEnvironmentId(), dictionaryUpdated.getEnvironmentId());
         Assert.assertEquals("Invalid saved dictionary name.", dictionary.getName(), dictionaryUpdated.getName());
         Assert.assertEquals("Invalid dictionary description.", dictionary.getDescription(), dictionaryUpdated.getDescription());
