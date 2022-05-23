@@ -1429,16 +1429,12 @@ workflows:
                   name: Build Console Storybook
                   requires:
                       - setup
-            - trigger-chromatic:
-                  type: approval
+            - console-webui-chromatic-deployment:
+                  context: cicd-orchestrator
                   requires:
                       - Build Console Storybook
                       - test-repository
                       - test
-            - console-webui-chromatic-deployment:
-                  context: cicd-orchestrator
-                  requires:
-                      - trigger-chromatic
             - webui-build:
                   name: Build APIM Console
                   apim-ui-project: gravitee-apim-console-webui
