@@ -108,6 +108,6 @@ public class DictionaryRepositoryMock extends AbstractRepositoryMock<DictionaryR
         when(dictionaryRepository.findById("unknown")).thenReturn(empty());
         when(dictionaryRepository.findById("dic-1")).thenReturn(of(dic1), of(dic1), of(dictionaryUpdated));
 
-        when(dictionaryRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
+        when(dictionaryRepository.update(argThat(o -> o == null || "unknown".equals(o.getId())))).thenThrow(new IllegalStateException());
     }
 }
