@@ -28,7 +28,7 @@ volumes:
 
 services:
   mongodb:
-    image: mongo:${MONGODB_VERSION:-3.6}
+    image: mongo:${MONGODB_VERSION:-5}
     container_name: gio_apim_mongodb
     restart: always
     volumes:
