@@ -90,6 +90,9 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     @Value("${handlers.request.headers.x-forwarded-prefix:false}")
     private boolean overrideXForwardedPrefix;
 
+    @Value("${api.pending_requests_timeout:10000}")
+    private long pendingRequestsTimeout;
+
     @Value("${classloader.legacy.enabled:false}")
     private boolean classLoaderLegacyMode;
 
@@ -100,9 +103,11 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     public ReactorHandler create(Api api) {
         try {
             if (api.isEnabled()) {
-                Class<?> handlerClass = this.getClass().getClassLoader().loadClass(ApiReactorHandler.class.getName());
+                final ApiReactorHandler handler = new ApiReactorHandler(api);
 
-                final ApiReactorHandler handler = (ApiReactorHandler) handlerClass.getConstructor(Api.class).newInstance(api);
+                handler.setNode(node);
+                handler.setPendingRequestsTimeout(pendingRequestsTimeout);
+
                 final ComponentProvider globalComponentProvider = applicationContext.getBean(ComponentProvider.class);
                 final CustomComponentProvider customComponentProvider = new CustomComponentProvider();
 
