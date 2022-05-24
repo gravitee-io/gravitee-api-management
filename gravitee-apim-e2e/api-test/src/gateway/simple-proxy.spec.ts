@@ -22,7 +22,7 @@ import { ApiEntity } from '@management-models/ApiEntity';
 import { PlansFaker } from '@management-fakers/PlansFaker';
 import { LifecycleAction } from '@management-models/LifecycleAction';
 import { PlanStatus } from '@management-models/PlanStatus';
-import { fetchGateway } from '@lib/gateway';
+import { fetchGatewaySuccess } from '@lib/gateway';
 import { APIPlansApi } from '@management-apis/APIPlansApi';
 
 const orgId = 'DEFAULT';
@@ -57,7 +57,7 @@ describe('Gateway - Simple proxy', () => {
 
   describe('Gateway call', () => {
     test('Gateway call should return backend response', async () => {
-      await fetchGateway(createdApi.context_path)
+      await fetchGatewaySuccess({ contextPath: createdApi.context_path })
         .then((res) => res.json())
         .then((json) => {
           expect(json.date).toBe('11/05/2022 13:19:44.009');

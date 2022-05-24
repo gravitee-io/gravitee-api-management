@@ -24,7 +24,7 @@ import { PlanEntity } from '@management-models/PlanEntity';
 import { RuleMethodsEnum } from '@management-models/Rule';
 import { noContent, succeed } from '@lib/jest-utils';
 import { LifecycleAction } from '@management-models/LifecycleAction';
-import { fetchGateway } from '@lib/gateway';
+import { fetchGatewaySuccess } from '@lib/gateway';
 import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
 import { PlanStatus } from '@management-models/PlanStatus';
 
@@ -92,7 +92,7 @@ describe('Mock policy', () => {
       );
       await succeed(apiManagementApiAsApiUser.deployApiRaw({ orgId, envId, api: createdApi.id }));
 
-      await fetchGateway(createdApi.context_path)
+      await fetchGatewaySuccess({ contextPath: createdApi.context_path })
         .then((res) => res.json())
         .then((body) => {
           expect(body).toEqual(JSON.parse(mockContent));
@@ -158,7 +158,7 @@ describe('Mock policy', () => {
     test('should create, deploy and call a mock policy', async () => {
       await succeed(apiManagementApiAsApiUser.deployApiRaw({ orgId, envId, api: createdApi.id }));
 
-      await fetchGateway(createdApi.context_path)
+      await fetchGatewaySuccess({ contextPath: createdApi.context_path })
         .then((res) => res.json())
         .then((json) => {
           expect(json).toEqual(JSON.parse(mockContent));
