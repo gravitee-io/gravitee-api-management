@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { marked } from 'marked';
+
 class ContextualDocController {
   public isOpen = true;
   public page: any = {};
@@ -53,7 +55,7 @@ class ContextualDocController {
   changeDocumentationPage(state) {
     if (this.isOpen && state.data && state.data.docs) {
       this.$http.get(`./docs/${state.data.docs.page}.md`).then((response: any) => {
-        this.page.content = response.data;
+        this.page.content = marked.parse(response.data);
       });
     }
   }
