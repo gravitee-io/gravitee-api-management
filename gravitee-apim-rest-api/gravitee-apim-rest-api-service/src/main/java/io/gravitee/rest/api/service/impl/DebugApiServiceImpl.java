@@ -67,37 +67,32 @@ public class DebugApiServiceImpl implements DebugApiService {
 
     @Override
     public EventEntity debug(final ExecutionContext executionContext, String apiId, String userId, DebugApiEntity debugApiEntity) {
-        try {
-            LOGGER.debug("Debug API : {}", apiId);
+        LOGGER.debug("Debug API : {}", apiId);
 
-            apiService.checkPolicyConfigurations(debugApiEntity.getPaths(), debugApiEntity.getFlows(), debugApiEntity.getPlans());
+        apiService.checkPolicyConfigurations(debugApiEntity.getPaths(), debugApiEntity.getFlows(), debugApiEntity.getPlans());
 
-            final ApiEntity api = apiService.findById(executionContext, apiId);
+        final ApiEntity api = apiService.findById(executionContext, apiId);
 
-            final InstanceEntity instanceEntity = selectTargetGateway(executionContext, api);
+        final InstanceEntity instanceEntity = selectTargetGateway(executionContext, api);
 
-            Map<String, String> properties = Map.ofEntries(
-                entry(Event.EventProperties.USER.getValue(), userId),
-                entry(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name()),
-                entry(Event.EventProperties.GATEWAY_ID.getValue(), instanceEntity.getId())
-            );
+        Map<String, String> properties = Map.ofEntries(
+            entry(Event.EventProperties.USER.getValue(), userId),
+            entry(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name()),
+            entry(Event.EventProperties.GATEWAY_ID.getValue(), instanceEntity.getId())
+        );
 
-            DebugApi debugApi = convert(debugApiEntity, apiId);
+        DebugApi debugApi = convert(debugApiEntity, apiId);
 
-            validatePlan(debugApi);
-            validateDefinitionVersion(apiId, debugApi);
+        validatePlan(debugApi);
+        validateDefinitionVersion(apiId, debugApi);
 
-            return eventService.create(
-                executionContext,
-                singleton(executionContext.getEnvironmentId()),
-                EventType.DEBUG_API,
-                objectMapper.writeValueAsString(debugApi),
-                properties
-            );
-        } catch (JsonProcessingException ex) {
-            LOGGER.error("An error occurs while trying to debug API: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to debug API: " + apiId, ex);
-        }
+        return eventService.createDebugApiEvent(
+            executionContext,
+            singleton(executionContext.getEnvironmentId()),
+            EventType.DEBUG_API,
+            debugApi,
+            properties
+        );
     }
 
     private void validateDefinitionVersion(String apiId, DebugApi debugApi) {

@@ -79,7 +79,7 @@ public class DictionaryServiceImpl_StopTest {
 
         verify(dictionaryRepository, times(1)).update(any(Dictionary.class));
         verify(eventService, times(1))
-            .create(
+            .createDictionaryEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(Collections.singleton(ENVIRONMENT_ID)),
                 eq(EventType.STOP_DICTIONARY),

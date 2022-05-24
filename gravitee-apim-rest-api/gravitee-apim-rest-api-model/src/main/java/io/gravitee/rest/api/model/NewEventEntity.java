@@ -16,56 +16,22 @@
 package io.gravitee.rest.api.model;
 
 import java.util.Map;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Titouan COMPIEGNE
  */
+@Setter
+@Getter
+@ToString
+@Builder
 public class NewEventEntity {
 
     private EventType type;
     private String payload;
     private String parentId;
     private Map<String, String> properties;
-
-    public EventType getType() {
-        return type;
-    }
-
-    public void setType(EventType type) {
-        this.type = type;
-    }
-
-    public String getPayload() {
-        return payload;
-    }
-
-    public void setPayload(String payload) {
-        this.payload = payload;
-    }
-
-    public String getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(String parentId) {
-        this.parentId = parentId;
-    }
-
-    public Map<String, String> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Map<String, String> properties) {
-        this.properties = properties;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("Event{");
-        sb.append(", type='").append(type.toString()).append('\'');
-        sb.append(", payload='").append(payload).append('\'');
-        sb.append(", parentId='").append(parentId).append('\'');
-        sb.append('}');
-        return sb.toString();
-    }
 }
