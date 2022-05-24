@@ -6,23 +6,23 @@ The resources will be grouped according to this  mapping.
 
 Example:
 
-````text
+```text
 /products
 /products/1
 /products/2
 /products/2
 /products/1/characteristics
-````
+```
 
 
 With the following path mapping:
-````text
+```text
 /products
 /products/:productId
-````
+```
 
 You will get the result below:
-````text
+```text
 /products => 1 hit
 /products/:productId => 3 hits
-````
+```

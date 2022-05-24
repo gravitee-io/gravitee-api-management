@@ -17,28 +17,29 @@ Customize the notifications sent by email. You can change the subject and the bo
 You can use Freemarker template engine to add specific information to your templates:
 Examples:
 
-* ${user.name}
-* ${api.metadata['foo-bar']}.
+* `${user.name}`
+* `${api.metadata['foo-bar']}`
 
 For all notifications, you can use these parameters:
-|API              |Application     |Group           |
-|-----------------|----------------|----------------|
-|name             |name            |name            |
-|description      |description     |-               |
-|version          |type            |-               |
-|role             |status          |-               |
-|metadata (Map)   |role            |-               |
-|deployedAt (Date)|-               |-               |
-|createdAt (Date) |createdAt (Date)|createdAt (Date)|
-|updatedAt (Date) |updatedAt (Date)|updatedAt (Date)|
 
-|Plan              |Owner/User |Subscription       |
-|------------------|-----------|-------------------|
-|name              |name       |status             |
-|description       |description|request            |
-|order             |order      |reason             |
-|publishedAt (Date)|displayName|processedAt (Date) |
-|closedAt (Date)   |email      |startingAt (Date)  |
-|-                 |-          |endingAt (Date)    |
-|createdAt (Date)  |-          |closedAt (Date)    |
-|updatedAt (Date)  |-          |subscribedAt (Date)|
+| API               | Application      | Group            |
+|-------------------|------------------|------------------|
+| name              | name             | name             |
+| description       | description      | -                |
+| version           | type             | -                |
+| role              | status           | -                |
+| metadata (Map)    | role             | -                |
+| deployedAt (Date) | -                | -                |
+| createdAt (Date)  | createdAt (Date) | createdAt (Date) |
+| updatedAt (Date)  | updatedAt (Date) | updatedAt (Date) |
+
+| Plan               | Owner/User  | Subscription        |
+|--------------------|-------------|---------------------|
+| name               | name        | status              |
+| description        | description | request             |
+| order              | order       | reason              |
+| publishedAt (Date) | displayName | processedAt (Date)  |
+| closedAt (Date)    | email       | startingAt (Date)   |
+| -                  | -           | endingAt (Date)     |
+| createdAt (Date)   | -           | closedAt (Date)     |
+| updatedAt (Date)   | -           | subscribedAt (Date) |
