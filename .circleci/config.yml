@@ -710,12 +710,7 @@ jobs:
                   command: |
                       export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-                      CONTAINER_EXISTS=$(az storage container exists -n $BRANCH_ID | jq .exists)
-                      if [ "$CONTAINER_EXISTS" = false ] ; then
-                        echo "Creating container $BRANCH_ID"
-                        az storage container create -n $BRANCH_ID --public-access blob
-                      fi             
-                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d $BRANCH_ID
+                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d "\$web/$BRANCH_ID"
             - notify-on-failure
 
     console-webui-comment-pr-after-deployment:
