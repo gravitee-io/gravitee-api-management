@@ -18,46 +18,59 @@ import fetchApi, { HeadersInit, Response } from 'node-fetch';
 
 export type HttpMethod = 'GET' | 'PUT' | 'POST' | 'DELETE';
 
-export async function fetchGateway(
-  contextPath: string,
-  method: HttpMethod = 'GET',
-  body?: string,
-  headers?: HeadersInit,
-  timeBetweenRetries = 500,
-  failAfterMs = 5000,
-  timeout = 1500,
-): Promise<Response> {
+interface GatewayRequest {
+  contextPath: string;
+  expectedStatusCode: number;
+  method: HttpMethod;
+  body?: string;
+  headers?: HeadersInit;
+  timeBetweenRetries: number;
+  failAfterMs: number;
+  timeout: number;
+}
+
+export async function fetchGatewaySuccess(request?: Partial<GatewayRequest>) {
+  return _fetchGateway({ expectedStatusCode: 200, ...request });
+}
+
+export async function fetchGatewayUnauthorized(request?: Partial<GatewayRequest>) {
+  return _fetchGateway({ expectedStatusCode: 401, ...request });
+}
+
+async function _fetchGateway(request?: Partial<GatewayRequest>): Promise<Response> {
+  request = <GatewayRequest>{
+    expectedStatusCode: 200,
+    method: 'GET',
+    timeBetweenRetries: 500,
+    failAfterMs: 5000,
+    timeout: 1500,
+    ...request,
+  };
   return new Promise((successCallback) => {
     setTimeout(() => {
-      successCallback(_fetchGateway(contextPath, method, timeBetweenRetries, failAfterMs, body, headers));
-    }, timeout);
+      successCallback(_fetchGatewayWithRetries(request));
+    }, request.timeout);
   });
 }
 
-async function _fetchGateway(
-  contextPath: string,
-  method: HttpMethod = 'GET',
-  timeBetweenRetries: number,
-  failAfterMs: number,
-  body?: string,
-  headers?: HeadersInit,
-): Promise<Response> {
-  console.log('Try to fetch gateway', contextPath, failAfterMs);
-  const response = await fetchApi(`${process.env.GATEWAY_BASE_PATH}${contextPath}`, {
-    method,
-    body,
-    headers,
+async function _fetchGatewayWithRetries(request: Partial<GatewayRequest>): Promise<Response> {
+  console.log('Try to fetch gateway', request.contextPath, request.failAfterMs);
+  console.log('With headers', request.headers);
+  const response = await fetchApi(`${process.env.GATEWAY_BASE_PATH}${request.contextPath}`, {
+    method: request.method,
+    body: request.body,
+    headers: request.headers,
   });
-  if (response.status == 404) {
+  if (response.status != request.expectedStatusCode) {
     return new Promise((successCallback, failureCallback) => {
       setTimeout(() => {
-        if (failAfterMs - timeBetweenRetries <= 0) {
-          failureCallback(new Error(`Gateway [${process.env.GATEWAY_BASE_PATH}${contextPath}] not found`));
+        if (request.failAfterMs - request.timeBetweenRetries <= 0) {
+          failureCallback(new Error(`Gateway [${process.env.GATEWAY_BASE_PATH}${request.contextPath}] returned HTTP ${response.status}`));
         } else {
-          failAfterMs -= timeBetweenRetries;
-          successCallback(_fetchGateway(contextPath, method, timeBetweenRetries, failAfterMs, body, headers));
+          request.failAfterMs -= request.timeBetweenRetries;
+          successCallback(_fetchGateway(request));
         }
-      }, timeBetweenRetries);
+      }, request.timeBetweenRetries);
     });
   }
   return response;

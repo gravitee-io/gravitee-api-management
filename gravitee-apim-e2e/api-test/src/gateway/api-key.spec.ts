@@ -29,7 +29,7 @@ import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
 import { LifecycleAction } from '@management-models/LifecycleAction';
 import { ApplicationsApi } from '@management-apis/ApplicationsApi';
 import { ApplicationSubscriptionsApi } from '@management-apis/ApplicationSubscriptionsApi';
-import { fetchGateway } from '@lib/gateway';
+import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@lib/gateway';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -97,15 +97,13 @@ describe('Gateway - Api Key', () => {
       ${'wrong X-Gravitee-Api-Key header'} | ${{ 'X-Gravitee-Api-Key': 'wrong key' }}
     `('Gateway call with $case', ({ headers }) => {
       test('Should return 401 unauthorized', async () => {
-        await fetchGateway(createdApi.context_path, 'GET', null, headers).then((response) => expect(response.status).toBe(401));
+        await fetchGatewayUnauthorized({ contextPath: createdApi.context_path, headers });
       });
     });
 
     describe('Gateway call with correct X-Gravitee-Api-Key header', () => {
       test('Should return 200 OK', async () => {
-        await fetchGateway(createdApi.context_path, 'GET', null, { 'X-Gravitee-Api-Key': createdApiKey.key }).then((response) =>
-          expect(response.status).toBe(200),
-        );
+        await fetchGatewaySuccess({ contextPath: createdApi.context_path, headers: { 'X-Gravitee-Api-Key': createdApiKey.key } });
       });
     });
   });
@@ -118,17 +116,13 @@ describe('Gateway - Api Key', () => {
       ${'wrong api-key query param'} | ${{ 'api-key': 'wrong key' }}
     `('Gateway call with $case', ({ queryParams }) => {
       test('Should return 401 unauthorized', async () => {
-        await fetchGateway(`${createdApi.context_path}?${new URLSearchParams(queryParams)}`).then((response) =>
-          expect(response.status).toBe(401),
-        );
+        await fetchGatewayUnauthorized({ contextPath: `${createdApi.context_path}?${new URLSearchParams(queryParams)}` });
       });
     });
 
     describe('Gateway call with correct api-key query param', () => {
       test('Should return 200 OK', async () => {
-        await fetchGateway(`${createdApi.context_path}?${new URLSearchParams({ 'api-key': createdApiKey.key })}`).then((response) =>
-          expect(response.status).toBe(200),
-        );
+        await fetchGatewaySuccess({ contextPath: `${createdApi.context_path}?${new URLSearchParams({ 'api-key': createdApiKey.key })}` });
       });
     });
   });
