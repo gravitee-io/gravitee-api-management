@@ -12,7 +12,7 @@ Specify you backend endpoint.
 
 . Plan **optional**
 
-To subscribe to an API, you must publish one or more Plans. 
+To subscribe to an API, you must publish one or more Plans.
 A Plan will allow you to gain access of the API operations.
 
 A Plan can be keyless (public access) or restricted with an API-Key.
@@ -21,4 +21,4 @@ Auto-validation mode tells you if a manual action is required to validate a subs
 . Documentation **optional**
 
 Import documentation to make them available to the application teams.
-Support three types of document : Swagger/OpenApi, Markdown and AsciiDoc.
+Support three types of document: Swagger/OpenApi, Markdown and AsciiDoc.

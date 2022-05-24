@@ -1,6 +1,6 @@
 # Portal top APIs
 
-Top APIs are visible into the APIs portal home page only if one or more API belong to these categories.
+Top APIs are visible into the APIs portal home page only if one or more APIs belong to these categories.
 
 There is no limit and an API can be added more than once.
 
