@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 
+import { marked } from 'marked';
+
+export class PageMarkdownController implements ng.IComponentController, ng.IOnInit {
+  page: any;
+  htmlContent: string;
+
+  $onInit(): void {
+    this.htmlContent = marked.parse(this.page.content);
+  }
+}
+
 export const PageMarkdownComponent: ng.IComponentOptions = {
   template: require('./page-markdown.html'),
   bindings: {
     page: '<',
   },
+  controller: PageMarkdownController,
 };
