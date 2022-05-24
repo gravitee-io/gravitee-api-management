@@ -91,7 +91,13 @@ public class DebugApiServiceTest {
 
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
         verify(eventService)
-            .create(eq(GraviteeContext.getExecutionContext()), any(), eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
+            .createDebugApiEvent(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                eq(EventType.DEBUG_API),
+                any(),
+                propertiesCaptor.capture()
+            );
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anyList());
 
         assertThat(propertiesCaptor.getValue())
@@ -118,7 +124,13 @@ public class DebugApiServiceTest {
 
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
         verify(eventService)
-            .create(eq(GraviteeContext.getExecutionContext()), any(), eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
+            .createDebugApiEvent(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                eq(EventType.DEBUG_API),
+                any(),
+                propertiesCaptor.capture()
+            );
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anyList());
 
         assertThat(propertiesCaptor.getValue()).contains(entry(Event.EventProperties.GATEWAY_ID.getValue(), "instance#young"));
@@ -186,7 +198,13 @@ public class DebugApiServiceTest {
         }
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
         verify(eventService, times(0))
-            .create(eq(GraviteeContext.getExecutionContext()), any(), eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
+            .createDebugApiEvent(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                eq(EventType.DEBUG_API),
+                any(),
+                propertiesCaptor.capture()
+            );
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anyList());
     }
 

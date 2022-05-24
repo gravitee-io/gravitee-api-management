@@ -27,7 +27,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +84,8 @@ public class ApiConverter {
                 }
                 if (DefinitionVersion.V2.equals(apiDefinition.getDefinitionVersion())) {
                     apiEntity.setFlows(apiDefinition.getFlows());
-                    apiEntity.setPlans(new ArrayList<>(apiDefinition.getPlans()));
+                    // TODO : ALL CALLERS SHOULD PROVIDE PLANS
+                    //apiEntity.setPlans(new ArrayList<>(apiDefinition.getPlans()));
                 } else {
                     apiEntity.setFlows(null);
                     apiEntity.setPlans(null);

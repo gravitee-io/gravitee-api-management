@@ -133,7 +133,7 @@ public class OrganizationService_CreateTest {
         verify(mockRoleService, times(1)).createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), "org_id");
         verify(mockFlowService, times(1)).save(FlowReferenceType.ORGANIZATION, "org_id", List.of());
         verify(eventService, times(1))
-            .create(
+            .createOrganizationEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(Set.of("env_1", "env_2")),
                 eq(EventType.PUBLISH_ORGANIZATION),
@@ -188,7 +188,7 @@ public class OrganizationService_CreateTest {
         verify(mockRoleService, never()).createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), "org_id");
         verify(mockFlowService, times(1)).save(FlowReferenceType.ORGANIZATION, "org_id", org1.getFlows());
         verify(eventService, times(1))
-            .create(
+            .createOrganizationEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(Set.of("env_1", "env_2")),
                 eq(EventType.PUBLISH_ORGANIZATION),

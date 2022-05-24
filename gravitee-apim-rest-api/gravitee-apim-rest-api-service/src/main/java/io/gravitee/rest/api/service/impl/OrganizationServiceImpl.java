@@ -107,7 +107,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
 
                 return createdOrganization;
             }
-        } catch (TechnicalException | JsonProcessingException ex) {
+        } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to update organization " + organizationEntity.getName(),
@@ -134,7 +134,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             } else {
                 throw new OrganizationNotFoundException(organizationId);
             }
-        } catch (TechnicalException | JsonProcessingException ex) {
+        } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to update organization " + organizationEntity.getName(),
@@ -143,8 +143,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         }
     }
 
-    private void createPublishOrganizationEvent(ExecutionContext executionContext, OrganizationEntity organizationEntity)
-        throws JsonProcessingException {
+    private void createPublishOrganizationEvent(ExecutionContext executionContext, OrganizationEntity organizationEntity) {
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.ORGANIZATION_ID.getValue(), organizationEntity.getId());
 
@@ -154,11 +153,11 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             .map(EnvironmentEntity::getId)
             .collect(Collectors.toSet());
 
-        eventService.create(
+        eventService.createOrganizationEvent(
             executionContext,
             environmentIds,
             EventType.PUBLISH_ORGANIZATION,
-            mapper.writeValueAsString(organizationEntity),
+            organizationEntity,
             properties
         );
     }

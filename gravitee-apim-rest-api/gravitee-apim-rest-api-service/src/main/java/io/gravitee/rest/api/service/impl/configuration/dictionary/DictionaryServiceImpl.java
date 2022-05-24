@@ -98,11 +98,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
 
             // And create event
-            eventService.create(
+            eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
                 EventType.PUBLISH_DICTIONARY,
-                mapper.writeValueAsString(dictionary),
+                dictionary,
                 properties
             );
             return convert(dictionary);
@@ -135,11 +135,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
 
             // And create event
-            eventService.create(
+            eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
                 EventType.UNPUBLISH_DICTIONARY,
-                mapper.writeValueAsString(dictionary),
+                dictionary,
                 properties
             );
             return convert(dictionary);
@@ -173,7 +173,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
 
             // And create event
-            eventService.create(
+            eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
                 EventType.START_DICTIONARY,
@@ -218,7 +218,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
 
             // And create event
-            eventService.create(
+            eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
                 EventType.STOP_DICTIONARY,
@@ -296,7 +296,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             if (updatedDictionary.getState() == LifecycleState.STARTED) {
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
-                eventService.create(
+                eventService.createDictionaryEvent(
                     executionContext,
                     Collections.singleton(executionContext.getEnvironmentId()),
                     EventType.START_DICTIONARY,
@@ -344,13 +344,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Delete dictionary: {}", id);
 
-            Optional<Dictionary> dictionary = dictionaryRepository.findById(id);
+            Dictionary dictionary = dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
 
-            if (!dictionary.isPresent()) {
-                throw new DictionaryNotFoundException(id);
-            }
-
-            if (dictionary.get().getType() == DictionaryType.DYNAMIC) {
+            if (dictionary.getType() == DictionaryType.DYNAMIC) {
                 this.stop(executionContext, id);
             }
 
@@ -360,11 +356,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
 
             // And create event
-            eventService.create(
+            eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
                 EventType.UNPUBLISH_DICTIONARY,
-                mapper.writeValueAsString(dictionary),
+                dictionary,
                 properties
             );
         } catch (TechnicalException ex) {
