@@ -67,6 +67,7 @@ import io.vertx.core.Vertx;
 import java.lang.reflect.InvocationTargetException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
 
@@ -80,6 +81,8 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     public static final String REPORTERS_LOGGING_MAX_SIZE_PROPERTY = "reporters.logging.max_size";
     public static final String HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY = "handlers.request.headers.x-forwarded-prefix";
     public static final String REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY = "reporters.logging.excluded_response_types";
+    private static final String PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
+
     private final Logger logger = LoggerFactory.getLogger(ApiContextHandlerFactory.class);
 
     private ApplicationContext applicationContext;
@@ -107,6 +110,9 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         try {
             if (api.isEnabled()) {
                 final ApiReactorHandler handler = getApiReactorHandler(api);
+
+                handler.setNode(node);
+                handler.setPendingRequestsTimeout(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L));
 
                 final ComponentProvider globalComponentProvider = applicationContext.getBean(ComponentProvider.class);
                 final CustomComponentProvider customComponentProvider = new CustomComponentProvider();
@@ -205,10 +211,8 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         return new ExecutionContextFactory(componentProvider);
     }
 
-    protected ApiReactorHandler getApiReactorHandler(Api api)
-        throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        Class<?> handlerClass = this.getClass().getClassLoader().loadClass(ApiReactorHandler.class.getName());
-        return (ApiReactorHandler) handlerClass.getConstructor(Api.class).newInstance(api);
+    protected ApiReactorHandler getApiReactorHandler(Api api) {
+        return new ApiReactorHandler(api);
     }
 
     public PolicyChainFactory policyChainFactory(PolicyManager policyManager) {
