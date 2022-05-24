@@ -822,12 +822,8 @@ jobs:
                   command: |
                       export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-                      CONTAINER_EXISTS=$(az storage container exists -n $BRANCH_ID | jq .exists)
-                      if [ "$CONTAINER_EXISTS" = false ] ; then
-                        echo "Creating container $BRANCH_ID"
-                        az storage container create -n $BRANCH_ID --public-access blob
-                      fi             
-                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d $BRANCH_ID --overwrite
+                      sed -i 's#<base href="/" />##' gravitee-apim-console-webui/dist/index.html
+                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d "\$web/$BRANCH_ID"
             - notify-on-failure
 
     console-webui-comment-pr-after-deployment:
@@ -859,7 +855,7 @@ jobs:
                       export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       export PR_BODY_UI_SECTION="
                       <!-- UI placeholder -->
-                      🚀 CI was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.blob.core.windows.net/${BRANCH_ID}/index.html)
+                      🚀 CI was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.z6.web.core.windows.net/${BRANCH_ID}/index.html)
                       _Notes_: The deployed app is linked to the management API of APIM master. (Same login and password as APIM master)
                       <!-- UI placeholder end -->
                       "
