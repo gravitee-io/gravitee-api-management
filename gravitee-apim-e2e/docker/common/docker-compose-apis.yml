@@ -28,7 +28,7 @@ volumes:
 
 services:
   mongodb:
-    image: circleci/mongo:${MONGODB_VERSION:-4}
+    image: circleci/mongo:${MONGODB_VERSION:-5}
     container_name: gio_apim_mongodb
     restart: always
     ports:
