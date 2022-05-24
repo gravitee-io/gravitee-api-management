@@ -134,11 +134,11 @@ public class ApiService_StopTest {
         verify(api).setLifecycleState(LifecycleState.STOPPED);
         verify(apiRepository).update(api);
         verify(eventService)
-            .create(
+            .createApiEvent(
                 GraviteeContext.getExecutionContext(),
                 singleton(GraviteeContext.getCurrentEnvironment()),
                 EventType.STOP_API,
-                event.getPayload(),
+                argThat(apiArg -> apiArg.getId().equals(API_ID)),
                 event.getProperties()
             );
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_STOPPED), eq(API_ID), any());

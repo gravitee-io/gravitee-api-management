@@ -134,12 +134,12 @@ public class ApiService_StartTest {
         verify(api).setLifecycleState(LifecycleState.STARTED);
         verify(apiRepository).update(api);
         verify(eventService)
-            .create(
-                GraviteeContext.getExecutionContext(),
-                singleton(GraviteeContext.getCurrentEnvironment()),
-                EventType.START_API,
-                event.getPayload(),
-                event.getProperties()
+            .createApiEvent(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(singleton(GraviteeContext.getCurrentEnvironment())),
+                eq(EventType.START_API),
+                argThat(argApi -> argApi.getId().equals(API_ID)),
+                eq(event.getProperties())
             );
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_STARTED), eq(API_ID), any());
     }

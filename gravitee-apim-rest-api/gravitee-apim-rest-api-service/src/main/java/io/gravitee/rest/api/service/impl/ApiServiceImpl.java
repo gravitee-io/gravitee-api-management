@@ -1745,6 +1745,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 updateApiDefinition.setDefinitionVersion(DefinitionVersion.valueOfLabel(updateApiEntity.getGraviteeDefinitionVersion()));
             } else {
                 updateApiDefinition = objectMapper.readValue(apiDefinition, io.gravitee.definition.model.Api.class);
+
+                // clear plans as they are stored in plans table ; avoid useless duplicated storage in api definition
+                updateApiDefinition.setPlans(Collections.emptyList());
             }
             updateApiDefinition.setId(apiId);
             updateApiDefinition.setName(updateApiEntity.getName());
@@ -1773,10 +1776,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (updateApiEntity.getFlows() != null) {
                 updateApiDefinition.setFlows(updateApiEntity.getFlows());
             }
-            if (updateApiEntity.getPlans() != null) {
-                List<Plan> plans = updateApiEntity.getPlans().stream().filter(plan -> plan.getId() != null).collect(toList());
-                updateApiDefinition.setPlans(plans);
-            }
 
             updateApiDefinition.setServices(updateApiEntity.getServices());
             updateApiDefinition.setResources(updateApiEntity.getResources());
@@ -1786,6 +1785,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             updateApiDefinition.setTags(updateApiEntity.getTags());
 
             updateApiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
+
             return objectMapper.writeValueAsString(updateApiDefinition);
         } catch (JsonProcessingException jse) {
             LOGGER.error("Unexpected error while generating API definition", jse);
@@ -2013,7 +2013,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (getAuthenticatedUser() != null) {
                     properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
                 }
-                eventService.create(
+                eventService.createApiEvent(
                     executionContext,
                     singleton(executionContext.getEnvironmentId()),
                     EventType.UNPUBLISH_API,
@@ -2215,46 +2215,35 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         EventType eventType,
         ApiDeploymentEntity apiDeploymentEntity
     ) throws Exception {
-        Optional<Api> api = apiRepository.findById(apiId);
+        Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
-        if (api.isPresent()) {
-            // add deployment date
-            Api apiValue = api.get();
-            apiValue.setUpdatedAt(new Date());
-            apiValue.setDeployedAt(apiValue.getUpdatedAt());
-            apiValue = apiRepository.update(apiValue);
+        // add deployment date
+        api.setUpdatedAt(new Date());
+        api.setDeployedAt(api.getUpdatedAt());
+        api = apiRepository.update(api);
 
-            Map<String, String> properties = new HashMap<>();
-            properties.put(Event.EventProperties.API_ID.getValue(), apiValue.getId());
-            properties.put(Event.EventProperties.USER.getValue(), userId);
+        Map<String, String> properties = new HashMap<>();
+        properties.put(Event.EventProperties.API_ID.getValue(), api.getId());
+        properties.put(Event.EventProperties.USER.getValue(), userId);
 
-            // Clear useless field for history
-            apiValue.setPicture(null);
+        // Clear useless field for history
+        api.setPicture(null);
 
-            addDeploymentLabelToProperties(executionContext, apiId, eventType, properties, apiDeploymentEntity);
+        addDeploymentLabelToProperties(executionContext, apiId, eventType, properties, apiDeploymentEntity);
 
-            // And create event
-            eventService.create(
-                executionContext,
-                singleton(executionContext.getEnvironmentId()),
-                eventType,
-                objectMapper.writeValueAsString(apiValue),
-                properties
-            );
+        // And create event
+        eventService.createApiEvent(executionContext, singleton(executionContext.getEnvironmentId()), eventType, api, properties);
 
-            final ApiEntity deployed = convert(executionContext, singletonList(apiValue)).iterator().next();
+        final ApiEntity deployed = convert(executionContext, singletonList(api)).iterator().next();
 
-            notifierService.trigger(
-                executionContext,
-                ApiHook.API_DEPLOYED,
-                apiId,
-                new NotificationParamsBuilder().api(deployed).user(userService.findById(executionContext, userId)).build()
-            );
+        notifierService.trigger(
+            executionContext,
+            ApiHook.API_DEPLOYED,
+            apiId,
+            new NotificationParamsBuilder().api(deployed).user(userService.findById(executionContext, userId)).build()
+        );
 
-            return deployed;
-        } else {
-            throw new ApiNotFoundException(apiId);
-        }
+        return deployed;
     }
 
     private void addDeploymentLabelToProperties(
@@ -2321,11 +2310,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 lastPublishedAPI.setPicture(null);
 
                 // And create event
-                eventService.create(
+                eventService.createApiEvent(
                     executionContext,
                     singleton(executionContext.getEnvironmentId()),
                     eventType,
-                    objectMapper.writeValueAsString(lastPublishedAPI),
+                    lastPublishedAPI,
                     properties
                 );
                 return null;

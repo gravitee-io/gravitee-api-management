@@ -16,15 +16,15 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.debug.DebugApi;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.NewEventEntity;
+import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -34,13 +34,35 @@ import java.util.function.Predicate;
 public interface EventService {
     EventEntity findById(ExecutionContext executionContext, String id);
 
-    EventEntity create(ExecutionContext executionContext, final Set<String> environments, NewEventEntity event);
-
-    EventEntity create(
+    EventEntity createApiEvent(
         ExecutionContext executionContext,
         final Set<String> environmentsIds,
         EventType type,
-        String payload,
+        Api api,
+        Map<String, String> properties
+    );
+
+    EventEntity createDictionaryEvent(
+        ExecutionContext executionContext,
+        final Set<String> environmentsIds,
+        EventType type,
+        Dictionary dictionary,
+        Map<String, String> properties
+    );
+
+    EventEntity createDebugApiEvent(
+        ExecutionContext executionContext,
+        final Set<String> environmentsIds,
+        EventType type,
+        DebugApi debugApi,
+        Map<String, String> properties
+    );
+
+    EventEntity createOrganizationEvent(
+        ExecutionContext executionContext,
+        final Set<String> environmentsIds,
+        EventType type,
+        OrganizationEntity organizationEntity,
         Map<String, String> properties
     );
 
