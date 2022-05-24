@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl.upgrade;
 
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
-import static io.gravitee.rest.api.service.impl.upgrade.UpgradeStatus.*;
 import static java.util.Collections.singleton;
 import static java.util.Comparator.comparing;
 
@@ -29,7 +28,6 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
-import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -38,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -153,13 +150,7 @@ public class ApiLoggingConditionUpgrader extends OneShotUpgrader {
             addDeploymentLabelToProperties(executionContext, api.getId(), properties, apiDeploymentEntity);
 
             // And create event
-            eventService.create(
-                executionContext,
-                singleton(executionContext.getEnvironmentId()),
-                PUBLISH_API,
-                objectMapper.writeValueAsString(api),
-                properties
-            );
+            eventService.createApiEvent(executionContext, singleton(executionContext.getEnvironmentId()), PUBLISH_API, api, properties);
 
             apisFixedAndDeployed.add(api.getId());
         } else {

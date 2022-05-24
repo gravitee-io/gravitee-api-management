@@ -17,20 +17,25 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.debug.DebugApi;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import io.gravitee.rest.api.model.EventEntity;
-import io.gravitee.rest.api.model.NewEventEntity;
+import io.gravitee.repository.management.model.Organization;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
@@ -40,9 +45,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -96,6 +103,12 @@ public class EventServiceTest {
     @Mock
     private UserService userService;
 
+    @Mock
+    private PlanService planService;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
     @Test
     public void shouldCreateEventWithPublishApiEventType() throws TechnicalException {
         when(event.getType()).thenReturn(EventType.PUBLISH_API);
@@ -107,7 +120,7 @@ public class EventServiceTest {
         when(newEvent.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(newEvent.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        final EventEntity eventEntity = eventService.create(
+        final EventEntity eventEntity = eventService.createNewEventEntity(
             GraviteeContext.getExecutionContext(),
             Collections.singleton(GraviteeContext.getCurrentEnvironment()),
             newEvent
@@ -427,6 +440,177 @@ public class EventServiceTest {
         assertNotNull(page);
         assertNotNull(page.getContent());
         assertEquals(3, page.getContent().size());
+    }
+
+    @Test
+    public void createDebugApiEvent_shouldCreateEvent_withoutPayload() throws TechnicalException {
+        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        eventService.createDebugApiEvent(
+            GraviteeContext.getExecutionContext(),
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.DEBUG_API,
+            null,
+            Map.of()
+        );
+
+        verify(eventRepository, times(1)).create(argThat(e -> e.getPayload() == null));
+        verifyNoMoreInteractions(eventRepository);
+    }
+
+    @Test
+    public void createDebugApiEvent_shouldCreateEvent_withPayload() throws TechnicalException, JsonProcessingException {
+        String jsonValue = "serialized json value";
+        DebugApi debugApi = mock(DebugApi.class);
+        when(objectMapper.writeValueAsString(debugApi)).thenReturn(jsonValue);
+        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        eventService.createDebugApiEvent(
+            GraviteeContext.getExecutionContext(),
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.DEBUG_API,
+            debugApi,
+            Map.of()
+        );
+
+        verify(eventRepository, times(1)).create(argThat(e -> jsonValue.equals(e.getPayload())));
+        verifyNoMoreInteractions(eventRepository);
+    }
+
+    @Test
+    public void createDictionaryEvent_shouldCreateEvent_withoutPayload() throws TechnicalException {
+        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        eventService.createDictionaryEvent(
+            GraviteeContext.getExecutionContext(),
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.DEBUG_API,
+            null,
+            Map.of()
+        );
+
+        verify(eventRepository, times(1)).create(argThat(e -> e.getPayload() == null));
+        verifyNoMoreInteractions(eventRepository);
+    }
+
+    @Test
+    public void createDictionaryApiEvent_shouldCreateEvent_withPayload() throws TechnicalException, JsonProcessingException {
+        String jsonValue = "serialized json value";
+        var dictionary = mock(io.gravitee.repository.management.model.Dictionary.class);
+        when(objectMapper.writeValueAsString(dictionary)).thenReturn(jsonValue);
+        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        eventService.createDictionaryEvent(
+            GraviteeContext.getExecutionContext(),
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.DEBUG_API,
+            dictionary,
+            Map.of()
+        );
+
+        verify(eventRepository, times(1)).create(argThat(e -> jsonValue.equals(e.getPayload())));
+        verifyNoMoreInteractions(eventRepository);
+    }
+
+    @Test
+    public void createOrganizationEvent_shouldCreateEvent_withoutPayload() throws TechnicalException {
+        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        eventService.createOrganizationEvent(
+            GraviteeContext.getExecutionContext(),
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.DEBUG_API,
+            null,
+            Map.of()
+        );
+
+        verify(eventRepository, times(1)).create(argThat(e -> e.getPayload() == null));
+        verifyNoMoreInteractions(eventRepository);
+    }
+
+    @Test
+    public void createOrganizationApiEvent_shouldCreateEvent_withPayload() throws TechnicalException, JsonProcessingException {
+        String jsonValue = "serialized json value";
+        OrganizationEntity organization = mock(OrganizationEntity.class);
+        when(objectMapper.writeValueAsString(organization)).thenReturn(jsonValue);
+        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        eventService.createOrganizationEvent(
+            GraviteeContext.getExecutionContext(),
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.DEBUG_API,
+            organization,
+            Map.of()
+        );
+
+        verify(eventRepository, times(1)).create(argThat(e -> jsonValue.equals(e.getPayload())));
+        verifyNoMoreInteractions(eventRepository);
+    }
+
+    @Test
+    public void createApiEvent_shouldCreateEvent_withoutPayload() throws TechnicalException {
+        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        eventService.createApiEvent(
+            GraviteeContext.getExecutionContext(),
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.DEBUG_API,
+            null,
+            Map.of()
+        );
+
+        verify(eventRepository, times(1)).create(argThat(e -> e.getPayload() == null));
+        verifyNoMoreInteractions(eventRepository);
+    }
+
+    @Test
+    public void createApiEvent_shouldReadDatabasePlans_thenCreateEvent_withPayloadContainingPlans()
+        throws TechnicalException, JsonProcessingException {
+        ObjectMapper realObjectMapper = new ObjectMapper();
+        ReflectionTestUtils.setField(eventService, "objectMapper", realObjectMapper);
+        ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter(realObjectMapper));
+        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        Api api = new Api();
+        api.setId(API_ID);
+        api.setDefinition("{}");
+
+        when(planService.findByApi(any(), eq(API_ID)))
+            .thenReturn(
+                Set.of(
+                    buildPlanEntity("plan1", PlanStatus.STAGING),
+                    buildPlanEntity("plan2", PlanStatus.CLOSED),
+                    buildPlanEntity("plan3", PlanStatus.PUBLISHED)
+                )
+            );
+
+        eventService.createApiEvent(
+            GraviteeContext.getExecutionContext(),
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.DEBUG_API,
+            api,
+            Map.of()
+        );
+
+        // check event has been created and capture his payload
+        ArgumentCaptor<Event> createdEvent = ArgumentCaptor.forClass(Event.class);
+        verify(eventRepository, times(1)).create(createdEvent.capture());
+        verifyNoMoreInteractions(eventRepository);
+
+        // deserialize payload event and check it contains plans from database, except closed ones
+        Api payloadApi = realObjectMapper.readValue(createdEvent.getValue().getPayload(), Api.class);
+        var payloadApiDefinition = realObjectMapper.readValue(payloadApi.getDefinition(), io.gravitee.definition.model.Api.class);
+        assertEquals(2, payloadApiDefinition.getPlans().size());
+        assertEquals("plan1", payloadApiDefinition.getPlans().get(0).getId());
+        assertEquals("plan3", payloadApiDefinition.getPlans().get(1).getId());
+    }
+
+    private PlanEntity buildPlanEntity(String id, PlanStatus status) {
+        PlanEntity plan = new PlanEntity();
+        plan.setId(id);
+        plan.setStatus(status);
+        plan.setSecurity(PlanSecurityType.KEY_LESS);
+        return plan;
     }
 
     private Event generateInstanceEvent(String name, boolean isUnknown) {

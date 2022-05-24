@@ -25,10 +25,8 @@ import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -221,5 +219,24 @@ public class PlanConverter {
         }
 
         return plan;
+    }
+
+    public List<io.gravitee.definition.model.Plan> toPlansDefinitions(Set<PlanEntity> plans) {
+        return plans.stream().map(this::toPlanDefinition).collect(Collectors.toList());
+    }
+
+    public io.gravitee.definition.model.Plan toPlanDefinition(PlanEntity plan) {
+        io.gravitee.definition.model.Plan planDefinition = new io.gravitee.definition.model.Plan();
+        planDefinition.setApi(plan.getApi());
+        planDefinition.setSecurityDefinition(plan.getSecurityDefinition());
+        planDefinition.setSecurity(plan.getSecurity().name());
+        planDefinition.setFlows(plan.getFlows());
+        planDefinition.setId(plan.getId());
+        planDefinition.setName(plan.getName());
+        planDefinition.setPaths(plan.getPaths());
+        planDefinition.setSelectionRule(plan.getSelectionRule());
+        planDefinition.setStatus(plan.getStatus().name());
+        planDefinition.setTags(plan.getTags());
+        return planDefinition;
     }
 }
