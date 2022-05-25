@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
-enum UpgradeStatus {
+/**
+ * @author GraviteeSource Team
+ */
+public enum UpgradeStatus {
     RUNNING,
     DRY_SUCCESS,
     SUCCESS,

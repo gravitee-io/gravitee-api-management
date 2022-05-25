@@ -15,4 +15,4 @@
     limitations under the License.
 
 -->
-<div ng-if="$ctrl.page.content" markdown-to-html="$ctrl.page.content" class="markdown-page"></div>
+<div ng-if="$ctrl.page.content" ng-bind-html="$ctrl.htmlContent" class="markdown-page"></div>

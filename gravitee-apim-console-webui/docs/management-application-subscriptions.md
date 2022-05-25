@@ -2,12 +2,12 @@
 
 Retrieve all the registered subscriptions per API. Subscription represents the plans the application has subscribed to.
 
-Subscriptions can be : 
+Subscriptions can be:
 
 * Accepted
 
-Subscription is valid and the application can use its API key to perform operations of the API. 
-The subscription can be renew, revoked or valid until its expiration date.
+Subscription is valid and the application can use its API key to perform operations of the API.
+The subscription can be renewed, revoked or valid until its expiration date.
 
 * Pending
 

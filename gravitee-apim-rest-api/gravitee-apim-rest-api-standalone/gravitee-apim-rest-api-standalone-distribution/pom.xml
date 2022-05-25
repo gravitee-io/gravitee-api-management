@@ -40,8 +40,7 @@
         <!-- Properties used for building RPM & DEB package -->
         <packaging.gravitee.management.home.dir>/usr/share/gravitee-management</packaging.gravitee.management.home.dir>
         <packaging.gravitee.management.bin.dir>${packaging.gravitee.management.home.dir}/bin</packaging.gravitee.management.bin.dir>
-        <packaging.gravitee.management.plugins.dir>${packaging.gravitee.management.home.dir}/plugins
-        </packaging.gravitee.management.plugins.dir>
+        <packaging.gravitee.management.plugins.dir>${packaging.gravitee.management.home.dir}/plugins</packaging.gravitee.management.plugins.dir>
         <packaging.gravitee.management.conf.dir>/etc/gravitee-management</packaging.gravitee.management.conf.dir>
         <packaging.gravitee.management.log.dir>/var/log/gravitee-management</packaging.gravitee.management.log.dir>
         <packaging.gravitee.management.pid.dir>/var/run/gravitee-management</packaging.gravitee.management.pid.dir>

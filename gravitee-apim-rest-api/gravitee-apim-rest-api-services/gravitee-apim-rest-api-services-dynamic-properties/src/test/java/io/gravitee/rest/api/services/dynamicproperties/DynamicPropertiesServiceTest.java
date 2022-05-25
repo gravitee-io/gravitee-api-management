@@ -89,7 +89,7 @@ public class DynamicPropertiesServiceTest {
         when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
         when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
         when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
+            .thenReturn(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
         when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
         cut.onEvent(new SimpleEvent<>(ApiEvent.DEPLOY, apiEntity));
 
@@ -134,7 +134,7 @@ public class DynamicPropertiesServiceTest {
         when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
         when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
         when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
+            .thenReturn(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
         when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
         cut.onEvent(new SimpleEvent<>(ApiEvent.UPDATE, apiEntity));
 
@@ -149,7 +149,7 @@ public class DynamicPropertiesServiceTest {
         when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
         when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
         when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
+            .thenReturn(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
         when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
         cut.onEvent(new SimpleEvent<>(ApiEvent.UPDATE, apiEntity));
 
