@@ -78,4 +78,16 @@ public class CachedPolicyConfigurationFactoryTest {
         PolicyConfiguration policyConfiguration1 = policyConfigurationFactory.create(null, null);
         Assert.assertNull(policyConfiguration1);
     }
+
+    @Test
+    public void createEmptyPolicyConfigurationDifferentPolicy() {
+        String configuration = "{}";
+        DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
+        Dummy2PolicyConfiguration policyConfiguration2 = policyConfigurationFactory.create(Dummy2PolicyConfiguration.class, configuration);
+
+        Assert.assertNotNull(policyConfiguration);
+        Assert.assertNotNull(policyConfiguration2);
+
+        Assert.assertNotEquals(policyConfiguration, policyConfiguration2);
+    }
 }
