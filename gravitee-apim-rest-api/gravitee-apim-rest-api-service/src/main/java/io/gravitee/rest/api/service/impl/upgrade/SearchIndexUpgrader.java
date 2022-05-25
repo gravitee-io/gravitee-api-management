@@ -136,7 +136,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         return true;
     }
 
-    private List<CompletableFuture<?>> runApisIndexationAsync(ExecutorService executorService) throws TechnicalException {
+    protected List<CompletableFuture<?>> runApisIndexationAsync(ExecutorService executorService) throws TechnicalException {
         return apiRepository.findAll().stream().map(api -> runApiIndexationAsync(executorService, api)).collect(toList());
     }
 
@@ -197,7 +197,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         );
     }
 
-    private List<CompletableFuture<?>> runUsersIndexationAsync(ExecutorService executorService) throws TechnicalException {
+    protected List<CompletableFuture<?>> runUsersIndexationAsync(ExecutorService executorService) throws TechnicalException {
         return userRepository
             .search(
                 new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
