@@ -94,11 +94,11 @@ public class CommandConverterTest {
 
     @Test
     public void commandEntityShouldBeExpired() {
-        final Command command = command(Instant.now());
+        final Command command = command(Instant.now().minus(5, ChronoUnit.SECONDS));
 
         CommandEntity commandEntity = converter.toCommandEntity(command);
 
-        assertFalse(commandEntity.isExpired());
+        assertTrue(commandEntity.isExpired());
     }
 
     @Test
