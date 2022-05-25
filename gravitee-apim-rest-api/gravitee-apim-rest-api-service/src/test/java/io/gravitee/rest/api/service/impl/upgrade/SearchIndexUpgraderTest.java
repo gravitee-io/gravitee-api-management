@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade;
 
 import static io.gravitee.repository.management.model.UserStatus.ACTIVE;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
@@ -35,6 +36,8 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -77,11 +80,14 @@ public class SearchIndexUpgraderTest {
     }
 
     @Test
-    public void upgrade_should_retrieve_environment_of_each_api() throws Exception {
+    public void runApisIndexationAsync_should_retrieve_environment_of_each_api() throws Exception {
         mockTestApis();
         mockTestUsers();
 
-        upgrader.upgrade();
+        List<CompletableFuture<?>> futures = upgrader.runApisIndexationAsync(Executors.newSingleThreadExecutor());
+        assertEquals(futures.size(), 4);
+
+        futures.forEach(CompletableFuture::join);
 
         verify(environmentRepository, times(1)).findById("env1");
         verify(environmentRepository, times(1)).findById("env2");
@@ -90,11 +96,14 @@ public class SearchIndexUpgraderTest {
     }
 
     @Test
-    public void upgrade_should_index_every_api() throws Exception {
+    public void runApisIndexationAsync_should_index_every_api() throws Exception {
         mockTestApis();
         mockTestUsers();
 
-        upgrader.upgrade();
+        List<CompletableFuture<?>> futures = upgrader.runApisIndexationAsync(Executors.newSingleThreadExecutor());
+        assertEquals(futures.size(), 4);
+
+        futures.forEach(CompletableFuture::join);
 
         verify(searchEngineService, times(1))
             .index(
@@ -127,11 +136,14 @@ public class SearchIndexUpgraderTest {
     }
 
     @Test
-    public void upgrade_should_index_every_user() throws Exception {
+    public void runUsersIndexationAsync_should_index_every_user() throws Exception {
         mockTestApis();
         mockTestUsers();
 
-        upgrader.upgrade();
+        List<CompletableFuture<?>> futures = upgrader.runUsersIndexationAsync(Executors.newSingleThreadExecutor());
+        assertEquals(futures.size(), 4);
+
+        futures.forEach(CompletableFuture::join);
 
         verify(searchEngineService, times(1))
             .index(
