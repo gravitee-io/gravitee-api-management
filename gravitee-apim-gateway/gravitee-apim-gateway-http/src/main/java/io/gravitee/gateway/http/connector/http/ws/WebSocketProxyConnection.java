@@ -28,11 +28,10 @@ import io.gravitee.gateway.http.connector.AbstractHttpProxyConnection;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.UpgradeRejectedException;
-import io.vertx.core.http.WebSocket;
+import io.vertx.core.http.WebSocketConnectOptions;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -70,10 +69,12 @@ public class WebSocketProxyConnection extends AbstractHttpProxyConnection {
             wsProxyRequest.headers().remove(header);
         }
 
+        WebSocketConnectOptions options = new WebSocketConnectOptions().setHost(host).setPort(port).setURI(uri);
+
+        wsProxyRequest.headers().forEach((name, values) -> values.forEach(s -> options.addHeader(name, s)));
+
         httpClient.webSocket(
-            port,
-            host,
-            uri,
+            options,
             event -> {
                 if (event.succeeded()) {
                     // The client -> gateway connection must be upgraded now that the one between gateway -> upstream
@@ -81,88 +82,82 @@ public class WebSocketProxyConnection extends AbstractHttpProxyConnection {
                     wsProxyRequest
                         .upgrade()
                         .thenAccept(
-                            new Consumer<WebSocketProxyRequest>() {
-                                @Override
-                                public void accept(WebSocketProxyRequest webSocketProxyRequest) {
-                                    // From server to client
-                                    wsProxyRequest.frameHandler(
-                                        frame -> {
-                                            if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.BINARY) {
-                                                event
-                                                    .result()
-                                                    .writeFrame(
-                                                        io.vertx.core.http.WebSocketFrame.binaryFrame(
-                                                            io.vertx.core.buffer.Buffer.buffer(frame.data().getBytes()),
-                                                            frame.isFinal()
-                                                        )
-                                                    );
-                                            } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.TEXT) {
-                                                event
-                                                    .result()
-                                                    .writeFrame(
-                                                        io.vertx.core.http.WebSocketFrame.textFrame(
-                                                            frame.data().toString(),
-                                                            frame.isFinal()
-                                                        )
-                                                    );
-                                            } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.CONTINUATION) {
-                                                event
-                                                    .result()
-                                                    .writeFrame(
-                                                        io.vertx.core.http.WebSocketFrame.continuationFrame(
-                                                            io.vertx.core.buffer.Buffer.buffer(frame.data().toString()),
-                                                            frame.isFinal()
-                                                        )
-                                                    );
-                                            } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.PING) {
-                                                event
-                                                    .result()
-                                                    .writeFrame(
-                                                        io.vertx.core.http.WebSocketFrame.pingFrame(
-                                                            io.vertx.core.buffer.Buffer.buffer(frame.data().toString())
-                                                        )
-                                                    );
-                                            } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.PONG) {
-                                                event
-                                                    .result()
-                                                    .writeFrame(
-                                                        io.vertx.core.http.WebSocketFrame.pongFrame(
-                                                            io.vertx.core.buffer.Buffer.buffer(frame.data().toString())
-                                                        )
-                                                    );
-                                            }
+                            webSocketProxyRequest -> {
+                                // From server to client
+                                wsProxyRequest.frameHandler(
+                                    frame -> {
+                                        if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.BINARY) {
+                                            event
+                                                .result()
+                                                .writeFrame(
+                                                    io.vertx.core.http.WebSocketFrame.binaryFrame(
+                                                        io.vertx.core.buffer.Buffer.buffer(frame.data().getBytes()),
+                                                        frame.isFinal()
+                                                    )
+                                                );
+                                        } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.TEXT) {
+                                            event
+                                                .result()
+                                                .writeFrame(
+                                                    io.vertx.core.http.WebSocketFrame.textFrame(frame.data().toString(), frame.isFinal())
+                                                );
+                                        } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.CONTINUATION) {
+                                            event
+                                                .result()
+                                                .writeFrame(
+                                                    io.vertx.core.http.WebSocketFrame.continuationFrame(
+                                                        io.vertx.core.buffer.Buffer.buffer(frame.data().toString()),
+                                                        frame.isFinal()
+                                                    )
+                                                );
+                                        } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.PING) {
+                                            event
+                                                .result()
+                                                .writeFrame(
+                                                    io.vertx.core.http.WebSocketFrame.pingFrame(
+                                                        io.vertx.core.buffer.Buffer.buffer(frame.data().toString())
+                                                    )
+                                                );
+                                        } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.PONG) {
+                                            event
+                                                .result()
+                                                .writeFrame(
+                                                    io.vertx.core.http.WebSocketFrame.pongFrame(
+                                                        io.vertx.core.buffer.Buffer.buffer(frame.data().toString())
+                                                    )
+                                                );
+                                        }
+                                    }
+                                );
+
+                                wsProxyRequest.closeHandler(result -> event.result().close());
+
+                                // From client to server
+                                event.result().frameHandler(frame -> wsProxyRequest.write(new WebSocketFrame(frame)));
+
+                                event
+                                    .result()
+                                    .closeHandler(
+                                        event1 -> {
+                                            wsProxyRequest.close();
+                                            tracker.handle(null);
                                         }
                                     );
 
-                                    wsProxyRequest.closeHandler(result -> event.result().close());
+                                event
+                                    .result()
+                                    .exceptionHandler(
+                                        throwable -> {
+                                            wsProxyRequest.reject(HttpStatusCode.BAD_REQUEST_400);
+                                            sendToClient(new EmptyProxyResponse(HttpStatusCode.BAD_REQUEST_400));
+                                            tracker.handle(null);
+                                        }
+                                    );
 
-                                    // From client to server
-                                    event.result().frameHandler(frame -> wsProxyRequest.write(new WebSocketFrame(frame)));
+                                connectionHandler.handle(null);
 
-                                    event
-                                        .result()
-                                        .closeHandler(
-                                            event1 -> {
-                                                wsProxyRequest.close();
-                                                tracker.handle(null);
-                                            }
-                                        );
-
-                                    event
-                                        .result()
-                                        .exceptionHandler(
-                                            throwable -> {
-                                                wsProxyRequest.reject(HttpStatusCode.BAD_REQUEST_400);
-                                                sendToClient(new EmptyProxyResponse(HttpStatusCode.BAD_REQUEST_400));
-                                                tracker.handle(null);
-                                            }
-                                        );
-
-                                    connectionHandler.handle(null);
-
-                                    // Tell the reactor that the request has been handled by the HTTP client
-                                    sendToClient(new SwitchProtocolProxyResponse());
-                                }
+                                // Tell the reactor that the request has been handled by the HTTP client
+                                sendToClient(new SwitchProtocolProxyResponse());
                             }
                         );
                 } else {
