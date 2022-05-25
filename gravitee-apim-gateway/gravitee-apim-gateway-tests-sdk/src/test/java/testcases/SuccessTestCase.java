@@ -55,19 +55,19 @@ public class SuccessTestCase extends AbstractGatewayTest {
 
         final TestObserver<HttpResponse<Buffer>> obs = webClient.get("/test/my_team").rxSend().test();
 
-        awaitTerminalEvent(obs);
-        obs.assertComplete();
-        obs.assertValue(
-            response -> {
-                final String content = response.bodyAsString();
+        awaitTerminalEvent(obs)
+            .assertComplete()
+            .assertValue(
+                response -> {
+                    final String content = response.bodyAsString();
 
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
-                assertThat(content).isEqualTo("OnResponseContent2Policy");
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
+                    assertThat(content).isEqualTo("OnResponseContent2Policy");
 
-                return true;
-            }
-        );
+                    return true;
+                }
+            );
         obs.assertNoErrors();
         wiremock.verify(
             getRequestedFor(urlPathEqualTo("/team/my_team"))

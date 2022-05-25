@@ -96,10 +96,11 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
      * Proxy for {@link TestObserver#awaitTerminalEvent(long, TimeUnit)} with a default of 30 seconds.
      * It awaits 30 seconds or until this TestObserver/TestSubscriber receives an onError or onComplete events, whichever happens first.
      * @param obs is the observer to await
-     * @return true if the TestObserver/TestSubscriber terminated, false if timeout or interrupt happened
+     * @return the observer after wait
      */
-    protected boolean awaitTerminalEvent(TestObserver<?> obs) {
-        return obs.awaitTerminalEvent(30, TimeUnit.SECONDS);
+    protected <T> TestObserver<T> awaitTerminalEvent(TestObserver<T> obs) {
+        obs.awaitTerminalEvent(30, TimeUnit.SECONDS);
+        return obs;
     }
 
     /**
