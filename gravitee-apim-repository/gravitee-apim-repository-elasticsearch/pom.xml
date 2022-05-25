@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee.apim.repository</groupId>
         <artifactId>gravitee-apim-repository</artifactId>
-        <version>3.10.15-SNAPSHOT</version>
+        <version>3.10.15</version>
     </parent>
 
     <artifactId>gravitee-apim-repository-elasticsearch</artifactId>
@@ -32,7 +32,7 @@
 
     <properties>
         <elasticsearch.version>5.6.3</elasticsearch.version>
-        <gravitee-common-elasticsearch.version>3.8.4</gravitee-common-elasticsearch.version>
+        <gravitee-common-elasticsearch.version>3.8.5</gravitee-common-elasticsearch.version>
         <lucene.version>6.6.1</lucene.version>
     </properties>
 
