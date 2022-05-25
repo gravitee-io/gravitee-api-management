@@ -118,7 +118,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
 
         // index users
         try {
-            futures.addAll(runUsersIndexationAsync());
+            futures.addAll(runUsersIndexationAsync(executorService));
         } catch (TechnicalException e) {
             LOGGER.error("failed to index users", e);
         }
@@ -197,7 +197,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         );
     }
 
-    private List<CompletableFuture<?>> runUsersIndexationAsync() throws TechnicalException {
+    private List<CompletableFuture<?>> runUsersIndexationAsync(ExecutorService executorService) throws TechnicalException {
         return userRepository
             .search(
                 new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
@@ -205,16 +205,17 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
             )
             .getContent()
             .stream()
-            .map(this::runUserIndexationAsync)
+            .map(user -> runUserIndexationAsync(executorService, user))
             .collect(toList());
     }
 
-    private CompletableFuture<?> runUserIndexationAsync(User user) {
+    private CompletableFuture<?> runUserIndexationAsync(ExecutorService executorService, User user) {
         return CompletableFuture.runAsync(
             () -> {
                 ExecutionContext executionContext = new ExecutionContext(user.getOrganizationId(), null);
                 searchEngineService.index(executionContext, userConverter.toUserEntity(user), true, false);
-            }
+            },
+            executorService
         );
     }
 
