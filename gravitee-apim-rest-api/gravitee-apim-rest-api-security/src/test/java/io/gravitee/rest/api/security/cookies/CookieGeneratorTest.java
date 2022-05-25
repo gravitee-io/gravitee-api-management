@@ -32,11 +32,29 @@ public class CookieGeneratorTest {
         final Environment environment = new MockEnvironment();
         final CookieGenerator cookieGenerator = new CookieGenerator(environment);
         final Cookie cookie = cookieGenerator.generate("test");
-        assertTrue(cookie.getSecure());
+        assertFalse(cookie.getSecure());
         assertTrue(cookie.isHttpOnly());
         assertEquals("", cookie.getDomain());
         assertEquals("/", cookie.getPath());
         assertEquals(604800, cookie.getMaxAge());
+    }
+
+    @Test
+    public void shouldSetCookieOptionsFromEnvironmentWithJettySecured() {
+        final Environment environment = new MockEnvironment()
+            .withProperty("jetty.secured", "true")
+            .withProperty("jwt.cookie-path", "/test")
+            .withProperty("jwt.cookie-domain", "gravitee.io")
+            .withProperty("jwt.expire-after", "1");
+
+        final CookieGenerator cookieGenerator = new CookieGenerator(environment);
+        final Cookie cookie = cookieGenerator.generate("test");
+        assertEquals("test", cookie.getValue());
+        assertTrue(cookie.getSecure());
+        assertTrue(cookie.isHttpOnly());
+        assertEquals("gravitee.io", cookie.getDomain());
+        assertEquals("/test", cookie.getPath());
+        assertEquals(1, cookie.getMaxAge());
     }
 
     @Test

@@ -18,7 +18,6 @@ package io.gravitee.rest.api.security.cookies;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
 
 import javax.servlet.http.Cookie;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 /**
@@ -28,7 +27,6 @@ import org.springframework.core.env.Environment;
  */
 public class CookieGenerator {
 
-    private static final boolean DEFAULT_JWT_COOKIE_SECURE = true;
     private static final String DEFAULT_JWT_COOKIE_PATH = "/";
     private static final String DEFAULT_JWT_COOKIE_DOMAIN = "";
 
@@ -39,9 +37,11 @@ public class CookieGenerator {
     }
 
     public Cookie generate(final String name, final String value, final boolean httpOnly) {
+        final boolean isJettySecured = this.environment.getProperty("jetty.secured", Boolean.class, Boolean.FALSE);
+
         final Cookie cookie = new Cookie(name, value);
         cookie.setHttpOnly(httpOnly);
-        cookie.setSecure(environment.getProperty("jwt.cookie-secure", Boolean.class, DEFAULT_JWT_COOKIE_SECURE));
+        cookie.setSecure(environment.getProperty("jwt.cookie-secure", Boolean.class, isJettySecured));
         cookie.setPath(environment.getProperty("jwt.cookie-path", DEFAULT_JWT_COOKIE_PATH));
         cookie.setDomain(environment.getProperty("jwt.cookie-domain", DEFAULT_JWT_COOKIE_DOMAIN));
         cookie.setMaxAge(value == null ? 0 : environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER));
