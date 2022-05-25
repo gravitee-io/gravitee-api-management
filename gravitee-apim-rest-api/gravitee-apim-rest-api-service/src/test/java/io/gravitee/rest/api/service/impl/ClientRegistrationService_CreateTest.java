@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.Options;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
@@ -34,6 +35,7 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.impl.configuration.application.registration.EmptyInitialAccessTokenException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.InvalidRenewClientSecretException;
 import java.util.Collections;
+import java.util.Objects;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +59,7 @@ public class ClientRegistrationService_CreateTest {
     @Mock
     private AuditService mockAuditService;
 
-    private WireMockServer wireMockServer = new WireMockServer();
+    private final WireMockServer wireMockServer = new WireMockServer(Options.DYNAMIC_PORT);
 
     @Before
     public void setup() {
@@ -73,9 +75,9 @@ public class ClientRegistrationService_CreateTest {
     public void shouldCreateProvider() throws TechnicalException {
         NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
         providerPayload.setName("name");
-        providerPayload.setDiscoveryEndpoint("http://localhost:8080/am");
+        providerPayload.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
 
-        stubFor(
+        wireMockServer.stubFor(
             get(urlEqualTo("/am"))
                 .willReturn(aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}"))
         );
@@ -84,8 +86,8 @@ public class ClientRegistrationService_CreateTest {
             mockClientRegistrationProviderRepository.create(
                 argThat(
                     p ->
-                        p.getEnvironmentId() == GraviteeContext.getExecutionContext().getEnvironmentId() &&
-                        p.getName() == providerPayload.getName() &&
+                        Objects.equals(p.getEnvironmentId(), GraviteeContext.getExecutionContext().getEnvironmentId()) &&
+                        Objects.equals(p.getName(), providerPayload.getName()) &&
                         p.getCreatedAt() != null
                 )
             )
