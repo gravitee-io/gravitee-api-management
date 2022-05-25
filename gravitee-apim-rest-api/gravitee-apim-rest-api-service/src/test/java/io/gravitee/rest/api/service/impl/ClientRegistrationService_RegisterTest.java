@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.Options;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
@@ -55,7 +56,7 @@ public class ClientRegistrationService_RegisterTest {
     @Mock
     private AuditService mockAuditService;
 
-    private WireMockServer wireMockServer = new WireMockServer();
+    private final WireMockServer wireMockServer = new WireMockServer(Options.DYNAMIC_PORT);
 
     @Before
     public void setup() {
@@ -78,22 +79,28 @@ public class ClientRegistrationService_RegisterTest {
         ClientRegistrationProvider provider = new ClientRegistrationProvider();
         provider.setId("CRP_ID");
         provider.setName("name");
-        provider.setDiscoveryEndpoint("http://localhost:8080/am");
+        provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
 
         when(mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
             .thenReturn(newSet(provider));
 
-        stubFor(
+        wireMockServer.stubFor(
             get(urlEqualTo("/am"))
                 .willReturn(
                     aResponse()
                         .withBody(
-                            "{\"token_endpoint\": \"http://localhost:8080/tokenEp\",\"registration_endpoint\": \"http://localhost:8080/registrationEp\"}"
+                            "{\"token_endpoint\": \"http://localhost:" +
+                            wireMockServer.port() +
+                            "/tokenEp\",\"registration_endpoint\": \"http://localhost:" +
+                            wireMockServer.port() +
+                            "/registrationEp\"}"
                         )
                 )
         );
-        stubFor(post(urlEqualTo("/tokenEp")).willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}")));
-        stubFor(post(urlEqualTo("/registrationEp")).willReturn(aResponse().withBody("{ \"client_name\": \"gravitee\"}")));
+        wireMockServer.stubFor(
+            post(urlEqualTo("/tokenEp")).willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}"))
+        );
+        wireMockServer.stubFor(post(urlEqualTo("/registrationEp")).willReturn(aResponse().withBody("{ \"client_name\": \"gravitee\"}")));
 
         ClientRegistrationResponse clientRegistration = clientRegistrationService.register(
             GraviteeContext.getExecutionContext(),

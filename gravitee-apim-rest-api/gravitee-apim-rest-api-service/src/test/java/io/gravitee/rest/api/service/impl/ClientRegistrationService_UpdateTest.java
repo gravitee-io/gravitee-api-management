@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.Options;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
@@ -58,7 +59,7 @@ public class ClientRegistrationService_UpdateTest {
     @Mock
     private AuditService mockAuditService;
 
-    private WireMockServer wireMockServer = new WireMockServer();
+    private final WireMockServer wireMockServer = new WireMockServer(Options.DYNAMIC_PORT);
 
     @Before
     public void setup() {
@@ -74,14 +75,14 @@ public class ClientRegistrationService_UpdateTest {
     public void shouldUpdateProvider() throws TechnicalException {
         UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
         providerPayload.setName("name");
-        providerPayload.setDiscoveryEndpoint("http://localhost:8080/am");
+        providerPayload.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
 
         ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
         existingPayload.setId("CRP_ID");
 
         when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
 
-        stubFor(
+        wireMockServer.stubFor(
             get(urlEqualTo("/am"))
                 .willReturn(aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}"))
         );
