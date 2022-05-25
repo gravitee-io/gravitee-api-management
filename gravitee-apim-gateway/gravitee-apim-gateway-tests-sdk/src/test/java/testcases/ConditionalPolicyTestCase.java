@@ -61,19 +61,19 @@ public class ConditionalPolicyTestCase extends AbstractGatewayTest {
 
         final TestObserver<HttpResponse<Buffer>> obs = webClient.get(ENDPOINT).putHeader(CONDITION_HEADER, "condition-ok").rxSend().test();
 
-        awaitTerminalEvent(obs);
-        obs.assertComplete();
-        obs.assertValue(
-            response -> {
-                final String content = response.bodyAsString();
+        awaitTerminalEvent(obs)
+            .assertComplete()
+            .assertValue(
+                response -> {
+                    final String content = response.bodyAsString();
 
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
-                assertThat(content).isEqualTo("OnResponseContent2Policy");
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
+                    assertThat(content).isEqualTo("OnResponseContent2Policy");
 
-                return true;
-            }
-        );
+                    return true;
+                }
+            );
         obs.assertNoErrors();
         wiremock.verify(
             getRequestedFor(urlPathEqualTo(API_ENTRYPOINT))

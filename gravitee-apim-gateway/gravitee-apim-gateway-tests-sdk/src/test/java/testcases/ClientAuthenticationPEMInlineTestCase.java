@@ -75,8 +75,7 @@ public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
         // First call is calling an HTTPS endpoint without ssl configuration => 502
         TestObserver<HttpResponse<Buffer>> obs = client.get(API_ENTRYPOINT).rxSend().test();
 
-        awaitTerminalEvent(obs);
-        obs
+        awaitTerminalEvent(obs)
             .assertComplete()
             .assertValue(
                 response -> {
@@ -89,8 +88,7 @@ public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
         // Second call is calling an endpoint where trustAll = false, without keystore => 502
         obs = client.get(API_ENTRYPOINT).rxSend().test();
 
-        awaitTerminalEvent(obs);
-        obs
+        awaitTerminalEvent(obs)
             .assertComplete()
             .assertValue(
                 response -> {
@@ -103,8 +101,7 @@ public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
         // Third call is calling an endpoint where trustAll = true, with keystore => 200
         obs = client.get(API_ENTRYPOINT).rxSend().test();
 
-        awaitTerminalEvent(obs);
-        obs
+        awaitTerminalEvent(obs)
             .assertComplete()
             .assertValue(
                 response -> {
@@ -117,8 +114,7 @@ public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
         // Fourth call is calling an endpoint where trustAll = false, with truststore and keystore => 200
         obs = client.get(API_ENTRYPOINT).rxSend().test();
 
-        awaitTerminalEvent(obs);
-        obs
+        awaitTerminalEvent(obs)
             .assertComplete()
             .assertValue(
                 response -> {
