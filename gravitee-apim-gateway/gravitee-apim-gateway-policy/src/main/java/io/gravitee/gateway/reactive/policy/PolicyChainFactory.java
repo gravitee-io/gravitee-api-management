@@ -33,10 +33,11 @@ public interface PolicyChainFactory {
      *     <li>{@link ExecutionPhase#RESPONSE}, {@link ExecutionPhase#ASYNC_RESPONSE}: {@link Flow#getPost()}</li>
      * </ul>
      *
+     * @param flowChainId the flow chain id in which one the policy chain will be executed
      * @param flow the flow where to extract the policies to create the policy chain.
      * @param phase the execution phase used to select the pre- or post-steps.
      *
      * @return the created {@link PolicyChain}.
      */
-    PolicyChain create(Flow flow, ExecutionPhase phase);
+    PolicyChain create(String flowChainId, Flow flow, ExecutionPhase phase);
 }

@@ -37,8 +37,8 @@ import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
-import io.gravitee.gateway.reactive.policy.PolicyFactoryCreator;
-import io.gravitee.gateway.reactive.reactor.processor.GlobalProcessorChainFactory;
+import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
@@ -93,16 +93,18 @@ public class DebugConfiguration {
     @Qualifier("debugReactorHandlerFactory")
     public ReactorHandlerFactory<Api> reactorHandlerFactory(
         @Qualifier("debugV3PolicyFactoryCreator") io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
-        PolicyFactoryCreator policyFactoryCreator,
-        @Qualifier("debugPolicyChainProviderLoader") PolicyChainProviderLoader policyChainProviderLoader
+        PolicyFactory policyFactory,
+        @Qualifier("debugPolicyChainProviderLoader") PolicyChainProviderLoader policyChainProviderLoader,
+        ApiProcessorChainFactory apiProcessorChainFactory
     ) {
         return new DebugApiContextHandlerFactory(
             applicationContext.getParent(),
             configuration,
             node,
             v3PolicyFactoryCreator,
-            policyFactoryCreator,
-            policyChainProviderLoader
+            policyFactory,
+            policyChainProviderLoader,
+            apiProcessorChainFactory
         );
     }
 

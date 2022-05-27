@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.reactor.handler.context.interruption;
+package io.gravitee.gateway.reactive.core.hook;
 
-import io.gravitee.gateway.reactive.api.ExecutionFailure;
-
-/**
- * This exception is thrown to indicate that the current execution context has been interrupted without error
- *
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class InterruptionException extends RuntimeException {
-
-    public InterruptionException() {}
+public enum HookPhase {
+    PRE,
+    POST,
+    INTERRUPT,
+    INTERRUPT_WITH,
+    ERROR,
 }

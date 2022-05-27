@@ -26,12 +26,15 @@ import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -47,7 +50,7 @@ class DefaultPolicyChainFactoryTest {
 
     @BeforeEach
     public void init() {
-        cut = new DefaultPolicyChainFactory("unit-test", policyManager);
+        cut = new DefaultPolicyChainFactory("unit-test", new SpringEnvironmentConfiguration(new StandardEnvironment()), policyManager);
     }
 
     @Test
@@ -71,7 +74,7 @@ class DefaultPolicyChainFactoryTest {
         when(step2.getConfiguration()).thenReturn("config-step2");
         when(step2.getCondition()).thenReturn("condition-step2");
 
-        final PolicyChain policyChain = cut.create(flow, ExecutionPhase.REQUEST);
+        final PolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
 
         verify(policyManager, times(1))
@@ -116,7 +119,7 @@ class DefaultPolicyChainFactoryTest {
         when(step2.getConfiguration()).thenReturn("config-step2");
         when(step2.getCondition()).thenReturn("condition-step2");
 
-        final PolicyChain policyChain = cut.create(flow, ExecutionPhase.REQUEST);
+        final PolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
 
         verify(policyManager, times(1))
@@ -155,7 +158,7 @@ class DefaultPolicyChainFactoryTest {
         when(step2.getCondition()).thenReturn("condition-step2");
 
         for (int i = 0; i < 10; i++) {
-            cut.create(flow, ExecutionPhase.REQUEST);
+            cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
         }
 
         verify(policyManager, times(1))
@@ -194,7 +197,7 @@ class DefaultPolicyChainFactoryTest {
 
         when(policyManager.create(eq(ExecutionPhase.RESPONSE), any(PolicyMetadata.class))).thenReturn(policy);
 
-        final PolicyChain policyChain = cut.create(flow, ExecutionPhase.RESPONSE);
+        final PolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.RESPONSE);
         assertNotNull(policyChain);
 
         verify(policyManager, times(1)).create(eq(ExecutionPhase.RESPONSE), any(PolicyMetadata.class));
@@ -222,7 +225,7 @@ class DefaultPolicyChainFactoryTest {
         when(step2.getConfiguration()).thenReturn("config-step2");
         when(step2.getCondition()).thenReturn("condition-step2");
 
-        final PolicyChain policyChain = cut.create(flow, ExecutionPhase.REQUEST);
+        final PolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
 
         verify(policyManager, times(2)).create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class));

@@ -31,7 +31,7 @@ public class ResponseTimeProcessor implements Processor {
 
     @Override
     public String getId() {
-        return "response-time-processor";
+        return "processor-response-time";
     }
 
     @Override

@@ -40,7 +40,7 @@ public class XForwardForProcessor implements Processor {
 
     @Override
     public String getId() {
-        return "x-forward-for-processor";
+        return "processor-x-forward-for";
     }
 
     @Override

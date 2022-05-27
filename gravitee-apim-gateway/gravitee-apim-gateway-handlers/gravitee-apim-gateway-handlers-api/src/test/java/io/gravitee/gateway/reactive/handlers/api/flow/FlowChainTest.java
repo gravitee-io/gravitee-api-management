@@ -73,8 +73,8 @@ class FlowChainTest {
         final PolicyChain policyChain1 = mock(PolicyChain.class);
         final PolicyChain policyChain2 = mock(PolicyChain.class);
 
-        when(policyChainFactory.create(flow1, ExecutionPhase.REQUEST)).thenReturn(policyChain1);
-        when(policyChainFactory.create(flow2, ExecutionPhase.REQUEST)).thenReturn(policyChain2);
+        when(policyChainFactory.create("fowchain-test", flow1, ExecutionPhase.REQUEST)).thenReturn(policyChain1);
+        when(policyChainFactory.create("fowchain-test", flow2, ExecutionPhase.REQUEST)).thenReturn(policyChain2);
 
         when(policyChain1.execute(ctx)).thenReturn(Completable.complete());
         when(policyChain2.execute(ctx)).thenReturn(Completable.complete());
@@ -97,8 +97,8 @@ class FlowChainTest {
         final PolicyChain policyChain1 = mock(PolicyChain.class);
         final PolicyChain policyChain2 = mock(PolicyChain.class);
 
-        when(policyChainFactory.create(flow1, ExecutionPhase.RESPONSE)).thenReturn(policyChain1);
-        when(policyChainFactory.create(flow2, ExecutionPhase.RESPONSE)).thenReturn(policyChain2);
+        when(policyChainFactory.create("fowchain-test", flow1, ExecutionPhase.RESPONSE)).thenReturn(policyChain1);
+        when(policyChainFactory.create("fowchain-test", flow2, ExecutionPhase.RESPONSE)).thenReturn(policyChain2);
 
         when(policyChain1.execute(ctx)).thenReturn(Completable.complete());
         when(policyChain2.execute(ctx)).thenReturn(Completable.complete());
@@ -121,8 +121,8 @@ class FlowChainTest {
         final PolicyChain policyChain1 = mock(PolicyChain.class);
         final PolicyChain policyChain2 = mock(PolicyChain.class);
 
-        when(policyChainFactory.create(flow1, ExecutionPhase.RESPONSE)).thenReturn(policyChain1);
-        when(policyChainFactory.create(flow2, ExecutionPhase.RESPONSE)).thenReturn(policyChain2);
+        when(policyChainFactory.create("fowchain-test", flow1, ExecutionPhase.RESPONSE)).thenReturn(policyChain1);
+        when(policyChainFactory.create("fowchain-test", flow2, ExecutionPhase.RESPONSE)).thenReturn(policyChain2);
 
         when(policyChain1.execute(ctx)).thenReturn(Completable.complete());
         when(policyChain2.execute(ctx)).thenReturn(Completable.complete());
@@ -145,7 +145,7 @@ class FlowChainTest {
 
         final PolicyChain policyChain1 = mock(PolicyChain.class);
 
-        when(policyChainFactory.create(flow1, ExecutionPhase.REQUEST)).thenReturn(policyChain1);
+        when(policyChainFactory.create("fowchain-test", flow1, ExecutionPhase.REQUEST)).thenReturn(policyChain1);
         when(policyChain1.execute(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 
         final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
@@ -153,6 +153,6 @@ class FlowChainTest {
         obs.assertErrorMessage(MOCK_ERROR_MESSAGE);
 
         // Make sure policy chain has not been created for flow2.
-        verify(policyChainFactory, times(0)).create(flow2, ExecutionPhase.REQUEST);
+        verify(policyChainFactory, times(0)).create("fowchain-test", flow2, ExecutionPhase.REQUEST);
     }
 }
