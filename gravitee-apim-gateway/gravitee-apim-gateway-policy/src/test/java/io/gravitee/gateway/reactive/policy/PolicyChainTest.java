@@ -18,15 +18,15 @@ package io.gravitee.gateway.reactive.policy;
 import static java.util.Arrays.asList;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.*;
+import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
+import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.reactor.handler.context.DefaultRequestExecutionContext;
-import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionException;
-import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.reactor.handler.message.DefaultMessageFlow;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
@@ -69,11 +69,7 @@ class PolicyChainTest {
         obs.assertComplete();
 
         verify(policy1).onRequest(ctx);
-        verify(policy1).getId();
         verify(policy2).onRequest(ctx);
-        verify(policy2).getId();
-
-        verifyNoMoreInteractions(policy1, policy2);
     }
 
     @Test
@@ -91,11 +87,7 @@ class PolicyChainTest {
         obs.assertComplete();
 
         verify(policy1).onResponse(ctx);
-        verify(policy1).getId();
         verify(policy2).onResponse(ctx);
-        verify(policy2).getId();
-
-        verifyNoMoreInteractions(policy1, policy2);
     }
 
     @Test
@@ -124,13 +116,9 @@ class PolicyChainTest {
         verify(policy1).onRequest(ctx);
         verify(policy1).onMessageFlow(eq(ctx), any());
         verify(policy1).onMessage(eq(ctx), any());
-        verify(policy1).getId();
         verify(policy2).onRequest(ctx);
         verify(policy2).onMessageFlow(eq(ctx), any());
         verify(policy2).onMessage(eq(ctx), any());
-        verify(policy2).getId();
-
-        verifyNoMoreInteractions(policy1, policy2);
     }
 
     @Test
@@ -159,13 +147,9 @@ class PolicyChainTest {
         verify(policy1).onResponse(ctx);
         verify(policy1).onMessageFlow(eq(ctx), any());
         verify(policy1).onMessage(eq(ctx), any());
-        verify(policy1).getId();
         verify(policy2).onResponse(ctx);
         verify(policy2).onMessageFlow(eq(ctx), any());
         verify(policy2).onMessage(eq(ctx), any());
-        verify(policy2).getId();
-
-        verifyNoMoreInteractions(policy1, policy2);
     }
 
     @Test
@@ -180,9 +164,8 @@ class PolicyChainTest {
         cut.execute(ctx).test().assertFailure(InterruptionException.class);
 
         verify(policy1).onRequest(ctx);
-        verify(policy1).getId();
 
-        verifyNoMoreInteractions(policy1, policy2);
+        verifyNoMoreInteractions(policy2);
     }
 
     @Test
@@ -198,8 +181,7 @@ class PolicyChainTest {
         cut.execute(ctx).test().assertFailure(InterruptionFailureException.class);
 
         verify(policy1).onRequest(ctx);
-        verify(policy1).getId();
-        verifyNoMoreInteractions(policy1, policy2);
+        verifyNoMoreInteractions(policy2);
     }
 
     @Test
@@ -216,7 +198,5 @@ class PolicyChainTest {
         cut.execute(ctx).test().assertErrorMessage(MOCK_ERROR_MESSAGE).assertFailure(RuntimeException.class);
 
         verify(policy1).onRequest(ctx);
-        verify(policy1).getId();
-        verifyNoMoreInteractions(policy1, policy2);
     }
 }

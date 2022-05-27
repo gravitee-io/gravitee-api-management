@@ -26,32 +26,33 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.hook.Hook;
+import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.core.context.MutableRequestExecutionContext;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
+import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
+import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChain;
-import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
+import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
-import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
-import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionException;
-import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionFailureException;
-import io.gravitee.gateway.reactive.reactor.processor.GlobalProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.Entrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.reporter.api.http.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
+import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +71,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private final ResourceLifecycleManager resourceLifecycleManager;
     private final PolicyManager policyManager;
     private final GroupLifecycleManager groupLifecycleManager;
+    private final List<Hook> processorChainHooks;
+    private final List<InvokerHook> invokerHooks;
     private final FlowChain platformFlowChain;
     private final FlowChain apiPlanFlowChain;
     private final FlowChain apiFlowChain;
@@ -85,9 +88,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final ResourceLifecycleManager resourceLifecycleManager,
         final ApiProcessorChainFactory apiProcessorChainFactory,
         final PolicyManager policyManager,
-        final PolicyChainFactory platformPolicyChainFactory,
+        final FlowChainFactory flowChainFactory,
         final GroupLifecycleManager groupLifecycleManager,
-        final OrganizationManager organizationManager
+        final Configuration configuration
     ) {
         this.api = api;
         this.componentProvider = componentProvider;
@@ -97,14 +100,22 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.policyManager = policyManager;
         this.groupLifecycleManager = groupLifecycleManager;
 
-        final PolicyChainFactory policyChainFactory = new DefaultPolicyChainFactory(api.getId(), policyManager);
         this.apiPreProcessorChain = apiProcessorChainFactory.preProcessorChain(api);
         this.apiPostProcessorChain = apiProcessorChainFactory.postProcessorChain(api);
         this.apiErrorProcessorChain = apiProcessorChainFactory.errorProcessorChain(api);
-        this.platformFlowChain =
-            new FlowChain("Platform", FlowResolverFactory.forPlatform(api, organizationManager), platformPolicyChainFactory);
-        this.apiPlanFlowChain = new FlowChain("Api Plan", FlowResolverFactory.forApiPlan(api), policyChainFactory);
-        this.apiFlowChain = new FlowChain("Api", FlowResolverFactory.forApi(api), policyChainFactory);
+
+        this.platformFlowChain = flowChainFactory.createPlatformFlow(api);
+        this.apiPlanFlowChain = flowChainFactory.createPlanFlow(api);
+        this.apiFlowChain = flowChainFactory.createApiFlow(api);
+
+        boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
+
+        processorChainHooks = new ArrayList<>();
+        invokerHooks = new ArrayList<>();
+        if (tracing) {
+            processorChainHooks.add(new TracingHook("processor-chain"));
+            invokerHooks.add(new TracingHook("invoker"));
+        }
     }
 
     @Override
@@ -145,16 +156,16 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         // Execute platform flow chain
         return executeFlowChain(ctx, platformFlowChain, REQUEST)
             // Execute pre api processor chain
-            .andThen(executeProcessorsChain(ctx, apiPreProcessorChain))
+            .andThen(executeProcessorsChain(ctx, apiPreProcessorChain, REQUEST))
             .andThen(executeFlowChain(ctx, apiPlanFlowChain, REQUEST))
             .andThen(executeFlowChain(ctx, apiFlowChain, REQUEST))
             // All request flows have been executed. Invokes backend.
-            .andThen(invokeBackend(ctx))
+            .andThen(invokeBackend(ctx, REQUEST))
             // Execute response flows (api plan, api, platform).
             .andThen(executeFlowChain(ctx, apiPlanFlowChain, RESPONSE))
             .andThen(executeFlowChain(ctx, apiFlowChain, RESPONSE))
             // Execute post api processor chain
-            .andThen(executeProcessorsChain(ctx, apiPostProcessorChain))
+            .andThen(executeProcessorsChain(ctx, apiPostProcessorChain, RESPONSE))
             .onErrorResumeNext(error -> processThrowable(ctx, error))
             // Platform post flows must always be executed
             .andThen(executeFlowChain(ctx, platformFlowChain, RESPONSE))
@@ -170,10 +181,15 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      * @param ctx the current context
      * @param processorChain the processor chain
      *
+     * @param phase
      * @return a {@link Completable} that will complete once the flow chain phase has been fully executed.
      */
-    private Completable executeProcessorsChain(final RequestExecutionContext ctx, final ProcessorChain processorChain) {
-        return defer(() -> processorChain.execute(ctx));
+    private Completable executeProcessorsChain(
+        final RequestExecutionContext ctx,
+        final ProcessorChain processorChain,
+        final ExecutionPhase phase
+    ) {
+        return defer(() -> HookHelper.hook(processorChain.execute(ctx, phase), processorChain.getId(), processorChainHooks, ctx, phase));
     }
 
     /**
@@ -197,14 +213,14 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      *
      * @return a {@link Completable} that will complete once the invoker has been invoked or that completes immediately if execution isn't required.
      */
-    private Completable invokeBackend(RequestExecutionContext ctx) {
+    private Completable invokeBackend(final RequestExecutionContext ctx, final ExecutionPhase phase) {
         return defer(
             () -> {
                 if (!Boolean.FALSE.equals(ctx.<Boolean>getAttribute("invoker.skip"))) {
                     Invoker invoker = getInvoker(ctx);
 
                     if (invoker != null) {
-                        return invoker.invoke(ctx);
+                        return HookHelper.hook(invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
                     }
                 }
                 return Completable.complete();
@@ -245,12 +261,12 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      * @return a {@link Completable} that will complete once processor chain has been fully executed or source error rethrown
      */
     private Completable processThrowable(final RequestExecutionContext ctx, final Throwable throwable) {
-        if (throwable instanceof InterruptionException) {
+        if (InterruptionHelper.isInterruption(throwable)) {
             // In case of any interruption without failure, execute api post processor chain and resume the execution
-            return executeProcessorsChain(ctx, apiPostProcessorChain);
-        } else if (throwable instanceof InterruptionFailureException) {
+            return executeProcessorsChain(ctx, apiPostProcessorChain, RESPONSE);
+        } else if (InterruptionHelper.isInterruptionWithFailure(throwable)) {
             // In case of any interruption with execution failure, execute api error processor chain and resume the execution
-            return executeProcessorsChain(ctx, apiErrorProcessorChain);
+            return executeProcessorsChain(ctx, apiErrorProcessorChain, RESPONSE);
         } else {
             // In case of any error exception, rethrow original exception
             return Completable.error(throwable);

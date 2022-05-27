@@ -15,10 +15,15 @@
  */
 package io.gravitee.gateway.reactive.core.processor;
 
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.hook.Hook;
+import io.gravitee.gateway.reactive.api.hook.Hookable;
+import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
+import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,26 +32,35 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ProcessorChain {
+public class ProcessorChain implements Hookable<ProcessorHook> {
 
     private final Logger log = LoggerFactory.getLogger(ProcessorChain.class);
     private final String id;
     private final Flowable<Processor> processors;
+    private List<ProcessorHook> processorHooks;
 
     public ProcessorChain(final String id, final List<Processor> processors) {
         this.id = id;
         this.processors = processors != null ? Flowable.fromIterable(processors) : Flowable.empty();
     }
 
-    public Completable execute(RequestExecutionContext ctx) {
-        return processors
-            .doOnSubscribe(subscription -> log.debug("Executing processor chain {}", id))
-            .flatMapCompletable(processor -> executeNext(ctx, processor), false, 1);
+    @Override
+    public void addHooks(List<ProcessorHook> hooks) {
+        if (this.processorHooks == null) {
+            this.processorHooks = new ArrayList<>();
+        }
+        this.processorHooks.addAll(hooks);
     }
 
-    private Completable executeNext(RequestExecutionContext ctx, Processor processor) {
+    public Completable execute(final RequestExecutionContext ctx, final ExecutionPhase phase) {
+        return processors
+            .doOnSubscribe(subscription -> log.debug("Executing processor chain {}", id))
+            .flatMapCompletable(processor -> executeNext(ctx, processor, phase), false, 1);
+    }
+
+    private Completable executeNext(final RequestExecutionContext ctx, final Processor processor, final ExecutionPhase phase) {
         log.debug("Executing processor {}", processor.getId());
-        return processor.execute(ctx);
+        return HookHelper.hook(processor.execute(ctx), processor.getId(), processorHooks, ctx, phase);
     }
 
     public String getId() {

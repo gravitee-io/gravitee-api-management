@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  */
 public class PathMappingProcessor implements Processor {
 
-    public static final String ID = "path-mapping-processor";
+    public static final String ID = "processor-path-mapping";
 
     private PathMappingProcessor() {}
 

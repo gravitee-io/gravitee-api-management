@@ -24,6 +24,7 @@ import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Completable;
+import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,7 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
 
     public InvokerAdapter(io.gravitee.gateway.api.Invoker legacyInvoker) {
         this.legacyInvoker = legacyInvoker;
-        this.id = legacyInvoker.getClass().getSimpleName();
+        this.id = legacyInvoker.getClass().getSimpleName().toLowerCase(Locale.ROOT);
     }
 
     @Override

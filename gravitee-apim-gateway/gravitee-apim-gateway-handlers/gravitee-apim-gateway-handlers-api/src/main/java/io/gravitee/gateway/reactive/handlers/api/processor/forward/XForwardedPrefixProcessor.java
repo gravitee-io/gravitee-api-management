@@ -27,7 +27,7 @@ import io.reactivex.Completable;
  */
 public class XForwardedPrefixProcessor implements Processor {
 
-    public static final String ID = "x-forwarded-prefix-processor";
+    public static final String ID = "processor-x-forwarded-prefix";
 
     private XForwardedPrefixProcessor() {}
 
