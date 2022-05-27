@@ -17,16 +17,18 @@ package io.gravitee.gateway.reactive.handlers.api.processor;
 
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.reactive.api.hook.Hook;
+import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
+import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.handlers.api.processor.cors.CorsPreflightRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.error.SimpleFailureProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.error.template.ResponseTemplateBasedFailureProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.pathmapping.PathMappingProcessor;
-import io.gravitee.gateway.reactive.reactor.processor.shutdown.ShutdownProcessor;
-import io.gravitee.node.api.Node;
+import io.gravitee.node.api.configuration.Configuration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,10 +40,16 @@ import java.util.regex.Pattern;
  */
 public class ApiProcessorChainFactory {
 
-    private final Options options;
+    private final boolean overrideXForwardedPrefix;
+    private final List<ProcessorHook> processorHooks = new ArrayList<>();
 
-    public ApiProcessorChainFactory(final Options options) {
-        this.options = options;
+    public ApiProcessorChainFactory(final Configuration configuration) {
+        overrideXForwardedPrefix = configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false);
+
+        boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
+        if (tracing) {
+            processorHooks.add(new TracingHook("processor"));
+        }
     }
 
     public ProcessorChain preProcessorChain(final Api api) {
@@ -51,10 +59,12 @@ public class ApiProcessorChainFactory {
         if (cors != null && cors.isEnabled()) {
             preProcessorList.add(CorsPreflightRequestProcessor.instance());
         }
-        if (options.overrideXForwardedPrefix()) {
+        if (overrideXForwardedPrefix) {
             preProcessorList.add(XForwardedPrefixProcessor.instance());
         }
-        return new ProcessorChain("pre-api-processor-chain", preProcessorList);
+        ProcessorChain processorChain = new ProcessorChain("processor-chain-pre-api", preProcessorList);
+        processorChain.addHooks(processorHooks);
+        return processorChain;
     }
 
     public ProcessorChain postProcessorChain(final Api api) {
@@ -68,7 +78,9 @@ public class ApiProcessorChainFactory {
             postProcessorList.add(PathMappingProcessor.instance());
         }
 
-        return new ProcessorChain("post-api-processor-chain", postProcessorList);
+        ProcessorChain processorChain = new ProcessorChain("processor-chain-post-api", postProcessorList);
+        processorChain.addHooks(processorHooks);
+        return processorChain;
     }
 
     public ProcessorChain errorProcessorChain(final Api api) {
@@ -88,20 +100,8 @@ public class ApiProcessorChainFactory {
             errorProcessorList.add(SimpleFailureProcessor.instance());
         }
 
-        return new ProcessorChain("error-api-processor-chain", errorProcessorList);
-    }
-
-    public static class Options {
-
-        private boolean overrideXForwardedPrefix = false;
-
-        public boolean overrideXForwardedPrefix() {
-            return overrideXForwardedPrefix;
-        }
-
-        public Options overrideXForwardedPrefix(boolean overrideXForwardedPrefix) {
-            this.overrideXForwardedPrefix = overrideXForwardedPrefix;
-            return this;
-        }
+        ProcessorChain processorChain = new ProcessorChain("error-api-processor-chain", errorProcessorList);
+        processorChain.addHooks(processorHooks);
+        return processorChain;
     }
 }

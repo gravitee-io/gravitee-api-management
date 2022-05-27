@@ -20,20 +20,18 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.Request;
-import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
-import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableRequestExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
-import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionException;
-import io.gravitee.gateway.reactive.reactor.handler.context.interruption.InterruptionFailureException;
-import io.gravitee.tracing.api.Tracer;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.reactivex.Completable;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 abstract class AbstractExecutionContext implements MutableRequestExecutionContext {
 
@@ -151,11 +149,6 @@ abstract class AbstractExecutionContext implements MutableRequestExecutionContex
         }
 
         return templateEngine;
-    }
-
-    @Override
-    public Tracer getTracer() {
-        return getComponent(Tracer.class);
     }
 
     public MutableRequestExecutionContext componentProvider(final ComponentProvider componentProvider) {

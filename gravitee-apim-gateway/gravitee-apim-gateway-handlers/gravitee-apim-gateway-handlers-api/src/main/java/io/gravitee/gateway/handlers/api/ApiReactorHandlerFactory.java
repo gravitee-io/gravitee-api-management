@@ -49,12 +49,13 @@ import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
+import io.gravitee.gateway.reactive.api.hook.Hook;
+import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.handlers.api.SyncApiReactor;
 import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
+import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.reactive.platform.PlatformPolicyManager;
-import io.gravitee.gateway.reactive.policy.PolicyFactoryCreator;
-import io.gravitee.gateway.reactive.reactor.processor.GlobalProcessorChainFactory;
+import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
@@ -96,7 +97,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     private final Configuration configuration;
     private final Node node;
     private final io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator;
-    private final PolicyFactoryCreator policyFactoryCreator;
+    private final io.gravitee.gateway.reactive.policy.PolicyFactory policyFactory;
     private final PolicyChainProviderLoader policyChainProviderLoader;
     private final ApiProcessorChainFactory apiProcessorChainFactory;
     private ApplicationContext applicationContext;
@@ -106,25 +107,17 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         Configuration configuration,
         Node node,
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
-        PolicyFactoryCreator policyFactoryCreator,
-        PolicyChainProviderLoader policyChainProviderLoader
+        io.gravitee.gateway.reactive.policy.PolicyFactory policyFactory,
+        PolicyChainProviderLoader policyChainProviderLoader,
+        ApiProcessorChainFactory apiProcessorChainFactory
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
         this.node = node;
         this.v3PolicyFactoryCreator = v3PolicyFactoryCreator;
-        this.policyFactoryCreator = policyFactoryCreator;
+        this.policyFactory = policyFactory;
         this.policyChainProviderLoader = policyChainProviderLoader;
-        this.apiProcessorChainFactory = createApiProcessorChainFactory();
-    }
-
-    private ApiProcessorChainFactory createApiProcessorChainFactory() {
-        ApiProcessorChainFactory.Options options = new ApiProcessorChainFactory.Options();
-        options.overrideXForwardedPrefix(
-            configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false)
-        );
-
-        return new ApiProcessorChainFactory(options);
+        this.apiProcessorChainFactory = apiProcessorChainFactory;
     }
 
     @Override
@@ -216,18 +209,31 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                 } else {
                     final io.gravitee.gateway.reactive.policy.PolicyManager policyManager = policyManager(
                         api,
-                        policyFactoryCreator.create(),
+                        policyFactory,
                         policyConfigurationFactory(),
                         applicationContext.getBean(PolicyClassLoaderFactory.class),
                         apiComponentProvider
                     );
 
-                    final PlatformPolicyManager platformPolicyManager = applicationContext.getBean(PlatformPolicyManager.class);
                     final io.gravitee.gateway.reactive.policy.PolicyChainFactory platformPolicyChainFactory = applicationContext.getBean(
                         "platformPolicyChainFactory",
                         io.gravitee.gateway.reactive.policy.PolicyChainFactory.class
                     );
+
+                    final io.gravitee.gateway.reactive.policy.PolicyChainFactory apiPolicyChainFactory = new DefaultPolicyChainFactory(
+                        api.getId(),
+                        configuration,
+                        policyManager
+                    );
+
                     final OrganizationManager organizationManager = applicationContext.getBean(OrganizationManager.class);
+
+                    FlowChainFactory flowChainFactory = new FlowChainFactory(
+                        platformPolicyChainFactory,
+                        apiPolicyChainFactory,
+                        organizationManager,
+                        configuration
+                    );
 
                     return new SyncApiReactor(
                         api,
@@ -237,9 +243,9 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                         resourceLifecycleManager,
                         apiProcessorChainFactory,
                         policyManager,
-                        platformPolicyChainFactory,
+                        flowChainFactory,
                         groupLifecycleManager,
-                        organizationManager
+                        configuration
                     );
                 }
             } else {

@@ -31,7 +31,7 @@ import io.reactivex.Completable;
  */
 public class ShutdownProcessor implements Processor {
 
-    public static final String ID = "shutdown-processor";
+    public static final String ID = "processor-shutdown";
     private final Node node;
 
     public ShutdownProcessor(final Node node) {

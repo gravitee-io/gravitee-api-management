@@ -30,7 +30,7 @@ import io.reactivex.Completable;
  */
 public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
 
-    public static final String ID = "cors-simple-request";
+    public static final String ID = "processor-cors-simple-request";
 
     private CorsSimpleRequestProcessor() {}
 

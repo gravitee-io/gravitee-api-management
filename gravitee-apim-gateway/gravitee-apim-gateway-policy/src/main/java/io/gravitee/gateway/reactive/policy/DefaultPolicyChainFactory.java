@@ -22,15 +22,16 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.hook.Hook;
 import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.policy.tracing.TracingMessageHook;
+import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.cache.standalone.StandaloneCache;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
+import io.netty.util.internal.StringUtil;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,11 +46,12 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
 
     public static final long CACHE_MAX_SIZE = 15;
     public static final long CACHE_TIME_TO_IDLE = 3600;
-
+    private static final String ID_SEPARATOR = "-";
     private final PolicyManager policyManager;
     private final Cache<String, PolicyChain> policyChains;
+    private final List<Hook> policyHooks = new ArrayList<>();
 
-    public DefaultPolicyChainFactory(String id, PolicyManager policyManager) {
+    public DefaultPolicyChainFactory(final String id, final Configuration configuration, final PolicyManager policyManager) {
         this.policyManager = policyManager;
 
         final CacheConfiguration cacheConfiguration = new CacheConfiguration();
@@ -57,6 +59,15 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
         cacheConfiguration.setTimeToIdleSeconds(CACHE_TIME_TO_IDLE);
 
         this.policyChains = new StandaloneCache<>(id + "-policyChainFactory", cacheConfiguration);
+        initPolicyHooks(configuration);
+    }
+
+    private void initPolicyHooks(final Configuration configuration) {
+        boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
+        if (tracing) {
+            policyHooks.add(new TracingPolicyHook());
+            policyHooks.add(new TracingMessageHook());
+        }
     }
 
     /**
@@ -65,7 +76,7 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
      * Once created, the policy chain is put in cache to avoid useless re-instantiations.
      */
     @Override
-    public PolicyChain create(Flow flow, ExecutionPhase phase) {
+    public PolicyChain create(final String flowChainId, Flow flow, ExecutionPhase phase) {
         final String key = getFlowKey(flow, phase);
         PolicyChain policyChain = policyChains.get(key);
 
@@ -80,7 +91,9 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-            policyChain = new PolicyChain(flow.getName() + " " + phase.name(), policies, phase);
+            String policyChainId = getFlowId(flowChainId, flow);
+            policyChain = new PolicyChain(policyChainId, policies, phase);
+            policyChain.addHooks(policyHooks);
             policyChains.put(key, policyChain);
         }
 
@@ -101,5 +114,20 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
 
     private String getFlowKey(Flow flow, ExecutionPhase phase) {
         return flow.hashCode() + "-" + phase.name();
+    }
+
+    private String getFlowId(final String flowChainId, final Flow flow) {
+        StringBuilder flowNameBuilder = new StringBuilder(flowChainId).append(ID_SEPARATOR);
+        if (StringUtil.isNullOrEmpty(flow.getName())) {
+            if (flow.getMethods().isEmpty()) {
+                flowNameBuilder.append("ALL").append(ID_SEPARATOR);
+            } else {
+                flow.getMethods().forEach(httpMethod -> flowNameBuilder.append(httpMethod).append("-"));
+            }
+            flowNameBuilder.append(flow.getPath());
+        } else {
+            flowNameBuilder.append(flow.getName());
+        }
+        return flowNameBuilder.toString().toLowerCase(Locale.ROOT);
     }
 }

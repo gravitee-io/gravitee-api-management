@@ -39,7 +39,7 @@ public class TraceContextProcessor implements Processor {
 
     @Override
     public String getId() {
-        return "trace-context-processor";
+        return "processor-trace-context";
     }
 
     @Override

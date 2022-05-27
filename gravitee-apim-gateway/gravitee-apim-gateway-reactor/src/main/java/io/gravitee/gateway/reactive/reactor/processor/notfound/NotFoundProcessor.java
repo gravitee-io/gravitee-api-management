@@ -28,7 +28,7 @@ import org.springframework.core.env.Environment;
 
 public class NotFoundProcessor implements Processor {
 
-    public static final String ID = "not-found-processor";
+    public static final String ID = "processor-not-found";
     private final Logger LOGGER = LoggerFactory.getLogger(NotFoundProcessor.class);
 
     private final Environment environment;
