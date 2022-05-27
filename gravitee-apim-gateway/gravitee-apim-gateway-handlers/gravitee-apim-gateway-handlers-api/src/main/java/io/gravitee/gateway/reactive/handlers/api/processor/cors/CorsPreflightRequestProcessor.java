@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  */
 public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor {
 
-    public static final String ID = "cors-preflight-request";
+    public static final String ID = "processor-cors-preflight-request";
 
     private CorsPreflightRequestProcessor() {}
 

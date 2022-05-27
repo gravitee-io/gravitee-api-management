@@ -41,7 +41,7 @@ import java.util.List;
  */
 public abstract class AbstractFailureProcessor implements Processor {
 
-    public static final String ID = "simple-failure-processor";
+    public static final String ID = "processor-simple-failure";
     /**
      * Code for an unknown caller / application     */
     private static final String APPLICATION_NAME_ANONYMOUS = "1";

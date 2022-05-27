@@ -41,7 +41,7 @@ public class NotFoundReporterProcessor implements Processor {
 
     @Override
     public String getId() {
-        return "not-found-reporter-processor";
+        return "processor-not-found-reporter";
     }
 
     @Override

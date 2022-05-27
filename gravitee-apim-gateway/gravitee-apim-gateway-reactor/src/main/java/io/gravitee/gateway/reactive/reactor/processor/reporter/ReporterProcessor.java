@@ -40,7 +40,7 @@ public class ReporterProcessor implements Processor {
 
     @Override
     public String getId() {
-        return "reporter-processor";
+        return "processor-reporter";
     }
 
     @Override

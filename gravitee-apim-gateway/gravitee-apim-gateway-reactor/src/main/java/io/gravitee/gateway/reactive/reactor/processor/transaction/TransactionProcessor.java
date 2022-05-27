@@ -52,7 +52,7 @@ public class TransactionProcessor implements Processor {
 
     @Override
     public String getId() {
-        return "transaction-processor";
+        return "processor-transaction";
     }
 
     @Override
