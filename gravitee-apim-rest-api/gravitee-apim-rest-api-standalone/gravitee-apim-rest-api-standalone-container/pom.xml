@@ -36,12 +36,17 @@
         <!-- Gravitee.io -->
         <dependency>
             <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-container</artifactId>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.node</groupId>
-            <artifactId>gravitee-node-api</artifactId>
+            <artifactId>gravitee-node-license</artifactId>
         </dependency>
 
         <dependency>
@@ -430,19 +435,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-        <profile>
-            <id>ee</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <dependencies>
-                <!-- GraviteeSource dependencies -->
-                <dependency>
-                    <groupId>com.graviteesource.license</groupId>
-                    <artifactId>gravitee-license-node</artifactId>
-                </dependency>
-            </dependencies>
         </profile>
     </profiles>
 </project>

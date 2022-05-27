@@ -136,7 +136,6 @@
             <unpack>false</unpack>
             <includes>
                 <include>io.gravitee.*:*:jar</include>
-                <include>com.graviteesource.*:*:*</include>
             </includes>
             <scope>compile</scope>
             <useProjectArtifact>false</useProjectArtifact>
@@ -162,10 +161,10 @@
             <unpack>false</unpack>
             <excludes>
                 <exclude>*:*:jar</exclude>
-                <exclude>io.gravitee.reporter:*:zip</exclude>
-                <exclude>io.gravitee.tracer:*:zip</exclude>
                 <exclude>io.gravitee.apim.repository.gateway.bridge.http:*:zip</exclude>
                 <exclude>io.gravitee.policy:gravitee-gateway-services-ratelimit:zip</exclude>
+                <exclude>io.gravitee.reporter:*:zip</exclude>
+                <exclude>io.gravitee.tracer:*:zip</exclude>
             </excludes>
             <useProjectArtifact>false</useProjectArtifact>
             <fileMode>755</fileMode>
