@@ -27,8 +27,8 @@ import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.handler.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
-import io.gravitee.gateway.reactive.reactor.processor.GlobalProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
+import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
@@ -87,15 +87,24 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public GlobalProcessorChainFactory globalProcessorChainFactory(
+    public PlatformProcessorChainFactory globalProcessorChainFactory(
         io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
         @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
         ReporterService reporterService,
         AlertEventProducer eventProducer,
         Node node,
-        @Value("${http.port:8082}") String httpPort
+        @Value("${http.port:8082}") String httpPort,
+        @Value("${services.tracing.enabled:false}") boolean tracing
     ) {
-        return new GlobalProcessorChainFactory(transactionHandlerFactory, traceContext, reporterService, eventProducer, node, httpPort);
+        return new PlatformProcessorChainFactory(
+            transactionHandlerFactory,
+            traceContext,
+            reporterService,
+            eventProducer,
+            node,
+            httpPort,
+            tracing
+        );
     }
 
     @Bean
@@ -107,8 +116,9 @@ public class ReactorConfiguration {
         IdGenerator idGenerator,
         RequestProcessorChainFactory v3RequestProcessorChainFactory,
         ResponseProcessorChainFactory v3ResponseProcessorChainFactory,
-        GlobalProcessorChainFactory globalProcessorChainFactory,
-        NotFoundProcessorChainFactory notFoundProcessorChainFactory
+        PlatformProcessorChainFactory platformProcessorChainFactory,
+        NotFoundProcessorChainFactory notFoundProcessorChainFactory,
+        @Value("${services.tracing.enabled:false}") boolean tracingEnabled
     ) {
         return new DefaultHttpRequestDispatcher(
             eventManager,
@@ -118,8 +128,9 @@ public class ReactorConfiguration {
             idGenerator,
             v3RequestProcessorChainFactory,
             v3ResponseProcessorChainFactory,
-            globalProcessorChainFactory,
-            notFoundProcessorChainFactory
+            platformProcessorChainFactory,
+            notFoundProcessorChainFactory,
+            tracingEnabled
         );
     }
 
@@ -167,9 +178,10 @@ public class ReactorConfiguration {
     public NotFoundProcessorChainFactory notFoundProcessorChainFactory(
         Environment environment,
         ReporterService reporterService,
-        @Value("${handlers.notfound.log.enabled:false}") boolean logEnabled
+        @Value("${handlers.notfound.log.enabled:false}") boolean logEnabled,
+        @Value("${services.tracing.enabled:false}") boolean tracingEnabled
     ) {
-        return new NotFoundProcessorChainFactory(environment, reporterService, logEnabled);
+        return new NotFoundProcessorChainFactory(environment, reporterService, logEnabled, tracingEnabled);
     }
 
     @Bean

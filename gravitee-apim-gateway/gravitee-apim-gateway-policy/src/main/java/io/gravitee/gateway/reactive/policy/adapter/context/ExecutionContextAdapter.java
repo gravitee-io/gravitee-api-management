@@ -133,6 +133,6 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
 
     @Override
     public Tracer getTracer() {
-        return ctx.getTracer();
+        return ctx.getComponent(Tracer.class);
     }
 }

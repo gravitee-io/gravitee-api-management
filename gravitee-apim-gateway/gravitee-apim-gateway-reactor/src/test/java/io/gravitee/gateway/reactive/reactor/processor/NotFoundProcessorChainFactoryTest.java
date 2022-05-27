@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Response;
@@ -72,12 +73,13 @@ class NotFoundProcessorChainFactoryTest {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory = new NotFoundProcessorChainFactory(
             new StandardEnvironment(),
             reporterService,
+            false,
             false
         );
         ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
         RequestExecutionContext notFoundRequestContext = new DefaultRequestExecutionContext(request, response);
 
-        processorChain.execute(notFoundRequestContext).test().assertResult();
+        processorChain.execute(notFoundRequestContext, ExecutionPhase.RESPONSE).test().assertResult();
         verify(response).status(HttpStatusCode.NOT_FOUND_404);
         verify(response).end();
         verify(reporterService).report(any());
