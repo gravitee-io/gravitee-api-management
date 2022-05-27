@@ -34,6 +34,10 @@ import org.junit.platform.commons.PreconditionViolationException;
 /**
  * Inherit from this class to automatically register the policy you want to test.
  * For example: {@code MyPolicyIntegrationTest extends AbstractPolicyTest<MyPolicy, MyPolicyConfiguration>}
+ *
+ * You can also inherit from a class already inheriting from {@link AbstractPolicyTest} to reuse your test cases with a different configuration.
+ * Based on the previous example, you can have this {@code MyPolicyIntegrationSecuredTest extends MyPolicyIntegrationTest} and that will register the same policy.
+ * {@link io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest} and {@link io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi} are flagged {@link java.lang.annotation.Inherited}, that mean your not obliged to add them on the child.
  * @param <T> represents the class of the Policy you want to test
  * @param <C> represents the class of the PolicyConfiguration
  */
@@ -53,8 +57,21 @@ public abstract class AbstractPolicyTest<T, C extends PolicyConfiguration> exten
     public void configurePolicyUnderTest(Map<String, PolicyPlugin> policies) {
         computePolicyNameFromManifest();
 
-        Type[] types = ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments();
+        Type[] types = getClassGenericTypes();
         policies.put(policyName(), PolicyBuilder.build(policyName(), (Class<T>) types[0], (Class<C>) types[1]));
+    }
+
+    /**
+     * Get the generics for Policy and PolicyConfiguration.
+     * It can work on a direct child or also on sub child.
+     * @return an array of two types, representing the Policy and the PolicyConfiguration.
+     */
+    Type[] getClassGenericTypes() {
+        Type classType = getClass().getGenericSuperclass();
+        while (!(classType instanceof ParameterizedType)) {
+            classType = ((Class<?>) classType).getGenericSuperclass();
+        }
+        return ((ParameterizedType) classType).getActualTypeArguments();
     }
 
     /**

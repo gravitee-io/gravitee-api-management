@@ -18,6 +18,7 @@ package io.gravitee.apim.gateway.tests.sdk.annotations;
 import io.gravitee.apim.gateway.tests.sdk.GatewayTestingExtension;
 import io.vertx.junit5.VertxExtension;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -41,7 +42,13 @@ import org.junit.jupiter.api.parallel.Resources;
  * Avoid flaky tests by adding a lock identified by 'SYSTEM_PROPERTY'
  * It allows to avoid race condition of writing and then writing the same JVM System Property
  * </pre>
+ *
  * @see <a htref="https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution-synchronization">Junit5 Documentation - Synchronization</a>
+ *
+ * This annotation is flagged with {@link Inherited}. Subclasses do not have to reuse it explicitly if they want to use the same one from parent class.
+ *
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
@@ -49,6 +56,7 @@ import org.junit.jupiter.api.parallel.Resources;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ResourceLock(value = Resources.SYSTEM_PROPERTIES, mode = ResourceAccessMode.READ_WRITE)
 @Order(Integer.MAX_VALUE)
+@Inherited
 public @interface GatewayTest {
     /**
      * Define where to find the configuration folder of the gateway used by {@code gravitee.home}.

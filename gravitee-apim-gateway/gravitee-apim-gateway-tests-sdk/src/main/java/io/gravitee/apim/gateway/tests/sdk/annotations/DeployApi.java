@@ -16,6 +16,7 @@
 package io.gravitee.apim.gateway.tests.sdk.annotations;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -40,11 +41,15 @@ import java.lang.annotation.Target;
  * You can modify a deployed method level api with {@link AbstractGatewayTest#deployedApis}.
  * For example, it can be useful if you want to modify a {@link io.gravitee.definition.model.Endpoint.Status} and check how the api behaves if the backend is down.
  *</pre>
+ *
+ * This annotation is flagged with {@link Inherited}. Subclasses do not have to reuse it explicitly if they want to use the same one from parent class.
+ *
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
+@Inherited
 public @interface DeployApi {
     String[] value();
 }
