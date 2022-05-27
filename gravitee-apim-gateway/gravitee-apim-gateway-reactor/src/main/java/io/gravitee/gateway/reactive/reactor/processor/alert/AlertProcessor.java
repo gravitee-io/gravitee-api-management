@@ -82,7 +82,7 @@ public class AlertProcessor implements Processor {
 
     @Override
     public String getId() {
-        return "alert-processor";
+        return "processor-alert";
     }
 
     @Override

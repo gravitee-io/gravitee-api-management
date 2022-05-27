@@ -22,15 +22,19 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.hook.Hook;
+import io.gravitee.gateway.reactive.api.hook.PolicyHook;
 import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.policy.tracing.TracingMessageHook;
+import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.cache.standalone.StandaloneCache;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -48,8 +52,9 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
 
     private final PolicyManager policyManager;
     private final Cache<String, PolicyChain> policyChains;
+    private final List<Hook> policyHooks = new ArrayList<>();
 
-    public DefaultPolicyChainFactory(String id, PolicyManager policyManager) {
+    public DefaultPolicyChainFactory(final String id, final Configuration configuration, final PolicyManager policyManager) {
         this.policyManager = policyManager;
 
         final CacheConfiguration cacheConfiguration = new CacheConfiguration();
@@ -57,6 +62,15 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
         cacheConfiguration.setTimeToIdleSeconds(CACHE_TIME_TO_IDLE);
 
         this.policyChains = new StandaloneCache<>(id + "-policyChainFactory", cacheConfiguration);
+        initPolicyHooks(configuration);
+    }
+
+    private void initPolicyHooks(final Configuration configuration) {
+        boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
+        if (tracing) {
+            policyHooks.add(new TracingPolicyHook());
+            policyHooks.add(new TracingMessageHook());
+        }
     }
 
     /**
@@ -81,6 +95,7 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
                 .collect(Collectors.toList());
 
             policyChain = new PolicyChain(flow.getName() + " " + phase.name(), policies, phase);
+            policyChain.addHooks(policyHooks);
             policyChains.put(key, policyChain);
         }
 

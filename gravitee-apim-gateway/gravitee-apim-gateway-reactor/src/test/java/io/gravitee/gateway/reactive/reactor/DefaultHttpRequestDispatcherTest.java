@@ -28,16 +28,11 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.reactive.api.context.Request;
-import io.gravitee.gateway.reactive.api.context.Response;
-import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableRequestExecutionContext;
-import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
-import io.gravitee.gateway.reactive.reactor.handler.context.DefaultRequestExecutionContext;
-import io.gravitee.gateway.reactive.reactor.processor.GlobalProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
+import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
@@ -46,7 +41,6 @@ import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.report.ReporterService;
-import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.observers.TestObserver;
@@ -64,6 +58,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.Environment;
 
 /**
@@ -99,7 +95,7 @@ class DefaultHttpRequestDispatcherTest {
     private ResponseProcessorChainFactory responseProcessorChainFactory;
 
     @Mock
-    private GlobalProcessorChainFactory globalProcessorChainFactory;
+    private PlatformProcessorChainFactory platformProcessorChainFactory;
 
     @Mock
     private NotFoundProcessorChainFactory notFoundProcessorChainFactory;
@@ -155,8 +151,8 @@ class DefaultHttpRequestDispatcherTest {
 
         lenient().when(requestProcessorChainFactory.create()).thenReturn(new ProcessorProviderChain<>(List.of()));
         lenient().when(responseProcessorChainFactory.create()).thenReturn(new ProcessorProviderChain<>(List.of()));
-        lenient().when(globalProcessorChainFactory.preProcessorChain()).thenReturn(new ProcessorChain("pre", List.of()));
-        lenient().when(globalProcessorChainFactory.postProcessorChain()).thenReturn(new ProcessorChain("post", List.of()));
+        lenient().when(platformProcessorChainFactory.preProcessorChain()).thenReturn(new ProcessorChain("pre", List.of()));
+        lenient().when(platformProcessorChainFactory.postProcessorChain()).thenReturn(new ProcessorChain("post", List.of()));
 
         cut =
             new DefaultHttpRequestDispatcher(
@@ -167,9 +163,11 @@ class DefaultHttpRequestDispatcherTest {
                 idGenerator,
                 new RequestProcessorChainFactory(),
                 responseProcessorChainFactory,
-                globalProcessorChainFactory,
-                notFoundProcessorChainFactory
+                platformProcessorChainFactory,
+                notFoundProcessorChainFactory,
+                false
             );
+        cut.setApplicationContext(mock(ApplicationContext.class));
     }
 
     @Test
@@ -314,7 +312,7 @@ class DefaultHttpRequestDispatcherTest {
         cut.dispatch(rxRequest).test().assertResult();
 
         verify(notFoundProcessorChainFactory).processorChain();
-        verify(processorChain).execute(any());
+        verify(processorChain).execute(any(), any());
     }
 
     @Test
@@ -327,7 +325,7 @@ class DefaultHttpRequestDispatcherTest {
         cut.dispatch(rxRequest).test().assertResult();
 
         verify(notFoundProcessorChainFactory).processorChain();
-        verify(processorChain).execute(any());
+        verify(processorChain).execute(any(), any());
     }
 
     @Test
@@ -340,7 +338,7 @@ class DefaultHttpRequestDispatcherTest {
 
         when(gatewayConfiguration.tenant()).thenReturn(Optional.of("TENANT"));
         when(gatewayConfiguration.zone()).thenReturn(Optional.of("ZONE"));
-        when(processorChain.execute(ctxCaptor.capture())).thenCallRealMethod();
+        when(processorChain.execute(ctxCaptor.capture(), any())).thenCallRealMethod();
         cut.dispatch(rxRequest).test().assertResult();
 
         final MutableRequestExecutionContext ctxCaptorValue = ctxCaptor.getValue();

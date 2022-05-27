@@ -125,6 +125,11 @@
             <artifactId>mockito-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-container</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

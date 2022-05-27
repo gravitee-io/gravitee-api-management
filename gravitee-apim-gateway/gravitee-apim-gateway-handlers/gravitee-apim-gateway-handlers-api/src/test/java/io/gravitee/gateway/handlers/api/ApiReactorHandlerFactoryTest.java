@@ -49,7 +49,7 @@ public class ApiReactorHandlerFactoryTest {
         MockitoAnnotations.openMocks(this);
         when(mockConfiguration.getProperty(eq(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY), eq(Boolean.class), eq(false)))
             .thenReturn(false);
-        apiContextHandlerFactory = new ApiReactorHandlerFactory(null, mockConfiguration, null, null, null, null);
+        apiContextHandlerFactory = new ApiReactorHandlerFactory(null, mockConfiguration, null, null, null, null, null);
     }
 
     @Test

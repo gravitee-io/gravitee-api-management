@@ -15,14 +15,18 @@
  */
 package io.gravitee.gateway.reactive.policy;
 
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.hook.Hook;
+import io.gravitee.gateway.reactive.api.hook.Hookable;
+import io.gravitee.gateway.reactive.api.hook.MessageHook;
+import io.gravitee.gateway.reactive.api.hook.PolicyHook;
 import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
@@ -32,18 +36,19 @@ import org.slf4j.LoggerFactory;
  * PolicyChain is responsible for executing a given list of policies respecting the original order.
  * Policy execution must occur in an ordered sequence, one by one.
  * It is the responsibility of the chain to handle any policy execution error and stop the entire execution of the policy chain.
- * The PolicyChain should also check the current execution context against the {@link ExecutionContext#isInterrupted()} flag and abort the chain execution accordingly.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyChain {
+public class PolicyChain implements Hookable<Hook> {
 
     private final Logger log = LoggerFactory.getLogger(PolicyChain.class);
 
     private final String id;
     private final Flowable<Policy> policies;
     private final ExecutionPhase phase;
+    private List<PolicyHook> policyHooks;
+    private List<MessageHook> messageHooks;
 
     /**
      * Creates a policy chain with the given list of policies.
@@ -56,6 +61,25 @@ public class PolicyChain {
         this.id = id;
         this.phase = phase;
         this.policies = Flowable.fromIterable(policies);
+    }
+
+    @Override
+    public void addHooks(final List<Hook> hooks) {
+        if (this.policyHooks == null) {
+            this.policyHooks = new ArrayList<>();
+        }
+        if (this.messageHooks == null) {
+            this.messageHooks = new ArrayList<>();
+        }
+        hooks.forEach(
+            hook -> {
+                if (hook instanceof PolicyHook) {
+                    this.policyHooks.add((PolicyHook) hook);
+                } else if (hook instanceof MessageHook) {
+                    this.messageHooks.add((MessageHook) hook);
+                }
+            }
+        );
     }
 
     /**
@@ -72,53 +96,70 @@ public class PolicyChain {
             .flatMapCompletable(policy -> executePolicy(ctx, policy), false, 1);
     }
 
-    private Completable executePolicy(RequestExecutionContext ctx, Policy policy) {
+    private Completable executePolicy(final RequestExecutionContext ctx, final Policy policy) {
         log.debug("Executing policy {} on phase {}", policy.getId(), phase);
 
-        if (ExecutionPhase.REQUEST == phase || ExecutionPhase.RESPONSE == phase) {
-            if (ExecutionPhase.REQUEST == phase) {
-                return policy.onRequest(ctx);
-            } else {
-                return policy.onResponse(ctx);
-            }
-        } else if (ExecutionPhase.ASYNC_REQUEST == phase || ExecutionPhase.ASYNC_RESPONSE == phase) {
-            // Ensure right context is given
-            if (!(ctx instanceof MessageExecutionContext)) {
-                return Completable.error(
-                    new IllegalArgumentException(
-                        String.format("Context '%s' is compatible with the given phase '%s'", ctx.getClass().getSimpleName(), phase)
-                    )
+        // Ensure right context is given
+        if (
+            (ExecutionPhase.ASYNC_REQUEST == phase || ExecutionPhase.ASYNC_RESPONSE == phase) && (!(ctx instanceof MessageExecutionContext))
+        ) {
+            return Completable.error(
+                new IllegalArgumentException(
+                    String.format("Context '%s' is compatible with the given phase '%s'", ctx.getClass().getSimpleName(), phase)
+                )
+            );
+        }
+
+        if (ExecutionPhase.REQUEST == phase || ExecutionPhase.ASYNC_REQUEST == phase) {
+            Completable requestExecution = HookHelper.hook(policy.onRequest(ctx), policy.getId(), policyHooks, ctx, phase);
+            if (ExecutionPhase.ASYNC_REQUEST == phase) {
+                MessageExecutionContext messageExecutionContext = (MessageExecutionContext) ctx;
+                return requestExecution.andThen(
+                    messageExecutionContext
+                        .incomingMessageFlow()
+                        .onMessage(
+                            upstream ->
+                                policy
+                                    .onMessageFlow(messageExecutionContext, upstream)
+                                    .flatMapMaybe(
+                                        message ->
+                                            HookHelper.hook(
+                                                policy.onMessage(messageExecutionContext, message),
+                                                policy.getId(),
+                                                messageHooks,
+                                                ctx,
+                                                phase
+                                            )
+                                    )
+                        )
                 );
             }
-            MessageExecutionContext messageExecutionContext = (MessageExecutionContext) ctx;
-            if (ExecutionPhase.ASYNC_REQUEST == phase) {
-                return policy
-                    .onRequest(messageExecutionContext)
-                    .andThen(
-                        messageExecutionContext
-                            .incomingMessageFlow()
-                            .onMessage(
-                                upstream ->
-                                    policy
-                                        .onMessageFlow(messageExecutionContext, upstream)
-                                        .flatMapMaybe(message -> policy.onMessage(messageExecutionContext, message))
-                            )
-                    );
-            } else {
-                return policy
-                    .onResponse(messageExecutionContext)
-                    .andThen(
-                        messageExecutionContext
-                            .outgoingMessageFlow()
-                            .onMessage(
-                                upstream ->
-                                    policy
-                                        .onMessageFlow(messageExecutionContext, upstream)
-                                        .flatMapMaybe(message -> policy.onMessage(messageExecutionContext, message))
-                            )
-                    );
+            return requestExecution;
+        } else {
+            Completable responseExecution = HookHelper.hook(policy.onResponse(ctx), policy.getId(), policyHooks, ctx, phase);
+            if (ExecutionPhase.ASYNC_RESPONSE == phase) {
+                MessageExecutionContext messageExecutionContext = (MessageExecutionContext) ctx;
+                return responseExecution.andThen(
+                    messageExecutionContext
+                        .outgoingMessageFlow()
+                        .onMessage(
+                            upstream ->
+                                policy
+                                    .onMessageFlow(messageExecutionContext, upstream)
+                                    .flatMapMaybe(
+                                        message ->
+                                            HookHelper.hook(
+                                                policy.onMessage(messageExecutionContext, message),
+                                                policy.getId(),
+                                                messageHooks,
+                                                ctx,
+                                                phase
+                                            )
+                                    )
+                        )
+                );
             }
+            return responseExecution;
         }
-        return Completable.error(new RuntimeException("Invalid execution phase"));
     }
 }

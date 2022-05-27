@@ -13,25 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.reactor.handler.context.interruption;
+package io.gravitee.gateway.reactive.policy.tracing;
 
-import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.hook.PolicyHook;
 
 /**
- * This exception is thrown to indicate that the current execution context has been interrupted with error
- *
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class InterruptionFailureException extends RuntimeException {
+public class TracingPolicyHook extends AbstractTracingPolicyHook implements PolicyHook {
 
-    private final ExecutionFailure executionFailure;
-
-    public InterruptionFailureException(final ExecutionFailure executionFailure) {
-        this.executionFailure = executionFailure;
-    }
-
-    public ExecutionFailure getExecutionFailure() {
-        return executionFailure;
+    @Override
+    public String id() {
+        return "hook-tracing-policy";
     }
 }

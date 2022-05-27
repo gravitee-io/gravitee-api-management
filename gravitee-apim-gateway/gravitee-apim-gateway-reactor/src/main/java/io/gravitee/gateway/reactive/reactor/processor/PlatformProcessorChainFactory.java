@@ -15,8 +15,11 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor;
 
+import io.gravitee.gateway.reactive.api.hook.Hook;
+import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
+import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.reactor.processor.alert.AlertProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.forward.XForwardForProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.reporter.ReporterProcessor;
@@ -35,7 +38,7 @@ import org.springframework.beans.factory.annotation.Value;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class GlobalProcessorChainFactory {
+public class PlatformProcessorChainFactory {
 
     private final TransactionProcessorFactory transactionHandlerFactory;
     private final boolean traceContext;
@@ -43,16 +46,18 @@ public class GlobalProcessorChainFactory {
     private final AlertEventProducer eventProducer;
     private final Node node;
     private final String port;
+    private final List<ProcessorHook> processorHooks = new ArrayList<>();
     private ProcessorChain preProcessorChain;
     private ProcessorChain postProcessorChain;
 
-    public GlobalProcessorChainFactory(
+    public PlatformProcessorChainFactory(
         TransactionProcessorFactory transactionHandlerFactory,
         @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
         ReporterService reporterService,
         AlertEventProducer eventProducer,
         Node node,
-        @Value("${http.port:8082}") String port
+        @Value("${http.port:8082}") String port,
+        @Value("${services.tracing.enabled:false}") boolean tracing
     ) {
         this.transactionHandlerFactory = transactionHandlerFactory;
         this.traceContext = traceContext;
@@ -60,6 +65,10 @@ public class GlobalProcessorChainFactory {
         this.eventProducer = eventProducer;
         this.node = node;
         this.port = port;
+
+        if (tracing) {
+            processorHooks.add(new TracingHook("processor"));
+        }
     }
 
     public ProcessorChain preProcessorChain() {
@@ -81,7 +90,8 @@ public class GlobalProcessorChainFactory {
         }
 
         preProcessorList.add(transactionHandlerFactory.create());
-        preProcessorChain = new ProcessorChain("pre-platform-processor-chain", preProcessorList);
+        preProcessorChain = new ProcessorChain("processor-chain-post-platform", preProcessorList);
+        preProcessorChain.addHooks(processorHooks);
     }
 
     public ProcessorChain postProcessorChain() {
@@ -101,6 +111,7 @@ public class GlobalProcessorChainFactory {
             postProcessorList.add(new AlertProcessor(eventProducer, node, port));
         }
 
-        postProcessorChain = new ProcessorChain("post-platform-processor-chain", postProcessorList);
+        postProcessorChain = new ProcessorChain("processor-chain-post-platform", postProcessorList);
+        postProcessorChain.addHooks(processorHooks);
     }
 }

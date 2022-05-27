@@ -13,30 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.processor.error;
+package io.gravitee.gateway.reactive.core.context.interruption;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * This exception is thrown to indicate that the current execution context has been interrupted without error
+ *
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SimpleFailureProcessor extends AbstractFailureProcessor {
+public class InterruptionException extends RuntimeException {
 
-    public static final String ID = "processor-simple-failure";
-
-    protected SimpleFailureProcessor() {}
-
-    public static SimpleFailureProcessor instance() {
-        return Holder.INSTANCE;
-    }
-
-    @Override
-    public String getId() {
-        return ID;
-    }
-
-    private static class Holder {
-
-        private static final SimpleFailureProcessor INSTANCE = new SimpleFailureProcessor();
-    }
+    public InterruptionException() {}
 }

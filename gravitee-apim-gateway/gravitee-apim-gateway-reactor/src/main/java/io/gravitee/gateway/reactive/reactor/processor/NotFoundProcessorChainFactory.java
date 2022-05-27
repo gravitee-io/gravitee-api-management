@@ -15,8 +15,11 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor;
 
+import io.gravitee.gateway.reactive.api.hook.Hook;
+import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
+import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.reactor.processor.notfound.NotFoundProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.notfound.NotFoundReporterProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.responsetime.ResponseTimeProcessor;
@@ -35,16 +38,21 @@ public class NotFoundProcessorChainFactory {
     private final Environment environment;
     private final ReporterService reporterService;
     private final boolean logEnabled;
+    private final List<ProcessorHook> processorHooks = new ArrayList<>();
     private ProcessorChain processorChain;
 
     public NotFoundProcessorChainFactory(
         final Environment environment,
         final ReporterService reporterService,
-        final @Value("${handlers.notfound.log.enabled:false}") boolean logEnabled
+        final @Value("${handlers.notfound.log.enabled:false}") boolean logEnabled,
+        @Value("${services.tracing.enabled:false}") boolean tracing
     ) {
         this.environment = environment;
         this.reporterService = reporterService;
         this.logEnabled = logEnabled;
+        if (tracing) {
+            processorHooks.add(new TracingHook("processor"));
+        }
     }
 
     public ProcessorChain processorChain() {
@@ -61,6 +69,7 @@ public class NotFoundProcessorChainFactory {
         processorList.add(new ResponseTimeProcessor());
         processorList.add(new NotFoundReporterProcessor(reporterService, logEnabled));
 
-        processorChain = new ProcessorChain("not-found-processor-chain", processorList);
+        processorChain = new ProcessorChain("processor-chain-not-found", processorList);
+        processorChain.addHooks(processorHooks);
     }
 }

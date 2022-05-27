@@ -26,12 +26,15 @@ import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -47,7 +50,7 @@ class DefaultPolicyChainFactoryTest {
 
     @BeforeEach
     public void init() {
-        cut = new DefaultPolicyChainFactory("unit-test", policyManager);
+        cut = new DefaultPolicyChainFactory("unit-test", new SpringEnvironmentConfiguration(new StandardEnvironment()), policyManager);
     }
 
     @Test

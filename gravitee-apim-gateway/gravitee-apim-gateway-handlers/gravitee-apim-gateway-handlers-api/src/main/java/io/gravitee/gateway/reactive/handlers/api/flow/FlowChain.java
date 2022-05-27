@@ -20,11 +20,19 @@ import static io.gravitee.gateway.reactive.api.context.ExecutionContext.ATTR_INT
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
+import io.gravitee.gateway.reactive.api.hook.ChainHook;
+import io.gravitee.gateway.reactive.api.hook.Hook;
+import io.gravitee.gateway.reactive.api.hook.Hookable;
+import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.flow.FlowResolver;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
+import io.netty.util.internal.StringUtil;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,20 +44,30 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FlowChain {
+public class FlowChain implements Hookable<ChainHook> {
 
+    private static final String FLOW_ID_SEPARATOR = "-";
     private final Logger log = LoggerFactory.getLogger(FlowChain.class);
 
     private final String id;
     private final FlowResolver flowResolver;
     private final String resolvedFlowAttribute;
     private final PolicyChainFactory policyChainFactory;
+    private List<ChainHook> hooks;
 
     public FlowChain(String id, FlowResolver flowResolver, PolicyChainFactory policyChainFactory) {
         this.id = id;
         this.flowResolver = flowResolver;
         this.resolvedFlowAttribute = ATTR_INTERNAL_PREFIX + "flow." + id;
         this.policyChainFactory = policyChainFactory;
+    }
+
+    @Override
+    public void addHooks(final List<ChainHook> hooks) {
+        if (this.hooks == null) {
+            this.hooks = new ArrayList<>();
+        }
+        this.hooks.addAll(hooks);
     }
 
     /**
@@ -101,7 +119,24 @@ public class FlowChain {
      *
      * @return a {@link Completable} that completes when the flow policy chain completes.
      */
-    private Completable executeFlow(RequestExecutionContext ctx, Flow flow, ExecutionPhase phase) {
-        return policyChainFactory.create(flow, phase).execute(ctx);
+    private Completable executeFlow(final RequestExecutionContext ctx, final Flow flow, final ExecutionPhase phase) {
+        PolicyChain policyChain = policyChainFactory.create(flow, phase);
+        String flowId = getFlowId(flow);
+        return HookHelper.hook(policyChain.execute(ctx), flowId, hooks, ctx, phase);
+    }
+
+    private String getFlowId(final Flow flow) {
+        StringBuilder flowNameBuilder = new StringBuilder(id).append(FLOW_ID_SEPARATOR);
+        if (StringUtil.isNullOrEmpty(flow.getName())) {
+            if (flow.getMethods().isEmpty()) {
+                flowNameBuilder.append("ALL").append(FLOW_ID_SEPARATOR);
+            } else {
+                flow.getMethods().forEach(httpMethod -> flowNameBuilder.append(httpMethod).append("-"));
+            }
+            flowNameBuilder.append(flow.getPath());
+        } else {
+            flowNameBuilder.append(flow.getName());
+        }
+        return flowNameBuilder.toString().toLowerCase(Locale.ROOT);
     }
 }
