@@ -73,7 +73,7 @@
         <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
         <!-- Other dependencies version -->
         <batik-transcoder.version>1.11</batik-transcoder.version>
-        <bcpkix-jdk15on.version>1.61</bcpkix-jdk15on.version>
+        <bcpkix-jdk15on.version>1.69</bcpkix-jdk15on.version>
         <classgraph.version>4.8.90</classgraph.version>
         <commons-io.version>2.5</commons-io.version>
         <commons-lang.version>2.6</commons-lang.version>
