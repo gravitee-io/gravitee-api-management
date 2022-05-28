@@ -14,17 +14,20 @@
 # limitations under the License.
 #
 
-FROM graviteeio/java:17
-LABEL maintainer="contact@graviteesource.com"
-
+# First stage to share environment variable
+FROM graviteeio/java:17 as base
 ENV GRAVITEEIO_HOME /opt/graviteeio-gateway
-ARG GRAVITEEIO_VERSION=0
 
+# Second stage to add the folder and change the permissions and ownership
+FROM base as builder
 ADD ./distribution ${GRAVITEEIO_HOME}/
-
 RUN chgrp -R 0 ${GRAVITEEIO_HOME} && \
     chmod -R g=u ${GRAVITEEIO_HOME}
 
+# Third stage to build the final docker image. COPY preserves ownership & permissions
+FROM base
+LABEL maintainer="contact@graviteesource.com"
+COPY --from=builder ${GRAVITEEIO_HOME} ${GRAVITEEIO_HOME}
 WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8082
 ENTRYPOINT ["./bin/gravitee"]
