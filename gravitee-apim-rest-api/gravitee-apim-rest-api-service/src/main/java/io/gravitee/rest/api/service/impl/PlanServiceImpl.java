@@ -24,7 +24,6 @@ import static java.util.Collections.emptySet;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -33,7 +32,6 @@ import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
-import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.plan.PlanQuery;
@@ -232,12 +230,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     public PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan, boolean fromImport) {
         try {
             logger.debug("Update plan {}", updatePlan.getName());
-            Optional<Plan> optPlan = planRepository.findById(updatePlan.getId());
-            if (!optPlan.isPresent()) {
-                throw new PlanNotFoundException(updatePlan.getId());
-            }
 
-            Plan oldPlan = optPlan.get();
+            Plan oldPlan = planRepository.findById(updatePlan.getId()).orElseThrow(() -> new PlanNotFoundException(updatePlan.getId()));
             assertPlanSecurityIsAllowed(executionContext, PlanSecurityType.valueOf(oldPlan.getSecurity().name()));
 
             Api api = apiRepository.findById(oldPlan.getApi()).orElseThrow(() -> new ApiNotFoundException(oldPlan.getApi()));
@@ -349,12 +343,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         try {
             logger.debug("Close plan {}", planId);
 
-            Optional<Plan> optPlan = planRepository.findById(planId);
-            if (!optPlan.isPresent()) {
-                throw new PlanNotFoundException(planId);
-            }
+            Plan plan = planRepository.findById(planId).orElseThrow(() -> new PlanNotFoundException(planId));
 
-            Plan plan = optPlan.get();
             Plan previousPlan = new Plan(plan);
 
             if (plan.getStatus() == Plan.Status.CLOSED) {
@@ -399,7 +389,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             );
 
             //reorder plan
-            reorderedAndSavePlansAfterRemove(optPlan.get());
+            reorderedAndSavePlansAfterRemove(plan);
 
             return convert(executionContext, plan);
         } catch (TechnicalException ex) {
@@ -409,44 +399,38 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public void delete(ExecutionContext executionContext, String plan) {
+    public void delete(ExecutionContext executionContext, String planId) {
         try {
-            logger.debug("Delete plan {}", plan);
+            logger.debug("Delete plan {}", planId);
 
-            Optional<Plan> optPlan = planRepository.findById(plan);
-            if (!optPlan.isPresent()) {
-                throw new PlanNotFoundException(plan);
-            }
+            Plan plan = planRepository.findById(planId).orElseThrow(() -> new PlanNotFoundException(planId));
 
-            if (optPlan.get().getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
-                int subscriptions = subscriptionService.findByPlan(executionContext, plan).size();
-                if (
-                    (optPlan.get().getStatus() == Plan.Status.PUBLISHED || optPlan.get().getStatus() == Plan.Status.DEPRECATED) &&
-                    subscriptions > 0
-                ) {
-                    throw new PlanWithSubscriptionsException(plan);
+            if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
+                int subscriptions = subscriptionService.findByPlan(executionContext, planId).size();
+                if ((plan.getStatus() == Plan.Status.PUBLISHED || plan.getStatus() == Plan.Status.DEPRECATED) && subscriptions > 0) {
+                    throw new PlanWithSubscriptionsException(planId);
                 }
             }
 
             // Delete plan
-            planRepository.delete(plan);
+            planRepository.delete(planId);
 
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                optPlan.get().getApi(),
-                Collections.singletonMap(PLAN, optPlan.get().getId()),
+                plan.getApi(),
+                Collections.singletonMap(PLAN, plan.getId()),
                 PLAN_DELETED,
                 new Date(),
-                optPlan.get(),
+                plan,
                 null
             );
 
             //reorder plan
-            reorderedAndSavePlansAfterRemove(optPlan.get());
+            reorderedAndSavePlansAfterRemove(plan);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to delete plan: {}", plan, ex);
-            throw new TechnicalManagementException(String.format("An error occurs while trying to delete plan: %s", plan), ex);
+            logger.error("An error occurs while trying to delete plan: {}", planId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to delete plan: %s", planId), ex);
         }
     }
 
@@ -455,12 +439,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         try {
             logger.debug("Publish plan {}", planId);
 
-            Optional<Plan> optPlan = planRepository.findById(planId);
-            if (!optPlan.isPresent()) {
-                throw new PlanNotFoundException(planId);
-            }
-
-            Plan plan = optPlan.get();
+            Plan plan = planRepository.findById(planId).orElseThrow(() -> new PlanNotFoundException(planId));
             Plan previousPlan = new Plan(plan);
             if (plan.getStatus() == Plan.Status.CLOSED) {
                 throw new PlanAlreadyClosedException(planId);
@@ -533,12 +512,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         try {
             logger.debug("Deprecate plan {}", planId);
 
-            Optional<Plan> optPlan = planRepository.findById(planId);
-            if (!optPlan.isPresent()) {
-                throw new PlanNotFoundException(planId);
-            }
-
-            Plan plan = optPlan.get();
+            Plan plan = planRepository.findById(planId).orElseThrow(() -> new PlanNotFoundException(planId));
             Plan previousPlan = new Plan(plan);
             if (plan.getStatus() == Plan.Status.DEPRECATED) {
                 throw new PlanAlreadyDeprecatedException(planId);
