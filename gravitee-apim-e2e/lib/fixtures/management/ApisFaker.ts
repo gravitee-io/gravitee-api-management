@@ -91,7 +91,7 @@ export class ApisFaker {
       name,
       description,
       version,
-      endpoint: `${process.env.WIREMOCK_BASE_PATH}/echo`,
+      endpoint: `${process.env.WIREMOCK_BASE_PATH}/whattimeisit`,
       ...attributes,
     };
   }
