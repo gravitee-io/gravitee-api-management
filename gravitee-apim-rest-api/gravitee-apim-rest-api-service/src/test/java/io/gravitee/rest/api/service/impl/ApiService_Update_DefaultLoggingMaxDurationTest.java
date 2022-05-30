@@ -131,6 +131,9 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     @Mock
     private NotifierService notifierService;
 
+    @Mock
+    private PlanService planService;
+
     @InjectMocks
     private ApiConverter apiConverter;
 

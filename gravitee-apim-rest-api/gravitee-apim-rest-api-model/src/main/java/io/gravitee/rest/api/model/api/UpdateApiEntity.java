@@ -69,7 +69,7 @@ public class UpdateApiEntity {
 
     @JsonProperty(value = "plans")
     @Schema(description = "a list of plans with flows (the policies configuration)")
-    private List<Plan> plans = new ArrayList<>();
+    private Set<PlanEntity> plans = new HashSet<>();
 
     @Schema(description = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
     private Services services;
@@ -340,11 +340,11 @@ public class UpdateApiEntity {
         this.flows = flows;
     }
 
-    public List<Plan> getPlans() {
+    public Set<PlanEntity> getPlans() {
         return plans;
     }
 
-    public void setPlans(List<Plan> plans) {
+    public void setPlans(Set<PlanEntity> plans) {
         this.plans = plans;
     }
 

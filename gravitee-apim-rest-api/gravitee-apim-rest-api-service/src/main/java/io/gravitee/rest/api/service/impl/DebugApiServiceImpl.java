@@ -36,6 +36,7 @@ import io.gravitee.rest.api.service.DebugApiService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.Comparator;
 import java.util.List;
@@ -52,17 +53,20 @@ public class DebugApiServiceImpl implements DebugApiService {
     private final EventService eventService;
     private final ObjectMapper objectMapper;
     private final InstanceService instanceService;
+    private final PlanConverter planConverter;
 
     public DebugApiServiceImpl(
         ApiService apiService,
         EventService eventService,
         ObjectMapper objectMapper,
-        InstanceService instanceService
+        InstanceService instanceService,
+        PlanConverter planConverter
     ) {
         this.apiService = apiService;
         this.eventService = eventService;
         this.objectMapper = objectMapper;
         this.instanceService = instanceService;
+        this.planConverter = planConverter;
     }
 
     @Override
@@ -148,7 +152,7 @@ public class DebugApiServiceImpl implements DebugApiService {
         debugApi.setTags(debugApiEntity.getTags());
         debugApi.setPaths(debugApiEntity.getPaths());
         debugApi.setFlows(debugApiEntity.getFlows());
-        debugApi.setPlans(debugApiEntity.getPlans());
+        debugApi.setPlans(planConverter.toPlansDefinitions(debugApiEntity.getPlans()));
 
         // Disable logging for the debugged API
         if (debugApiEntity.getProxy() != null && debugApiEntity.getProxy().getLogging() != null) {

@@ -93,6 +93,9 @@ public class ApiService_StopTest {
     @Mock
     private CategoryService categoryService;
 
+    @Mock
+    private PlanService planService;
+
     @Spy
     private ApiConverter apiConverter;
 
@@ -135,11 +138,11 @@ public class ApiService_StopTest {
         verify(apiRepository).update(api);
         verify(eventService)
             .createApiEvent(
-                GraviteeContext.getExecutionContext(),
-                singleton(GraviteeContext.getCurrentEnvironment()),
-                EventType.STOP_API,
+                eq(GraviteeContext.getExecutionContext()),
+                eq(singleton(GraviteeContext.getCurrentEnvironment())),
+                eq(EventType.STOP_API),
                 argThat(apiArg -> apiArg.getId().equals(API_ID)),
-                event.getProperties()
+                eq(event.getProperties())
             );
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_STOPPED), eq(API_ID), any());
     }

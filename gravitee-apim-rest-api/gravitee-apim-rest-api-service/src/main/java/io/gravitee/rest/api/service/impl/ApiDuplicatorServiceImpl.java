@@ -143,7 +143,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 getAuthenticatedUsername(),
                 apiJsonNode.getJsonNode()
             );
-            createOrUpdateApiNestedEntities(executionContext, createdApiEntity.getId(), apiJsonNode);
+            createOrUpdateApiNestedEntities(executionContext, createdApiEntity, apiJsonNode);
             createPageAndMedia(executionContext, createdApiEntity, apiJsonNode);
             return createdApiEntity;
         } catch (IOException e) {
@@ -178,7 +178,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             // import
             UpdateApiEntity importedApi = convertToEntity(executionContext, apiJsonNode.toString(), apiJsonNode);
             ApiEntity updatedApiEntity = apiService.update(executionContext, apiJsonNode.getId(), importedApi);
-            createOrUpdateApiNestedEntities(executionContext, updatedApiEntity.getId(), apiJsonNode);
+            createOrUpdateApiNestedEntities(executionContext, updatedApiEntity, apiJsonNode);
             return updatedApiEntity;
         } catch (IOException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
@@ -354,19 +354,22 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return apiDefinitionOrURL;
     }
 
-    private void createOrUpdateApiNestedEntities(final ExecutionContext executionContext, String apiId, ImportApiJsonNode apiJsonNode)
-        throws IOException {
-        createOrUpdateMembers(executionContext, apiId, apiJsonNode);
-        createOrUpdatePages(executionContext, apiId, apiJsonNode);
-        createOrUpdatePlans(executionContext, apiId, apiJsonNode);
-        createOrUpdateMetadata(executionContext, apiId, apiJsonNode);
+    private void createOrUpdateApiNestedEntities(
+        final ExecutionContext executionContext,
+        ApiEntity apiEntity,
+        ImportApiJsonNode apiJsonNode
+    ) throws IOException {
+        createOrUpdateMembers(executionContext, apiEntity, apiJsonNode);
+        createOrUpdatePages(executionContext, apiEntity, apiJsonNode);
+        createOrUpdatePlans(executionContext, apiEntity, apiJsonNode);
+        createOrUpdateMetadata(executionContext, apiEntity, apiJsonNode);
     }
 
-    private void createOrUpdateMembers(final ExecutionContext executionContext, String apiId, ImportApiJsonNode apiJsonNode)
+    private void createOrUpdateMembers(final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)
         throws JsonProcessingException {
         if (apiJsonNode.hasMembers()) {
             // get current members of the api
-            Set<MemberToImport> membersAlreadyPresent = getAPICurrentMembers(executionContext, apiId);
+            Set<MemberToImport> membersAlreadyPresent = getAPICurrentMembers(executionContext, apiEntity.getId());
             // get the current PO
             RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
             assert (poRole != null);
@@ -386,7 +389,15 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 boolean presentWithSameRole = isPresentWithSameRole(membersAlreadyPresent, memberToImport);
 
                 List<String> rolesToImport = getRolesToImport(executionContext, memberToImport);
-                addOrUpdateMembers(executionContext, apiId, poRoleId, currentPo, memberToImport, rolesToImport, presentWithSameRole);
+                addOrUpdateMembers(
+                    executionContext,
+                    apiEntity.getId(),
+                    poRoleId,
+                    currentPo,
+                    memberToImport,
+                    rolesToImport,
+                    presentWithSameRole
+                );
 
                 // get the future role of the current PO
                 if (
@@ -403,7 +414,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             }
 
             // transfer the ownership
-            transferOwnership(executionContext, apiId, currentPo, roleUsedInTransfert, futurePo);
+            transferOwnership(executionContext, apiEntity.getId(), currentPo, roleUsedInTransfert, futurePo);
         }
     }
 
@@ -561,14 +572,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    protected void createOrUpdateMetadata(final ExecutionContext executionContext, String apiId, ImportApiJsonNode apiJsonNode) {
+    protected void createOrUpdateMetadata(final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode) {
         try {
             for (ImportJsonNode metadataNode : apiJsonNode.getMetadata()) {
                 UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(
                     metadataNode.toString(),
                     UpdateApiMetadataEntity.class
                 );
-                updateApiMetadataEntity.setApiId(apiId);
+                updateApiMetadataEntity.setApiId(apiEntity.getId());
                 apiMetadataService.update(executionContext, updateApiMetadataEntity);
             }
         } catch (Exception ex) {
@@ -577,11 +588,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    protected void createOrUpdatePlans(final ExecutionContext executionContext, String apiId, ImportApiJsonNode apiJsonNode)
+    protected void createOrUpdatePlans(final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)
         throws IOException {
         if (apiJsonNode.hasPlans() && !apiJsonNode.getPlans().isEmpty()) {
             Map<String, PlanEntity> existingPlans = planService
-                .findByApi(executionContext, apiId)
+                .findByApi(executionContext, apiEntity.getId())
                 .stream()
                 .collect(toMap(PlanEntity::getId, Function.identity()));
 
@@ -591,21 +602,22 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             plansToImport.forEach(
                 planEntity -> {
-                    planEntity.setApi(apiId);
+                    planEntity.setApi(apiEntity.getId());
                     planService.createOrUpdatePlan(executionContext, planEntity);
+                    apiEntity.getPlans().add(planEntity);
                 }
             );
         }
     }
 
-    protected void createOrUpdatePages(final ExecutionContext executionContext, String apiId, ImportApiJsonNode apiJsonNode)
+    protected void createOrUpdatePages(final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)
         throws JsonProcessingException {
         if (apiJsonNode.hasPages() && !apiJsonNode.getPages().isEmpty()) {
             List<PageEntity> pagesList = objectMapper.readValue(
                 apiJsonNode.getPages().toString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
             );
-            pageService.createOrUpdatePages(executionContext, pagesList, apiId);
+            pageService.createOrUpdatePages(executionContext, pagesList, apiEntity.getId());
         }
     }
 

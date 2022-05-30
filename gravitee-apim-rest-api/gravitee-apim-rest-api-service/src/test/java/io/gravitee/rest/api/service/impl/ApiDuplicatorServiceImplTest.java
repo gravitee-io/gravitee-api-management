@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -38,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -75,8 +77,16 @@ public class ApiDuplicatorServiceImplTest {
     @Mock
     private UserService userService;
 
+    @Mock
+    private ApiEntity apiEntity;
+
     @Spy
     private ObjectMapper objectMapper = (new ServiceConfiguration()).objectMapper();
+
+    @Before
+    public void setup() {
+        when(apiEntity.getId()).thenReturn(API_ID);
+    }
 
     /*
      * Test helper methods
@@ -231,7 +241,7 @@ public class ApiDuplicatorServiceImplTest {
     @Test
     public void shouldNotUpdatePagesIfNoPage() throws IOException {
         ImportApiJsonNode noPagesNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.pages.null.json");
-        apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), API_ID, noPagesNode);
+        apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, noPagesNode);
 
         verifyNoInteractions(pageService);
     }
@@ -239,7 +249,7 @@ public class ApiDuplicatorServiceImplTest {
     @Test
     public void shouldNotUpdatePagesIfEmptyPlan() throws IOException {
         ImportApiJsonNode emptyPagesNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.pages.empty.json");
-        apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), API_ID, emptyPagesNode);
+        apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, emptyPagesNode);
 
         verifyNoInteractions(pageService);
     }
@@ -247,7 +257,7 @@ public class ApiDuplicatorServiceImplTest {
     @Test
     public void shouldUpdatePages() throws IOException {
         ImportApiJsonNode pagesNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.pages.default.json");
-        apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), API_ID, pagesNode);
+        apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, pagesNode);
 
         verify(pageService, times(1))
             .createOrUpdatePages(eq(GraviteeContext.getExecutionContext()), argThat(pageEntities -> pageEntities.size() == 2), eq(API_ID));
@@ -257,7 +267,7 @@ public class ApiDuplicatorServiceImplTest {
     @Test
     public void shouldNotUpdatePlansIfNoPlan() throws IOException {
         ImportApiJsonNode noPlansNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.plans.null.json");
-        apiDuplicatorService.createOrUpdatePlans(GraviteeContext.getExecutionContext(), API_ID, noPlansNode);
+        apiDuplicatorService.createOrUpdatePlans(GraviteeContext.getExecutionContext(), apiEntity, noPlansNode);
 
         verifyNoInteractions(planService);
     }
@@ -265,7 +275,7 @@ public class ApiDuplicatorServiceImplTest {
     @Test
     public void shouldNotUpdatePlansIfEmptyPlan() throws IOException {
         ImportApiJsonNode emptyPlansNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.plans.empty.json");
-        apiDuplicatorService.createOrUpdatePlans(GraviteeContext.getExecutionContext(), API_ID, emptyPlansNode);
+        apiDuplicatorService.createOrUpdatePlans(GraviteeContext.getExecutionContext(), apiEntity, emptyPlansNode);
 
         verifyNoInteractions(planService);
     }
@@ -273,7 +283,7 @@ public class ApiDuplicatorServiceImplTest {
     @Test
     public void shouldUpdatePlans() throws IOException {
         ImportApiJsonNode plansNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.plans.default.json");
-        apiDuplicatorService.createOrUpdatePlans(GraviteeContext.getExecutionContext(), API_ID, plansNode);
+        apiDuplicatorService.createOrUpdatePlans(GraviteeContext.getExecutionContext(), apiEntity, plansNode);
 
         verify(planService, times(1)).findByApi(GraviteeContext.getExecutionContext(), API_ID);
         verify(planService, never()).delete(any(), any());
@@ -284,7 +294,7 @@ public class ApiDuplicatorServiceImplTest {
     @Test
     public void shouldNotUpdateMetadataIfNoMetadata() throws IOException {
         ImportApiJsonNode noMetadataNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.metadata.null.json");
-        apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), API_ID, noMetadataNode);
+        apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), apiEntity, noMetadataNode);
 
         verifyNoInteractions(apiMetadataService);
     }
@@ -292,7 +302,7 @@ public class ApiDuplicatorServiceImplTest {
     @Test
     public void shouldNotUpdateMetadataIfEmptyMetadata() throws IOException {
         ImportApiJsonNode emptyMetadataNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.metadata.empty.json");
-        apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), API_ID, emptyMetadataNode);
+        apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), apiEntity, emptyMetadataNode);
 
         verifyNoInteractions(apiMetadataService);
     }
@@ -300,7 +310,7 @@ public class ApiDuplicatorServiceImplTest {
     @Test
     public void shouldUpdateMetadata() throws IOException {
         ImportApiJsonNode metadataNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.metadata.default.json");
-        apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), API_ID, metadataNode);
+        apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), apiEntity, metadataNode);
 
         verify(apiMetadataService, times(2)).update(eq(GraviteeContext.getExecutionContext()), any(UpdateApiMetadataEntity.class));
     }
@@ -310,7 +320,7 @@ public class ApiDuplicatorServiceImplTest {
         ImportApiJsonNode metadataNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.metadata.default.json");
         when(apiMetadataService.update(eq(GraviteeContext.getExecutionContext()), any())).thenThrow(new RuntimeException("fake exception"));
 
-        apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), API_ID, metadataNode);
+        apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), apiEntity, metadataNode);
     }
 
     /*

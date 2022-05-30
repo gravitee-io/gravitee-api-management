@@ -132,6 +132,9 @@ public class ApiService_CreateTest {
     @Mock
     private ConnectorService connectorService;
 
+    @Mock
+    private PlanService planService;
+
     @Spy
     private ApiConverter apiConverter;
 

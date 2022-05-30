@@ -147,19 +147,19 @@ public class APIV1toAPIV2Converter {
      * @param policies, the list of available policies, containing available scopes
      * @return the list of Plans
      */
-    private List<Plan> migratePlans(Set<PlanEntity> plans, Set<PolicyEntity> policies) {
+    private Set<PlanEntity> migratePlans(Set<PlanEntity> plans, Set<PolicyEntity> policies) {
         return plans
             .stream()
             .filter(planEntity -> !PlanStatus.CLOSED.equals(planEntity.getStatus()))
             .map(
                 planEntity -> {
-                    final Plan plan = new Plan();
+                    final PlanEntity plan = new PlanEntity();
                     plan.setId(planEntity.getId());
                     plan.setApi(planEntity.getApi());
                     plan.setName(planEntity.getName());
-                    plan.setSecurity(planEntity.getSecurity().name());
+                    plan.setSecurity(planEntity.getSecurity());
                     plan.setSecurityDefinition(planEntity.getSecurityDefinition());
-                    plan.setStatus(planEntity.getStatus().name());
+                    plan.setStatus(planEntity.getStatus());
                     plan.setFlows(migratePathsToFlows(planEntity.getPaths(), policies));
                     if (planEntity.getTags() != null) {
                         plan.setTags(new HashSet<>(planEntity.getTags()));
@@ -167,7 +167,7 @@ public class APIV1toAPIV2Converter {
                     return plan;
                 }
             )
-            .collect(Collectors.toList());
+            .collect(Collectors.toSet());
     }
 
     /**

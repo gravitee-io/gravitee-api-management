@@ -210,7 +210,7 @@ public interface ApiService {
 
     boolean canManageApi(RoleEntity role);
 
-    void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, List<Plan> plans);
+    void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, Set<PlanEntity> plans);
 
     Map<String, Long> countPublishedByUserGroupedByCategories(String userId);
 

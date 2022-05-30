@@ -83,6 +83,9 @@ public class ApiService_FindByIdTest {
     @Mock
     private CategoryService categoryService;
 
+    @Mock
+    private PlanService planService;
+
     @Spy
     private ApiConverter apiConverter;
 
