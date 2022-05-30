@@ -12,5 +12,20 @@ endif::[]
 == Presentation
 This reporter write access logs to an Elasticsearch instance
 
+
+== Compatibility with APIM
+
+|===
+|Plugin version    | APIM version
+
+| 3.11.x to latest | 3.15.x to latest
+| 3.10.x           | 3.14.x
+| 3.9.x            | 3.13.x
+| 3.8.x            | 3.10.x to 3.12.x
+| 3.7.x            | 3.9.x
+| 3.6.x            | 3.6.x to 3.8.x
+| Up to 3.5.x      | Up to 3.5.x
+|===
+
 == Configuration
 To be completed
