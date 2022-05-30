@@ -101,6 +101,9 @@ public class ApiService_FindByUserTest {
     @Mock
     private CategoryService categoryService;
 
+    @Mock
+    private PlanService planService;
+
     @Spy
     private ApiConverter apiConverter;
 

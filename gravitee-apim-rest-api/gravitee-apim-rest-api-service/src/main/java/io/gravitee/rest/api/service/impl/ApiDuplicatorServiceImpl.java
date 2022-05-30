@@ -566,6 +566,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 planEntity -> {
                     planEntity.setApi(createdOrUpdatedApiEntity.getId());
                     planService.createOrUpdatePlan(executionContext, planEntity);
+                    createdOrUpdatedApiEntity.getPlans().add(planEntity);
                 }
             );
         }

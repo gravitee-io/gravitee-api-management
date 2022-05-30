@@ -93,6 +93,9 @@ public class ApiService_StartTest {
     @Mock
     private CategoryService categoryService;
 
+    @Mock
+    private PlanService planService;
+
     @Spy
     private ApiConverter apiConverter;
 

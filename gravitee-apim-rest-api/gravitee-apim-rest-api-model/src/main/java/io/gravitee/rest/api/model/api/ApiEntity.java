@@ -93,7 +93,7 @@ public class ApiEntity implements Indexable {
     @DeploymentRequired
     @JsonProperty(value = "plans")
     @Schema(description = "a list of plans with flows (the policies configuration)")
-    private List<Plan> plans = new ArrayList<>();
+    private Set<PlanEntity> plans = new HashSet<>();
 
     @DeploymentRequired
     @JsonProperty(value = "gravitee")
@@ -495,11 +495,11 @@ public class ApiEntity implements Indexable {
         this.flows = flows;
     }
 
-    public List<Plan> getPlans() {
+    public Set<PlanEntity> getPlans() {
         return plans;
     }
 
-    public void setPlans(List<Plan> plans) {
+    public void setPlans(Set<PlanEntity> plans) {
         this.plans = plans;
     }
 

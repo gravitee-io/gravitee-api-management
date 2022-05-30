@@ -1615,12 +1615,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             if (updateApiEntity.getPlans() == null) {
-                updateApiEntity.setPlans(new ArrayList<>());
+                updateApiEntity.setPlans(new HashSet<>());
             } else if (checkPlans) {
-                List<Plan> existingPlans = apiToCheck.getPlans();
-                Map<String, String> planStatuses = new HashMap<>();
+                Set<PlanEntity> existingPlans = apiToCheck.getPlans();
+                Map<String, PlanStatus> planStatuses = new HashMap<>();
                 if (existingPlans != null && !existingPlans.isEmpty()) {
-                    planStatuses.putAll(existingPlans.stream().collect(toMap(Plan::getId, Plan::getStatus)));
+                    planStatuses.putAll(existingPlans.stream().collect(toMap(PlanEntity::getId, PlanEntity::getStatus)));
                 }
 
                 updateApiEntity
@@ -1631,8 +1631,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                 !planStatuses.containsKey(planToUpdate.getId()) ||
                                 (
                                     planStatuses.containsKey(planToUpdate.getId()) &&
-                                    planStatuses.get(planToUpdate.getId()).equalsIgnoreCase(PlanStatus.CLOSED.name()) &&
-                                    !planStatuses.get(planToUpdate.getId()).equalsIgnoreCase(planToUpdate.getStatus())
+                                    planStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
+                                    planStatuses.get(planToUpdate.getId()) != planToUpdate.getStatus()
                                 )
                             ) {
                                 throw new InvalidDataException("Invalid status for plan '" + planToUpdate.getName() + "'");
@@ -1657,7 +1657,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                     .getPlans()
                                     .stream()
                                     .filter(p -> p.getId().equals(plan.getId()))
-                                    .forEach(p -> p.setStatus(PlanStatus.DEPRECATED.name()));
+                                    .forEach(p -> p.setStatus(PlanStatus.DEPRECATED));
                             }
                         }
                     );
@@ -1706,6 +1706,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             Api updatedApi = apiRepository.update(api);
+
+            // update API plans
+            updateApiEntity
+                .getPlans()
+                .forEach(
+                    plan -> {
+                        plan.setApi(api.getId());
+                        planService.createOrUpdatePlan(executionContext, plan);
+                    }
+                );
 
             // Audit
             auditService.createApiAuditLog(
@@ -1862,7 +1872,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         checkPolicyConfigurations(updateApiEntity.getPaths(), updateApiEntity.getFlows(), updateApiEntity.getPlans());
     }
 
-    public void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, List<Plan> plans) {
+    public void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, Set<PlanEntity> plans) {
         checkPathsPolicyConfiguration(paths);
         checkFlowsPolicyConfiguration(flows);
 
@@ -3262,7 +3272,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         PrimaryOwnerEntity primaryOwner,
         List<CategoryEntity> categories
     ) {
-        ApiEntity apiEntity = apiConverter.toApiEntity(api, primaryOwner);
+        Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
+        ApiEntity apiEntity = apiConverter.toApiEntity(api, plans, primaryOwner);
 
         // TODO: extract calls to external service from convert method
         final Set<String> apiCategories = api.getCategories();

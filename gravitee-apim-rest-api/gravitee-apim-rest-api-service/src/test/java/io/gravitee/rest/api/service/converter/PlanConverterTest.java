@@ -78,11 +78,11 @@ public class PlanConverterTest {
         Flow flow2 = new Flow();
         Flow flow3 = new Flow();
 
-        io.gravitee.definition.model.Plan plan1 = new io.gravitee.definition.model.Plan();
+        PlanEntity plan1 = new PlanEntity();
         plan1.setId(planId);
         plan1.setFlows(List.of(flow1, flow3));
 
-        io.gravitee.definition.model.Plan plan2 = new io.gravitee.definition.model.Plan();
+        PlanEntity plan2 = new PlanEntity();
         plan2.setId("another-plan-id");
         plan2.setFlows(List.of(flow2));
 
