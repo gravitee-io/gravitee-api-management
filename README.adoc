@@ -29,3 +29,26 @@ This reporter write access logs to an Elasticsearch instance
 
 == Configuration
 To be completed
+
+=== ILM
+If you use ElasticSearch in version 7 minimum, you can configure your reporter to use ILM (Index Lifecyle Management) policies.
+
+First, you need to define ILM policies in your ES instance. You may find the documentation https://www.elastic.co/guide/en/elasticsearch/reference/current/set-up-lifecycle-policy.html#ilm-create-policy[here]
+
+Then you can activate the ILM feature by adding these settings in the gravitee.yml file of APIM Gateway:
+
+```yaml
+  elasticsearch:
+    enabled: true # Is the reporter enabled or not (default to true)
+    endpoints:
+      - http://${ds.elastic.host}:${ds.elastic.port}
+    lifecycle:
+      policies:
+        health: hot_delete_health # ILM policy for the gravitee-health-* indexes
+        monitor: hot_delete_monitor # ILM policy for the gravitee-monitor-* indexes
+        request: hot_delete_request # ILM policy for the gravitee-request-* indexes
+        log: hot_delete_log # ILM policy for the gravitee-log-* indexes
+    index_mode: ilm         # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
+```
+
+IMPORTANT: To use ILM feature you need to use at least version 3.8.5 (for APIM 3.10.x) or 3.12.1 of the plugin (for APIM 3.15.x and upper).
