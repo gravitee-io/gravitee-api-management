@@ -76,6 +76,9 @@ public class ApiService_FindByIdAsMapTest {
     @Mock
     private ApiMetadataService apiMetadataService;
 
+    @Mock
+    private PlanService planService;
+
     @Spy
     private ApiConverter apiConverter;
 

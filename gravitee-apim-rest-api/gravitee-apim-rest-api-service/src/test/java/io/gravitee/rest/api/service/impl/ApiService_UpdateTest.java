@@ -210,6 +210,9 @@ public class ApiService_UpdateTest {
     @Mock
     private ConnectorService connectorService;
 
+    @Mock
+    private PlanService planService;
+
     @InjectMocks
     private ApiConverter apiConverter;
 
@@ -281,6 +284,22 @@ public class ApiService_UpdateTest {
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+    }
+
+    @Test
+    public void shouldUpdatePlans() throws TechnicalException {
+        prepareUpdate();
+
+        PlanEntity plan1 = new PlanEntity();
+        plan1.setId("plan1");
+        PlanEntity plan2 = new PlanEntity();
+        plan2.setId("plan2");
+        updateApiEntity.setPlans(Set.of(plan1, plan2));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        verify(planService, times(1)).createOrUpdatePlan(any(), same(plan1));
+        verify(planService, times(1)).createOrUpdatePlan(any(), same(plan2));
     }
 
     @Test(expected = ApiNotFoundException.class)
@@ -520,10 +539,10 @@ public class ApiService_UpdateTest {
     @Test(expected = InvalidDataException.class)
     public void shouldNotUpdate_NewPlanNotAllowed() throws TechnicalException {
         prepareUpdate();
-        Plan plan = new Plan();
+        PlanEntity plan = new PlanEntity();
         plan.setName("Plan Malicious");
-        plan.setStatus(PlanStatus.PUBLISHED.name());
-        updateApiEntity.setPlans(List.of(plan));
+        plan.setStatus(PlanStatus.PUBLISHED);
+        updateApiEntity.setPlans(Set.of(plan));
 
         api.setDefinition("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true);
@@ -533,17 +552,20 @@ public class ApiService_UpdateTest {
     @Test(expected = InvalidDataException.class)
     public void shouldNotUpdate_PlanClosed() throws TechnicalException {
         prepareUpdate();
-        Plan plan = new Plan();
-        plan.setId("MALICIOUS");
-        plan.setName("Plan Malicious");
-        plan.setStatus(PlanStatus.PUBLISHED.name());
-        updateApiEntity.setPlans(List.of(plan));
+
+        PlanEntity updatedPlan = new PlanEntity();
+        updatedPlan.setId("MALICIOUS");
+        updatedPlan.setName("Plan Malicious");
+        updatedPlan.setStatus(PlanStatus.PUBLISHED);
+        updateApiEntity.setPlans(Set.of(updatedPlan));
+
+        PlanEntity originalPlan = new PlanEntity();
+        originalPlan.setId("MALICIOUS");
+        originalPlan.setStatus(PlanStatus.CLOSED);
+        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+
         api.setDefinition(
-            "{\"id\": \"" +
-            API_ID +
-            "\", \"gravitee\": \"2.0.0\", \"name\": \"" +
-            API_NAME +
-            "\",\"proxy\": {\"context_path\": \"/old\"}, \"plans\": [{ \"id\": \"MALICIOUS\", \"status\":\"CLOSED\"}]}"
+            "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
         );
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true);
         verify(notifierService, times(0)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
@@ -552,17 +574,20 @@ public class ApiService_UpdateTest {
     @Test
     public void shouldUpdate_PlanStatusNotChanged() throws TechnicalException {
         prepareUpdate();
-        Plan plan = new Plan();
-        plan.setId("MALICIOUS");
-        plan.setName("Plan Malicious");
-        plan.setStatus(PlanStatus.CLOSED.name());
-        updateApiEntity.setPlans(List.of(plan));
+
+        PlanEntity updatedPlan = new PlanEntity();
+        updatedPlan.setId("MALICIOUS");
+        updatedPlan.setName("Plan Malicious");
+        updatedPlan.setStatus(PlanStatus.CLOSED);
+        updateApiEntity.setPlans(Set.of(updatedPlan));
+
+        PlanEntity originalPlan = new PlanEntity();
+        originalPlan.setId("MALICIOUS");
+        originalPlan.setStatus(PlanStatus.CLOSED);
+        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+
         api.setDefinition(
-            "{\"id\": \"" +
-            API_ID +
-            "\", \"gravitee\": \"2.0.0\", \"name\": \"" +
-            API_NAME +
-            "\",\"proxy\": {\"context_path\": \"/old\"}, \"plans\": [{ \"id\": \"MALICIOUS\", \"status\":\"CLOSED\"}]}"
+            "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
         );
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true);
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
@@ -571,17 +596,20 @@ public class ApiService_UpdateTest {
     @Test
     public void shouldUpdate_PlanStatusChanged_authorized() throws TechnicalException {
         prepareUpdate();
-        Plan plan = new Plan();
-        plan.setId("VALID");
-        plan.setName("Plan VALID");
-        plan.setStatus(PlanStatus.CLOSED.name());
-        updateApiEntity.setPlans(List.of(plan));
+
+        PlanEntity updatedPlan = new PlanEntity();
+        updatedPlan.setId("VALID");
+        updatedPlan.setName("Plan VALID");
+        updatedPlan.setStatus(PlanStatus.CLOSED);
+        updateApiEntity.setPlans(Set.of(updatedPlan));
+
+        PlanEntity originalPlan = new PlanEntity();
+        originalPlan.setId("VALID");
+        originalPlan.setStatus(PlanStatus.PUBLISHED);
+        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+
         api.setDefinition(
-            "{\"id\": \"" +
-            API_ID +
-            "\", \"gravitee\": \"2.0.0\", \"name\": \"" +
-            API_NAME +
-            "\",\"proxy\": {\"context_path\": \"/old\"}, \"plans\": [{ \"id\": \"VALID\", \"status\":\"PUBLISHED\"}]}"
+            "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
         );
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true);
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());

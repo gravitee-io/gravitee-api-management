@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -109,10 +110,22 @@ public class APIV1toAPIV2ConverterTest {
             assertThat(actual.getFlows().get(i)).isEqualToComparingFieldByFieldRecursively(expected.getFlows().get(i));
         }
         assertThat(actual.getPlans()).hasSameSizeAs(expected.getPlans());
-        for (int i = 0; i < actual.getPlans().size(); i++) {
-            assertThat(actual.getPlans().get(i))
+
+        List<PlanEntity> actualPlans = actual
+            .getPlans()
+            .stream()
+            .sorted(Comparator.comparing(PlanEntity::getId))
+            .collect(Collectors.toList());
+        List<PlanEntity> expectedPlans = expected
+            .getPlans()
+            .stream()
+            .sorted(Comparator.comparing(PlanEntity::getId))
+            .collect(Collectors.toList());
+
+        for (int i = 0; i < actualPlans.size(); i++) {
+            assertThat(actualPlans.get(i))
                 .isEqualToComparingOnlyGivenFields(
-                    expected.getPlans().get(i),
+                    expectedPlans.get(i),
                     "id",
                     "name",
                     "security",
@@ -123,12 +136,12 @@ public class APIV1toAPIV2ConverterTest {
                     "tags"
                 );
 
-            assertThat(actual.getPlans().get(i).getPaths()).isEmpty();
+            assertThat(actualPlans.get(i).getPaths()).isEmpty();
 
-            assertThat(actual.getPlans().get(i).getFlows()).hasSameSizeAs(expected.getPlans().get(i).getFlows());
-            for (int j = 0; j < actual.getPlans().get(i).getFlows().size(); j++) {
-                assertThat(actual.getPlans().get(i).getFlows().get(j))
-                    .isEqualToComparingFieldByFieldRecursively(expected.getPlans().get(i).getFlows().get(j));
+            assertThat(actualPlans.get(i).getFlows()).hasSameSizeAs(expectedPlans.get(i).getFlows());
+            for (int j = 0; j < actualPlans.get(i).getFlows().size(); j++) {
+                assertThat(actualPlans.get(i).getFlows().get(j))
+                    .isEqualToComparingFieldByFieldRecursively(expectedPlans.get(i).getFlows().get(j));
             }
         }
     }

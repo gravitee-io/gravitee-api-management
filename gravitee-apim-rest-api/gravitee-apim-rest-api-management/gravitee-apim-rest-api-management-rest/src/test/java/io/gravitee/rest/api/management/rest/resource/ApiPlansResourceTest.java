@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Arrays;
+import java.util.Set;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -127,12 +128,12 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         api.setGraviteeDefinitionVersion(version.getLabel());
 
         if (DefinitionVersion.V2.equals(version)) {
-            Plan plan1 = new Plan();
+            PlanEntity plan1 = new PlanEntity();
             plan1.setId(PLAN);
 
-            Plan plan2 = new Plan();
+            PlanEntity plan2 = new PlanEntity();
             plan2.setId("plan-2");
-            api.setPlans(Arrays.asList(plan1, plan2));
+            api.setPlans(Set.of(plan1, plan2));
         }
 
         return api;

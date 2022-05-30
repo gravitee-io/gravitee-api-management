@@ -75,7 +75,7 @@ public class PlanConverter {
                     .getPlans()
                     .stream()
                     .filter(pl -> plan.getId() != null && plan.getId().equals(pl.getId()))
-                    .map(io.gravitee.definition.model.Plan::getFlows)
+                    .map(PlanEntity::getFlows)
                     .findFirst();
                 planFlows.ifPresent(entity::setFlows);
             }

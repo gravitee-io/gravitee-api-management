@@ -21,6 +21,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.PropertiesEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -28,6 +29,7 @@ import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,10 +48,14 @@ public class ApiConverter {
     private ObjectMapper objectMapper;
 
     public ApiEntity toApiEntity(Api api) {
-        return toApiEntity(api, null);
+        return toApiEntity(api, new HashSet<>(), null);
     }
 
-    public ApiEntity toApiEntity(Api api, PrimaryOwnerEntity primaryOwnerEntity) {
+    public ApiEntity toApiEntity(Api api, Set<PlanEntity> plans) {
+        return toApiEntity(api, plans, null);
+    }
+
+    public ApiEntity toApiEntity(Api api, Set<PlanEntity> plans, PrimaryOwnerEntity primaryOwnerEntity) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setId(api.getId());
@@ -65,11 +71,7 @@ public class ApiConverter {
 
         if (api.getDefinition() != null) {
             try {
-                io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                    api.getDefinition(),
-                    io.gravitee.definition.model.Api.class
-                );
-
+                var apiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
                 apiEntity.setProxy(apiDefinition.getProxy());
                 apiEntity.setPaths(apiDefinition.getPaths());
                 apiEntity.setServices(apiDefinition.getServices());
@@ -84,8 +86,7 @@ public class ApiConverter {
                 }
                 if (DefinitionVersion.V2.equals(apiDefinition.getDefinitionVersion())) {
                     apiEntity.setFlows(apiDefinition.getFlows());
-                    // TODO : ALL CALLERS SHOULD PROVIDE PLANS
-                    //apiEntity.setPlans(new ArrayList<>(apiDefinition.getPlans()));
+                    apiEntity.setPlans(plans);
                 } else {
                     apiEntity.setFlows(null);
                     apiEntity.setPlans(null);
