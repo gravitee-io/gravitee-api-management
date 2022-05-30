@@ -88,6 +88,8 @@ services:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_plugins_path_0=$${gravitee.home}/plugins
+      - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
     networks:
       - storage
       - frontend
@@ -101,7 +103,6 @@ services:
     links:
       - mongodb
       - elasticsearch
-      - "alert_engine:alert-engine"
     depends_on:
       - mongodb
       - elasticsearch
@@ -117,6 +118,8 @@ services:
       - gravitee_alerts_alert-engine_ws_endpoints[0]=http://alert-engine:8072/
       - gravitee_alerts_alert-engine_ws_security_username=admin
       - gravitee_alerts_alert-engine_ws_security_password=adminadmin
+      - gravitee_plugins_path_0=$${gravitee.home}/plugins
+      - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
     networks:
       - storage
       - frontend
