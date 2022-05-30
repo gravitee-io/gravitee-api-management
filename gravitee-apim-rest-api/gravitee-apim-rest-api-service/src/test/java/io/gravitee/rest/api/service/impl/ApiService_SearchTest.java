@@ -111,6 +111,9 @@ public class ApiService_SearchTest {
     @Mock
     private SearchEngineService searchEngineService;
 
+    @Mock
+    private PlanService planService;
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
