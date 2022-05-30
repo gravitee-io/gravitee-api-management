@@ -158,21 +158,19 @@ public class PlanService_PublishTest {
     }
 
     @Test
-    public void shouldPublishAndUpdateApiDefinition() throws TechnicalException {
+    public void shouldPublishAndUpdatePlan() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(apiEntity.getGraviteeDefinitionVersion()).thenReturn(DefinitionVersion.V2.getLabel());
         when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(plan, times(1)).setStatus(Plan.Status.PUBLISHED);
         verify(planRepository, times(1)).update(plan);
-        verify(apiService).update(eq(GraviteeContext.getExecutionContext()), anyString(), any());
     }
 
     @Test

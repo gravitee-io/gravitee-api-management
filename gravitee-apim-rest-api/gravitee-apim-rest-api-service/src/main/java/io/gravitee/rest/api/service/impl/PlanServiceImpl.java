@@ -181,12 +181,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             Plan plan = planConverter.toPlan(newPlan, DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()));
             plan = planRepository.create(plan);
 
-            if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
-                UpdateApiEntity updateApi = apiConverter.toUpdateApiEntity(api);
-                updateApi.addPlan(fillApiDefinitionPlan(new io.gravitee.definition.model.Plan(), plan, newPlan.getFlows()));
-                apiService.update(executionContext, api.getId(), updateApi);
-            }
-
             auditService.createApiAuditLog(
                 executionContext,
                 newPlan.getApi(),
@@ -295,8 +289,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             }
 
             newPlan.setCharacteristics(updatePlan.getCharacteristics());
-
-            updatePlanToApiDefinition(executionContext, api, newPlan, updatePlan.getFlows(), fromImport);
 
             // if order change, reorder all pages
             if (newPlan.getOrder() != updatePlan.getOrder()) {
@@ -455,60 +447,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         }
     }
 
-    private void updatePlanToApiDefinition(final ExecutionContext executionContext, Plan updatedPlan) {
-        String apiId = updatedPlan.getApi();
-        if (apiId != null) {
-            ApiEntity api = apiService.findById(executionContext, apiId);
-            updatePlanToApiDefinition(executionContext, api, updatedPlan, null, false);
-        }
-    }
-
-    private void updatePlanToApiDefinition(
-        final ExecutionContext executionContext,
-        ApiEntity api,
-        Plan updatedPlan,
-        List<Flow> flows,
-        boolean fromImport
-    ) {
-        if (api != null) {
-            if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
-                final Optional<io.gravitee.definition.model.Plan> existingPlan = api
-                    .getPlans()
-                    .stream()
-                    .filter(plan -> plan.getId().equals(updatedPlan.getId()))
-                    .findFirst();
-
-                final UpdateApiEntity updateApi = apiConverter.toUpdateApiEntity(api);
-                if (existingPlan.isPresent()) {
-                    // plan already exist, provide flows only if this is an import to override
-                    fillApiDefinitionPlan(existingPlan.get(), updatedPlan, flows);
-                } else if (fromImport) {
-                    // we are importing an API, create the plan definition
-                    updateApi.addPlan(fillApiDefinitionPlan(new io.gravitee.definition.model.Plan(), updatedPlan, flows));
-                }
-                apiService.update(executionContext, updatedPlan.getApi(), updateApi);
-            }
-        }
-    }
-
-    private io.gravitee.definition.model.Plan fillApiDefinitionPlan(
-        io.gravitee.definition.model.Plan plan,
-        Plan updatedPlan,
-        List<Flow> flows
-    ) {
-        plan.setId(updatedPlan.getId());
-        plan.setName(updatedPlan.getName());
-        plan.setSecurity(updatedPlan.getSecurity().name());
-        plan.setSecurityDefinition(updatedPlan.getSecurityDefinition());
-        plan.setStatus(updatedPlan.getStatus().name());
-        plan.setTags(updatedPlan.getTags());
-        plan.setSelectionRule(updatedPlan.getSelectionRule());
-        if (flows != null) {
-            plan.setFlows(flows);
-        }
-        return plan;
-    }
-
     @Override
     public PlanEntity publish(final ExecutionContext executionContext, String planId) {
         try {
@@ -561,8 +499,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setUpdatedAt(plan.getPublishedAt());
             plan.setNeedRedeployAt(plan.getPublishedAt());
 
-            updatePlanToApiDefinition(executionContext, plan);
-
             // Save plan
             plan = planRepository.update(plan);
 
@@ -612,8 +548,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             // Update plan status
             plan.setStatus(Plan.Status.DEPRECATED);
             plan.setUpdatedAt(new Date());
-
-            updatePlanToApiDefinition(executionContext, plan);
 
             // Save plan
             plan = planRepository.update(plan);

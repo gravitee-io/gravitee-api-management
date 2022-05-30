@@ -356,10 +356,6 @@ public class UpdateApiEntity {
         this.graviteeDefinitionVersion = graviteeDefinitionVersion;
     }
 
-    public void addPlan(Plan plan) {
-        this.plans.add(plan);
-    }
-
     public FlowMode getFlowMode() {
         return flowMode;
     }
