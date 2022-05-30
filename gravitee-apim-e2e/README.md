@@ -7,10 +7,11 @@ They are based on Cypress and Jest and can be run against a locally running APIM
 
 ## Getting Started
 
-First you need to install the dependencies:
+First you need to install the dependencies & build test:
 
 ```shell
 npm install
+npm run build
 ```
 
 Then, the following NPM scripts are available:
@@ -18,7 +19,8 @@ Then, the following NPM scripts are available:
  - `npm run test:ui:dev`: Run the cypress UI tests against a locally running APIM
  - `npm run test:api`: Run the APIM stack and the jest API tests in docker ([more details](./docker/api-tests/README.md))
  - `npm run test:api:dev`: Run the jest API tests against a locally running APIM
- - `npm run apim:serve`: Run the APIM stack in docker in order to run tests locally from your IDE
+ - `npm run apim:serve`: Run the APIM stack in docker with last apim release by default in order to run tests locally from your IDE.  
+   To run with latest master use this env-var `APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-latest npm run apim:serve`
  - `npm run apim:clean`: Stop and remove the containers & volumes.
  - `npm run bulk`: Run jest bulk scripts to create data to local environment
    - You can pass some options like `npm run bulk -- --apis=50 --applications=5`, available options:
