@@ -82,13 +82,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Deploy dictionary {}", id);
 
-            Optional<Dictionary> optDictionary = dictionaryRepository.findById(id);
-            if (!optDictionary.isPresent()) {
-                throw new DictionaryNotFoundException(id);
-            }
+            Dictionary dictionary = dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
 
             // add deployment date
-            Dictionary dictionary = optDictionary.get();
             dictionary.setUpdatedAt(new Date());
             dictionary.setDeployedAt(dictionary.getUpdatedAt());
 
@@ -120,13 +116,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Undeploy dictionary {}", id);
 
-            Optional<Dictionary> optDictionary = dictionaryRepository.findById(id);
-            if (!optDictionary.isPresent()) {
-                throw new DictionaryNotFoundException(id);
-            }
+            Dictionary dictionary = dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
 
             // add deployment date
-            Dictionary dictionary = optDictionary.get();
             dictionary.setUpdatedAt(new Date());
 
             dictionary = dictionaryRepository.update(dictionary);
@@ -157,17 +149,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Start dictionary {}", id);
 
-            Optional<Dictionary> optDictionary = dictionaryRepository.findById(id);
-            if (!optDictionary.isPresent()) {
-                throw new DictionaryNotFoundException(id);
-            }
+            Dictionary dictionary = dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
 
             // add deployment date
-            Dictionary dictionary = optDictionary.get();
             dictionary.setUpdatedAt(new Date());
             dictionary.setState(LifecycleState.STARTED);
 
-            dictionary = dictionaryRepository.update(dictionary);
+            Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
 
             Map<String, String> properties = new HashMap<>();
             properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
@@ -185,12 +173,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             createAuditLog(
                 executionContext,
                 Dictionary.AuditEvent.DICTIONARY_UPDATED,
-                dictionary.getUpdatedAt(),
-                optDictionary.get(),
-                dictionary
+                updatedDictionary.getUpdatedAt(),
+                dictionary,
+                updatedDictionary
             );
 
-            return convert(dictionary);
+            return convert(updatedDictionary);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to undeploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to undeploy " + id, ex);
@@ -202,17 +190,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Stop dictionary {}", id);
 
-            Optional<Dictionary> optDictionary = dictionaryRepository.findById(id);
-            if (!optDictionary.isPresent()) {
-                throw new DictionaryNotFoundException(id);
-            }
+            Dictionary dictionary = dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
 
             // add deployment date
-            Dictionary dictionary = optDictionary.get();
             dictionary.setUpdatedAt(new Date());
             dictionary.setState(LifecycleState.STOPPED);
 
-            dictionary = dictionaryRepository.update(dictionary);
+            Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
 
             Map<String, String> properties = new HashMap<>();
             properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
@@ -230,12 +214,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             createAuditLog(
                 executionContext,
                 Dictionary.AuditEvent.DICTIONARY_UPDATED,
-                dictionary.getUpdatedAt(),
-                optDictionary.get(),
-                dictionary
+                updatedDictionary.getUpdatedAt(),
+                dictionary,
+                updatedDictionary
             );
 
-            return convert(dictionary);
+            return convert(updatedDictionary);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to undeploy dictionary {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to undeploy " + id, ex);
@@ -277,7 +261,6 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             LOGGER.debug("Update dictionary {}", updateDictionaryEntity);
 
             Optional<Dictionary> optDictionary = dictionaryRepository.findById(id);
-
             if (!optDictionary.isPresent()) {
                 throw new DictionaryNotFoundException(updateDictionaryEntity.getName());
             }
@@ -325,14 +308,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     public DictionaryEntity findById(String id) {
         try {
             LOGGER.debug("Find dictionary by ID: {}", id);
-
-            Optional<Dictionary> dictionary = dictionaryRepository.findById(id);
-
-            if (dictionary.isPresent()) {
-                return convert(dictionary.get());
-            }
-
-            throw new DictionaryNotFoundException(id);
+            return dictionaryRepository.findById(id).map(this::convert).orElseThrow(() -> new DictionaryNotFoundException(id));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);

@@ -1205,11 +1205,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 optApi = optApi.filter(result -> result.getEnvironmentId().equals(executionContext.getEnvironmentId()));
             }
 
-            if (optApi.isPresent()) {
-                return optApi.get();
-            }
-
-            throw new ApiNotFoundException(apiId);
+            return optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
@@ -1547,10 +1543,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Update API {}", apiId);
 
-            Optional<Api> optApiToUpdate = apiRepository.findById(apiId);
-            if (!optApiToUpdate.isPresent()) {
-                throw new ApiNotFoundException(apiId);
-            }
+            Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
             // check if entrypoints are unique
             final Collection<VirtualHost> sanitizedVirtualHosts = virtualHostService.sanitizeAndValidate(
@@ -1586,7 +1579,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check resource configurations.
             checkResourceConfigurations(updateApiEntity);
 
-            final ApiEntity apiToCheck = convert(executionContext, optApiToUpdate.get());
+            final ApiEntity apiToCheck = convert(executionContext, apiToUpdate);
 
             // if user changes definition version, then check if he is allowed to do it
             checkDefinitionVersion(updateApiEntity, apiToCheck);
@@ -1649,8 +1642,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // encrypt API properties
             encryptProperties(updateApiEntity.getPropertyList());
-
-            Api apiToUpdate = optApiToUpdate.get();
 
             if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED.equals(updateApiEntity.getLifecycleState())) {
                 planService
@@ -1989,12 +1980,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Delete API {}", apiId);
 
-            Optional<Api> optApi = apiRepository.findById(apiId);
-            if (!optApi.isPresent()) {
-                throw new ApiNotFoundException(apiId);
-            }
+            Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
-            if (optApi.get().getLifecycleState() == LifecycleState.STARTED) {
+            if (api.getLifecycleState() == LifecycleState.STARTED) {
                 throw new ApiRunningStateException(apiId);
             } else {
                 // Delete plans
@@ -2055,17 +2043,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // delete all reference on api quality rule
                 apiQualityRuleRepository.deleteByApi(apiId);
                 // Audit
-                auditService.createApiAuditLog(
-                    executionContext,
-                    apiId,
-                    Collections.emptyMap(),
-                    API_DELETED,
-                    new Date(),
-                    optApi.get(),
-                    null
-                );
+                auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
                 // remove from search engine
-                searchEngineService.delete(executionContext, convert(executionContext, optApi.get()));
+                searchEngineService.delete(executionContext, convert(executionContext, api));
 
                 mediaService.deleteAllByApi(apiId);
 
