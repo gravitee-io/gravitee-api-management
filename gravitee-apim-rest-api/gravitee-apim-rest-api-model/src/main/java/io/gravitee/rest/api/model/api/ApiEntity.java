@@ -27,6 +27,10 @@ import io.gravitee.rest.api.model.search.Indexable;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.*;
 import javax.validation.constraints.NotNull;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * --------------------------------------------------------------------------------------------------------------
@@ -42,9 +46,14 @@ import javax.validation.constraints.NotNull;
  * @author GraviteeSource Team
  */
 @JsonFilter("apiMembershipTypeFilter")
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ApiEntity implements Indexable {
 
     @Schema(description = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
+    @EqualsAndHashCode.Include
     private String id;
 
     @Schema(description = "API's crossId. Identifies API across environments.", example = "df83b2a4-cc3e-3f80-9f0d-c138c106c076")
@@ -54,6 +63,7 @@ public class ApiEntity implements Indexable {
     private String name;
 
     @Schema(description = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
+    @EqualsAndHashCode.Include
     private String version;
 
     @Schema(
@@ -202,128 +212,6 @@ public class ApiEntity implements Indexable {
     @JsonIgnore
     private String referenceId;
 
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    @Override
-    public String getReferenceType() {
-        return this.referenceType;
-    }
-
-    @Override
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    @Override
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    @Override
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Visibility getVisibility() {
-        return visibility;
-    }
-
-    public void setVisibility(Visibility visibility) {
-        this.visibility = visibility;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Lifecycle.State getState() {
-        return state;
-    }
-
-    public void setState(Lifecycle.State state) {
-        this.state = state;
-    }
-
-    public Proxy getProxy() {
-        return proxy;
-    }
-
-    public void setProxy(Proxy proxy) {
-        this.proxy = proxy;
-    }
-
-    public Map<String, List<Rule>> getPaths() {
-        return paths;
-    }
-
-    public void setPaths(Map<String, List<Rule>> paths) {
-        this.paths = paths;
-    }
-
-    public PrimaryOwnerEntity getPrimaryOwner() {
-        return primaryOwner;
-    }
-
-    public void setPrimaryOwner(PrimaryOwnerEntity primaryOwner) {
-        this.primaryOwner = primaryOwner;
-    }
-
-    public Services getServices() {
-        return services;
-    }
-
-    public void setServices(Services services) {
-        this.services = services;
-    }
-
-    public Properties getProperties() {
-        return properties;
-    }
-
     @JsonIgnore
     public void setProperties(Properties properties) {
         this.properties = properties;
@@ -341,256 +229,5 @@ public class ApiEntity implements Indexable {
             return properties.getProperties();
         }
         return Collections.emptyList();
-    }
-
-    public Set<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(Set<String> tags) {
-        this.tags = tags;
-    }
-
-    public Date getDeployedAt() {
-        return deployedAt;
-    }
-
-    public void setDeployedAt(Date deployedAt) {
-        this.deployedAt = deployedAt;
-    }
-
-    public String getPicture() {
-        return picture;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
-    }
-
-    public String getPictureUrl() {
-        return pictureUrl;
-    }
-
-    public void setPictureUrl(String pictureUrl) {
-        this.pictureUrl = pictureUrl;
-    }
-
-    public List<Resource> getResources() {
-        return resources;
-    }
-
-    public void setResources(List<Resource> resources) {
-        this.resources = resources;
-    }
-
-    public Set<String> getCategories() {
-        return categories;
-    }
-
-    public void setCategories(Set<String> categories) {
-        this.categories = categories;
-    }
-
-    public Set<String> getGroups() {
-        return groups;
-    }
-
-    public void setGroups(Set<String> groups) {
-        this.groups = groups;
-    }
-
-    public List<String> getLabels() {
-        return labels;
-    }
-
-    public void setLabels(List<String> labels) {
-        this.labels = labels;
-    }
-
-    public Set<String> getPathMappings() {
-        return pathMappings;
-    }
-
-    public void setPathMappings(Set<String> pathMappings) {
-        this.pathMappings = pathMappings;
-    }
-
-    public Map<String, Object> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata;
-    }
-
-    public Map<String, Map<String, ResponseTemplate>> getResponseTemplates() {
-        return responseTemplates;
-    }
-
-    public void setResponseTemplates(Map<String, Map<String, ResponseTemplate>> responseTemplates) {
-        this.responseTemplates = responseTemplates;
-    }
-
-    public ApiLifecycleState getLifecycleState() {
-        return lifecycleState;
-    }
-
-    public void setLifecycleState(ApiLifecycleState lifecycleState) {
-        this.lifecycleState = lifecycleState;
-    }
-
-    public WorkflowState getWorkflowState() {
-        return workflowState;
-    }
-
-    public void setWorkflowState(WorkflowState workflowState) {
-        this.workflowState = workflowState;
-    }
-
-    public List<ApiEntrypointEntity> getEntrypoints() {
-        return entrypoints;
-    }
-
-    public void setEntrypoints(List<ApiEntrypointEntity> entrypoints) {
-        this.entrypoints = entrypoints;
-    }
-
-    public String getContextPath() {
-        return contextPath;
-    }
-
-    public void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
-    }
-
-    public boolean isDisableMembershipNotifications() {
-        return disableMembershipNotifications;
-    }
-
-    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
-        this.disableMembershipNotifications = disableMembershipNotifications;
-    }
-
-    public String getBackground() {
-        return background;
-    }
-
-    public void setBackground(String background) {
-        this.background = background;
-    }
-
-    public String getBackgroundUrl() {
-        return backgroundUrl;
-    }
-
-    public void setBackgroundUrl(String backgroundUrl) {
-        this.backgroundUrl = backgroundUrl;
-    }
-
-    public List<Flow> getFlows() {
-        return flows;
-    }
-
-    public void setFlows(List<Flow> flows) {
-        this.flows = flows;
-    }
-
-    public Set<PlanEntity> getPlans() {
-        return plans;
-    }
-
-    public void setPlans(Set<PlanEntity> plans) {
-        this.plans = plans;
-    }
-
-    public String getGraviteeDefinitionVersion() {
-        return graviteeDefinitionVersion;
-    }
-
-    public void setGraviteeDefinitionVersion(String graviteeDefinitionVersion) {
-        this.graviteeDefinitionVersion = graviteeDefinitionVersion;
-    }
-
-    public FlowMode getFlowMode() {
-        return flowMode;
-    }
-
-    public void setFlowMode(FlowMode flowMode) {
-        this.flowMode = flowMode;
-    }
-
-    public String getCrossId() {
-        return crossId;
-    }
-
-    public void setCrossId(String crossId) {
-        this.crossId = crossId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ApiEntity api = (ApiEntity) o;
-        return Objects.equals(id, api.id) && Objects.equals(version, api.version);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, version);
-    }
-
-    public String toString() {
-        return (
-            "ApiEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", crossId='" +
-            crossId +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", version='" +
-            version +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", proxy=" +
-            proxy +
-            ", paths=" +
-            paths +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            ", visibility=" +
-            visibility +
-            ", state=" +
-            state +
-            ", primaryOwner=" +
-            primaryOwner +
-            ", tags=" +
-            tags +
-            ", category=" +
-            categories +
-            ", groups=" +
-            groups +
-            ", pathMappings=" +
-            pathMappings +
-            ", lifecycleState=" +
-            lifecycleState +
-            ", workflowState=" +
-            workflowState +
-            ", disableMembershipNotifications=" +
-            disableMembershipNotifications +
-            ", graviteeDefinitionVersion=" +
-            graviteeDefinitionVersion +
-            ", flowMode=" +
-            flowMode +
-            '}'
-        );
     }
 }
