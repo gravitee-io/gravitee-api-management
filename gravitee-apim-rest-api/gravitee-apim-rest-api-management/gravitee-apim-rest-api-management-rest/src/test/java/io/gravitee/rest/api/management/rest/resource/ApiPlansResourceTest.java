@@ -15,8 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -85,7 +84,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldCloseApiV1Plan() {
+    public void shouldCloseApiPlan() {
         ApiEntity api = getApi(DefinitionVersion.V1);
 
         PlanEntity existingPlan = new PlanEntity();
@@ -101,32 +100,12 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         final Response response = envTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
 
         assertEquals(OK_200, response.getStatus());
+        verify(planService, times(1)).close(eq(GraviteeContext.getExecutionContext()), eq(PLAN), any());
         verify(apiService, never()).update(eq(GraviteeContext.getExecutionContext()), eq(API), any());
     }
 
     @Test
-    public void shouldCloseApiV2Plan() {
-        ApiEntity api = getApi(DefinitionVersion.V2);
-
-        PlanEntity existingPlan = new PlanEntity();
-        existingPlan.setName(PLAN);
-        existingPlan.setApi(API);
-
-        PlanEntity closedPlan = new PlanEntity();
-        closedPlan.setId("plan-1");
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
-        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);
-        when(planService.close(eq(GraviteeContext.getExecutionContext()), any(), any())).thenReturn(closedPlan);
-        when(apiConverter.toUpdateApiEntity(any())).thenReturn(new UpdateApiEntity());
-
-        final Response response = envTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
-
-        assertEquals(OK_200, response.getStatus());
-        verify(apiService, times(1)).update(eq(GraviteeContext.getExecutionContext()), eq(API), any());
-    }
-
-    @Test
-    public void shouldDeleteApiV1Plan() {
+    public void shouldDeleteApiPlan() {
         ApiEntity api = getApi(DefinitionVersion.V1);
 
         PlanEntity existingPlan = new PlanEntity();
@@ -136,28 +115,10 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
         when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);
 
-        final Response response = envTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
+        final Response response = envTarget().path(API).path("plans").path(PLAN).request().delete();
 
-        assertEquals(OK_200, response.getStatus());
-        verify(apiService, never()).update(eq(GraviteeContext.getExecutionContext()), eq(API), any());
-    }
-
-    @Test
-    public void shouldDeleteApiV2Plan() {
-        ApiEntity api = getApi(DefinitionVersion.V2);
-
-        PlanEntity existingPlan = new PlanEntity();
-        existingPlan.setName(PLAN);
-        existingPlan.setApi(API);
-
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
-        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);
-        when(apiConverter.toUpdateApiEntity(any())).thenReturn(new UpdateApiEntity());
-
-        final Response response = envTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
-
-        assertEquals(OK_200, response.getStatus());
-        verify(apiService, times(1)).update(eq(GraviteeContext.getExecutionContext()), eq(API), any());
+        assertEquals(NO_CONTENT_204, response.getStatus());
+        verify(planService, times(1)).delete(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
     }
 
     private ApiEntity getApi(DefinitionVersion version) {
