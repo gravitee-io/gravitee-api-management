@@ -20,6 +20,8 @@ import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.logging.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
 import io.gravitee.gateway.core.logging.processor.LoggableRequestProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,8 +30,10 @@ import io.gravitee.gateway.core.logging.processor.LoggableRequestProcessor;
  */
 public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
 
+    private final Logger logger = LoggerFactory.getLogger(ApiLoggableRequestProcessor.class);
+
     private final LoggingMode mode;
-    private int maxSizeLogMessage;
+    private int maxSizeLogMessage = -1;
     private String excludedResponseTypes;
 
     public ApiLoggableRequestProcessor(Logging logging) {
@@ -52,10 +56,49 @@ public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
         return false;
     }
 
-    public void setMaxSizeLogMessage(int maxSizeLogMessage) {
+    /**
+     * Define the max size of the logging (for each payload, whatever it's about the request / response / consumer / proxy)
+     * Which means that if size is define to 5, it will be 5 x 4 = 20 (at most).
+     *
+     * For backward compatibility, we are considering that default unit is MB
+     * @param maxSizeLogMessage
+     */
+    public void setMaxSizeLogMessage(String maxSizeLogMessage) {
         // log max size limit is in MB format
         // -1 means no limit
-        this.maxSizeLogMessage = (maxSizeLogMessage <= -1) ? -1 : maxSizeLogMessage * (1024 * 1024);
+        if (maxSizeLogMessage != null) {
+            try {
+                int value = Integer.parseInt(maxSizeLogMessage);
+                if (value >= 0) {
+                    // By default, consider MB
+                    this.maxSizeLogMessage = Integer.parseInt(maxSizeLogMessage) * (1024 * 1024);
+                }
+            } catch (NumberFormatException nfe) {
+                maxSizeLogMessage = maxSizeLogMessage.toUpperCase();
+
+                try {
+                    if (maxSizeLogMessage.endsWith("MB") || maxSizeLogMessage.endsWith("M")) {
+                        int value = Integer.parseInt(maxSizeLogMessage.substring(0, maxSizeLogMessage.indexOf('M')));
+                        this.maxSizeLogMessage = value * (1024 * 1024);
+                    } else if (maxSizeLogMessage.endsWith("KB") || maxSizeLogMessage.endsWith("K")) {
+                        int value = Integer.parseInt(maxSizeLogMessage.substring(0, maxSizeLogMessage.indexOf('K')));
+                        this.maxSizeLogMessage = value * (1024);
+                    } else if (maxSizeLogMessage.endsWith("B")) {
+                        this.maxSizeLogMessage = Integer.parseInt(maxSizeLogMessage.substring(0, maxSizeLogMessage.indexOf('B')));
+                    } else {
+                        logger.error("Max size for API logging is invalid, no limit is defined. (value: {})", maxSizeLogMessage);
+                        this.maxSizeLogMessage = -1;
+                    }
+                } catch (NumberFormatException nfe2) {
+                    logger.error("Max size for API logging is invalid, no limit is defined. (value: {})", maxSizeLogMessage);
+                    this.maxSizeLogMessage = -1;
+                }
+            }
+        }
+    }
+
+    public int getMaxSizeLogMessage() {
+        return maxSizeLogMessage;
     }
 
     public void setExcludedResponseTypes(String excludedResponseTypes) {
