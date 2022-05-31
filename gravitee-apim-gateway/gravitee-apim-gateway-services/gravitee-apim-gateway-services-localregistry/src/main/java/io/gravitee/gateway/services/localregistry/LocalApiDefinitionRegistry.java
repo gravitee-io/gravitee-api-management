@@ -53,7 +53,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
 
     private ExecutorService executor;
 
-    private Map<Path, Api> definitions = new HashMap<>();
+    private final Map<Path, Api> definitions = new HashMap<>();
 
     /**
      * Empty constructor is used to use a workspace directory defined from @Value annotation
@@ -141,6 +141,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                             try {
                                 key = watcher.take();
                             } catch (InterruptedException ex) {
+                                Thread.currentThread().interrupt();
                                 return;
                             }
 

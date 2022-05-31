@@ -15,7 +15,8 @@
  */
 package io.gravitee.gateway.reactor.processor.forward;
 
-import io.gravitee.common.http.HttpHeaders;
+import static io.gravitee.gateway.api.http.HttpHeaderNames.X_FORWARDED_FOR;
+
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
@@ -37,7 +38,7 @@ public class XForwardForProcessor extends AbstractProcessor<ExecutionContext> {
     public void handle(ExecutionContext context) {
         final Request request = context.request();
 
-        String xForwardedForHeader = request.headers().getFirst(HttpHeaders.X_FORWARDED_FOR);
+        String xForwardedForHeader = request.headers().get(X_FORWARDED_FOR);
 
         if (xForwardedForHeader != null && !xForwardedForHeader.isEmpty()) {
             String[] xForwardedForValues = commaDelimitedListToStringArray(xForwardedForHeader);
@@ -65,7 +66,7 @@ public class XForwardForProcessor extends AbstractProcessor<ExecutionContext> {
      */
     private static String[] commaDelimitedListToStringArray(String commaDelimitedStrings) {
         return (commaDelimitedStrings == null || commaDelimitedStrings.length() == 0)
-            ? null
+            ? new String[0]
             : commaSeparatedValuesPattern.split(commaDelimitedStrings);
     }
 }

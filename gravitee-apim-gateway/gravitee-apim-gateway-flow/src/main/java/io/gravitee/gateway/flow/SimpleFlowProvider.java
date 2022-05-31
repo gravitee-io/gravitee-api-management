@@ -65,10 +65,7 @@ public class SimpleFlowProvider implements FlowProvider {
                         flowPolicyResolverFactory.create(flow).resolve(streamType, context),
                         streamType,
                         context,
-                        policies ->
-                            streamType == StreamType.ON_REQUEST
-                                ? OrderedPolicyChain.create(policies, context)
-                                : OrderedPolicyChain.create(policies, context)
+                        policies -> OrderedPolicyChain.create(policies, context)
                     )
                 );
             }
