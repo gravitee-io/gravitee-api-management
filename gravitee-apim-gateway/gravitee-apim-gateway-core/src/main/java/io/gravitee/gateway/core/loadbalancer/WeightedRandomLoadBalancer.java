@@ -17,7 +17,6 @@ package io.gravitee.gateway.core.loadbalancer;
 
 import io.gravitee.gateway.api.endpoint.Endpoint;
 import java.util.Collection;
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -75,7 +74,7 @@ public class WeightedRandomLoadBalancer extends WeightedLoadBalancer {
             runtimeRatioSum = distributionRatioSum;
         }
 
-        WeightRatio selected = null;
+        WeightRatio selected = new WeightRatio(0, 0);
         int randomWeight = rnd.nextInt(runtimeRatioSum);
         int choiceWeight = 0;
         for (WeightRatio distributionRatio : getRuntimeRatios()) {

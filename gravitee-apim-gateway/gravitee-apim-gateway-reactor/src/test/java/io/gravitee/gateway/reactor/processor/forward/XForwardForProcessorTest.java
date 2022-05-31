@@ -21,7 +21,6 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
-import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.reporter.api.http.Metrics;
 import java.util.concurrent.CountDownLatch;
@@ -59,7 +58,7 @@ public class XForwardForProcessorTest {
     public void test_not_X_Forward_for_in_Header() throws InterruptedException {
         final CountDownLatch lock = new CountDownLatch(1);
 
-        when(headers.getFirst(HttpHeaderNames.X_FORWARDED_FOR)).thenReturn(null);
+        when(headers.get("X-Forwarded-For")).thenReturn(null);
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
@@ -80,7 +79,7 @@ public class XForwardForProcessorTest {
     public void test_with_one_X_Forward_for_in_Header() throws InterruptedException {
         final CountDownLatch lock = new CountDownLatch(1);
 
-        when(headers.getFirst(HttpHeaderNames.X_FORWARDED_FOR)).thenReturn("197.225.30.74");
+        when(headers.get("X-Forwarded-For")).thenReturn("197.225.30.74");
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
@@ -101,7 +100,7 @@ public class XForwardForProcessorTest {
     public void test_with_one_X_Forward_for_in_Header_withPort() throws InterruptedException {
         final CountDownLatch lock = new CountDownLatch(1);
 
-        when(headers.getFirst(HttpHeaderNames.X_FORWARDED_FOR)).thenReturn("197.225.30.74:5000");
+        when(headers.get("X-Forwarded-For")).thenReturn("197.225.30.74:5000");
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
@@ -122,7 +121,7 @@ public class XForwardForProcessorTest {
     public void test_with_many_X_Forward_for_in_Header() throws InterruptedException {
         final CountDownLatch lock = new CountDownLatch(1);
 
-        when(headers.getFirst(HttpHeaderNames.X_FORWARDED_FOR)).thenReturn("197.225.30.74, 10.0.0.1, 10.0.0.2");
+        when(headers.get("X-Forwarded-For")).thenReturn("197.225.30.74, 10.0.0.1, 10.0.0.2");
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
@@ -143,7 +142,7 @@ public class XForwardForProcessorTest {
     public void test_with_many_X_Forward_for_in_Header_withPorts() throws InterruptedException {
         final CountDownLatch lock = new CountDownLatch(1);
 
-        when(headers.getFirst(HttpHeaderNames.X_FORWARDED_FOR)).thenReturn("197.225.30.74:5000, 10.0.0.1, 10.0.0.2");
+        when(headers.get("X-Forwarded-For")).thenReturn("197.225.30.74:5000, 10.0.0.1, 10.0.0.2");
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
@@ -164,7 +163,7 @@ public class XForwardForProcessorTest {
     public void test_with_one_X_Forward_for_in_Header_withIPv6() throws InterruptedException {
         final CountDownLatch lock = new CountDownLatch(1);
 
-        when(headers.getFirst(HttpHeaderNames.X_FORWARDED_FOR)).thenReturn("2001:0db8:85a3:0000:0000:8a2e:0370:7334");
+        when(headers.get("X-Forwarded-For")).thenReturn("2001:0db8:85a3:0000:0000:8a2e:0370:7334");
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
@@ -185,7 +184,7 @@ public class XForwardForProcessorTest {
     public void test_with_one_X_Forward_for_in_Header_withIPv6_hexadecimalFormat() throws InterruptedException {
         final CountDownLatch lock = new CountDownLatch(1);
 
-        when(headers.getFirst(HttpHeaderNames.X_FORWARDED_FOR)).thenReturn("2001:db8:85a3:0:0:8a2e:370:7334");
+        when(headers.get("X-Forwarded-For")).thenReturn("2001:db8:85a3:0:0:8a2e:370:7334");
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
@@ -206,7 +205,7 @@ public class XForwardForProcessorTest {
     public void test_with_one_X_Forward_for_in_Header_withIPv6_hexadecimalFormat_consecutiveColons() throws InterruptedException {
         final CountDownLatch lock = new CountDownLatch(1);
 
-        when(headers.getFirst(HttpHeaderNames.X_FORWARDED_FOR)).thenReturn("2001:db8:85a3::8a2e:370:7334");
+        when(headers.get("X-Forwarded-For")).thenReturn("2001:db8:85a3::8a2e:370:7334");
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()

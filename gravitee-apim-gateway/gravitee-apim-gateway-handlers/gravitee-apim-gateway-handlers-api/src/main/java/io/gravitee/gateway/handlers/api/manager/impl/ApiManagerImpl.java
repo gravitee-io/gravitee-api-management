@@ -32,7 +32,6 @@ import java.security.GeneralSecurityException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +66,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
     private Cache<String, Api> apis;
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         apis = cacheManager.getOrCreateCache("apis");
         apis.addCacheListener(this);
     }
@@ -158,8 +157,9 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
                 refreshAllExecutor.invokeAll(toInvoke);
                 refreshAllExecutor.shutdown();
                 while (!refreshAllExecutor.awaitTermination(100, TimeUnit.MILLISECONDS));
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
                 logger.error("Unable to refresh apis", e);
+                Thread.currentThread().interrupt();
             } finally {
                 refreshAllExecutor.shutdown();
             }
@@ -212,22 +212,19 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
             .getPlans()
             .stream()
             .filter(
-                new Predicate<Plan>() {
-                    @Override
-                    public boolean test(Plan plan) {
-                        if (plan.getTags() != null && !plan.getTags().isEmpty()) {
-                            boolean hasMatchingTags = gatewayConfiguration.hasMatchingTags(plan.getTags());
-                            if (!hasMatchingTags) {
-                                logger.debug(
-                                    "Plan name[{}] api[{}] has been ignored because not in configured sharding tags",
-                                    plan.getName(),
-                                    api.getName()
-                                );
-                            }
-                            return hasMatchingTags;
+                plan -> {
+                    if (plan.getTags() != null && !plan.getTags().isEmpty()) {
+                        boolean hasMatchingTags = gatewayConfiguration.hasMatchingTags(plan.getTags());
+                        if (!hasMatchingTags) {
+                            logger.debug(
+                                "Plan name[{}] api[{}] has been ignored because not in configured sharding tags",
+                                plan.getName(),
+                                api.getName()
+                            );
                         }
-                        return true;
+                        return hasMatchingTags;
                     }
+                    return true;
                 }
             )
             .collect(Collectors.toList());

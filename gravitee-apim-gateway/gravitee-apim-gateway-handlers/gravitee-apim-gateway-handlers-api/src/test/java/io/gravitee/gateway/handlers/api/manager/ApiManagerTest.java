@@ -24,18 +24,19 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Properties;
-import io.gravitee.el.TemplateContext;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.cache.CacheConfiguration;
+import io.gravitee.node.api.cache.EntryEvent;
+import io.gravitee.node.api.cache.EntryEventType;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.cache.standalone.StandaloneCache;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -48,7 +49,7 @@ import org.mockito.MockitoAnnotations;
 public class ApiManagerTest {
 
     @InjectMocks
-    private ApiManager apiManager = new ApiManagerImpl();
+    private ApiManagerImpl apiManager = new ApiManagerImpl();
 
     @Mock
     private ObjectMapper objectMapper;
@@ -62,12 +63,15 @@ public class ApiManagerTest {
     @Mock
     private DataEncryptor dataEncryptor;
 
+    @Mock
+    private ClusterManager clusterManager;
+
     @Before
     public void setUp() {
         apiManager = spy(new ApiManagerImpl());
         MockitoAnnotations.initMocks(this);
 
-        ((ApiManagerImpl) apiManager).setApis(new StandaloneCache<>("api_manager_test", new CacheConfiguration()));
+        apiManager.setApis(new StandaloneCache<>("api_manager_test", new CacheConfiguration()));
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
     }
@@ -382,386 +386,40 @@ public class ApiManagerTest {
         assertEquals(Map.of("key1", "plain value 1", "key2", "plain value 2", "key3", "plain value 3"), api.getProperties().getValues());
     }
 
-    /*
     @Test
-    public void test_twiceWithTwoApis_apiToRemove() throws Exception {
-        io.gravitee.repository.management.model.Api api =
-                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
+    public void shouldPublishEventWhenADDEDEventIsSent() {
+        final Api api = buildTestApi();
+        api.setPlans(List.of(new Plan()));
+        when(clusterManager.isMasterNode()).thenReturn(false);
 
-        final Api mockApi = mockApi(api);
+        apiManager.onEvent(new EntryEvent<>(new Object(), EntryEventType.ADDED, api.getId(), null, api));
 
-        apiManager.register(mockApi);
-
-        io.gravitee.repository.management.model.Api api2 =
-                new RepositoryApiBuilder().id("api-test-2").updatedAt(new Date()).definition("test2").build();
-        final Api mockApi2 = mockApi(api2);
-        final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
-
-        when(eventRepository.search(
-                any(EventCriteria.class)
-        )).thenReturn(singletonList(mockEvent));
-
-        syncManager.refresh();
-
-        verify(apiManager, times(2)).deploy(argThat(api1 -> api1.getId().equals(mockApi.getId()) || api2.getId().equals(mockApi2.getId())));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(api.getId());
-        verify(apiManager, never()).undeploy(api2.getId());
+        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
     }
 
     @Test
-    public void test_twiceWithTwoApis_apiToUpdate() throws Exception {
-        io.gravitee.repository.management.model.Api api =
-                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
+    public void shouldPublishEventWhenUPDATEDEventIsSent() {
+        final Api api = buildTestApi();
+        api.setPlans(List.of(new Plan()));
+        when(clusterManager.isMasterNode()).thenReturn(false);
 
-        Instant updateDateInst = api.getUpdatedAt().toInstant().plus(Duration.ofHours(1));
-        io.gravitee.repository.management.model.Api api2 =
-                new RepositoryApiBuilder().id("api-test").updatedAt(Date.from(updateDateInst)).definition("test2").build();
+        apiManager.onEvent(new EntryEvent<>(new Object(), EntryEventType.UPDATED, api.getId(), null, api));
 
-        final Api mockApi = mockApi(api);
-        mockApi(api2);
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
-
-        List<Event> events = new ArrayList<>();
-        events.add(mockEvent);
-        events.add(mockEvent2);
-
-        when(eventRepository.search(
-                any(EventCriteria.class),
-                any(Pageable.class)
-        )).thenReturn(new Page<>(events, 0, 0, 1));
-
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-
-        syncManager.refresh();
-
-        when(eventRepository.search(
-                any(EventCriteria.class)
-        )).thenReturn(singletonList(mockEvent2));
-
-        final Api apiDefinition = new Api(mockApi);
-        apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
-        apiDefinition.setDeployedAt(api.getDeployedAt());
-        when(apiManager.get(api.getId())).thenReturn(apiDefinition);
-
-        syncManager.refresh();
-
-        verify(apiManager).deploy(apiDefinition);
-        verify(apiManager).update(apiDefinition);
-        verify(apiManager, never()).undeploy(any(String.class));
+        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
     }
 
     @Test
-    public void test_twiceWithTwoApis_api_noUpdate() throws Exception {
-        io.gravitee.repository.management.model.Api api =
-                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
-        io.gravitee.repository.management.model.Api api2 =
-                new RepositoryApiBuilder().id("api-test").updatedAt(api.getUpdatedAt()).definition("test").build();
+    public void shouldPublishEventWhenEXPIREDEventIsSent() {
+        final Api api = buildTestApi();
+        api.setPlans(List.of(new Plan()));
+        when(clusterManager.isMasterNode()).thenReturn(false);
 
-        final Api mockApi = mockApi(api);
+        apiManager.onEvent(new EntryEvent<>(new Object(), EntryEventType.ADDED, api.getId(), null, api));
 
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        apiManager.onEvent(new EntryEvent<>(new Object(), EntryEventType.EXPIRED, api.getId(), api, null));
 
-        final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
-
-        List<Event> events = new ArrayList<Event>();
-        events.add(mockEvent);
-        events.add(mockEvent2);
-
-        when(eventRepository.search(
-                any(EventCriteria.class),
-                any(Pageable.class)
-        )).thenReturn(new Page<>(events, 0, 0, 1));
-
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-
-        syncManager.refresh();
-
-        when(eventRepository.search(
-                any(EventCriteria.class)
-        )).thenReturn(singletonList(mockEvent2));
-
-        syncManager.refresh();
-
-        verify(apiManager, times(2)).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
+        verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
     }
-
-    @Test
-    public void test_not_deployApiWithTagExclusion() throws Exception {
-        io.gravitee.repository.management.model.Api api =
-                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
-
-        final Api mockApi = mockApi(api);
-        mockApi.setTags(new HashSet<>(Arrays.asList(new String[]{"test"})));
-
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("!test")));
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        when(eventRepository.search(
-                any(EventCriteria.class),
-                any(Pageable.class)
-        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
-
-        syncManager.refresh();
-
-        verify(apiManager, never()).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-    }
-
-    @Test
-    public void test_deployApiWithTagInclusionExclusion() throws Exception {
-        io.gravitee.repository.management.model.Api api =
-                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
-//        api.setTags(new HashSet<>(Arrays.asList(new String[]{"test", "toto"})));
-
-        final Api mockApi = mockApi(api);
-
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("!test", "toto")));
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        when(eventRepository.search(
-                any(EventCriteria.class),
-                any(Pageable.class)
-        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
-
-        syncManager.refresh();
-
-        verify(apiManager).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
-    }
-
-    @Test
-    public void test_not_deployApiWithoutTag() throws Exception {
-        io.gravitee.repository.management.model.Api api =
-                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
-
-        final Api mockApi = mockApi(api);
-
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("test", "toto")));
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        when(eventRepository.search(
-                any(EventCriteria.class),
-                any(Pageable.class)
-        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
-
-        syncManager.refresh();
-
-        verify(apiManager, never()).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    @Ignore
-    public void shouldNotDeployBecauseWrongConfiguration() throws Exception {
-        io.gravitee.repository.management.model.Api api =
-                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
-
-        final Api mockApi = mockApi(api);
-
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("test", "!test")));
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-        when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        when(eventRepository.search(
-                eq(new EventCriteria.Builder()
-                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
-                        .property(Event.EventProperties.API_ID.getValue(), api.getId())
-                        .build()), any()
-        )).thenReturn((new Page(singletonList(mockEvent), 0, 0, 0)));
-
-        syncManager.refresh();
-    }
-
-    @Test
-    public void test_not_deployApiWithoutEvent() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
-
-        final Api mockApi = mockApi(api);
-
-        when(eventRepository.search(
-                any(EventCriteria.class),
-                any(Pageable.class)
-        )).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
-
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-
-        syncManager.refresh();
-
-        verify(apiManager, never()).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
-    }
-
-    @Test
-    public void test_deployOnlyOneApiWithTwoApisAndOneEvent() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
-        io.gravitee.repository.management.model.Api api2 = new RepositoryApiBuilder().id("api-test-2").updatedAt(new Date()).definition("test2").build();
-
-        final Api mockApi = mockApi(api);
-
-        final List<io.gravitee.repository.management.model.Api> apis = new ArrayList<>();
-        apis.add(api);
-        apis.add(api2);
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        when(eventRepository.search(
-                any(EventCriteria.class),
-                any(Pageable.class)
-        )).thenReturn(
-                new Page<>(Collections.emptyList(), 0, 0, 0),
-                new Page<>(singletonList(mockEvent), 0, 0, 1));
-
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(apis);
-
-        syncManager.refresh();
-
-        verify(apiManager).deploy(argThat(api1 -> api1.getId().equals(mockApi.getId())));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
-    }
-
-    @Test
-    public void test_shouldUndeployIfLastEventIsUnpublishAPI() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
-
-        final Api mockApi = mockApi(api);
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        final Event mockEvent2 = mockEvent(api, EventType.UNPUBLISH_API);
-
-        when(eventRepository.search(
-                any(EventCriteria.class),
-                any(Pageable.class)
-        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1), new Page<>(singletonList(mockEvent2), 0, 0, 1));
-
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-
-        syncManager.refresh();
-
-        when(eventRepository.search(
-                any(EventCriteria.class)
-        )).thenReturn(singletonList(mockEvent2));
-
-        syncManager.refresh();
-
-        verify(apiManager).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager).undeploy(mockApi.getId());
-    }
-
-
-    @Test
-    public void test_shouldUpdateIfLastEventIsStartAPI() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-                .id("api-test")
-                .updatedAt(new Date())
-                .definition("test")
-                .lifecycleState(LifecycleState.STOPPED)
-                .build();
-
-        Instant updateDateInst = api.getUpdatedAt().toInstant().plus(Duration.ofHours(1));
-        io.gravitee.repository.management.model.Api api2 = new RepositoryApiBuilder()
-                .id("api-test")
-                .updatedAt(Date.from(updateDateInst))
-                .definition("test")
-                .lifecycleState(LifecycleState.STARTED)
-                .build();
-
-        final Api mockApi = mockApi(api);
-        mockApi(api2);
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        final Event mockEvent2 = mockEvent(api2, EventType.START_API);
-
-        List<Event> events = new ArrayList<Event>();
-        events.add(mockEvent);
-        events.add(mockEvent2);
-
-        when(eventRepository.search(
-                any(EventCriteria.class),
-                any(Pageable.class)
-        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
-
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-
-        syncManager.refresh();
-
-        final Api apiDefinition = new Api(mockApi);
-        apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
-        apiDefinition.setDeployedAt(api.getDeployedAt());
-        when(apiManager.get(api.getId())).thenReturn(apiDefinition);
-
-        when(eventRepository.search(
-                any(EventCriteria.class)
-        )).thenReturn(singletonList(mockEvent2));
-
-        syncManager.refresh();
-
-        verify(apiManager).deploy(new Api(mockApi));
-        verify(apiManager).update(new Api(mockApi));
-        verify(apiManager, never()).undeploy(any(String.class));
-    }
-
-    @Test
-    public void test_shouldUpdateIfLastEventIsStopAPI() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-                .id("api-test")
-                .updatedAt(new Date())
-                .definition("test")
-                .lifecycleState(LifecycleState.STARTED)
-                .build();
-
-        Instant updateDateInst = api.getUpdatedAt().toInstant().plus(Duration.ofHours(1));
-        io.gravitee.repository.management.model.Api api2 = new RepositoryApiBuilder()
-                .id("api-test")
-                .updatedAt(Date.from(updateDateInst))
-                .definition("test")
-                .lifecycleState(LifecycleState.STOPPED)
-                .build();
-
-        final Api mockApi = mockApi(api);
-        mockApi(api2);
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        final Event mockEvent2 = mockEvent(api2, EventType.STOP_API);
-
-        List<Event> events = new ArrayList<Event>();
-        events.add(mockEvent);
-        events.add(mockEvent2);
-
-        when(eventRepository.search(
-                any(EventCriteria.class),
-                any(Pageable.class)
-        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
-
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-
-        syncManager.refresh();
-
-        when(eventRepository.search(
-                any(EventCriteria.class)
-        )).thenReturn(singletonList(mockEvent));
-
-        final Api apiDefinition = new Api(mockApi);
-        apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
-        apiDefinition.setDeployedAt(api.getDeployedAt());
-        when(apiManager.get(api.getId())).thenReturn(apiDefinition);
-
-        syncManager.refresh();
-
-        verify(apiManager).deploy(new Api(mockApi));
-        verify(apiManager).update(new Api(mockApi));
-        verify(apiManager, never()).undeploy(any(String.class));
-    }
-     */
 
     private Api mockApi(final io.gravitee.repository.management.model.Api api) throws Exception {
         return mockApi(api, new String[] {});
