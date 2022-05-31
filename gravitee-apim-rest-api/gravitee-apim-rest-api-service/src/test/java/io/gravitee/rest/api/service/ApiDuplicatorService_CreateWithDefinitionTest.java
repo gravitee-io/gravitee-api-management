@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -144,19 +145,24 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
+        when(roleService.findByScopeAndName(RoleScope.API, "API_PRIMARY_OWNER")).thenReturn(Optional.of(poRoleEntity));
+
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
+        when(roleService.findByScopeAndName(RoleScope.API, "API_OWNER")).thenReturn(Optional.of(ownerRoleEntity));
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
         po.setReferenceId(API_ID);
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Arrays.asList(poRoleEntity));
+        po.setType(MembershipMemberType.USER);
         MemberEntity owner = new MemberEntity();
         owner.setId("user");
         owner.setReferenceId(API_ID);
         owner.setReferenceType(MembershipReferenceType.API);
         owner.setRoles(Arrays.asList(ownerRoleEntity));
+        owner.setType(MembershipMemberType.USER);
         when(membershipService.getMembersByReference(any(), any())).thenReturn(Collections.singleton(po));
 
         UserEntity admin = new UserEntity();
@@ -220,30 +226,23 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
+        when(roleService.findByScopeAndName(RoleScope.API, "API_PRIMARY_OWNER")).thenReturn(Optional.of(poRoleEntity));
+
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
-        when(
-            membershipService.addRoleToMemberOnReference(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                "user",
-                "UNEXISTING_ROLE"
-            )
-        )
-            .thenThrow(new RoleNotFoundException("UNEXISTING_ROLE"));
+        when(roleService.findByScopeAndName(RoleScope.API, "API_OWNER")).thenReturn(Optional.of(ownerRoleEntity));
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
         po.setReferenceId(API_ID);
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Arrays.asList(poRoleEntity));
+        po.setType(MembershipMemberType.USER);
         MemberEntity owner = new MemberEntity();
         owner.setId("user");
         owner.setReferenceId(API_ID);
         owner.setReferenceType(MembershipReferenceType.API);
+        owner.setType(MembershipMemberType.USER);
         owner.setRoles(Arrays.asList(ownerRoleEntity));
         when(membershipService.getMembersByReference(any(), any())).thenReturn(Collections.singleton(po));
 
@@ -528,11 +527,16 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         poRoleEntity.setId("API_PRIMARY_OWNER");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
 
+        RoleEntity ownerRoleEntity = new RoleEntity();
+        ownerRoleEntity.setId("API_OWNER");
+        when(roleService.findByScopeAndName(RoleScope.API, "API_OWNER")).thenReturn(Optional.of(ownerRoleEntity));
+
         MemberEntity po = new MemberEntity();
         po.setId("admin");
         po.setReferenceId(API_ID);
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Arrays.asList(poRoleEntity));
+        po.setType(MembershipMemberType.USER);
         when(membershipService.getMembersByReference(any(), any())).thenReturn(Collections.singleton(po));
 
         when(

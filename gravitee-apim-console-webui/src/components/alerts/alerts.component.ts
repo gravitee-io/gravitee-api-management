@@ -36,6 +36,7 @@ const AlertsComponent: ng.IComponentOptions = {
     $mdDialog,
   ) {
     'ngInject';
+    this.alerts = this.alerts ?? [];
     this.goTo = (suffixState: string, alertId: string) => {
       if ($stateParams.apiId) {
         $state.go('management.apis.detail.alerts.' + suffixState, { apiId: $stateParams.apiId, alertId: alertId });

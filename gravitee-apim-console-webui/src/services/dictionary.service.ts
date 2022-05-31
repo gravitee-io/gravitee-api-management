@@ -30,14 +30,12 @@ class DictionaryService {
     return this.$http.post(`${this.Constants.env.baseURL}/configuration/dictionaries`, dictionary);
   }
 
-  async update(dictionary) {
-    const { data } = await this.get(dictionary.id);
-
+  update(dictionary) {
     return this.$http.put([`${this.Constants.env.baseURL}/configuration/dictionaries`, dictionary.id].join('/'), {
       name: dictionary.name,
       description: dictionary.description,
       type: dictionary.type,
-      properties: { ...data.properties, ...dictionary.properties },
+      properties: dictionary.properties,
       provider: dictionary.provider,
       trigger: dictionary.trigger,
     });

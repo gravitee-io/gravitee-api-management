@@ -1,0 +1,57 @@
+{
+    "name": "with-plans",
+    "plans": [
+        {
+            "id": "plan-id",
+            "name": "free plan",
+            "description": "free plan",
+            "validation": "AUTO",
+            "security": "API_KEY",
+            "type": "API",
+            "status": "PUBLISHED",
+            "api": "id-api",
+            "order": 0,
+            "paths": {
+                "/": [
+                    {
+                        "methods": ["GET"],
+                        "rate-limit": {
+                            "rate": {
+                                "limit": 1,
+                                "periodTime": 1,
+                                "periodTimeUnit": "SECONDS"
+                            }
+                        },
+                        "enabled": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": "plan-id2",
+            "name": "keyless plan",
+            "description": "keyless plan",
+            "validation": "AUTO",
+            "security": "KEY_LESS",
+            "type": "API",
+            "status": "PUBLISHED",
+            "api": "id-api",
+            "order": 0,
+            "paths": {
+                "/": [
+                    {
+                        "methods": ["GET"],
+                        "rate-limit": {
+                            "rate": {
+                                "limit": 1,
+                                "periodTime": 1,
+                                "periodTimeUnit": "SECONDS"
+                            }
+                        },
+                        "enabled": true
+                    }
+                ]
+            }
+        }
+    ]
+}

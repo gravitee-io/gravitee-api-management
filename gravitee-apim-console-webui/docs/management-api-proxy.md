@@ -12,7 +12,7 @@ Choose among 4 kinds of load balancing method to manage how to dispatch API call
 
 3. Fail over
 
-Configure redirect calls strategy in case of some endpoints failure.
+Configure redirect calls strategy in case of some endpoint failures.
 
 4. CORS
 

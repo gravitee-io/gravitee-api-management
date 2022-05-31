@@ -718,7 +718,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (logging.getCondition() == null || logging.getCondition().isEmpty()) {
                     logging.setCondition("{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + "}");
                 } else {
-                    String conditionWithoutBraces = logging.getCondition().trim().replaceAll("\\{", "").replaceAll("}", "");
+                    String conditionWithoutBraces = logging.getCondition().trim().replaceAll("\\{", "").replaceAll("\\}", "");
                     Matcher matcher = LOGGING_MAX_DURATION_PATTERN.matcher(conditionWithoutBraces);
                     if (matcher.matches()) {
                         String currentDurationAsStr = matcher.group("timestamp");
@@ -737,7 +737,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         }
                     } else {
                         logging.setCondition(
-                            "{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + " && " + conditionWithoutBraces + "}"
+                            "{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + " && (" + conditionWithoutBraces + ")}"
                         );
                     }
                 }
@@ -2888,12 +2888,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api.AuditEvent auditEvent;
             if (
                 (loggingToUpdate == null || loggingToUpdate.getMode().equals(LoggingMode.NONE)) &&
-                (!loggingUpdated.getMode().equals(LoggingMode.NONE))
+                (loggingUpdated != null && !loggingUpdated.getMode().equals(LoggingMode.NONE))
             ) {
                 auditEvent = Api.AuditEvent.API_LOGGING_ENABLED;
             } else if (
                 (loggingToUpdate != null && !loggingToUpdate.getMode().equals(LoggingMode.NONE)) &&
-                (loggingUpdated.getMode().equals(LoggingMode.NONE))
+                (loggingUpdated == null || loggingUpdated.getMode().equals(LoggingMode.NONE))
             ) {
                 auditEvent = Api.AuditEvent.API_LOGGING_DISABLED;
             } else {
