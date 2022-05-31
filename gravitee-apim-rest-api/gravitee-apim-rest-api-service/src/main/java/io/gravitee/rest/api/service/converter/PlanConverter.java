@@ -20,34 +20,32 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import java.io.IOException;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author GraviteeSource Team
  */
 @Component
+@AllArgsConstructor
 public class PlanConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PlanConverter.class);
 
-    @Autowired
     private ObjectMapper objectMapper;
 
     public PlanEntity toPlanEntity(Plan plan) {
-        return toPlanEntity(plan, null);
-    }
-
-    public PlanEntity toPlanEntity(Plan plan, ApiEntity apiEntity) {
         PlanEntity entity = new PlanEntity();
 
         entity.setId(plan.getId());
@@ -60,7 +58,7 @@ public class PlanConverter {
         entity.setOrder(plan.getOrder());
         entity.setExcludedGroups(plan.getExcludedGroups());
 
-        if (plan.getDefinition() != null && !plan.getDefinition().isEmpty()) {
+        if (StringUtils.isNotEmpty(plan.getDefinition())) {
             try {
                 HashMap<String, List<Rule>> rules = objectMapper.readValue(plan.getDefinition(), new TypeReference<>() {});
                 entity.setPaths(rules);
@@ -69,15 +67,11 @@ public class PlanConverter {
             }
         }
 
-        if (apiEntity != null) {
-            if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(apiEntity.getGraviteeDefinitionVersion()))) {
-                Optional<List<Flow>> planFlows = apiEntity
-                    .getPlans()
-                    .stream()
-                    .filter(pl -> plan.getId() != null && plan.getId().equals(pl.getId()))
-                    .map(PlanEntity::getFlows)
-                    .findFirst();
-                planFlows.ifPresent(entity::setFlows);
+        if (StringUtils.isNotEmpty(plan.getFlows())) {
+            try {
+                entity.setFlows(objectMapper.readValue(plan.getFlows(), new TypeReference<>() {}));
+            } catch (JsonProcessingException e) {
+                LOGGER.error("Unexpected error while converting plan flows to entities", e);
             }
         }
 
@@ -217,6 +211,8 @@ public class PlanConverter {
             String planPolicies = objectMapper.writeValueAsString(newPlan.getPaths());
             plan.setDefinition(planPolicies);
         }
+
+        plan.setFlows(objectMapper.writeValueAsString(newPlan.getFlows()));
 
         return plan;
     }

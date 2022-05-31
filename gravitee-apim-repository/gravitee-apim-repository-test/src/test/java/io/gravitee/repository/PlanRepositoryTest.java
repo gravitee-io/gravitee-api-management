@@ -65,6 +65,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertTrue(plan.get().isCommentRequired());
         assertEquals("What is your project code?", plan.get().getCommentMessage());
         assertNull(plan.get().getSelectionRule());
+        assertEquals("test flows", plan.get().getFlows());
     }
 
     @Test
@@ -90,6 +91,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertTrue(compareDate(new Date(1506878460000L), plan.getPublishedAt()));
         assertTrue(compareDate(new Date(1507611600000L), plan.getClosedAt()));
         assertTrue(compareDate(new Date(1507611670000L), plan.getNeedRedeployAt()));
+        assertEquals("test flows", plan.getFlows());
     }
 
     @Test
@@ -181,6 +183,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         plan.setPublishedAt(parse("13/02/2016"));
         plan.setClosedAt(parse("14/02/2016"));
         plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
+        plan.setFlows("test flows");
 
         planRepository.create(plan);
 
@@ -200,6 +203,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue("Invalid plan published date.", compareDate(plan.getPublishedAt(), createdPlan.getPublishedAt()));
         Assert.assertTrue("Invalid plan closed date.", compareDate(plan.getClosedAt(), createdPlan.getClosedAt()));
         Assert.assertEquals("Invalid plan security.", plan.getSecurity(), createdPlan.getSecurity());
+        Assert.assertEquals("Invalid plan flows.", plan.getFlows(), createdPlan.getFlows());
     }
 
     @Test
@@ -256,6 +260,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         plan.setGeneralConditions("New GCU");
         plan.setStatus(Plan.Status.CLOSED);
         plan.setTags(Collections.singleton("tag1"));
+        plan.setFlows("updated test flows");
 
         planRepository.update(plan);
 
@@ -268,6 +273,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid plan description.", plan.getDescription(), planUpdated.getDescription());
         Assert.assertEquals("Invalid plan status.", plan.getStatus(), planUpdated.getStatus());
         Assert.assertEquals("Invalid plan tags.", plan.getTags().size(), planUpdated.getTags().size());
+        Assert.assertEquals("Invalid plan flows.", plan.getFlows(), planUpdated.getFlows());
     }
 
     @Test
