@@ -77,6 +77,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             .addColumn("comment_message", Types.NVARCHAR, String.class)
             .addColumn("selection_rule", Types.NVARCHAR, String.class)
             .addColumn("general_conditions", Types.NVARCHAR, String.class)
+            .addColumn("flows", Types.NVARCHAR, String.class)
             .build();
     }
 

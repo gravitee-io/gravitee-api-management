@@ -117,6 +117,8 @@ public class Plan {
 
     private Set<String> tags = new HashSet<>();
 
+    private String flows;
+
     public Plan() {}
 
     public Plan(Plan cloned) {
@@ -141,6 +143,7 @@ public class Plan {
         this.selectionRule = cloned.getSelectionRule();
         this.tags = cloned.getTags();
         this.generalConditions = cloned.getGeneralConditions();
+        this.flows = cloned.flows;
     }
 
     public String getId() {
@@ -333,6 +336,14 @@ public class Plan {
 
     public void setCrossId(String crossId) {
         this.crossId = crossId;
+    }
+
+    public String getFlows() {
+        return flows;
+    }
+
+    public void setFlows(String flows) {
+        this.flows = flows;
     }
 
     @Override

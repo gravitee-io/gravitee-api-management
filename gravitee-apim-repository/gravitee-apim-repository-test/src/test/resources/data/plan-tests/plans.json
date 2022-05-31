@@ -22,7 +22,8 @@
       "commentRequired": true,
       "commentMessage": "What is your project code?",
       "generalConditions": "GCU-my-plan",
-      "tags": [ "tag1", "tag2" ]
+      "tags": [ "tag1", "tag2" ],
+      "flows": "test flows"
    },
    {
       "id":"updated-plan",

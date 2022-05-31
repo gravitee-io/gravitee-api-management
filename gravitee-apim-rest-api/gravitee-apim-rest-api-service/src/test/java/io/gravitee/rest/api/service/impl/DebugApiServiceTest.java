@@ -73,7 +73,8 @@ public class DebugApiServiceTest {
 
     @Before
     public void setup() {
-        debugApiService = new DebugApiServiceImpl(apiService, eventService, objectMapper, instanceService, new PlanConverter());
+        debugApiService =
+            new DebugApiServiceImpl(apiService, eventService, objectMapper, instanceService, new PlanConverter(new ObjectMapper()));
 
         ApiEntity apiEntity = mock(ApiEntity.class);
         when(apiEntity.getReferenceId()).thenReturn(ENVIRONMENT_ID);
