@@ -15,10 +15,12 @@
  */
 package io.gravitee.rest.api.services.dynamicproperties;
 
+import static io.gravitee.rest.api.service.common.SecurityContextHelper.*;
+
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
-import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.UserRoleEntity;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -33,11 +35,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,7 +44,8 @@ public class DynamicPropertyUpdater implements Handler<Long> {
 
     private final Logger logger = LoggerFactory.getLogger(DynamicPropertyUpdater.class);
 
-    private ApiEntity api;
+    private final ApiEntity api;
+
     private Provider provider;
     private ApiService apiService;
     private ApiConverter apiConverter;
@@ -57,50 +55,10 @@ public class DynamicPropertyUpdater implements Handler<Long> {
     }
 
     private void authenticateAsAdmin() {
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return new Authentication() {
-                        @Override
-                        public Collection<? extends GrantedAuthority> getAuthorities() {
-                            return AuthorityUtils.createAuthorityList(RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name());
-                        }
-
-                        @Override
-                        public Object getCredentials() {
-                            return null;
-                        }
-
-                        @Override
-                        public Object getDetails() {
-                            return null;
-                        }
-
-                        @Override
-                        public Object getPrincipal() {
-                            return new UserDetails("DynamicPropertyUpdater", "*****", Collections.emptyList());
-                        }
-
-                        @Override
-                        public boolean isAuthenticated() {
-                            return true;
-                        }
-
-                        @Override
-                        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {}
-
-                        @Override
-                        public String getName() {
-                            return null;
-                        }
-                    };
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
-            }
-        );
+        UserRoleEntity adminRole = new UserRoleEntity();
+        adminRole.setScope(RoleScope.ENVIRONMENT);
+        adminRole.setName(SystemRole.ADMIN.name());
+        authenticateAsSystem("DynamicPropertyUpdater", Set.of(adminRole));
     }
 
     @Override
