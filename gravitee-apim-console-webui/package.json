@@ -202,6 +202,7 @@
     "serve:nightly": "gulp serve:nightly",
     "serve:prod": "node scripts/serve.js",
     "test": "gulp test",
-    "test:auto": "gulp test:auto"
+    "test:auto": "gulp test:auto",
+    "test:coverage": "mkdir coverage"
   }
 }
