@@ -15,12 +15,21 @@
  */
 package io.gravitee.rest.api.repository.plugins;
 
-import io.gravitee.plugin.core.api.*;
+import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.api.PluginClassLoaderFactory;
+import io.gravitee.plugin.core.api.PluginContextFactory;
+import io.gravitee.plugin.core.api.PluginHandler;
 import io.gravitee.plugin.core.internal.AnnotationBasedPluginContextConfigurer;
 import io.gravitee.repository.Repository;
 import io.gravitee.repository.Scope;
 import io.gravitee.rest.api.repository.proxy.AbstractProxy;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -56,8 +65,8 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
     @Autowired
     private ApplicationContext applicationContext;
 
-    private final Map<Scope, Repository> repositories = new HashMap<>();
-    private final Map<Scope, String> repositoryTypeByScope = new HashMap<>();
+    private final Map<Scope, Repository> repositories = new EnumMap<>(Scope.class);
+    private final Map<Scope, String> repositoryTypeByScope = new EnumMap<>(Scope.class);
     private final Map<String, Collection<Scope>> scopeByRepositoryType = new HashMap<>();
 
     @Override
@@ -108,8 +117,13 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
                     LOGGER.warn("Repository scope {} already loaded by {}", scope, repositories.get(scope));
                 }
             }
-        } catch (Exception iae) {
-            LOGGER.error("Unexpected error while create repository instance", iae);
+        } catch (ClassNotFoundException e) {
+            LOGGER.error("Unexpected error while create repository instance", e);
+        } catch (InstantiationException | IllegalAccessException e) {
+            LOGGER.error("Unable to instantiate class: {}", plugin.clazz(), e);
+        } catch (InterruptedException e) {
+            LOGGER.error("Unexpected error while create repository instance", e);
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -186,12 +200,7 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
         return repositoryType;
     }
 
-    private <T> T createInstance(Class<T> clazz) throws Exception {
-        try {
-            return clazz.newInstance();
-        } catch (InstantiationException | IllegalAccessException ex) {
-            LOGGER.error("Unable to instantiate class: {}", ex);
-            throw ex;
-        }
+    private <T> T createInstance(Class<T> clazz) throws InstantiationException, IllegalAccessException {
+        return clazz.newInstance();
     }
 }
