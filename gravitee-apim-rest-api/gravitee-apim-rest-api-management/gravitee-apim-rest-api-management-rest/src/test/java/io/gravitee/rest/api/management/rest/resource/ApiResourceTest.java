@@ -15,21 +15,33 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.common.http.HttpStatusCode.*;
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
+import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static java.util.Base64.getEncoder;
 import static javax.ws.rs.client.Entity.entity;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiStateEntity;
+import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -136,6 +148,16 @@ public class ApiResourceTest extends AbstractResourceTest {
         final Response response = envTarget(UNKNOWN_API).queryParam("action", LifecycleAction.START).request().post(null);
 
         assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldReturnBadRequestWithInvalidAction() {
+        mockApi.setState(Lifecycle.State.STOPPED);
+        doReturn(mockApi).when(apiService).start(eq(GraviteeContext.getExecutionContext()), eq(API), any());
+
+        final Response response = envTarget(API).queryParam("action", "Soo bad action").request().post(null);
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
