@@ -26,11 +26,18 @@ import java.util.regex.Pattern;
  */
 public class EmailValidator {
 
+    private EmailValidator() {
+        throw new IllegalStateException("Utility class");
+    }
+
+    public static final int EMAIL_MAX_LENGTH = 320;
+
+    @SuppressWarnings("squid:S5998") // A max email size validation is done before the regexp to avoid applying it
     private static final Pattern PATTERN = Pattern.compile(
         "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
     );
 
     public static boolean isValid(String email) {
-        return email != null && PATTERN.matcher(email).matches();
+        return email != null && (email.length() <= EMAIL_MAX_LENGTH && PATTERN.matcher(email).matches());
     }
 }
