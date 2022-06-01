@@ -17,16 +17,17 @@ package io.gravitee.apim.gateway.tests.sdk.runner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.AbstractPolicyTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.ConnectorBuilder;
 import io.gravitee.apim.gateway.tests.sdk.container.GatewayTestContainer;
+import io.gravitee.apim.gateway.tests.sdk.plugin.PluginManifestLoader;
 import io.gravitee.apim.gateway.tests.sdk.policy.KeylessPolicy;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.connector.http.HttpConnectorFactory;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
@@ -36,6 +37,11 @@ import io.gravitee.node.reporter.ReporterManager;
 import io.gravitee.plugin.connector.ConnectorPlugin;
 import io.gravitee.plugin.connector.ConnectorPluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.core.api.PluginEvent;
+import io.gravitee.plugin.core.api.PluginManifest;
+import io.gravitee.plugin.core.internal.PluginEventListener;
+import io.gravitee.plugin.core.internal.PluginFactory;
+import io.gravitee.plugin.core.internal.PluginImpl;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.reporter.api.Reporter;
@@ -297,7 +303,12 @@ public class GatewayRunner {
 
         final VertxEmbeddedContainer vertxEmbeddedContainer = container.applicationContext().getBean(VertxEmbeddedContainer.class);
 
+        // First, wait for the vertxEmbeddedContainer to be started
         while (vertxEmbeddedContainer.lifecycleState() != Lifecycle.State.STARTED) {
+            Thread.sleep(5);
+        }
+        // Then, wait for the GatewayTestContainer to be started
+        while (container.lifecycleState() != Lifecycle.State.STARTED) {
             Thread.sleep(5);
         }
         return vertxEmbeddedContainer;
@@ -359,20 +370,27 @@ public class GatewayRunner {
             .getBean(policyBeanNamesForType[0]);
 
         Map<String, PolicyPlugin> policyMap = new HashMap<>();
-        configurePolicyUnderTest(policyMap);
+        loadPolicyAsAPlugin(container.applicationContext(), policyMap);
+
         testInstance.configurePolicies(policyMap);
         ensureMinimalRequirementForPolicies(policyMap);
         policyMap.forEach((key, value) -> policyManager.register(value));
     }
 
     /**
-     * Configure the policy under test.
-     * It is decorrelated from {@link AbstractGatewayTest#configurePolicies(Map)} to ease the life of user (to not have to use "super") and also to harmonize all our configureXXX methods.
-     * @param policies
+     * This method will load the PluginManifest generated from "plugin.properties" file, load the plugin needed by the user and then fake the {@link PluginEvent#DEPLOYED} and {@link PluginEvent#ENDED} to apply the initialization phase of a policy (see {@link io.gravitee.policy.api.PolicyContext})
+     * @param applicationContext is the application context of the container
+     * @param policies is the Map of policies to initialize
      */
-    private void configurePolicyUnderTest(Map<String, PolicyPlugin> policies) {
-        if (testInstance instanceof AbstractPolicyTest) {
-            ((AbstractPolicyTest) testInstance).configurePolicyUnderTest(policies);
+    private void loadPolicyAsAPlugin(ApplicationContext applicationContext, Map<String, PolicyPlugin> policies) {
+        final PluginManifest manifest = PluginManifestLoader.readManifest();
+        testInstance.loadPolicy(manifest, policies);
+        if (manifest != null && !policies.isEmpty()) {
+            final PluginEventListener pluginEventListener = applicationContext.getBean(PluginEventListener.class);
+            final PluginImpl plugin = (PluginImpl) PluginFactory.from(manifest);
+            plugin.setDependencies(new URL[0]);
+            pluginEventListener.onEvent(new SimpleEvent<>(PluginEvent.DEPLOYED, plugin));
+            pluginEventListener.onEvent(new SimpleEvent<>(PluginEvent.ENDED, null));
         }
     }
 

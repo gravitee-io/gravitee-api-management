@@ -15,7 +15,9 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.plugin;
 
+import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.plugin.connector.ConnectorPlugin;
+import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.reporter.api.Reporter;
@@ -44,6 +46,14 @@ public interface PluginRegister {
      * @param policies is the map containing policies to deploy
      */
     default void configurePolicies(Map<String, PolicyPlugin> policies) {}
+
+    /**
+     * Override this method to load the policy into the Gateway as a regular plugin.
+     * This method differs from {@link PluginRegister#configurePolicies(Map)} in the way that it will initialize and register the policy as a regular plugin in the gateway.
+     * Useful for policies with initializers inherited from {@link io.gravitee.policy.api.PolicyContext}.
+     * @param policies is the map containing policies to deploy
+     */
+    default void loadPolicy(PluginManifest manifest, Map<String, PolicyPlugin> policies) {}
 
     /**
      * Override this method to register a connector to be used by the gateway.

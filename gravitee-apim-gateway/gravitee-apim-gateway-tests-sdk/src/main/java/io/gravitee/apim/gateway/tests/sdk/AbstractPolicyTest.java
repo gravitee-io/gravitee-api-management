@@ -16,12 +16,21 @@
 package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
+import io.gravitee.common.event.impl.SimpleEvent;
+import io.gravitee.gateway.policy.PolicyManifest;
+import io.gravitee.plugin.core.api.PluginEvent;
+import io.gravitee.plugin.core.api.PluginManifest;
+import io.gravitee.plugin.core.api.PluginManifestFactory;
+import io.gravitee.plugin.core.internal.PluginEventListener;
+import io.gravitee.plugin.core.internal.PluginImpl;
+import io.gravitee.plugin.core.internal.PluginRegistryImpl;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,9 +63,11 @@ public abstract class AbstractPolicyTest<T, C extends PolicyConfiguration> exten
         return policyName;
     }
 
-    public void configurePolicyUnderTest(Map<String, PolicyPlugin> policies) {
-        computePolicyNameFromManifest();
-
+    @Override
+    public void loadPolicy(PluginManifest manifest, Map<String, PolicyPlugin> policies) {
+        if (manifest != null) {
+            policyName = manifest.id();
+        }
         Type[] types = getClassGenericTypes();
         policies.put(policyName(), PolicyBuilder.build(policyName(), (Class<T>) types[0], (Class<C>) types[1]));
     }
@@ -72,49 +83,5 @@ public abstract class AbstractPolicyTest<T, C extends PolicyConfiguration> exten
             classType = ((Class<?>) classType).getGenericSuperclass();
         }
         return ((ParameterizedType) classType).getActualTypeArguments();
-    }
-
-    /**
-     * Visit "src/main/resources" file tree to find a "plugin.properties" file.
-     * Once found, read it to get "id" property and set {@link AbstractPolicyTest#policyName} with the value
-     */
-    private void computePolicyNameFromManifest() {
-        try {
-            final Path resources = Path.of("src/main/resources");
-            final PluginManifestVisitor visitor = new PluginManifestVisitor();
-            Files.walkFileTree(resources, visitor);
-
-            Path pluginManifestPath = visitor.getPluginManifest();
-
-            if (pluginManifestPath != null) {
-                try (InputStream manifestInputStream = Files.newInputStream(pluginManifestPath)) {
-                    Properties properties = new Properties();
-                    properties.load(manifestInputStream);
-
-                    policyName = properties.getProperty("id");
-                }
-            }
-        } catch (IOException e) {
-            throw new PreconditionViolationException("Unable to find a 'plugin.properties' file in src/main/resources folder", e);
-        }
-    }
-
-    static class PluginManifestVisitor extends SimpleFileVisitor<Path> {
-
-        private Path pluginManifest = null;
-
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            if (file.getFileName().toString().equals("plugin.properties")) {
-                pluginManifest = file;
-                return FileVisitResult.TERMINATE;
-            }
-
-            return super.visitFile(file, attrs);
-        }
-
-        public Path getPluginManifest() {
-            return pluginManifest;
-        }
     }
 }

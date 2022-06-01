@@ -70,7 +70,7 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
     private int technicalApiPort = -1;
     private Map<String, Api> deployedForTestClass;
     private boolean areClassApisPrepared = false;
-    private ApplicationContext applicationContext;
+    protected ApplicationContext applicationContext;
 
     /**
      * The wiremock used by the deployed apis as a backend.
