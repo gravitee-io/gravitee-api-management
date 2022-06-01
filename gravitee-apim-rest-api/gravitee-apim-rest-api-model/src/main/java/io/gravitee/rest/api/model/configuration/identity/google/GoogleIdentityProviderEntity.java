@@ -17,7 +17,11 @@ package io.gravitee.rest.api.model.configuration.identity.google;
 
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GoogleIdentityProviderEntity extends SocialIdentityProviderEntity {
 
@@ -74,15 +78,14 @@ public class GoogleIdentityProviderEntity extends SocialIdentityProviderEntity {
 
     @Override
     public Map<String, String> getUserProfileMapping() {
-        return new HashMap<String, String>() {
-            {
-                put(UserProfile.ID, "email");
-                put(UserProfile.SUB, "sub");
-                put(UserProfile.EMAIL, "email");
-                put(UserProfile.FIRSTNAME, "given_name");
-                put(UserProfile.LASTNAME, "family_name");
-                put(UserProfile.PICTURE, "picture");
-            }
-        };
+        HashMap<String, String> userProfileMapping = new HashMap<>();
+        userProfileMapping.put(UserProfile.ID, "email");
+        userProfileMapping.put(UserProfile.SUB, "sub");
+        userProfileMapping.put(UserProfile.EMAIL, "email");
+        userProfileMapping.put(UserProfile.FIRSTNAME, "given_name");
+        userProfileMapping.put(UserProfile.LASTNAME, "family_name");
+        userProfileMapping.put(UserProfile.PICTURE, "picture");
+
+        return userProfileMapping;
     }
 }
