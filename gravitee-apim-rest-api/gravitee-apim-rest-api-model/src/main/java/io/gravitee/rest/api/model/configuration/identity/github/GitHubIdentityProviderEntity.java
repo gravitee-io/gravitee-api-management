@@ -82,18 +82,17 @@ public class GitHubIdentityProviderEntity extends SocialIdentityProviderEntity {
 
     @Override
     public Map<String, String> getUserProfileMapping() {
-        return new HashMap<String, String>() {
-            {
-                put(UserProfile.ID, isEmailRequired() ? "email" : "id");
-                put(UserProfile.SUB, "id");
-                put(UserProfile.EMAIL, "email");
-                put(UserProfile.FIRSTNAME, "{#jsonPath(#profile, '$.name').split(' ')[0]}");
-                put(
-                    UserProfile.LASTNAME,
-                    "{#jsonPath(#profile, '$.name').split(' ').length == 1 ? #jsonPath(#profile, '$.name').split(' ')[0] : #jsonPath(#profile, '$.name').split(' ')[1]}"
-                );
-                put(UserProfile.PICTURE, "avatar_url");
-            }
-        };
+        HashMap<String, String> userProfileMapping = new HashMap<>();
+        userProfileMapping.put(UserProfile.ID, isEmailRequired() ? "email" : "id");
+        userProfileMapping.put(UserProfile.SUB, "id");
+        userProfileMapping.put(UserProfile.EMAIL, "email");
+        userProfileMapping.put(UserProfile.FIRSTNAME, "{#jsonPath(#profile, '$.name').split(' ')[0]}");
+        userProfileMapping.put(
+            UserProfile.LASTNAME,
+            "{#jsonPath(#profile, '$.name').split(' ').length == 1 ? #jsonPath(#profile, '$.name').split(' ')[0] : #jsonPath(#profile, '$.name').split(' ')[1]}"
+        );
+        userProfileMapping.put(UserProfile.PICTURE, "avatar_url");
+
+        return userProfileMapping;
     }
 }
