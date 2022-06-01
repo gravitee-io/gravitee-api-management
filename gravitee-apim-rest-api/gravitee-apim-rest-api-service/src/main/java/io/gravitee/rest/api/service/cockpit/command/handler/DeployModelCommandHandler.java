@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
+import static io.gravitee.rest.api.service.common.SecurityContextHelper.*;
+
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandHandler;
 import io.gravitee.cockpit.api.command.CommandStatus;
@@ -89,6 +91,8 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
             GraviteeContext.setCurrentEnvironment(environment.getId());
             GraviteeContext.setCurrentOrganization(environment.getOrganizationId());
             final UserEntity user = userService.findBySource(GraviteeContext.getExecutionContext(), "cockpit", userId, false);
+
+            authenticateAs(user);
 
             ApiEntityResult result;
 
