@@ -323,12 +323,6 @@ jobs:
                   jobName: test
             - store_test_results:
                   path: ~/test-results
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
-                      - gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
-                      - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
 
     test-repository:
         machine:
@@ -346,10 +340,9 @@ jobs:
             - run:
                   name: Run tests
                   command: |
-                      # Need to use `verify` phase to get repo-test's jar build and shared to mongodb and jdbc repos 
-                      # and then collect and merge all coverage reports
+                      # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos 
                       cd gravitee-apim-repository
-                      mvn -s ../.gravitee.settings.xml verify --no-transfer-progress -Dskip.validation=true -T 2C
+                      mvn -s ../.gravitee.settings.xml package --no-transfer-progress -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
                   command: |
@@ -361,10 +354,6 @@ jobs:
                   jobName: test-repository
             - store_test_results:
                   path: ~/test-results
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
 
     publish-on-artifactory:
         docker:
