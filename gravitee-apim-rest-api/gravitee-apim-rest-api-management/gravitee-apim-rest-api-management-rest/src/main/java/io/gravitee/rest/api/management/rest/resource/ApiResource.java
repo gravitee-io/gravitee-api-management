@@ -30,7 +30,13 @@ import io.gravitee.rest.api.management.rest.resource.param.ReviewAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.*;
+import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.api.DuplicateApiEntity;
+import io.gravitee.rest.api.model.api.RollbackApiEntity;
+import io.gravitee.rest.api.model.api.SwaggerApiEntity;
+import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -40,7 +46,15 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionRequestEntity;
 import io.gravitee.rest.api.security.utils.ImageUtils;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiDuplicatorService;
+import io.gravitee.rest.api.service.ApiExportService;
+import io.gravitee.rest.api.service.DebugApiService;
+import io.gravitee.rest.api.service.JsonPatchService;
+import io.gravitee.rest.api.service.MessageService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.QualityMetricsService;
+import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
@@ -61,8 +75,14 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
 import org.glassfish.jersey.message.internal.MatchingEntityTag;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -226,8 +246,12 @@ public class ApiResource extends AbstractResource {
             return builder.build();
         }
 
+        if (action == null) {
+            throw new BadRequestException("Valid LifecycleAction is required");
+        }
+
         final ApiEntity apiEntity = (ApiEntity) responseApi.getEntity();
-        final ApiEntity updatedApi;
+        ApiEntity updatedApi = null;
         switch (action) {
             case START:
                 checkApiLifeCycle(apiEntity, action);
@@ -237,12 +261,9 @@ public class ApiResource extends AbstractResource {
                 checkApiLifeCycle(apiEntity, action);
                 updatedApi = apiService.stop(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser());
                 break;
-            default:
-                updatedApi = null;
-                break;
         }
 
-        return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+        return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build(); //NOSONAR `updatedApi` can't be null
     }
 
     @PUT
