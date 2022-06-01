@@ -180,7 +180,7 @@ public class DictionaryResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.UPDATE) })
     public Response doLifecycleAction(
         @Context HttpHeaders headers,
-        @Parameter(required = true) @QueryParam("action") LifecycleAction action,
+        @Parameter(required = true) @NotNull @QueryParam("action") LifecycleAction action,
         @PathParam("dictionary") String dictionary
     ) {
         DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
@@ -194,9 +194,6 @@ public class DictionaryResource extends AbstractResource {
                 case STOP:
                     checkLifecycle(dictionaryEntity, action);
                     dictionaryEntity = dictionaryService.stop(GraviteeContext.getExecutionContext(), dictionary);
-                    break;
-                default:
-                    dictionaryEntity = null;
                     break;
             }
 
