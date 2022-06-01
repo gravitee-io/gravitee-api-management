@@ -41,13 +41,24 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.NotificationTemplateNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TemplateProcessingException;
-import io.gravitee.rest.api.service.notification.*;
-import java.io.*;
+import io.gravitee.rest.api.service.notification.ActionHook;
+import io.gravitee.rest.api.service.notification.AlertHook;
+import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApplicationHook;
+import io.gravitee.rest.api.service.notification.Hook;
+import io.gravitee.rest.api.service.notification.HookScope;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
+import io.gravitee.rest.api.service.notification.PortalHook;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,12 +119,11 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     }
 
     private Map<String, NotificationTemplateEntity> addExtraHtmlTemplate() {
-        try {
-            return Files
-                .list(new File(templatesPath).toPath())
+        try (Stream<Path> streamPath = Files.list(new File(templatesPath).toPath())) {
+            return streamPath
                 .filter(path -> path.getFileName().toString().endsWith(HTML_TEMPLATE_EXTENSION))
                 .filter(path -> EmailTemplate.fromHtmlTemplateName(path.getFileName().toString()) == null)
-                .map(path -> this.loadEmailNotificationTemplateFromFile(path))
+                .map(this::loadEmailNotificationTemplateFromFile)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(NotificationTemplateEntity::getTemplateName, Function.identity()));
         } catch (IOException e) {
@@ -306,7 +316,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
             File emailTemplateFile = new File(templatesPath + "/" + emailTemplate.getHtmlTemplate());
 
             try {
-                String title = (emailTemplate == null ? "unused title" : emailTemplate.getSubject());
+                String title = (emailTemplate.getSubject() == null ? "unused title" : emailTemplate.getSubject());
                 String content = new String(Files.readAllBytes(emailTemplateFile.toPath()));
 
                 return new NotificationTemplateEntity(
@@ -440,7 +450,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
                 executionContext,
                 NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED,
                 updatingNotificationTemplate.getUpdatedAt(),
-                optNotificationTemplate.get(),
+                optNotificationTemplate.orElse(null),
                 updatedNotificationTemplate
             );
 
