@@ -1012,10 +1012,10 @@ jobs:
                         fi
                       fi
 
-                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_GATEWAY_TAG}         -f ./gravitee-apim-gateway/docker/Dockerfile-from-download .
-                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_API_TAG}  -f ./gravitee-apim-rest-api/docker/Dockerfile-from-download .
-                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_UI_TAG}   -f ./gravitee-apim-console-webui/docker/Dockerfile-from-download .
-                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_PORTAL_UI_TAG}       -f ./gravitee-apim-portal-webui/docker/Dockerfile-from-download .
+                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_GATEWAY_TAG}         -f ./gravitee-apim-gateway/docker/Dockerfile-from-download ./gravitee-apim-gateway/docker
+                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_API_TAG}  -f ./gravitee-apim-rest-api/docker/Dockerfile-from-download ./gravitee-apim-rest-api/docker
+                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_UI_TAG}   -f ./gravitee-apim-console-webui/docker/Dockerfile-from-download ./gravitee-apim-console-webui/docker
+                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_PORTAL_UI_TAG}       -f ./gravitee-apim-portal-webui/docker/Dockerfile-from-download ./gravitee-apim-portal-webui/docker
 
                       docker image ls
 
