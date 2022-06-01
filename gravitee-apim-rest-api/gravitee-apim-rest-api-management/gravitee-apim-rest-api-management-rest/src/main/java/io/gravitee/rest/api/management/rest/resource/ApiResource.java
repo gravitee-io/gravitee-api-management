@@ -703,8 +703,9 @@ public class ApiResource extends AbstractResource {
         if (builder != null) {
             return builder.build();
         }
+
         final ApiEntity apiEntity = (ApiEntity) responseApi.getEntity();
-        final ApiEntity updatedApi;
+        ApiEntity updatedApi = null;
         checkApiReviewWorkflow(apiEntity, action);
         switch (action) {
             case ASK:
@@ -722,11 +723,9 @@ public class ApiResource extends AbstractResource {
                 updatedApi =
                     apiService.rejectReview(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser(), reviewEntity);
                 break;
-            default:
-                updatedApi = null;
-                break;
         }
-        return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+
+        return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build(); //NOSONAR `updatedApi` can't be null
     }
 
     private void checkApiReviewWorkflow(final ApiEntity api, final ReviewAction action) {

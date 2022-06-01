@@ -39,6 +39,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
+import io.gravitee.rest.api.management.rest.resource.param.ReviewAction;
 import io.gravitee.rest.api.model.ApiStateEntity;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.Visibility;
@@ -425,5 +426,36 @@ public class ApiResourceTest extends AbstractResourceTest {
             .request()
             .post(null);
         assertEquals(OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldAskForReview() {
+        doReturn(mockApi).when(apiService).askForReview(eq(GraviteeContext.getExecutionContext()), eq(API), any(), any());
+        final Response response = envTarget(API + "/reviews").queryParam("action", ReviewAction.ASK).request().post(null);
+
+        assertEquals(NO_CONTENT_204, response.getStatus());
+    }
+
+    @Test
+    public void shouldAcceptReview() {
+        doReturn(mockApi).when(apiService).acceptReview(eq(GraviteeContext.getExecutionContext()), eq(API), any(), any());
+        final Response response = envTarget(API + "/reviews").queryParam("action", ReviewAction.ACCEPT).request().post(null);
+
+        assertEquals(NO_CONTENT_204, response.getStatus());
+    }
+
+    @Test
+    public void shouldRehectReview() {
+        doReturn(mockApi).when(apiService).rejectReview(eq(GraviteeContext.getExecutionContext()), eq(API), any(), any());
+        final Response response = envTarget(API + "/reviews").queryParam("action", ReviewAction.REJECT).request().post(null);
+
+        assertEquals(NO_CONTENT_204, response.getStatus());
+    }
+
+    @Test
+    public void shouldReturnBadRequestWithInvalidReviewsAction() {
+        final Response response = envTarget(API + "/reviews").queryParam("action", "Soo bad action").request().post(null);
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
     }
 }
