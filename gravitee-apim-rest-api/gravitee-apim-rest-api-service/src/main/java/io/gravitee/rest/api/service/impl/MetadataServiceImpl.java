@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
-import static io.gravitee.repository.management.model.Metadata.AuditEvent.*;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_CREATED;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_DELETED;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_UPDATED;
 import static java.util.Collections.singletonMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -273,7 +275,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                     email.validate();
                     break;
                 case DATE:
-                    final SimpleDateFormat sdf = new SimpleDateFormat("YYYY-mm-dd");
+                    final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                     sdf.setLenient(false);
                     sdf.parse(decodedValue);
                     break;
