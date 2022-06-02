@@ -36,6 +36,8 @@ import java.util.function.Consumer;
 import org.bson.BsonString;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -46,6 +48,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class MongoMediaRepository implements MediaRepository {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MongoMediaRepository.class);
 
     @Autowired
     private MongoDatabaseFactory mongoFactory;
@@ -168,7 +172,7 @@ public class MongoMediaRepository implements MediaRepository {
                     result = bos.toByteArray();
                     bos.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("An error as occurred while converting GridFs file to media", e);
                 }
                 imageData.setData(result);
             }
