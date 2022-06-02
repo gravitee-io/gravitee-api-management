@@ -17,10 +17,15 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
-import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.*;
+import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.GROUP_INVITATION;
+import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.RESET_PASSWORD;
+import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_CREATION;
+import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_REGISTRATION;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
-import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.*;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.DEFAULT_MANAGEMENT_URL;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -81,6 +86,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -898,6 +904,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
         final UserEntity userEntity = create(executionContext, newExternalUserEntity, true, autoRegistrationEnabled);
 
+        if (userEntity == null) {
+            LOGGER.error("An error occurs while trying to create user");
+            throw new TechnicalManagementException("An error occurs while trying to create user");
+        }
+
         if (!isServiceUser) {
             if (IDP_SOURCE_GRAVITEE.equals(newExternalUserEntity.getSource())) {
                 final Map<String, Object> params = getTokenRegistrationParams(
@@ -962,6 +973,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         return processedUser;
     }
 
+    @NotNull
     private UserEntity changeUserStatus(ExecutionContext executionContext, String userId, UserStatus newStatus) {
         try {
             Optional<User> optionalUser = this.userRepository.findById(userId);
@@ -973,7 +985,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     //so a new registration can be requested with the same email
                     user.setSourceId(newStatus.name().toLowerCase() + "-" + user.getSourceId());
                 }
-                return convert(executionContext, this.userRepository.update(user), true);
+                final User updatedUser = this.userRepository.update(user);
+                if (updatedUser == null) {
+                    throw new TechnicalManagementException("An error occurs while trying to update user");
+                }
+                return convert(executionContext, updatedUser, true);
             }
             throw new UserNotFoundException(userId);
         } catch (TechnicalException ex) {
