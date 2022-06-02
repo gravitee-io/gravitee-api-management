@@ -46,23 +46,9 @@ public class MongoMembershipRepository implements MembershipRepository {
 
     @Override
     public Membership create(Membership membership) throws TechnicalException {
-        logger.debug(
-            "Create membership [{}, {}, {}, {}, {}]",
-            membership.getMemberId(),
-            membership.getMemberType().name(),
-            membership.getReferenceType(),
-            membership.getReferenceId(),
-            membership.getRoleId()
-        );
+        logger.debug("Create membership [{}]", membership);
         Membership m = map(internalMembershipRepo.insert(map(membership)));
-        logger.debug(
-            "Create membership [{}, {}, {}, {}, {}] - Done",
-            m.getMemberId(),
-            m.getMemberType().name(),
-            m.getReferenceType(),
-            m.getReferenceId(),
-            m.getRoleId()
-        );
+        logger.debug("Create membership [{}] - Done", membership);
         return m;
     }
 
