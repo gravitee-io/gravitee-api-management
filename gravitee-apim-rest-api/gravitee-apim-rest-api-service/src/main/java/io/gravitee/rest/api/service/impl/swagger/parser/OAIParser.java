@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.swagger.parser;
 
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.parser.core.models.ParseOptions;
@@ -85,29 +86,17 @@ public class OAIParser extends AbstractDescriptorParser<OAIDescriptor> {
     }
 
     private File createTempFile(String content) {
-        File temp = null;
         String fileName = "gio_swagger_" + System.currentTimeMillis();
-        BufferedWriter bw = null;
-        FileWriter out = null;
+        File temp;
         try {
             temp = File.createTempFile(fileName, ".tmp");
-            out = new FileWriter(temp);
-            bw = new BufferedWriter(out);
-            bw.write(content);
-            bw.close();
         } catch (IOException ioe) {
-            // Fallback to the new parser
-        } finally {
-            if (bw != null) {
-                try {
-                    bw.close();
-                } catch (IOException e) {}
-            }
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {}
-            }
+            throw new TechnicalManagementException("An error occurs while trying to create temp file", ioe);
+        }
+        try (FileWriter out = new FileWriter(temp); BufferedWriter bw = new BufferedWriter(out)) {
+            bw.write(content);
+        } catch (IOException ioe) {
+            throw new TechnicalManagementException("An error occurs while trying to create temp file", ioe);
         }
         return temp;
     }
