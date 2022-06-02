@@ -71,13 +71,16 @@ public abstract class AbstractRepository implements InitializingBean {
         try {
             return future.get(10, TimeUnit.SECONDS);
         } catch (Exception ex) {
+            if (ex instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             logger.error("Unexpected error while invoking bridge: {}", ex.getMessage());
             throw new TechnicalException(ex);
         }
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         prefixPath = BridgePath.get(environment);
     }
 }
