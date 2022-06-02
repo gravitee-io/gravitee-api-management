@@ -16,12 +16,16 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PAGE;
-import static io.gravitee.repository.management.model.Page.AuditEvent.*;
+import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_CREATED;
+import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_DELETED;
+import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_UPDATED;
 import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
 import static io.gravitee.rest.api.model.PageType.SYSTEM_FOLDER;
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -31,17 +35,27 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.fetcher.api.*;
+import io.gravitee.fetcher.api.Fetcher;
+import io.gravitee.fetcher.api.FetcherConfiguration;
+import io.gravitee.fetcher.api.FetcherException;
+import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
+import io.gravitee.fetcher.api.FilesFetcher;
+import io.gravitee.fetcher.api.Resource;
+import io.gravitee.fetcher.api.Sensitive;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.AccessControl;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageMedia;
+import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
@@ -1451,14 +1465,14 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     @SuppressWarnings({ "Duplicates", "unchecked" })
     private Fetcher getFetcher(PageSource ps) throws FetcherException {
-        if (ps.getConfiguration().isEmpty()) {
+        if (ps == null || ps.getConfiguration().isEmpty()) {
             return null;
         }
         try {
             FetcherPlugin fetcherPlugin = fetcherPluginManager.get(ps.getType());
             ClassLoader fetcherCL = fetcherPlugin.fetcher().getClassLoader();
             Fetcher fetcher;
-            if (fetcherPlugin.configuration().getName().equals(FilepathAwareFetcherConfiguration.class.getName())) {
+            if (fetcherPlugin.configuration().isAssignableFrom(FilepathAwareFetcherConfiguration.class)) {
                 Class<? extends FetcherConfiguration> fetcherConfigurationClass = (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(
                     fetcherPlugin.configuration().getName()
                 );
@@ -1540,7 +1554,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private boolean isFetchRequired(Page pageItem) {
         boolean fetchRequired = false;
         try {
-            FetcherConfiguration configuration = getFetcher(pageItem.getSource()).getConfiguration();
+            Fetcher fetcher = getFetcher(pageItem.getSource());
+            if (fetcher == null) {
+                logger.error("An error occurs while trying to fetch page source");
+                throw new TechnicalManagementException("An error occurs while trying to fetch page source");
+            }
+            FetcherConfiguration configuration = fetcher.getConfiguration();
             if (configuration.isAutoFetch()) {
                 String cron = configuration.getFetchCron();
                 if (cron != null && !cron.isEmpty()) {
@@ -1852,7 +1871,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             page.setReferenceType(PageReferenceType.API);
 
             if (page.getSource() != null) {
-                final FetcherConfiguration configuration = this.getFetcher(page.getSource()).getConfiguration();
+                Fetcher fetcher = getFetcher(page.getSource());
+                if (fetcher == null) {
+                    logger.error("An error occurs while trying to fetch page source");
+                    throw new TechnicalManagementException("An error occurs while trying to fetch page source");
+                }
+                final FetcherConfiguration configuration = fetcher.getConfiguration();
                 if (configuration.isAutoFetch()) {
                     page.setUseAutoFetch(Boolean.TRUE);
                 } else {
@@ -1868,7 +1892,14 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 return pageRepository.create(page);
             } else {
                 page.setId(searchResult.get(0).getId());
-                final FetcherConfiguration configuration = this.getFetcher(searchResult.get(0).getSource()).getConfiguration();
+
+                Fetcher fetcher = getFetcher(searchResult.get(0).getSource());
+                if (fetcher == null) {
+                    logger.error("An error occurs while trying to fetch page source");
+                    throw new TechnicalManagementException("An error occurs while trying to fetch page source");
+                }
+                final FetcherConfiguration configuration = fetcher.getConfiguration();
+
                 mergeSensitiveData(configuration, page);
                 page.setUpdatedAt(new Date());
                 validateSafeContent(executionContext, page);
@@ -2335,7 +2366,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             entity = new PageSourceEntity();
             entity.setType(pageSource.getType());
             try {
-                FetcherConfiguration fetcherConfiguration = this.getFetcher(pageSource).getConfiguration();
+                Fetcher fetcher = getFetcher(pageSource);
+                if (fetcher == null) {
+                    logger.error("An error occurs while trying to fetch page source");
+                    throw new TechnicalManagementException("An error occurs while trying to fetch page source");
+                }
+                FetcherConfiguration fetcherConfiguration = fetcher.getConfiguration();
                 if (removeSensitiveData) {
                     removeSensitiveData(fetcherConfiguration);
                 }
@@ -2364,7 +2400,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     private void mergeSensitiveData(FetcherConfiguration originalFetcherConfiguration, Page page) throws FetcherException {
-        FetcherConfiguration updatedFetcherConfiguration = this.getFetcher(page.getSource()).getConfiguration();
+        Fetcher fetcher = getFetcher(page.getSource());
+        if (fetcher == null) {
+            logger.error("An error occurs while trying to fetch page source");
+            throw new TechnicalManagementException("An error occurs while trying to fetch page source");
+        }
+        FetcherConfiguration updatedFetcherConfiguration = fetcher.getConfiguration();
         boolean updated = false;
 
         Field[] fields = originalFetcherConfiguration.getClass().getDeclaredFields();
