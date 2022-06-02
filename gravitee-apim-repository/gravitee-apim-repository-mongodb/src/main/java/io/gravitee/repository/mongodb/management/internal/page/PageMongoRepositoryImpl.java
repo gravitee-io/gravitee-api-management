@@ -108,6 +108,6 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
         query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
         List<PageMongo> pages = mongoTemplate.find(query, PageMongo.class);
 
-        return new Page<>(pages, (pageable != null) ? pageable.pageNumber() : 0, pages.size(), total);
+        return new Page<>(pages, pageable.pageNumber(), pages.size(), total);
     }
 }
