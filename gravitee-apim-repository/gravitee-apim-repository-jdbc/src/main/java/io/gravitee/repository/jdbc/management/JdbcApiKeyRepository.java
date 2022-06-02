@@ -44,8 +44,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiKeyRepository.class);
 
-    private final String KEY_SUBSCRIPTIONS;
-    private final String SUBSCRIPTION;
+    private final String keySubscriptions;
+    private final String subscription;
 
     private static final JdbcHelper.ChildAdder<ApiKey> CHILD_ADDER = (ApiKey parent, ResultSet rs) -> {
         String subscriptionId = rs.getString("subscription_id");
@@ -61,8 +61,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
     JdbcApiKeyRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "keys");
-        KEY_SUBSCRIPTIONS = getTableNameFor("key_subscriptions");
-        SUBSCRIPTION = getTableNameFor("subscriptions");
+        keySubscriptions = getTableNameFor("key_subscriptions");
+        subscription = getTableNameFor("subscriptions");
     }
 
     @Override
@@ -99,8 +99,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             }
             return findById(apiKey.getId()).orElse(null);
         } catch (Exception e) {
-            LOGGER.error("Failed to create api key " + apiKey.getId(), e);
-            throw new TechnicalException("Failed to create api key " + apiKey.getId(), e);
+            LOGGER.error("Failed to create api key", e);
+            throw new TechnicalException("Failed to create api key", e);
         }
     }
 
@@ -135,7 +135,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
                 .append(" k left join ")
-                .append(KEY_SUBSCRIPTIONS)
+                .append(keySubscriptions)
                 .append(" ks on ks.key_id = k.id");
 
             boolean first = true;
@@ -144,8 +144,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                 first = addClause(first, query);
                 query
                     .append(" k.id in (")
-                    .append("   select key_id from " + KEY_SUBSCRIPTIONS + " ks")
-                    .append("   join " + SUBSCRIPTION + " s on s.id = ks.subscription_id")
+                    .append("   select key_id from " + keySubscriptions + " ks")
+                    .append("   join " + subscription + " s on s.id = ks.subscription_id")
                     .append("   where s." + escapeReservedWord("plan") + " in (" + getOrm().buildInClause(criteria.getPlans()) + ")")
                     .append(")");
                 args.addAll(criteria.getPlans());
@@ -209,8 +209,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             String query = String.format(
                 "%s k join %s ks on ks.key_id = k.id where k.id in ( select key_id from %s where subscription_id = ?)",
                 getOrm().getSelectAllSql(),
-                KEY_SUBSCRIPTIONS,
-                KEY_SUBSCRIPTIONS
+                keySubscriptions,
+                keySubscriptions
             );
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
@@ -232,10 +232,10 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                 getOrm().getSelectAllSql() +
                 " k" +
                 " join " +
-                KEY_SUBSCRIPTIONS +
+                keySubscriptions +
                 " ks on ks.key_id = k.id" +
                 " join " +
-                SUBSCRIPTION +
+                subscription +
                 " s on ks.subscription_id = s.id and s." +
                 escapeReservedWord("plan") +
                 " = ?";
@@ -259,7 +259,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                 getOrm().getSelectAllSql() +
                 " k" +
                 " left join " +
-                KEY_SUBSCRIPTIONS +
+                keySubscriptions +
                 " ks on ks.key_id = k.id " +
                 "where k." +
                 escapeReservedWord("key") +
@@ -285,7 +285,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                 getOrm().getSelectAllSql() +
                 " k" +
                 " left join " +
-                KEY_SUBSCRIPTIONS +
+                keySubscriptions +
                 " ks on ks.key_id = k.id " +
                 "where k.application = ?" +
                 " order by k.updated_at desc ";
@@ -309,10 +309,10 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                 getOrm().getSelectAllSql() +
                 " k" +
                 " join " +
-                KEY_SUBSCRIPTIONS +
+                keySubscriptions +
                 " ks on ks.key_id = k.id" +
                 " join " +
-                SUBSCRIPTION +
+                subscription +
                 " s on ks.subscription_id = s.id " +
                 " where k." +
                 escapeReservedWord("key") +
@@ -335,7 +335,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         LOGGER.debug("JdbcApiKeyRepository.findById({})", id);
         try {
             String query =
-                getOrm().getSelectAllSql() + " k " + " left join " + KEY_SUBSCRIPTIONS + " ks on ks.key_id = k.id" + " where k.id = ?";
+                getOrm().getSelectAllSql() + " k " + " left join " + keySubscriptions + " ks on ks.key_id = k.id" + " where k.id = ?";
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
@@ -356,7 +356,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                 getOrm().getSelectAllSql() +
                 " k" +
                 " left join " +
-                KEY_SUBSCRIPTIONS +
+                keySubscriptions +
                 " ks on ks.key_id = k.id" +
                 " order by k.updated_at desc ";
 
@@ -374,10 +374,10 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     private void storeSubscriptions(ApiKey key) {
         List<String> subscriptions = key.getSubscriptions();
 
-        jdbcTemplate.update("delete from " + KEY_SUBSCRIPTIONS + " where key_id = ?", key.getId());
+        jdbcTemplate.update("delete from " + keySubscriptions + " where key_id = ?", key.getId());
 
         jdbcTemplate.batchUpdate(
-            "insert into " + KEY_SUBSCRIPTIONS + " ( key_id, subscription_id ) values ( ?, ? )",
+            "insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )",
             new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
