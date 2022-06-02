@@ -86,7 +86,7 @@ public class SampleXmlUtil {
         _soapEnc = soapEnc;
     }
 
-    Random _picker = new Random(1);
+    Random picker = new Random(1); // NOSONAR this value is not used for security purpose
 
     /**
      * Cursor position
@@ -96,9 +96,9 @@ public class SampleXmlUtil {
      * <theElement><lots of stuff/>^</theElement>
      */
     public void createSampleForType(SchemaType stype, XmlCursor xmlc) {
-        if (_typeStack.contains(stype)) return;
+        if (typeStack.contains(stype)) return;
 
-        _typeStack.add(stype);
+        typeStack.add(stype);
 
         try {
             if (stype.isSimpleType() || stype.isURType()) {
@@ -135,7 +135,7 @@ public class SampleXmlUtil {
                     break;
             }
         } finally {
-            _typeStack.remove(_typeStack.size() - 1);
+            typeStack.remove(typeStack.size() - 1);
         }
     }
 
@@ -418,7 +418,7 @@ public class SampleXmlUtil {
     private static final String[] DNS2 = new String[] { "com", "org", "com", "gov", "org", "com", "org", "com", "edu" };
 
     private int pick(int n) {
-        return _picker.nextInt(n);
+        return picker.nextInt(n);
     }
 
     private String pick(String[] a) {
@@ -1042,5 +1042,5 @@ public class SampleXmlUtil {
         return returnParticleType.toString();
     }
 
-    private ArrayList _typeStack = new ArrayList();
+    private ArrayList typeStack = new ArrayList();
 }
