@@ -108,4 +108,14 @@ public class MetadataServiceTest {
             apiEntity
         );
     }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void checkMetadataFormat_badDateFormat() {
+        metadataService.checkMetadataFormat(GraviteeContext.getExecutionContext(), MetadataFormat.DATE, "2015-31-31");
+    }
+
+    @Test
+    public void checkMetadataFormat_Date() {
+        metadataService.checkMetadataFormat(GraviteeContext.getExecutionContext(), MetadataFormat.DATE, "2015-02-24");
+    }
 }
