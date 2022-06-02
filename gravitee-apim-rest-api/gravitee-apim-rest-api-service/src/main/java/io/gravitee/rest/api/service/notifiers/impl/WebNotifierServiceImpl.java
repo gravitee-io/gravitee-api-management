@@ -27,7 +27,11 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import java.net.URI;
@@ -213,8 +217,12 @@ public class WebNotifierServiceImpl implements WebNotifierService {
 
         try {
             future.get();
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (ExecutionException e) {
             LOGGER.error(e.getMessage(), e);
+            throw new TechnicalManagementException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            LOGGER.error(e.getMessage(), e);
+            Thread.currentThread().interrupt();
             throw new TechnicalManagementException(e.getMessage(), e);
         }
     }
