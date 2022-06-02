@@ -164,13 +164,12 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
                     if (plan.getFlows() != null) {
                         plan
                             .getFlows()
+                            .stream()
+                            .filter(Flow::isEnabled)
                             .forEach(
-                                new Consumer<Flow>() {
-                                    @Override
-                                    public void accept(Flow flow) {
-                                        policies.addAll(getPolicies(flow.getPre()));
-                                        policies.addAll(getPolicies(flow.getPost()));
-                                    }
+                                flow -> {
+                                    policies.addAll(getPolicies(flow.getPre()));
+                                    policies.addAll(getPolicies(flow.getPost()));
                                 }
                             );
                     }
@@ -180,13 +179,12 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
         // Load policies from flows
         if (getFlows() != null) {
             getFlows()
+                .stream()
+                .filter(Flow::isEnabled)
                 .forEach(
-                    new Consumer<Flow>() {
-                        @Override
-                        public void accept(Flow flow) {
-                            policies.addAll(getPolicies(flow.getPre()));
-                            policies.addAll(getPolicies(flow.getPost()));
-                        }
+                    flow -> {
+                        policies.addAll(getPolicies(flow.getPre()));
+                        policies.addAll(getPolicies(flow.getPost()));
                     }
                 );
         }
@@ -222,15 +220,13 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
 
         return flowStep
             .stream()
+            .filter(Step::isEnabled)
             .map(
-                new Function<Step, Policy>() {
-                    @Override
-                    public Policy apply(Step step) {
-                        Policy policy = new Policy();
-                        policy.setName(step.getPolicy());
-                        policy.setConfiguration(step.getConfiguration());
-                        return policy;
-                    }
+                step -> {
+                    Policy policy = new Policy();
+                    policy.setName(step.getPolicy());
+                    policy.setConfiguration(step.getConfiguration());
+                    return policy;
                 }
             )
             .collect(Collectors.toList());
