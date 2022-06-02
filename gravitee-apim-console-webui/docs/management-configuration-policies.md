@@ -12,7 +12,7 @@ The (+) button let you create a new path to specify its behavior via the policie
 
 ## Configuration
 
-As an Organization user, you can define platform flows. 
+As an Organization user, you can define platform flows.
 
 Each flow will apply to a path in the order defined.
 
@@ -26,7 +26,7 @@ You can also define an Expression Language (EL) type condition.
 
 This expression language is a powerful language that supports querying and manipulating an object graph and is based on the SpEL (Spring Expression Language). This means that you can do everything described in the link.
 
-##### Some examples :
+##### Some examples:
 - Get the value of the property my-property defined in properties: `{#properties['my-property']}`
 - Get the value of the Content-Type header for an incoming HTTP request: `{#request.headers['content-type']}`
 - Get the second part of the request path: `{#request.paths[1]}`

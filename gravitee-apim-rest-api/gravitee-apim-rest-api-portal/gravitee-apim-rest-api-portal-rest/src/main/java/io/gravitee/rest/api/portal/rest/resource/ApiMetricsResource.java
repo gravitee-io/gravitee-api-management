@@ -92,7 +92,7 @@ public class ApiMetricsResource extends AbstractResource {
         );
         if (apiAvailability != null) {
             Map<String, Double> globalAvailability = apiAvailability.getGlobal();
-            if (globalAvailability != null) {
+            if (globalAvailability != null && globalAvailability.get("1w") != null) {
                 try {
                     return BigDecimal.valueOf(globalAvailability.get("1w")).divide(BigDecimal.valueOf(100), 4, RoundingMode.DOWN);
                 } catch (NumberFormatException nfe) {

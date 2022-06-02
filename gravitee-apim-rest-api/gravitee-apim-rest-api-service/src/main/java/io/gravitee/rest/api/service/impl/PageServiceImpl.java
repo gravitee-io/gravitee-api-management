@@ -1137,13 +1137,19 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
 
             try {
-                if (
-                    pageToUpdate.getSource() != null &&
-                    pageToUpdate.getSource().getConfiguration() != null &&
-                    page.getSource() != null &&
-                    page.getSource().getConfiguration() != null
-                ) {
-                    mergeSensitiveData(this.getFetcher(pageToUpdate.getSource()).getConfiguration(), page);
+                if (page.getSource() != null && page.getSource().getConfiguration() != null) {
+                    final FetcherConfiguration newFetcherConfiguration = this.getFetcher(page.getSource()).getConfiguration();
+                    if (newFetcherConfiguration.isAutoFetch()) {
+                        page.setUseAutoFetch(Boolean.TRUE);
+                    } else {
+                        page.setUseAutoFetch(null);
+                    }
+
+                    if (pageToUpdate.getSource() != null && pageToUpdate.getSource().getConfiguration() != null) {
+                        final FetcherConfiguration originalFetcherConfiguration =
+                            this.getFetcher(pageToUpdate.getSource()).getConfiguration();
+                        mergeSensitiveData(originalFetcherConfiguration, page);
+                    }
                 }
             } catch (FetcherException e) {
                 throw onUpdateFail(pageId, e);
@@ -2122,6 +2128,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
         page.setContent(updatePageEntity.getContent());
         page.setMetadata(updatePageEntity.getMetadata());
+        page.setUseAutoFetch(updatePageEntity.getUseAutoFetch());
         page.setUpdatedAt(new Date());
         page.setLastContributor(contributor);
 

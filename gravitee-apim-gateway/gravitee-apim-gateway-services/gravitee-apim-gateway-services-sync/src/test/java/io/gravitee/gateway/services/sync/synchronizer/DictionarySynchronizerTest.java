@@ -71,7 +71,7 @@ public class DictionarySynchronizerTest extends TestCase {
                 argThat(
                     criteria ->
                         criteria != null &&
-                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.START_DICTIONARY)) &&
+                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
                         criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.DICTIONARY_ID),
@@ -98,16 +98,7 @@ public class DictionarySynchronizerTest extends TestCase {
                 argThat(
                     criteria ->
                         criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(
-                                Arrays.asList(
-                                    EventType.PUBLISH_DICTIONARY,
-                                    EventType.START_DICTIONARY,
-                                    EventType.UNPUBLISH_DICTIONARY,
-                                    EventType.STOP_DICTIONARY
-                                )
-                            ) &&
+                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
                         criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.DICTIONARY_ID),
@@ -141,16 +132,7 @@ public class DictionarySynchronizerTest extends TestCase {
                 argThat(
                     criteria ->
                         criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(
-                                Arrays.asList(
-                                    EventType.PUBLISH_DICTIONARY,
-                                    EventType.START_DICTIONARY,
-                                    EventType.UNPUBLISH_DICTIONARY,
-                                    EventType.STOP_DICTIONARY
-                                )
-                            ) &&
+                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
                         criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.DICTIONARY_ID),
@@ -165,16 +147,7 @@ public class DictionarySynchronizerTest extends TestCase {
                 argThat(
                     criteria ->
                         criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(
-                                Arrays.asList(
-                                    EventType.PUBLISH_DICTIONARY,
-                                    EventType.START_DICTIONARY,
-                                    EventType.UNPUBLISH_DICTIONARY,
-                                    EventType.STOP_DICTIONARY
-                                )
-                            ) &&
+                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
                         criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.DICTIONARY_ID),
@@ -202,16 +175,7 @@ public class DictionarySynchronizerTest extends TestCase {
                 argThat(
                     criteria ->
                         criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(
-                                Arrays.asList(
-                                    EventType.PUBLISH_DICTIONARY,
-                                    EventType.START_DICTIONARY,
-                                    EventType.UNPUBLISH_DICTIONARY,
-                                    EventType.STOP_DICTIONARY
-                                )
-                            ) &&
+                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
                         criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.DICTIONARY_ID),
@@ -245,16 +209,7 @@ public class DictionarySynchronizerTest extends TestCase {
                 argThat(
                     criteria ->
                         criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(
-                                Arrays.asList(
-                                    EventType.PUBLISH_DICTIONARY,
-                                    EventType.START_DICTIONARY,
-                                    EventType.UNPUBLISH_DICTIONARY,
-                                    EventType.STOP_DICTIONARY
-                                )
-                            ) &&
+                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
                         criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.DICTIONARY_ID),
@@ -269,16 +224,7 @@ public class DictionarySynchronizerTest extends TestCase {
                 argThat(
                     criteria ->
                         criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(
-                                Arrays.asList(
-                                    EventType.PUBLISH_DICTIONARY,
-                                    EventType.START_DICTIONARY,
-                                    EventType.UNPUBLISH_DICTIONARY,
-                                    EventType.STOP_DICTIONARY
-                                )
-                            ) &&
+                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
                         criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.DICTIONARY_ID),
@@ -305,9 +251,9 @@ public class DictionarySynchronizerTest extends TestCase {
             dictionary.setId("dictionary" + i + "-test");
 
             if (i % 2 == 0) {
-                eventAccumulator.add(mockEvent(dictionary, EventType.START_DICTIONARY));
+                eventAccumulator.add(mockEvent(dictionary, EventType.PUBLISH_DICTIONARY));
             } else {
-                eventAccumulator.add(mockEvent(dictionary, EventType.STOP_DICTIONARY));
+                eventAccumulator.add(mockEvent(dictionary, EventType.UNPUBLISH_DICTIONARY));
             }
 
             if (i % 100 == 0) {
@@ -318,14 +264,7 @@ public class DictionarySynchronizerTest extends TestCase {
                                 criteria != null &&
                                 criteria
                                     .getTypes()
-                                    .containsAll(
-                                        Arrays.asList(
-                                            EventType.PUBLISH_DICTIONARY,
-                                            EventType.START_DICTIONARY,
-                                            EventType.UNPUBLISH_DICTIONARY,
-                                            EventType.STOP_DICTIONARY
-                                        )
-                                    ) &&
+                                    .containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
                                 criteria.getEnvironments().containsAll(ENVIRONMENTS)
                         ),
                         eq(Event.EventProperties.DICTIONARY_ID),
@@ -358,7 +297,7 @@ public class DictionarySynchronizerTest extends TestCase {
                 argThat(
                     criteria ->
                         criteria != null &&
-                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.START_DICTIONARY))
+                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY))
                 ),
                 eq(Event.EventProperties.DICTIONARY_ID),
                 anyLong(),

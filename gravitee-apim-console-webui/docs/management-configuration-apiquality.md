@@ -8,7 +8,7 @@ Add a quality rate on apis according to criteria:
 - the default logo is not used
 - categories and labels are set on the API
 
-The idea is to invite API publisher to configure all non mandatory fields according to the admin rules.
+The idea is to invite API publisher to configure all non-mandatory fields according to the admin rules.
 A percentage rate will be calculated according to these rules and their weights.
 
 

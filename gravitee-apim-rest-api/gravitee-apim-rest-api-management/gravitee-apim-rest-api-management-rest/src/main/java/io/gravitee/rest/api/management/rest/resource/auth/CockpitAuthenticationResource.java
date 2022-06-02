@@ -161,7 +161,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             );
 
             // Redirect the user.
-            return Response.temporaryRedirect(new URI(URLEncoder.encode(url, "UTF-8"))).build();
+            return Response.temporaryRedirect(new URI(url)).build();
         } catch (Exception e) {
             LOGGER.error("Error occurred when trying to log user using cockpit.", e);
             return Response.serverError().build();
