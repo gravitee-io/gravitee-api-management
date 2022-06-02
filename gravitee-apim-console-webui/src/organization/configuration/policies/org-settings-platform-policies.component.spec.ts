@@ -178,6 +178,13 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
       });
       req.flush(organization);
 
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/flows/flow-schema`).flush(platformFlowSchema);
+
+      httpTestingController
+        .expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expand=schema&expand=icon&withResource=false`)
+        .flush(policies);
+
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`).flush(organization);
       // This one is send by the gio-policy-studio component
       httpTestingController
         .expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/flows/configuration-schema`)

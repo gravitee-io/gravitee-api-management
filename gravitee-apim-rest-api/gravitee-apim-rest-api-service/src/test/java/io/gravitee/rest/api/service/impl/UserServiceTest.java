@@ -63,6 +63,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -182,6 +183,11 @@ public class UserServiceTest {
 
     @Mock
     private EnvironmentService environmentService;
+
+    @Before
+    public void setUp() throws Exception {
+        GraviteeContext.cleanContext();
+    }
 
     @Test
     public void shouldFindByUsername() throws TechnicalException {
@@ -1169,6 +1175,7 @@ public class UserServiceTest {
         setField(userService, "anonymizeOnDelete", true);
 
         String userId = "userId";
+        String organizationId = "DEFAULT";
         String firstName = "first";
         String lastName = "last";
         String email = "email";
@@ -1177,6 +1184,7 @@ public class UserServiceTest {
             .thenReturn(Collections.emptySet());
         User user = new User();
         user.setId(userId);
+        user.setOrganizationId(organizationId);
         user.setSourceId("sourceId");
         Date updatedAt = new Date(1234567890L);
         user.setUpdatedAt(updatedAt);
@@ -1200,6 +1208,7 @@ public class UserServiceTest {
                         public boolean matches(User user) {
                             return (
                                 userId.equals(user.getId()) &&
+                                organizationId.equals(user.getOrganizationId()) &&
                                 UserStatus.ARCHIVED.equals(user.getStatus()) &&
                                 ("deleted-" + userId).equals(user.getSourceId()) &&
                                 !updatedAt.equals(user.getUpdatedAt()) &&

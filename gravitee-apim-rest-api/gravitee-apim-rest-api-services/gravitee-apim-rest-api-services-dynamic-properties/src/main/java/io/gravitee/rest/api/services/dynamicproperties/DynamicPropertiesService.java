@@ -25,6 +25,7 @@ import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyServ
 import io.gravitee.node.api.Node;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.event.ApiEvent;

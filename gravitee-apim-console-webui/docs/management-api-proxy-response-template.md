@@ -8,7 +8,7 @@ You can define as many content-type as you need to manage different response bod
 If none of the defined template is corresponding to the incoming `Accept` request header, you can define
 a fallback response using the type `*/*`.
 
-It no fallback is defined, the normal response from the policy will be send to the API consumer.
+It no fallback is defined, the normal response from the policy will be sent to the API consumer.
 
 ## Configuration
 For each type, you must have to configure the response with:
@@ -23,7 +23,7 @@ The response body template is supporting the Expression Language so you can acce
 
 For the API-KEY:
 
-```$json
+```json
 {
   "message": "{#error.message}",
   "api-key": "{#parameters['api-key']}"

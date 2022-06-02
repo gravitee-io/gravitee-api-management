@@ -53,8 +53,8 @@ public class RateLimitRepositoryConfiguration {
     }
 
     @Bean(name = "rateLimitMongo")
-    public static MongoFactory mongoFactory() {
-        return new MongoFactory(Scope.RATE_LIMIT.getName());
+    public static MongoFactory mongoFactory(Environment environment) {
+        return new MongoFactory(environment, Scope.RATE_LIMIT.getName());
     }
 
     @Bean(name = "rateLimitMongoTemplate")

@@ -24,6 +24,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.authentication.configuration.GlobalAuthenticationConfigurerAdapter;
 
 /**
@@ -36,8 +37,8 @@ import org.springframework.security.config.annotation.authentication.configurati
 public class SecurityPortalConfiguration extends GlobalAuthenticationConfigurerAdapter {
 
     @Bean
-    public CookieGenerator jwtCookieGenerator() {
-        return new CookieGenerator();
+    public CookieGenerator jwtCookieGenerator(Environment environment) {
+        return new CookieGenerator(environment);
     }
 
     @Bean

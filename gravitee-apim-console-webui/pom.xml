@@ -156,7 +156,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>npm test:ci</id>
+            <id>npm test:coverage</id>
             <goals>
               <goal>npm</goal>
             </goals>

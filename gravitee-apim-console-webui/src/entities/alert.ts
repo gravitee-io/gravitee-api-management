@@ -239,14 +239,14 @@ export class AggregationCondition extends Condition {
   // This is our custom Function type
   // eslint-disable-next-line @typescript-eslint/ban-types
   static FUNCTIONS: Function[] = [
-    new Function('count', 'count'),
-    new Function('avg', 'average'),
-    new Function('min', 'min'),
-    new Function('max', 'max'),
-    new Function('p50', '50th percentile'),
-    new Function('p90', '90th percentile'),
-    new Function('p95', '95th percentile'),
-    new Function('p99', '99th percentile'),
+    new Function('COUNT', 'count'),
+    new Function('AVG', 'average'),
+    new Function('MIN', 'min'),
+    new Function('MAX', 'max'),
+    new Function('P50', '50th percentile'),
+    new Function('P90', '90th percentile'),
+    new Function('P95', '95th percentile'),
+    new Function('P99', '99th percentile'),
   ];
 
   constructor() {

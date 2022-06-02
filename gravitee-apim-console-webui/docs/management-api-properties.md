@@ -10,6 +10,6 @@ The (+) button let you create a new property.
 
 To get access to dynamic properties click on the _settings_ button. Dynamic properties let you fetch API properties from a remote resource, such as web service.
 
-You can set a polling frequency property and apply response transformation thanks to the [JOLT framework](http://bazaarvoice.github.io/jolt/). 
+You can set a polling frequency property and apply response transformation thanks to the [JOLT framework](http://bazaarvoice.github.io/jolt/).
 
-Do not forget to switch on dynamic properties and re-deploy the API to unable dynamic properties. Like classical properties, dynamic properties will be injected into the expression language context.
+Do not forget to switch on dynamic properties and re-deploy the API to enable dynamic properties. Like classical properties, dynamic properties will be injected into the expression language context.

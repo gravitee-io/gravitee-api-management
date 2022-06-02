@@ -1,0 +1,27 @@
+{
+    "name": "with-pages",
+    "pages": [
+        {
+            "name": "toto",
+            "type": "MARKDOWN",
+            "order": 1,
+            "lastContributor": "admin",
+            "published": false,
+            "visibility": "PUBLIC",
+            "source": {
+                "type": "http-fetcher",
+                "configuration": {
+                    "url": "https://github.com/jenkinsci/workflow-cps-global-lib-plugin/blob/master/README.md"
+                }
+            }
+        },
+        {
+            "name": "petstore",
+            "type": "SWAGGER",
+            "order": 2,
+            "visibility": "PUBLIC",
+            "lastContributor": "admin",
+            "published": false
+        }
+    ]
+}

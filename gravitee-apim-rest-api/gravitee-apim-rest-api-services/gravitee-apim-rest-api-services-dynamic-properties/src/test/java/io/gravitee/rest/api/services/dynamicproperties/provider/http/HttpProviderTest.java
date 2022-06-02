@@ -78,7 +78,7 @@ public class HttpProviderTest {
         when(dynamicPropertyService.getConfiguration()).thenReturn(providerConfiguration);
         when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
         when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
+            .thenReturn(IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
         when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
 
         HttpProvider provider = new HttpProvider(dynamicPropertyService);
@@ -98,7 +98,7 @@ public class HttpProviderTest {
         when(dynamicPropertyService.getConfiguration()).thenReturn(providerConfiguration);
         when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success_post");
         when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
+            .thenReturn(IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
         when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
         when(providerConfiguration.getBody()).thenReturn("{}");
 
@@ -119,7 +119,7 @@ public class HttpProviderTest {
         when(dynamicPropertyService.getConfiguration()).thenReturn(providerConfiguration);
         when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/error");
         when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
+            .thenReturn(IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
         when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
 
         HttpProvider provider = new HttpProvider(dynamicPropertyService);
@@ -139,7 +139,7 @@ public class HttpProviderTest {
         when(dynamicPropertyService.getConfiguration()).thenReturn(providerConfiguration);
         when(providerConfiguration.getUrl()).thenReturn("http://unknown_host:" + wireMockRule.port());
         when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
+            .thenReturn(IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
         when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
 
         HttpProvider provider = new HttpProvider(dynamicPropertyService);
