@@ -171,6 +171,11 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         return new GraviteeUrlBasedCorsConfigurationSource(parameterService, eventManager);
     }
 
+    /*
+     * We don't want sonar to warn us about the hard coded jwt secret string as it is used to provide a warning
+     * and encourage users to use a personal secret instead of the default one
+     */
+    @SuppressWarnings("java:S6418")
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         final String jwtSecret = environment.getProperty("jwt.secret");
