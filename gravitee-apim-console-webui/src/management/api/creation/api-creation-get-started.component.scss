@@ -1,0 +1,8 @@
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+  display: flex;
+  flex-direction: column;
+  height: var(--gv-policy-studio--h);
+}
