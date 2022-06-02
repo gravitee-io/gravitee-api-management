@@ -219,7 +219,7 @@ public abstract class DynamicClientRegistrationProviderClient {
     }
 
     public ClientRegistrationResponse renewClientSecret(String method, String endpoint, String registrationAccessToken) {
-        HttpRequestBase renewRequest = null;
+        HttpRequestBase renewRequest;
 
         if (method.equalsIgnoreCase(HttpMethod.POST.name())) {
             renewRequest = new HttpPost(endpoint);
@@ -227,6 +227,8 @@ public abstract class DynamicClientRegistrationProviderClient {
             renewRequest = new HttpPut(endpoint);
         } else if (method.equalsIgnoreCase(HttpMethod.PATCH.name())) {
             renewRequest = new HttpPatch(endpoint);
+        } else {
+            throw new DynamicClientRegistrationException("Client registration does not use valid method");
         }
 
         renewRequest.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + registrationAccessToken);
