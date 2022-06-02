@@ -48,6 +48,7 @@ import org.springframework.stereotype.Component;
 public class MediaServiceImpl implements MediaService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MediaServiceImpl.class);
+    private static final String MEDIA_TYPE_IMAGE = "image";
 
     @Autowired
     private MediaRepository mediaRepository;
@@ -73,7 +74,7 @@ public class MediaServiceImpl implements MediaService {
                 ? mediaEntity.getId()
                 : UuidString.generateRandom();
 
-            Optional<Media> checkMedia = null;
+            Optional<Media> checkMedia;
 
             if (api != null) {
                 checkMedia = mediaRepository.findByHashAndApiAndType(hashString, api, mediaEntity.getType());
@@ -103,13 +104,13 @@ public class MediaServiceImpl implements MediaService {
 
     @Override
     public MediaEntity findByHash(String hash) {
-        Optional<Media> mediaData = mediaRepository.findByHashAndType(hash, "image");
+        Optional<Media> mediaData = mediaRepository.findByHashAndType(hash, MEDIA_TYPE_IMAGE);
         return mediaData.isPresent() ? convert(mediaData.get()) : null;
     }
 
     @Override
     public MediaEntity findByHashAndApiId(String hash, String apiId) {
-        Optional<Media> mediaData = mediaRepository.findByHashAndApiAndType(hash, apiId, "image");
+        Optional<Media> mediaData = mediaRepository.findByHashAndApiAndType(hash, apiId, MEDIA_TYPE_IMAGE);
         return mediaData.isPresent() ? convert(mediaData.get()) : null;
     }
 
@@ -119,7 +120,7 @@ public class MediaServiceImpl implements MediaService {
         if (ignoreType) {
             mediaData = mediaRepository.findByHash(id);
         } else {
-            mediaData = mediaRepository.findByHashAndType(id, "image");
+            mediaData = mediaRepository.findByHashAndType(id, MEDIA_TYPE_IMAGE);
         }
         return mediaData.isPresent() ? convert(mediaData.get()) : null;
     }
@@ -130,7 +131,7 @@ public class MediaServiceImpl implements MediaService {
         if (ignoreType) {
             mediaData = mediaRepository.findByHashAndApi(id, api);
         } else {
-            mediaData = mediaRepository.findByHashAndApiAndType(id, api, "image");
+            mediaData = mediaRepository.findByHashAndApiAndType(id, api, MEDIA_TYPE_IMAGE);
         }
         return mediaData.isPresent() ? convert(mediaData.get()) : null;
     }
