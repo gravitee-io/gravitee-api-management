@@ -16,12 +16,21 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.GROUP;
-import static io.gravitee.repository.management.model.Group.AuditEvent.*;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static io.gravitee.repository.management.model.Group.AuditEvent.GROUP_CREATED;
+import static io.gravitee.repository.management.model.Group.AuditEvent.GROUP_DELETED;
+import static io.gravitee.repository.management.model.Group.AuditEvent.GROUP_UPDATED;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.*;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.GroupRepository;
+import io.gravitee.repository.management.api.IdentityProviderRepository;
+import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.PageCriteria;
@@ -38,16 +47,28 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.InvitationService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.GroupNameAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
+import io.gravitee.rest.api.service.exceptions.GroupsNotFoundException;
+import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -336,6 +357,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
+    @NotNull
     public GroupEntity findById(ExecutionContext executionContext, String groupId) {
         try {
             logger.debug("findById {}", groupId);
@@ -345,6 +367,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             logger.debug("findById {} - DONE", group.get());
             GroupEntity groupEntity = this.map(group.get());
+
+            if (groupEntity == null) {
+                logger.error("An error occurs while trying to find a group {}", groupId);
+                throw new TechnicalManagementException("An error occurs while trying to find a group " + groupId);
+            }
 
             if (
                 permissionService.hasPermission(
