@@ -37,6 +37,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +48,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, PolicyEntity> implements PolicyService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PolicyServiceImpl.class);
 
     @Autowired
     private JsonSchemaService jsonSchemaService;
@@ -181,7 +185,7 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
                             try {
                                 policyClassLoader.close();
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                LOGGER.error("An error has occurred while trying to close policy class loader", e);
                             }
                         }
 

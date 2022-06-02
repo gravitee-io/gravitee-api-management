@@ -137,7 +137,7 @@ public class ClientCredentialsInitialAccessTokenProvider implements InitialAcces
             try {
                 httpClient.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Unable to close HTTP client", e);
             }
         }
     }

@@ -21,12 +21,16 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Bootstrap {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Bootstrap.class);
 
     private static final String GRAVITEE_HOME_PROP = "gravitee.home";
     private static final String CONTAINER_CLASS = "io.gravitee.rest.api.standalone.GraviteeApisContainer";
@@ -70,7 +74,7 @@ public class Bootstrap {
             try {
                 cpList.add(lib.toURI().toURL());
             } catch (java.net.MalformedURLException urlEx) {
-                urlEx.printStackTrace();
+                LOGGER.error("Unable to add lib " + lib.getAbsolutePath(), urlEx);
             }
         }
 
@@ -93,7 +97,7 @@ public class Bootstrap {
                     cpList.add(lib.toURI().toURL());
                 }
             } catch (java.net.MalformedURLException urlEx) {
-                urlEx.printStackTrace();
+                LOGGER.error("Unable to add lib " + libDir.getAbsolutePath(), urlEx);
             }
         }
 
