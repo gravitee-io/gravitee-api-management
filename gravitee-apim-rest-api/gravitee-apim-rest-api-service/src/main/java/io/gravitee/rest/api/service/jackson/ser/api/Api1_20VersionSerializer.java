@@ -29,12 +29,16 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Api1_20VersionSerializer extends ApiSerializer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Api1_20VersionSerializer.class);
 
     public Api1_20VersionSerializer() {
         super(ApiEntity.class);
@@ -54,7 +58,7 @@ public class Api1_20VersionSerializer extends ApiSerializer {
                         try {
                             jsonGenerator.writeObject(pathMapping);
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            LOGGER.error("An error has occurred while serializing API entity", e);
                         }
                     }
                 );
@@ -94,24 +98,21 @@ public class Api1_20VersionSerializer extends ApiSerializer {
                 .getProxy()
                 .getGroups()
                 .forEach(
-                    new Consumer<EndpointGroup>() {
-                        @Override
-                        public void accept(EndpointGroup endpointGroup) {
-                            try {
-                                if (endpointGroup.getEndpoints() != null) {
-                                    endpointGroup.setEndpoints(
-                                        endpointGroup
-                                            .getEndpoints()
-                                            .stream()
-                                            .filter(endpoint -> endpoint.getType().equalsIgnoreCase("http"))
-                                            .collect(Collectors.toSet())
-                                    );
-                                }
-
-                                jsonGenerator.writeObject(endpointGroup);
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                    endpointGroup -> {
+                        try {
+                            if (endpointGroup.getEndpoints() != null) {
+                                endpointGroup.setEndpoints(
+                                    endpointGroup
+                                        .getEndpoints()
+                                        .stream()
+                                        .filter(endpoint -> endpoint.getType().equalsIgnoreCase("http"))
+                                        .collect(Collectors.toSet())
+                                );
                             }
+
+                            jsonGenerator.writeObject(endpointGroup);
+                        } catch (IOException e) {
+                            LOGGER.error("An error has occurred while serializing API entity", e);
                         }
                     }
                 );

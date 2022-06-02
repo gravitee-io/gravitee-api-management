@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.impl.swagger.policy;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.api.swagger.v2.SwaggerOperationVisitor;
 import io.gravitee.policy.api.swagger.v3.OAIOperationVisitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -38,7 +40,7 @@ public class PolicyPluginHandler extends io.gravitee.plugin.policy.internal.Poli
         try {
             addVisitor(policyPlugin, createInstance(swaggerVisitor), createInstance(oaiVisitor));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Unable to register policy chain", e);
         }
     }
 
