@@ -1,5 +1,5 @@
 {
-  "content": [
+  "content":
     {
       "name": "Elysee",
       "country": "FRANCE",
@@ -11,30 +11,4 @@
       "gps_y": "2.307784",
       "phone_number": "01 00 00 00 00",
       "backend_url": "https://north-europe.company.com/"
-    },
-    {
-      "name": "Montparnasse",
-      "country": "FRANCE",
-      "address": "Boulevard de Vaugirard",
-      "city": "PARIS",
-      "stores_id": 2,
-      "zip_code": "75000",
-      "gps_x": "48.841895",
-      "gps_y": "2.319508",
-      "phone_number": "01 00 00 00 00",
-      "backend_url": "https://north-europe.company.com/"
-    },
-    {
-      "name": "Yu garden",
-      "country": "CHINA",
-      "address": "huanpu qu",
-      "city": "Shanghai",
-      "stores_id": 3,
-      "zip_code": "XXXX",
-      "gps_x": "31.227208",
-      "gps_y": "121.491836",
-      "phone_number": "+351 000 000 000",
-      "backend_url": "https://south-asia.company.com/"
-    }
-  ]
-}
+    }}

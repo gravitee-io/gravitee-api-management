@@ -73,13 +73,10 @@ public class JoltMapper {
             .stream()
             .map(
                 item -> {
-                    Map<String, String> mapItem = (Map<String, String>) item;
-                    Object key = mapItem.get("key");
-                    if (key instanceof Number) {
-                        return new DynamicProperty(key.toString(), mapItem.get("value"));
-                    } else {
-                        return new DynamicProperty((String) key, mapItem.get("value"));
-                    }
+                    Map<Object, Object> mapItem = (Map<Object, Object>) item;
+                    String key = String.valueOf(mapItem.get("key"));
+                    String value = String.valueOf(mapItem.get("value"));
+                    return new DynamicProperty(key, value);
                 }
             )
             .collect(Collectors.toList());

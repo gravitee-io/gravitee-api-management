@@ -1,5 +1,3 @@
-import { IOnDestroy, IOnInit } from 'angular';
-
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -15,6 +13,9 @@ import { IOnDestroy, IOnInit } from 'angular';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { IOnDestroy, IOnInit } from 'angular';
+import { marked } from 'marked';
+
 class ContextualDocController implements IOnInit, IOnDestroy {
   public isOpen = true;
   public page: any = {};
@@ -63,7 +64,7 @@ class ContextualDocController implements IOnInit, IOnDestroy {
   changeDocumentationPage(state) {
     if (this.isOpen && state.data && state.data.docs) {
       this.$http.get(`./docs/${state.data.docs.page}.md`).then((response: any) => {
-        this.page.content = response.data;
+        this.page.content = marked.parse(response.data);
       });
     }
   }

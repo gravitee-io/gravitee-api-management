@@ -71,11 +71,11 @@ public class ApiLoggingConditionUpgrader implements Upgrader, Ordered {
     public boolean upgrade() {
         InstallationEntity installation = installationService.getOrInitialize();
         if (isStatus(installation, SUCCESS)) {
-            LOGGER.info("Skipping {} execution cause it has already been successfully executed", this.getClass().getSimpleName());
+            LOGGER.info("Skipping {} execution because it has already been successfully executed", this.getClass().getSimpleName());
             return false;
         }
         if (isStatus(installation, RUNNING)) {
-            LOGGER.warn("Skipping {} execution cause it's already running", this.getClass().getSimpleName());
+            LOGGER.warn("Skipping {} execution because it is already running", this.getClass().getSimpleName());
             return false;
         }
 

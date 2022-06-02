@@ -39,7 +39,6 @@ import org.bson.codecs.pojo.PojoCodecProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
 
@@ -52,18 +51,18 @@ public class MongoFactory implements FactoryBean<MongoClient> {
 
     private final Logger logger = LoggerFactory.getLogger(MongoFactory.class);
 
-    @Autowired
-    private Environment environment;
+    private final Environment environment;
 
     private final String propertyPrefix;
 
     private MongoClient mongoClient;
 
-    public MongoFactory(String propertyPrefix) {
+    public MongoFactory(Environment environment, String propertyPrefix) {
+        this.environment = environment;
         this.propertyPrefix = propertyPrefix + ".mongodb.";
     }
 
-    private SocketSettings buildSocketSettings() {
+    protected SocketSettings buildSocketSettings() {
         SocketSettings.Builder socketBuilder = SocketSettings.builder();
 
         Integer connectTimeout = readPropertyValue(propertyPrefix + "connectTimeout", Integer.class, 1000);
@@ -75,7 +74,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         return socketBuilder.build();
     }
 
-    private ClusterSettings buildClusterSettings(boolean isReactive) {
+    protected ClusterSettings buildClusterSettings(boolean isReactive) {
         ClusterSettings.Builder clusterBuilder = ClusterSettings.builder();
 
         // We do not want to wait for a server
@@ -105,7 +104,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         return clusterBuilder.build();
     }
 
-    private ConnectionPoolSettings buildConnectionPoolSettings(boolean isReactive) {
+    protected ConnectionPoolSettings buildConnectionPoolSettings(boolean isReactive) {
         ConnectionPoolSettings.Builder connectionPoolBuilder = ConnectionPoolSettings.builder();
 
         Integer maxWaitTime = readPropertyValue(propertyPrefix + "maxWaitTime", Integer.class);
@@ -125,7 +124,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         return connectionPoolBuilder.build();
     }
 
-    private ServerSettings buildServerSettings() {
+    protected ServerSettings buildServerSettings() {
         ServerSettings.Builder serverBuilder = ServerSettings.builder();
 
         Integer heartbeatFrequency = readPropertyValue(propertyPrefix + "heartbeatFrequency", Integer.class);
@@ -137,7 +136,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         return serverBuilder.build();
     }
 
-    private SslSettings buildSslSettings() {
+    protected SslSettings buildSslSettings() {
         SslSettings.Builder sslBuilder = SslSettings.builder();
 
         boolean sslEnabled = readPropertyValue(propertyPrefix + "sslEnabled", Boolean.class, false);
@@ -213,7 +212,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         }
     }
 
-    private MongoClientSettings buildClientSettings(boolean isReactive) {
+    protected MongoClientSettings buildClientSettingsFromProperties(boolean isReactive) {
         // Base Builder
         MongoClientSettings.Builder builder = MongoClientSettings.builder();
 
@@ -240,12 +239,15 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         // credentials option
         String username = readPropertyValue(propertyPrefix + "username");
         String password = readPropertyValue(propertyPrefix + "password");
-        MongoCredential credentials = null;
-        if (username != null || password != null) {
+        MongoCredential credentials;
+        if (username != null) {
             String authSource = readPropertyValue(propertyPrefix + "authSource", String.class, "gravitee");
-            credentials = MongoCredential.createCredential(username, authSource, password.toCharArray());
+            credentials = MongoCredential.createCredential(username, authSource, password != null ? password.toCharArray() : new char[0]);
             builder.credential(credentials);
         }
+
+        Boolean retryWritesPreference = readPropertyValue(propertyPrefix + "retryWrites", Boolean.class, true);
+        builder.retryWrites(retryWritesPreference);
 
         if (!isReactive) {
             String readPreference = readPropertyValue(propertyPrefix + "readPreference", String.class);
@@ -256,7 +258,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
 
             if (readPreference != null) {
                 TagSet tagSet = null;
-                ReadPreference readPrefObj = null;
+                ReadPreference readPrefObj;
 
                 if (readPreferenceTags != null) {
                     tagSet = buildTagSet(readPreferenceTags);
@@ -278,6 +280,8 @@ public class MongoFactory implements FactoryBean<MongoClient> {
                     case "secondaryPreferred":
                         readPrefObj = tagSet != null ? ReadPreference.secondaryPreferred(tagSet) : ReadPreference.secondaryPreferred();
                         break;
+                    default:
+                        throw new IllegalArgumentException("ReadPreference " + readPreference + " is not supported");
                 }
 
                 builder.readPreference(readPrefObj);
@@ -285,7 +289,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
 
             WriteConcern wc;
             if (StringUtils.isNumeric(writeConcern)) {
-                wc = new WriteConcern(Integer.valueOf(writeConcern));
+                wc = new WriteConcern(Integer.parseInt(writeConcern));
             } else {
                 Assert.isTrue(writeConcern.equals("majority"), "writeConcern must be numeric or equals to 'majority'");
                 wc = new WriteConcern(writeConcern);
@@ -307,6 +311,28 @@ public class MongoFactory implements FactoryBean<MongoClient> {
             .build();
     }
 
+    private MongoClientSettings buildClientSettingsFromURI(String uri, boolean isReactive) {
+        ServerSettings serverSettings = buildServerSettings();
+        SslSettings sslSettings = buildSslSettings();
+
+        MongoClientSettings.Builder settingsBuilder = MongoClientSettings
+            .builder()
+            .applyToServerSettings(builder -> builder.applySettings(serverSettings))
+            .applyToSslSettings(builder -> builder.applySettings(sslSettings))
+            .applyConnectionString(new ConnectionString(uri));
+
+        if (isReactive) {
+            // codec configuration for pojo mapping
+            CodecRegistry pojoCodecRegistry = fromRegistries(
+                com.mongodb.reactivestreams.client.MongoClients.getDefaultCodecRegistry(),
+                fromProviders(PojoCodecProvider.builder().automatic(true).build())
+            );
+            settingsBuilder.codecRegistry(pojoCodecRegistry);
+        }
+
+        return settingsBuilder.build();
+    }
+
     @Override
     public MongoClient getObject() throws Exception {
         // According to https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/beans/factory/FactoryBean.html#isSingleton--
@@ -316,11 +342,10 @@ public class MongoFactory implements FactoryBean<MongoClient> {
             String uri = readPropertyValue(propertyPrefix + "uri");
 
             if (uri != null && !uri.isEmpty()) {
-                // The builder can be configured with default options, which may be overridden by options specified in
-                // the URI string.
-                mongoClient = MongoClients.create(new ConnectionString(uri));
+                // The builder can be configured with default options, which may be overridden by options specified in the URI string.
+                mongoClient = MongoClients.create(buildClientSettingsFromURI(uri, false));
             } else {
-                mongoClient = MongoClients.create(buildClientSettings(false));
+                mongoClient = MongoClients.create(buildClientSettingsFromProperties(false));
             }
         }
 
@@ -332,16 +357,9 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         String uri = readPropertyValue(propertyPrefix + "uri");
 
         if (uri != null && !uri.isEmpty()) {
-            // codec configuration for pojo mapping
-            CodecRegistry pojoCodecRegistry = fromRegistries(
-                com.mongodb.reactivestreams.client.MongoClients.getDefaultCodecRegistry(),
-                fromProviders(PojoCodecProvider.builder().automatic(true).build())
-            );
-            MongoClientSettings.builder().codecRegistry(pojoCodecRegistry);
-
-            return com.mongodb.reactivestreams.client.MongoClients.create(new ConnectionString(uri));
+            return com.mongodb.reactivestreams.client.MongoClients.create(buildClientSettingsFromURI(uri, true));
         } else {
-            return com.mongodb.reactivestreams.client.MongoClients.create(buildClientSettings(true));
+            return com.mongodb.reactivestreams.client.MongoClients.create(buildClientSettingsFromProperties(true));
         }
     }
 
@@ -352,7 +370,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         int idx = 0;
 
         while (found) {
-            String serverHost = environment.getProperty(propertyPrefix + "servers[" + (idx++) + "].host");
+            String serverHost = environment.getProperty(propertyPrefix + getServerWithIndex(idx++) + ".host");
             found = (serverHost != null);
         }
 
@@ -360,10 +378,14 @@ public class MongoFactory implements FactoryBean<MongoClient> {
     }
 
     private ServerAddress buildServerAddress(int idx) {
-        String host = environment.getProperty(propertyPrefix + "servers[" + idx + "].host");
-        int port = readPropertyValue(propertyPrefix + "servers[" + idx + "].port", int.class, 27017);
+        String host = environment.getProperty(propertyPrefix + getServerWithIndex(idx) + ".host");
+        int port = readPropertyValue(propertyPrefix + getServerWithIndex(idx) + ".port", int.class, 27017);
 
         return new ServerAddress(host, port);
+    }
+
+    private String getServerWithIndex(int idx) {
+        return "servers[" + idx + "]";
     }
 
     private TagSet buildTagSet(String readPreferenceTags) {
