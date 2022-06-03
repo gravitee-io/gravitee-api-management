@@ -38,10 +38,11 @@ public class DebugReactorVerticle extends AbstractVerticle {
     private final Logger logger = LoggerFactory.getLogger(DebugReactorVerticle.class);
 
     @Autowired
-    @Qualifier("gatewayDebugHttpServer")
+    @Qualifier("debugGatewayHttpServer")
     private HttpServer httpServer;
 
     @Autowired
+    @Qualifier("debugReactor")
     private Reactor reactor;
 
     @Autowired
@@ -51,15 +52,8 @@ public class DebugReactorVerticle extends AbstractVerticle {
     @Value("${handlers.request.format:uuid}")
     private String requestFormat;
 
-    @Autowired
-    @Qualifier("debugReactorHandlerRegistry")
-    protected ReactorHandlerRegistry reactorHandlerRegistry;
-
-    @Autowired
-    protected EventManager eventManager;
-
     @Override
-    public void start(Promise<Void> startPromise) throws Exception {
+    public void start(Promise<Void> startPromise) {
         VertxDebugReactorHandler handler;
 
         final IdGenerator idGenerator;
@@ -87,7 +81,7 @@ public class DebugReactorVerticle extends AbstractVerticle {
     }
 
     @Override
-    public void stop() throws Exception {
+    public void stop() {
         logger.info("Stopping Debug HTTP Server...");
         httpServer.close(voidAsyncResult -> logger.info("Debug HTTP Server has been correctly stopped"));
     }

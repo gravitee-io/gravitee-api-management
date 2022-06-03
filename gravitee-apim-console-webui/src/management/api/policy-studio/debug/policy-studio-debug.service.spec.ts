@@ -321,6 +321,7 @@ describe('PolicyStudioDebugService', () => {
         .subscribe((response) => {
           expect(response).toStrictEqual({
             isLoading: false,
+            executionMode: null,
             reachedTimeout: true,
             request: {},
             response: {},

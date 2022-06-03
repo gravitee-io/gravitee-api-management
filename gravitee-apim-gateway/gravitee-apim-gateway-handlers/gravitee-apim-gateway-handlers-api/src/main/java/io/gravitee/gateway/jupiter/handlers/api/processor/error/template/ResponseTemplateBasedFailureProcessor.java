@@ -77,8 +77,9 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
             }
         } else {
             // No error key, process the error message as usual
-            return super.processFailure(ctx, executionFailure);
+            super.processFailure(ctx, executionFailure);
         }
+        return Completable.complete();
     }
 
     private Completable handleAcceptHeader(

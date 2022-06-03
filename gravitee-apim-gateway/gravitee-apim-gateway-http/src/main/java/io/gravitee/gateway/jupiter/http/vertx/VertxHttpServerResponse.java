@@ -23,27 +23,23 @@ import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.reactivex.*;
 import io.vertx.reactivex.core.http.HttpServerResponse;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxHttpServerResponse implements MutableResponse {
+public class VertxHttpServerResponse extends AbstractHttpChunks implements MutableResponse {
 
     protected final VertxHttpServerRequest serverRequest;
     protected final HttpHeaders headers;
     protected final HttpHeaders trailers;
     protected final HttpServerResponse nativeResponse;
-    private final AtomicBoolean cached;
-    protected Flowable<Buffer> chunks;
 
     public VertxHttpServerResponse(VertxHttpServerRequest serverRequest) {
         this.serverRequest = serverRequest;
         this.nativeResponse = serverRequest.nativeRequest.response();
         this.headers = new VertxHttpHeaders(nativeResponse.headers().getDelegate());
         this.trailers = new VertxHttpHeaders(nativeResponse.trailers().getDelegate());
-        this.cached = new AtomicBoolean(false);
     }
 
     protected boolean valid() {
@@ -109,59 +105,6 @@ public class VertxHttpServerResponse implements MutableResponse {
     }
 
     @Override
-    public Maybe<Buffer> body() {
-        // Reduce all the chunks to create a unique buffer containing all the content.
-        final Maybe<Buffer> body = chunks().reduce(Buffer::appendBuffer);
-        cacheChunks(body.toFlowable(), false);
-
-        return chunks.firstElement();
-    }
-
-    @Override
-    public Single<Buffer> bodyOrEmpty() {
-        return body().switchIfEmpty(Single.just(Buffer.buffer()));
-    }
-
-    @Override
-    public void body(Buffer buffer) {
-        if (chunks == null) {
-            this.chunks = Flowable.just(buffer);
-        } else {
-            this.chunks = chunks.compose(upstream -> Flowable.just(buffer));
-        }
-    }
-
-    @Override
-    public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
-        // Reduce all the chunks then apply the transformation.
-        final Maybe<Buffer> body = chunks.reduce(Buffer::appendBuffer).compose(onBody);
-        cacheChunks(body.toFlowable(), true);
-
-        return chunks.ignoreElements();
-    }
-
-    @Override
-    public Flowable<Buffer> chunks() {
-        if (this.chunks == null) {
-            this.chunks = Flowable.empty();
-        }
-
-        return this.chunks;
-    }
-
-    @Override
-    public void chunks(final Flowable<Buffer> chunks) {
-        this.chunks = chunks.compose(upstream -> chunks);
-    }
-
-    @Override
-    public Completable onChunk(FlowableTransformer<Buffer, Buffer> chunkTransformer) {
-        cacheChunks(chunks.compose(chunkTransformer), true);
-
-        return chunks.ignoreElements();
-    }
-
-    @Override
     public Completable end() {
         return Completable.defer(
             () -> {
@@ -188,14 +131,5 @@ public class VertxHttpServerResponse implements MutableResponse {
                 return nativeResponse.rxEnd();
             }
         );
-    }
-
-    private void cacheChunks(Flowable<Buffer> chunks, boolean force) {
-        this.chunks = chunks;
-
-        if (force || cached.compareAndSet(false, true)) {
-            // Make sure the response body is cached to avoid multiple consumptions when multiple subscriptions occur (especially with v3 adapters).
-            this.chunks = this.chunks.cache();
-        }
     }
 }

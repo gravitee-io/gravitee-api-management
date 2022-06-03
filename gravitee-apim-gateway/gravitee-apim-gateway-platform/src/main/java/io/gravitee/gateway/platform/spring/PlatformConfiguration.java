@@ -124,6 +124,7 @@ public class PlatformConfiguration {
 
     @Bean
     public PlatformPolicyManager platformPolicyManager(
+        DefaultClassLoader classLoader,
         PolicyFactory policyFactory,
         PolicyConfigurationFactory policyConfigurationFactory,
         PolicyClassLoaderFactory policyClassLoaderFactory,
@@ -138,7 +139,7 @@ public class PlatformConfiguration {
         );
 
         return new PlatformPolicyManager(
-            applicationContext.getBean(DefaultClassLoader.class),
+            classLoader,
             policyFactory,
             policyConfigurationFactory,
             cpm,
@@ -147,12 +148,12 @@ public class PlatformConfiguration {
         );
     }
 
-    @Bean("platformPolicyChainFactory")
+    @Bean
     public io.gravitee.gateway.jupiter.policy.PolicyChainFactory platformPolicyChainFactory(
         io.gravitee.node.api.configuration.Configuration configuration,
         PlatformPolicyManager platformPolicyManager
     ) {
-        return new DefaultPolicyChainFactory("platform", configuration, platformPolicyManager);
+        return new DefaultPolicyChainFactory("platform", platformPolicyManager, configuration);
     }
 
     @Bean

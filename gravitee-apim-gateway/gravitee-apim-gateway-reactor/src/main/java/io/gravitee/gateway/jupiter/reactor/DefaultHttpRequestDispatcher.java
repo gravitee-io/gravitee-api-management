@@ -142,7 +142,7 @@ public class DefaultHttpRequestDispatcher
             // Set gateway tenants and zones in request metrics.
             prepareMetrics(request.metrics());
 
-            MutableRequestExecutionContext ctx = new DefaultRequestExecutionContext(request, request.response());
+            MutableRequestExecutionContext ctx = createExecutionContext(request);
             ctx.componentProvider(globalComponentProvider);
 
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
@@ -182,6 +182,10 @@ public class DefaultHttpRequestDispatcher
         }
     }
 
+    protected DefaultRequestExecutionContext createExecutionContext(VertxHttpServerRequest request) {
+        return new DefaultRequestExecutionContext(request, request.response());
+    }
+
     private Completable handleNotFound(final MutableRequestExecutionContext ctx) {
         ctx.request().contextPath(ctx.request().path());
         ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
@@ -203,7 +207,7 @@ public class DefaultHttpRequestDispatcher
     private Completable handleV3Request(final HttpServerRequest httpServerRequest, final HandlerEntrypoint handlerEntrypoint) {
         final ReactorHandler reactorHandler = handlerEntrypoint.target();
 
-        io.gravitee.gateway.http.vertx.VertxHttpServerRequest request = createV3Request(httpServerRequest);
+        io.gravitee.gateway.http.vertx.VertxHttpServerRequest request = createV3Request(httpServerRequest, idGenerator);
 
         // Prepare invocation execution context.
         SimpleExecutionContext simpleExecutionContext = new SimpleExecutionContext(request, request.create());
@@ -257,7 +261,10 @@ public class DefaultHttpRequestDispatcher
         gatewayConfiguration.zone().ifPresent(metrics::setZone);
     }
 
-    private io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(HttpServerRequest httpServerRequest) {
+    protected io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(
+        HttpServerRequest httpServerRequest,
+        IdGenerator idGenerator
+    ) {
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request;
 
         if (isV3WebSocket(httpServerRequest)) {

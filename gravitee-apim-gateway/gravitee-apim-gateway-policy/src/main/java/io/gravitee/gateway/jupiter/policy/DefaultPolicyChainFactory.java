@@ -48,11 +48,11 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
     public static final long CACHE_MAX_SIZE = 15;
     public static final long CACHE_TIME_TO_IDLE = 3600;
     private static final String ID_SEPARATOR = "-";
+    protected final List<Hook> policyHooks = new ArrayList<>();
     private final PolicyManager policyManager;
     private final Cache<String, PolicyChain> policyChains;
-    private final List<Hook> policyHooks = new ArrayList<>();
 
-    public DefaultPolicyChainFactory(final String id, final Configuration configuration, final PolicyManager policyManager) {
+    public DefaultPolicyChainFactory(final String id, final PolicyManager policyManager, final Configuration configuration) {
         this.policyManager = policyManager;
 
         final CacheConfiguration cacheConfiguration = new CacheConfiguration();

@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.debug.reactor.handler.context;
+package io.gravitee.gateway.jupiter.reactor.processor;
 
-public enum DebugScope {
-    ON_RESPONSE,
-    ON_RESPONSE_CONTENT,
-    ON_REQUEST,
-    ON_REQUEST_CONTENT,
-}
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+class PlatformProcessorChainFactoryTest {}

@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.jupiter.policy;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -50,7 +49,7 @@ class DefaultPolicyChainFactoryTest {
 
     @BeforeEach
     public void init() {
-        cut = new DefaultPolicyChainFactory("unit-test", new SpringEnvironmentConfiguration(new StandardEnvironment()), policyManager);
+        cut = new DefaultPolicyChainFactory("unit-test", policyManager, new SpringEnvironmentConfiguration(new StandardEnvironment()));
     }
 
     @Test

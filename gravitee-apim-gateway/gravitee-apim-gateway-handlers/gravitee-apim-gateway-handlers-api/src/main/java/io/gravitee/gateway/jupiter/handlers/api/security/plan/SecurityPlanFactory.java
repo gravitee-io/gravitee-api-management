@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.handlers.api.security.handler;
+package io.gravitee.gateway.jupiter.handlers.api.security.plan;
 
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
+import io.gravitee.gateway.jupiter.handlers.api.security.policy.SecurityPolicyFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,6 +31,8 @@ import org.slf4j.LoggerFactory;
 public class SecurityPlanFactory {
 
     private static final Logger log = LoggerFactory.getLogger(SecurityPlanFactory.class);
+
+    private SecurityPlanFactory() {}
 
     @Nullable
     public static SecurityPlan forPlan(@Nonnull Plan plan, @Nonnull PolicyManager policyManager) {

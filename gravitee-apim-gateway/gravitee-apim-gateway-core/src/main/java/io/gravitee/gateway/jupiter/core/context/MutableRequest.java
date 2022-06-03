@@ -28,6 +28,12 @@ public interface MutableRequest extends Request {
      * @return {@link MutableRequest}.
      */
     MutableRequest contextPath(final String contextPath);
+    /**
+     * Allow setting path info.
+     *
+     * @return {@link MutableRequest}.
+     */
+    MutableRequest pathInfo(final String pathInfo);
 
     /**
      * Allow setting transaction id.

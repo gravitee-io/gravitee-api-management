@@ -33,7 +33,7 @@ export type TimelineStep = (
     }
   | {
       mode: 'POLICY_REQUEST' | 'POLICY_RESPONSE';
-      flowName: string;
+      scopeLabel: string;
       policyName: string;
       icon: string;
       executionTime: number;
@@ -130,7 +130,9 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
       case 'POLICY_RESPONSE':
         return {
           iconUrl: timelineStep.icon ? this.sanitizer.bypassSecurityTrustUrl(timelineStep.icon) : undefined,
-          headerLabel: `${this.titleCasePipe.transform(timelineStep.stage)} > ${timelineStep.flowName}`,
+          headerLabel: `${this.titleCasePipe.transform(timelineStep.stage)}${
+            timelineStep.scopeLabel ? ` > ${timelineStep.scopeLabel}` : ''
+          }`,
           title: timelineStep.policyName,
           color: 'default',
           executionTime: timelineStep.executionTime / 1_000_000,

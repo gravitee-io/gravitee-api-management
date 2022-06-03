@@ -15,7 +15,11 @@
  */
 package io.gravitee.gateway.debug.handlers.api;
 
+import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.core.component.CompositeComponentProvider;
+import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContextFactory;
 import io.gravitee.gateway.debug.security.core.DebugSecurityPolicyResolver;
@@ -25,30 +29,41 @@ import io.gravitee.gateway.handlers.api.ApiReactorHandler;
 import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
+import io.gravitee.gateway.jupiter.debug.handlers.api.DebugSyncApiReactor;
+import io.gravitee.gateway.jupiter.debug.policy.DebugPolicyChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.SyncApiReactor;
+import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
+import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.jupiter.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
+import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.security.core.AuthenticationHandlerSelector;
 import io.gravitee.gateway.security.core.SecurityPolicyResolver;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import java.util.List;
 import org.springframework.context.ApplicationContext;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DebugApiContextHandlerFactory extends ApiReactorHandlerFactory {
+public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
 
-    public DebugApiContextHandlerFactory(
+    public DebugApiReactorHandlerFactory(
         ApplicationContext applicationContext,
         Configuration configuration,
         Node node,
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactory policyFactory,
+        io.gravitee.gateway.jupiter.policy.PolicyChainFactory platformPolicyChainFactory,
+        OrganizationManager organizationManager,
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
         FlowResolverFactory flowResolverFactory
@@ -59,6 +74,8 @@ public class DebugApiContextHandlerFactory extends ApiReactorHandlerFactory {
             node,
             v3PolicyFactoryCreator,
             policyFactory,
+            platformPolicyChainFactory,
+            organizationManager,
             policyChainProviderLoader,
             apiProcessorChainFactory,
             flowResolverFactory
@@ -100,5 +117,41 @@ public class DebugApiContextHandlerFactory extends ApiReactorHandlerFactory {
         DefaultReferenceRegister referenceRegister
     ) {
         return new DebugExecutionContextFactory(componentProvider);
+    }
+
+    @Override
+    protected DefaultPolicyChainFactory createPolicyChainFactory(
+        Api api,
+        io.gravitee.gateway.jupiter.policy.PolicyManager policyManager,
+        Configuration configuration
+    ) {
+        return new DebugPolicyChainFactory(api.getId(), policyManager, configuration);
+    }
+
+    @Override
+    protected SyncApiReactor createSyncApiReactor(
+        final Api api,
+        final CompositeComponentProvider apiComponentProvider,
+        final List<TemplateVariableProvider> templateVariableProviders,
+        final Invoker invoker,
+        final ResourceLifecycleManager resourceLifecycleManager,
+        final ApiProcessorChainFactory apiProcessorChainFactory,
+        final io.gravitee.gateway.jupiter.policy.PolicyManager policyManager,
+        final FlowChainFactory flowChainFactory,
+        final GroupLifecycleManager groupLifecycleManager,
+        final Configuration configuration
+    ) {
+        return new DebugSyncApiReactor(
+            api,
+            apiComponentProvider,
+            templateVariableProviders,
+            new InvokerAdapter(invoker),
+            resourceLifecycleManager,
+            apiProcessorChainFactory,
+            policyManager,
+            flowChainFactory,
+            groupLifecycleManager,
+            configuration
+        );
     }
 }

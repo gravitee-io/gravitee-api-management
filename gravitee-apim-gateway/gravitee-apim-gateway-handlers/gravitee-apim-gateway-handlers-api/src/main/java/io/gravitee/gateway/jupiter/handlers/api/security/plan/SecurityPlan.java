@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.handlers.api.security.handler;
+package io.gravitee.gateway.jupiter.handlers.api.security.plan;
 
-import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.*;
+import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_API;
+import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_APPLICATION;
+import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_PLAN;
+import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_SUBSCRIPTION_ID;
 
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
@@ -36,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * {@link SecurityPlan} allows to wrap a {@link Policy} implementing {@link SecurityPolicy} and make it working in a security chain.
- * Security handler is responsible to
+ * Security plan is responsible to
  * <ul>
  *     <li>Check if a policy can handle the security or not</li>
  *     <li>Check the eventual selection rule matches (useful when dealing with multiple plans relying on the same security scheme such as <code>Authorization: bearer xxx</code> for JWT and OAuth)</li>
@@ -49,11 +52,10 @@ import org.slf4j.LoggerFactory;
  */
 public class SecurityPlan {
 
-    private static final Logger log = LoggerFactory.getLogger(SecurityPlan.class);
-
     protected static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
-    protected static final Single<Boolean> TRUE = Single.just(true), FALSE = Single.just(false);
-
+    protected static final Single<Boolean> TRUE = Single.just(true);
+    protected static final Single<Boolean> FALSE = Single.just(false);
+    private static final Logger log = LoggerFactory.getLogger(SecurityPlan.class);
     private final Plan plan;
     private final SecurityPolicy policy;
     private final String selectionRule;
@@ -62,6 +64,10 @@ public class SecurityPlan {
         this.plan = plan;
         this.policy = policy;
         this.selectionRule = getSelectionRule(plan.getSelectionRule());
+    }
+
+    public String id() {
+        return policy.id();
     }
 
     /**

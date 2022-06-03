@@ -60,7 +60,7 @@ public class NotFoundProcessorChainFactory {
         return processorChain;
     }
 
-    private void initProcessorChain() {
+    protected void initProcessorChain() {
         List<Processor> processorList = new ArrayList<>();
 
         processorList.add(new NotFoundProcessor(environment));

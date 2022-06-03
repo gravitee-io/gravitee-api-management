@@ -21,6 +21,7 @@ import { DebugEvent, DebugEventMetrics } from './DebugEvent';
 export type DebugResponse = {
   isLoading: boolean;
   reachedTimeout?: boolean;
+  executionMode: string;
 
   request: {
     method?: string;
@@ -146,6 +147,7 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugRespon
 
   return {
     isLoading: false,
+    executionMode: event.payload.execution_mode,
     response: event.payload.response ?? {},
     request: event.payload.request ?? {},
     backendResponse: event.payload.backendResponse ?? {},

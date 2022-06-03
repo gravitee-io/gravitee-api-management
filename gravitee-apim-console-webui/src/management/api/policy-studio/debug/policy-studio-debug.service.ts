@@ -45,6 +45,7 @@ export class PolicyStudioDebugService {
       map<number, DebugResponse>(() => ({
         isLoading: false,
         reachedTimeout: true,
+        executionMode: null,
         request: {},
         response: {},
         responsePolicyDebugSteps: [],
@@ -65,6 +66,10 @@ export class PolicyStudioDebugService {
     );
 
     return race(maxPollingTime$, pollingEvent$);
+  }
+
+  public listPolicies(): Observable<PolicyListItem[]> {
+    return this.policyService.list({ expandIcon: true, withoutResource: true });
   }
 
   private sendDebugEvent(request: DebugRequest): Observable<{ apiId: string; debugEventId: string }> {
@@ -97,9 +102,5 @@ export class PolicyStudioDebugService {
         status: event.properties.api_debug_status === 'SUCCESS' ? 'SUCCESS' : 'FAILED',
       })),
     );
-  }
-
-  public listPolicies(): Observable<PolicyListItem[]> {
-    return this.policyService.list({ expandIcon: true, withoutResource: true });
   }
 }

@@ -30,7 +30,7 @@ import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.hook.Hook;
+import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
@@ -65,24 +65,25 @@ import org.slf4j.LoggerFactory;
  */
 public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor, ReactorHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(SyncApiReactor.class);
     protected static final String ATTR_INVOKER_SKIP = "invoker.skip";
-    private final Api api;
-    private final ComponentProvider componentProvider;
-    private final List<TemplateVariableProvider> templateVariableProviders;
-    private final Invoker defaultInvoker;
-    private final ResourceLifecycleManager resourceLifecycleManager;
-    private final PolicyManager policyManager;
-    private final GroupLifecycleManager groupLifecycleManager;
-    private final List<Hook> processorChainHooks;
-    private final List<InvokerHook> invokerHooks;
-    private final FlowChain platformFlowChain;
-    private final FlowChain apiPlanFlowChain;
-    private final FlowChain apiFlowChain;
-    private final ProcessorChain apiPreProcessorChain;
-    private final ProcessorChain apiPostProcessorChain;
-    private final ProcessorChain apiErrorProcessorChain;
-    private SecurityChain securityChain;
+    private static final Logger log = LoggerFactory.getLogger(SyncApiReactor.class);
+    protected final Api api;
+    protected final List<ChainHook> processorChainHooks;
+    protected final List<InvokerHook> invokerHooks;
+    protected final ComponentProvider componentProvider;
+    protected final List<TemplateVariableProvider> templateVariableProviders;
+    protected final Invoker defaultInvoker;
+    protected final ResourceLifecycleManager resourceLifecycleManager;
+    protected final PolicyManager policyManager;
+    protected final GroupLifecycleManager groupLifecycleManager;
+    protected final FlowChain platformFlowChain;
+    protected final FlowChain apiPlanFlowChain;
+    protected final FlowChain apiFlowChain;
+    protected final ProcessorChain apiPreProcessorChain;
+    protected final ProcessorChain apiPostProcessorChain;
+    protected final ProcessorChain apiErrorProcessorChain;
+    private final boolean tracingEnabled;
+    protected SecurityChain securityChain;
 
     public SyncApiReactor(
         final Api api,
@@ -112,11 +113,11 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.apiPlanFlowChain = flowChainFactory.createPlanFlow(api);
         this.apiFlowChain = flowChainFactory.createApiFlow(api);
 
-        boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
+        tracingEnabled = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
 
         processorChainHooks = new ArrayList<>();
         invokerHooks = new ArrayList<>();
-        if (tracing) {
+        if (tracingEnabled) {
             processorChainHooks.add(new TracingHook("processor-chain"));
             invokerHooks.add(new TracingHook("invoker"));
         }
@@ -283,8 +284,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             // In case of any interruption with execution failure, execute api error processor chain and resume the execution
             return executeProcessorsChain(ctx, apiErrorProcessorChain, RESPONSE);
         } else {
-            // In case of any error exception, rethrow original exception
-            return Completable.error(throwable);
+            // In case of any error exception, log original exception, execute api error processor chain and resume the execution
+            log.error("Unexpected error while handling request", throwable);
+            return executeProcessorsChain(ctx, apiErrorProcessorChain, RESPONSE);
         }
     }
 
@@ -312,7 +314,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     @Override
     protected void doStart() throws Exception {
-        log.debug("API handler is now starting, preparing API context...");
+        log.debug("API reactor is now starting, preparing API context...");
         long startTime = System.currentTimeMillis(); // Get the start Time
 
         // Start resources before
@@ -326,6 +328,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         // Create securityChain once policy manager has been started.
         this.securityChain = new SecurityChain(api, policyManager);
+        if (tracingEnabled) {
+            securityChain.addHooks(new TracingHook("security-plan"));
+        }
 
         log.debug("API reactor started in {} ms", (endTime - startTime));
     }

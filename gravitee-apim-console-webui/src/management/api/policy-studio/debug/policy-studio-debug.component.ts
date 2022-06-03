@@ -59,6 +59,7 @@ export class PolicyStudioDebugComponent implements OnInit {
   onRequestSubmitted(debugRequest: DebugRequest) {
     this.debugResponse = {
       isLoading: true,
+      executionMode: null,
       request: {},
       response: {},
       responsePolicyDebugSteps: [],
@@ -78,6 +79,7 @@ export class PolicyStudioDebugComponent implements OnInit {
           this.snackBarService.error('Unable to try the request, please try again');
           this.debugResponse = {
             isLoading: false,
+            executionMode: null,
             request: {},
             response: {},
             responsePolicyDebugSteps: [],

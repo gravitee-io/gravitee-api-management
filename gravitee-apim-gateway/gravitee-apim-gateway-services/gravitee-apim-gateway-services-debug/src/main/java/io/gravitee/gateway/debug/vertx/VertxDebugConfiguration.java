@@ -15,22 +15,20 @@
  */
 package io.gravitee.gateway.debug.vertx;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.debug.reactor.DebugReactor;
-import io.gravitee.gateway.debug.reactor.processor.DebugResponseProcessorChainFactory;
-import io.gravitee.gateway.reactor.Reactor;
+import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_BY_DEFAULT;
+import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_KEY;
+
+import io.gravitee.gateway.jupiter.debug.vertx.DebugHttpProtocolVerticle;
+import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
 import io.gravitee.gateway.reactor.handler.EntrypointResolver;
-import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
-import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
-import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
-import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFactory;
-import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.vertx.VertxHttpServerFactory;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
-import io.gravitee.repository.management.api.EventRepository;
+import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServer;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,47 +38,8 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class VertxDebugConfiguration {
 
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public DebugReactorVerticle graviteeDebugVerticle() {
-        return new DebugReactorVerticle();
-    }
-
-    @Bean
-    public Reactor reactor(
-        @Qualifier("debugEntryPointResolver") EntrypointResolver entrypointResolver,
-        @Qualifier("debugRequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
-        @Qualifier("debugResponseProcessorChainFactory") ResponseProcessorChainFactory responseProcessorChainFactory
-    ) {
-        return new DebugReactor(entrypointResolver, requestProcessorChainFactory, responseProcessorChainFactory);
-    }
-
-    @Bean
-    public TransactionProcessorFactory transactionHandlerFactory() {
-        return new TransactionProcessorFactory();
-    }
-
-    @Bean
-    public TraceContextProcessorFactory traceContextHandlerFactory() {
-        return new TraceContextProcessorFactory();
-    }
-
-    @Bean
-    @Qualifier("debugRequestProcessorChainFactory")
-    public RequestProcessorChainFactory requestProcessorChainFactory() {
-        return new RequestProcessorChainFactory();
-    }
-
-    @Bean
-    @Qualifier("debugResponseProcessorChainFactory")
-    public ResponseProcessorChainFactory responseProcessorChainFactory(EventRepository eventRepository, ObjectMapper objectMapper) {
-        return new DebugResponseProcessorChainFactory(eventRepository, objectMapper);
-    }
-
-    @Bean
-    public NotFoundProcessorChainFactory notFoundProcessorChainFactory() {
-        return new NotFoundProcessorChainFactory();
-    }
+    @Value("${" + JUPITER_MODE_ENABLED_KEY + ":" + JUPITER_MODE_ENABLED_BY_DEFAULT + "}")
+    private boolean jupiterMode;
 
     @Bean("debugHttpServerConfiguration")
     public HttpServerConfiguration debugHttpServerConfiguration(Environment environment) {
@@ -92,8 +51,8 @@ public class VertxDebugConfiguration {
             .build();
     }
 
-    @Bean("gatewayDebugHttpServer")
-    public VertxHttpServerFactory vertxHttpServerFactory(
+    @Bean("debugGatewayHttpServer")
+    public VertxHttpServerFactory debugGatewayHttpServer(
         Vertx vertx,
         @Qualifier("debugHttpServerConfiguration") HttpServerConfiguration httpServerConfiguration,
         KeyStoreLoaderManager keyStoreLoaderManager
@@ -104,5 +63,18 @@ public class VertxDebugConfiguration {
     @Bean("debugHttpClientConfiguration")
     public VertxDebugHttpClientConfiguration debugHttpClientConfiguration() {
         return new VertxDebugHttpClientConfiguration();
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+    public Verticle debugVerticle(
+        @Qualifier("debugGatewayHttpServer") HttpServer httpServer,
+        @Qualifier("debugHttpRequestDispatcher") HttpRequestDispatcher requestDispatcher
+    ) {
+        if (jupiterMode) {
+            return new DebugHttpProtocolVerticle(httpServer, requestDispatcher);
+        } else {
+            return new DebugReactorVerticle();
+        }
     }
 }

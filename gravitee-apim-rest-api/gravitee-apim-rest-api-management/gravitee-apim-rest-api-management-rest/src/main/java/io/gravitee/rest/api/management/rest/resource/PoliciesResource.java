@@ -128,7 +128,7 @@ public class PoliciesResource {
             item.setOnRequest(development.getOnRequestMethod() != null);
             item.setOnResponse(development.getOnResponseMethod() != null);
         } else {
-            item.setOnRequest(false);
+            item.setOnRequest(true);
             item.setOnResponse(false);
         }
         return item;

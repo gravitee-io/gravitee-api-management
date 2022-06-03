@@ -19,6 +19,7 @@ export function fakeDebugEvent(attributes?: Partial<DebugEvent>): DebugEvent {
   const base: DebugEvent = {
     id: 'e9b6a4f8-f660-42a4-b6a4-f8f66072a401',
     payload: {
+      execution_mode: 'v3',
       request: {
         path: '/',
         method: 'GET',

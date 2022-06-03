@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.flow;
 
+import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_FLOW_STAGE;
 import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_PREFIX;
 
 import io.gravitee.definition.model.flow.Flow;
@@ -29,6 +30,7 @@ import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,8 +81,14 @@ public class FlowChain implements Hookable<ChainHook> {
      */
     public Completable execute(RequestExecutionContext ctx, ExecutionPhase phase) {
         return resolveFlows(ctx)
+            .doOnNext(
+                flow -> {
+                    log.debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
+                    ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);
+                }
+            )
             .flatMapCompletable(flow -> executeFlow(ctx, flow, phase), false, 1)
-            .doOnSubscribe(disposable -> log.debug("Executing flow chain {} on {} phase", id, phase));
+            .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
     }
 
     /**

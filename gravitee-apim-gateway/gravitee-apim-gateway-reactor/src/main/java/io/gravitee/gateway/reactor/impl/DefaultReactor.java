@@ -36,7 +36,6 @@ import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
@@ -47,32 +46,30 @@ public class DefaultReactor extends AbstractService<Reactor> implements Reactor,
 
     private final Logger LOGGER = LoggerFactory.getLogger(DefaultReactor.class);
 
-    protected EntrypointResolver entrypointResolver;
-
-    @Autowired
-    protected EventManager eventManager;
-
-    @Autowired
-    private ReactorHandlerRegistry reactorHandlerRegistry;
-
-    @Autowired
-    private GatewayConfiguration gatewayConfiguration;
-
-    @Autowired
-    @Qualifier("v3NotFoundProcessorChainFactory")
-    private NotFoundProcessorChainFactory notFoundProcessorChainFactory;
-
+    private final EventManager eventManager;
+    private final ReactorHandlerRegistry reactorHandlerRegistry;
+    private final GatewayConfiguration gatewayConfiguration;
     private final RequestProcessorChainFactory requestProcessorChainFactory;
     private final ResponseProcessorChainFactory responseProcessorChainFactory;
+    private final NotFoundProcessorChainFactory notFoundProcessorChainFactory;
+    private final EntrypointResolver entrypointResolver;
 
     public DefaultReactor(
-        EntrypointResolver entrypointResolver,
-        RequestProcessorChainFactory requestProcessorChainFactory,
-        ResponseProcessorChainFactory responseProcessorChainFactory
+        final EventManager eventManager,
+        final @Qualifier("v3EntrypointResolver") EntrypointResolver entrypointResolver,
+        final @Qualifier("reactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry,
+        final GatewayConfiguration gatewayConfiguration,
+        final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
+        final @Qualifier("v3ResponseProcessorChainFactory") ResponseProcessorChainFactory responseProcessorChainFactory,
+        final @Qualifier("v3NotFoundProcessorChainFactory") NotFoundProcessorChainFactory notFoundProcessorChainFactory
     ) {
+        this.eventManager = eventManager;
         this.entrypointResolver = entrypointResolver;
+        this.reactorHandlerRegistry = reactorHandlerRegistry;
+        this.gatewayConfiguration = gatewayConfiguration;
         this.requestProcessorChainFactory = requestProcessorChainFactory;
         this.responseProcessorChainFactory = responseProcessorChainFactory;
+        this.notFoundProcessorChainFactory = notFoundProcessorChainFactory;
     }
 
     @Override

@@ -22,6 +22,7 @@ import io.gravitee.gateway.jupiter.api.hook.Hook;
 import io.gravitee.gateway.jupiter.api.hook.MessageHook;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionHelper;
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import java.util.List;
 import org.slf4j.Logger;
@@ -35,6 +36,8 @@ public class HookHelper {
 
     private static final Logger log = LoggerFactory.getLogger(HookHelper.class);
 
+    private HookHelper() {}
+
     public static <T extends Hook> Completable hook(
         final Completable completable,
         final String componentId,
@@ -43,10 +46,13 @@ public class HookHelper {
         final ExecutionPhase executionPhase
     ) {
         if (hooks != null && !hooks.isEmpty()) {
-            return completable
-                .doOnSubscribe(disposable -> executeHooks(componentId, hooks, HookPhase.PRE, ctx, executionPhase, null, null))
-                .doOnComplete(() -> executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null))
-                .doOnError(throwable -> executeHookOnError(componentId, hooks, ctx, executionPhase, throwable));
+            return executeHooks(componentId, hooks, HookPhase.PRE, ctx, executionPhase, null, null)
+                .andThen(completable)
+                .andThen(executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null))
+                .onErrorResumeNext(
+                    throwable ->
+                        executeHookOnError(componentId, hooks, ctx, executionPhase, throwable).andThen(Completable.error(throwable))
+                );
         } else {
             return completable;
         }
@@ -60,15 +66,13 @@ public class HookHelper {
         final ExecutionPhase executionPhase
     ) {
         if (hooks != null && !hooks.isEmpty()) {
-            return maybe
-                .doOnSubscribe(disposable -> executeHooks(componentId, hooks, HookPhase.PRE, ctx, executionPhase, null, null))
-                .doOnEvent(
-                    (event, throwable) -> {
-                        if (throwable != null) {
-                            executeHookOnError(componentId, hooks, ctx, executionPhase, throwable);
-                        } else {
-                            executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null);
-                        }
+            return executeHooks(componentId, hooks, HookPhase.PRE, ctx, executionPhase, null, null)
+                .andThen(maybe)
+                .switchIfEmpty(executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null).toMaybe())
+                .flatMap(t -> executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null).andThen(Maybe.just(t)))
+                .onErrorResumeNext(
+                    throwable -> {
+                        return executeHookOnError(componentId, hooks, ctx, executionPhase, throwable).andThen(Maybe.error(throwable));
                     }
                 );
         } else {
@@ -76,7 +80,7 @@ public class HookHelper {
         }
     }
 
-    private static <T extends Hook> void executeHookOnError(
+    private static <T extends Hook> Completable executeHookOnError(
         final String componentId,
         final List<T> hooks,
         final RequestExecutionContext ctx,
@@ -84,9 +88,9 @@ public class HookHelper {
         final Throwable throwable
     ) {
         if (InterruptionHelper.isInterruption(throwable)) {
-            executeHooks(componentId, hooks, HookPhase.INTERRUPT, ctx, executionPhase, throwable, null);
+            return executeHooks(componentId, hooks, HookPhase.INTERRUPT, ctx, executionPhase, throwable, null);
         } else if (InterruptionHelper.isInterruptionWithFailure(throwable)) {
-            executeHooks(
+            return executeHooks(
                 componentId,
                 hooks,
                 HookPhase.INTERRUPT_WITH,
@@ -96,11 +100,11 @@ public class HookHelper {
                 InterruptionHelper.extractExecutionFailure(throwable)
             );
         } else {
-            executeHooks(componentId, hooks, HookPhase.ERROR, ctx, executionPhase, throwable, null);
+            return executeHooks(componentId, hooks, HookPhase.ERROR, ctx, executionPhase, throwable, null);
         }
     }
 
-    private static <T extends Hook> void executeHooks(
+    private static <T extends Hook> Completable executeHooks(
         final String componentId,
         final List<T> hooks,
         final HookPhase phase,
@@ -109,30 +113,31 @@ public class HookHelper {
         final Throwable throwable,
         final ExecutionFailure executionFailure
     ) {
-        hooks.forEach(
-            hook -> {
-                try {
+        return Flowable
+            .fromIterable(hooks)
+            .flatMapCompletable(
+                hook -> {
                     switch (phase) {
                         case PRE:
-                            hook.pre(componentId, ctx, executionPhase);
-                            break;
+                            return hook.pre(componentId, ctx, executionPhase);
                         case POST:
-                            hook.post(componentId, ctx, executionPhase);
-                            break;
+                            return hook.post(componentId, ctx, executionPhase);
                         case INTERRUPT:
-                            hook.interrupt(componentId, ctx, executionPhase);
-                            break;
+                            return hook.interrupt(componentId, ctx, executionPhase);
                         case INTERRUPT_WITH:
-                            hook.interruptWith(componentId, ctx, executionPhase, executionFailure);
-                            break;
+                            return hook.interruptWith(componentId, ctx, executionPhase, executionFailure);
                         case ERROR:
-                            hook.error(componentId, ctx, executionPhase, throwable);
-                            break;
+                            return hook.error(componentId, ctx, executionPhase, throwable);
+                        default:
+                            return Completable.error(
+                                new RuntimeException(String.format("Unknown hook phase %s while executing hook", phase))
+                            );
                     }
-                } catch (Exception e) {
-                    log.warn(String.format("Unable to execute '%s' hook '%s' on flow '%s'", phase.name(), hook.id(), componentId), e);
-                }
-            }
-        );
+                },
+                false,
+                1
+            )
+            .doOnError(error -> log.warn("Unable to execute '{}' hook on flow '{}'", phase.name(), componentId, error))
+            .onErrorComplete();
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.core.condition;
 
 import io.gravitee.definition.model.ConditionSupplier;
+import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.el.spel.function.xml.DocumentBuilderFactoryUtils;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.reactivex.Maybe;
@@ -45,7 +46,7 @@ public class ExpressionLanguageConditionFilter<T extends ConditionSupplier> impl
             .eval(condition, Boolean.class)
             .filter(Boolean::booleanValue)
             .map(aBoolean -> elt)
-            .doOnError(throwable -> log.warn("Error parsing condition {}", condition, throwable))
-            .onErrorComplete();
+            .onErrorComplete(ExpressionEvaluationException.class::isInstance)
+            .doOnError(throwable -> log.warn("Error parsing condition {}", condition, throwable));
     }
 }
