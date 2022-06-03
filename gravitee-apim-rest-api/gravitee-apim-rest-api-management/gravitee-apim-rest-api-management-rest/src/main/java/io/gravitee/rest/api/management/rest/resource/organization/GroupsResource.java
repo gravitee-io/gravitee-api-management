@@ -62,7 +62,7 @@ public class GroupsResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.READ) })
     public Response getGroups() {
         return Response.ok(groupService.findAllByOrganization(GraviteeContext.getCurrentOrganization())).build();
     }
