@@ -50,14 +50,13 @@ import org.springframework.stereotype.Component;
 public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, PolicyEntity> implements PolicyService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PolicyServiceImpl.class);
+    private final Map<String, PolicyDevelopmentEntity> policies = new ConcurrentHashMap<>();
 
     @Autowired
     private JsonSchemaService jsonSchemaService;
 
     @Autowired
     private PolicyClassLoaderFactory policyClassLoaderFactory;
-
-    private final Map<String, PolicyDevelopmentEntity> policies = new ConcurrentHashMap<>();
 
     @Override
     public Set<PolicyEntity> findAll(Boolean withResource) {
@@ -137,62 +136,65 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
                     // Policy development information
                     PolicyDevelopmentEntity developmentEntity = new PolicyDevelopmentEntity();
                     developmentEntity.setClassName(policy.policy().getName());
+                    if (io.gravitee.gateway.jupiter.api.policy.Policy.class.isAssignableFrom(policy.policy())) {
+                        developmentEntity.setOnRequestMethod("setOnRequestMethod");
+                        developmentEntity.setOnResponseMethod("setOnResponseMethod");
+                    } else {
+                        ScanResult scan = null;
+                        PluginClassLoader policyClassLoader = null;
 
-                    ScanResult scan = null;
-                    PluginClassLoader policyClassLoader = null;
+                        try {
+                            policyClassLoader = policyClassLoaderFactory.getOrCreateClassLoader(policy);
 
-                    try {
-                        policyClassLoader = policyClassLoaderFactory.getOrCreateClassLoader(policy);
+                            scan =
+                                new ClassGraph()
+                                    .enableMethodInfo()
+                                    .enableAnnotationInfo()
+                                    .acceptClasses(policy.policy().getName())
+                                    .ignoreParentClassLoaders()
+                                    .overrideClassLoaders(policyClassLoader)
+                                    .scan(1);
 
-                        scan =
-                            new ClassGraph()
-                                .enableMethodInfo()
-                                .enableAnnotationInfo()
-                                .acceptClasses(policy.policy().getName())
-                                .ignoreParentClassLoaders()
-                                .overrideClassLoaders(policyClassLoader)
-                                .scan(1);
+                            MethodInfoList methodInfo = scan.getClassInfo(policy.policy().getName()).getMethodInfo();
 
-                        MethodInfoList methodInfo = scan.getClassInfo(policy.policy().getName()).getMethodInfo();
-
-                        MethodInfoList filter = methodInfo.filter(
-                            methodInfo1 ->
-                                methodInfo1.hasAnnotation(OnRequest.class.getName()) ||
-                                methodInfo1.hasAnnotation(OnRequestContent.class.getName())
-                        );
-
-                        if (!filter.isEmpty()) {
-                            developmentEntity.setOnRequestMethod(filter.get(0).getName());
-                        }
-
-                        filter =
-                            methodInfo.filter(
-                                methodInfo12 ->
-                                    methodInfo12.hasAnnotation(OnResponse.class.getName()) ||
-                                    methodInfo12.hasAnnotation(OnResponseContent.class.getName())
+                            MethodInfoList filter = methodInfo.filter(
+                                methodInfo1 ->
+                                    methodInfo1.hasAnnotation(OnRequest.class.getName()) ||
+                                    methodInfo1.hasAnnotation(OnRequestContent.class.getName())
                             );
 
-                        if (!filter.isEmpty()) {
-                            developmentEntity.setOnResponseMethod(filter.get(0).getName());
-                        }
+                            if (!filter.isEmpty()) {
+                                developmentEntity.setOnRequestMethod(filter.get(0).getName());
+                            }
 
-                        return developmentEntity;
-                    } catch (Throwable ex) {
-                        logger.error("An unexpected error occurs while loading policy", ex);
-                        return null;
-                    } finally {
-                        if (policyClassLoader != null) {
-                            try {
-                                policyClassLoader.close();
-                            } catch (IOException e) {
-                                LOGGER.error("An error has occurred while trying to close policy class loader", e);
+                            filter =
+                                methodInfo.filter(
+                                    methodInfo12 ->
+                                        methodInfo12.hasAnnotation(OnResponse.class.getName()) ||
+                                        methodInfo12.hasAnnotation(OnResponseContent.class.getName())
+                                );
+
+                            if (!filter.isEmpty()) {
+                                developmentEntity.setOnResponseMethod(filter.get(0).getName());
+                            }
+                        } catch (Throwable ex) {
+                            logger.error("An unexpected error occurs while loading policy", ex);
+                            return null;
+                        } finally {
+                            if (policyClassLoader != null) {
+                                try {
+                                    policyClassLoader.close();
+                                } catch (IOException e) {
+                                    LOGGER.error("An error has occurred while trying to close policy class loader", e);
+                                }
+                            }
+
+                            if (scan != null) {
+                                scan.close();
                             }
                         }
-
-                        if (scan != null) {
-                            scan.close();
-                        }
                     }
+                    return developmentEntity;
                 }
             }
         );

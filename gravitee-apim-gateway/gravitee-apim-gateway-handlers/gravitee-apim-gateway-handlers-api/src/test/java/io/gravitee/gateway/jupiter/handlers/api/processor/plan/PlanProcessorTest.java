@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.handlers.api.processor.plan;
 
 import static io.gravitee.gateway.api.ExecutionContext.*;
+import static io.gravitee.gateway.jupiter.handlers.api.security.SecurityChain.SKIP_SECURITY_CHAIN;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,23 +39,19 @@ class PlanProcessorTest extends AbstractProcessorTest {
     protected static final String SUBSCRIPTION_ID = "subscriptionId";
     protected static final String REMOTE_ADDRESS = "remoteAddress";
 
-    @Mock
-    private RequestExecutionContext ctx;
-
     private PlanProcessor cut;
 
     @BeforeEach
     void initProcessor() {
-        when(ctx.request()).thenReturn(mockRequest);
         cut = PlanProcessor.instance();
     }
 
     @Test
     void shouldSetMetricsWhenSecurityChainIsNotSkipped() {
-        when(ctx.getAttribute(SecurityChain.SKIP_SECURITY_CHAIN)).thenReturn(null);
-        when(ctx.getAttribute(ATTR_PLAN)).thenReturn(PLAN_ID);
-        when(ctx.getAttribute(ATTR_APPLICATION)).thenReturn(APPLICATION_ID);
-        when(ctx.getAttribute(ATTR_SUBSCRIPTION_ID)).thenReturn(SUBSCRIPTION_ID);
+        ctx.setAttribute(SKIP_SECURITY_CHAIN, null);
+        ctx.setAttribute(ATTR_PLAN, PLAN_ID);
+        ctx.setAttribute(ATTR_APPLICATION, APPLICATION_ID);
+        ctx.setAttribute(ATTR_SUBSCRIPTION_ID, SUBSCRIPTION_ID);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertResult();
@@ -66,7 +63,7 @@ class PlanProcessorTest extends AbstractProcessorTest {
 
     @Test
     void shouldSetMetricsUnknownApplicationWhenSecurityChainIsSkipped() {
-        when(ctx.getAttribute(SecurityChain.SKIP_SECURITY_CHAIN)).thenReturn(true);
+        ctx.setAttribute(SKIP_SECURITY_CHAIN, true);
         when(mockRequest.remoteAddress()).thenReturn(REMOTE_ADDRESS);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();

@@ -19,8 +19,8 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.ListReverser;
-import io.gravitee.gateway.debug.reactor.DebugReactor;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
+import io.gravitee.gateway.jupiter.debug.DebugReactorEventListener;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class DebugService extends AbstractService {
             logger.info("Starting component: {}", componentClass.getSimpleName());
 
             try {
-                LifecycleComponent lifecyclecomponent = (LifecycleComponent) this.applicationContext.getBean(componentClass);
+                LifecycleComponent lifecyclecomponent = this.applicationContext.getBean(componentClass);
                 lifecyclecomponent.start();
             } catch (Exception exception) {
                 logger.error("An error occurs while starting component {}", componentClass.getSimpleName(), exception);
@@ -57,7 +57,7 @@ public class DebugService extends AbstractService {
     private List<Class<? extends LifecycleComponent>> components() {
         List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
         components.add(VertxDebugService.class);
-        components.add(DebugReactor.class);
+        components.add(DebugReactorEventListener.class);
         return components;
     }
 

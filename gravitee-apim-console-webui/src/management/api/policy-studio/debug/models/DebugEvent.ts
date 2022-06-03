@@ -20,6 +20,7 @@ export interface DebugEvent {
 }
 
 interface DebugEventPayload {
+  execution_mode: 'v3' | 'jupiter';
   response?: {
     statusCode?: number;
     method?: string;

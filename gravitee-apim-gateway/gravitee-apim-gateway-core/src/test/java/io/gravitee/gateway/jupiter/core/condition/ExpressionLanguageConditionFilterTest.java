@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.reactivex.Maybe;
 import io.reactivex.observers.TestObserver;
@@ -36,14 +37,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ExpressionLanguageConditionFilterTest {
 
     protected static final String EXPRESSION = "test";
+    final ExpressionLanguageConditionFilter<ConditionSupplier> cut = new ExpressionLanguageConditionFilter<>();
 
     @Mock
     private RequestExecutionContext ctx;
 
     @Mock
     private TemplateEngine templateEngine;
-
-    final ExpressionLanguageConditionFilter<ConditionSupplier> cut = new ExpressionLanguageConditionFilter<>();
 
     @Test
     void shouldNotFilterWhenConditionEvaluatedToTrue() {
@@ -86,14 +86,20 @@ class ExpressionLanguageConditionFilterTest {
     }
 
     @Test
-    void shouldFilterWhenExpressionError() {
+    void shouldFilterWhenExpressionEvaluationException() {
+        final ConditionSupplier conditionSupplier = () -> EXPRESSION;
+        when(ctx.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.eval(EXPRESSION, Boolean.class)).thenReturn(Maybe.error(new ExpressionEvaluationException(EXPRESSION)));
+
+        cut.filter(ctx, conditionSupplier).test().assertResult();
+    }
+
+    @Test
+    void shouldThrowErrorWhenErrorOccured() {
         final ConditionSupplier conditionSupplier = () -> EXPRESSION;
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.eval(EXPRESSION, Boolean.class)).thenReturn(Maybe.error(new RuntimeException(MOCK_EXCEPTION)));
 
-        final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
-
-        obs.assertResult();
-        obs.assertNoValues();
+        cut.filter(ctx, conditionSupplier).test().assertFailure(RuntimeException.class);
     }
 }

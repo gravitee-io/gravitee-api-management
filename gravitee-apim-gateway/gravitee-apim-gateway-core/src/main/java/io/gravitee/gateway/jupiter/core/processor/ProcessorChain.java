@@ -23,6 +23,7 @@ import io.gravitee.gateway.jupiter.core.hook.HookHelper;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,7 @@ public class ProcessorChain implements Hookable<ProcessorHook> {
         if (this.processorHooks == null) {
             this.processorHooks = new ArrayList<>();
         }
-        this.processorHooks.addAll(hooks);
+        processorHooks.addAll(hooks);
     }
 
     public Completable execute(final RequestExecutionContext ctx, final ExecutionPhase phase) {

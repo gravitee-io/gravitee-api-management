@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowStage;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
@@ -37,8 +38,8 @@ import java.util.stream.Collectors;
 class PlatformFlowResolver extends AbstractFlowResolver {
 
     private final Api api;
-    private Flowable<Flow> flows;
     private final OrganizationManager organizationManager;
+    private Flowable<Flow> flows;
     private Organization organization;
 
     public PlatformFlowResolver(Api api, OrganizationManager organizationManager, ConditionFilter<Flow> filter) {

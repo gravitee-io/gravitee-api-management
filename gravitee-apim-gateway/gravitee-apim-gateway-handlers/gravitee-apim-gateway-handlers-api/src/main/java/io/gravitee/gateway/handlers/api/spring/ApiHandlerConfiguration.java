@@ -34,7 +34,9 @@ import io.gravitee.gateway.jupiter.flow.condition.evaluation.PathBasedConditionF
 import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
+import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
+import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
@@ -43,6 +45,7 @@ import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.node.api.Node;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -142,6 +145,8 @@ public class ApiHandlerConfiguration {
     public ReactorHandlerFactory<Api> reactorHandlerFactory(
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactory policyFactory,
+        @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
+        OrganizationManager organizationManager,
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
         FlowResolverFactory flowResolverFactory
@@ -152,6 +157,8 @@ public class ApiHandlerConfiguration {
             node,
             v3PolicyFactoryCreator,
             policyFactory,
+            platformPolicyChainFactory,
+            organizationManager,
             policyChainProviderLoader,
             apiProcessorChainFactory,
             flowResolverFactory

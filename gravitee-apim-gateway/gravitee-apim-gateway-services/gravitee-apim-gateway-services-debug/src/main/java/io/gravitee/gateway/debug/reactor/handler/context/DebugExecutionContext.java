@@ -29,10 +29,7 @@ import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.tracing.api.Tracer;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -42,7 +39,7 @@ public class DebugExecutionContext implements MutableExecutionContext {
 
     private final MutableExecutionContext context;
 
-    private final List<DebugStep<?>> steps = new ArrayList<>();
+    private final LinkedList<DebugStep<?>> steps = new LinkedList<>();
     private final Map<String, Serializable> initialAttributes;
     private final InvokerResponse invokerResponse = new InvokerResponse();
     private final HttpHeaders initialHeaders;

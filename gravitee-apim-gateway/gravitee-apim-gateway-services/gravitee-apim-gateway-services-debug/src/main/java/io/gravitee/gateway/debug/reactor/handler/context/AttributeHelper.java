@@ -19,7 +19,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class AttributeHelper {
+public class AttributeHelper {
+
+    private AttributeHelper() {}
 
     public static Map<String, Serializable> filterAndSerializeAttributes(Map<String, Object> attributes) {
         if (attributes == null) {
@@ -32,11 +34,7 @@ public abstract class AttributeHelper {
             .stream()
             .filter(key -> attributes.get(key) != null)
             .filter(key -> attributes.get(key) instanceof Serializable)
-            .forEach(
-                key -> {
-                    filteredAttributes.put(key, (Serializable) attributes.get(key));
-                }
-            );
+            .forEach(key -> filteredAttributes.put(key, (Serializable) attributes.get(key)));
 
         return filteredAttributes;
     }

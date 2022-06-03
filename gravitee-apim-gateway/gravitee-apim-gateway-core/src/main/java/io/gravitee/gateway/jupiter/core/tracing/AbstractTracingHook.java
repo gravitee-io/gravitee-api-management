@@ -19,10 +19,10 @@ import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.hook.*;
 import io.gravitee.gateway.jupiter.api.hook.Hook;
 import io.gravitee.tracing.api.Span;
 import io.gravitee.tracing.api.Tracer;
+import io.reactivex.Completable;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -34,33 +34,38 @@ public abstract class AbstractTracingHook implements Hook {
     private static final String CTX_TRACING_SPAN_ATTR = ExecutionContext.ATTR_INTERNAL_PREFIX + "tracing-span-%s";
 
     @Override
-    public void pre(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {
-        createSpan(id, ctx, executionPhase);
+    public Completable pre(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {
+        return Completable.fromRunnable(() -> createSpan(id, ctx, executionPhase));
     }
 
     @Override
-    public void post(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {
-        endSpan(id, ctx);
+    public Completable post(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {
+        return Completable.fromRunnable(() -> endSpan(id, ctx));
     }
 
     @Override
-    public void error(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase, final Throwable throwable) {
-        endSpanOnError(id, ctx, throwable);
+    public Completable error(
+        final String id,
+        final RequestExecutionContext ctx,
+        final ExecutionPhase executionPhase,
+        final Throwable throwable
+    ) {
+        return Completable.fromRunnable(() -> endSpanOnError(id, ctx, throwable));
     }
 
     @Override
-    public void interrupt(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {
-        endSpan(id, ctx);
+    public Completable interrupt(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {
+        return Completable.fromRunnable(() -> endSpan(id, ctx));
     }
 
     @Override
-    public void interruptWith(
+    public Completable interruptWith(
         final String id,
         final RequestExecutionContext ctx,
         final ExecutionPhase executionPhase,
         final ExecutionFailure failure
     ) {
-        endSpanWithFailure(id, ctx, failure);
+        return Completable.fromRunnable(() -> endSpanWithFailure(id, ctx, failure));
     }
 
     protected void createSpan(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {

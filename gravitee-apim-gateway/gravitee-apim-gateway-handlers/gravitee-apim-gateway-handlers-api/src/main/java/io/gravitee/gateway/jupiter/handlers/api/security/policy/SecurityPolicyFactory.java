@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.handlers.api.security.handler;
+package io.gravitee.gateway.jupiter.handlers.api.security.policy;
 
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 public class SecurityPolicyFactory {
 
     private static final Logger log = LoggerFactory.getLogger(SecurityPolicyFactory.class);
+
+    private SecurityPolicyFactory() {}
 
     public static SecurityPolicy forPlan(Plan plan, PolicyManager policyManager) {
         final String security = plan.getSecurity();

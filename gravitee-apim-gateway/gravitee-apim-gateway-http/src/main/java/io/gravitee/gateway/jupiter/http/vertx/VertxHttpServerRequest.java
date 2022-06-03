@@ -26,22 +26,19 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.reporter.api.http.Metrics;
-import io.reactivex.*;
 import io.vertx.reactivex.core.http.HttpServerRequest;
 import io.vertx.reactivex.core.net.SocketAddress;
-import java.util.concurrent.atomic.AtomicBoolean;
 import javax.net.ssl.SSLSession;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxHttpServerRequest implements MutableRequest {
+public class VertxHttpServerRequest extends AbstractHttpChunks implements MutableRequest {
 
     protected final long timestamp;
     protected final Metrics metrics;
     protected final HttpServerRequest nativeRequest;
-    private final AtomicBoolean cached;
     protected String contextPath;
     protected String pathInfo;
     protected String id;
@@ -51,7 +48,6 @@ public class VertxHttpServerRequest implements MutableRequest {
     protected MultiValueMap<String, String> queryParameters = null;
     protected MultiValueMap<String, String> pathParameters = null;
     protected HttpHeaders headers;
-    protected Flowable<Buffer> chunks;
 
     public VertxHttpServerRequest(HttpServerRequest nativeRequest, IdGenerator idGenerator) {
         this.nativeRequest = nativeRequest;
@@ -71,7 +67,6 @@ public class VertxHttpServerRequest implements MutableRequest {
                 .toFlowable()
                 .doOnNext(buffer -> metrics.setRequestContentLength(metrics.getRequestContentLength() + buffer.length()))
                 .map(Buffer::buffer);
-        this.cached = new AtomicBoolean(false);
     }
 
     public VertxHttpServerResponse response() {
@@ -107,6 +102,12 @@ public class VertxHttpServerRequest implements MutableRequest {
     @Override
     public String pathInfo() {
         return pathInfo;
+    }
+
+    @Override
+    public MutableRequest pathInfo(final String pathInfo) {
+        this.pathInfo = pathInfo;
+        return this;
     }
 
     @Override
@@ -171,8 +172,8 @@ public class VertxHttpServerRequest implements MutableRequest {
     @Override
     public String remoteAddress() {
         if (remoteAddress == null) {
-            SocketAddress remoteAddress = nativeRequest.remoteAddress();
-            this.remoteAddress = extractAddress(remoteAddress);
+            SocketAddress nativeRemoteAddress = nativeRequest.remoteAddress();
+            this.remoteAddress = extractAddress(nativeRemoteAddress);
         }
         return remoteAddress;
     }
@@ -219,59 +220,5 @@ public class VertxHttpServerRequest implements MutableRequest {
     @Override
     public String host() {
         return this.nativeRequest.host();
-    }
-
-    @Override
-    public Maybe<Buffer> body() {
-        // Reduce all the chunks to create a unique buffer containing all the content.
-        final Maybe<Buffer> body = chunks().reduce(Buffer::appendBuffer);
-        cacheChunks(body.toFlowable(), false);
-
-        return chunks.firstElement();
-    }
-
-    @Override
-    public Single<Buffer> bodyOrEmpty() {
-        return body().switchIfEmpty(Single.just(Buffer.buffer()));
-    }
-
-    @Override
-    public void body(Buffer buffer) {
-        this.chunks = chunks.compose(upstream -> Flowable.just(buffer));
-    }
-
-    @Override
-    public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
-        // Reduce all the chunks then apply the transformation.
-        final Maybe<Buffer> body = chunks.reduce(Buffer::appendBuffer).compose(onBody);
-        cacheChunks(body.toFlowable(), true);
-
-        return chunks.ignoreElements();
-    }
-
-    @Override
-    public Flowable<Buffer> chunks() {
-        return chunks;
-    }
-
-    @Override
-    public void chunks(final Flowable<Buffer> chunks) {
-        this.chunks = chunks.compose(upstream -> chunks);
-    }
-
-    @Override
-    public Completable onChunk(FlowableTransformer<Buffer, Buffer> chunkTransformer) {
-        cacheChunks(chunks.compose(chunkTransformer), true);
-
-        return chunks.ignoreElements();
-    }
-
-    private void cacheChunks(Flowable<Buffer> chunks, boolean force) {
-        this.chunks = chunks;
-
-        if (force || cached.compareAndSet(false, true)) {
-            // Make sure the request body is cached to avoid multiple consumptions when multiple subscriptions occur (especially with v3 adapters).
-            this.chunks = this.chunks.cache();
-        }
     }
 }

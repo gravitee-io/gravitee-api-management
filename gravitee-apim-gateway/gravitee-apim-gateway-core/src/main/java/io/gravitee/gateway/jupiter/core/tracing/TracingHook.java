@@ -20,13 +20,14 @@ import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
+import io.gravitee.gateway.jupiter.api.hook.SecurityPlanHook;
 import io.gravitee.tracing.api.Span;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TracingHook extends AbstractTracingHook implements ProcessorHook, ChainHook, InvokerHook {
+public class TracingHook extends AbstractTracingHook implements ProcessorHook, ChainHook, InvokerHook, SecurityPlanHook {
 
     private final String key;
 

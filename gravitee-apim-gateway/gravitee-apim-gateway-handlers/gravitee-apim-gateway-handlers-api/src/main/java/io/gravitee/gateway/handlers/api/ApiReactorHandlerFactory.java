@@ -90,18 +90,20 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     public static final String REPORTERS_LOGGING_MAX_SIZE_PROPERTY = "reporters.logging.max_size";
     public static final String HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY = "handlers.request.headers.x-forwarded-prefix";
     public static final String REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY = "reporters.logging.excluded_response_types";
+    public static final String API_JUPITER_MODE_ENABLED_PROPERTY = "api.jupiterMode.enabled";
     private static final String PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
-    public static final String API_JUPITER_MODE_ENABLED = "api.jupiterMode.enabled";
+    protected final ContentTemplateVariableProvider contentTemplateVariableProvider;
     private final Logger logger = LoggerFactory.getLogger(ApiReactorHandlerFactory.class);
     private final Configuration configuration;
     private final Node node;
     private final io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator;
     private final io.gravitee.gateway.jupiter.policy.PolicyFactory policyFactory;
+    private final io.gravitee.gateway.jupiter.policy.PolicyChainFactory platformPolicyChainFactory;
     private final PolicyChainProviderLoader policyChainProviderLoader;
     private final ApiProcessorChainFactory apiProcessorChainFactory;
+    private final OrganizationManager organizationManager;
     private final FlowResolverFactory flowResolverFactory;
     private ApplicationContext applicationContext;
-    protected final ContentTemplateVariableProvider contentTemplateVariableProvider;
 
     public ApiReactorHandlerFactory(
         ApplicationContext applicationContext,
@@ -109,6 +111,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         Node node,
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         io.gravitee.gateway.jupiter.policy.PolicyFactory policyFactory,
+        io.gravitee.gateway.jupiter.policy.PolicyChainFactory platformPolicyChainFactory,
+        OrganizationManager organizationManager,
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
         FlowResolverFactory flowResolverFactory
@@ -118,6 +122,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         this.node = node;
         this.v3PolicyFactoryCreator = v3PolicyFactoryCreator;
         this.policyFactory = policyFactory;
+        this.platformPolicyChainFactory = platformPolicyChainFactory;
+        this.organizationManager = organizationManager;
         this.policyChainProviderLoader = policyChainProviderLoader;
         this.apiProcessorChainFactory = apiProcessorChainFactory;
         this.flowResolverFactory = flowResolverFactory;
@@ -219,20 +225,13 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                         apiComponentProvider
                     );
 
-                    final io.gravitee.gateway.jupiter.policy.PolicyChainFactory platformPolicyChainFactory = applicationContext.getBean(
-                        "platformPolicyChainFactory",
-                        io.gravitee.gateway.jupiter.policy.PolicyChainFactory.class
+                    final io.gravitee.gateway.jupiter.policy.PolicyChainFactory apiPolicyChainFactory = createPolicyChainFactory(
+                        api,
+                        policyManager,
+                        configuration
                     );
 
-                    final io.gravitee.gateway.jupiter.policy.PolicyChainFactory apiPolicyChainFactory = new DefaultPolicyChainFactory(
-                        api.getId(),
-                        configuration,
-                        policyManager
-                    );
-
-                    final OrganizationManager organizationManager = applicationContext.getBean(OrganizationManager.class);
-
-                    FlowChainFactory flowChainFactory = new FlowChainFactory(
+                    FlowChainFactory flowChainFactory = createFlowChainFactory(
                         platformPolicyChainFactory,
                         apiPolicyChainFactory,
                         organizationManager,
@@ -240,7 +239,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                         flowResolverFactory
                     );
 
-                    return new SyncApiReactor(
+                    return createSyncApiReactor(
                         api,
                         apiComponentProvider,
                         templateVariableProviders(api, referenceRegister),
@@ -263,9 +262,59 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         return null;
     }
 
+    protected SyncApiReactor createSyncApiReactor(
+        final Api api,
+        final CompositeComponentProvider apiComponentProvider,
+        final List<TemplateVariableProvider> templateVariableProviders,
+        final Invoker invoker,
+        final ResourceLifecycleManager resourceLifecycleManager,
+        final ApiProcessorChainFactory apiProcessorChainFactory,
+        final io.gravitee.gateway.jupiter.policy.PolicyManager policyManager,
+        final FlowChainFactory flowChainFactory,
+        final GroupLifecycleManager groupLifecycleManager,
+        final Configuration configuration
+    ) {
+        return new SyncApiReactor(
+            api,
+            apiComponentProvider,
+            templateVariableProviders,
+            new InvokerAdapter(invoker),
+            resourceLifecycleManager,
+            apiProcessorChainFactory,
+            policyManager,
+            flowChainFactory,
+            groupLifecycleManager,
+            configuration
+        );
+    }
+
+    protected DefaultPolicyChainFactory createPolicyChainFactory(
+        Api api,
+        io.gravitee.gateway.jupiter.policy.PolicyManager policyManager,
+        Configuration configuration
+    ) {
+        return new DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
+    }
+
+    protected FlowChainFactory createFlowChainFactory(
+        io.gravitee.gateway.jupiter.policy.PolicyChainFactory platformPolicyChainFactory,
+        io.gravitee.gateway.jupiter.policy.PolicyChainFactory apiPolicyChainFactory,
+        OrganizationManager organizationManager,
+        Configuration configuration,
+        FlowResolverFactory flowResolverFactory
+    ) {
+        return new FlowChainFactory(
+            platformPolicyChainFactory,
+            apiPolicyChainFactory,
+            organizationManager,
+            configuration,
+            flowResolverFactory
+        );
+    }
+
     private boolean isV3ExecutionMode(Api api) {
         return (
-            !configuration.getProperty(API_JUPITER_MODE_ENABLED, Boolean.class, false) ||
+            !configuration.getProperty(API_JUPITER_MODE_ENABLED_PROPERTY, Boolean.class, false) ||
             api.getExecutionMode() == null ||
             api.getExecutionMode() == ExecutionMode.V3
         );
@@ -290,7 +339,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         return executionContextFactory;
     }
 
-    private List<TemplateVariableProvider> templateVariableProviders(Api api, DefaultReferenceRegister referenceRegister) {
+    protected List<TemplateVariableProvider> templateVariableProviders(Api api, DefaultReferenceRegister referenceRegister) {
         List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
         templateVariableProviders.add(new ApiTemplateVariableProvider(api));
         templateVariableProviders.add(contentTemplateVariableProvider);

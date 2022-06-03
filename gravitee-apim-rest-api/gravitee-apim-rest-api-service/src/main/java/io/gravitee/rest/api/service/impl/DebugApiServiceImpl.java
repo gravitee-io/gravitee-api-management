@@ -19,7 +19,6 @@ import static java.util.Collections.singleton;
 import static java.util.Map.entry;
 import static java.util.Optional.ofNullable;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -37,7 +36,9 @@ import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.PlanConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.DebugApiInvalidDefinitionVersionException;
+import io.gravitee.rest.api.service.exceptions.DebugApiNoCompatibleInstanceException;
+import io.gravitee.rest.api.service.exceptions.DebugApiNoValidPlanException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +87,8 @@ public class DebugApiServiceImpl implements DebugApiService {
         );
 
         DebugApi debugApi = convert(debugApiEntity, apiId);
+        //Properly set debug execution mode from original api execution mode
+        debugApi.setExecutionMode(api.getExecutionMode());
 
         validatePlan(debugApi);
         validateDefinitionVersion(apiId, debugApi);

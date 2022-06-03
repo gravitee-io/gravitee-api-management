@@ -42,6 +42,8 @@ import org.mockito.Spy;
  */
 public class ReactorTest {
 
+    private final DummyReactorHandler dummyReactorHandler = new DummyReactorHandler();
+
     @Mock
     private EntrypointResolver handlerResolver;
 
@@ -52,9 +54,6 @@ public class ReactorTest {
     private GatewayConfiguration gatewayConfiguration;
 
     @Mock
-    private ExecutionContextFactory executionContextFactory;
-
-    @Mock
     private EntrypointResolver entrypointResolver;
 
     @Mock
@@ -63,18 +62,22 @@ public class ReactorTest {
     @Mock
     private ResponseProcessorChainFactory responseProcessorChainFactory;
 
-    @InjectMocks
-    private DefaultReactor reactor = new DefaultReactor(entrypointResolver, requestProcessorChainFactory, responseProcessorChainFactory);
-
-    private DummyReactorHandler dummyReactorHandler = new DummyReactorHandler();
-
-    @Spy
-    private TransactionProcessorFactory transactionHandlerFactory = new TransactionProcessorFactory();
+    private DefaultReactor reactor;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         when(gatewayConfiguration.tenant()).thenReturn(Optional.empty());
+        reactor =
+            new DefaultReactor(
+                null,
+                entrypointResolver,
+                reactorHandlerRegistry,
+                gatewayConfiguration,
+                requestProcessorChainFactory,
+                responseProcessorChainFactory,
+                null
+            );
     }
 
     /*

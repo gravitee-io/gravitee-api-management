@@ -16,18 +16,25 @@
 package io.gravitee.gateway.jupiter.handlers.api.security;
 
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
+import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_FLOW_STAGE;
 import static io.reactivex.Completable.defer;
 
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
+import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.handlers.api.security.handler.SecurityPlan;
-import io.gravitee.gateway.jupiter.handlers.api.security.handler.SecurityPlanFactory;
+import io.gravitee.gateway.jupiter.api.hook.Hookable;
+import io.gravitee.gateway.jupiter.api.hook.SecurityPlanHook;
+import io.gravitee.gateway.jupiter.core.hook.HookHelper;
+import io.gravitee.gateway.jupiter.handlers.api.security.plan.SecurityPlan;
+import io.gravitee.gateway.jupiter.handlers.api.security.plan.SecurityPlanFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -42,7 +49,7 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SecurityChain {
+public class SecurityChain implements Hookable<SecurityPlanHook> {
 
     public static final String SKIP_SECURITY_CHAIN = "skip-security-chain";
     protected static final String PLAN_UNRESOLVABLE = "GATEWAY_PLAN_UNRESOLVABLE";
@@ -50,6 +57,7 @@ public class SecurityChain {
     protected static final Single<Boolean> TRUE = Single.just(true), FALSE = Single.just(false);
     private static final Logger log = LoggerFactory.getLogger(SecurityChain.class);
     private final Flowable<SecurityPlan> chain;
+    private List<SecurityPlanHook> securityPlanHooks;
 
     public SecurityChain(Api api, PolicyManager policyManager) {
         chain =
@@ -92,7 +100,13 @@ public class SecurityChain {
                                 return Completable.complete();
                             }
                         )
-                        .doOnSubscribe(disposable -> log.debug("Executing security chain"));
+                        .doOnSubscribe(
+                            disposable -> {
+                                log.debug("Executing security chain");
+                                ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, "security");
+                            }
+                        )
+                        .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
                 }
 
                 log.debug("Skipping security chain because it has been explicitly required");
@@ -107,10 +121,20 @@ public class SecurityChain {
             .flatMap(
                 canExecute -> {
                     if (canExecute) {
-                        return securityPlan.execute(ctx).andThen(TRUE);
+                        return HookHelper
+                            .hook(securityPlan.execute(ctx), securityPlan.id(), securityPlanHooks, ctx, ExecutionPhase.REQUEST)
+                            .andThen(TRUE);
                     }
                     return FALSE;
                 }
             );
+    }
+
+    @Override
+    public void addHooks(final List<SecurityPlanHook> hooks) {
+        if (this.securityPlanHooks == null) {
+            this.securityPlanHooks = new ArrayList<>();
+        }
+        this.securityPlanHooks.addAll(hooks);
     }
 }
