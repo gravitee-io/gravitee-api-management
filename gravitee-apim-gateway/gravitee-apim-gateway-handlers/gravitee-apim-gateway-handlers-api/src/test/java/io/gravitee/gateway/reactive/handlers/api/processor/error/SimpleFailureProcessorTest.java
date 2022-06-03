@@ -66,7 +66,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
 
     @Test
     public void shouldCompleteWithChangingResponseBodyWithoutProcessorFailureMessage() {
-        ExecutionFailure executionFailure = new ExecutionFailure().statusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         simpleFailureProcessor.execute(ctx).test().assertResult();
         verify(mockMetrics).setApplication(eq("1"));
@@ -77,9 +77,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
 
     @Test
     public void shouldCompleteWithJsonErrorAndAcceptHeaderJson() throws JsonProcessingException {
-        ExecutionFailure executionFailure = new ExecutionFailure()
-            .message("error")
-            .statusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
         String contentAsJson = mapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of("application/json"));
@@ -97,9 +95,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
 
     @Test
     public void shouldCompleteWithJsonErrorAndAcceptHeaderWildCard() throws JsonProcessingException {
-        ExecutionFailure executionFailure = new ExecutionFailure()
-            .message("error")
-            .statusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
         String contentAsJson = mapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of(MediaType.WILDCARD));
@@ -117,10 +113,9 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     @Test
     public void shouldCompleteWithJsonErrorAndAcceptHeaderJsonAndContentTypeJson() {
         String contentAsJson = "{\"text\": \"error\"}";
-        ExecutionFailure executionFailure = new ExecutionFailure()
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
             .message(contentAsJson)
-            .contentType("application/json")
-            .statusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+            .contentType("application/json");
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of("application/json"));
         simpleFailureProcessor.execute(ctx).test().assertResult();
@@ -138,9 +133,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     @Test
     public void shouldCompleteWithTxtErrorAndNoAcceptHeader() {
         String contentAsTxt = "error";
-        ExecutionFailure executionFailure = new ExecutionFailure()
-            .message(contentAsTxt)
-            .statusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message(contentAsTxt);
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         simpleFailureProcessor.execute(ctx).test().assertResult();
         verify(mockMetrics).setApplication(eq("1"));

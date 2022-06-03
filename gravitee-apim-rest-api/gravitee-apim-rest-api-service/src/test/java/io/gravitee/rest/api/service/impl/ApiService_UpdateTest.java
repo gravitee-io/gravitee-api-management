@@ -458,7 +458,6 @@ public class ApiService_UpdateTest {
     @Test
     public void shouldUpdateWithExistingAllowedTag() throws TechnicalException {
         prepareUpdate();
-
         updateApiEntity.setTags(singleton("private"));
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
@@ -470,6 +469,8 @@ public class ApiService_UpdateTest {
         api.setDefinition(
             "{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
         );
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
+        when(virtualHostService.sanitizeAndValidate(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         when(tagService.findByUser(any(), any(), any())).thenReturn(Sets.newSet("public", "private"));
         final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
         assertNotNull(apiEntity);
@@ -492,6 +493,7 @@ public class ApiService_UpdateTest {
         api.setDefinition(
             "{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
         );
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
         when(tagService.findByUser(any(), any(), any())).thenReturn(Sets.newSet("public", "private"));
         final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
         assertNotNull(apiEntity);

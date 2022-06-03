@@ -211,7 +211,6 @@ public class DefaultHttpRequestDispatcher
 
         // Set gateway tenants and zones in request metrics.
         prepareMetrics(request.metrics());
-
         // Prepare handler chain and catch the end of the v3 request handling to complete the reactive chain.
         return Completable.create(
             emitter -> {
@@ -220,7 +219,7 @@ public class DefaultHttpRequestDispatcher
                     .create()
                     .handler(
                         ctx -> {
-                            reactorHandler.handle(ctx, endHandler);
+                            reactorHandler.handle(ctx, executionContext -> processResponse(executionContext, endHandler));
                         }
                     )
                     .errorHandler(result -> processResponse(simpleExecutionContext, endHandler))

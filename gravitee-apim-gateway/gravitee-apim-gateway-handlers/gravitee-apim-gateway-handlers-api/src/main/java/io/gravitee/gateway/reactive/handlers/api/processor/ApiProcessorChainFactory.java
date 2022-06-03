@@ -28,6 +28,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.error.SimpleFailurePr
 import io.gravitee.gateway.reactive.handlers.api.processor.error.template.ResponseTemplateBasedFailureProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.pathmapping.PathMappingProcessor;
+import io.gravitee.gateway.reactive.handlers.api.processor.plan.PlanProcessor;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +63,8 @@ public class ApiProcessorChainFactory {
         if (overrideXForwardedPrefix) {
             preProcessorList.add(XForwardedPrefixProcessor.instance());
         }
+
+        preProcessorList.add(PlanProcessor.instance());
         ProcessorChain processorChain = new ProcessorChain("processor-chain-pre-api", preProcessorList);
         processorChain.addHooks(processorHooks);
         return processorChain;

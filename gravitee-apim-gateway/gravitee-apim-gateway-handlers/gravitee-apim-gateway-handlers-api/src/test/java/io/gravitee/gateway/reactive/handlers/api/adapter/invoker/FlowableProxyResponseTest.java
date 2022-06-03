@@ -44,7 +44,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class FlowableProxyResponseTest {
 
-    protected static final String MOCK_EXCEPTION_MESSAGE = "Mock exception";
     protected static final int TOTAL_CHUNKS = 100;
     protected static final int REQUEST_COUNT = 16;
 
@@ -63,9 +62,6 @@ class FlowableProxyResponseTest {
     @Mock
     private ProxyConnection proxyConnection;
 
-    @Mock
-    private Metrics metrics = mock(Metrics.class);
-
     @Captor
     private ArgumentCaptor<Handler<Buffer>> bodyHandlerCaptor;
 
@@ -77,7 +73,6 @@ class FlowableProxyResponseTest {
     @BeforeEach
     public void init() {
         lenient().when(ctx.request()).thenReturn(request);
-        lenient().when(request.metrics()).thenReturn(metrics);
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(response.ended()).thenReturn(false);
         lenient().when(proxyResponse.bodyHandler(bodyHandlerCaptor.capture())).thenReturn(proxyResponse);
@@ -115,8 +110,7 @@ class FlowableProxyResponseTest {
         // Mark the end of the proxy response.
         endHandlerCaptor.getValue().handle(null);
 
-        // Check that end actions has been executed (api response time, release proxy response, ...).
-        verify(metrics).setApiResponseTimeMs(anyLong());
+        // Check that end actions has been executed (release proxy response, ...).
         verify(proxyResponse).bodyHandler(isNull());
         verify(proxyResponse).endHandler(isNull());
 

@@ -48,7 +48,7 @@ class ExecutionContextAdapterTest {
         DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null);
         requestExecutionContext.setInternalAttribute(
             io.gravitee.gateway.reactive.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE,
-            new ExecutionFailure().statusCode(200)
+            new ExecutionFailure(200)
         );
         ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(requestExecutionContext);
 
@@ -63,7 +63,7 @@ class ExecutionContextAdapterTest {
         DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null);
         requestExecutionContext.setInternalAttribute(
             io.gravitee.gateway.reactive.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE,
-            new ExecutionFailure().statusCode(200)
+            new ExecutionFailure(200)
         );
         ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(requestExecutionContext);
 

@@ -122,7 +122,7 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
             JWSObject jws = JWSObject.parse(cookieValue);
 
             if (jws.verify(verifier)) {
-                String token = jws.getPayload().toJSONObject().getAsString(TOKEN_CLAIM);
+                String token = (String) jws.getPayload().toJSONObject().get(TOKEN_CLAIM);
 
                 if (!StringUtils.hasLength(token)) {
                     return null;

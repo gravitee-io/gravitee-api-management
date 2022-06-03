@@ -100,7 +100,6 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
 
     private void handleEnd() {
         release();
-        ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
         subscriber.onComplete();
     }
 
@@ -118,7 +117,6 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
         try {
             if (cancelled.compareAndSet(false, true)) {
                 log.debug("Cancelling proxy response");
-                ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
                 proxyResponse.cancel();
                 connection.cancel();
             }

@@ -16,6 +16,7 @@
 package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.policy.api.PolicyConfiguration;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -33,7 +34,7 @@ public class CachedPolicyConfigurationFactory extends PolicyConfigurationFactory
             return null;
         }
 
-        Integer hash = configuration.hashCode();
+        Integer hash = Objects.hash(policyConfigurationClass, configuration);
         PolicyConfiguration config = cachedPolicyConfiguration.get(hash);
         if (config == null) {
             config = super.create(policyConfigurationClass, configuration);

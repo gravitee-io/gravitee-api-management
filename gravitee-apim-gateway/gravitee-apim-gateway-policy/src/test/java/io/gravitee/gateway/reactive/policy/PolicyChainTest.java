@@ -176,7 +176,7 @@ class PolicyChainTest {
         final RequestExecutionContext ctx = new DefaultRequestExecutionContext(null, response);
 
         final PolicyChain cut = new PolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
-        when(policy1.onRequest(ctx)).thenAnswer(invocation -> ctx.interruptWith(new ExecutionFailure().message(MOCK_ERROR_MESSAGE)));
+        when(policy1.onRequest(ctx)).thenAnswer(invocation -> ctx.interruptWith(new ExecutionFailure(400).message(MOCK_ERROR_MESSAGE)));
 
         cut.execute(ctx).test().assertFailure(InterruptionFailureException.class);
 
