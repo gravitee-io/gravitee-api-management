@@ -1,4 +1,4 @@
-.new-api {
+.new-api-import {
   .selected {
     .card,
     .card-import {
@@ -6,34 +6,16 @@
       transform: translateY(-4px);
       box-shadow: 0 10px 20px -10px var(--gv-theme-neutral-color-dark, #bfbfbf);
       cursor: pointer;
-      visibility: visible;
       background-color: var(--gv-theme-color-darker);
       color: #ffffff;
       position: relative;
     }
-
-    .actions {
-      visibility: visible;
-      opacity: 1;
-    }
   }
 
-  .deprecated-action {
-    align-self: flex-end;
-  }
-
-  .card-import,
-  .deprecated-action {
+  .card-import {
     min-width: 490px;
   }
 
-  .card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .card,
   .card-import {
     border-radius: 2px;
     opacity: 0.6;
@@ -66,75 +48,12 @@
     }
   }
 
-  .actions {
-    padding: 2rem 0.5rem;
-    display: flex;
-    flex: 1;
-    justify-content: center;
-    visibility: hidden;
-    opacity: 0;
-    transition: all 0.3s ease-in-out;
-  }
-
-  gv-image {
-    height: 300px;
-    width: 600px;
-
-    @media only screen and (max-width: 1780px) {
-      height: 250px;
-      width: 500px;
-    }
-
-    @media only screen and (max-width: 1600px) {
-      height: 200px;
-      width: 400px;
-    }
-
-    @media only screen and (max-width: 1400px) {
-      height: 175px;
-      width: 350px;
-    }
-
-    @media only screen and (max-width: 1200px) {
-      height: 125px;
-      width: 250px;
-    }
-  }
-
-  .version-label {
-    min-width: 170px;
-  }
-
-  .import-container,
-  .import-action {
-    visibility: hidden;
-    opacity: 0;
-    position: absolute;
-  }
-
   abbr {
     font-style: italic;
     font-weight: bold;
   }
-}
 
-.new-api.new-api-import {
-  .actions gv-button:not(.import-action) {
-    visibility: hidden;
-    opacity: 0;
-    position: absolute;
-  }
-
-  .selected .card {
-    opacity: 0.6;
-  }
-
-  .definition-container {
-    display: none;
-  }
-
-  .import-container,
-  .import-action {
+  .import-container {
     visibility: visible;
     opacity: 1;
     position: relative;
@@ -145,20 +64,5 @@
     flex-direction: column;
     flex: 1;
     justify-content: space-around;
-  }
-}
-
-.api-creation {
-  &__timeline-badge-container {
-    height: 30px;
-    width: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    &__icon {
-      --gv-icon--s: 22px;
-      --gv-icon--c: var(--gv-theme-color-darker);
-    }
   }
 }

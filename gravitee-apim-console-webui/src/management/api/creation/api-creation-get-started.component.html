@@ -15,4 +15,60 @@
     limitations under the License.
 
 -->
-aaa
+<div class="api-creation-get-started__header">
+  <h1>Create an API</h1>
+</div>
+
+<h2>Get Started</h2>
+<div class="api-creation-get-started__row">
+  <mat-card class="api-creation-get-started__row__api-creation-card">
+    <div mat-card-image class="api-creation-get-started__row__api-creation-card__img">
+      <img src="/assets/api-create-wizard.png" alt="API Create wizard logo" />
+    </div>
+
+    <div class="mat-h5">API Creation wizard</div>
+
+    <div class="mat-small">
+      Build and configure API policies using a graphical flow diagram, and easily configure quotas, rate limits and more.
+    </div>
+
+    <div class="api-creation-get-started__row__api-creation-card__action">
+      <button mat-raised-button color="primary" (click)="goToApiCreationWizard()">Continue in the wizard</button>
+    </div>
+  </mat-card>
+
+  <mat-card *ngIf="!isLoading" class="api-creation-get-started__row__api-designer-card">
+    <div mat-card-image class="api-creation-get-started__row__api-designer-card__img">
+      <img src="/assets/api-create-design-link.png" alt="Api Designer logo" />
+    </div>
+
+    <div class="mat-h5">API Designer <span class="gio-badge-accent">*New*</span></div>
+
+    <div class="mat-small">
+      Build faster with a design-first approach that reduces time spent translating requirements into API definitions.
+    </div>
+
+    <div class="api-creation-get-started__row__api-designer-card__action">
+      <a [href]="cockpitLink" target="_blank" rel="noopener noreferrer" mat-raised-button color="accent"
+        >Try API Designer <mat-icon svgIcon="gio:link"></mat-icon
+      ></a>
+    </div>
+  </mat-card>
+</div>
+
+<mat-card class="api-creation-get-started__import-existing-api-card">
+  <div class="mat-h5">Import an existing API</div>
+
+  <div class="mat-small">Placeholder text goes here. This will be populated with an explanation of the types of APIs you can import.</div>
+
+  <div class="api-creation-get-started__import-existing-api-card__action">
+    <button mat-raised-button color="primary" (click)="goToApiImport()">Import an API</button>
+  </div>
+</mat-card>
+
+<div class="api-creation-get-started__path-based mat-small" *ngIf="allowsPathBasedCreation">
+  <span
+    >Or you can still use paths based | <a href="javascript:void(0)" (click)="goToApiImport('1.0.0')">Import</a> -
+    <a href="javascript:void(0)" (click)="goToApiCreationWizard('1.0.0')">Create</a></span
+  >
+</div>

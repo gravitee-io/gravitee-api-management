@@ -20,7 +20,7 @@ import * as _ from 'lodash';
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import UserService from '../../../../services/user.service';
-import NewApiController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiPortal.controller';
+import NewApiImportController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiImport.controller';
 import { PlanSecurityType } from '../../../../entities/plan/plan';
 
 interface Page {
@@ -50,7 +50,7 @@ class ApiCreationController {
   attachableGroups: any[];
   poGroups: any[];
 
-  private parent: NewApiController;
+  private parent: NewApiImportController;
   private vm: {
     selectedStep: number;
     stepProgress: number;
