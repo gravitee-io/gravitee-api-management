@@ -39,8 +39,8 @@ import javax.ws.rs.core.Response;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "Groups")
-public class GroupsResource extends AbstractResource {
+@Tag(name = "Organization Groups")
+public class OrganizationGroupsResource extends AbstractResource {
 
     @Inject
     private GroupService groupService;
@@ -49,9 +49,7 @@ public class GroupsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
         summary = "Find groups",
-        description = "Find all groups for current organization" +
-        "Only administrators could see all groups." +
-        "Only users with MANAGE_API permissions could see API groups."
+        description = "Find all groups for current organization" + "Only users with ORGANIZATION_TAG permissions could see API groups."
     )
     @ApiResponse(
         responseCode = "200",
