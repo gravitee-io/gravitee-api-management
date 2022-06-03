@@ -50,11 +50,9 @@ public class ApiQualityRuleAlreadyExistsException extends AbstractManagementExce
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("api", api);
-                put("qualityRule", qualityRule);
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("api", api);
+        parameters.put("qualityRule", qualityRule);
+        return parameters;
     }
 }

@@ -51,11 +51,9 @@ public class RoleAlreadyExistsException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("scope", scope);
-                put("name", name);
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("scope", scope);
+        parameters.put("name", name);
+        return parameters;
     }
 }

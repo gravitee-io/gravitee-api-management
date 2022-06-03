@@ -43,11 +43,9 @@ public class ApplicationGrantTypesNotAllowedException extends AbstractManagement
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("applicationType", applicationType);
-                put("targetGrantTypes", StringUtils.join(targetGrantTypes, "|"));
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("applicationType", applicationType);
+        parameters.put("targetGrantTypes", StringUtils.join(targetGrantTypes, "|"));
+        return parameters;
     }
 }

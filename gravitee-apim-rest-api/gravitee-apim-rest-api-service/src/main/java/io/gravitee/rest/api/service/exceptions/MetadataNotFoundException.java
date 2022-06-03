@@ -42,10 +42,8 @@ public class MetadataNotFoundException extends AbstractNotFoundException {
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("metadata", metadataId);
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("metadata", metadataId);
+        return parameters;
     }
 }

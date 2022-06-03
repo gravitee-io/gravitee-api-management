@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import static java.util.Collections.singletonMap;
-
 import io.gravitee.common.http.HttpStatusCode;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,11 +50,9 @@ public class ApplicationAlertMaximumException extends AbstractManagementExceptio
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("application", application);
-                put("maximum", String.valueOf(maximum));
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("application", application);
+        parameters.put("maximum", String.valueOf(maximum));
+        return parameters;
     }
 }

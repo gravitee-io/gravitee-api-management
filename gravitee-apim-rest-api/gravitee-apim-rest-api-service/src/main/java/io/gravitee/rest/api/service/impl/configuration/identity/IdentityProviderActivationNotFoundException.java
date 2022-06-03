@@ -52,12 +52,10 @@ public class IdentityProviderActivationNotFoundException extends AbstractNotFoun
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("identityProviderId", identityProviderId);
-                put("referenceId", referenceId);
-                put("referenceType", referenceType.name());
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("identityProviderId", identityProviderId);
+        parameters.put("referenceId", referenceId);
+        parameters.put("referenceType", referenceType.name());
+        return parameters;
     }
 }

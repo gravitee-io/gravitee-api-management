@@ -25,7 +25,13 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.index.Term;
@@ -33,7 +39,13 @@ import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.QueryParserBase;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BoostQuery;
+import org.apache.lucene.search.PhraseQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.WildcardQuery;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,19 +57,26 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     public static final String FIELD_API_TYPE_VALUE = "api";
 
-    private static final Map<String, Float> API_FIELD_BOOST = new HashMap<>() {
-        {
-            put(FIELD_NAME, 20.0f);
-            put(FIELD_NAME_LOWERCASE, 20.0f);
-            put(FIELD_NAME_SPLIT, 18.0f);
-            put(FIELD_PATHS, 10.0f);
-            put(FIELD_HOSTS, 10.0f);
-            put(FIELD_LABELS, 8.0f);
-            put(FIELD_DESCRIPTION, 5.0f);
-            put(FIELD_METADATA, 4.0f);
-            put(FIELD_TAGS, 1.0f);
-        }
-    };
+    private static final Map<String, Float> API_FIELD_BOOST = Map.of(
+        FIELD_NAME,
+        20.0f,
+        FIELD_NAME_LOWERCASE,
+        20.0f,
+        FIELD_NAME_SPLIT,
+        18.0f,
+        FIELD_PATHS,
+        10.0f,
+        FIELD_HOSTS,
+        10.0f,
+        FIELD_LABELS,
+        8.0f,
+        FIELD_DESCRIPTION,
+        5.0f,
+        FIELD_METADATA,
+        4.0f,
+        FIELD_TAGS,
+        1.0f
+    );
 
     private static final String[] API_FIELD_SEARCH = new String[] {
         ApiDocumentTransformer.FIELD_ID,
