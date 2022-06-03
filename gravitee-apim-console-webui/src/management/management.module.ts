@@ -22,10 +22,10 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { GioPolicyStudioRoutingModule } from './api/policy-studio/gio-policy-studio-routing.module';
 import { EnvAuditModule } from './audit/env-audit.module';
+import { ApiCreationModule } from './api/creation/api-creation.module';
 
 import { GioConfirmDialogModule } from '../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
-
 @NgModule({
   imports: [
     CommonModule,
@@ -36,6 +36,7 @@ import { GioPermissionModule } from '../shared/components/gio-permission/gio-per
     GioConfirmDialogModule,
     GioPolicyStudioModule,
     EnvAuditModule,
+    ApiCreationModule,
     GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.detail.design.flowsNg' }),
   ],
   declarations: [],

@@ -1,8 +1,70 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
 @use '../../../scss/gio-layout' as gio-layout;
 
 :host {
   @include gio-layout.gio-responsive-margin-container;
-  display: flex;
-  flex-direction: column;
-  height: var(--gv-policy-studio--h);
+}
+
+.api-creation-get-started {
+  &__row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    &__api-designer-card,
+    &__api-creation-card {
+      flex: 1 1 50%;
+
+      &__img {
+        text-align: center;
+        padding: 24px 24px 0 24px;
+        height: 300px;
+
+        img {
+          max-width: 100%;
+          max-height: 100%;
+        }
+      }
+
+      &__action {
+        margin-top: 24px;
+      }
+
+      .mat-small {
+        color: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
+      }
+    }
+
+    &__api-creation-card {
+      margin-right: 24px;
+      &__img {
+        background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'lighter');
+      }
+    }
+
+    &__api-designer-card {
+      &__img {
+        background-color: mat.get-color-from-palette(gio.$mat-accent-palette, 'lighter');
+      }
+    }
+  }
+
+  &__import-existing-api-card {
+    margin-top: 24px;
+    flex: 1 1 100%;
+
+    &__action {
+      margin-top: 24px;
+    }
+
+    .mat-small {
+      color: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
+    }
+  }
+
+  &__path-based {
+    text-align: right;
+    padding: 24px 0 0 0;
+  }
 }

@@ -15,12 +15,15 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { ApiCreationGetStartedComponent } from './api-creation-get-started.component';
 
 @NgModule({
-  imports: [CommonModule, BrowserAnimationsModule],
+  imports: [CommonModule, BrowserAnimationsModule, MatCardModule, MatButtonModule, GioIconsModule],
   declarations: [ApiCreationGetStartedComponent],
   exports: [ApiCreationGetStartedComponent],
 })

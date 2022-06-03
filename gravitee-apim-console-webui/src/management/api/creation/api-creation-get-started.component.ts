@@ -14,11 +14,71 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { StateService } from '@uirouter/core';
+import { takeUntil, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+
+import { UIRouterState } from '../../../ajs-upgraded-providers';
+import { Constants } from '../../../entities/Constants';
+import { InstallationService } from '../../../services-ngx/installation.service';
+import { Installation } from '../../../entities/installation/installation';
 
 @Component({
   selector: 'api-creation-get-started',
   template: require('./api-creation-get-started.component.html'),
   styles: [require('./api-creation-get-started.component.scss')],
 })
-export class ApiCreationGetStartedComponent {}
+export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
+  cockpitLink: string;
+
+  isLoading = true;
+
+  policies = [];
+
+  get allowsPathBasedCreation() {
+    return this.constants.org.settings.management?.pathBasedApiCreation?.enabled ?? false;
+  }
+
+  private unsubscribe$: Subject<void> = new Subject<void>();
+
+  constructor(
+    @Inject(UIRouterState) private readonly ajsState: StateService,
+    @Inject('Constants') private readonly constants: Constants,
+    private readonly installationService: InstallationService,
+  ) {}
+
+  ngOnInit(): void {
+    this.installationService
+      .get()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((installation) => {
+          this.cockpitLink = this.getCockpitLink(installation);
+          this.isLoading = false;
+        }),
+      )
+      .subscribe();
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.unsubscribe();
+  }
+
+  goToApiCreationWizard(definitionVersion = '2.0.0') {
+    this.ajsState.go('management.apis.create', { definitionVersion });
+  }
+
+  goToApiImport(definitionVersion = '2.0.0') {
+    this.ajsState.go('management.apis.new-import', { definitionVersion });
+  }
+
+  private getCockpitLink(installation: Installation): string {
+    if (installation?.additionalInformation.COCKPIT_INSTALLATION_STATUS === 'ACCEPTED') {
+      return installation.cockpitURL;
+    } else {
+      return 'https://www.gravitee.io/platform/api-designer?utm_source=apim';
+    }
+  }
+}

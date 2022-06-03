@@ -35,6 +35,7 @@ function apisRouterConfig($stateProvider: StateProvider) {
   $stateProvider
     .state('management.apis', {
       abstract: true,
+      template: '<div flex layout="column" ui-view></div>',
       url: '/apis',
     })
     .state('management.apis.detail', {
@@ -106,8 +107,21 @@ function apisRouterConfig($stateProvider: StateProvider) {
     })
     .state('management.apis.new', {
       url: '/new',
-      template: require('./creation/newApi.html'),
-      controller: 'NewApiController',
+      component: 'ngApiCreationGetStartedComponent',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['environment-api-c'],
+        },
+        docs: {
+          page: 'management-apis-create',
+        },
+      },
+    })
+    .state('management.apis.new-import', {
+      url: '/new/import/:definitionVersion',
+      template: require('./creation/newApiImport.html'),
+      controller: 'NewApiImportController',
       controllerAs: '$ctrl',
       resolve: {
         policies: (PolicyService: PolicyService) => PolicyService.listSwaggerPolicies().then((response) => response.data),

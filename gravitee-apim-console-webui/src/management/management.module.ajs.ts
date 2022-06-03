@@ -87,7 +87,7 @@ import ApiCreationStep3Component from '../management/api/creation/steps/api-crea
 import ApiCreationStep4Component from '../management/api/creation/steps/api-creation-step4.component';
 import ApiCreationStep5Component from '../management/api/creation/steps/api-creation-step5.component';
 import ApiImportComponent from '../components/import/import-api.component';
-import NewApiController from '../management/api/creation/newApiPortal.controller';
+import NewApiImportController from './api/creation/newApiImport.controller';
 import { ApiCreationGetStartedComponent } from './api/creation/api-creation-get-started.component';
 import DialogConfirmDeploymentController from '../management/api/deploy/confirmDeploymentDialog.controller';
 // API Plan
@@ -857,7 +857,7 @@ graviteeManagementModule.component('instanceMonitoring', InstanceMonitoringCompo
 
 graviteeManagementModule.component('apiCreation', ApiCreationComponent);
 graviteeManagementModule.controller('ApiCreationController', ApiCreationController);
-graviteeManagementModule.controller('NewApiController', NewApiController);
+graviteeManagementModule.controller('NewApiImportController', NewApiImportController);
 graviteeManagementModule.directive('ngApiCreationGetStartedComponent', downgradeComponent({ component: ApiCreationGetStartedComponent }));
 graviteeManagementModule.component('apiCreationStep1', ApiCreationStep1Component);
 graviteeManagementModule.component('apiCreationStep2', ApiCreationStep2Component);
