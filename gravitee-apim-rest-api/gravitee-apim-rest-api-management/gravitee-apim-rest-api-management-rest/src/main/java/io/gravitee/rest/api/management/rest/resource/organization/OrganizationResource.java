@@ -212,8 +212,8 @@ public class OrganizationResource extends AbstractResource {
     }
 
     @Path("groups")
-    public GroupsResource getGroupsResource() {
-        return resourceContext.getResource(GroupsResource.class);
+    public OrganizationGroupsResource getGroupsResource() {
+        return resourceContext.getResource(OrganizationGroupsResource.class);
     }
 
     @Path("promotions")

@@ -34,7 +34,7 @@ import org.junit.Test;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class GroupsResourceTest extends AbstractResourceTest {
+public class OrganizationGroupsResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
