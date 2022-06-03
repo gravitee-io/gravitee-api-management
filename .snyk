@@ -8,4 +8,6 @@ exclude:
     - "**/*.stories.ts"
     - "**/gravitee-apim-portal-webui/scripts/**/*.*"
     - "**/gravitee-apim-console-webui/scripts/**/*.*"
+    - "**/gravitee-apim-e2e/**/*.*"
+    - ".circleci/package_bundles.py"
 

@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 /**
  *
@@ -125,7 +126,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         if (deleteFirst) {
             jdbcTemplate.update("delete from " + EVENT_ENVIRONMENTS + " where event_id = ?", event.getId());
         }
-        if (event.getEnvironments() != null) {
+        if (!CollectionUtils.isEmpty(event.getEnvironments())) {
             List<String> list = new ArrayList<>(event.getEnvironments());
             jdbcTemplate.batchUpdate(
                 "insert into " + EVENT_ENVIRONMENTS + " ( event_id, environment_id) values ( ?, ? )",

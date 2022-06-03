@@ -2,7 +2,7 @@
 
 This wizard allows you to define a plan, define its security and its policies (quota / rate limit..).
 
-4 types are available for plans :
+4 types are available for plans:
 
 * OAuth2
 

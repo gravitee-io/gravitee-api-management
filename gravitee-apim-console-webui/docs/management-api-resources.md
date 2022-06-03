@@ -3,7 +3,7 @@
 Resources are link to the API lifecycle. They are initialized when the API is starting and released when API is stopped.
 Resources are used via the API policies to enhance API behavior.
 
-Differents resource types are available :
+Different resource types are available:
 
 * Cache
 

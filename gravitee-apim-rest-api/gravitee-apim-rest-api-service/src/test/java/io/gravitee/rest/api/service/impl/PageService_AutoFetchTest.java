@@ -16,18 +16,25 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
+import io.gravitee.rest.api.model.PageSourceEntity;
 import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.UpdatePageEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -52,6 +59,8 @@ import org.springframework.context.ApplicationContext;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class PageService_AutoFetchTest {
+
+    private static final String PAGE_ID = "ba01aef0-e3da-4499-81ae-f0e3daa4995a";
 
     @InjectMocks
     private PageServiceImpl pageService = new PageServiceImpl();
@@ -158,6 +167,8 @@ public class PageService_AutoFetchTest {
             .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
+        PageService_MockSinglePageFetcherConfiguration.forceCronValue("* * * * * *");
+        PageService_MockSinglePageFetcherConfiguration.forceAutoFetchValue(true);
 
         long pages = pageService.execAutoFetch(GraviteeContext.getCurrentEnvironment());
         assertEquals(1, pages);
@@ -187,6 +198,7 @@ public class PageService_AutoFetchTest {
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         PageService_MockSinglePageFetcherConfiguration.forceCronValue("* 10 * * * *");
+        PageService_MockSinglePageFetcherConfiguration.forceAutoFetchValue(true);
 
         long pages = pageService.execAutoFetch(GraviteeContext.getCurrentEnvironment());
         assertEquals(0, pages);
@@ -236,5 +248,105 @@ public class PageService_AutoFetchTest {
 
         pageService.execAutoFetch(GraviteeContext.getCurrentEnvironment());
         verify(pageRepository, times(11)).update(any());
+    }
+
+    @Test
+    public void shouldSetUseAutoFetch_True() throws TechnicalException {
+        PageSource pageSource = new PageSource();
+        pageSource.setType("type");
+        pageSource.setConfiguration("{\"autoFetch\": true, \"fetchCron\" : \"* 10 * * * *\"}");
+        when(mockPage.getSource()).thenReturn(pageSource);
+        when(mockPage.getOrder()).thenReturn(1);
+        when(mockPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(mockPage.getVisibility()).thenReturn(Visibility.PUBLIC.name());
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(mockPage));
+        when(pageRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
+        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
+        when(fetcherPlugin.configuration()).thenReturn(PageService_MockSinglePageFetcherConfiguration.class);
+        when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
+        Class<PageService_ImportSimplePageMockFetcher> mockFetcherClass = PageService_ImportSimplePageMockFetcher.class;
+        when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
+        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration = new PageService_MockSinglePageFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString()))
+            .thenReturn(fetcherConfiguration);
+        AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
+        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
+        PageService_MockSinglePageFetcherConfiguration.forceAutoFetchValue(true);
+
+        ObjectNode node = JsonNodeFactory.instance.objectNode();
+        node.put("autoFetch", true);
+        node.put("fetchCron", "* 5 * * * *");
+
+        PageSourceEntity pageSourceEntity = new PageSourceEntity();
+        pageSourceEntity.setConfiguration(node);
+        pageSourceEntity.setType("type");
+        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setSource(pageSourceEntity);
+        updatePageEntity.setContent("existing content");
+        updatePageEntity.setOrder(1);
+
+        pageService.update(PAGE_ID, updatePageEntity);
+
+        verify(pageRepository).update(argThat(page -> page.getUseAutoFetch() != null && page.getUseAutoFetch() == true));
+    }
+
+    @Test
+    public void shouldSetUseAutoFetch_Null() throws TechnicalException {
+        PageSource pageSource = new PageSource();
+        pageSource.setType("type");
+        pageSource.setConfiguration("{\"autoFetch\": true, \"fetchCron\" : \"* 10 * * * *\"}");
+        when(mockPage.getSource()).thenReturn(pageSource);
+        when(mockPage.getOrder()).thenReturn(1);
+        when(mockPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(mockPage.getVisibility()).thenReturn(Visibility.PUBLIC.name());
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(mockPage));
+        when(pageRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
+        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
+        when(fetcherPlugin.configuration()).thenReturn(PageService_MockSinglePageFetcherConfiguration.class);
+        when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
+        Class<PageService_ImportSimplePageMockFetcher> mockFetcherClass = PageService_ImportSimplePageMockFetcher.class;
+        when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
+        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration = new PageService_MockSinglePageFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString()))
+            .thenReturn(fetcherConfiguration);
+        AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
+        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
+        PageService_MockSinglePageFetcherConfiguration.forceAutoFetchValue(false);
+
+        ObjectNode node = JsonNodeFactory.instance.objectNode();
+        node.put("autoFetch", false);
+
+        PageSourceEntity pageSourceEntity = new PageSourceEntity();
+        pageSourceEntity.setConfiguration(node);
+        pageSourceEntity.setType("type");
+        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setSource(pageSourceEntity);
+        updatePageEntity.setContent("existing content");
+        updatePageEntity.setOrder(1);
+
+        pageService.update(PAGE_ID, updatePageEntity);
+
+        verify(pageRepository).update(argThat(page -> page.getUseAutoFetch() == null));
+    }
+
+    @Test
+    public void shouldNotSetUseAutoFetch() throws TechnicalException {
+        when(mockPage.getOrder()).thenReturn(1);
+        when(mockPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(mockPage.getVisibility()).thenReturn(Visibility.PUBLIC.name());
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(mockPage));
+        when(pageRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setSource(null);
+        updatePageEntity.setContent("existing content");
+        updatePageEntity.setOrder(1);
+
+        pageService.update(PAGE_ID, updatePageEntity);
+        verify(pageRepository).update(argThat(page -> page.getUseAutoFetch() == null));
     }
 }

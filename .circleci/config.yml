@@ -260,7 +260,7 @@ jobs:
             - run:
                   name: "Build project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml clean install --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
+                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -P distribution-dev,distribution-ee
                       mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
                       mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
 
@@ -285,7 +285,7 @@ jobs:
     test:
         docker:
             - image: cimg/openjdk:11.0
-        resource_class: large
+        resource_class: medium
         steps:
             - checkout
             - attach_workspace:
@@ -298,7 +298,7 @@ jobs:
             - run:
                   name: Run tests
                   command: |
-                      mvn -pl 'gravitee-apim-definition, gravitee-apim-rest-api, gravitee-apim-gateway' -amd --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -T 4
+                      mvn -pl 'gravitee-apim-definition, gravitee-apim-rest-api, gravitee-apim-gateway' -amd --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
                   command: |
@@ -392,6 +392,10 @@ jobs:
                   jobName: publish-on-nexus
 
     publish-images-azure-registry:
+        parameters:
+            enterprise_edition:
+                default: false
+                type: boolean
         docker:
             - image: cimg/openjdk:11.0
         resource_class: small
@@ -408,18 +412,41 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
                   var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+            - when:
+                  condition:
+                      not: << parameters.enterprise_edition>>
+                  steps:
+                      - run:
+                            name: Prepare the CE image by removing EE lib & plugins
+                            command: |
+                                ## Clean rest api
+                                rm rest-api-docker-context/distribution/lib/gravitee-license-node-enterprise*.jar
+                                rm rest-api-docker-context/distribution/plugins/gravitee-ae-connectors-ws*.zip
+                                rm rest-api-docker-context/distribution/plugins/gravitee-notifier-*.zip
+                                rm rest-api-docker-context/distribution/plugins/gravitee-policy-assign-metrics-*.zip
+                                rm rest-api-docker-context/distribution/plugins/gravitee-policy-data-logging-masking-*.zip
+                                ## Clean Gateway
+                                rm gateway-docker-context/distribution/lib/gravitee-license-node-enterprise*.jar
+                                rm gateway-docker-context/distribution/plugins/gravitee-ae-connectors-ws*.zip
+                                rm gateway-docker-context/distribution/plugins/gravitee-policy-assign-metrics-*.zip
+                                rm gateway-docker-context/distribution/plugins/gravitee-policy-data-logging-masking-*.zip
             - run:
-                  name: Build & Publish Management API and Gateway Docker Image to Azure Registry
+                  name: Build & publish dev docker image <<# parameters.enterprise_edition >>- Enterprise edition<</ parameters.enterprise_edition >>
                   command: |
-                      export REST_API_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
-                      export GATEWAY_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:${TAG}
+                      export dockerTag=$TAG
+                      if [ "<< parameters.enterprise_edition >>" == "true" ]; then
+                        dockerTag=$(echo $dockerTag | sed 's/-/-ee-/')
+                      fi
 
-                      docker build -f gravitee-apim-rest-api/docker/Dockerfile-dev \
+                      export REST_API_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${dockerTag}
+                      export GATEWAY_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:${dockerTag}
+
+                      docker build -f gravitee-apim-rest-api/docker/Dockerfile \
                       --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
                       -t ${REST_API_PRIVATE_IMAGE_TAG} \
                       rest-api-docker-context
 
-                      docker build -f gravitee-apim-gateway/docker/Dockerfile-dev \
+                      docker build -f gravitee-apim-gateway/docker/Dockerfile \
                       --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
                       -t ${GATEWAY_PRIVATE_IMAGE_TAG} \
                       gateway-docker-context
@@ -428,7 +455,6 @@ jobs:
                       docker push ${REST_API_PRIVATE_IMAGE_TAG}
                       docker push ${GATEWAY_PRIVATE_IMAGE_TAG}
                       docker logout graviteeio.azurecr.io
-
             - notify-on-failure
 
     cypress-install:
@@ -608,7 +634,7 @@ jobs:
                       cp -fr docker/run.sh .
 
                       export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/<< parameters.docker-image-name >>:${TAG}
-                      docker build -f docker/Dockerfile-dev -t ${PRIVATE_IMAGE_TAG} .
+                      docker build -f docker/Dockerfile -t ${PRIVATE_IMAGE_TAG} .
 
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                       docker push ${PRIVATE_IMAGE_TAG}
@@ -986,10 +1012,10 @@ jobs:
                         fi
                       fi
 
-                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_GATEWAY_TAG} ./gravitee-apim-gateway/docker
-                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_API_TAG} ./gravitee-apim-rest-api/docker
-                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_UI_TAG} ./gravitee-apim-console-webui/docker        
-                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_PORTAL_UI_TAG} ./gravitee-apim-portal-webui/docker
+                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_GATEWAY_TAG}         -f ./gravitee-apim-gateway/docker/Dockerfile-from-download ./gravitee-apim-gateway/docker
+                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_API_TAG}  -f ./gravitee-apim-rest-api/docker/Dockerfile-from-download ./gravitee-apim-rest-api/docker
+                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_UI_TAG}   -f ./gravitee-apim-console-webui/docker/Dockerfile-from-download ./gravitee-apim-console-webui/docker
+                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_PORTAL_UI_TAG}       -f ./gravitee-apim-portal-webui/docker/Dockerfile-from-download ./gravitee-apim-portal-webui/docker
 
                       docker image ls
 
@@ -1097,7 +1123,7 @@ jobs:
                   name: "Prepare bundles for uploading"
                   command: |
                       workingDir=$(pwd)
-                    
+
                       ####################
                       #Distribution - Full                                            
                       ####################
@@ -1125,7 +1151,7 @@ jobs:
                       sha1sum gravitee-apim-gateway-${RELEASE_VERSION}.zip > gravitee-apim-gateway-${RELEASE_VERSION}.zip.sha1
 
                       cd $workingDir
-                      
+
                       ######################
                       #Components - Rest API
                       ######################
@@ -1159,13 +1185,13 @@ jobs:
                       ####################
                       mkdir -p graviteeio-apim/components/gravitee-portal-webui
                       cp ./tmp/${RELEASE_VERSION}/portals/gravitee-apim-portal-webui-${RELEASE_VERSION}.zip graviteeio-apim/components/gravitee-portal-webui/
-                      
+
                       cd graviteeio-apim/components/gravitee-portal-webui
 
                       md5sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.md5
                       sha512sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.sha512sum
                       sha1sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.sha1
-                      
+
                       cd $workingDir
 
                       #############
@@ -1195,47 +1221,47 @@ jobs:
                   var-name: AWS_SECRET_ACCESS_KEY
             - aws-s3/sync:
                   arguments: |
-                    --endpoint-url https://cellar-c2.services.clever-cloud.com \
-                    --acl public-read
+                      --endpoint-url https://cellar-c2.services.clever-cloud.com \
+                      --acl public-read
                   from: graviteeio-apim
                   to: "s3://gravitee-releases-downloads/graviteeio-apim"
-            -  run:
+            - run:
                   name: "Build EE version"
                   command: |
                       workingDir=$(pwd)
                       eeWorkingDir=./tmp/${RELEASE_VERSION}/ee
-                      
+
                       mkdir -p graviteeio-ee/apim/distributions
                       mkdir -p $eeWorkingDir
                       unzip ./tmp/${RELEASE_VERSION}/dist/graviteeio-full-${RELEASE_VERSION}.zip -d $eeWorkingDir
                       cd $eeWorkingDir
-                      
+
                       # move to EE node
                       wget https://download.gravitee.io/graviteeio-ee/license/gravitee-license-node-enterprise-${LICENSE_VERSION}.jar --no-check-certificate
                       cp gravitee-license-node-enterprise-${LICENSE_VERSION}.jar graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-rest-api-${RELEASE_VERSION}/lib/
                       cp gravitee-license-node-enterprise-${LICENSE_VERSION}.jar graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-gateway-${RELEASE_VERSION}/lib/
-  
+
                       # add the WS connector
                       wget https://download.gravitee.io/graviteeio-ae/plugins/connectors/gravitee-ae-connectors-ws/gravitee-ae-connectors-ws-${AE_VERSION}.zip --no-check-certificate
                       cp gravitee-ae-connectors-ws-${AE_VERSION}.zip graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-rest-api-${RELEASE_VERSION}/plugins/
                       cp gravitee-ae-connectors-ws-${AE_VERSION}.zip graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-gateway-${RELEASE_VERSION}/plugins/
-  
+
                       # add the notifiers
                       wget https://download.gravitee.io/plugins/notifiers/gravitee-notifier-email/gravitee-notifier-email-${NOTIFIER_EMAIL_VERSION}.zip --no-check-certificate -P graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-rest-api-${RELEASE_VERSION}/plugins
                       wget https://download.gravitee.io/plugins/notifiers/gravitee-notifier-slack/gravitee-notifier-slack-${NOTIFIER_SLACK_VERSION}.zip --no-check-certificate -P graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-rest-api-${RELEASE_VERSION}/plugins
                       wget https://download.gravitee.io/plugins/notifiers/gravitee-notifier-webhook/gravitee-notifier-webhook-${NOTIFIER_WEBHOOK_VERSION}.zip --no-check-certificate -P graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-rest-api-${RELEASE_VERSION}/plugins
-  
+
                       # Prepare license directory
                       mkdir graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-rest-api-${RELEASE_VERSION}/license
                       mkdir graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-gateway-${RELEASE_VERSION}/license
-  
+
                       # rezip
                       zip -r -9 graviteeio-ee-full-${RELEASE_VERSION}.zip graviteeio-full-${RELEASE_VERSION} release.json
                       cd $workingDir
-                      
+
                       cp $eeWorkingDir/graviteeio-ee-full-${RELEASE_VERSION}.zip graviteeio-ee/apim/distributions
                       cd graviteeio-ee/apim/distributions
-                      
+
                       md5sum graviteeio-ee-full-${RELEASE_VERSION}.zip > graviteeio-ee-full-${RELEASE_VERSION}.zip.md5
                       sha512sum graviteeio-ee-full-${RELEASE_VERSION}.zip > graviteeio-ee-full-${RELEASE_VERSION}.zip.sha512sum
                       sha1sum graviteeio-ee-full-${RELEASE_VERSION}.zip > graviteeio-ee-full-${RELEASE_VERSION}.zip.sha1
@@ -1305,7 +1331,21 @@ workflows:
                       - test
                       - test-repository
             - publish-images-azure-registry:
+                  name: Publish ee images on azure registry
                   context: cicd-orchestrator
+                  enterprise_edition: true
+                  requires:
+                      - test
+                      - test-repository
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /^\d+\.\d+\.x$/
+            - publish-images-azure-registry:
+                  name: Publish ce images on azure registry
+                  context: cicd-orchestrator
+                  enterprise_edition: false
                   requires:
                       - test
                       - test-repository
@@ -1411,7 +1451,8 @@ workflows:
             - deploy-on-azure-cluster:
                   context: cicd-orchestrator
                   requires:
-                      - publish-images-azure-registry
+                      - Publish ee images on azure registry
+                      - Publish ce images on azure registry
                       - Build and publish APIM Console docker image
                       - Build and publish APIM Portal docker image
                   filters:

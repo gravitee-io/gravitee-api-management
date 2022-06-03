@@ -14,24 +14,23 @@
 # limitations under the License.
 #
 
-FROM graviteeio/java:17
-LABEL maintainer="contact@graviteesource.com"
-
-ARG GRAVITEEIO_VERSION=0
-ARG GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions
-ARG GRAVITEEIO_PACKAGE_NAME=graviteeio-full
+# First stage to share environment variable
+FROM graviteeio/java:17 as base
 ENV GRAVITEEIO_HOME /opt/graviteeio-gateway
 
-RUN apk update \
-	&& apk add --update --no-cache zip unzip netcat-openbsd \
-    && wget ${GRAVITEEIO_DOWNLOAD_URL}/${GRAVITEEIO_PACKAGE_NAME}-${GRAVITEEIO_VERSION}.zip --no-check-certificate -P /tmp \
-    && unzip /tmp/${GRAVITEEIO_PACKAGE_NAME}-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
-    && apk del zip unzip netcat-openbsd \
-    && mv /tmp/graviteeio-full-${GRAVITEEIO_VERSION}/graviteeio-apim-gateway* ${GRAVITEEIO_HOME} \
-    && rm -rf /tmp/* \
-    && chgrp -R 0 ${GRAVITEEIO_HOME} \
-    && chmod -R g=u ${GRAVITEEIO_HOME}
+# Second stage to add the folder and change the permissions and ownership
+FROM base as builder
+ADD ./distribution ${GRAVITEEIO_HOME}/
+RUN chgrp -R 0 ${GRAVITEEIO_HOME} && \
+    chmod -R g=u ${GRAVITEEIO_HOME}
 
+# Third stage to build the final docker image. COPY preserves ownership & permissions
+FROM base
+LABEL maintainer="contact@graviteesource.com"
+COPY --from=builder ${GRAVITEEIO_HOME} ${GRAVITEEIO_HOME}
 WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8082
 ENTRYPOINT ["./bin/gravitee"]
+VOLUME ${GRAVITEEIO_HOME}/logs
+HEALTHCHECK --interval=5s --timeout=3s --retries=6 --start-period=30s \
+            CMD curl --user admin:adminadmin --fail http://localhost:18082/_node/health || exit 1

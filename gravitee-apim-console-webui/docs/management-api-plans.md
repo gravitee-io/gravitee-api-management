@@ -2,7 +2,7 @@
 
 Retrieve all your registered plans. To subscribe to an API, you must publish one or more Plans. A Plan will allow you to gain access of the API operations.
 
-3 modes are available for plans :
+3 modes are available for plans:
 
 * Staging mode
 
