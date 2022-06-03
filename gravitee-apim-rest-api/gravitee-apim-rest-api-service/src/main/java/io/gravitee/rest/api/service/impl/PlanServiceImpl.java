@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.definition.model.DefinitionVersion.V2;
+import static io.gravitee.repository.management.model.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PLAN;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.*;
 import static java.util.Collections.emptySet;
@@ -24,7 +26,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -39,6 +43,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.processor.PlanSynchronizationProcessor;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -78,7 +83,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     private PlanSynchronizationProcessor planSynchronizationProcessor;
 
     @Autowired
-    private ApiService apiService;
+    private ApiRepository apiRepository;
 
     @Autowired
     private PlanConverter planConverter;
@@ -158,15 +163,16 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             assertPlanSecurityIsAllowed(executionContext, newPlan.getSecurity());
 
-            final ApiEntity api = apiService.findById(executionContext, newPlan.getApi());
-            if (ApiLifecycleState.DEPRECATED.equals(api.getLifecycleState())) {
+            Api api = apiRepository.findById(newPlan.getApi()).orElseThrow(() -> new ApiNotFoundException(newPlan.getApi()));
+
+            if (api.getApiLifecycleState() == DEPRECATED) {
                 throw new ApiDeprecatedException(api.getName());
             }
 
             String id = newPlan.getId() != null && UUID.fromString(newPlan.getId()) != null ? newPlan.getId() : UuidString.generateRandom();
 
             newPlan.setId(id);
-            Plan plan = planConverter.toPlan(newPlan, DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()));
+            Plan plan = planConverter.toPlan(newPlan, getApiDefinitionVersion(api));
             plan = planRepository.create(plan);
 
             auditService.createApiAuditLog(
@@ -222,11 +228,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             Plan oldPlan = optPlan.get();
             assertPlanSecurityIsAllowed(executionContext, PlanSecurityType.valueOf(oldPlan.getSecurity().name()));
 
-            ApiEntity api = apiService.findById(executionContext, oldPlan.getApi());
-            if (
-                DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion())) &&
-                updatePlan.getFlows() == null
-            ) {
+            Api api = apiRepository.findById(oldPlan.getApi()).orElseThrow(() -> new ApiNotFoundException(oldPlan.getApi()));
+            if (getApiDefinitionVersion(api) == V2 && updatePlan.getFlows() == null) {
                 throw new PlanInvalidException(updatePlan.getId());
             }
 
@@ -656,5 +659,14 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     public Map<String, Object> findByIdAsMap(String id) throws TechnicalException {
         Plan plan = planRepository.findById(id).orElseThrow(() -> new PlanNotFoundException(id));
         return objectMapper.convertValue(plan, Map.class);
+    }
+
+    private DefinitionVersion getApiDefinitionVersion(Api api) {
+        try {
+            return objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class).getDefinitionVersion();
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            logger.error("Unexpected error while reading API definition", e);
+            return V2;
+        }
     }
 }
