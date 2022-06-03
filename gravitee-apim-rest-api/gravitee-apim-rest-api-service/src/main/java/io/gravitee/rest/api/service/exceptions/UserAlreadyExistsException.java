@@ -52,12 +52,10 @@ public class UserAlreadyExistsException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("user", userId);
-                put("organizationId", organizationId);
-                put("source", source);
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("user", userId);
+        parameters.put("organizationId", organizationId);
+        parameters.put("source", source);
+        return parameters;
     }
 }

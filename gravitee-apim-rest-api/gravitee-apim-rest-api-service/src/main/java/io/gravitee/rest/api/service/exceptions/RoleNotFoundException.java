@@ -57,10 +57,8 @@ public class RoleNotFoundException extends AbstractNotFoundException {
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("id", id);
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("id", id);
+        return parameters;
     }
 }

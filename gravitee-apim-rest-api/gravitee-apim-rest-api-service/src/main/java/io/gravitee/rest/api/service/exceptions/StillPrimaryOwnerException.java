@@ -65,12 +65,10 @@ public class StillPrimaryOwnerException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("apiCount", valueOf(apiCount));
-                put("applicationCount", valueOf(applicationCount));
-                put("primaryOwnerMode", primaryOwnerMode.name());
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("apiCount", valueOf(apiCount));
+        parameters.put("applicationCount", valueOf(applicationCount));
+        parameters.put("primaryOwnerMode", primaryOwnerMode.name());
+        return parameters;
     }
 }

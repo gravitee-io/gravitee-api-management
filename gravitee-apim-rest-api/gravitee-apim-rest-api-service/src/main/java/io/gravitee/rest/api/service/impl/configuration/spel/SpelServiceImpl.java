@@ -28,7 +28,11 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -54,23 +58,21 @@ public class SpelServiceImpl implements SpelService {
         this.securedMethodResolver = new SecuredMethodResolver();
     }
 
-    private final List<Class<?>> supportedTypes = new ArrayList<>() {
-        {
-            add(MultiValueMap.class);
-            add(HttpHeaders.class);
-            add(Map.class);
-            add(Boolean.class);
-            add(Integer.class);
-            add(Long.class);
-            add(Math.class);
-            add(Object.class);
-            add(List.class);
-            add(Collection.class);
-            add(Set.class);
-            add(String.class);
-            add(String[].class);
-        }
-    };
+    private static final List<Class<?>> SUPPORTED_TYPES = List.of(
+        MultiValueMap.class,
+        HttpHeaders.class,
+        Map.class,
+        Boolean.class,
+        Integer.class,
+        Long.class,
+        Math.class,
+        Object.class,
+        List.class,
+        Collection.class,
+        Set.class,
+        String.class,
+        String[].class
+    );
 
     @Override
     public JsonNode getGrammar() {
@@ -89,7 +91,7 @@ public class SpelServiceImpl implements SpelService {
     }
 
     private void buildTypes(ObjectNode types) {
-        supportedTypes.forEach(
+        SUPPORTED_TYPES.forEach(
             aClass -> {
                 ObjectNode type = types.putObject(aClass.getSimpleName());
                 buildType(type, aClass);

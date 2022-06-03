@@ -49,11 +49,9 @@ public class GroupInvitationForbiddenException extends AbstractNotFoundException
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("type", type);
-                put("group", group);
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("type", type);
+        parameters.put("group", group);
+        return parameters;
     }
 }

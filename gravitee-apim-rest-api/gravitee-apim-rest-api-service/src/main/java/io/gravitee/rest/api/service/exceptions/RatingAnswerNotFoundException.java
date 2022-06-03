@@ -57,12 +57,10 @@ public class RatingAnswerNotFoundException extends AbstractNotFoundException {
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("answer", answer);
-                put("rating", rating);
-                put("api", api);
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("answer", answer);
+        parameters.put("rating", rating);
+        parameters.put("api", api);
+        return parameters;
     }
 }

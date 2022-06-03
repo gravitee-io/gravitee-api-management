@@ -49,11 +49,9 @@ public class SubscriptionNotActiveException extends AbstractManagementException 
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("subscription", subscription.getId());
-                put("status", subscription.getStatus().name());
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("subscription", subscription.getId());
+        parameters.put("status", subscription.getStatus().name());
+        return parameters;
     }
 }

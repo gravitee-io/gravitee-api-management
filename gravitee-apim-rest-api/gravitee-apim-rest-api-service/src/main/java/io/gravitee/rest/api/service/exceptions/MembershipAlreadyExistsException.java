@@ -72,13 +72,11 @@ public class MembershipAlreadyExistsException extends AbstractManagementExceptio
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("memberId", memberId);
-                put("memberType", memberType.name());
-                put("referenceId", referenceId);
-                put("referenceType", referenceType.name());
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("memberId", memberId);
+        parameters.put("memberType", memberType.name());
+        parameters.put("referenceId", referenceId);
+        parameters.put("referenceType", referenceType.name());
+        return parameters;
     }
 }

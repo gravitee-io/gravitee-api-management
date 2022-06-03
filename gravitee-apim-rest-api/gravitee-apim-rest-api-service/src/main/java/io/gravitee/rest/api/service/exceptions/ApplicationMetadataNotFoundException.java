@@ -44,11 +44,9 @@ public class ApplicationMetadataNotFoundException extends AbstractNotFoundExcept
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("application", applicationId);
-                put("metadata", metadataId);
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("application", applicationId);
+        parameters.put("metadata", metadataId);
+        return parameters;
     }
 }

@@ -44,11 +44,9 @@ public class ApiMetadataNotFoundException extends AbstractNotFoundException {
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("api", apiId);
-                put("metadata", metadataId);
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("api", apiId);
+        parameters.put("metadata", metadataId);
+        return parameters;
     }
 }

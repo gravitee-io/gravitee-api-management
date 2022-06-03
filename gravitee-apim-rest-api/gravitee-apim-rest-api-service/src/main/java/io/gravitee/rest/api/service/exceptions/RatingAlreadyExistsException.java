@@ -50,11 +50,9 @@ public class RatingAlreadyExistsException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("api", api);
-                put("user", user);
-            }
-        };
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("api", api);
+        parameters.put("user", user);
+        return parameters;
     }
 }

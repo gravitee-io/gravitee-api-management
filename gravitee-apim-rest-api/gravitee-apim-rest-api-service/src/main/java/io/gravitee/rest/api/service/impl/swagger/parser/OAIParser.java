@@ -56,7 +56,9 @@ public class OAIParser extends AbstractDescriptorParser<OAIDescriptor> {
         parseResult = parser.readLocation(path, null, options);
 
         if (temp != null) {
-            temp.delete();
+            if (!temp.delete()) {
+                // Do nothing if failed
+            }
         }
 
         /* Hack due to swagger v1 converting issue
