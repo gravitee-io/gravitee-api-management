@@ -16,20 +16,14 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
@@ -66,9 +60,6 @@ public class PlanService_CreateOrUpdateTest {
 
     @Mock
     private ParameterService parameterService;
-
-    @Mock
-    private ApiService apiService;
 
     @Mock
     private ObjectMapper objectMapper;
