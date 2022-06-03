@@ -149,7 +149,7 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
         testContext.completeNow();
     }
 
-    public void resetAllMocks() throws Exception {
+    private void resetAllMocks() throws Exception {
         for (String name : applicationContext.getBeanDefinitionNames()) {
             Object bean = applicationContext.getBean(name);
             if (AopUtils.isAopProxy(bean) && bean instanceof Advised) {

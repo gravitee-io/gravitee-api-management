@@ -35,7 +35,6 @@ public abstract class AbstractHttp2GatewayTest extends AbstractGatewayTest {
 
     @Override
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
         gatewayConfigurationBuilder.set("http.secured", "true").set("http.alpn", "true").set("http.ssl.keystore.type", "self-signed");
     }
 }
