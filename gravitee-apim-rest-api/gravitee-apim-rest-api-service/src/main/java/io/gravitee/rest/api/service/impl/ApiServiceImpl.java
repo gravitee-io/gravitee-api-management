@@ -106,6 +106,7 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.TimeBoundedCharSequence;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -128,6 +129,7 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -299,6 +301,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
     private static final String LOGGING_DELIMITER_BASE = "\\s+(\\|\\||\\&\\&)\\s+";
     private static final String ENDPOINTS_DELIMITER = "\n";
+    private static final Duration REGEX_TIMEOUT = Duration.ofSeconds(2);
 
     @Override
     public ApiEntity createFromSwagger(
@@ -536,7 +539,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             searchEngineService.index(executionContext, apiWithMetadata, false);
             return apiEntity;
-        } catch (TechnicalException ex) {
+        } catch (TechnicalException | IllegalStateException ex) {
             LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + userId, ex);
         }
@@ -760,7 +763,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     logging.setCondition("{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + "}");
                 } else {
                     String conditionWithoutBraces = logging.getCondition().trim().replaceAll("\\{", "").replaceAll("}", "");
-                    Matcher matcher = LOGGING_MAX_DURATION_PATTERN.matcher(conditionWithoutBraces);
+                    Matcher matcher = LOGGING_MAX_DURATION_PATTERN.matcher(
+                        new TimeBoundedCharSequence(conditionWithoutBraces, REGEX_TIMEOUT)
+                    );
                     if (matcher.matches()) {
                         String currentDurationAsStr = matcher.group("timestamp");
                         String before = formatExpression(matcher, "before");
