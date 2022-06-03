@@ -43,11 +43,12 @@ export class Condition {
 
   toCondition() {
     if (this.type.id === 'logging-duration') {
-      const end = moment().add(moment.duration(this.param1, this.param2));
+      // eslint-disable-next-line import/namespace
+      const end: number = moment().add(moment.duration(this.param1, this.param2)).valueOf();
       return `${this.type.statement} <= ${end}l`;
     }
     if (this.type.id === 'logging-end-date') {
-      const end = this.param1 as moment.Moment;
+      const end: number = (this.param1 as moment.Moment).valueOf();
       return `${this.type.statement} <= ${end}l`;
     } else if (this.type.id !== 'request-header' && this.type.id !== 'request-param') {
       return `${this.type.statement} ${this.operator} '${this.value}'`;
