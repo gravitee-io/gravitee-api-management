@@ -15,9 +15,7 @@
  */
 package io.gravitee.gateway.reactive.policy;
 
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.Policy;
@@ -32,7 +30,6 @@ import org.slf4j.LoggerFactory;
  * PolicyChain is responsible for executing a given list of policies respecting the original order.
  * Policy execution must occur in an ordered sequence, one by one.
  * It is the responsibility of the chain to handle any policy execution error and stop the entire execution of the policy chain.
- * The PolicyChain should also check the current execution context against the {@link ExecutionContext#isInterrupted()} flag and abort the chain execution accordingly.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team

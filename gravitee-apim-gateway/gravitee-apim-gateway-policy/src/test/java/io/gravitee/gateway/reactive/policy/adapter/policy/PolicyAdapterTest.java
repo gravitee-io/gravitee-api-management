@@ -29,7 +29,6 @@ import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.message.Message;
-import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.observers.TestObserver;
@@ -128,8 +127,7 @@ class PolicyAdapterTest {
 
     @Test
     public void shouldCompleteWhenRequestStream() throws PolicyException {
-        final Buffer requestChunk1 = Buffer.buffer("chunk1");
-        final Buffer requestChunk2 = Buffer.buffer("chunk2");
+        final Buffer requestBody = Buffer.buffer("body");
         final Buffer policyChunk1 = Buffer.buffer("policyChunk1");
         final Buffer policyChunk2 = Buffer.buffer("policyChunk2");
         final Policy policy = mock(Policy.class);
@@ -139,10 +137,9 @@ class PolicyAdapterTest {
         final ArgumentCaptor<Maybe<Buffer>> requestBodyCaptor = ArgumentCaptor.forClass(Maybe.class);
 
         when(ctx.request()).thenReturn(request);
-        when(request.chunks()).thenReturn(Flowable.just(requestChunk1, requestChunk2));
+        when(request.body()).thenReturn(Maybe.just(requestBody));
         when(policy.isStreamable()).thenReturn(true);
         when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
-        when(request.body(requestBodyCaptor.capture())).thenReturn(Completable.complete());
 
         // Simulate a policy that produces multiple buffers in the stream.
         doAnswer(
@@ -173,31 +170,27 @@ class PolicyAdapterTest {
         obs.assertComplete();
 
         // Verify expected stream writes.
-        verify(stream).write(requestChunk1);
-        verify(stream).write(requestChunk2);
+        verify(stream).write(requestBody);
         verify(stream).end();
 
         // Verify the new request body.
-        requestBodyCaptor.getValue().test().assertValue(b -> b.toString().equals(policyChunk1.toString() + policyChunk2.toString()));
+        verify(request).body(argThat(b -> b.toString().equals(policyChunk1.toString() + policyChunk2.toString())));
     }
 
     @Test
     public void shouldCompleteWhenResponseStream() throws PolicyException {
-        final Buffer responseChunk1 = Buffer.buffer("chunk1");
-        final Buffer responseChunk2 = Buffer.buffer("chunk2");
+        final Buffer responseBody = Buffer.buffer("body");
         final Buffer policyChunk1 = Buffer.buffer("policyChunk1");
         final Buffer policyChunk2 = Buffer.buffer("policyChunk2");
         final Policy policy = mock(Policy.class);
         final io.gravitee.gateway.reactive.api.context.Response response = mock(io.gravitee.gateway.reactive.api.context.Response.class);
         final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
         final ReadWriteStream<Buffer> stream = mock(ReadWriteStream.class);
-        final ArgumentCaptor<Maybe<Buffer>> responseBodyCaptor = ArgumentCaptor.forClass(Maybe.class);
 
         when(ctx.response()).thenReturn(response);
-        when(response.chunks()).thenReturn(Flowable.just(responseChunk1, responseChunk2));
+        when(response.body()).thenReturn(Maybe.just(responseBody));
         when(policy.isStreamable()).thenReturn(true);
         when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
-        when(response.body(responseBodyCaptor.capture())).thenReturn(Completable.complete());
 
         // Simulate a policy that produces multiple buffers in the stream.
         doAnswer(
@@ -228,12 +221,11 @@ class PolicyAdapterTest {
         obs.assertComplete();
 
         // Verify expected stream writes.
-        verify(stream).write(responseChunk1);
-        verify(stream).write(responseChunk2);
+        verify(stream).write(responseBody);
         verify(stream).end();
 
         // Verify the new response body.
-        responseBodyCaptor.getValue().test().assertValue(b -> b.toString().equals(policyChunk1.toString() + policyChunk2.toString()));
+        verify(response).body(argThat(b -> b.toString().equals((policyChunk1.toString() + policyChunk2.toString()))));
     }
 
     @Test
@@ -246,7 +238,6 @@ class PolicyAdapterTest {
         when(ctx.request()).thenReturn(request);
         when(policy.isStreamable()).thenReturn(true);
         when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
-        when(request.body(any(Maybe.class))).thenReturn(Completable.complete());
 
         doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE)).when(stream).endHandler(any(Handler.class));
 

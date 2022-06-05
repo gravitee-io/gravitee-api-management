@@ -58,7 +58,6 @@ class NotFoundProcessorTest {
     @BeforeEach
     public void beforeEach() {
         when(response.headers()).thenReturn(HttpHeaders.create());
-        when(response.body(any(Buffer.class))).thenReturn(Completable.complete());
         when(response.end()).thenReturn(Completable.complete());
         notFoundProcessor = new NotFoundProcessor(new StandardEnvironment());
         ctx = new DefaultRequestExecutionContext(request, response);

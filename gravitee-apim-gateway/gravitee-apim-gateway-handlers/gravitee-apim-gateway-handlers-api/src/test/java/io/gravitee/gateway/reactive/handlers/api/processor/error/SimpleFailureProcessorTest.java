@@ -55,7 +55,6 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     @BeforeEach
     public void beforeEach() {
         simpleFailureProcessor = SimpleFailureProcessor.instance();
-        lenient().when(mockResponse.body(any(Buffer.class))).thenReturn(Completable.complete());
     }
 
     @Test

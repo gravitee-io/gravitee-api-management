@@ -29,6 +29,7 @@ import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.*;
 import io.vertx.reactivex.core.http.HttpServerRequest;
 import io.vertx.reactivex.core.net.SocketAddress;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.net.ssl.SSLSession;
 
 /**
@@ -40,6 +41,7 @@ public class VertxHttpServerRequest implements MutableRequest {
     protected final long timestamp;
     protected final Metrics metrics;
     protected final HttpServerRequest nativeRequest;
+    private final AtomicBoolean cached;
     protected String contextPath;
     protected String pathInfo;
     protected String id;
@@ -64,13 +66,12 @@ public class VertxHttpServerRequest implements MutableRequest {
         this.metrics.setHost(nativeRequest.host());
         this.metrics.setUri(uri());
         this.metrics.setUserAgent(nativeRequest.getHeader(io.vertx.reactivex.core.http.HttpHeaders.USER_AGENT));
-        // Make sure that any subscription to the request body will be cached to avoid multiple consumptions.
         this.chunks =
             nativeRequest
                 .toFlowable()
                 .doOnNext(buffer -> metrics.setRequestContentLength(metrics.getRequestContentLength() + buffer.length()))
-                .map(Buffer::buffer)
-                .cache();
+                .map(Buffer::buffer);
+        this.cached = new AtomicBoolean(false);
     }
 
     public VertxHttpServerResponse response() {
@@ -223,15 +224,29 @@ public class VertxHttpServerRequest implements MutableRequest {
     @Override
     public Maybe<Buffer> body() {
         // Reduce all the chunks to create a unique buffer containing all the content.
-        final Maybe<Buffer> buffer = chunks().reduce(Buffer::appendBuffer);
-        this.chunks = buffer.toFlowable();
-        return buffer;
+        final Maybe<Buffer> body = chunks().reduce(Buffer::appendBuffer);
+        cacheChunks(body.toFlowable());
+
+        return chunks.firstElement();
     }
 
     @Override
     public Single<Buffer> bodyOrEmpty() {
-        // Reduce all the chunks to create a unique buffer containing all the content.
         return body().switchIfEmpty(Single.just(Buffer.buffer()));
+    }
+
+    @Override
+    public void body(Buffer buffer) {
+        this.chunks = chunks.compose(upstream -> Flowable.just(buffer));
+    }
+
+    @Override
+    public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
+        // Reduce all the chunks then apply the transformation.
+        final Maybe<Buffer> body = chunks.reduce(Buffer::appendBuffer).compose(onBody);
+        cacheChunks(body.toFlowable());
+
+        return chunks.ignoreElements();
     }
 
     @Override
@@ -240,33 +255,23 @@ public class VertxHttpServerRequest implements MutableRequest {
     }
 
     @Override
+    public void chunks(final Flowable<Buffer> chunks) {
+        this.chunks = chunks.compose(upstream -> chunks);
+    }
+
+    @Override
     public Completable onChunk(FlowableTransformer<Buffer, Buffer> chunkTransformer) {
-        chunks = chunks.compose(chunkTransformer);
+        cacheChunks(chunks.compose(chunkTransformer));
 
-        return Completable.complete();
+        return chunks.ignoreElements();
     }
 
-    @Override
-    public Completable onBody(MaybeTransformer<Buffer, Buffer> bodyTransformer) {
-        return body(body().compose(bodyTransformer));
-    }
+    private void cacheChunks(Flowable<Buffer> chunks) {
+        this.chunks = chunks;
 
-    @Override
-    public Completable body(Maybe<Buffer> buffer) {
-        return setChunks(buffer.toFlowable());
-    }
-
-    @Override
-    public Completable body(Buffer buffer) {
-        return setChunks(Flowable.just(buffer));
-    }
-
-    @Override
-    public Completable chunks(final Flowable<Buffer> chunks) {
-        return setChunks(chunks);
-    }
-
-    private Completable setChunks(Flowable<Buffer> chunks) {
-        return onChunk(upstream -> chunks);
+        if (cached.compareAndSet(false, true)) {
+            // Make sure the request body is cached to avoid multiple consumptions when multiple subscriptions occur (especially with v3 adapters).
+            this.chunks = this.chunks.cache();
+        }
     }
 }
