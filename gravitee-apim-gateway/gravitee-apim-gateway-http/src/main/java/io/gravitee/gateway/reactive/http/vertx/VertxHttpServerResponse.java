@@ -23,6 +23,7 @@ import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.reactivex.*;
 import io.vertx.reactivex.core.http.HttpServerResponse;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -34,6 +35,7 @@ public class VertxHttpServerResponse implements MutableResponse {
     protected final HttpHeaders headers;
     protected final HttpHeaders trailers;
     protected final HttpServerResponse nativeResponse;
+    private final AtomicBoolean cached;
     protected Flowable<Buffer> chunks;
 
     public VertxHttpServerResponse(VertxHttpServerRequest serverRequest) {
@@ -41,6 +43,7 @@ public class VertxHttpServerResponse implements MutableResponse {
         this.nativeResponse = serverRequest.nativeRequest.response();
         this.headers = new VertxHttpHeaders(nativeResponse.headers().getDelegate());
         this.trailers = new VertxHttpHeaders(nativeResponse.trailers().getDelegate());
+        this.cached = new AtomicBoolean(false);
     }
 
     protected boolean valid() {
@@ -108,14 +111,33 @@ public class VertxHttpServerResponse implements MutableResponse {
     @Override
     public Maybe<Buffer> body() {
         // Reduce all the chunks to create a unique buffer containing all the content.
-        final Maybe<Buffer> buffer = chunks().reduce(Buffer::appendBuffer);
-        this.chunks = buffer.toFlowable();
-        return buffer;
+        final Maybe<Buffer> body = chunks().reduce(Buffer::appendBuffer);
+        cacheChunks(body.toFlowable());
+
+        return chunks.firstElement();
     }
 
     @Override
     public Single<Buffer> bodyOrEmpty() {
         return body().switchIfEmpty(Single.just(Buffer.buffer()));
+    }
+
+    @Override
+    public void body(Buffer buffer) {
+        if (chunks == null) {
+            this.chunks = Flowable.just(buffer);
+        } else {
+            this.chunks = chunks.compose(upstream -> Flowable.just(buffer));
+        }
+    }
+
+    @Override
+    public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
+        // Reduce all the chunks then apply the transformation.
+        final Maybe<Buffer> body = chunks.reduce(Buffer::appendBuffer).compose(onBody);
+        cacheChunks(body.toFlowable());
+
+        return chunks.ignoreElements();
     }
 
     @Override
@@ -128,30 +150,15 @@ public class VertxHttpServerResponse implements MutableResponse {
     }
 
     @Override
+    public void chunks(final Flowable<Buffer> chunks) {
+        this.chunks = chunks.compose(upstream -> chunks);
+    }
+
+    @Override
     public Completable onChunk(FlowableTransformer<Buffer, Buffer> chunkTransformer) {
-        chunks = chunks.compose(chunkTransformer);
+        cacheChunks(chunks.compose(chunkTransformer));
 
-        return Completable.complete();
-    }
-
-    @Override
-    public Completable onBody(MaybeTransformer<Buffer, Buffer> bodyTransformer) {
-        return body(body().compose(bodyTransformer));
-    }
-
-    @Override
-    public Completable body(Maybe<Buffer> buffer) {
-        return setChunks(buffer.toFlowable());
-    }
-
-    @Override
-    public Completable body(Buffer buffer) {
-        return setChunks(Flowable.just(buffer));
-    }
-
-    @Override
-    public Completable chunks(final Flowable<Buffer> chunks) {
-        return setChunks(chunks);
+        return chunks.ignoreElements();
     }
 
     @Override
@@ -183,12 +190,12 @@ public class VertxHttpServerResponse implements MutableResponse {
         );
     }
 
-    private Completable setChunks(Flowable<Buffer> chunks) {
-        if (chunks != null) {
-            // Current chunks need to be drained before being replaced.
-            this.chunks = chunks().ignoreElements().andThen(chunks).cache();
-        }
+    private void cacheChunks(Flowable<Buffer> chunks) {
+        this.chunks = chunks;
 
-        return Completable.complete();
+        if (cached.compareAndSet(false, true)) {
+            // Make sure the response body is cached to avoid multiple consumptions when multiple subscriptions occur (especially with v3 adapters).
+            this.chunks = this.chunks.cache();
+        }
     }
 }
