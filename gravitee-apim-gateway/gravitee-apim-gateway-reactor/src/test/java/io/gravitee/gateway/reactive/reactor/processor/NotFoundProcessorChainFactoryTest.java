@@ -65,7 +65,6 @@ class NotFoundProcessorChainFactoryTest {
         when(request.metrics()).thenReturn(metrics);
         when(response.end()).thenReturn(Completable.complete());
         when(response.headers()).thenReturn(HttpHeaders.create());
-        when(response.body(any(Buffer.class))).thenReturn(Completable.complete());
     }
 
     @Test
