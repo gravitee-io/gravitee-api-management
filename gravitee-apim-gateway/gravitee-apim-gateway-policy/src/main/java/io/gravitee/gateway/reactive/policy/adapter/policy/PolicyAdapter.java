@@ -19,7 +19,6 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.policy.Policy;
@@ -27,6 +26,7 @@ import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapt
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Policy adapter allows to adapt the behavior of a v3 policy to make it compatible with the reactive execution.
@@ -109,67 +109,67 @@ public class PolicyAdapter implements Policy {
     }
 
     private Completable policyStream(RequestExecutionContext ctx, ExecutionPhase phase) {
-        Buffer newBuffer = Buffer.buffer();
+        return Completable.create(
+            emitter -> {
+                try {
+                    // Invoke the policy to get the appropriate read/write stream.
+                    final ReadWriteStream<Buffer> stream = policy.stream(
+                        new PolicyChainAdapter(ctx, emitter),
+                        ExecutionContextAdapter.create(ctx)
+                    );
 
-        return Completable
-            .create(
-                emitter -> {
-                    try {
-                        // Invoke the policy to get the appropriate read/write stream.
-                        final ReadWriteStream<Buffer> stream = policy.stream(
-                            new PolicyChainAdapter(ctx, emitter),
-                            ExecutionContextAdapter.create(ctx)
+                    if (stream == null) {
+                        // Null stream means that the policy does nothing.
+                        emitter.onComplete();
+                    } else {
+                        final AtomicBoolean hasBody = new AtomicBoolean(false);
+                        final Buffer newBuffer = Buffer.buffer();
+                        // Add a body handler to capture all the chunks eventually written by the policy.
+                        stream.bodyHandler(
+                            buffer -> {
+                                newBuffer.appendBuffer(buffer);
+                                hasBody.set(true);
+                            }
                         );
 
-                        if (stream == null) {
-                            // Null stream means that the policy does nothing.
-                            emitter.onComplete();
-                        } else {
-                            // Add a body handler to capture all the chunks eventually written by the policy.
-                            stream.bodyHandler(newBuffer::appendBuffer);
+                        // Add an end handler to capture end of the legacy stream and continue the reactive chain.
+                        stream.endHandler(
+                            result -> {
+                                if (hasBody.get()) {
+                                    // Replace the chunks of the request or response if not interrupted.
+                                    setBody(ctx, phase, newBuffer);
+                                }
+                                emitter.onComplete();
+                            }
+                        );
 
-                            // Add an end handler to capture end of the legacy stream and continue the reactive chain.
-                            stream.endHandler(result -> emitter.onComplete());
-
-                            getBody(ctx, phase)
-                                .doOnNext(stream::write)
-                                .doFinally(stream::end)
-                                .doOnError(emitter::tryOnError)
-                                .onErrorResumeNext(s -> {})
-                                .subscribe();
-                        }
-                    } catch (Throwable t) {
-                        emitter.tryOnError(new Exception("An error occurred while trying to execute policy " + policy.id(), t));
+                        getBody(ctx, phase)
+                            .doOnSuccess(stream::write)
+                            .doFinally(stream::end)
+                            .doOnError(emitter::tryOnError)
+                            .onErrorResumeNext(s -> {})
+                            .subscribe();
                     }
+                } catch (Throwable t) {
+                    emitter.tryOnError(new Exception("An error occurred while trying to execute policy " + policy.id(), t));
                 }
-            )
-            .andThen(
-                Completable.defer(
-                    () -> {
-                        if (newBuffer == null || newBuffer.length() == 0) {
-                            return Completable.complete();
-                        }
-
-                        // Replace the chunks of the request or response if not interrupted.
-                        return setBody(ctx, phase, newBuffer);
-                    }
-                )
-            );
+            }
+        );
     }
 
-    private Flowable<Buffer> getBody(RequestExecutionContext ctx, ExecutionPhase phase) {
+    private Maybe<Buffer> getBody(RequestExecutionContext ctx, ExecutionPhase phase) {
         if (phase == ExecutionPhase.REQUEST) {
-            return ctx.request().chunks();
+            return ctx.request().body();
         } else {
-            return ctx.response().chunks();
+            return ctx.response().body();
         }
     }
 
-    private Completable setBody(RequestExecutionContext ctx, ExecutionPhase phase, Buffer newBuffer) {
+    private void setBody(RequestExecutionContext ctx, ExecutionPhase phase, Buffer newBuffer) {
         if (phase == ExecutionPhase.REQUEST) {
-            return ctx.request().body(Maybe.just(newBuffer));
+            ctx.request().body(newBuffer);
         } else {
-            return ctx.response().body(Maybe.just(newBuffer));
+            ctx.response().body(newBuffer);
         }
     }
 }

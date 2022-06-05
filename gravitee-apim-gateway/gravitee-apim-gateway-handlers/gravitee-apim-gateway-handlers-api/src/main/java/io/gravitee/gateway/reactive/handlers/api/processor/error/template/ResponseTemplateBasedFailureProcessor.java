@@ -151,7 +151,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
             String body = context.getTemplateEngine().getValue(template.getBody(), String.class);
             Buffer payload = Buffer.buffer(body);
             context.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
-            return context.response().body(payload);
+            context.response().body(payload);
         }
         return Completable.complete();
     }

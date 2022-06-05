@@ -112,7 +112,7 @@ public abstract class AbstractFailureProcessor implements Processor {
 
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
-            return context.response().body(payload);
+            context.response().body(payload);
         }
         return Completable.complete();
     }
