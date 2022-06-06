@@ -689,7 +689,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     metadata.put("client_id", registrationResponse.getClientId());
                     metadata.put("registration_payload", mapper.writeValueAsString(registrationResponse));
                 } catch (JsonProcessingException e) {
-                    e.printStackTrace();
+                    LOGGER.error("An error has occurred while writing registration response", e);
                 }
 
                 application.setUpdatedAt(new Date());
