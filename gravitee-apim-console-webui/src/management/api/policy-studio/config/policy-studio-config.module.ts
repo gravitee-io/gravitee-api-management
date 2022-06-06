@@ -15,11 +15,14 @@
  */
 import { CommonModule } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { PolicyStudioConfigComponent } from './policy-studio-config.component';
 
+import { GioFormSlideToggleModule } from '../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
+
 @NgModule({
-  imports: [CommonModule],
+  imports: [CommonModule, MatSlideToggleModule, GioFormSlideToggleModule],
   declarations: [PolicyStudioConfigComponent],
   exports: [PolicyStudioConfigComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

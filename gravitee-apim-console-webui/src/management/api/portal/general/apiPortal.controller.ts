@@ -45,6 +45,7 @@ class ApiPortalController {
   private qualityMetricsDescription: Map<string, string>;
   private isQualityEnabled: boolean;
   private apiLabelsDictionary = [];
+  private displayJupiterToggle: boolean;
 
   constructor(
     private ApiService: ApiService,
@@ -224,6 +225,8 @@ class ApiPortalController {
     _.forEach(this.qualityRules, (qualityRule) => {
       this.qualityMetricsDescription.set(qualityRule.id, qualityRule.description);
     });
+
+    this.displayJupiterToggle = this.Constants.org.settings.jupiterMode.enabled ?? false;
   }
 
   $onInit() {
