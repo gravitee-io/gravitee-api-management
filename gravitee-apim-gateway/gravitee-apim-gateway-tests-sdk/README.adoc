@@ -49,8 +49,7 @@ class MockPolicyIntegrationTest extends AbstractPolicyTest<MockPolicy, MockPolic
 
         final TestObserver<HttpResponse<Buffer>> obs = client.get("/test").putHeader("reqHeader", "reqHeaderValue").rxSend().test();
 
-        awaitTerminalEvent(obs);
-        obs
+        awaitTerminalEvent(obs)
             .assertComplete()
             .assertValue(response -> {
                 assertThat(response.statusCode()).isEqualTo(400);
@@ -71,10 +70,10 @@ class MockPolicyIntegrationTest extends AbstractPolicyTest<MockPolicy, MockPolic
 === Key components
 
 * `@GatewayTest`: marks the class as testable with the SDK. It will run the necessary extensions (see https://junit.org/junit5/docs/current/user-guide/#extensions[JUnit 5's extension model]) to run the gateway and initialize components.
-* `@DeployApi`: allows to deploy an api thanks to its definition. You can pass an array of apis to deploy. ⚠️ When deploying multiple apis, they have to be configured with different id and a different entrypoint
-** Annotated at class level, it will deploy the apis once for the gateway instance, it means all the method annotated with `@Test` will use the same deployed apis.
-** Annotated at method level, it will deploy the apis only for the lifetime of the test method. After its execution, the apis will be undeployed
-* `AbstractPolicyTest<MockPolicy, MockPolicyConfiguration>`: extends from this abstract class allows to automatically configure the policy you are working on. We will see more details about this abstract class but it helps you configure a lot of stuff to test your policy.
+* `@DeployApi`: allows to deploy an API thanks to its definition. You can pass an array of APIs to deploy. ⚠️ When deploying multiple APIs, they have to be configured with different id and a different entrypoint
+** Annotated at class level, it will deploy the APIs once for the gateway instance, it means all the method annotated with `@Test` will use the same deployed APIs.
+** Annotated at method level, it will deploy the APIs only for the lifetime of the test method. After its execution, the APIs will be undeployed
+* `AbstractPolicyTest<MockPolicy, MockPolicyConfiguration>`: extends from this abstract class allows to automatically configure the policy you are working on. We will see more details about this abstract class, but it helps you configure a lot of stuff to test your policy.
 * `WebClient client`: You can see it as a parameter of your test method. This https://vertx.io/docs/apidocs/io/vertx/reactivex/ext/web/client/WebClient.html[Vertx Reactive Webclient] is injected by the SDK and automatically configured to reach the test gateway.
 * `wiremock`: is an object inherited from `AbstractPolicyTest` allowing you to mock your endpoints behavior. It is configured automatically to be used by your deployed apis.
 
@@ -85,7 +84,7 @@ class MockPolicyIntegrationTest extends AbstractPolicyTest<MockPolicy, MockPolic
 
 This annotation is used to run the gateway.
 
-Internally, it runs a custom JUnit5 Extension responsible for starting an APIM Gateway on an available port, and deploying apis configured thanks to `@DeployApi` annotation.
+Internally, it runs a custom JUnit5 Extension responsible for starting an APIM Gateway on an available port, and deploying APIs configured thanks to `@DeployApi` annotation.
 
 This annotation uses the default configuration provided by the link:./src/main/resources/gravitee-default[gravitee-default] folder of the SDK, containing the `gravitee.yml`.
 
@@ -96,14 +95,14 @@ In your policy repository, you can override it passing the name of the folder yo
 
 === @DeployApi
 
-This annotation is used to deploy apis thanks to their api definition.
+This annotation is used to deploy APIs thanks to their API definition.
 
-IMPORTANT: Policies declared in the api definition can only be deployed if they are part of your repository. That means, there is the policy under test, and it's possible to configure a test policy to do some testing processing. We will see how to configure it in <<_abstractgatewaytest>>.
+IMPORTANT: You cannot deploy external policies for your test case. In addition to the policy under test, you can create testing policies allowing you to manipulate the request or response. For example, when testing the Assign Attributes policy, it is not possible to make assertions on the request or response since attributes are internal to the Gateway. In this case, it is useful to create a testing policy allowing you to transform attributes into headers and make assertions on it. We will see how to configure it in <<_abstractgatewaytest>>.
 
 It can be used at class level and at method level.
 
-* At class level, it will deploy the apis once for all the tests methods. These apis will not be available for modification by the developer because it could cause state problem for its test cases.
-* At method level, it will deploy the apis only for the lifetime of the test method, then undeploy them. Then, you will be able to modify them directly on the method thanks to `deployedApis` inherited from <<_abstractgatewaytest>>, see <<_configure_api>> (useful when you want to alter the state of an endpoint for example).
+* At class level, it will deploy the APIs once for all the tests methods. These APIs will not be available for modification by the developer because it could cause state problem for its test cases.
+* At method level, it will deploy the APIs only for the lifetime of the test method, then undeploy them. Then, you will be able to modify them directly on the method thanks to `deployedApis` inherited from <<_abstractgatewaytest>>, see <<_configure_api>> (useful when you want to alter the state of an endpoint for example).
 
 Usage:
 ```java
@@ -111,7 +110,7 @@ Usage:
 public class RegisterTwiceSameApiClassLevelTestCase extends AbstractGatewayTest {
 ```
 
-WARNING: When deploying multiple apis, ensure that they have different ids and entrypoints.
+WARNING: When deploying multiple APIs, ensure that they have different ids and entrypoints.
 
 === AbstractPolicyTest
 
@@ -123,9 +122,9 @@ class MockPolicyIntegrationTest extends AbstractPolicyTest<MockPolicy, MockPolic
 ```
 
 It inherits from <<_abstractgatewaytest>> which is providing pieces of code to help the developer to test its policy.
-It also implements <<_pluginregister>> and override `public void loadPolicy(PluginManifest manifest, Map<String, PolicyPlugin> policies)`.
+It also implements `PluginRegister` and override `public void loadPolicy(PluginManifest manifest, Map<String, PolicyPlugin> policies)`.
 
-Overriding this method allow to configure the policy id thanks to `PluginManifest` built from `plugin.properties` file. This allows you to use the real name of the policy in the definition deployed thanks to <<_deployapi>>.
+Overriding this method allows to configure the policy id thanks to `PluginManifest` built from `plugin.properties` file. This allows you to use the real name of the policy in the definition deployed thanks to <<_deployapi>>.
 
 You can override `String policyName()` to use a custom name for your tests.
 
@@ -188,9 +187,9 @@ TIP: As you can see, you can use `gatewayPort()` to get the configured gateway p
 
 ==== Configure Api
 
-Override `configureApi(Api api)` (implementation of ApiConfigurer) to configure the apis before their deployment. It's useful to add/update the configuration of all the apis being deployed in a programmatic way, instead of writing the same thing in the JSON definition.
+Override `configureApi(Api api)` (implementation of ApiConfigurer) to configure the APIs before their deployment. It's useful to add/update the configuration of all the apis being deployed in a programmatic way, instead of writing the same thing in the JSON definition.
 
-Let's say you want to modify an URL configured in a policy to use the wiremock port, you can do this:
+Let's say you want to modify a URL configured in a policy to use the wiremock port, you can do this:
 
 ```java
 @Override
@@ -212,9 +211,9 @@ public void configureApi(Api api) {
 ```
 
 
-You can also use the field `deployedApis` to access and modify the deployed apis *at method level*.
+You can also use the field `deployedApis` to access and modify the deployed APIs *at method level*.
 
-NOTE: It can be useful to change the state of the endpoints of the api, but you will not be able to modify a policy configuration on the fly.
+WARNING: With this method, you can modify easily some properties of the API (for example, the state of the endpoints). You have to keep in mind that some properties will not be modifiable, for example, the configuration of the policies.
 
 ==== Plugin registration
 
@@ -222,7 +221,7 @@ The following methods are defined in the `PluginRegister` interface.
 
 ===== Policies
 
-Overriding `loadPolicy(PluginManifest manifest, Map<String, PolicyPlugin> policies)` allows you to register manually the Policy you want to test. You can see an implementation in <<_abstractpolicytest>>. It will be useful when you will not extends <<_abstractpolicytest>> but <<_abstractgatewaytest>> directly.
+Overriding `loadPolicy(PluginManifest manifest, Map<String, PolicyPlugin> policies)` allows you to register manually the Policy you want to test. You can see an implementation in <<_abstractpolicytest>>. It will be useful when you will not extend <<_abstractpolicytest>> but <<_abstractgatewaytest>> directly.
 
 Overriding `configurePolicies(Map<String, PolicyPlugin> policies)` allows you to register custom policies you want to use for your test case.
 
@@ -238,10 +237,16 @@ public void configurePolicies(Map<String, PolicyPlugin> policies) {
 }
 ```
 
-IMPORTANT: The difference between the previously mentionned method is that `loadPolicy` will load the policy under test as real zip plugin (extra initialization phase basically).
+IMPORTANT: The difference between the previously mentioned method is that `loadPolicy` will load the policy under test as real zip plugin (extra initialization phase basically).
 
 ==== Helpers
 
 * awaitTerminalEvent(TestObserver<T> obs): awaits a default of 30 second or until the TestObserver receives an onError or onComplete event, whichever happens first.
-* getBean(Class<T> requiredType): get a Bean by type in the gateway container. It is useful if you want to retrieve
+* getBean(Class<T> requiredType): get a Bean by type in the gateway container. It is useful if you want to retrieve a Spring bean and modify it, for example, set a handler on the `FakeReporter`. Also, the SDK provides some beans that are mocks:
+** InstallationRepository
+** OrganizationRepository
+** EnvironmentRepository
+** SubscriptionRepository
+** EventRepository
+** ApiKeyRepository
 
