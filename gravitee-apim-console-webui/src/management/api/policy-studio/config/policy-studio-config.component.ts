@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { FlowConfigurationSchema } from '@gravitee/ui-policy-studio-angular';
+import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import '@gravitee/ui-components/wc/gv-icon';
 import '@gravitee/ui-components/wc/gv-schema-form';
 
@@ -26,6 +27,7 @@ import { PolicyStudioConfigService } from './policy-studio-config.service';
 import { ApiDefinition } from '../models/ApiDefinition';
 import { PolicyStudioService } from '../policy-studio.service';
 import { GvSchemaFormChangeEvent } from '../models/GvSchemaFormChangeEvent';
+import { Constants } from '../../../../entities/Constants';
 
 @Component({
   selector: 'policy-studio-config',
@@ -35,20 +37,28 @@ import { GvSchemaFormChangeEvent } from '../models/GvSchemaFormChangeEvent';
 export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
 
-  public information = `By default, the selection of a flow is based on the operator defined in the flow itself. 
-  <br/>This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. 
+  public information = `By default, the selection of a flow is based on the operator defined in the flow itself.
+  <br/>This operator allows either to select a flow when the path matches exactly, or when the start of the path matches.
   <br/>The "Best match" option allows you to select the flow from the path that is closest.`;
 
   public schema: FlowConfigurationSchema;
 
   apiDefinition: ApiDefinition;
 
+  get isLoading() {
+    return this.apiDefinition == null;
+  }
+
+  public displayJupiterToggle = false;
+
   constructor(
     private readonly policyStudioService: PolicyStudioService,
     private readonly policyStudioSettingsService: PolicyStudioConfigService,
+    @Inject('Constants') private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {
+    this.displayJupiterToggle = this.constants.org?.settings?.jupiterMode?.enabled ?? false;
     combineLatest([this.policyStudioService.getApiDefinition$(), this.policyStudioSettingsService.getConfigurationSchemaForm()])
       .pipe(
         takeUntil(this.unsubscribe$),
@@ -70,7 +80,8 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
     this.policyStudioService.emitApiDefinition(this.apiDefinition);
   }
 
-  get isLoading() {
-    return this.apiDefinition == null;
+  toggleJupiterMode($event: MatSlideToggleChange) {
+    this.apiDefinition = { ...this.apiDefinition, execution_mode: $event.checked ? 'jupiter' : 'v3' };
+    this.policyStudioService.emitApiDefinition(this.apiDefinition);
   }
 }

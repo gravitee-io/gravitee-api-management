@@ -36,5 +36,6 @@ export function toApiDefinition(api: Api): ApiDefinition {
     version: api.version,
     properties: api.properties,
     services: api.services,
+    execution_mode: api.execution_mode,
   };
 }

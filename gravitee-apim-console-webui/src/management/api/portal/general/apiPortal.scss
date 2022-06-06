@@ -4,4 +4,10 @@
   gv-icon {
     --gv-icon--s: 24px;
   }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+  }
 }

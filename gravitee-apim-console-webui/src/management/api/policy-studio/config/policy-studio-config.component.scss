@@ -6,20 +6,32 @@
   flex-direction: column;
   height: var(--gv-policy-studio--h);
 }
+.policy-studio-api-config {
+  &__information {
+    display: flex;
+    align-items: center;
 
-.policy-studio-api-config__information {
-  display: flex;
-  align-items: center;
+    &__icon {
+      --gv-icon--c: var(--gv-theme-color, #5a7684);
+      --gv-icon-opacity--c: var(--gv-theme-color-info-light, #64b5f6);
+    }
 
-  &__icon {
-    --gv-icon--c: var(--gv-theme-color, #5a7684);
-    --gv-icon-opacity--c: var(--gv-theme-color-info-light, #64b5f6);
+    &__blockquote {
+      border-left: 1px solid var(--gv-theme-color, #5a7684);
+      margin: 15px;
+      padding-left: 15px;
+      font-size: 14px;
+    }
+  }
+  &__schema-form {
+    --gv-policy-studio--pb: 0px;
   }
 
-  &__blockquote {
-    border-left: 1px solid var(--gv-theme-color, #5a7684);
-    margin: 15px;
-    padding-left: 15px;
-    font-size: 14px;
+  &__execution_mode {
+    width: 100%;
+  }
+
+  :host-context(.save-bar-opened) {
+    padding-bottom: 84px;
   }
 }

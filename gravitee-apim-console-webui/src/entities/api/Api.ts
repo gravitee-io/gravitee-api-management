@@ -41,6 +41,7 @@ export interface Api {
   flows?: Flow[];
   plans?: ApiPlan[];
   gravitee?: string;
+  execution_mode?: 'v3' | 'jupiter';
 
   deployed_at?: number;
   created_at: number;
