@@ -791,6 +791,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+    @SuppressWarnings("java:S5852") // do not warn about catastrophic backtracking as the matcher is bounded by a timeout
     private String formatExpression(final Matcher matcher, final String group) {
         String matchedExpression = Optional.ofNullable(matcher.group(group)).orElse("");
         final boolean expressionBlank = "".equals(matchedExpression);

@@ -67,7 +67,10 @@ public class MediaServiceImpl implements MediaService {
     @Override
     public String saveApiMedia(String api, MediaEntity mediaEntity) {
         try {
-            MessageDigest digest = MessageDigest.getInstance("MD5");
+            // disable sonar as md5 is not used for security purpose here
+            // and we don't want to slow down the startup process
+            // by adding an upgrader that would perform hashing against a potentially large amount of data
+            MessageDigest digest = MessageDigest.getInstance("MD5"); // NOSONAR
             byte[] hash = digest.digest(mediaEntity.getData());
             String hashString = DatatypeConverter.printHexBinary(hash);
             String id = mediaEntity.getId() != null && UUID.fromString(mediaEntity.getId()) != null

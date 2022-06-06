@@ -27,11 +27,13 @@ import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.TimeBoundedCharSequence;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.spring.GraviteeJavaMailManager;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,6 +63,8 @@ import org.springframework.stereotype.Component;
 public class EmailServiceImpl extends TransactionalService implements EmailService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class);
+
+    private static final Duration REGEX_TIMEOUT = Duration.ofSeconds(2);
 
     @Autowired
     private GraviteeJavaMailManager mailManager;
@@ -230,9 +234,10 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
      * @param encoded Base64 string
      * @return MIME type string
      */
+    @SuppressWarnings("java:S5852") // do not warn about catastrophic backtracking as the matcher is bounded by a timeout
     private static String extractMimeType(final String encoded) {
         final Pattern mime = Pattern.compile("^data:([a-zA-Z0-9]+/[a-zA-Z0-9]+).*,.*");
-        final Matcher matcher = mime.matcher(encoded);
+        final Matcher matcher = mime.matcher(new TimeBoundedCharSequence(encoded, REGEX_TIMEOUT));
         if (!matcher.find()) return "";
         return matcher.group(1).toLowerCase();
     }
