@@ -145,7 +145,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 null,
                 role
             );
-            if (entity.isDefaultRole()) {
+            if (entity != null && entity.isDefaultRole()) {
                 toggleDefaultRole(executionContext, roleEntity.getScope(), entity.getName());
             }
             return entity;
@@ -181,7 +181,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 role,
                 updatedRole
             );
-            if (entity.isDefaultRole()) {
+            if (entity != null && entity.isDefaultRole()) {
                 toggleDefaultRole(executionContext, scope, entity.getName());
             }
             return entity;
