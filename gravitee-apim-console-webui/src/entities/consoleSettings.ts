@@ -115,6 +115,9 @@ export interface ConsoleSettingsManagement {
   automaticValidation?: {
     enabled?: boolean;
   };
+  systemRoleEdition?: {
+    enabled?: boolean;
+  };
 }
 
 export interface ConsoleSettingsNewsletter {

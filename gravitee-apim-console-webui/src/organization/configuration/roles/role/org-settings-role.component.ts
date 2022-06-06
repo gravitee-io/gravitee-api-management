@@ -25,6 +25,7 @@ import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-pro
 import { Role } from '../../../../entities/role/role';
 import { RoleService } from '../../../../services-ngx/role.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { Constants } from '../../../../entities/Constants';
 
 type RolePermissionsTableDM = {
   permissionName: string;
@@ -65,6 +66,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: { roleScope: string; role: string },
+    @Inject('Constants') private readonly constants: Constants,
     private readonly roleService: RoleService,
     private readonly snackBarService: SnackBarService,
   ) {}
@@ -207,7 +209,14 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   }
 
   public get isReadOnly(): boolean {
-    return this.role?.scope === 'ORGANIZATION' && this.role?.name === 'ADMIN';
+    if (this.hasSystemRoleEditionEnabled()) {
+      return this.role.scope === 'ORGANIZATION' && this.role.name === 'ADMIN';
+    }
+    return this.role.system;
+  }
+
+  private hasSystemRoleEditionEnabled(): boolean {
+    return this.constants?.org?.settings?.management?.systemRoleEdition?.enabled;
   }
 }
 

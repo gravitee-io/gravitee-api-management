@@ -44,6 +44,9 @@ public class Management {
     @ParameterKey(Key.CONSOLE_USERCREATION_AUTOMATICVALIDATION_ENABLED)
     private Enabled automaticValidation;
 
+    @ParameterKey(Key.CONSOLE_SYSTEM_ROLE_EDITION_ENABLED)
+    private Enabled systemRoleEdition;
+
     public Enabled getSupport() {
         return support;
     }
@@ -90,5 +93,13 @@ public class Management {
 
     public void setAutomaticValidation(Enabled automaticValidation) {
         this.automaticValidation = automaticValidation;
+    }
+
+    public Enabled getSystemRoleEdition() {
+        return systemRoleEdition;
+    }
+
+    public void setSystemRoleEdition(Enabled systemRoleEdition) {
+        this.systemRoleEdition = systemRoleEdition;
     }
 }

@@ -30,7 +30,11 @@ import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateRoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
+import io.gravitee.rest.api.model.settings.Enabled;
+import io.gravitee.rest.api.model.settings.Management;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import java.util.Collections;
@@ -57,6 +61,9 @@ public class RoleService_UpdateTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private ConfigService configService;
+
     @Test
     public void shouldUpdate() throws TechnicalException {
         UpdateRoleEntity updateRoleEntityMock = mock(UpdateRoleEntity.class);
@@ -78,7 +85,14 @@ public class RoleService_UpdateTest {
             )
         )
             .thenReturn(roleMock);
+
         when(mockRoleRepository.findById("updated_mock_role")).thenReturn(Optional.of(roleMock));
+
+        ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();
+        Management management = new Management();
+        management.setSystemRoleEdition(new Enabled(true));
+        consoleConfig.setManagement(management);
+        when(configService.getConsoleConfig(any())).thenReturn(consoleConfig);
 
         RoleEntity entity = roleService.update(GraviteeContext.getExecutionContext(), updateRoleEntityMock);
 
@@ -101,6 +115,12 @@ public class RoleService_UpdateTest {
         when(updateRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
 
         when(mockRoleRepository.findById("updated_mock_role")).thenReturn(Optional.empty());
+
+        ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();
+        Management management = new Management();
+        management.setSystemRoleEdition(new Enabled(true));
+        consoleConfig.setManagement(management);
+        when(configService.getConsoleConfig(any())).thenReturn(consoleConfig);
 
         roleService.update(GraviteeContext.getExecutionContext(), updateRoleEntityMock);
 
