@@ -94,6 +94,7 @@ describe('GioPolicyStudioLayoutComponent', () => {
           picture: undefined,
           plans: [],
           flows: api.flows,
+          execution_mode: undefined,
         }),
       );
     });

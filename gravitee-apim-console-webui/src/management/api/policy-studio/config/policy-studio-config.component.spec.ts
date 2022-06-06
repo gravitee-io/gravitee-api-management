@@ -17,6 +17,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HarnessLoader } from '@angular/cdk/testing';
 
 import { PolicyStudioConfigComponent } from './policy-studio-config.component';
 import { PolicyStudioConfigModule } from './policy-studio-config.module';
@@ -30,6 +33,7 @@ import { toApiDefinition } from '../models/ApiDefinition';
 
 describe('PolicyStudioConfigComponent', () => {
   let fixture: ComponentFixture<PolicyStudioConfigComponent>;
+  let loader: HarnessLoader;
   let component: PolicyStudioConfigComponent;
   let httpTestingController: HttpTestingController;
   let policyStudioService: PolicyStudioService;
@@ -43,6 +47,21 @@ describe('PolicyStudioConfigComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioConfigModule],
+      providers: [
+        {
+          provide: 'Constants',
+          useValue: {
+            ...CONSTANTS_TESTING,
+            org: {
+              ...CONSTANTS_TESTING.org,
+              settings: {
+                ...CONSTANTS_TESTING.org.settings,
+                jupiterMode: { enabled: true },
+              },
+            },
+          },
+        },
+      ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -52,6 +71,7 @@ describe('PolicyStudioConfigComponent', () => {
       .compileComponents();
 
     fixture = TestBed.createComponent(PolicyStudioConfigComponent);
+    loader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
 
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -75,8 +95,22 @@ describe('PolicyStudioConfigComponent', () => {
         version: api.version,
         services: api.services,
         properties: api.properties,
+        execution_mode: api.execution_mode,
       });
       expect(component.schema).toStrictEqual(configurationSchema);
+    });
+  });
+
+  it('should enable jupiter mode', async (done) => {
+    const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'execution_mode' }));
+    expect(await activateSupportSlideToggle.isDisabled()).toEqual(false);
+
+    await activateSupportSlideToggle.check();
+
+    // Expect last apiDefinition
+    policyStudioService.getApiDefinition$().subscribe((apiDefinition) => {
+      expect(apiDefinition.execution_mode).toEqual('jupiter');
+      done();
     });
   });
 

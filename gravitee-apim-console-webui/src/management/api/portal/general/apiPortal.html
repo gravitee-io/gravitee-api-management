@@ -156,8 +156,20 @@
           <label>Portal categories</label>
           <md-chips readonly="true" ng-model="portalCtrl.api.categories"></md-chips>
         </div>
-
-        <div class="md-actions gravitee-api-save-button" layout="row">
+        <div layout="column" ng-if="displayJupiterToggle">
+          <md-input-container permission permission-only="'api-definition-u'" class="flex">
+            <md-switch
+              class="api-portal__jupiter-mode-toggle"
+              ng-model="portalCtrl.api.execution_mode"
+              ng-true-value="'jupiter'"
+              ng-false-value="'v3'"
+              aria-label="Enable Jupiter mode"
+            >
+              Enable Jupiter mode
+            </md-switch>
+          </md-input-container>
+        </div>
+        <div class="md-actions api-portal__actions" layout="row">
           <md-button
             permission
             permission-only="'api-definition-u'"
