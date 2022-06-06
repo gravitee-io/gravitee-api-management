@@ -598,7 +598,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                             metadata.put("client_id", registrationResponse.getClientId());
                             metadata.put("registration_payload", mapper.writeValueAsString(registrationResponse));
                         } catch (JsonProcessingException e) {
-                            e.printStackTrace();
+                            LOGGER.error("An error occurred while writing registration response", e);
                         }
                     }
                 }
@@ -1061,7 +1061,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         clientSettings.setRenewClientSecretSupported(clientRegistrationProviderIte.next().isRenewClientSecretSupport());
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("An error occurred while reading client settings");
                 }
             }
             settings.setoAuthClient(clientSettings);
