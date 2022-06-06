@@ -73,7 +73,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     @Value("${services.plans-data-fix-upgrader.enabled:true}")
     private boolean enabled;
 
-    @Value("${services.plans-data-fix-upgrader.dryRun:true}")
+    @Value("${services.plans-data-fix-upgrader.dryRun:false}")
     private boolean dryRun;
 
     @Value("${services.plans-data-fix-upgrader.notifyApiOwner:false}")
