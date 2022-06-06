@@ -33,7 +33,9 @@ import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateRoleEntity;
 import io.gravitee.rest.api.model.permissions.*;
+import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -66,6 +68,9 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private ConfigService configService;
 
     private Map<String, RoleEntity> apiPrimaryOwnersByOrganization = new ConcurrentHashMap<>();
     private Map<String, RoleEntity> applicationPrimaryOwnersByOrganization = new ConcurrentHashMap<>();
@@ -111,7 +116,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     @Override
     public RoleEntity create(ExecutionContext executionContext, final NewRoleEntity roleEntity) {
         try {
-            Role role = convert(roleEntity);
+            Role role = convert(executionContext, roleEntity);
             if (
                 roleRepository
                     .findByScopeAndNameAndReferenceIdAndReferenceType(
@@ -152,7 +157,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
 
     @Override
     public RoleEntity update(final ExecutionContext executionContext, final UpdateRoleEntity roleEntity) {
-        if (isReserved(roleEntity.getScope(), roleEntity.getName())) {
+        if (isReserved(executionContext, roleEntity.getScope(), roleEntity.getName())) {
             throw new RoleReservedNameException(roleEntity.getName());
         }
         RoleScope scope = roleEntity.getScope();
@@ -162,7 +167,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 throw new RoleNotFoundException(roleEntity.getId());
             }
             Role role = optRole.get();
-            Role updatedRole = convert(roleEntity);
+            Role updatedRole = convert(executionContext, roleEntity);
             updatedRole.setCreatedAt(role.getCreatedAt());
             updatedRole.setReferenceId(role.getReferenceId());
             updatedRole.setReferenceType(role.getReferenceType());
@@ -328,9 +333,9 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         }
     }
 
-    private Role convert(final NewRoleEntity roleEntity) {
+    private Role convert(final ExecutionContext executionContext, final NewRoleEntity roleEntity) {
         final Role role = new Role();
-        role.setName(generateId(roleEntity.getScope(), roleEntity.getName()));
+        role.setName(generateId(executionContext, roleEntity.getScope(), roleEntity.getName()));
         role.setDescription(roleEntity.getDescription());
         role.setScope(convert(roleEntity.getScope()));
         role.setDefaultRole(roleEntity.isDefaultRole());
@@ -340,12 +345,12 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         return role;
     }
 
-    private Role convert(final UpdateRoleEntity roleEntity) {
+    private Role convert(final ExecutionContext executionContext, final UpdateRoleEntity roleEntity) {
         if (roleEntity == null) {
             return null;
         }
         final Role role = new Role();
-        role.setName(generateId(roleEntity.getScope(), roleEntity.getName()));
+        role.setName(generateId(executionContext, roleEntity.getScope(), roleEntity.getName()));
         role.setId(roleEntity.getId());
         role.setDescription(roleEntity.getDescription());
         role.setScope(convert(roleEntity.getScope()));
@@ -425,16 +430,29 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         return RoleScope.valueOf(scope.name());
     }
 
-    private String generateId(RoleScope scope, String name) {
+    private String generateId(ExecutionContext executionContext, RoleScope scope, String name) {
         String id = name.trim().toUpperCase().replaceAll(" +", " ").replaceAll(" ", "_").replaceAll("[^\\w\\s]", "_").replaceAll("-+", "_");
-        if (isReserved(scope, id)) {
+        if (isReserved(executionContext, scope, id)) {
             throw new RoleReservedNameException(id);
         }
         return id;
     }
 
-    private boolean isReserved(RoleScope scope, String name) {
-        return scope == RoleScope.ORGANIZATION && SystemRole.ADMIN.name().equals(name);
+    private boolean isReserved(ExecutionContext executionContext, RoleScope scope, String name) {
+        ConsoleConfigEntity config = configService.getConsoleConfig(executionContext);
+        if (config.getManagement().getSystemRoleEdition().isEnabled()) {
+            return scope == RoleScope.ORGANIZATION && SystemRole.ADMIN.name().equals(name);
+        }
+        return isSystemRole(name);
+    }
+
+    private boolean isSystemRole(String roleName) {
+        for (SystemRole systemRole : SystemRole.values()) {
+            if (systemRole.name().equals(roleName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

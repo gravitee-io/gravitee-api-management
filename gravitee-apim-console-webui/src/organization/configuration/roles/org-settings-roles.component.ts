@@ -28,12 +28,14 @@ import {
   GioConfirmDialogData,
 } from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { Constants } from '../../../entities/Constants';
 
 interface RoleVM {
   name: string;
   description: string;
   isDefault: boolean;
   isSystem: boolean;
+  isReadOnly: boolean;
   canBeDeleted: boolean;
   icon: string;
   hasUserRoleManagement: boolean;
@@ -53,6 +55,7 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
+    @Inject('Constants') private readonly constants: Constants,
   ) {}
 
   private readonly unsubscribe$ = new Subject<boolean>();
@@ -130,9 +133,20 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
       isSystem: role.system,
       hasUserRoleManagement: role.scope === 'ORGANIZATION',
       canBeDeleted: !role.default && !role.system,
-      isReadOnly: role.scope === 'ORGANIZATION' && role.name === 'ADMIN',
+      isReadOnly: this.isReadOnly(role),
       icon: OrgSettingsRolesComponent.getScopeIcon(role.scope),
     }));
+  }
+
+  private isReadOnly(role: Role) {
+    if (this.hasSystemRoleEditionEnabled()) {
+      return role.scope === 'ORGANIZATION' && role.name === 'ADMIN';
+    }
+    return role.system;
+  }
+
+  private hasSystemRoleEditionEnabled(): boolean {
+    return this.constants?.org?.settings?.management?.systemRoleEdition?.enabled;
   }
 
   private static getScopeIcon(scope: RoleScope): string {
