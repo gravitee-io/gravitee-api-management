@@ -17,13 +17,14 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collections;
 import java.util.Set;
 import org.junit.Test;
@@ -57,5 +58,11 @@ public class ApplicationService_FindByGroupTest {
         assertNotNull(set);
         assertTrue("result is empty", set.isEmpty());
         verify(applicationRepository, times(1)).findByGroups(Collections.singletonList(GROUP_ID), ApplicationStatus.ACTIVE);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldThrowTechnicalManagementException() throws TechnicalException {
+        when(applicationRepository.findByGroups(any(), any())).thenThrow(new TechnicalException());
+        applicationService.findByGroups(GraviteeContext.getExecutionContext(), Collections.singletonList(GROUP_ID));
     }
 }

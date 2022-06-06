@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -136,5 +137,11 @@ public class ApplicationService_FindByIdsTest {
 
         assertNotNull(applications);
         assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldThrowTechnicalManagementException() throws TechnicalException {
+        when(applicationRepository.findByIds(any())).thenThrow(new TechnicalException());
+        applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
     }
 }

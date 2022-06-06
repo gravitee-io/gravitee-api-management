@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.ApiKeyMode;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Arrays;
 import java.util.Collections;
@@ -238,5 +240,11 @@ public class ApplicationService_FindByUserTest {
         Assert.assertNotNull(apps);
         Assert.assertFalse("should find app", apps.isEmpty());
         Assert.assertEquals(APPLICATION_ID, apps.iterator().next().getId());
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldThrowTechnicalManagementException() throws TechnicalException {
+        when(applicationRepository.findByGroups(any(), any())).thenThrow(new TechnicalException());
+        applicationService.findByUser(GraviteeContext.getExecutionContext(), USERNAME, new SortableImpl("name", true));
     }
 }
