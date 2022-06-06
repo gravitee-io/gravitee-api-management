@@ -71,6 +71,7 @@ describe('PolicyStudioPropertiesComponent', () => {
         version: api.version,
         services: api.services,
         properties: api.properties,
+        execution_mode: api.execution_mode,
       });
     });
   });

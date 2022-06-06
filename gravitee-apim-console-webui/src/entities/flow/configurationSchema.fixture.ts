@@ -36,6 +36,7 @@ export function fakeFlowConfigurationSchema(attributes?: FlowConfigurationSchema
     },
     required: [],
     disabled: [],
+    execution_mode: 'v3',
   };
 
   return { ...base, ...attributes };

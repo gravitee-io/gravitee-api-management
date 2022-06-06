@@ -21,4 +21,5 @@ export interface Definition {
   version: string;
   flow_mode: 'DEFAULT' | 'BEST_MATCH';
   flows: Flow[];
+  execution_mode?: 'v3' | 'jupiter';
 }
