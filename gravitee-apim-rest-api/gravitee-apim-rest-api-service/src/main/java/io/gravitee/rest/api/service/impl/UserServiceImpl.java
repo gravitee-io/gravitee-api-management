@@ -366,13 +366,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         try {
             LOGGER.debug("Find user by source[{}] user[{}]", source, sourceId);
 
-            Optional<User> optionalUser = userRepository.findBySource(source, sourceId, executionContext.getOrganizationId());
-
-            if (optionalUser.isPresent()) {
-                return convert(executionContext, optionalUser.get(), loadRoles);
-            }
-
-            throw new UserNotFoundException(sourceId);
+            return userRepository
+                .findBySource(source, sourceId, executionContext.getOrganizationId())
+                .map(user -> convert(executionContext, user, loadRoles))
+                .orElseThrow(() -> new UserNotFoundException(sourceId));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find user using source[{}], user[{}]", source, sourceId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find user using source " + source + ':' + sourceId, ex);

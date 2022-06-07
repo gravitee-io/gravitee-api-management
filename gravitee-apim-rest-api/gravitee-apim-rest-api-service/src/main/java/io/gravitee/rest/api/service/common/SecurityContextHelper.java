@@ -32,6 +32,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 public class SecurityContextHelper {
 
+    private SecurityContextHelper() {}
+
     public static void authenticateAs(UserEntity user) {
         SecurityContextHolder.setContext(
             new SecurityContext() {
@@ -64,7 +66,9 @@ public class SecurityContextHelper {
                         }
 
                         @Override
-                        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {}
+                        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+                            throw new UnsupportedOperationException("Not implemented");
+                        }
 
                         @Override
                         public String getName() {
@@ -74,7 +78,9 @@ public class SecurityContextHelper {
                 }
 
                 @Override
-                public void setAuthentication(Authentication authentication) {}
+                public void setAuthentication(Authentication authentication) {
+                    throw new UnsupportedOperationException("Not implemented");
+                }
             }
         );
     }
@@ -87,6 +93,9 @@ public class SecurityContextHelper {
     }
 
     private static String[] computeAuthorities(UserEntity user) {
+        if (user.getRoles() == null) {
+            return new String[] {};
+        }
         return user.getRoles().stream().map(role -> role.getScope().name() + ":" + role.getName()).toArray(String[]::new);
     }
 }

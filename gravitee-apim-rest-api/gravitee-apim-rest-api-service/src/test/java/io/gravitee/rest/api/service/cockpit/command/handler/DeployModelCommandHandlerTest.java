@@ -105,7 +105,7 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
@@ -167,7 +167,7 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
@@ -224,7 +224,7 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
@@ -279,12 +279,12 @@ public class DeployModelCommandHandlerTest {
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId("api#id");
-        when(apiService.findByEnvironmentIdAndCrossId(payload.getEnvironmentId(), payload.getModelId())).thenReturn(Optional.of(apiEntity));
+        when(apiService.findByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiEntity));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
@@ -340,12 +340,12 @@ public class DeployModelCommandHandlerTest {
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId("api#id");
-        when(apiService.findByEnvironmentIdAndCrossId(payload.getEnvironmentId(), payload.getModelId())).thenReturn(Optional.of(apiEntity));
+        when(apiService.findByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiEntity));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
@@ -401,12 +401,12 @@ public class DeployModelCommandHandlerTest {
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId("api#id");
-        when(apiService.findByEnvironmentIdAndCrossId(payload.getEnvironmentId(), payload.getModelId())).thenReturn(Optional.of(apiEntity));
+        when(apiService.findByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiEntity));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
@@ -464,7 +464,7 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
@@ -521,7 +521,7 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
@@ -573,7 +573,7 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
@@ -611,12 +611,12 @@ public class DeployModelCommandHandlerTest {
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId("api#id");
-        when(apiService.findByEnvironmentIdAndCrossId(payload.getEnvironmentId(), payload.getModelId())).thenReturn(Optional.of(apiEntity));
+        when(apiService.findByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiEntity));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
@@ -664,7 +664,7 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
@@ -723,7 +723,7 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
@@ -764,7 +764,7 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
