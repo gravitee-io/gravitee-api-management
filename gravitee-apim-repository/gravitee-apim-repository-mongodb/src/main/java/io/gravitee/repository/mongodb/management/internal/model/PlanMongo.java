@@ -92,8 +92,6 @@ public class PlanMongo extends Auditable {
 
     private String selectionRule;
 
-    private String flows;
-
     public String getId() {
         return id;
     }
@@ -268,14 +266,6 @@ public class PlanMongo extends Auditable {
 
     public void setCrossId(String crossId) {
         this.crossId = crossId;
-    }
-
-    public String getFlows() {
-        return flows;
-    }
-
-    public void setFlows(String flows) {
-        this.flows = flows;
     }
 
     @Override

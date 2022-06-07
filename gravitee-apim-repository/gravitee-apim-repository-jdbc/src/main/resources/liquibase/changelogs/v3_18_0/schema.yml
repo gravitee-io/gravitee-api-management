@@ -164,14 +164,3 @@ databaseChangeLog:
                   - column:
                         name: environment_id
                         type: nvarchar(64)
-        # ################
-        # Plans changes : add plans flows in plans table
-        # ################
-        - addColumn:
-            tableName: ${gravitee_prefix}plans
-            columns:
-              - column:
-                  name: flows
-                  type: nclob
-                  constraints:
-                    nullable: true
