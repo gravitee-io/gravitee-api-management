@@ -20,6 +20,7 @@ import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.subscribers.TestSubscriber;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 /**
@@ -42,6 +43,7 @@ public class NodeMonitoringRepositoryTest extends AbstractRepositoryTest {
     public void shouldFindByNodeIdAndType() {
         final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.findByNodeIdAndType("nodeId1", Monitoring.NODE_INFOS).test();
 
+        awaitTerminalEvent(testObserver);
         testObserver.assertComplete();
         testObserver.assertNoErrors();
         testObserver.assertValue(monitoring -> monitoring.getNodeId().equals("nodeId1"));
@@ -51,6 +53,7 @@ public class NodeMonitoringRepositoryTest extends AbstractRepositoryTest {
     public void shouldFindByUnknownNodeId() {
         final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.findByNodeIdAndType("unknown", Monitoring.NODE_INFOS).test();
 
+        awaitTerminalEvent(testObserver);
         testObserver.assertComplete();
         testObserver.assertNoErrors();
         testObserver.assertResult();
@@ -62,6 +65,7 @@ public class NodeMonitoringRepositoryTest extends AbstractRepositoryTest {
             .findByTypeAndTimeFrame(Monitoring.HEALTH_CHECK, 1617753600000L, 1617926400000L)
             .test();
 
+        testObserver.awaitTerminalEvent(15, TimeUnit.SECONDS);
         testObserver.assertComplete();
         testObserver.assertNoErrors();
         testObserver.assertValueCount(1);
@@ -80,6 +84,7 @@ public class NodeMonitoringRepositoryTest extends AbstractRepositoryTest {
 
         final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.create(monitoring).test();
 
+        awaitTerminalEvent(testObserver);
         testObserver.assertComplete();
         testObserver.assertNoErrors();
         testObserver.assertValue(createdMonitoring -> createdMonitoring.getNodeId().equals("nodeId1"));
@@ -98,6 +103,7 @@ public class NodeMonitoringRepositoryTest extends AbstractRepositoryTest {
 
         final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.update(monitoring).test();
 
+        awaitTerminalEvent(testObserver);
         testObserver.assertComplete();
         testObserver.assertNoErrors();
         testObserver.assertValue(createdMonitoring -> createdMonitoring.getNodeId().equals("nodeId2"));
@@ -110,7 +116,12 @@ public class NodeMonitoringRepositoryTest extends AbstractRepositoryTest {
 
         final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.update(monitoring).test();
 
+        awaitTerminalEvent(testObserver);
         testObserver.assertNotComplete();
         testObserver.assertError(IllegalStateException.class);
+    }
+
+    private void awaitTerminalEvent(TestObserver<Monitoring> testObserver) {
+        testObserver.awaitTerminalEvent(15, TimeUnit.SECONDS);
     }
 }

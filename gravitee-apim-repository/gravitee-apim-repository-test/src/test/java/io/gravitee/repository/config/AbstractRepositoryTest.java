@@ -28,6 +28,7 @@ import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.media.api.MediaRepository;
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
@@ -328,7 +329,7 @@ public abstract class AbstractRepositoryTest {
         } else if (object instanceof Installation) {
             installationRepository.create((Installation) object);
         } else if (object instanceof Monitoring) {
-            nodeMonitoringRepository.create((Monitoring) object);
+            nodeMonitoringRepository.create((Monitoring) object).test().awaitTerminalEvent(15, TimeUnit.SECONDS);
         } else if (object instanceof Flow) {
             flowRepository.create((Flow) object);
         } else if (object instanceof Promotion) {
