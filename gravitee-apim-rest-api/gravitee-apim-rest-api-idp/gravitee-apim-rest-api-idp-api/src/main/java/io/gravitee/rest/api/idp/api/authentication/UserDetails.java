@@ -42,6 +42,7 @@ public class UserDetails extends User implements org.springframework.security.co
     private boolean firstLogin;
     private boolean displayNewsletterSubscription;
     private Map<String, Object> customFields;
+    private boolean isSystem;
 
     /**
      * The user creation date
@@ -69,6 +70,17 @@ public class UserDetails extends User implements org.springframework.security.co
     public UserDetails(String username, String password, String email, Collection<? extends GrantedAuthority> authorities) {
         this(username, password, authorities);
         this.email = email;
+    }
+
+    public UserDetails(
+        String username,
+        String password,
+        String email,
+        Collection<? extends GrantedAuthority> authorities,
+        boolean isSystem
+    ) {
+        this(username, password, email, authorities);
+        this.isSystem = isSystem;
     }
 
     public String getId() {
@@ -283,5 +295,13 @@ public class UserDetails extends User implements org.springframework.security.co
 
     public void setPrimaryOwner(boolean primaryOwner) {
         isPrimaryOwner = primaryOwner;
+    }
+
+    public boolean isSystem() {
+        return isSystem;
+    }
+
+    public void setSystem(boolean system) {
+        isSystem = system;
     }
 }

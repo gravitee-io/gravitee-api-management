@@ -64,6 +64,12 @@ public class SecurityContextHelperTest {
         authenticateAsSystem("SYSTEM", USER_ROLES);
 
         assertContextMatches("SYSTEM", null, "ENVIRONMENT:ADMIN", "ORGANIZATION:ADMIN");
+
+        final SecurityContext securityContext = SecurityContextHolder.getContext();
+        final Object principal = securityContext.getAuthentication().getPrincipal();
+        final UserDetails userDetails = (UserDetails) principal;
+
+        assertThat(userDetails.isSystem()).isTrue();
     }
 
     private void assertContextMatches(String userName, String userEmail, String... authorities) {
