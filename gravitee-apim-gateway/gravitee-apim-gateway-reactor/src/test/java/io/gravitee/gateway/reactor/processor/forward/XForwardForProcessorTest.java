@@ -121,7 +121,7 @@ public class XForwardForProcessorTest {
     public void test_with_many_X_Forward_for_in_Header() throws InterruptedException {
         final CountDownLatch lock = new CountDownLatch(1);
 
-        when(headers.get("X-Forwarded-For")).thenReturn("197.225.30.74, 10.0.0.1, 10.0.0.2");
+        when(headers.get("X-Forwarded-For")).thenReturn("197.225.30.74 ,10.0.0.1,  10.0.0.2");
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
