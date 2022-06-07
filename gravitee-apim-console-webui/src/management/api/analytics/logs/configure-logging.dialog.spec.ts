@@ -101,34 +101,96 @@ describe('Condition', () => {
   const Duration = new ConditionType('Duration', 'logging-duration', '#request.timestamp');
   const EndDate = new ConditionType('End date', 'logging-end-date', '#request.timestamp');
 
-  it('should convert date for duration condition', () => {
-    const condition = new Condition(Duration, '', '');
-    condition.param1 = 2;
-    condition.param2 = 'day';
-    expect(condition.toCondition()).toMatch(/#request.timestamp <= \d+l/);
+  describe('toCondition', () => {
+    it('should convert date for duration condition', () => {
+      const condition = new Condition(Duration, '', '');
+      condition.param1 = 2;
+      condition.param2 = 'day';
+      expect(condition.toCondition()).toMatch(/#request.timestamp <= \d+l/);
+    });
+
+    it('should convert date for end date condition', () => {
+      const condition = new Condition(EndDate, '', '');
+      condition.param1 = moment('2018-01-01T00:00:00.000Z');
+      expect(condition.toCondition()).toEqual('#request.timestamp <= 1514764800000l');
+    });
+
+    it('should use params for request header condition', () => {
+      const condition = new Condition(RequestHeader, '==', '42');
+      condition.param1 = 'param1';
+      expect(condition.toCondition()).toEqual("#request.headers['param1'] != null && #request.headers['param1'][0] == '42'");
+    });
+
+    it('should use params for request param condition', () => {
+      const condition = new Condition(RequestParam, '==', '42');
+      condition.param1 = 'param1';
+      expect(condition.toCondition()).toEqual("#request.params['param1'] != null && #request.params['param1'][0] == '42'");
+    });
+
+    it('should use params for plan condition', () => {
+      const condition = new Condition(Plan, '==', '42');
+      condition.param1 = 'param1';
+      expect(condition.toCondition()).toEqual("#context.attributes.plan == '42'");
+    });
   });
 
-  it('should convert date for end date condition', () => {
-    const condition = new Condition(EndDate, '', '');
-    condition.param1 = moment('2018-01-01T00:00:00.000Z');
-    expect(condition.toCondition()).toEqual('#request.timestamp <= 1514764800000l');
-  });
+  describe('isValid', () => {
+    it('should validate duration condition', () => {
+      const condition = new Condition(Duration, '', '');
+      condition.param1 = null;
+      condition.param2 = 'day';
+      expect(condition.isValid()).toBeFalsy();
 
-  it('should use params for request header condition', () => {
-    const condition = new Condition(RequestHeader, '==', '42');
-    condition.param1 = 'param1';
-    expect(condition.toCondition()).toEqual("#request.headers['param1'] != null && #request.headers['param1'][0] == '42'");
-  });
+      condition.param1 = 2;
+      condition.param2 = null;
+      expect(condition.isValid()).toBeFalsy();
 
-  it('should use params for request param condition', () => {
-    const condition = new Condition(RequestParam, '==', '42');
-    condition.param1 = 'param1';
-    expect(condition.toCondition()).toEqual("#request.params['param1'] != null && #request.params['param1'][0] == '42'");
-  });
+      condition.param1 = 2;
+      condition.param2 = 'day';
+      expect(condition.isValid()).toBeTruthy();
+    });
 
-  it('should use params for plan condition', () => {
-    const condition = new Condition(Plan, '==', '42');
-    condition.param1 = 'param1';
-    expect(condition.toCondition()).toEqual("#context.attributes.plan == '42'");
+    it('should validate end date condition', () => {
+      const condition = new Condition(EndDate, '', '');
+
+      condition.param1 = null;
+      expect(condition.isValid()).toBeFalsy();
+
+      condition.param1 = moment('2018-01-01T00:00:00.000Z');
+      expect(condition.isValid()).toBeTruthy();
+    });
+
+    it('should validate request header condition', () => {
+      const condition = new Condition(RequestHeader, '==', '42');
+
+      condition.param1 = null;
+      expect(condition.isValid()).toBeFalsy();
+
+      condition.param1 = 'param1';
+      expect(condition.isValid()).toBeTruthy();
+    });
+
+    it('should validate request param condition', () => {
+      const condition = new Condition(RequestParam, '==', '42');
+      condition.param1 = null;
+      expect(condition.isValid()).toBeFalsy();
+
+      condition.param1 = 'param1';
+      condition.value = '';
+      expect(condition.isValid()).toBeFalsy();
+
+      condition.value = '42';
+      expect(condition.isValid()).toBeTruthy();
+    });
+
+    it('should validate plan condition', () => {
+      const condition = new Condition(Plan, '==', '42');
+
+      condition.value = '';
+      expect(condition.isValid()).toBeFalsy();
+
+      condition.value = '42';
+      expect(condition.isValid()).toBeTruthy();
+    });
   });
 });

@@ -82,13 +82,13 @@
           </div>
 
           <div layout="row" flex-xs="50">
-            <md-input-container class="md-block" flex-gt-sm>
+            <md-input-container class="logging-configuration__input-container">
               <label class="md-no-float">Condition</label>
-              <div layout="row" flex-xs="50">
+              <div class="logging-configuration__input-container__expression-container">
                 <gv-expression-language
                   rows="1"
                   gv-model
-                  class="api-analytics-logging-configuration_form-details_input"
+                  class="logging-configuration__input-container__expression-container__input"
                   ng-attr-grammar="{{loggingCtrl.spelGrammar}}"
                   ng-model="loggingCtrl.api.proxy.logging.condition"
                   placeholder="{#request.headers['Content-Type'][0] === 'application/json'}"
