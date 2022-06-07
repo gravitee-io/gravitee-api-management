@@ -17,23 +17,25 @@ package io.gravitee.rest.api.service.converter;
 
 import static org.junit.Assert.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PlanConverterTest {
 
-    private PlanConverter planConverter = new PlanConverter(new ObjectMapper());
+    @InjectMocks
+    private PlanConverter planConverter;
 
     @Test
     public void toPlanEntity_should_convert_plan_to_plan_entity() {
@@ -61,28 +63,38 @@ public class PlanConverterTest {
     }
 
     @Test
-    public void toPlanEntity_should_convert_flows() throws JsonProcessingException {
-        Flow flow1 = new Flow();
-        flow1.setName("testFlow1");
-        flow1.setCondition("flow1Condition");
-
-        Flow flow2 = new Flow();
-        flow2.setName("testFlow1");
-        flow2.setCondition("flow1Condition");
+    public void toPlanEntity_should_get_flows_from_apiEntity_plans() {
+        String planId = "my-test-plan";
 
         Plan plan = new Plan();
+        plan.setId(planId);
         plan.setType(Plan.PlanType.API);
-        plan.setStatus(Plan.Status.STAGING);
         plan.setValidation(Plan.PlanValidationType.AUTO);
-        plan.setFlows(new ObjectMapper().writeValueAsString(List.of(flow1, flow2)));
 
-        PlanEntity planEntity = planConverter.toPlanEntity(plan);
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
 
+        Flow flow1 = new Flow();
+        Flow flow2 = new Flow();
+        Flow flow3 = new Flow();
+
+        PlanEntity plan1 = new PlanEntity();
+        plan1.setId(planId);
+        plan1.setFlows(List.of(flow1, flow3));
+
+        PlanEntity plan2 = new PlanEntity();
+        plan2.setId("another-plan-id");
+        plan2.setFlows(List.of(flow2));
+
+        apiEntity.getPlans().add(plan1);
+        apiEntity.getPlans().add(plan2);
+
+        PlanEntity planEntity = planConverter.toPlanEntity(plan, apiEntity);
+
+        // should not contains flow 2 cause it belongs to another plan
         assertEquals(2, planEntity.getFlows().size());
-        assertEquals(flow1.getName(), planEntity.getFlows().get(0).getName());
-        assertEquals(flow1.getCondition(), planEntity.getFlows().get(0).getCondition());
-        assertEquals(flow2.getName(), planEntity.getFlows().get(1).getName());
-        assertEquals(flow2.getCondition(), planEntity.getFlows().get(1).getCondition());
+        assertTrue(planEntity.getFlows().contains(flow1));
+        assertTrue(planEntity.getFlows().contains(flow3));
     }
 
     @Test
@@ -217,7 +229,7 @@ public class PlanConverterTest {
         planEntity.setType(PlanType.API);
         planEntity.setStatus(PlanStatus.STAGING);
         planEntity.setPaths(new HashMap<>());
-        planEntity.setFlows(List.of(new Flow(), new Flow()));
+        planEntity.setFlows(new ArrayList<>());
         planEntity.setCharacteristics(new ArrayList<>());
         planEntity.setExcludedGroups(new ArrayList<>());
         planEntity.setCommentRequired(true);

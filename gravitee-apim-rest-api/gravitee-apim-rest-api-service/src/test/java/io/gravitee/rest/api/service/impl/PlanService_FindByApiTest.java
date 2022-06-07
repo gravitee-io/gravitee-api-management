@@ -55,13 +55,21 @@ public class PlanService_FindByApiTest {
     private PlanRepository planRepository;
 
     @Mock
+    private ApiService apiService;
+
+    @Mock
     private Plan plan;
+
+    @Mock
+    private ApiEntity api;
 
     @Mock
     private PlanConverter planConverter;
 
     @Test
     public void shouldFindByApi() throws TechnicalException {
+        when(plan.getApi()).thenReturn(API_ID);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(plan));
 
         final Set<PlanEntity> plans = planService.findByApi(GraviteeContext.getExecutionContext(), API_ID);

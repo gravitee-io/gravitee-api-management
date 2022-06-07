@@ -46,9 +46,13 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class PlanService_FindByIdTest {
 
     private static final String PLAN_ID = "my-plan";
+    private static final String API_ID = "my-api";
 
     @InjectMocks
     private PlanService planService = new PlanServiceImpl();
+
+    @Mock
+    private ApiService apiService;
 
     @Mock
     private PlanRepository planRepository;
@@ -57,14 +61,19 @@ public class PlanService_FindByIdTest {
     private Plan plan;
 
     @Mock
+    private ApiEntity api;
+
+    @Mock
     private PlanConverter planConverter;
 
     @Test
     public void shouldFindById() throws TechnicalException {
+        when(plan.getApi()).thenReturn(API_ID);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
         PlanEntity planEntityFromConverter = mock(PlanEntity.class);
-        when(planConverter.toPlanEntity(plan)).thenReturn(planEntityFromConverter);
+        when(planConverter.toPlanEntity(plan, api)).thenReturn(planEntityFromConverter);
 
         final PlanEntity resultPlanEntity = planService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
 

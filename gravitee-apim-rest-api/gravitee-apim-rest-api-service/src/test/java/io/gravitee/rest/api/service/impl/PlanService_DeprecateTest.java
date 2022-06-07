@@ -69,6 +69,12 @@ public class PlanService_DeprecateTest {
     private AuditService auditService;
 
     @Mock
+    private ApiService apiService;
+
+    @Mock
+    private ApiEntity api;
+
+    @Mock
     private PlanConverter planConverter;
 
     @Test(expected = PlanAlreadyDeprecatedException.class)
@@ -101,6 +107,7 @@ public class PlanService_DeprecateTest {
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
@@ -137,6 +144,7 @@ public class PlanService_DeprecateTest {
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 

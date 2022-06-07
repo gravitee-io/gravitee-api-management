@@ -71,7 +71,16 @@ public class PlanService_PublishTest {
     private PageService pageService;
 
     @Mock
+    private ApiService apiService;
+
+    @Mock
+    private ApiEntity apiEntity;
+
+    @Mock
     private PlanConverter planConverter;
+
+    @Mock
+    private ApiConverter apiConverter;
 
     @Test(expected = PlanAlreadyPublishedException.class)
     public void shouldNotPublishBecauseAlreadyPublished() throws TechnicalException {
@@ -140,6 +149,7 @@ public class PlanService_PublishTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
@@ -155,6 +165,7 @@ public class PlanService_PublishTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
@@ -172,6 +183,7 @@ public class PlanService_PublishTest {
         when(plan.getGeneralConditions()).thenReturn(GC_PAGE_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
 
         PageEntity page = mock(PageEntity.class);
         when(page.getId()).thenReturn(GC_PAGE_ID);
