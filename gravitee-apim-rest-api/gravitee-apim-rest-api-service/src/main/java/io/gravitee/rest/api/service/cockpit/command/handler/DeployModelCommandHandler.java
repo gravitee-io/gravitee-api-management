@@ -90,13 +90,13 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
             final EnvironmentEntity environment = environmentService.findByCockpitId(environmentId);
             GraviteeContext.setCurrentEnvironment(environment.getId());
             GraviteeContext.setCurrentOrganization(environment.getOrganizationId());
-            final UserEntity user = userService.findBySource(GraviteeContext.getExecutionContext(), "cockpit", userId, false);
+            final UserEntity user = userService.findBySource(GraviteeContext.getExecutionContext(), "cockpit", userId, true);
 
             authenticateAs(user);
 
             ApiEntityResult result;
 
-            final Optional<ApiEntity> optApi = apiService.findByEnvironmentIdAndCrossId(environmentId, apiCrossId);
+            final Optional<ApiEntity> optApi = apiService.findByEnvironmentIdAndCrossId(environment.getId(), apiCrossId);
             if (optApi.isPresent()) {
                 final ApiEntity api = optApi.get();
                 var message = permissionChecker.checkUpdatePermission(
