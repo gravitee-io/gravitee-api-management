@@ -2252,7 +2252,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         final ApiEntity deployed = convert(executionContext, singletonList(api)).iterator().next();
 
-        if (userId != null) {
+        if (!getAuthenticatedUser().isSystem()) {
             notifierService.trigger(
                 executionContext,
                 ApiHook.API_DEPLOYED,
@@ -3590,7 +3590,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private void triggerNotification(ExecutionContext executionContext, String apiId, ApiHook hook, ApiEntity apiEntity) {
         String userId = getAuthenticatedUsername();
 
-        if (userId != null) {
+        if (userId != null && !getAuthenticatedUser().isSystem()) {
             notifierService.trigger(
                 executionContext,
                 hook,

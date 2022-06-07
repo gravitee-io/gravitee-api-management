@@ -35,6 +35,17 @@ public class SecurityContextHelper {
     private SecurityContextHelper() {}
 
     public static void authenticateAs(UserEntity user) {
+        authenticateAs(user, false);
+    }
+
+    public static void authenticateAsSystem(String userId, Set<UserRoleEntity> userRoles) {
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+        user.setRoles(userRoles);
+        authenticateAs(user, true);
+    }
+
+    private static void authenticateAs(UserEntity user, boolean isSystem) {
         SecurityContextHolder.setContext(
             new SecurityContext() {
                 @Override
@@ -57,7 +68,7 @@ public class SecurityContextHelper {
 
                         @Override
                         public Object getPrincipal() {
-                            return new UserDetails(user.getId(), "", user.getEmail(), getAuthorities());
+                            return new UserDetails(user.getId(), "", user.getEmail(), getAuthorities(), isSystem);
                         }
 
                         @Override
@@ -67,7 +78,7 @@ public class SecurityContextHelper {
 
                         @Override
                         public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-                            throw new UnsupportedOperationException("Not implemented");
+                            /* noop */
                         }
 
                         @Override
@@ -79,17 +90,10 @@ public class SecurityContextHelper {
 
                 @Override
                 public void setAuthentication(Authentication authentication) {
-                    throw new UnsupportedOperationException("Not implemented");
+                    /* noop */
                 }
             }
         );
-    }
-
-    public static void authenticateAsSystem(String userId, Set<UserRoleEntity> userRoles) {
-        UserEntity user = new UserEntity();
-        user.setId(userId);
-        user.setRoles(userRoles);
-        authenticateAs(user);
     }
 
     private static String[] computeAuthorities(UserEntity user) {
