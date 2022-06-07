@@ -15,6 +15,7 @@
  */
 import * as moment from 'moment';
 import { IComponentController } from 'angular';
+import { isNil } from 'lodash';
 
 export class ConditionType {
   title: string;
@@ -54,6 +55,20 @@ export class Condition {
       return `${this.type.statement} ${this.operator} '${this.value}'`;
     } else {
       return `${this.type.statement}['${this.param1}'] != null && ${this.type.statement}['${this.param1}'][0] ${this.operator} '${this.value}'`;
+    }
+  }
+
+  isValid(): boolean {
+    switch (this.type.id) {
+      case 'logging-duration':
+        return !isNil(this.param1) && !isNil(this.param2);
+      case 'logging-end-date':
+        return !isNil(this.param1);
+      case 'request-header':
+      case 'request-param':
+        return !isNil(this.param1) && !isNil(this.value) && this.value !== '' && !isNil(this.operator) && !isNil(this.type.statement);
+      default:
+        return !isNil(this.value) && this.value !== '' && !isNil(this.operator) && !isNil(this.type.statement);
     }
   }
 }
@@ -101,6 +116,10 @@ export class ConfigureLoggingDialogController implements IComponentController {
 
   public hide() {
     this.$mdDialog.hide();
+  }
+
+  public isValid(): boolean {
+    return this.conditions.every((condition) => condition.isValid());
   }
 
   public save() {
