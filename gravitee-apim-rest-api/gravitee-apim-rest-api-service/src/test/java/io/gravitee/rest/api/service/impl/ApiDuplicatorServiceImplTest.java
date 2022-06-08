@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -257,11 +258,16 @@ public class ApiDuplicatorServiceImplTest {
     }
 
     @Test
-    public void shouldNotUpdatePlansIfEmptyPlan() throws IOException {
+    public void shouldDeleteAllExistingPlansIfEmptyPlan() throws IOException {
         ImportApiJsonNode emptyPlansNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.plans.empty.json");
+        PlanEntity planEntity = new PlanEntity();
+        planEntity.setId("existing-plan-id");
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
         apiDuplicatorService.createOrUpdatePlans(GraviteeContext.getExecutionContext(), API_ID, emptyPlansNode);
 
-        verifyNoInteractions(planService);
+        verify(planService, times(1)).findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), "existing-plan-id");
+        verify(planService, never()).createOrUpdatePlan(any(), any());
     }
 
     @Test
