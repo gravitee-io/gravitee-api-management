@@ -15,21 +15,24 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,7 +48,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class PlanService_FindByApiTest {
 
-    private static final String PLAN_ID = "my-plan";
     private static final String API_ID = "my-api";
 
     @InjectMocks
@@ -55,27 +57,43 @@ public class PlanService_FindByApiTest {
     private PlanRepository planRepository;
 
     @Mock
-    private ApiService apiService;
+    private List<Flow> plan1Flows;
 
     @Mock
-    private Plan plan;
-
-    @Mock
-    private ApiEntity api;
+    private List<Flow> plan2Flows;
 
     @Mock
     private PlanConverter planConverter;
 
+    @Mock
+    private FlowService flowService;
+
     @Test
     public void shouldFindByApi() throws TechnicalException {
-        when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
-        when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(plan));
+        when(planConverter.toPlanEntity(any(), any())).thenCallRealMethod();
 
-        final Set<PlanEntity> plans = planService.findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        Plan plan1 = mockPlan("plan1");
+        Plan plan2 = mockPlan("plan2");
+
+        when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2));
+        when(flowService.findByReference(FlowReferenceType.PLAN, plan1.getId())).thenReturn(plan1Flows);
+        when(flowService.findByReference(FlowReferenceType.PLAN, plan2.getId())).thenReturn(plan2Flows);
+
+        List<PlanEntity> plans = new ArrayList<>(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID));
 
         assertNotNull(plans);
-        assertTrue(!plans.isEmpty());
+        assertEquals(2, plans.size());
+        assertSame(plan1Flows, plans.get(0).getFlows());
+        assertSame(plan2Flows, plans.get(1).getFlows());
+    }
+
+    private Plan mockPlan(String id) {
+        Plan plan = mock(Plan.class);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(plan.getId()).thenReturn(id);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        return plan;
     }
 
     @Test(expected = TechnicalManagementException.class)

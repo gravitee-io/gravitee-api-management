@@ -22,12 +22,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
@@ -69,13 +68,10 @@ public class PlanService_DeprecateTest {
     private AuditService auditService;
 
     @Mock
-    private ApiService apiService;
-
-    @Mock
-    private ApiEntity api;
-
-    @Mock
     private PlanConverter planConverter;
+
+    @Mock
+    private FlowService flowService;
 
     @Test(expected = PlanAlreadyDeprecatedException.class)
     public void shouldNotDepreciateBecauseAlreadyDepreciated() throws TechnicalException {
@@ -107,7 +103,6 @@ public class PlanService_DeprecateTest {
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
@@ -144,7 +139,6 @@ public class PlanService_DeprecateTest {
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
