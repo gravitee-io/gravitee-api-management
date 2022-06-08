@@ -22,12 +22,18 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class XForwardForProcessor extends AbstractProcessor<ExecutionContext> {
+
+    /**
+     * {@link java.util.regex.Pattern} for a comma delimited string
+     */
+    private static final Pattern COMMA_SEPARATED_VALUES_PATTERN = Pattern.compile(",");
 
     @Override
     public void handle(ExecutionContext context) {
@@ -64,6 +70,6 @@ public class XForwardForProcessor extends AbstractProcessor<ExecutionContext> {
             return new String[0];
         }
 
-        return Arrays.stream(commaDelimitedStrings.split(",")).map(String::strip).toArray(String[]::new);
+        return Arrays.stream(COMMA_SEPARATED_VALUES_PATTERN.split(commaDelimitedStrings)).map(String::strip).toArray(String[]::new);
     }
 }
