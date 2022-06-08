@@ -55,6 +55,16 @@
 			<artifactId>gravitee-plugin-core</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>io.gravitee.plugin</groupId>
+			<artifactId>gravitee-plugin-repository</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.platform</groupId>
+			<artifactId>gravitee-platform-repository-api</artifactId>
+		</dependency>
+
 		<!-- Vertx.io -->
 		<dependency>
 			<groupId>io.vertx</groupId>
