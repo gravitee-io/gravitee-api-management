@@ -586,14 +586,9 @@ public class ApiService_UpdateTest {
         originalPlan.setStatus(PlanStatus.CLOSED);
         when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
 
-        when(api.getDefinition())
-            .thenReturn(
-                "{\"id\": \"" +
-                API_ID +
-                "\", \"gravitee\": \"2.0.0\", \"name\": \"" +
-                API_NAME +
-                "\",\"proxy\": {\"context_path\": \"/old\"}}"
-            );
+        api.setDefinition(
+            "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
+        );
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true);
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
@@ -613,14 +608,9 @@ public class ApiService_UpdateTest {
         originalPlan.setStatus(PlanStatus.PUBLISHED);
         when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
 
-        when(api.getDefinition())
-            .thenReturn(
-                "{\"id\": \"" +
-                API_ID +
-                "\", \"gravitee\": \"2.0.0\", \"name\": \"" +
-                API_NAME +
-                "\",\"proxy\": {\"context_path\": \"/old\"}}"
-            );
+        api.setDefinition(
+            "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
+        );
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true);
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
     }
