@@ -267,7 +267,7 @@ jobs:
             - run:
                   name: "Build project"
                   command: |
-                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -P distribution-dev,distribution-ee
+                      mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml clean deploy -DaltDeploymentRepository=local::default::file:./target/staging-deploy --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -P distribution-dev,distribution-ee
                       mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
                       mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
 
@@ -276,6 +276,11 @@ jobs:
                   paths:
                       - ~/.m2/repository/io/gravitee/apim
                   key: gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+                  when: on_success
+            - save_cache:
+                  paths:
+                      - ./target/staging-deploy
+                  key: gravitee-api-management-v6-artefact-deploy-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
                   when: on_success
             - run:
                   name: "Exclude APIM artefacts from build cache"
@@ -360,17 +365,21 @@ jobs:
             - image: cimg/openjdk:11.0
         resource_class: large
         environment:
-            ALT_DEPLOYMENT_REPOSITORY: "artifactory-gravitee::default::https://odbxikk7vo-artifactory.services.clever-cloud.com/gravitee-snapshots"
+            REPOSITORY_URL: "https://odbxikk7vo-artifactory.services.clever-cloud.com/gravitee-snapshots"
+            REPOSITORY_ID: "artifactory-gravitee"
         steps:
             - checkout
             - attach_workspace:
                   at: .
             - restore-maven-job-cache:
                   jobName: publish-on-artifactory
+            - restore_cache:
+                  keys:
+                      - gravitee-api-management-v6-artefact-deploy-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
             - run:
-                  name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
+                  name: "Maven deploy to Artifactory from local staging ([gravitee-snapshots] repository)"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml   -DaltDeploymentRepository=${ALT_DEPLOYMENT_REPOSITORY}
+                      mvn org.codehaus.mojo:wagon-maven-plugin:3.0.0-M2:merge-maven-repos -Dwagon.source=file:./target/staging-deploy -Dwagon.target=${REPOSITORY_URL} -Dwagon.targetId=${REPOSITORY_ID} --no-transfer-progress -s .gravitee.settings.xml
             - notify-on-failure
             - save-maven-job-cache:
                   jobName: publish-on-artifactory
@@ -385,10 +394,13 @@ jobs:
                   at: .
             - restore-maven-job-cache:
                   jobName: publish-on-nexus
+            - restore_cache:
+                  keys:
+                      - gravitee-api-management-v6-artefact-deploy-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
             - run:
-                  name: "Maven Package and deploy to Nexus Snapshots"
+                  name: "Maven deploy to Nexus Snapshots from local staging"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .gravitee.settings.xml
+                      mvn org.sonatype.plugins:nexus-staging:1.6.13:deploy-staged-repository -DserverId=sonatype-nexus-snapshots -DnexusUrl=https://oss.sonatype.org/content/repositories/snapshots -DrepositoryDirectory=./target/staging-deploy --no-transfer-progress -s .gravitee.settings.xml
             - notify-on-failure
             - save-maven-job-cache:
                   jobName: publish-on-nexus
