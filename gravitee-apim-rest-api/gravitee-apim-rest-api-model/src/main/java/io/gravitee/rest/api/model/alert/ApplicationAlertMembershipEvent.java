@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.model.alert;
 
+import io.gravitee.rest.api.model.event.AbstractOrganizationEvent;
+import io.gravitee.rest.api.model.notification.NotificationTemplateEvent;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,12 +24,13 @@ import java.util.Set;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApplicationAlertMembershipEvent {
+public class ApplicationAlertMembershipEvent extends AbstractOrganizationEvent {
 
     private final Set<String> applicationIds;
     private final Set<String> groupIds;
 
-    public ApplicationAlertMembershipEvent(Set<String> applicationIds, Set<String> groupIds) {
+    public ApplicationAlertMembershipEvent(String organizationId, Set<String> applicationIds, Set<String> groupIds) {
+        super(organizationId);
         this.applicationIds = applicationIds != null ? applicationIds : new HashSet<>();
         this.groupIds = groupIds != null ? groupIds : new HashSet<>();
     }

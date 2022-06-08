@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.alert.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.event.AbstractOrganizationEvent;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEvent;
 import io.gravitee.rest.api.service.*;
@@ -287,11 +288,13 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     @Override
     @Async
     public void handleEvent(Event<ApplicationAlertEventType, Object> event) {
-        final NotificationTemplateEvent notificationEvent = (NotificationTemplateEvent) event.content();
-        final NotificationTemplateEntity notificationTemplate = notificationEvent.getNotificationTemplateEntity();
-        final String organizationId = notificationEvent.getOrganizationId();
+        final AbstractOrganizationEvent abstractEvent = (AbstractOrganizationEvent) event.content();
+        final String organizationId = abstractEvent.getOrganizationId();
         switch (event.type()) {
             case NOTIFICATION_TEMPLATE_UPDATE:
+                final NotificationTemplateEvent notificationEvent = (NotificationTemplateEvent) event.content();
+                final NotificationTemplateEntity notificationTemplate = notificationEvent.getNotificationTemplateEntity();
+
                 if (notificationTemplate.getHook().equals(AlertHook.CONSUMER_HTTP_STATUS.name())) {
                     updateAllAlertsBody(organizationId, STATUS_ALERT, notificationTemplate.getContent(), notificationTemplate.getTitle());
                 } else if (notificationTemplate.getHook().equals(AlertHook.CONSUMER_RESPONSE_TIME.name())) {

@@ -1488,7 +1488,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public void removeMemberMemberships(MembershipMemberType memberType, String memberId) {
+    public void removeMemberMemberships(ExecutionContext executionContext, MembershipMemberType memberType, String memberId) {
         Set<String> applicationIds = new HashSet<>();
         Set<String> groupIds = new HashSet<>();
         try {
@@ -1507,7 +1507,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
             eventManager.publishEvent(
                 ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
-                new ApplicationAlertMembershipEvent(applicationIds, groupIds)
+                new ApplicationAlertMembershipEvent(executionContext.getOrganizationId(), applicationIds, groupIds)
             );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to remove member {} {}", memberType, memberId, ex);

@@ -403,7 +403,7 @@ public class GroupMembersResource extends AbstractResource {
 
         eventManager.publishEvent(
             ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
-            new ApplicationAlertMembershipEvent(Collections.emptySet(), Collections.singleton(group))
+            new ApplicationAlertMembershipEvent(executionContext.getOrganizationId(), Collections.emptySet(), Collections.singleton(group))
         );
 
         return Response.ok().build();
