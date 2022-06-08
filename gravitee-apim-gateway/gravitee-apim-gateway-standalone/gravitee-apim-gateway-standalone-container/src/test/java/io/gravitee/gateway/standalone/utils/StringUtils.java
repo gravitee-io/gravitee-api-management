@@ -20,12 +20,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public final class StringUtils {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StringUtils.class);
 
     // convert InputStream to String
     public static String copy(InputStream is) {
@@ -39,13 +43,13 @@ public final class StringUtils {
                 sb.append(line);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Unable to convert input stream to string", e);
         } finally {
             if (br != null) {
                 try {
                     br.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("Unable to close buffer reader", e);
                 }
             }
         }

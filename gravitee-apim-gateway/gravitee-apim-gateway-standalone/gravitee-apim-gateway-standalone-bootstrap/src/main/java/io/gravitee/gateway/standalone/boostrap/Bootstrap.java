@@ -26,6 +26,7 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuppressWarnings("java:S4507") // disable printStackTrace warning as we are starting the application
 public class Bootstrap {
 
     private static final String GRAVITEE_HOME_PROP = "gravitee.home";
