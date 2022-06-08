@@ -43,11 +43,7 @@ public class PlanConverter {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public PlanEntity toPlanEntity(Plan plan) {
-        return toPlanEntity(plan, null);
-    }
-
-    public PlanEntity toPlanEntity(Plan plan, ApiEntity apiEntity) {
+    public PlanEntity toPlanEntity(Plan plan, List<Flow> flows) {
         PlanEntity entity = new PlanEntity();
 
         entity.setId(plan.getId());
@@ -59,6 +55,7 @@ public class PlanConverter {
         entity.setUpdatedAt(plan.getUpdatedAt());
         entity.setOrder(plan.getOrder());
         entity.setExcludedGroups(plan.getExcludedGroups());
+        entity.setFlows(flows);
 
         if (plan.getDefinition() != null && !plan.getDefinition().isEmpty()) {
             try {
@@ -66,18 +63,6 @@ public class PlanConverter {
                 entity.setPaths(rules);
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while generating policy definition", ioe);
-            }
-        }
-
-        if (apiEntity != null) {
-            if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(apiEntity.getGraviteeDefinitionVersion()))) {
-                Optional<List<Flow>> planFlows = apiEntity
-                    .getPlans()
-                    .stream()
-                    .filter(pl -> plan.getId() != null && plan.getId().equals(pl.getId()))
-                    .map(PlanEntity::getFlows)
-                    .findFirst();
-                planFlows.ifPresent(entity::setFlows);
             }
         }
 

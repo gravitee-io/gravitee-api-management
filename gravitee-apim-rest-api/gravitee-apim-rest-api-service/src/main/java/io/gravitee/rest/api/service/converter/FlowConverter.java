@@ -19,6 +19,7 @@ import io.gravitee.definition.model.flow.*;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.*;
 import io.gravitee.rest.api.service.common.UuidString;
+import java.util.Collections;
 import java.util.Date;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -66,7 +67,11 @@ public class FlowConverter {
         flow.setMethods(flowDefinition.getMethods());
         flow.setEnabled(flowDefinition.isEnabled());
         flow.setCondition(flowDefinition.getCondition());
-        flow.setConsumers(flowDefinition.getConsumers().stream().map(this::convertConsumer).collect(Collectors.toList()));
+        flow.setConsumers(
+            flowDefinition.getConsumers() != null
+                ? flowDefinition.getConsumers().stream().map(this::convertConsumer).collect(Collectors.toList())
+                : Collections.emptyList()
+        );
         return flow;
     }
 

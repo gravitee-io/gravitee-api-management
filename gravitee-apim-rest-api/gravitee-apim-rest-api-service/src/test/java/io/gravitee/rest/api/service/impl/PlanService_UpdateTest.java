@@ -30,6 +30,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
@@ -101,6 +103,9 @@ public class PlanService_UpdateTest {
 
     @Mock
     private ApiConverter apiConverter;
+
+    @Mock
+    private FlowService flowService;
 
     @Test
     public void shouldUpdate() throws TechnicalException {
@@ -253,7 +258,7 @@ public class PlanService_UpdateTest {
 
         planService.update(GraviteeContext.getExecutionContext(), updatePlan, true);
 
-        verify(planRepository, times(1)).update(argThat(plan1 -> !plan1.getFlows().isEmpty()));
+        verify(flowService, times(1)).save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
     }
 
     @Test(expected = PlanInvalidException.class)
@@ -310,7 +315,7 @@ public class PlanService_UpdateTest {
 
         planService.update(GraviteeContext.getExecutionContext(), updatePlan, true);
 
-        verify(planRepository, times(1)).update(argThat(plan1 -> !plan1.getFlows().isEmpty()));
+        verify(flowService, times(1)).save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
     }
 
     @Test
