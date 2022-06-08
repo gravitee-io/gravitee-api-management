@@ -49,6 +49,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.platform</groupId>
+            <artifactId>gravitee-platform-repository-api</artifactId>
+        </dependency>
+
         <!-- Runtime scope -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

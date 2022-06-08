@@ -40,6 +40,11 @@
 		</dependency>
 
 		<dependency>
+			<groupId>io.gravitee.platform</groupId>
+			<artifactId>gravitee-platform-repository-api</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>com.hazelcast</groupId>
 			<artifactId>hazelcast</artifactId>
 			<scope>provided</scope>
