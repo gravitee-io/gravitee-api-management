@@ -28,7 +28,7 @@
 
 	<groupId>io.gravitee.reporter</groupId>
 	<artifactId>gravitee-reporter-file</artifactId>
-	<version>2.5.1</version>
+	<version>2.5.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Gravitee.io APIM - Reporter - File</name>
@@ -36,7 +36,7 @@
 	<properties>
 		<gravitee-bom.version>2.5</gravitee-bom.version>
 		<gravitee-gateway-api.version>1.31.0</gravitee-gateway-api.version>
-		<gravitee-reporter-api.version>1.22.0</gravitee-reporter-api.version>
+		<gravitee-reporter-api.version>1.23.0</gravitee-reporter-api.version>
 		<gravitee-common.version>1.24.0</gravitee-common.version>
 		<gravitee-node.version>1.15.1</gravitee-node.version>
 

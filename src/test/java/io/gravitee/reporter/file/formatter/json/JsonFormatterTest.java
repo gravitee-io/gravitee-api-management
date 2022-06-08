@@ -15,12 +15,16 @@
  */
 package io.gravitee.reporter.file.formatter.json;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.Maps;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.configuration.Rules;
@@ -31,7 +35,6 @@ import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -95,7 +98,7 @@ public class JsonFormatterTest {
         Buffer payload = formatter.format(metrics);
 
         JsonNode node = mapper.readTree(payload.toString());
-        Assert.assertEquals(0, node.size());
+        assertEquals(0, node.size());
     }
 
     @Test
@@ -133,7 +136,7 @@ public class JsonFormatterTest {
         Buffer payload = formatter.format(metrics);
 
         JsonNode node = mapper.readTree(payload.toString());
-        Assert.assertEquals(1, node.size());
+        assertEquals(1, node.size());
         Assert.assertTrue(node.has("api"));
     }
 
@@ -160,7 +163,7 @@ public class JsonFormatterTest {
         Buffer payload = formatter.format(log);
 
         JsonNode node = mapper.readTree(payload.toString());
-        Assert.assertEquals(4, node.size());
+        assertEquals(4, node.size());
         Assert.assertFalse(node.has("clientRequest"));
     }
 
@@ -186,13 +189,13 @@ public class JsonFormatterTest {
 
         Buffer payload = formatter.format(log);
         JsonNode node = mapper.readTree(payload.toString());
-        Assert.assertEquals(5, node.size());
+        assertEquals(5, node.size());
         Assert.assertTrue(node.has("clientRequest"));
-        Assert.assertEquals(0, node.get("clientRequest").size());
+        assertEquals(0, node.get("clientRequest").size());
     }
 
     @Test
-    public void shouldRenameNestedPrgetExcludeFieldsoperty() throws JsonProcessingException {
+    public void shouldRenameNestedProperty() throws JsonProcessingException {
         Rules rules = new Rules();
         rules.setRenameFields(Maps.<String, String>builder().put("clientRequest.uri", "path").build());
 
@@ -213,10 +216,101 @@ public class JsonFormatterTest {
 
         Buffer payload = formatter.format(log);
         JsonNode node = mapper.readTree(payload.toString());
-        Assert.assertEquals(5, node.size());
+        assertEquals(5, node.size());
         Assert.assertTrue(node.has("clientRequest"));
-        Assert.assertEquals(1, node.get("clientRequest").size());
+        assertEquals(1, node.get("clientRequest").size());
         Assert.assertFalse(node.get("clientRequest").has("uri"));
         Assert.assertTrue(node.get("clientRequest").has("path"));
+    }
+
+    @Test
+    public void shouldSerializeClientRequestHeaders() throws JsonProcessingException {
+        JsonFormatter<Log> formatter = new JsonFormatter<>(null);
+
+        Log log = new Log(System.currentTimeMillis());
+        Request clientRequest = new Request();
+        HttpHeaders httpHeaders = HttpHeaders.create();
+        httpHeaders.add("header1", "value1");
+        httpHeaders.add("header2", "value2");
+        httpHeaders.add("header1", "value3");
+        clientRequest.setHeaders(httpHeaders);
+        log.setClientRequest(clientRequest);
+
+        Buffer payload = formatter.format(log);
+
+        JsonNode node = mapper.readTree(payload.toString());
+
+        assertTrue(node.has("clientRequest"));
+        assertTrue(node.get("clientRequest").has("headers"));
+        assertEquals("{\"header1\":[\"value1\",\"value3\"],\"header2\":[\"value2\"]}", node.get("clientRequest").get("headers").toString());
+    }
+
+    @Test
+    public void shouldSerializeProxyRequestHeaders() throws JsonProcessingException {
+        JsonFormatter<Log> formatter = new JsonFormatter<>(null);
+
+        Log log = new Log(System.currentTimeMillis());
+        Request proxyRequest = new Request();
+        HttpHeaders httpHeaders = HttpHeaders.create();
+        httpHeaders.add("header1", "value1");
+        httpHeaders.add("header2", "value2");
+        httpHeaders.add("header1", "value3");
+        proxyRequest.setHeaders(httpHeaders);
+        log.setProxyRequest(proxyRequest);
+
+        Buffer payload = formatter.format(log);
+
+        JsonNode node = mapper.readTree(payload.toString());
+
+        assertTrue(node.has("proxyRequest"));
+        assertTrue(node.get("proxyRequest").has("headers"));
+        assertEquals("{\"header1\":[\"value1\",\"value3\"],\"header2\":[\"value2\"]}", node.get("proxyRequest").get("headers").toString());
+    }
+
+    @Test
+    public void shouldSerializeClientResponseHeaders() throws JsonProcessingException {
+        JsonFormatter<Log> formatter = new JsonFormatter<>(null);
+
+        Log log = new Log(System.currentTimeMillis());
+        Response clientResponse = new Response();
+        HttpHeaders httpHeaders = HttpHeaders.create();
+        httpHeaders.add("header1", "value1");
+        httpHeaders.add("header2", "value2");
+        httpHeaders.add("header1", "value3");
+        clientResponse.setHeaders(httpHeaders);
+        log.setClientResponse(clientResponse);
+
+        Buffer payload = formatter.format(log);
+
+        JsonNode node = mapper.readTree(payload.toString());
+
+        assertTrue(node.has("clientResponse"));
+        assertTrue(node.get("clientResponse").has("headers"));
+        assertEquals(
+            "{\"header1\":[\"value1\",\"value3\"],\"header2\":[\"value2\"]}",
+            node.get("clientResponse").get("headers").toString()
+        );
+    }
+
+    @Test
+    public void shouldSerializeProxyResponseHeaders() throws JsonProcessingException {
+        JsonFormatter<Log> formatter = new JsonFormatter<>(null);
+
+        Log log = new Log(System.currentTimeMillis());
+        Response proxyResponse = new Response();
+        HttpHeaders httpHeaders = HttpHeaders.create();
+        httpHeaders.add("header1", "value1");
+        httpHeaders.add("header2", "value2");
+        httpHeaders.add("header1", "value3");
+        proxyResponse.setHeaders(httpHeaders);
+        log.setProxyResponse(proxyResponse);
+
+        Buffer payload = formatter.format(log);
+
+        JsonNode node = mapper.readTree(payload.toString());
+
+        assertTrue(node.has("proxyResponse"));
+        assertTrue(node.get("proxyResponse").has("headers"));
+        assertEquals("{\"header1\":[\"value1\",\"value3\"],\"header2\":[\"value2\"]}", node.get("proxyResponse").get("headers").toString());
     }
 }
