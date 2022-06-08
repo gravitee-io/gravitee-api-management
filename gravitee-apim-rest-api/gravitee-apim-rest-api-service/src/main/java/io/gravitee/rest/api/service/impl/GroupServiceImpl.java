@@ -549,6 +549,24 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             //remove all members
             membershipService.deleteReference(executionContext, MembershipReferenceType.GROUP, groupId);
 
+            //remove default group API role
+            membershipService.deleteReferenceMember(
+                executionContext,
+                MembershipReferenceType.API,
+                null,
+                MembershipMemberType.GROUP,
+                groupId
+            );
+
+            //remove default group APPLICATION role
+            membershipService.deleteReferenceMember(
+                executionContext,
+                MembershipReferenceType.APPLICATION,
+                null,
+                MembershipMemberType.GROUP,
+                groupId
+            );
+
             //remove all applications or apis
             Date updatedDate = new Date();
             apiRepository
@@ -678,21 +696,22 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             final List<Page> apiPages = this.pageRepository.search(criteriaBuilder.build());
             for (Page page : apiPages) {
-                if (page.isExcludedAccessControls()) {
-                    List<AccessControl> accessControlsWithoutGroup = page
-                        .getAccessControls()
-                        .stream()
-                        .filter(
-                            accessControl ->
-                                accessControl.getReferenceId().equals(groupId) &&
-                                !AccessControlReferenceType.GROUP.name().equals(accessControl.getReferenceType())
-                        )
-                        .collect(Collectors.toList());
+                Set<AccessControl> accessControlsToRemove = page
+                    .getAccessControls()
+                    .stream()
+                    .filter(
+                        accessControl ->
+                            (
+                                AccessControlReferenceType.GROUP.name().equals(accessControl.getReferenceType()) &&
+                                accessControl.getReferenceId().equals(groupId)
+                            )
+                    )
+                    .collect(Collectors.toSet());
 
-                    if (accessControlsWithoutGroup.size() != page.getAccessControls().size()) {
-                        page.setUpdatedAt(updatedDate);
-                        this.pageRepository.update(page);
-                    }
+                if (!accessControlsToRemove.isEmpty()) {
+                    page.setUpdatedAt(updatedDate);
+                    page.getAccessControls().removeAll(accessControlsToRemove);
+                    this.pageRepository.update(page);
                 }
             }
         } catch (TechnicalException ex) {

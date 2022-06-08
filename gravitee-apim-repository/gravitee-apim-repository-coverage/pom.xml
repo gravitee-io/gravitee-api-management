@@ -45,6 +45,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-elasticsearch</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.apim.repository.gateway.bridge.http</groupId>
             <artifactId>gravitee-apim-repository-gateway-bridge-http-client</artifactId>
             <version>${project.version}</version>

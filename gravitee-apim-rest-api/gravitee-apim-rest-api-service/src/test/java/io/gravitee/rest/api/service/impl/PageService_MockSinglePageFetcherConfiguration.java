@@ -25,6 +25,7 @@ import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
 public class PageService_MockSinglePageFetcherConfiguration implements FetcherConfiguration, FilepathAwareFetcherConfiguration {
 
     private static String cron = "* * * * * *";
+    private static boolean isAutoFetch = true;
 
     @Override
     public String getFilepath() {
@@ -36,7 +37,7 @@ public class PageService_MockSinglePageFetcherConfiguration implements FetcherCo
 
     @Override
     public boolean isAutoFetch() {
-        return true;
+        return isAutoFetch;
     }
 
     @Override
@@ -46,5 +47,9 @@ public class PageService_MockSinglePageFetcherConfiguration implements FetcherCo
 
     public static void forceCronValue(String value) {
         cron = value;
+    }
+
+    public static void forceAutoFetchValue(boolean value) {
+        isAutoFetch = value;
     }
 }

@@ -80,6 +80,7 @@ public class ThemeServiceTest {
     public void init() {
         ReflectionTestUtils.setField(themeService, "themesPath", THEMES_PATH);
         ReflectionTestUtils.setField(themeServiceImpl, "themesPath", THEMES_PATH);
+        GraviteeContext.cleanContext();
     }
 
     @Test

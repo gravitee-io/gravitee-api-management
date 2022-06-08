@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
 import io.vertx.core.Handler;
@@ -42,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DynamicPropertyUpdater implements Handler<Long> {
 
-    private final Logger logger = LoggerFactory.getLogger(DynamicPropertyUpdater.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicPropertyUpdater.class);
 
     private final ApiEntity api;
 
@@ -63,7 +64,7 @@ public class DynamicPropertyUpdater implements Handler<Long> {
 
     @Override
     public void handle(Long event) {
-        logger.debug("Running dynamic-properties poller for {}", api);
+        LOGGER.debug("Running dynamic-properties poller for {}", api);
         authenticateAsAdmin();
 
         provider
@@ -71,7 +72,7 @@ public class DynamicPropertyUpdater implements Handler<Long> {
             .whenComplete(
                 (dynamicProperties, throwable) -> {
                     if (throwable != null) {
-                        logger.error(
+                        LOGGER.error(
                             "[{}] Unexpected error while getting dynamic properties from provider: {}",
                             api.getId(),
                             provider.name(),
@@ -122,29 +123,37 @@ public class DynamicPropertyUpdater implements Handler<Long> {
             try {
                 apiProperties.setProperties(sortedUpdatedProperties);
             } catch (RuntimeException e) {
-                logger.error(e.getMessage(), e);
+                LOGGER.error(e.getMessage(), e);
             }
             latestApi.setProperties(apiProperties);
 
             boolean isSync = apiService.isSynchronized(GraviteeContext.getExecutionContext(), api.getId());
 
             // Update API
-            apiService.update(GraviteeContext.getExecutionContext(), latestApi.getId(), apiConverter.toUpdateApiEntity(latestApi));
+            try {
+                LOGGER.debug("Updating API [{}]", latestApi.getId());
+                apiService.update(GraviteeContext.getExecutionContext(), latestApi.getId(), apiConverter.toUpdateApiEntity(latestApi));
+                LOGGER.debug("API [{}] has been updated", latestApi.getId());
 
-            // Do not deploy if there are manual changes to push
-            if (isSync) {
-                // Publish API only in case of changes
-                if (!updatedProperties.containsAll(properties) || !properties.containsAll(updatedProperties)) {
-                    ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
-                    deployEntity.setDeploymentLabel("Dynamic properties sync");
-                    apiService.deploy(
-                        GraviteeContext.getExecutionContext(),
-                        latestApi.getId(),
-                        "dynamic-property-updater",
-                        EventType.PUBLISH_API,
-                        deployEntity
-                    );
+                // Do not deploy if there are manual changes to push
+                if (isSync) {
+                    // Publish API only in case of changes
+                    if (!updatedProperties.containsAll(properties) || !properties.containsAll(updatedProperties)) {
+                        LOGGER.debug("Property change detected, API [{}] is about to be deployed", api.getId());
+                        ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
+                        deployEntity.setDeploymentLabel("Dynamic properties sync");
+                        apiService.deploy(
+                            GraviteeContext.getExecutionContext(),
+                            latestApi.getId(),
+                            "dynamic-property-updater",
+                            EventType.PUBLISH_API,
+                            deployEntity
+                        );
+                        LOGGER.debug("API [{}] as been deployed", api.getId());
+                    }
                 }
+            } catch (TechnicalManagementException e) {
+                LOGGER.error("An error occurred while updating synchronizing properties, the API has not been deployed", e);
             }
         }
     }

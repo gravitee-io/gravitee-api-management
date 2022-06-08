@@ -16,15 +16,20 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.google.common.collect.Sets;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipMemberType;
-import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserMembership;
@@ -56,6 +61,12 @@ public class MembershipService_FindUserMembershipTest {
 
     @Mock
     private MembershipRepository mockMembershipRepository;
+
+    @Mock
+    private ApiRepository mockApiRepository;
+
+    @Mock
+    private ApplicationRepository mockApplicationRepository;
 
     @Mock
     private GroupService mockGroupService;
@@ -133,8 +144,6 @@ public class MembershipService_FindUserMembershipTest {
     @Test
     public void shouldGetApiWithOnlyGroups() throws Exception {
         when(mockRoleService.findByScope(any(), any())).thenReturn(Collections.emptyList());
-        Membership mGroup = mock(Membership.class);
-        when(mGroup.getReferenceId()).thenReturn("api-id2");
 
         when(
             mockMembershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
@@ -145,17 +154,14 @@ public class MembershipService_FindUserMembershipTest {
         )
             .thenReturn(Collections.emptySet());
 
-        when(
-            mockMembershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
-                eq("GROUP"),
-                eq(MembershipMemberType.GROUP),
-                eq(MembershipReferenceType.API)
-            )
-        )
-            .thenReturn(Collections.singleton(mGroup));
-        GroupEntity group1 = mock(GroupEntity.class);
-        doReturn("GROUP").when(group1).getId();
-        doReturn(new HashSet<>(asList(group1))).when(mockGroupService).findByUser(USER_ID);
+        GroupEntity group1 = new GroupEntity();
+        group1.setId("Group1Id");
+        when(mockGroupService.findByUser(eq(USER_ID))).thenReturn(new HashSet<>(asList(group1)));
+
+        Api api = new Api();
+        api.setId("apiGroup1Id");
+        when(mockApiRepository.search(eq(new ApiCriteria.Builder().groups("Group1Id").build()), (ApiFieldInclusionFilter) any()))
+            .thenReturn(new HashSet<>(asList(api)));
 
         List<UserMembership> references = membershipService.findUserMembership(
             GraviteeContext.getExecutionContext(),
@@ -165,7 +171,7 @@ public class MembershipService_FindUserMembershipTest {
 
         assertFalse(references.isEmpty());
         assertEquals(1, references.size());
-        assertEquals("api-id2", references.get(0).getReference());
+        assertEquals("apiGroup1Id", references.get(0).getReference());
         assertEquals("API", references.get(0).getType());
     }
 
@@ -180,10 +186,6 @@ public class MembershipService_FindUserMembershipTest {
         when(mApi.getReferenceId()).thenReturn("api-id1");
         when(mApi.getRoleId()).thenReturn("role");
 
-        Membership mGroup = mock(Membership.class);
-        when(mGroup.getReferenceId()).thenReturn("api-id2");
-        when(mApi.getRoleId()).thenReturn("role");
-
         when(
             mockMembershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
                 eq(USER_ID),
@@ -193,17 +195,14 @@ public class MembershipService_FindUserMembershipTest {
         )
             .thenReturn(Collections.singleton(mApi));
 
-        when(
-            mockMembershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
-                eq("GROUP"),
-                eq(MembershipMemberType.GROUP),
-                eq(MembershipReferenceType.API)
-            )
-        )
-            .thenReturn(Collections.singleton(mGroup));
-        GroupEntity group1 = mock(GroupEntity.class);
-        doReturn("GROUP").when(group1).getId();
-        doReturn(new HashSet<>(asList(group1))).when(mockGroupService).findByUser(USER_ID);
+        GroupEntity group1 = new GroupEntity();
+        group1.setId("Group1Id");
+        when(mockGroupService.findByUser(eq(USER_ID))).thenReturn(new HashSet<>(asList(group1)));
+
+        Api api = new Api();
+        api.setId("apiGroup1Id");
+        when(mockApiRepository.search(eq(new ApiCriteria.Builder().groups("Group1Id").build()), (ApiFieldInclusionFilter) any()))
+            .thenReturn(new HashSet<>(asList(api)));
 
         List<UserMembership> references = membershipService.findUserMembership(
             GraviteeContext.getExecutionContext(),
@@ -214,8 +213,8 @@ public class MembershipService_FindUserMembershipTest {
         assertFalse(references.isEmpty());
         assertEquals(2, references.size());
         assertNotEquals(references.get(0).getReference(), references.get(1).getReference());
-        assertTrue(references.get(0).getReference().equals("api-id1") || references.get(0).getReference().equals("api-id2"));
-        assertTrue(references.get(1).getReference().equals("api-id1") || references.get(1).getReference().equals("api-id2"));
+        assertEquals(references.get(0).getReference(), "api-id1");
+        assertEquals(references.get(1).getReference(), "apiGroup1Id");
         assertEquals("API", references.get(0).getType());
     }
 
@@ -263,5 +262,38 @@ public class MembershipService_FindUserMembershipTest {
         assertNotEquals(references.get(0).getReference(), references.get(1).getReference());
         assertTrue(references.get(0).getReference().equals("api-id1") || references.get(0).getReference().equals("app-id1"));
         assertTrue(references.get(1).getReference().equals("api-id1") || references.get(1).getReference().equals("app-id1"));
+    }
+
+    @Test
+    public void shouldGetApplicationWithOnlyGroups() throws Exception {
+        when(mockRoleService.findByScope(any(), any())).thenReturn(Collections.emptyList());
+
+        when(
+            mockMembershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                eq(USER_ID),
+                eq(MembershipMemberType.USER),
+                eq(MembershipReferenceType.APPLICATION)
+            )
+        )
+            .thenReturn(Collections.emptySet());
+
+        GroupEntity group1 = new GroupEntity();
+        group1.setId("Group1Id");
+        when(mockGroupService.findByUser(eq(USER_ID))).thenReturn(new HashSet<>(asList(group1)));
+
+        Application application = new Application();
+        application.setId("applicationGroup1Id");
+        when(mockApplicationRepository.findByGroups(eq(List.of("Group1Id")))).thenReturn(new HashSet<>(asList(application)));
+
+        List<UserMembership> references = membershipService.findUserMembership(
+            GraviteeContext.getExecutionContext(),
+            io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION,
+            USER_ID
+        );
+
+        assertFalse(references.isEmpty());
+        assertEquals(1, references.size());
+        assertEquals("applicationGroup1Id", references.get(0).getReference());
+        assertEquals("APPLICATION", references.get(0).getType());
     }
 }

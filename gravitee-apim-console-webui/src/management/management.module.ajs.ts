@@ -20,6 +20,7 @@ import 'angular-animate';
 import 'angular-material';
 import 'angular-sanitize';
 import 'angular-local-storage';
+import { marked } from 'marked';
 
 import * as traverse from 'traverse';
 import * as hljs from 'highlight.js';
@@ -449,6 +450,9 @@ import MovedComponent from './configuration/moved/moved.component';
 (<any>window).traverse = traverse;
 
 (<any>window).hljs = hljs;
+marked.setOptions({
+  highlight: (code) => hljs.highlightAuto(code).value,
+});
 
 (<any>window).CodeMirror = CodeMirror;
 
@@ -496,11 +500,6 @@ require('ng-file-upload');
 require('md-steppers');
 require('angular-ui-tree');
 require('angular-jwt');
-
-require('ng-showdown');
-require('showdown-highlightjs-extension');
-require('showdown-prettify');
-require('../libraries/showdown-extension/DocHelper-extension.js');
 
 require('angular-gridster');
 require('angular-scroll');
@@ -559,7 +558,6 @@ angular.module('gravitee-management', [
   permission,
   uiPermission,
   'ngMaterial',
-  'ng-showdown',
   'ngMdIcons',
   'ui.codemirror',
   'md.data.table',
@@ -664,9 +662,6 @@ graviteeManagementModule.config(($mdThemingProvider: angular.material.IThemingPr
 
   $mdThemingProvider.theme('toast-success');
   $mdThemingProvider.theme('toast-error');
-});
-graviteeManagementModule.config(($showdownProvider) => {
-  $showdownProvider.setOption('tables', true);
 });
 graviteeManagementModule.run(runBlock);
 graviteeManagementModule.controller('ApisController', ApisController);

@@ -32,6 +32,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -157,9 +158,13 @@ public class DictionaryResource extends AbstractResource {
 
     @DELETE
     @Operation(summary = "Delete a dictionary", description = "User must have the DICTIONARY[DELETE] permission to use this service")
-    @ApiResponse(responseCode = "204", description = "Dictionary successfully deleted")
-    @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
+    @ApiResponses(
+        {
+            @ApiResponse(responseCode = "204", description = "Dictionary successfully deleted"),
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.DELETE) })
     public Response deleteDictionary(@PathParam("dictionary") String dictionary) {
         dictionaryService.delete(GraviteeContext.getExecutionContext(), dictionary);
         return Response.noContent().build();

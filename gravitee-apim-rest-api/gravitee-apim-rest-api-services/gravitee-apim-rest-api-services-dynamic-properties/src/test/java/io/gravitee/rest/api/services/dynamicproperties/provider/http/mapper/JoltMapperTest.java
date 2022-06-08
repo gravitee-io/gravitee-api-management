@@ -15,10 +15,9 @@
  */
 package io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
-import io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper.JoltMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -27,7 +26,6 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class JoltMapperTest {
@@ -35,12 +33,25 @@ public class JoltMapperTest {
     private JoltMapper mapper;
 
     @Test
-    public void test() throws IOException {
-        mapper = new JoltMapper(read("/jolt/specification.json"));
+    public void shouldReturnPropertiesWithValueAsKey() throws IOException {
+        mapper = new JoltMapper(read("/jolt/specification-value-as-key.json"));
         String input = IOUtils.toString(read("/jolt/custom-response.json"), Charset.defaultCharset());
 
         Collection<DynamicProperty> properties = mapper.map(input);
-        assertFalse(properties.isEmpty());
+        assertEquals(properties.size(), 10);
+        // Should stringify input number value if used as key
+        assertEquals(properties.stream().filter(p -> p.getKey().equals("1")).findFirst().get().getValue(), "stores_id");
+    }
+
+    @Test
+    public void shouldReturnProperties() throws IOException {
+        mapper = new JoltMapper(read("/jolt/specification-key-value-simple.json"));
+        String input = IOUtils.toString(read("/jolt/custom-response.json"), Charset.defaultCharset());
+
+        Collection<DynamicProperty> properties = mapper.map(input);
+        assertEquals(properties.size(), 10);
+        // Should stringify input number value if used as value
+        assertEquals(properties.stream().filter(p -> p.getKey().equals("stores_id")).findFirst().get().getValue(), "1");
     }
 
     private InputStream read(String resource) throws IOException {

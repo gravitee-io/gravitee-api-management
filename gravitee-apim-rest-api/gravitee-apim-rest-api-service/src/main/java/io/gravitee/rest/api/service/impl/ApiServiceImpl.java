@@ -762,7 +762,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (logging.getCondition() == null || logging.getCondition().isEmpty()) {
                     logging.setCondition("{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + "}");
                 } else {
-                    String conditionWithoutBraces = logging.getCondition().trim().replaceAll("\\{", "").replaceAll("}", "");
+                    String conditionWithoutBraces = logging.getCondition().trim().replaceAll("\\{", "").replaceAll("\\}", "");
                     Matcher matcher = LOGGING_MAX_DURATION_PATTERN.matcher(
                         new TimeBoundedCharSequence(conditionWithoutBraces, REGEX_TIMEOUT)
                     );
@@ -783,7 +783,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         }
                     } else {
                         logging.setCondition(
-                            "{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + " && " + conditionWithoutBraces + "}"
+                            "{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + " && (" + conditionWithoutBraces + ")}"
                         );
                     }
                 }
@@ -2250,12 +2250,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             final ApiEntity deployed = convert(executionContext, singletonList(apiValue)).iterator().next();
 
-            notifierService.trigger(
-                executionContext,
-                ApiHook.API_DEPLOYED,
-                apiId,
-                new NotificationParamsBuilder().api(deployed).user(userService.findById(executionContext, userId)).build()
-            );
+            if (userId != null) {
+                notifierService.trigger(
+                    executionContext,
+                    ApiHook.API_DEPLOYED,
+                    apiId,
+                    new NotificationParamsBuilder().api(deployed).user(userService.findById(executionContext, userId)).build()
+                );
+            }
 
             return deployed;
         } else {

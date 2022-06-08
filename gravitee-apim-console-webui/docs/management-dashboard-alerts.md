@@ -4,4 +4,4 @@ Here you can find global information and highlights of the platform alerts.
 
 The first graph provides the number of events by alert severity.
 
-The second line gives you a quick view of alerts sorted by severity, then by decreasing number of events for the timerange selected. An alert appears only if an event has occured during the timerange.
+The second line gives you a quick view of alerts sorted by severity, then by decreasing number of events for the time-range selected. An alert appears only if an event has occurred during the time-range.

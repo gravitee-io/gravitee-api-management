@@ -348,7 +348,9 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                             JsonNode mode = logging1.get("mode");
                             JsonNode condition = logging1.get("condition");
 
-                            return "CLIENT_PROXY".equals(mode.asText()) && "{#request.timestamp <= 1l && true}".equals(condition.asText());
+                            return (
+                                "CLIENT_PROXY".equals(mode.asText()) && "{#request.timestamp <= 1l && (true)}".equals(condition.asText())
+                            );
                         } catch (IOException e) {
                             e.printStackTrace();
                             return false;
@@ -798,7 +800,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                             return (
                                 "CLIENT_PROXY".equals(mode.asText()) &&
-                                "{#request.timestamp <= 1l && #request.timestamp >= 5l}".equals(condition.asText())
+                                "{#request.timestamp <= 1l && (#request.timestamp >= 5l)}".equals(condition.asText())
                             );
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -842,7 +844,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                             return (
                                 "CLIENT_PROXY".equals(mode.asText()) &&
-                                "{#request.timestamp <= 1l && #request.timestamp > 5l}".equals(condition.asText())
+                                "{#request.timestamp <= 1l && (#request.timestamp > 5l)}".equals(condition.asText())
                             );
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -886,7 +888,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                             return (
                                 "CLIENT_PROXY".equals(mode.asText()) &&
-                                "{#request.timestamp <= 1l && #request.timestamp >= 0l}".equals(condition.asText())
+                                "{#request.timestamp <= 1l && (#request.timestamp >= 0l)}".equals(condition.asText())
                             );
                         } catch (IOException e) {
                             e.printStackTrace();

@@ -42,13 +42,17 @@ public class DictionaryRepositoryMock extends AbstractRepositoryMock<DictionaryR
 
     @Override
     void prepare(DictionaryRepository dictionaryRepository) throws Exception {
-        final Dictionary newDictionary = mock(Dictionary.class);
-        when(newDictionary.getName()).thenReturn("My dic 1");
-        when(newDictionary.getEnvironmentId()).thenReturn("DEFAULT");
-        when(newDictionary.getDescription()).thenReturn("Description for my dic 1");
-        when(newDictionary.getCreatedAt()).thenReturn(new Date(1000000000000L));
-        when(newDictionary.getUpdatedAt()).thenReturn(new Date(1439032010883L));
-        when(newDictionary.getType()).thenReturn(DictionaryType.MANUAL);
+        final Dictionary newDictionary = new Dictionary();
+        newDictionary.setId("new-dictionary");
+        newDictionary.setEnvironmentId("DEFAULT");
+        newDictionary.setName("My dic 1");
+        newDictionary.setDescription("Description for my dic 1");
+        newDictionary.setCreatedAt(new Date(1000000000000L));
+        newDictionary.setUpdatedAt(new Date(1439032010883L));
+        newDictionary.setType(DictionaryType.MANUAL);
+        newDictionary.setProperties(
+            Map.of("localhost", "localhost", "localhost:8082", "localhost:8082", "127.0.0.1:8082", "127.0.0.1:8082")
+        );
 
         final Dictionary dic1 = new Dictionary();
         dic1.setId("dic-1");
@@ -108,6 +112,6 @@ public class DictionaryRepositoryMock extends AbstractRepositoryMock<DictionaryR
         when(dictionaryRepository.findById("unknown")).thenReturn(empty());
         when(dictionaryRepository.findById("dic-1")).thenReturn(of(dic1), of(dic1), of(dictionaryUpdated));
 
-        when(dictionaryRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
+        when(dictionaryRepository.update(argThat(o -> o == null || "unknown".equals(o.getId())))).thenThrow(new IllegalStateException());
     }
 }
