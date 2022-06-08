@@ -17,17 +17,15 @@ package io.gravitee.rest.api.service.impl.upgrade;
 
 import static java.util.stream.Collectors.toMap;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.service.InstallationService;
-import java.util.List;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import java.util.Map;
 import java.util.function.Function;
 import org.slf4j.Logger;
@@ -50,6 +48,9 @@ public class PlansFlowsDefinitionUpgrader extends OneShotUpgrader {
 
     @Autowired
     private PlanRepository planRepository;
+
+    @Autowired
+    private FlowService flowService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -89,18 +90,9 @@ public class PlansFlowsDefinitionUpgrader extends OneShotUpgrader {
                         !apiDefinitionPlan.getFlows().isEmpty() &&
                         plansById.containsKey(apiDefinitionPlan.getId())
                     ) {
-                        migratePlanFlow(plansById.get(apiDefinitionPlan.getId()), apiDefinitionPlan.getFlows());
+                        flowService.save(FlowReferenceType.PLAN, apiDefinitionPlan.getId(), apiDefinitionPlan.getFlows());
                     }
                 }
             );
-    }
-
-    protected void migratePlanFlow(Plan plan, List<Flow> flows) {
-        try {
-            plan.setFlows(objectMapper.writeValueAsString(flows));
-            planRepository.update(plan);
-        } catch (JsonProcessingException | TechnicalException e) {
-            LOGGER.error("Error migrating flows from API definition to plans table for plan " + plan.getId(), e);
-        }
     }
 }

@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,11 +23,13 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
-import java.util.*;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
+import java.util.List;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -47,6 +48,9 @@ public class PlansFlowsDefinitionUpgraderTest {
 
     @Mock
     private PlanRepository planRepository;
+
+    @Mock
+    private FlowService flowService;
 
     @Before
     public void setup() {
@@ -74,8 +78,6 @@ public class PlansFlowsDefinitionUpgraderTest {
     @Test
     public void migrateApiPlansFlows_should_convert_flows_for_each_plan_in_definition_having_flows_and_which_exists_in_api()
         throws Exception {
-        doNothing().when(upgrader).migratePlanFlow(any(), any());
-
         // API has 3 plans in database : plan1, plan2, plan4 and plan5
         Plan plan1 = buildPlan("plan1");
         Plan plan2 = buildPlan("plan2");
@@ -98,29 +100,9 @@ public class PlansFlowsDefinitionUpgraderTest {
         // not plan2 cause it is not in definition
         // not plan3 cause it is not in database
         // not plan4 cause it has no flows
-        verify(upgrader, times(1)).migratePlanFlow(plan1, definitionPlan1.getFlows());
-        verify(upgrader, times(1)).migratePlanFlow(plan5, definitionPlan5.getFlows());
-        verify(upgrader, times(1)).migrateApiPlansFlows(any(), any());
-        verifyNoMoreInteractions(upgrader);
-    }
-
-    @Test
-    public void migratePlanFlow_should_update_plan_setting_flows_string_value() throws Exception {
-        Plan plan1 = buildPlan("plan1");
-        Flow flow1 = buildFlow("flow1");
-        Flow flow2 = buildFlow("flow2");
-
-        upgrader.migratePlanFlow(plan1, List.of(flow1, flow2));
-
-        ArgumentCaptor<Plan> updatedPlanCaptor = ArgumentCaptor.forClass(Plan.class);
-        verify(planRepository, times(1)).update(updatedPlanCaptor.capture());
-
-        assertEquals("plan1", updatedPlanCaptor.getValue().getId());
-        assertEquals(
-            "[{\"name\":\"flow1\",\"path-operator\":{\"path\":\"\",\"operator\":\"STARTS_WITH\"},\"pre\":[],\"post\":[],\"enabled\":true,\"methods\":[],\"condition\":null,\"consumers\":null}," +
-            "{\"name\":\"flow2\",\"path-operator\":{\"path\":\"\",\"operator\":\"STARTS_WITH\"},\"pre\":[],\"post\":[],\"enabled\":true,\"methods\":[],\"condition\":null,\"consumers\":null}]",
-            updatedPlanCaptor.getValue().getFlows()
-        );
+        verify(flowService, times(1)).save(FlowReferenceType.PLAN, plan1.getId(), definitionPlan1.getFlows());
+        verify(flowService, times(1)).save(FlowReferenceType.PLAN, plan5.getId(), definitionPlan5.getFlows());
+        verifyNoMoreInteractions(flowService);
     }
 
     private Api buildApi(String id, String definitionVersion) {

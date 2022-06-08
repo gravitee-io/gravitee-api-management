@@ -18,15 +18,17 @@ package io.gravitee.rest.api.service.impl;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -71,16 +73,13 @@ public class PlanService_PublishTest {
     private PageService pageService;
 
     @Mock
-    private ApiService apiService;
-
-    @Mock
-    private ApiEntity apiEntity;
-
-    @Mock
     private PlanConverter planConverter;
 
     @Mock
     private ApiConverter apiConverter;
+
+    @Mock
+    private FlowService flowService;
 
     @Test(expected = PlanAlreadyPublishedException.class)
     public void shouldNotPublishBecauseAlreadyPublished() throws TechnicalException {
@@ -149,7 +148,6 @@ public class PlanService_PublishTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
@@ -165,7 +163,6 @@ public class PlanService_PublishTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
@@ -183,7 +180,6 @@ public class PlanService_PublishTest {
         when(plan.getGeneralConditions()).thenReturn(GC_PAGE_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
 
         PageEntity page = mock(PageEntity.class);
         when(page.getId()).thenReturn(GC_PAGE_ID);

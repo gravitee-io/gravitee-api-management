@@ -27,14 +27,17 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.NewPlanEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import java.util.ArrayList;
 import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,10 +86,14 @@ public class PlanService_CreateTest {
     @Mock
     private Api api;
 
+    @Mock
+    private FlowService flowService;
+
     @Before
     public void setup() throws Exception {
         when(newPlanEntity.getApi()).thenReturn(API_ID);
         when(newPlanEntity.getSecurity()).thenReturn(PlanSecurityType.KEY_LESS);
+        when(newPlanEntity.getFlows()).thenReturn(new ArrayList<>());
         when(api.getDefinition()).thenReturn("apidefinition");
 
         when(parameterService.findAsBoolean(any(), any(), any())).thenReturn(true);
@@ -130,6 +137,15 @@ public class PlanService_CreateTest {
         planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
 
         verify(planConverter, times(1)).toPlan(newPlanEntity, V1);
+    }
+
+    @Test
+    public void should_save_plans_flows() throws Exception {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
+
+        verify(flowService, times(1)).save(FlowReferenceType.PLAN, newPlanEntity.getId(), newPlanEntity.getFlows());
     }
 
     @Test
