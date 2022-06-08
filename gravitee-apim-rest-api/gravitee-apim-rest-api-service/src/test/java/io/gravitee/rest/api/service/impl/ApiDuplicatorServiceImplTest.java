@@ -20,10 +20,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.rest.api.model.*;
@@ -159,9 +156,7 @@ public class ApiDuplicatorServiceImplTest {
         memberToImport.setSourceId("user-sourceId");
         memberToImport.setRoles(Collections.singletonList(userRoleEntity.getId()));
 
-        when(roleService.findByScopeAndName(RoleScope.API, "user-role")).thenReturn(Optional.of(userRoleEntity));
-
-        final List<String> rolesToImport = apiDuplicatorService.getRolesToImport(memberToImport);
+        final List<String> rolesToImport = apiDuplicatorService.getRoleIdsToImport(memberToImport);
 
         assertNotNull(rolesToImport);
         assertEquals(1, rolesToImport.size());
@@ -180,7 +175,7 @@ public class ApiDuplicatorServiceImplTest {
 
         when(roleService.findByScopeAndName(RoleScope.API, "user-role")).thenReturn(Optional.of(userRoleEntity));
 
-        final List<String> rolesToImport = apiDuplicatorService.getRolesToImport(memberToImport);
+        final List<String> rolesToImport = apiDuplicatorService.getRoleIdsToImport(memberToImport);
 
         assertNotNull(rolesToImport);
         assertEquals(1, rolesToImport.size());
@@ -190,26 +185,28 @@ public class ApiDuplicatorServiceImplTest {
     @Test
     public void shouldGetRolesToImport_fromRolesAndRole() {
         RoleEntity userRoleEntity1 = new RoleEntity();
-        userRoleEntity1.setId("user-role-1");
+        userRoleEntity1.setId("user-role-1-id");
+        userRoleEntity1.setName("user-role-1-name");
         RoleEntity userRoleEntity2 = new RoleEntity();
-        userRoleEntity2.setId("user-role-2");
+        userRoleEntity2.setId("user-role-2-id");
+        userRoleEntity2.setName("user-role-2-name");
 
-        when(roleService.findByScopeAndName(RoleScope.API, "user-role-1")).thenReturn(Optional.of(userRoleEntity1));
-        when(roleService.findByScopeAndName(RoleScope.API, "user-role-2")).thenReturn(Optional.of(userRoleEntity2));
-        when(roleService.findByScopeAndName(RoleScope.API, "unexisting_role")).thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(RoleScope.API, "user-role-1-name")).thenReturn(Optional.of(userRoleEntity1));
 
         ApiDuplicatorServiceImpl.MemberToImport memberToImport = new ApiDuplicatorServiceImpl.MemberToImport();
         memberToImport.setSource("user-source");
         memberToImport.setSourceId("user-sourceId");
         memberToImport.setRoles(List.of(userRoleEntity2.getId(), "unexisting_role"));
-        memberToImport.setRole(userRoleEntity1.getId());
+        memberToImport.setRole(userRoleEntity1.getName());
 
-        final List<String> rolesToImport = apiDuplicatorService.getRolesToImport(memberToImport);
+        final List<String> rolesToImport = apiDuplicatorService.getRoleIdsToImport(memberToImport);
 
         assertNotNull(rolesToImport);
-        assertEquals(2, rolesToImport.size());
-        assertEquals("user-role-1", rolesToImport.get(0));
-        assertEquals("user-role-2", rolesToImport.get(1));
+        assertEquals(3, rolesToImport.size());
+        assertTrue(rolesToImport.contains("user-role-1-id"));
+        assertTrue(rolesToImport.contains("user-role-2-id"));
+        // The check on role existence will occur when creating the membership. So this method returns every roleId available in the definition.
+        assertTrue(rolesToImport.contains("unexisting_role"));
     }
 
     /*
