@@ -15,8 +15,8 @@
  */
 package io.gravitee.repository.jdbc;
 
-import io.gravitee.repository.Repository;
-import io.gravitee.repository.Scope;
+import io.gravitee.platform.repository.api.RepositoryProvider;
+import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.jdbc.management.JdbcManagementRepositoryConfiguration;
 import io.gravitee.repository.jdbc.ratelimit.JdbcRateLimitRepositoryConfiguration;
 import org.slf4j.Logger;
@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author njt
  */
-public class JdbcRepository implements Repository {
+public class JdbcRepositoryProvider implements RepositoryProvider {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRepositoryProvider.class);
 
     @Override
     public String type() {
@@ -51,6 +51,7 @@ public class JdbcRepository implements Repository {
             case RATE_LIMIT:
                 return JdbcRateLimitRepositoryConfiguration.class;
             default:
+                LOGGER.debug("Skipping unhandled repository scope {}", scope);
                 break;
         }
         return null;

@@ -29,6 +29,7 @@ import io.gravitee.gateway.platform.spring.PlatformConfiguration;
 import io.gravitee.gateway.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.reactor.spring.ReactorConfiguration;
 import io.gravitee.gateway.report.spring.ReporterConfiguration;
+import io.gravitee.gateway.repository.plugins.GatewayRepositoryScopeProvider;
 import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.gateway.standalone.node.GatewayNodeMetadataResolver;
 import io.gravitee.gateway.standalone.vertx.VertxReactorConfiguration;
@@ -38,6 +39,7 @@ import io.gravitee.node.cluster.spring.ClusterConfiguration;
 import io.gravitee.node.container.NodeFactory;
 import io.gravitee.node.kubernetes.spring.NodeKubernetesConfiguration;
 import io.gravitee.node.vertx.spring.VertxConfiguration;
+import io.gravitee.platform.repository.api.RepositoryScopeProvider;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
 import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
@@ -95,6 +97,11 @@ public class StandaloneConfiguration {
     @Bean
     public NodeFactory node() {
         return new NodeFactory(GatewayNode.class);
+    }
+
+    @Bean
+    public RepositoryScopeProvider repositoryScopeProvider() {
+        return new GatewayRepositoryScopeProvider();
     }
 
     @Bean

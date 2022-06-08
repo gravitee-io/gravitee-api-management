@@ -15,24 +15,30 @@
  */
 package io.gravitee.repository.redis;
 
-import io.gravitee.repository.Repository;
-import io.gravitee.repository.Scope;
+import io.gravitee.platform.repository.api.RepositoryProvider;
+import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnection;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class RedisRepository implements Repository {
+public class RedisRepositoryProvider implements RepositoryProvider {
 
-    public RedisRepository() {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RedisRepositoryProvider.class);
+
+    public RedisRepositoryProvider() {
         ClassLoader tccl = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
             try {
                 Class.forName(LettuceConnection.class.getName(), true, getClass().getClassLoader());
-            } catch (ClassNotFoundException e) {}
+            } catch (ClassNotFoundException e) {
+                LOGGER.error("Unable to initialize class LettuceConnection", e);
+            }
         } finally {
             Thread.currentThread().setContextClassLoader(tccl);
         }
@@ -50,13 +56,10 @@ public class RedisRepository implements Repository {
 
     @Override
     public Class<?> configuration(Scope scope) {
-        switch (scope) {
-            case RATE_LIMIT:
-                return RateLimitRepositoryConfiguration.class;
-            default:
-                break;
+        if (scope == Scope.RATE_LIMIT) {
+            return RateLimitRepositoryConfiguration.class;
         }
-
+        LOGGER.debug("Skipping unhandled repository scope {}", scope);
         return null;
     }
 }
