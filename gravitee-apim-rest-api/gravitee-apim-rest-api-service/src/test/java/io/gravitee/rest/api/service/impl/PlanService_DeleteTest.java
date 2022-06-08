@@ -20,11 +20,13 @@ import static org.mockito.Mockito.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.exceptions.PlanWithSubscriptionsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collections;
@@ -64,6 +66,9 @@ public class PlanService_DeleteTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private FlowService flowService;
+
     @Test(expected = PlanWithSubscriptionsException.class)
     public void shouldNotDeleteBecauseSubscriptionsExist() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
@@ -85,6 +90,7 @@ public class PlanService_DeleteTest {
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).delete(PLAN_ID);
+        verify(flowService, times(1)).save(FlowReferenceType.PLAN, PLAN_ID, null);
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -105,6 +111,7 @@ public class PlanService_DeleteTest {
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).delete(PLAN_ID);
+        verify(flowService, times(1)).save(FlowReferenceType.PLAN, PLAN_ID, null);
     }
 
     @Test
@@ -118,6 +125,7 @@ public class PlanService_DeleteTest {
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).delete(PLAN_ID);
+        verify(flowService, times(1)).save(FlowReferenceType.PLAN, PLAN_ID, null);
     }
 
     @Test
@@ -130,5 +138,6 @@ public class PlanService_DeleteTest {
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).delete(PLAN_ID);
+        verify(flowService, times(1)).save(FlowReferenceType.PLAN, PLAN_ID, null);
     }
 }

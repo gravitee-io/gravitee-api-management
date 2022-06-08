@@ -211,7 +211,11 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
         f.setMethods(flow.getMethods());
         f.setEnabled(flow.isEnabled());
         f.setCondition(flow.getCondition());
-        f.setConsumers(flow.getConsumers().stream().map(this::convertConsumer).collect(Collectors.toList()));
+        f.setConsumers(
+            flow.getConsumers() != null
+                ? flow.getConsumers().stream().map(this::convertConsumer).collect(Collectors.toList())
+                : Collections.emptyList()
+        );
         return f;
     }
 

@@ -17,11 +17,9 @@ package io.gravitee.rest.api.service.converter;
 
 import static org.junit.Assert.*;
 
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,7 +48,9 @@ public class PlanConverterTest {
         plan.setGeneralConditions("general_conditions");
         plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
 
-        PlanEntity planEntity = planConverter.toPlanEntity(plan);
+        List<Flow> flows = new ArrayList<>();
+
+        PlanEntity planEntity = planConverter.toPlanEntity(plan, flows);
 
         assertEquals(plan.getId(), planEntity.getId());
         assertEquals(plan.getName(), planEntity.getName());
@@ -60,41 +60,7 @@ public class PlanConverterTest {
         assertEquals(plan.getApi(), planEntity.getApi());
         assertEquals(plan.getGeneralConditions(), planEntity.getGeneralConditions());
         assertEquals(plan.getSecurity().name(), planEntity.getSecurity().name());
-    }
-
-    @Test
-    public void toPlanEntity_should_get_flows_from_apiEntity_plans() {
-        String planId = "my-test-plan";
-
-        Plan plan = new Plan();
-        plan.setId(planId);
-        plan.setType(Plan.PlanType.API);
-        plan.setValidation(Plan.PlanValidationType.AUTO);
-
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
-
-        Flow flow1 = new Flow();
-        Flow flow2 = new Flow();
-        Flow flow3 = new Flow();
-
-        PlanEntity plan1 = new PlanEntity();
-        plan1.setId(planId);
-        plan1.setFlows(List.of(flow1, flow3));
-
-        PlanEntity plan2 = new PlanEntity();
-        plan2.setId("another-plan-id");
-        plan2.setFlows(List.of(flow2));
-
-        apiEntity.getPlans().add(plan1);
-        apiEntity.getPlans().add(plan2);
-
-        PlanEntity planEntity = planConverter.toPlanEntity(plan, apiEntity);
-
-        // should not contains flow 2 cause it belongs to another plan
-        assertEquals(2, planEntity.getFlows().size());
-        assertTrue(planEntity.getFlows().contains(flow1));
-        assertTrue(planEntity.getFlows().contains(flow3));
+        assertSame(flows, planEntity.getFlows());
     }
 
     @Test

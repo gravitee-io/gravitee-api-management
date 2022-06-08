@@ -19,17 +19,19 @@ import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,28 +54,29 @@ public class PlanService_FindByIdTest {
     private PlanService planService = new PlanServiceImpl();
 
     @Mock
-    private ApiService apiService;
-
-    @Mock
     private PlanRepository planRepository;
 
     @Mock
     private Plan plan;
 
     @Mock
-    private ApiEntity api;
+    private List<Flow> planFlows;
 
     @Mock
     private PlanConverter planConverter;
 
+    @Mock
+    private FlowService flowService;
+
     @Test
     public void shouldFindById() throws TechnicalException {
-        when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(plan.getId()).thenReturn(PLAN_ID);
+
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(flowService.findByReference(FlowReferenceType.PLAN, PLAN_ID)).thenReturn(planFlows);
 
         PlanEntity planEntityFromConverter = mock(PlanEntity.class);
-        when(planConverter.toPlanEntity(plan, api)).thenReturn(planEntityFromConverter);
+        when(planConverter.toPlanEntity(plan, planFlows)).thenReturn(planEntityFromConverter);
 
         final PlanEntity resultPlanEntity = planService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
 

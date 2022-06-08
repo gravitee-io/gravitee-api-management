@@ -22,12 +22,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
@@ -72,13 +71,10 @@ public class PlanService_CloseTest {
     private AuditService auditService;
 
     @Mock
-    private ApiService apiService;
-
-    @Mock
-    private ApiEntity api;
-
-    @Mock
     private PlanConverter planConverter;
+
+    @Mock
+    private FlowService flowService;
 
     @Test(expected = PlanNotFoundException.class)
     public void shouldNotCloseBecauseNotFound() throws TechnicalException {
@@ -113,7 +109,6 @@ public class PlanService_CloseTest {
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
             .thenReturn(Collections.singleton(subscription));
         when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
@@ -135,7 +130,6 @@ public class PlanService_CloseTest {
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
             .thenReturn(Collections.singleton(subscription));
         when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
@@ -157,7 +151,6 @@ public class PlanService_CloseTest {
             .thenReturn(Collections.singleton(subscription));
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
 
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
 
@@ -177,7 +170,6 @@ public class PlanService_CloseTest {
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
             .thenReturn(Collections.singleton(subscription));
         when(plan.getApi()).thenReturn(API_ID);
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);

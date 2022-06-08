@@ -21,4 +21,5 @@ package io.gravitee.repository.management.model.flow;
  */
 public enum FlowReferenceType {
     ORGANIZATION,
+    PLAN,
 }

@@ -30,7 +30,6 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.UserService;
@@ -568,7 +567,7 @@ public class EventServiceTest {
         throws TechnicalException, JsonProcessingException {
         ObjectMapper realObjectMapper = new ObjectMapper();
         ReflectionTestUtils.setField(eventService, "objectMapper", realObjectMapper);
-        ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter(realObjectMapper));
+        ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter());
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
         Api api = new Api();
