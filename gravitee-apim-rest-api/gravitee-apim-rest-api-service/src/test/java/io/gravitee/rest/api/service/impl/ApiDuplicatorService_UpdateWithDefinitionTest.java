@@ -157,13 +157,9 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
-        when(roleService.findByScopeAndName(RoleScope.API, "API_PRIMARY_OWNER", GraviteeContext.getExecutionContext().getOrganizationId()))
-            .thenReturn(Optional.of(poRoleEntity));
 
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
-        when(roleService.findByScopeAndName(RoleScope.API, "API_OWNER", GraviteeContext.getExecutionContext().getOrganizationId()))
-            .thenReturn(Optional.of(ownerRoleEntity));
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
@@ -239,13 +235,9 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
-        when(roleService.findByScopeAndName(RoleScope.API, "API_PRIMARY_OWNER", GraviteeContext.getExecutionContext().getOrganizationId()))
-            .thenReturn(Optional.of(poRole));
 
         RoleEntity ownerRole = new RoleEntity();
         ownerRole.setId("API_OWNER");
-        when(roleService.findByScopeAndName(RoleScope.API, "API_OWNER", GraviteeContext.getExecutionContext().getOrganizationId()))
-            .thenReturn(Optional.of(ownerRole));
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
