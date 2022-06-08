@@ -596,7 +596,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     protected void updatePlans(String apiId, JsonNode jsonNode, String environmentId, boolean isUpdate) throws JsonProcessingException {
         final JsonNode plansDefinition = jsonNode.path(API_DEFINITION_FIELD_PLANS);
-        if (plansDefinition != null && plansDefinition.isArray() && plansDefinition.size() > 0) {
+        if (plansDefinition != null && plansDefinition.isArray()) {
             List<PlanEntity> plansToImport = objectMapper.readValue(
                 plansDefinition.toString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, PlanEntity.class)
