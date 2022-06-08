@@ -150,11 +150,9 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
-        when(roleService.findByScopeAndName(RoleScope.API, "API_PRIMARY_OWNER")).thenReturn(Optional.of(poRoleEntity));
 
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
-        when(roleService.findByScopeAndName(RoleScope.API, "API_OWNER")).thenReturn(Optional.of(ownerRoleEntity));
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
@@ -230,11 +228,9 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
-        when(roleService.findByScopeAndName(RoleScope.API, "API_PRIMARY_OWNER")).thenReturn(Optional.of(poRoleEntity));
 
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
-        when(roleService.findByScopeAndName(RoleScope.API, "API_OWNER")).thenReturn(Optional.of(ownerRoleEntity));
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
@@ -529,7 +525,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
-        when(roleService.findByScopeAndName(RoleScope.API, "API_OWNER")).thenReturn(Optional.of(ownerRoleEntity));
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
