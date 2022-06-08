@@ -18,8 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMBERSHIP_CREATED;
 import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMBERSHIP_DELETED;
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.singleton;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -28,11 +27,16 @@ import com.google.common.cache.CacheBuilder;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
@@ -769,22 +773,30 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 );
             Set<UserMembership> userMemberships = new HashSet<>(userMembershipMap.values());
 
+            // Find all application Ids and api Ids liked to all user groups
             if (type.equals(MembershipReferenceType.APPLICATION) || type.equals(MembershipReferenceType.API)) {
-                Set<GroupEntity> userGroups = groupService.findByUser(userId);
-                for (GroupEntity group : userGroups) {
+                String[] groupIds = groupService.findByUser(userId).stream().map(GroupEntity::getId).toArray(String[]::new);
+
+                List<String> resourceIds = new ArrayList<>();
+
+                if (type.equals(MembershipReferenceType.APPLICATION)) {
+                    Set<Application> groupApplications = applicationRepository.findByGroups(List.of(groupIds));
+                    groupApplications.forEach(application -> resourceIds.add(application.getId()));
+                } else if (type.equals(MembershipReferenceType.API)) {
+                    ApiCriteria criteria = new ApiCriteria.Builder().groups(groupIds).build();
+                    Set<Api> groupApis = apiRepository.search(criteria, ApiFieldInclusionFilter.builder().build());
+                    groupApis.forEach(api -> resourceIds.add(api.getId()));
+                }
+
+                if (!resourceIds.isEmpty()) {
                     userMemberships.addAll(
-                        membershipRepository
-                            .findByMemberIdAndMemberTypeAndReferenceType(
-                                group.getId(),
-                                io.gravitee.repository.management.model.MembershipMemberType.GROUP,
-                                convert(type)
-                            )
+                        resourceIds
                             .stream()
                             .map(
-                                membership -> {
+                                id -> {
                                     UserMembership userMembership = new UserMembership();
                                     userMembership.setType(type.name());
-                                    userMembership.setReference(membership.getReferenceId());
+                                    userMembership.setReference(id);
                                     return userMembership;
                                 }
                             )

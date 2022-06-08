@@ -1,6 +1,6 @@
 # Portal Pages
 
-Currently, we support four types of documentation:
+At this date, four types of document are supported:
 
 * Swagger/OpenApi.
 * Markdown (MD).
@@ -14,7 +14,7 @@ Portal pages can be accessed from the main *DOCUMENTATION* section.
 
 You can set the *homepage* by clicking on the *house* button. The portal homepage will be visible in the portal landing page.
 
-You can also configure a page by clicking on the *settings* button. Within this section, the page will fetch and pull in content from an external resource such as Git repositories, or HTTP URLs.
+You can also configure a page by clicking on the *settings* button. Page's configuration let you fetch page's content from an external resource such as Git repositories, or HTTP urls.
 
 To create a new page of documentation, click the (+) button.
 

@@ -157,20 +157,27 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
+        when(roleService.findByScopeAndName(RoleScope.API, "API_PRIMARY_OWNER", GraviteeContext.getExecutionContext().getOrganizationId()))
+            .thenReturn(Optional.of(poRoleEntity));
+
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
+        when(roleService.findByScopeAndName(RoleScope.API, "API_OWNER", GraviteeContext.getExecutionContext().getOrganizationId()))
+            .thenReturn(Optional.of(ownerRoleEntity));
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
         po.setReferenceId("ref-admin");
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Collections.singletonList(poRoleEntity));
+        po.setType(MembershipMemberType.USER);
 
         MemberEntity owner = new MemberEntity();
         owner.setId("owner");
         owner.setReferenceId("ref-user");
         owner.setReferenceType(MembershipReferenceType.API);
         owner.setRoles(Collections.singletonList(ownerRoleEntity));
+        owner.setType(MembershipMemberType.USER);
 
         when(membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID))
             .thenReturn(Collections.singleton(po));
@@ -232,20 +239,27 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
+        when(roleService.findByScopeAndName(RoleScope.API, "API_PRIMARY_OWNER", GraviteeContext.getExecutionContext().getOrganizationId()))
+            .thenReturn(Optional.of(poRole));
+
         RoleEntity ownerRole = new RoleEntity();
         ownerRole.setId("API_OWNER");
+        when(roleService.findByScopeAndName(RoleScope.API, "API_OWNER", GraviteeContext.getExecutionContext().getOrganizationId()))
+            .thenReturn(Optional.of(ownerRole));
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
         po.setReferenceId("ref-admin");
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Collections.singletonList(poRole));
+        po.setType(MembershipMemberType.USER);
 
         MemberEntity owner = new MemberEntity();
         owner.setId("owner");
         owner.setReferenceId("ref-user");
         owner.setReferenceType(MembershipReferenceType.API);
         owner.setRoles(Collections.singletonList(ownerRole));
+        owner.setType(MembershipMemberType.USER);
 
         when(membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID))
             .thenReturn(new HashSet(Arrays.asList(owner, po)));
@@ -280,6 +294,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         po.setReferenceId(API_ID);
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Arrays.asList(poRoleEntity));
+        po.setType(MembershipMemberType.USER);
 
         when(membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID))
             .thenReturn(new HashSet(Arrays.asList(po)));

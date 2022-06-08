@@ -218,7 +218,7 @@ export class ApplicationMembersComponent implements OnInit {
     return {
       type: 'gv-icon',
       width: '25px',
-      confirm: { msg: confirmMessage, danger: true },
+      confirm: { msg: confirmMessage, danger: true, position: 'left' },
       condition: item => item.role !== 'PRIMARY_OWNER',
       attributes: {
         onClick: item => this.removeMember(item),

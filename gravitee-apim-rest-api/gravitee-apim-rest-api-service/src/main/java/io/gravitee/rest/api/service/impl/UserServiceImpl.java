@@ -1313,6 +1313,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             if (anonymizeOnDelete) {
                 User anonym = new User();
                 anonym.setId(user.getId());
+                anonym.setOrganizationId(user.getOrganizationId());
                 anonym.setCreatedAt(user.getCreatedAt());
                 anonym.setUpdatedAt(user.getUpdatedAt());
                 anonym.setStatus(user.getStatus());

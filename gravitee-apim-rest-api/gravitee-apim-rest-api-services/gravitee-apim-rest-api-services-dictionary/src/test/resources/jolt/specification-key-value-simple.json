@@ -1,0 +1,13 @@
+[
+  {
+    "operation": "shift",
+    "spec": {
+      "content": {
+        "*": {
+          "$": "[#2].key",
+          "@": "[#2].value"
+        }
+      }
+    }
+  }
+]

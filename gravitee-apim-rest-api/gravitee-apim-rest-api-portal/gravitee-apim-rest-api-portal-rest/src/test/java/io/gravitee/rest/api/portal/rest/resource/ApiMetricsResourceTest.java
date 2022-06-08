@@ -178,5 +178,21 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
         assertNull(apiMetrics.getHits());
         assertNull(apiMetrics.getHealth());
         assertNull(apiMetrics.getSubscribers());
+
+        // Case 3 - with null globalAvailability 1w
+        doReturn(null).when(analyticsService).execute(any(StatsQuery.class));
+        doReturn(null).when(subscriptionService).search(any(), any());
+        io.gravitee.rest.api.model.healthcheck.ApiMetrics<Number> mockedMetrics3 = new io.gravitee.rest.api.model.healthcheck.ApiMetrics<>();
+        mockedMetrics.setGlobal(Collections.singletonMap("1w", null));
+        doReturn(mockedMetrics3).when(healthCheckService).getAvailability(any(), any(), any());
+
+        response = target(API).path("metrics").request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        apiMetrics = response.readEntity(ApiMetrics.class);
+        assertNotNull(apiMetrics);
+        assertNull(apiMetrics.getHits());
+        assertNull(apiMetrics.getHealth());
+        assertNull(apiMetrics.getSubscribers());
     }
 }

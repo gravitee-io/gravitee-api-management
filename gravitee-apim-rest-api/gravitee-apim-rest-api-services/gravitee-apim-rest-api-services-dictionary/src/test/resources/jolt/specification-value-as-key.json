@@ -4,8 +4,8 @@
     "spec": {
       "content": {
         "*": {
-          "stores_id": "[&1].key",
-          "backend_url": "[&1].value"
+          "$": "[#2].value",
+          "@": "[#2].key"
         }
       }
     }

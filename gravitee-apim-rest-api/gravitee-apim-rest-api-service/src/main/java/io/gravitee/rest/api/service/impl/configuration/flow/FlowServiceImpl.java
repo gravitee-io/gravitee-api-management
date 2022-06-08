@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
+import io.gravitee.rest.api.service.converter.FlowConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
@@ -58,6 +59,9 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
 
     @Autowired
     private TagService tagService;
+
+    @Autowired
+    private FlowConverter flowConverter;
 
     private String getFileContent(final String path) {
         try {
@@ -121,23 +125,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                 .findByReference(flowReferenceType, referenceId)
                 .stream()
                 .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
-                .map(
-                    flow -> {
-                        Flow f = new Flow();
-                        f.setPost(flow.getPost().stream().map(this::convert).collect(Collectors.toList()));
-                        f.setPre(flow.getPre().stream().map(this::convert).collect(Collectors.toList()));
-                        final PathOperator pathOperator = new PathOperator();
-                        pathOperator.setPath(flow.getPath());
-                        pathOperator.setOperator(Operator.valueOf(flow.getOperator().name()));
-                        f.setPathOperator(pathOperator);
-                        f.setName(flow.getName());
-                        f.setMethods(flow.getMethods());
-                        f.setEnabled(flow.isEnabled());
-                        f.setCondition(flow.getCondition());
-                        f.setConsumers(flow.getConsumers().stream().map(this::convert).collect(Collectors.toList()));
-                        return f;
-                    }
-                )
+                .map(flowConverter::toDefinition)
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while find flows by reference";
@@ -151,89 +139,18 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
         try {
             LOGGER.debug("Save flows for reference {},{}", flowReferenceType, flowReferenceType);
             flowRepository.deleteByReference(flowReferenceType, referenceId);
-            if (flows != null) {
-                ArrayList<Flow> savedFlows = new ArrayList<>();
-                int flowOrder = 0;
-                for (Flow flow : flows) {
-                    final io.gravitee.repository.management.model.flow.Flow convertedFlow = convert(flowReferenceType, referenceId, flow);
-                    convertedFlow.setOrder(flowOrder++);
-                    io.gravitee.repository.management.model.flow.Flow savedFlow = flowRepository.create(convertedFlow);
-                    savedFlows.add(convert(savedFlow));
+            if (flows == null) {
+                return List.of();
+            } else {
+                for (int order = 0; order < flows.size(); ++order) {
+                    flowRepository.create(flowConverter.toModel(flows.get(order), flowReferenceType, referenceId, order));
                 }
+                return flows;
             }
-            return flows;
         } catch (TechnicalException ex) {
             final String error = "An error occurs while save flows";
             LOGGER.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
-    }
-
-    private Flow convert(io.gravitee.repository.management.model.flow.Flow model) {
-        Flow flow = new Flow();
-        flow.setCondition(model.getCondition());
-        flow.setEnabled(model.isEnabled());
-        flow.setMethods(model.getMethods());
-        flow.setName(model.getName());
-        final PathOperator pathOperator = new PathOperator();
-        pathOperator.setPath(model.getPath());
-        pathOperator.setOperator(Operator.valueOf(model.getOperator().name()));
-        flow.setPathOperator(pathOperator);
-        flow.setPre(model.getPre().stream().map(this::convert).collect(Collectors.toList()));
-        flow.setPost(model.getPost().stream().map(this::convert).collect(Collectors.toList()));
-        flow.setConsumers(model.getConsumers().stream().map(this::convert).collect(Collectors.toList()));
-        return flow;
-    }
-
-    private FlowConsumer convertConsumer(Consumer consumer) {
-        FlowConsumer flowConsumer = new FlowConsumer();
-        flowConsumer.setConsumerId(consumer.getConsumerId());
-        flowConsumer.setConsumerType(FlowConsumerType.valueOf(consumer.getConsumerType().name()));
-        return flowConsumer;
-    }
-
-    private Consumer convert(FlowConsumer flowConsumer) {
-        Consumer consumer = new Consumer();
-        consumer.setConsumerId(flowConsumer.getConsumerId());
-        consumer.setConsumerType(ConsumerType.valueOf(flowConsumer.getConsumerType().name()));
-        return consumer;
-    }
-
-    private io.gravitee.repository.management.model.flow.Flow convert(FlowReferenceType flowReferenceType, String referenceId, Flow flow) {
-        io.gravitee.repository.management.model.flow.Flow f = new io.gravitee.repository.management.model.flow.Flow();
-        f.setReferenceType(flowReferenceType);
-        f.setReferenceId(referenceId);
-        f.setPost(flow.getPost().stream().map(this::convertStep).collect(Collectors.toList()));
-        f.setPre(flow.getPre().stream().map(this::convertStep).collect(Collectors.toList()));
-        f.setPath(flow.getPath());
-        f.setOperator(FlowOperator.valueOf(flow.getOperator().name()));
-        f.setName(flow.getName());
-        f.setMethods(flow.getMethods());
-        f.setEnabled(flow.isEnabled());
-        f.setCondition(flow.getCondition());
-        f.setConsumers(flow.getConsumers().stream().map(this::convertConsumer).collect(Collectors.toList()));
-        return f;
-    }
-
-    private FlowStep convertStep(Step step) {
-        FlowStep flowStep = new FlowStep();
-        flowStep.setPolicy(step.getPolicy());
-        flowStep.setName(step.getName());
-        flowStep.setEnabled(step.isEnabled());
-        flowStep.setConfiguration(step.getConfiguration());
-        flowStep.setDescription(step.getDescription());
-        flowStep.setCondition(step.getCondition());
-        return flowStep;
-    }
-
-    private Step convert(FlowStep flowStep) {
-        Step step = new Step();
-        step.setPolicy(flowStep.getPolicy());
-        step.setName(flowStep.getName());
-        step.setEnabled(flowStep.isEnabled());
-        step.setConfiguration(flowStep.getConfiguration());
-        step.setDescription(flowStep.getDescription());
-        step.setCondition(flowStep.getCondition());
-        return step;
     }
 }

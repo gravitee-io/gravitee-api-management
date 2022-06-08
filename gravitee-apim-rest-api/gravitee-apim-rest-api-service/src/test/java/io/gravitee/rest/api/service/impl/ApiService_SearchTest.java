@@ -117,6 +117,7 @@ public class ApiService_SearchTest {
         objectMapper.setFilterProvider(
             new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
         );
+        GraviteeContext.cleanContext();
     }
 
     @Test
