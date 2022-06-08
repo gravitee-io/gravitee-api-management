@@ -52,7 +52,6 @@ import io.vertx.core.buffer.Buffer;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -385,19 +384,19 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
                 boolean presentWithSameRole = isPresentWithSameRole(membersAlreadyPresent, memberToImport);
 
-                List<String> rolesToImport = getRolesToImport(executionContext, memberToImport);
-                addOrUpdateMembers(executionContext, apiId, poRoleId, currentPo, memberToImport, rolesToImport, presentWithSameRole);
+                List<String> roleIdsToImport = getRoleIdsToImport(executionContext, memberToImport);
+                addOrUpdateMembers(executionContext, apiId, poRoleId, currentPo, memberToImport, roleIdsToImport, presentWithSameRole);
 
                 // get the future role of the current PO
                 if (
                     currentPo.getSourceId().equals(memberToImport.getSourceId()) &&
                     currentPo.getSource().equals(memberToImport.getSource()) &&
-                    !rolesToImport.contains(poRoleId)
+                    !roleIdsToImport.contains(poRoleId)
                 ) {
-                    roleUsedInTransfert = rolesToImport;
+                    roleUsedInTransfert = roleIdsToImport;
                 }
 
-                if (rolesToImport.contains(poRoleId)) {
+                if (roleIdsToImport.contains(poRoleId)) {
                     futurePo = memberToImport;
                 }
             }
@@ -445,41 +444,33 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         );
     }
 
-    protected List<String> getRolesToImport(ExecutionContext executionContext, MemberToImport memberToImport) {
-        List<String> rolesToImport = memberToImport.getRoles();
-        if (rolesToImport == null) {
-            rolesToImport = new ArrayList<>();
-            memberToImport.setRoles(rolesToImport);
+    protected List<String> getRoleIdsToImport(ExecutionContext executionContext, MemberToImport memberToImport) {
+        // Starting with v3, multiple roles per member can be imported and it is a list of role Ids.
+        List<String> roleIdsToImport = memberToImport.getRoles();
+        if (roleIdsToImport == null) {
+            roleIdsToImport = new ArrayList<>();
+            memberToImport.setRoles(roleIdsToImport);
         } else {
-            rolesToImport = new ArrayList<>(rolesToImport);
+            roleIdsToImport = new ArrayList<>(roleIdsToImport);
         }
 
-        // Before v3, only one role per member could be imported
-        String roleToAdd = memberToImport.getRole();
-        if (roleToAdd != null && !roleToAdd.isEmpty()) {
-            rolesToImport.add(roleToAdd);
+        // Before v3, only one role per member could be imported and it was a role name.
+        String roleNameToAdd = memberToImport.getRole();
+        if (roleNameToAdd != null && !roleNameToAdd.isEmpty()) {
+            Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(
+                RoleScope.API,
+                roleNameToAdd,
+                executionContext.getOrganizationId()
+            );
+            if (optRoleToAddEntity.isPresent()) {
+                roleIdsToImport.add(optRoleToAddEntity.get().getId());
+            } else {
+                LOGGER.warn("Role {} does not exist", roleNameToAdd);
+            }
         }
+        roleIdsToImport.sort(Comparator.naturalOrder());
 
-        return rolesToImport
-            .stream()
-            .map(
-                role -> {
-                    final Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(
-                        RoleScope.API,
-                        role,
-                        executionContext.getOrganizationId()
-                    );
-                    if (optRoleToAddEntity.isPresent()) {
-                        return role;
-                    } else {
-                        LOGGER.warn("Role {} does not exist", roleToAdd);
-                        return null;
-                    }
-                }
-            )
-            .filter(Objects::nonNull)
-            .sorted(Comparator.naturalOrder())
-            .collect(Collectors.toList());
+        return roleIdsToImport;
     }
 
     private void addOrUpdateMembers(
