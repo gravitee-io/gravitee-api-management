@@ -1291,7 +1291,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 throw new UserNotFoundException(id);
             }
 
-            membershipService.removeMemberMemberships(MembershipMemberType.USER, id);
+            membershipService.removeMemberMemberships(executionContext, MembershipMemberType.USER, id);
             User user = optionalUser.get();
 
             //remove notifications

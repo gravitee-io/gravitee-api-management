@@ -1145,7 +1145,8 @@ public class UserServiceTest {
             fail("should throw StillPrimaryOwnerException");
         } catch (StillPrimaryOwnerException e) {
             //success
-            verify(membershipService, never()).removeMemberMemberships(MembershipMemberType.USER, USER_NAME);
+            verify(membershipService, never())
+                .removeMemberMemberships(GraviteeContext.getExecutionContext(), MembershipMemberType.USER, USER_NAME);
             verify(userRepository, never()).update(any());
             verify(searchEngineService, never()).delete(eq(GraviteeContext.getExecutionContext()), any());
         }
@@ -1165,7 +1166,8 @@ public class UserServiceTest {
             fail("should throw StillPrimaryOwnerException");
         } catch (StillPrimaryOwnerException e) {
             //success
-            verify(membershipService, never()).removeMemberMemberships(MembershipMemberType.USER, USER_NAME);
+            verify(membershipService, never())
+                .removeMemberMemberships(GraviteeContext.getExecutionContext(), MembershipMemberType.USER, USER_NAME);
             verify(userRepository, never()).update(any());
             verify(searchEngineService, never()).delete(eq(GraviteeContext.getExecutionContext()), any());
         }
@@ -1193,7 +1195,8 @@ public class UserServiceTest {
 
         verify(apiService, times(1)).findByUser(GraviteeContext.getExecutionContext(), userId, null, false);
         verify(applicationService, times(1)).findByUser(eq(GraviteeContext.getExecutionContext()), eq(userId));
-        verify(membershipService, times(1)).removeMemberMemberships(MembershipMemberType.USER, userId);
+        verify(membershipService, times(1))
+            .removeMemberMemberships(GraviteeContext.getExecutionContext(), MembershipMemberType.USER, userId);
         verify(userRepository, times(1))
             .update(
                 argThat(
@@ -1247,7 +1250,8 @@ public class UserServiceTest {
 
         verify(apiService, times(1)).findByUser(GraviteeContext.getExecutionContext(), userId, null, false);
         verify(applicationService, times(1)).findByUser(eq(GraviteeContext.getExecutionContext()), eq(userId));
-        verify(membershipService, times(1)).removeMemberMemberships(MembershipMemberType.USER, userId);
+        verify(membershipService, times(1))
+            .removeMemberMemberships(GraviteeContext.getExecutionContext(), MembershipMemberType.USER, userId);
         verify(userRepository, times(1))
             .update(
                 argThat(

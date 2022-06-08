@@ -173,7 +173,7 @@ public interface MembershipService {
         String roleId
     );
     void removeRoleUsage(String oldRoleId, String newRoleId);
-    void removeMemberMemberships(MembershipMemberType memberType, String memberId);
+    void removeMemberMemberships(ExecutionContext executionContext, MembershipMemberType memberType, String memberId);
     void transferApiOwnership(
         ExecutionContext executionContext,
         String apiId,

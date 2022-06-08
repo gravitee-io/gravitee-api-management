@@ -463,7 +463,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
                 eventManager.publishEvent(
                     ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
-                    new ApplicationAlertMembershipEvent(Collections.emptySet(), Collections.singleton(groupId))
+                    new ApplicationAlertMembershipEvent(
+                        executionContext.getOrganizationId(),
+                        Collections.emptySet(),
+                        Collections.singleton(groupId)
+                    )
                 );
             }
         } catch (TechnicalException ex) {
@@ -612,7 +616,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             eventManager.publishEvent(
                 ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
-                new ApplicationAlertMembershipEvent(applicationIds, Collections.emptySet())
+                new ApplicationAlertMembershipEvent(executionContext.getOrganizationId(), applicationIds, Collections.emptySet())
             );
 
             //remove from portal pages
@@ -950,7 +954,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
         eventManager.publishEvent(
             ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
-            new ApplicationAlertMembershipEvent(Collections.emptySet(), Collections.singleton(groupId))
+            new ApplicationAlertMembershipEvent(
+                executionContext.getOrganizationId(),
+                Collections.emptySet(),
+                Collections.singleton(groupId)
+            )
         );
         membershipService.deleteReferenceMember(
             executionContext,

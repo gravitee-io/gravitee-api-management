@@ -15,24 +15,20 @@
  */
 package io.gravitee.rest.api.model.notification;
 
+import io.gravitee.rest.api.model.event.AbstractOrganizationEvent;
 import java.util.Objects;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NotificationTemplateEvent {
+public class NotificationTemplateEvent extends AbstractOrganizationEvent {
 
-    private String organizationId;
     private NotificationTemplateEntity notificationTemplateEntity;
 
     public NotificationTemplateEvent(String organizationId, NotificationTemplateEntity notificationTemplateEntity) {
-        this.organizationId = organizationId;
+        super(organizationId);
         this.notificationTemplateEntity = notificationTemplateEntity;
-    }
-
-    public String getOrganizationId() {
-        return organizationId;
     }
 
     public NotificationTemplateEntity getNotificationTemplateEntity() {
@@ -45,13 +41,13 @@ public class NotificationTemplateEvent {
         if (o == null || getClass() != o.getClass()) return false;
         NotificationTemplateEvent that = (NotificationTemplateEvent) o;
         return (
-            Objects.equals(organizationId, that.organizationId) &&
+            Objects.equals(this.getOrganizationId(), that.getOrganizationId()) &&
             Objects.equals(notificationTemplateEntity, that.notificationTemplateEntity)
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(organizationId, notificationTemplateEntity);
+        return Objects.hash(this.getOrganizationId(), notificationTemplateEntity);
     }
 }
