@@ -15,15 +15,19 @@
  */
 package io.gravitee.repository.bridge.client;
 
-import io.gravitee.repository.Repository;
-import io.gravitee.repository.Scope;
+import io.gravitee.platform.repository.api.RepositoryProvider;
+import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.bridge.client.management.ManagementRepositoryConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpBridgeRepository implements Repository {
+public class HttpBridgeRepositoryProvider implements RepositoryProvider {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpBridgeRepositoryProvider.class);
 
     @Override
     public String type() {
@@ -40,7 +44,7 @@ public class HttpBridgeRepository implements Repository {
         if (scope == Scope.MANAGEMENT) {
             return ManagementRepositoryConfiguration.class;
         }
-
+        LOGGER.debug("Skipping unhandled repository scope {}", scope);
         return null;
     }
 }

@@ -45,6 +45,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.platform</groupId>
+            <artifactId>gravitee-platform-repository-api</artifactId>
+        </dependency>
+
         <!-- Gravitee.io Elasticsearch -->
         <dependency>
             <groupId>io.gravitee.elasticsearch</groupId>

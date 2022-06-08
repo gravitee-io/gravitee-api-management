@@ -15,15 +15,19 @@
  */
 package io.gravitee.repository.hazelcast;
 
-import io.gravitee.repository.Repository;
-import io.gravitee.repository.Scope;
+import io.gravitee.platform.repository.api.RepositoryProvider;
+import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.hazelcast.spring.PluginConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HazelcastRepository implements Repository {
+public class HazelcastRepositoryProvider implements RepositoryProvider {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HazelcastRepositoryProvider.class);
 
     private static final String TYPE = "hazelcast";
 
@@ -42,7 +46,7 @@ public class HazelcastRepository implements Repository {
         if (scope == Scope.RATE_LIMIT) {
             return PluginConfiguration.class;
         }
-
+        LOGGER.debug("Skipping unhandled repository scope {}", scope);
         return null;
     }
 }
