@@ -166,6 +166,11 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
                 // We make the assumption that an IllegalStateException is thrown when trying to update the event while it is not existing in the database anymore.
                 // This can be cause, for instance, by a db event cleanup without taking care of the heartbeat event.
                 event.getProperties().put(EVENT_STATE_PROPERTY, "recreate");
+                LOGGER.warn(
+                    "An error occurred while trying to update the event id[{}] type[{}] while it is not existing anymore",
+                    event.getId(),
+                    event.getType()
+                );
                 topic.publish(event);
             } catch (Exception ex) {
                 // We assume to loose the event if something goes wrong and not republish it to avoid infinite loop and cpu starving. It will be overridden by the next heartbeat event.
