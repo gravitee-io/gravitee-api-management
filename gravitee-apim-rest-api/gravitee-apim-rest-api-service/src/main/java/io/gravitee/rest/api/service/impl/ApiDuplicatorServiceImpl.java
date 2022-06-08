@@ -572,7 +572,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     protected void createOrUpdatePlans(String apiId, ImportApiJsonNode apiJsonNode, String environmentId) throws IOException {
-        if (apiJsonNode.hasPlans() && !apiJsonNode.getPlans().isEmpty()) {
+        if (apiJsonNode.hasPlans()) {
             Map<String, PlanEntity> existingPlans = planService
                 .findByApi(apiId)
                 .stream()
