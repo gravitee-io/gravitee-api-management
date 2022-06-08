@@ -25,7 +25,7 @@ import java.util.Random;
  */
 public class WeightedRandomLoadBalancer extends WeightedLoadBalancer {
 
-    private final Random rnd = new Random();
+    private final Random rnd = new Random(); // NOSONAR the random value is not used for security purposes here
     private int distributionRatioSum;
     private int runtimeRatioSum;
 

@@ -25,7 +25,7 @@ import java.util.Random;
  */
 public class RandomLoadBalancer extends LoadBalancer {
 
-    private static final Random RANDOM = new Random();
+    private static final Random RANDOM = new Random(); // NOSONAR the random value is not used for security purposes here
 
     public RandomLoadBalancer(Collection<Endpoint> endpoints) {
         super(endpoints);
