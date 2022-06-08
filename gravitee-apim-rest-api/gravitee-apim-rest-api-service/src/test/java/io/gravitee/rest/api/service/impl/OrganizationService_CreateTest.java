@@ -111,7 +111,6 @@ public class OrganizationService_CreateTest {
 
         when(mockOrganizationRepository.create(any())).thenReturn(createdOrganization);
         when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, "org_id")).thenReturn(new ArrayList<>());
-        when(mapper.writeValueAsString(any())).thenReturn("{}");
 
         GraviteeContext.setCurrentOrganization("org_id");
 
@@ -158,7 +157,6 @@ public class OrganizationService_CreateTest {
         createdOrganization.setId("org_id");
         when(mockOrganizationRepository.update(any())).thenReturn(createdOrganization);
         when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, "org_id")).thenReturn(org1.getFlows());
-        when(mapper.writeValueAsString(any())).thenReturn("{}");
 
         EnvironmentEntity env1 = new EnvironmentEntity();
         env1.setId("env_1");
