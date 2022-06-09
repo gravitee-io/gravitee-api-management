@@ -18,41 +18,30 @@ print('In parameters collection duplicate some key for authentication, recaptcha
 db.parameters.find({ referenceId: { $exists: true }}).forEach(parameter => {
     if (duplicatedKeysForConsole.includes(parameter._id)) {
         const consoleParameterKey = parameter._id.startsWith('portal') ? parameter._id.replace('portal', 'console') : 'console.' + parameter._id;
-        const consoleParameter = {
-            _id: {
-                key: consoleParameterKey,
-                referenceId: 'DEFAULT',
-                referenceType: 'ORGANIZATION',
-            },
-            value: parameter.value
-        }
-        db.parameters.insertOne(consoleParameter);
+        const consoleId = {
+            key: consoleParameterKey,
+            referenceId: 'DEFAULT',
+            referenceType: 'ORGANIZATION',
+        };
+        const consoleParameter = { _id: consoleId, value: parameter.value };
+        db.parameters.replaceOne({ _id: consoleId }, consoleParameter, { upsert: true });
         print('Console parameter created: ' + consoleParameterKey);
     }
 
-    let portalParameter = {};
+    let portalParameterKey;
     if (duplicatedKeysForConsole.includes(parameter._id) || parameter._id === 'authentication.forceLogin.enabled') {
-        const portalParameterKey = parameter._id.startsWith('portal') ? parameter._id : 'portal.' + parameter._id;
-        portalParameter = {
-            _id: {
-                key: portalParameterKey,
-                referenceId: parameter.referenceId,
-                referenceType: parameter.referenceType,
-            },
-            value: parameter.value
-        }
+        portalParameterKey = parameter._id.startsWith('portal') ? parameter._id : 'portal.' + parameter._id;
     } else {
-        portalParameter = {
-            _id: {
-                key: parameter._id,
-                referenceId: parameter.referenceId,
-                referenceType: parameter.referenceType,
-            },
-            value: parameter.value
-        }
+        portalParameterKey = parameter._id;
     }
-    db.parameters.insertOne(portalParameter);
-    db.parameters.remove(parameter);
-
+    const portalId = {
+        key: portalParameterKey,
+        referenceId: parameter.referenceId,
+        referenceType: parameter.referenceType,
+    };
+    const portalParameter = { _id: portalId, value: parameter.value }
+    db.parameters.replaceOne({ _id: portalId }, portalParameter, { upsert: true });
     print('Portal parameter key updated: ' + portalParameter._id.key);
+
+    db.parameters.remove(parameter);
 });
