@@ -22,12 +22,14 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.NewApiEntity;
@@ -37,6 +39,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -45,6 +48,7 @@ import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.io.Reader;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -134,6 +138,9 @@ public class ApiService_CreateTest {
 
     @Mock
     private PlanService planService;
+
+    @Mock
+    private FlowService flowService;
 
     @Spy
     private ApiConverter apiConverter;
@@ -338,5 +345,27 @@ public class ApiService_CreateTest {
                 new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
             );
+    }
+
+    @Test
+    public void shouldCreate_AndSaveFlows() throws TechnicalException {
+        when(api.getId()).thenReturn(API_ID);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+
+        when(newApi.getName()).thenReturn(API_NAME);
+        when(newApi.getVersion()).thenReturn("v1");
+        when(newApi.getDescription()).thenReturn("Ma description");
+
+        List<Flow> apiFlows = List.of(mock(Flow.class), mock(Flow.class));
+        when(newApi.getFlows()).thenReturn(apiFlows);
+
+        UserEntity admin = new UserEntity();
+        admin.setId(USER_NAME);
+        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
+
+        apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
+
+        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, apiFlows);
     }
 }

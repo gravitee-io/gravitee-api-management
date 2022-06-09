@@ -48,14 +48,10 @@ public class ApiConverter {
     private ObjectMapper objectMapper;
 
     public ApiEntity toApiEntity(Api api) {
-        return toApiEntity(api, new HashSet<>(), null);
+        return toApiEntity(api, null);
     }
 
-    public ApiEntity toApiEntity(Api api, Set<PlanEntity> plans) {
-        return toApiEntity(api, plans, null);
-    }
-
-    public ApiEntity toApiEntity(Api api, Set<PlanEntity> plans, PrimaryOwnerEntity primaryOwnerEntity) {
+    public ApiEntity toApiEntity(Api api, PrimaryOwnerEntity primaryOwnerEntity) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setId(api.getId());
@@ -86,7 +82,6 @@ public class ApiConverter {
                 }
                 if (DefinitionVersion.V2.equals(apiDefinition.getDefinitionVersion())) {
                     apiEntity.setFlows(apiDefinition.getFlows());
-                    apiEntity.setPlans(plans);
                 } else {
                     apiEntity.setFlows(null);
                     apiEntity.setPlans(null);

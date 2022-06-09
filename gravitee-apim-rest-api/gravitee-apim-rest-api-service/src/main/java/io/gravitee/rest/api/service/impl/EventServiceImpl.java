@@ -33,12 +33,14 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -70,6 +72,9 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
     @Autowired
     private PlanService planService;
+
+    @Autowired
+    private FlowService flowService;
 
     @Autowired
     private PlanConverter planConverter;
@@ -375,7 +380,9 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
     /**
      * Build gateway API definition for given Api.
-     * It reads API plans from plan collections, and generates gateway API definition from management API definition (containing no plans).
+     *
+     * It reads API plans from plan collections, and API flows from flow collection ;
+     * And generates gateway API definition from management API definition (containing no plans or flows).
      *
      * @param executionContext
      * @param api
@@ -385,12 +392,15 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     private io.gravitee.definition.model.Api buildGatewayApiDefinition(ExecutionContext executionContext, Api api)
         throws JsonProcessingException {
         var apiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
+
         Set<PlanEntity> plans = planService
             .findByApi(executionContext, api.getId())
             .stream()
             .filter(p -> p.getStatus() != CLOSED)
             .collect(toSet());
+
         apiDefinition.setPlans(planConverter.toPlansDefinitions(plans));
+        apiDefinition.setFlows(flowService.findByReference(FlowReferenceType.API, api.getId()));
         return apiDefinition;
     }
 }

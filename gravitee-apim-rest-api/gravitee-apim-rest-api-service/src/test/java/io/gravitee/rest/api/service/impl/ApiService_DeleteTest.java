@@ -26,11 +26,13 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
@@ -70,6 +72,9 @@ public class ApiService_DeleteTest {
 
     @Mock
     private PlanService planService;
+
+    @Mock
+    private FlowService flowService;
 
     @Mock
     private MembershipService membershipService;
@@ -148,6 +153,7 @@ public class ApiService_DeleteTest {
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
+        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
     }
 
     @Test(expected = ApiNotDeletableException.class)
@@ -173,6 +179,7 @@ public class ApiService_DeleteTest {
 
         verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN_ID);
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
     }
 
     @Test
@@ -190,5 +197,6 @@ public class ApiService_DeleteTest {
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
+        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
     }
 }

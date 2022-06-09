@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.debug.DebugApi;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
@@ -30,10 +31,12 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -104,6 +107,9 @@ public class EventServiceTest {
 
     @Mock
     private PlanService planService;
+
+    @Mock
+    private FlowService flowService;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -604,12 +610,53 @@ public class EventServiceTest {
         assertEquals("plan3", payloadApiDefinition.getPlans().get(1).getId());
     }
 
+    @Test
+    public void createApiEvent_shouldReadDatabaseApiFlows_thenCreateEvent_withPayloadContainingFlows()
+        throws TechnicalException, JsonProcessingException {
+        ObjectMapper realObjectMapper = new ObjectMapper();
+        ReflectionTestUtils.setField(eventService, "objectMapper", realObjectMapper);
+        ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter());
+        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        Api api = new Api();
+        api.setId(API_ID);
+        api.setDefinition("{}");
+
+        when(flowService.findByReference(FlowReferenceType.API, API_ID)).thenReturn(List.of(buildFlow("flow1"), buildFlow("flow2")));
+
+        eventService.createApiEvent(
+            GraviteeContext.getExecutionContext(),
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.PUBLISH_API,
+            api,
+            Map.of()
+        );
+
+        // check event has been created and capture his payload
+        ArgumentCaptor<Event> createdEvent = ArgumentCaptor.forClass(Event.class);
+        verify(eventRepository, times(1)).create(createdEvent.capture());
+        verifyNoMoreInteractions(eventRepository);
+
+        // deserialize payload event and check it contains api flows from database
+        Api payloadApi = realObjectMapper.readValue(createdEvent.getValue().getPayload(), Api.class);
+        var payloadApiDefinition = realObjectMapper.readValue(payloadApi.getDefinition(), io.gravitee.definition.model.Api.class);
+        assertEquals(2, payloadApiDefinition.getFlows().size());
+        assertEquals("flow1", payloadApiDefinition.getFlows().get(0).getName());
+        assertEquals("flow2", payloadApiDefinition.getFlows().get(1).getName());
+    }
+
     private PlanEntity buildPlanEntity(String id, PlanStatus status) {
         PlanEntity plan = new PlanEntity();
         plan.setId(id);
         plan.setStatus(status);
         plan.setSecurity(PlanSecurityType.KEY_LESS);
         return plan;
+    }
+
+    private Flow buildFlow(String name) {
+        Flow flow = new Flow();
+        flow.setName(name);
+        return flow;
     }
 
     private Event generateInstanceEvent(String name, boolean isUnknown) {

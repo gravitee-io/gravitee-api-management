@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
@@ -38,6 +39,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Workflow;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -51,6 +53,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
@@ -213,6 +216,9 @@ public class ApiService_UpdateTest {
     @Mock
     private PlanService planService;
 
+    @Mock
+    private FlowService flowService;
+
     @InjectMocks
     private ApiConverter apiConverter;
 
@@ -300,6 +306,18 @@ public class ApiService_UpdateTest {
 
         verify(planService, times(1)).createOrUpdatePlan(any(), same(plan1));
         verify(planService, times(1)).createOrUpdatePlan(any(), same(plan2));
+    }
+
+    @Test
+    public void shouldUpdateFlows() throws TechnicalException {
+        prepareUpdate();
+
+        List<Flow> apiFlows = List.of(mock(Flow.class), mock(Flow.class));
+        updateApiEntity.setFlows(apiFlows);
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, apiFlows);
     }
 
     @Test(expected = ApiNotFoundException.class)

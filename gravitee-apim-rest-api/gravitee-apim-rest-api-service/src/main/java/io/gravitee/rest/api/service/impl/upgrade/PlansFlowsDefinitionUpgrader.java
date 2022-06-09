@@ -34,14 +34,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * This upgrader moves plans flows data from apis.definition to plans.flows.
+ * This upgrader moves API flows and plans flows data from apis.definition to flows collection.
  *
  * @author GraviteeSource Team
  */
 @Component
 public class PlansFlowsDefinitionUpgrader extends OneShotUpgrader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PlansFlowsDefinitionUpgrader.class);
 
     @Autowired
     private ApiRepository apiRepository;
@@ -73,13 +71,15 @@ public class PlansFlowsDefinitionUpgrader extends OneShotUpgrader {
             );
 
             if (DefinitionVersion.V2 == apiDefinition.getDefinitionVersion()) {
-                migrateApiPlansFlows(api.getId(), apiDefinition);
+                migrateApiFlows(api.getId(), apiDefinition);
             }
         }
     }
 
-    protected void migrateApiPlansFlows(String apiId, io.gravitee.definition.model.Api apiDefinition) throws Exception {
+    protected void migrateApiFlows(String apiId, io.gravitee.definition.model.Api apiDefinition) throws Exception {
         Map<String, Plan> plansById = planRepository.findByApi(apiId).stream().collect(toMap(Plan::getId, Function.identity()));
+
+        flowService.save(FlowReferenceType.API, apiDefinition.getId(), apiDefinition.getFlows());
 
         apiDefinition
             .getPlans()
