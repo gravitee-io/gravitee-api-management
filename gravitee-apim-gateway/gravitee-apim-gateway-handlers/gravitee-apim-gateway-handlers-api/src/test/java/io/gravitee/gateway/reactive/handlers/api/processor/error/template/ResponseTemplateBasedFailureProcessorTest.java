@@ -59,7 +59,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure().statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
@@ -80,7 +80,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure().key("POLICY_ERROR_KEY").statusCode(HttpStatusCode.BAD_REQUEST_400);
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY");
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
@@ -101,9 +101,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure()
-            .key("POLICY_ERROR_KEY")
-            .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
+
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
@@ -124,9 +123,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure()
-            .key("POLICY_ERROR_KEY")
-            .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
+
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_XML));
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
@@ -152,9 +150,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure()
-            .key("POLICY_ERROR_KEY")
-            .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_XML));
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
@@ -177,9 +173,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure()
-            .key("POLICY_ERROR_KEY")
-            .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_JSON));
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
@@ -202,9 +196,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure()
-            .key("POLICY_ERROR_KEY")
-            .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, List.of("text/html", " application/json", "*/*;q=0.8", "application/xml;q=0.9"));
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);

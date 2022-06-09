@@ -42,6 +42,7 @@ import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.handlers.api.security.SecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.Reactable;
@@ -54,6 +55,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +65,8 @@ import org.slf4j.LoggerFactory;
  */
 public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor, ReactorHandler {
 
-    private final Logger log = LoggerFactory.getLogger(SyncApiReactor.class);
+    private static final Logger log = LoggerFactory.getLogger(SyncApiReactor.class);
+    protected static final String ATTR_INVOKER_SKIP = "invoker.skip";
     private final Api api;
     private final ComponentProvider componentProvider;
     private final List<TemplateVariableProvider> templateVariableProviders;
@@ -79,6 +82,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private final ProcessorChain apiPreProcessorChain;
     private final ProcessorChain apiPostProcessorChain;
     private final ProcessorChain apiErrorProcessorChain;
+    private SecurityChain securityChain;
 
     public SyncApiReactor(
         final Api api,
@@ -149,18 +153,20 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         metrics.setApi(api.getId());
         metrics.setPath(request.pathInfo());
-        metrics.setApiResponseTimeMs(System.currentTimeMillis());
     }
 
     private Completable handleRequest(final RequestExecutionContext ctx) {
-        // Execute platform flow chain
-        return executeFlowChain(ctx, platformFlowChain, REQUEST)
+        // Execute platform flow chain.
+        return platformFlowChain
+            .execute(ctx, REQUEST)
+            // Execute security chain.
+            .andThen(securityChain.execute(ctx))
             // Execute pre api processor chain
             .andThen(executeProcessorsChain(ctx, apiPreProcessorChain, REQUEST))
             .andThen(executeFlowChain(ctx, apiPlanFlowChain, REQUEST))
             .andThen(executeFlowChain(ctx, apiFlowChain, REQUEST))
             // All request flows have been executed. Invokes backend.
-            .andThen(invokeBackend(ctx, REQUEST))
+            .andThen(invokeBackend(ctx))
             // Execute response flows (api plan, api, platform).
             .andThen(executeFlowChain(ctx, apiPlanFlowChain, RESPONSE))
             .andThen(executeFlowChain(ctx, apiFlowChain, RESPONSE))
@@ -172,7 +178,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             // Catch all possible unexpected errors.
             .onErrorResumeNext(t -> handleError(ctx, t))
             // Finally, end the response.
-            .andThen(endResponse(ctx));
+            .andThen(endResponse(ctx))
+            .doOnComplete(() -> log.debug("Response has ended"));
     }
 
     /**
@@ -180,8 +187,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      *
      * @param ctx the current context
      * @param processorChain the processor chain
+     * @param phase the phase to execute.
      *
-     * @param phase
      * @return a {@link Completable} that will complete once the flow chain phase has been fully executed.
      */
     private Completable executeProcessorsChain(
@@ -213,19 +220,27 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      *
      * @return a {@link Completable} that will complete once the invoker has been invoked or that completes immediately if execution isn't required.
      */
-    private Completable invokeBackend(final RequestExecutionContext ctx, final ExecutionPhase phase) {
+    private Completable invokeBackend(final RequestExecutionContext ctx) {
         return defer(
-            () -> {
-                if (!Boolean.FALSE.equals(ctx.<Boolean>getAttribute("invoker.skip"))) {
-                    Invoker invoker = getInvoker(ctx);
+                () -> {
+                    if (!Objects.equals(false, ctx.<Boolean>getAttribute(ATTR_INVOKER_SKIP))) {
+                        Invoker invoker = getInvoker(ctx);
 
-                    if (invoker != null) {
-                        return HookHelper.hook(invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
+                        if (invoker != null) {
+                            return HookHelper.hook(invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
+                        }
                     }
+                    return Completable.complete();
                 }
-                return Completable.complete();
-            }
-        );
+            )
+            .doOnSubscribe(disposable -> ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis()))
+            .doOnTerminate(
+                () ->
+                    ctx
+                        .request()
+                        .metrics()
+                        .setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs())
+            );
     }
 
     /**
@@ -250,7 +265,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     private Completable endResponse(RequestExecutionContext ctx) {
-        return defer(() -> ctx.response().end());
+        return ctx.response().end();
     }
 
     /**
@@ -308,6 +323,10 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         dumpVirtualHosts();
 
         long endTime = System.currentTimeMillis(); // Get the end Time
+
+        // Create securityChain once policy manager has been started.
+        this.securityChain = new SecurityChain(api, policyManager);
+
         log.debug("API reactor started in {} ms", (endTime - startTime));
     }
 
@@ -338,11 +357,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected void dumpVirtualHosts() {
         List<Entrypoint> entrypoints = api.entrypoints();
         log.debug("{} ready to accept requests on:", this);
-        entrypoints.forEach(
-            entrypoint -> {
-                log.debug("\t{}", entrypoint);
-            }
-        );
+        entrypoints.forEach(entrypoint -> log.debug("\t{}", entrypoint));
     }
 
     @Override

@@ -13,18 +13,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy.dummy;
-
-import io.gravitee.gateway.reactive.api.policy.Policy;
-
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class DummyReactivePolicy implements Policy {
-
-    @Override
-    public String id() {
-        return "dummy-reactive";
-    }
-}
