@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.mixin.ApiMixin;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -95,6 +96,9 @@ public class ApiService_StopTest {
 
     @Mock
     private PlanService planService;
+
+    @Mock
+    private FlowService flowService;
 
     @Spy
     private ApiConverter apiConverter;

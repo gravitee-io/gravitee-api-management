@@ -20,6 +20,7 @@ package io.gravitee.repository.management.model.flow;
  * @author GraviteeSource Team
  */
 public enum FlowReferenceType {
+    API,
     ORGANIZATION,
     PLAN,
 }
