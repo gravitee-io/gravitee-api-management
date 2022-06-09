@@ -19,9 +19,11 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { UpgradeModule } from '@angular/upgrade/static';
+import { GioPendoModule, GIO_PENDO_SETTINGS_TOKEN } from '@gravitee/ui-analytics';
 import { UIRouterUpgradeModule } from '@uirouter/angular-hybrid';
 
 import { uiRouterStateProvider, uiRouterStateParamsProvider, currentUserProvider, ajsRootScopeProvider } from './ajs-upgraded-providers';
+import { Constants } from './entities/Constants';
 import { ManagementModule } from './management/management.module';
 import { OrganizationSettingsModule } from './organization/configuration/organization-settings.module';
 import { httpInterceptorProviders } from './shared/interceptors/http-interceptors';
@@ -40,8 +42,25 @@ import { httpInterceptorProviders } from './shared/interceptors/http-interceptor
     UIRouterUpgradeModule,
     OrganizationSettingsModule,
     ManagementModule,
+    GioPendoModule.forRoot(),
   ],
-  providers: [httpInterceptorProviders, uiRouterStateProvider, uiRouterStateParamsProvider, currentUserProvider, ajsRootScopeProvider],
+  providers: [
+    httpInterceptorProviders,
+    uiRouterStateProvider,
+    uiRouterStateParamsProvider,
+    currentUserProvider,
+    ajsRootScopeProvider,
+    {
+      provide: GIO_PENDO_SETTINGS_TOKEN,
+      useFactory: (constants: Constants) => {
+        return {
+          enabled: constants.org?.settings?.analyticsPendo?.enabled ?? false,
+          apiKey: constants.org?.settings?.analyticsPendo?.apiKey,
+        };
+      },
+      deps: ['Constants'],
+    },
+  ],
 })
 export class AppModule {
   constructor(private upgrade: UpgradeModule) {}

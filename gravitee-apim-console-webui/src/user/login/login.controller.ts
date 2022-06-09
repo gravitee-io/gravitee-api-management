@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { GioPendoService } from '@gravitee/ui-analytics';
 import { StateParams, StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import * as _ from 'lodash';
 
 import { IdentityProvider } from '../../entities/identity-provider/identityProvider';
-import { User } from '../../entities/user';
+import { User } from '../../entities/user/user';
 import AuthenticationService from '../../services/authentication.service';
 import ReCaptchaService from '../../services/reCaptcha.service';
 import RouterService from '../../services/router.service';
@@ -41,6 +42,7 @@ class LoginController {
     private $stateParams: StateParams,
     private $scope,
     private ReCaptchaService: ReCaptchaService,
+    private ngGioPendoService: GioPendoService,
   ) {
     'ngInject';
     this.userCreationEnabled = Constants.org.settings.management.userCreation.enabled;
@@ -93,6 +95,16 @@ class LoginController {
   }
 
   loginSuccess(user: User) {
+    this.ngGioPendoService.initialize(
+      {
+        id: `${user.sourceId}`,
+        email: `${user.email}`,
+      },
+      {
+        id: `${user.sourceId}`,
+        userSource: user.source,
+      },
+    );
     this.$rootScope.$broadcast('graviteeUserRefresh', { user: user });
     const redirectUri = this.getRedirectUri();
     if (redirectUri && !redirectUri.includes('/newsletter')) {
