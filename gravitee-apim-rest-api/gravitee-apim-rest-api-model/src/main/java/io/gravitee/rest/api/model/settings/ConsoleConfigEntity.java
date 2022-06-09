@@ -25,6 +25,7 @@ public class ConsoleConfigEntity {
     private ConsoleAuthentication authentication;
     private ConsoleReCaptcha reCaptcha;
     private ConsoleScheduler scheduler;
+    private ConsoleAnalyticsPendo analyticsPendo;
     private Logging logging;
     private Maintenance maintenance;
     private Management management;
@@ -42,6 +43,7 @@ public class ConsoleConfigEntity {
         newsletter = new Newsletter();
         reCaptcha = new ConsoleReCaptcha();
         scheduler = new ConsoleScheduler();
+        analyticsPendo = new ConsoleAnalyticsPendo();
         theme = new Theme();
         jupiterMode = new JupiterMode();
     }
@@ -77,6 +79,14 @@ public class ConsoleConfigEntity {
 
     public void setScheduler(ConsoleScheduler scheduler) {
         this.scheduler = scheduler;
+    }
+
+    public ConsoleAnalyticsPendo getAnalyticsPendo() {
+        return analyticsPendo;
+    }
+
+    public void setAnalyticsPendo(ConsoleAnalyticsPendo analyticsPendo) {
+        this.analyticsPendo = analyticsPendo;
     }
 
     public Logging getLogging() {
