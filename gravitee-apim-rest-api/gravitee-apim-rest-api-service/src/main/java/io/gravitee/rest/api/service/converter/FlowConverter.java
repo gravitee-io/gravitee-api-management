@@ -67,9 +67,8 @@ public class FlowConverter {
         flow.setMethods(flowDefinition.getMethods());
         flow.setEnabled(flowDefinition.isEnabled());
         flow.setCondition(flowDefinition.getCondition());
-        flow.setConsumers(flowDefinition.getConsumers().stream().map(this::convertConsumer).collect(Collectors.toList()));
         flow.setConsumers(
-            flow.getConsumers() != null
+            flowDefinition.getConsumers() != null
                 ? flowDefinition.getConsumers().stream().map(this::convertConsumer).collect(Collectors.toList())
                 : Collections.emptyList()
         );
