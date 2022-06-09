@@ -562,7 +562,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 }
                 if (criteria.getUseAutoFetch() != null) {
                     where.add("p.use_auto_fetch = ?");
-                    params.add(criteria.getUseAutoFetch().booleanValue());
+                    params.add(criteria.getUseAutoFetch());
                 }
             }
 
