@@ -18,6 +18,15 @@
 #  api:
 #    url: http://localhost:8083/management
 
+# Active Pendo Analysis Tool
+# To make our SaaS offering easier to use, we now have the ability to track activity in Pendo. This is disabled by
+# default, but if you'd like to help us in this journey, don't hesitate to reach us to get our key ;)
+#console:
+#  analytics:
+#    pendo:
+#      enabled: false
+#      apiKey: 'myKey'
+
 # HTTP Server
 #jetty:
 #  IP/hostname to bind to. Default is 0.0.0.0

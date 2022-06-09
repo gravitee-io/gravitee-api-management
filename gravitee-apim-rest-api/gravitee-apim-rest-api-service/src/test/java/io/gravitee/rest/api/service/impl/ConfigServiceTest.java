@@ -223,6 +223,8 @@ public class ConfigServiceTest {
         assertEquals("alerting enabled", Boolean.TRUE, consoleSettings.getAlert().getEnabled());
         assertEquals("recaptcha enabled", Boolean.TRUE, consoleSettings.getReCaptcha().getEnabled());
         assertEquals("cors exposed headers", 2, consoleSettings.getCors().getExposedHeaders().size());
+        assertEquals("analytics pendo enabled", Boolean.FALSE, consoleSettings.getAnalyticsPendo().getEnabled());
+        assertEquals("analytics pendo apiKey", "", consoleSettings.getAnalyticsPendo().getApiKey());
     }
 
     @Test

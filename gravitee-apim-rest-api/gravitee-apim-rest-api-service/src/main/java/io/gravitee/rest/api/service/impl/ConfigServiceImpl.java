@@ -388,6 +388,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getCors(),
             consoleConfigEntity.getReCaptcha(),
             consoleConfigEntity.getScheduler(),
+            consoleConfigEntity.getAnalyticsPendo(),
             consoleConfigEntity.getLogging(),
             consoleConfigEntity.getLogging().getAudit(),
             consoleConfigEntity.getLogging().getAudit().getTrail(),
