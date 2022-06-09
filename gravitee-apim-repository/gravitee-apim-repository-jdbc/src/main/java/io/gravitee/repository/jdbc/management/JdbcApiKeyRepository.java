@@ -107,11 +107,11 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     @Override
     public ApiKey update(ApiKey apiKey) throws TechnicalException {
         if (apiKey == null) {
-            throw new TechnicalException("Trying to update a null API key");
+            throw new IllegalStateException("Trying to update a null API key");
         }
 
         try {
-            findById(apiKey.getId());
+            findById(apiKey.getId()).orElseThrow(() -> new IllegalStateException("Trying to update a non existing key")); //NOSONAR It's just an existence check so we will not use the result of this call
 
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(apiKey, apiKey.getId()));
             if (!isEmpty(apiKey.getSubscriptions())) {
@@ -119,6 +119,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             }
 
             return findById(apiKey.getId()).orElse(null);
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.error("Failed to update api key " + apiKey.getId(), e);
             throw new TechnicalException("Failed to update api key " + apiKey.getId(), e);

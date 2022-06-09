@@ -201,6 +201,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
                         }
                     } catch (InterruptedException e) {
                         LOGGER.error("Unexpected error while running the subscriptions refresher");
+                        Thread.currentThread().interrupt();
                     }
                 } else {
                     lastRefreshAt = nextLastRefreshAt;

@@ -20,6 +20,7 @@ import io.gravitee.gateway.policy.Policy;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.NoSuchElementException;
 
 /**
  * A specific {@link io.gravitee.policy.api.PolicyChain} which is used to execute policies in their reverse order.
@@ -48,6 +49,9 @@ public class ReversedPolicyChain extends StreamablePolicyChain {
 
             @Override
             public Policy next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
                 return listIterator.previous();
             }
 
