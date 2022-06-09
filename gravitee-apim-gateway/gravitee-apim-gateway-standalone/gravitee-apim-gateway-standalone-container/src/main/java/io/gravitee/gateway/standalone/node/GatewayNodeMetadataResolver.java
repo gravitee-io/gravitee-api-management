@@ -63,15 +63,11 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
         final Set<String> organizationIds = getOrganizationIds();
         final Set<String> environmentIds = getEnvironmentIds(organizationIds);
 
-        if (configuration.tenant().isPresent()) {
-            metadata.put("tenant", configuration.tenant().get());
-        }
-        if (configuration.shardingTags().isPresent()) {
-            metadata.put("tags", configuration.shardingTags().get());
-        }
-        if (configuration.zone().isPresent()) {
-            metadata.put("zone", configuration.zone().get());
-        }
+        configuration.tenant().ifPresent(tenant -> metadata.put("tenant", tenant));
+
+        configuration.shardingTags().ifPresent(shardingTags -> metadata.put("tags", shardingTags));
+
+        configuration.zone().ifPresent(zone -> metadata.put("zone", zone));
 
         metadata.put(META_INSTALLATION, installationId);
         metadata.put(META_ORGANIZATIONS, organizationIds);

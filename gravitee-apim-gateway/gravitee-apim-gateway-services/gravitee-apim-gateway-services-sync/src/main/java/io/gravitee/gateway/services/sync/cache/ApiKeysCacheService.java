@@ -203,6 +203,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                         }
                     } catch (InterruptedException e) {
                         LOGGER.error("Unexpected error while running the api-keys refresher");
+                        Thread.currentThread().interrupt();
                     }
                 } else {
                     lastRefreshAt = nextLastRefreshAt;
