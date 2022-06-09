@@ -55,9 +55,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ApiReactorHandlerTest {
 
     @Mock
-    Handler<ExecutionContext> handler;
-
-    @Mock
     private GroupLifecycleManager groupLifecycleManager;
 
     @Mock
@@ -99,7 +96,7 @@ public class ApiReactorHandlerTest {
         ApiReactorHandler handler = createHandler(pendingRequestsTimeout);
 
         // handle one request that will not terminate
-        handler.doHandle(executionContext);
+        handler.doHandle(executionContext, ctx -> {});
 
         TestObserver<Boolean> stopObserver = stopAndObserve(handler);
         assertFalse(stopObserver.awaitTerminalEvent(1, TimeUnit.SECONDS));
@@ -137,7 +134,7 @@ public class ApiReactorHandlerTest {
         ApiReactorHandler handler = createHandler(pendingRequestsTimeout);
 
         // handle one request
-        handler.doHandle(executionContext);
+        handler.doHandle(executionContext, ctx -> {});
 
         verify(errorProcessorChainFactory, times(1)).create();
         verify(requestProcessorChainFactory, times(1)).create();
@@ -152,7 +149,6 @@ public class ApiReactorHandlerTest {
 
     private ApiReactorHandler createHandler(long pendingRequestsTimeout) {
         ApiReactorHandler apiReactorHandler = new ApiReactorHandler(api);
-        apiReactorHandler.handler(handler);
         apiReactorHandler.setNode(node);
         apiReactorHandler.setPendingRequestsTimeout(pendingRequestsTimeout);
         apiReactorHandler.setGroupLifecycleManager(groupLifecycleManager);

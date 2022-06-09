@@ -1146,9 +1146,9 @@ public class ApiService_UpdateTest {
     }
 
     private void assertUpdate(
-            final ApiLifecycleState fromLifecycleState,
-            final io.gravitee.rest.api.model.api.ApiLifecycleState lifecycleState,
-            final boolean shouldFail
+        final ApiLifecycleState fromLifecycleState,
+        final io.gravitee.rest.api.model.api.ApiLifecycleState lifecycleState,
+        final boolean shouldFail
     ) {
         api.setApiLifecycleState(fromLifecycleState);
         updateApiEntity.setLifecycleState(lifecycleState);
