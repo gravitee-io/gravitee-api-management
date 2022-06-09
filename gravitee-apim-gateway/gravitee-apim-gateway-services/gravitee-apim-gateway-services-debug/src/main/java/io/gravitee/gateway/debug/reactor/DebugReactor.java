@@ -33,6 +33,7 @@ import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
+import io.vertx.core.http.impl.headers.HeadersAdaptor;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.net.*;
 import java.util.*;
@@ -232,7 +233,7 @@ public class DebugReactor extends DefaultReactor {
     MultiMap convertHeaders(Map<String, List<String>> headers) {
         final HeadersMultiMap headersMultiMap = new HeadersMultiMap();
         if (headers != null) {
-            headers.forEach((key, value) -> headersMultiMap.add(key, String.join(", ", value)));
+            headers.forEach(headersMultiMap::set);
         }
         return headersMultiMap;
     }
