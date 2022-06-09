@@ -40,6 +40,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import java.util.*;
@@ -103,6 +104,9 @@ public class ApiService_FindByUserTest {
 
     @Mock
     private PlanService planService;
+
+    @Mock
+    private FlowService flowService;
 
     @Spy
     private ApiConverter apiConverter;

@@ -78,6 +78,7 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.Workflow;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
@@ -108,6 +109,7 @@ import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.TimeBoundedCharSequence;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
@@ -291,6 +293,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private ResourceService resourceService;
+
+    @Autowired
+    private FlowService flowService;
 
     @Value("${configuration.default-api-icon:}")
     private String defaultApiIcon;
@@ -532,6 +537,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             newApiMetadataEntity.setValue(emailMetadataValue);
             newApiMetadataEntity.setApiId(createdApi.getId());
             apiMetadataService.create(executionContext, newApiMetadataEntity);
+
+            // create the API flows
+            flowService.save(FlowReferenceType.API, createdApi.getId(), api.getFlows());
 
             //TODO add membership log
             ApiEntity apiEntity = convert(executionContext, createdApi, primaryOwner, null);
@@ -1704,6 +1712,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             Api updatedApi = apiRepository.update(api);
 
+            // update API flows
+            flowService.save(FlowReferenceType.API, api.getId(), updateApiEntity.getFlows());
+
             // update API plans
             updateApiEntity
                 .getPlans()
@@ -1753,8 +1764,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             } else {
                 updateApiDefinition = objectMapper.readValue(apiDefinition, io.gravitee.definition.model.Api.class);
 
-                // clear plans as they are stored in plans table ; avoid useless duplicated storage in api definition
+                // clear plans and flows as they are stored in flows table ; avoid useless duplicated storage in api definition
                 updateApiDefinition.setPlans(Collections.emptyList());
+                updateApiDefinition.setFlows(Collections.emptyList());
             }
             updateApiDefinition.setId(apiId);
             updateApiDefinition.setName(updateApiEntity.getName());
@@ -1779,9 +1791,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         .stream()
                         .collect(toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile("")))
                 );
-            }
-            if (updateApiEntity.getFlows() != null) {
-                updateApiDefinition.setFlows(updateApiEntity.getFlows());
             }
 
             updateApiDefinition.setServices(updateApiEntity.getServices());
@@ -2000,9 +2009,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(executionContext, apiId);
                 subscriptions.forEach(sub -> subscriptionService.delete(executionContext, sub.getId()));
 
-                for (PlanEntity plan : plans) {
-                    planService.delete(executionContext, plan.getId());
-                }
+                plans.forEach(plan -> planService.delete(executionContext, plan.getId()));
+
+                // Delete flows
+                flowService.save(FlowReferenceType.API, apiId, null);
 
                 // Delete events
                 final EventQuery query = new EventQuery();
@@ -2124,7 +2134,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
                     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, enabled);
 
-                    final ApiEntity deployedApi = convert(executionContext, payloadEntity);
+                    final ApiEntity deployedApi = convert(executionContext, payloadEntity, false);
                     // Remove policy description from sync check
                     removeDescriptionFromPolicies(api);
                     removeDescriptionFromPolicies(deployedApi);
@@ -3251,7 +3261,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private ApiEntity convert(ExecutionContext executionContext, Api api) {
-        return convert(executionContext, api, null, null);
+        return convert(executionContext, api, null, null, true);
+    }
+
+    private ApiEntity convert(ExecutionContext executionContext, Api api, boolean readDatabaseFlows) {
+        return convert(executionContext, api, null, null, readDatabaseFlows);
     }
 
     private ApiEntity convert(
@@ -3260,8 +3274,25 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         PrimaryOwnerEntity primaryOwner,
         List<CategoryEntity> categories
     ) {
+        return convert(executionContext, api, primaryOwner, categories, true);
+    }
+
+    private ApiEntity convert(
+        ExecutionContext executionContext,
+        Api api,
+        PrimaryOwnerEntity primaryOwner,
+        List<CategoryEntity> categories,
+        boolean readDatabaseFlows
+    ) {
+        ApiEntity apiEntity = apiConverter.toApiEntity(api, primaryOwner);
+
         Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
-        ApiEntity apiEntity = apiConverter.toApiEntity(api, plans, primaryOwner);
+        apiEntity.setPlans(plans);
+
+        if (readDatabaseFlows) {
+            List<Flow> flows = flowService.findByReference(FlowReferenceType.API, api.getId());
+            apiEntity.setFlows(flows);
+        }
 
         // TODO: extract calls to external service from convert method
         final Set<String> apiCategories = api.getCategories();
