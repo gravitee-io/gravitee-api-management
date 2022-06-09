@@ -518,7 +518,7 @@ require('highcharts/modules/map')(Highcharts);
 
 require('@highcharts/map-collection/custom/world');
 import { DebugApiService } from '../services/debugApi.service';
-import { downgradeComponent } from '@angular/upgrade/static';
+import { downgradeComponent, downgradeInjectable } from '@angular/upgrade/static';
 import { OrgSettingsGeneralComponent } from '../organization/configuration/console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from '../organization/configuration/users/org-settings-users.component';
 import { OrgSettingsNewUserComponent } from '../organization/configuration/user/new/org-settings-new-user.component';
@@ -538,11 +538,12 @@ import DialogTransferOwnershipController from './configuration/groups/group/tran
 
 import { upgradeModule } from '@uirouter/angular-hybrid';
 import uiRouter from '@uirouter/angularjs';
+import { GioBannerComponent } from '@gravitee/ui-particles-angular';
+import { GioPendoService } from '@gravitee/ui-analytics';
 import ApplicationSubscriptionsListComponent from '../management/application/details/subscriptions/application-subscriptions-list.component';
 import ApplicationSubscriptionsListController from '../management/application/details/subscriptions/application-subscriptions-list.controller';
 import ApiKeysComponent from '../management/api-key/api-keys.component';
 import ApiKeysController from '../management/api-key/api-keys.controller';
-import { GioBannerComponent } from '@gravitee/ui-particles-angular';
 import { OrgSettingsAuditComponent } from '../organization/configuration/audit/org-settings-audit.component';
 import { EnvAuditComponent } from './audit/env-audit.component';
 
@@ -665,6 +666,9 @@ graviteeManagementModule.config(($mdThemingProvider: angular.material.IThemingPr
   $mdThemingProvider.theme('toast-error');
 });
 graviteeManagementModule.run(runBlock);
+
+// Pendo Analytics
+graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPendoService));
 graviteeManagementModule.controller('ApisController', ApisController);
 graviteeManagementModule.controller('ApisStatusDashboardController', ApisStatusDashboardController);
 graviteeManagementModule.controller('ApiAdminController', ApiAdminController);

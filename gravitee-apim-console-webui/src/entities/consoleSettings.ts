@@ -21,6 +21,7 @@ export interface ConsoleSettings {
   cors?: ConsoleSettingsCors;
   reCaptcha?: ConsoleSettingsReCaptcha;
   scheduler?: ConsoleSettingsScheduler;
+  analyticsPendo?: ConsoleSettingsAnalyticsPendo;
   logging?: ConsoleSettingsLogging;
   maintenance?: ConsoleSettingsMaintenance;
   management?: ConsoleSettingsManagement;
@@ -82,6 +83,11 @@ export interface ConsoleSettingsReCaptcha {
 export interface ConsoleSettingsScheduler {
   tasks?: number;
   notifications?: number;
+}
+
+export interface ConsoleSettingsAnalyticsPendo {
+  enabled?: boolean;
+  apiKey?: string;
 }
 
 export interface ConsoleSettingsLogging {

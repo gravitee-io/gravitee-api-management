@@ -29,6 +29,7 @@ export class User {
   public displayName: string;
   public email: string;
   public source: string;
+  public sourceId?: string;
   public roles: any[];
   public groupsByEnvironment: any[];
   public primaryOwner: boolean;

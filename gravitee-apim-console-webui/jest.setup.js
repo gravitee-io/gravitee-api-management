@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 require('jest');
+
 const angular = require('angular');
 const _ = require('lodash');
 
@@ -41,6 +42,9 @@ export function setupAngularJsTesting() {
   require('./src/index');
   beforeEach(() => {
     angular.mock.module('gravitee-management');
+    // `downgradeInjectable` Does not seem to work with the current test configuration. Waiting for the angular migration to have a less hybrid config than now.
+    angular.module('gravitee-management').factory('ngGioPendoService', [() => ({})]);
+
     angular.module('gravitee-management').constant('Constants', {
       org: {
         baseURL: 'https://url.test:3000/management/organizations/DEFAULT',
