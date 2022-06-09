@@ -385,8 +385,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             return convert(plan);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to delete plan: {}", planId, ex);
-            throw new TechnicalManagementException(String.format("An error occurs while trying to delete plan: %s", planId), ex);
+            logger.error("An error occurs while trying to close plan: {}", planId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to close plan: %s", planId), ex);
         }
     }
 
