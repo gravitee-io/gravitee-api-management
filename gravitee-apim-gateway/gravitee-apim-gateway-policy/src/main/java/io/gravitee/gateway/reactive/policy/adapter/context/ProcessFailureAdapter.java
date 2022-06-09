@@ -57,7 +57,7 @@ public class ProcessFailureAdapter implements ProcessorFailure {
     }
 
     public ExecutionFailure toExecutionFailure() {
-        return new ExecutionFailure().key(key).statusCode(statusCode).message(message).parameters(parameters).contentType(contentType);
+        return new ExecutionFailure(statusCode).key(key).message(message).parameters(parameters).contentType(contentType);
     }
 
     public int statusCode() {

@@ -43,7 +43,7 @@ public class PolicyAdapter implements Policy {
     }
 
     @Override
-    public String getId() {
+    public String id() {
         return policy.id();
     }
 
@@ -59,12 +59,12 @@ public class PolicyAdapter implements Policy {
 
     @Override
     public Maybe<Message> onMessage(ExecutionContext ctx, Message message) {
-        return Maybe.error(new RuntimeException("Cannot adapt v3 policy for message request execution"));
+        return Maybe.error(new RuntimeException("Cannot adapt v3 policy for message execution"));
     }
 
     @Override
     public Flowable<Message> onMessageFlow(ExecutionContext ctx, Flowable<Message> messageFlow) {
-        return Flowable.error(new RuntimeException("Cannot adapt v3 policy for message response execution"));
+        return Flowable.error(new RuntimeException("Cannot adapt v3 policy for message flow execution"));
     }
 
     /**

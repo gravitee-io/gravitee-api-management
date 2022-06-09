@@ -101,7 +101,7 @@ public class PolicyChain implements Hookable<Hook> {
     }
 
     private Completable executePolicy(final RequestExecutionContext ctx, final Policy policy) {
-        log.debug("Executing policy {} on phase {}", policy.getId(), phase);
+        log.debug("Executing policy {} on phase {}", policy.id(), phase);
 
         // Ensure right context is given
         if (
@@ -115,7 +115,7 @@ public class PolicyChain implements Hookable<Hook> {
         }
 
         if (ExecutionPhase.REQUEST == phase || ExecutionPhase.ASYNC_REQUEST == phase) {
-            Completable requestExecution = HookHelper.hook(policy.onRequest(ctx), policy.getId(), policyHooks, ctx, phase);
+            Completable requestExecution = HookHelper.hook(policy.onRequest(ctx), policy.id(), policyHooks, ctx, phase);
             if (ExecutionPhase.ASYNC_REQUEST == phase) {
                 MessageExecutionContext messageExecutionContext = (MessageExecutionContext) ctx;
                 return requestExecution.andThen(
@@ -129,7 +129,7 @@ public class PolicyChain implements Hookable<Hook> {
                                         message ->
                                             HookHelper.hook(
                                                 policy.onMessage(messageExecutionContext, message),
-                                                policy.getId(),
+                                                policy.id(),
                                                 messageHooks,
                                                 ctx,
                                                 phase
@@ -140,7 +140,7 @@ public class PolicyChain implements Hookable<Hook> {
             }
             return requestExecution;
         } else {
-            Completable responseExecution = HookHelper.hook(policy.onResponse(ctx), policy.getId(), policyHooks, ctx, phase);
+            Completable responseExecution = HookHelper.hook(policy.onResponse(ctx), policy.id(), policyHooks, ctx, phase);
             if (ExecutionPhase.ASYNC_RESPONSE == phase) {
                 MessageExecutionContext messageExecutionContext = (MessageExecutionContext) ctx;
                 return responseExecution.andThen(
@@ -154,7 +154,7 @@ public class PolicyChain implements Hookable<Hook> {
                                         message ->
                                             HookHelper.hook(
                                                 policy.onMessage(messageExecutionContext, message),
-                                                policy.getId(),
+                                                policy.id(),
                                                 messageHooks,
                                                 ctx,
                                                 phase

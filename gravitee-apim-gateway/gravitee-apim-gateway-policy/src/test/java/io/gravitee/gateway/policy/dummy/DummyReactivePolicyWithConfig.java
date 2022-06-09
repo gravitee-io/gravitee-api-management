@@ -31,7 +31,7 @@ public class DummyReactivePolicyWithConfig implements Policy {
     }
 
     @Override
-    public String getId() {
+    public String id() {
         return "dummy-reactive";
     }
 

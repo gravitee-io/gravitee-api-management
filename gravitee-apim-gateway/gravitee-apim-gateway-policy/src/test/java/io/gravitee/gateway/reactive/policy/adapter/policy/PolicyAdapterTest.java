@@ -54,7 +54,7 @@ class PolicyAdapterTest {
 
         final TestObserver<Message> obs = cut.onMessage(ctx, msg).test();
 
-        obs.assertErrorMessage("Cannot adapt v3 policy for message request execution");
+        obs.assertErrorMessage("Cannot adapt v3 policy for message execution");
     }
 
     @Test
@@ -66,7 +66,7 @@ class PolicyAdapterTest {
 
         final TestSubscriber<Message> obs = cut.onMessageFlow(ctx, Flowable.empty()).test();
 
-        obs.assertErrorMessage("Cannot adapt v3 policy for message response execution");
+        obs.assertErrorMessage("Cannot adapt v3 policy for message flow execution");
     }
 
     @Test

@@ -21,18 +21,15 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.RequestExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
-import io.gravitee.gateway.reactive.api.hook.Hook;
 import io.gravitee.gateway.reactive.api.hook.Hookable;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.flow.FlowResolver;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
-import io.netty.util.internal.StringUtil;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FlowChain implements Hookable<ChainHook> {
 
-    private final Logger log = LoggerFactory.getLogger(FlowChain.class);
+    private static final Logger log = LoggerFactory.getLogger(FlowChain.class);
 
     private final String id;
     private final FlowResolver flowResolver;
@@ -82,8 +79,8 @@ public class FlowChain implements Hookable<ChainHook> {
      */
     public Completable execute(RequestExecutionContext ctx, ExecutionPhase phase) {
         return resolveFlows(ctx)
-            .doOnNext(flow -> log.debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name()))
-            .flatMapCompletable(flow -> executeFlow(ctx, flow, phase), false, 1);
+            .flatMapCompletable(flow -> executeFlow(ctx, flow, phase), false, 1)
+            .doOnSubscribe(disposable -> log.debug("Executing flow chain {} on {} phase", id, phase));
     }
 
     /**
@@ -96,15 +93,19 @@ public class FlowChain implements Hookable<ChainHook> {
      * @return the resolved flows.
      */
     private Flowable<Flow> resolveFlows(RequestExecutionContext ctx) {
-        Flowable<Flow> flows = ctx.getInternalAttribute(resolvedFlowAttribute);
+        return Flowable.defer(
+            () -> {
+                Flowable<Flow> flows = ctx.getInternalAttribute(resolvedFlowAttribute);
 
-        if (flows == null) {
-            // Resolves the flows once. Subsequent resolutions will return the same flows.
-            flows = flowResolver.resolve(ctx).cache();
-            ctx.setInternalAttribute(resolvedFlowAttribute, flows);
-        }
+                if (flows == null) {
+                    // Resolves the flows once. Subsequent resolutions will return the same flows.
+                    flows = flowResolver.resolve(ctx).cache();
+                    ctx.setInternalAttribute(resolvedFlowAttribute, flows);
+                }
 
-        return flows;
+                return flows;
+            }
+        );
     }
 
     /**
@@ -120,6 +121,8 @@ public class FlowChain implements Hookable<ChainHook> {
      */
     private Completable executeFlow(final RequestExecutionContext ctx, final Flow flow, final ExecutionPhase phase) {
         PolicyChain policyChain = policyChainFactory.create(id, flow, phase);
-        return HookHelper.hook(policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase);
+        return HookHelper
+            .hook(policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase)
+            .doOnSubscribe(subscription -> log.debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name()));
     }
 }
