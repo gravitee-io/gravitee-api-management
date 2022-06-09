@@ -16,7 +16,7 @@
                     "type": "keyword"
                 },
                 "api-response-time": {
-                    "type": "integer"
+                    "type": "long"
                 },
                 "application": {
                     "type": "keyword"
