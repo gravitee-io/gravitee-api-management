@@ -55,7 +55,7 @@
         <gravitee-policy-dynamic-routing.version>1.11.1</gravitee-policy-dynamic-routing.version>
         <gravitee-policy-generate-http-signature.version>1.1.0</gravitee-policy-generate-http-signature.version>
         <gravitee-policy-generate-jwt.version>1.5.0</gravitee-policy-generate-jwt.version>
-        <gravitee-policy-groovy.version>2.2.0</gravitee-policy-groovy.version>
+        <gravitee-policy-groovy.version>2.2.1</gravitee-policy-groovy.version>
         <gravitee-policy-html-json.version>1.6.0</gravitee-policy-html-json.version>
         <gravitee-policy-http-signature.version>1.5.0</gravitee-policy-http-signature.version>
         <gravitee-policy-ipfiltering.version>1.9.0</gravitee-policy-ipfiltering.version>
