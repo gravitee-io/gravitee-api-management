@@ -19,13 +19,14 @@ LABEL maintainer="contact@graviteesource.com"
 
 ARG GRAVITEEIO_VERSION=0
 ARG GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions
+ARG GRAVITEEIO_PACKAGE_NAME=graviteeio-full
 ENV GRAVITEEIO_HOME /opt/graviteeio-gateway
 
 RUN apt-get update \
     && apt-get --yes upgrade \
     && apt-get --yes install wget unzip htop \
-	&& wget ${GRAVITEEIO_DOWNLOAD_URL}/graviteeio-full-${GRAVITEEIO_VERSION}.zip --no-check-certificate -P /tmp \
-    && unzip /tmp/graviteeio-full-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
+	&& wget ${GRAVITEEIO_DOWNLOAD_URL}/${GRAVITEEIO_PACKAGE_NAME}-${GRAVITEEIO_VERSION}.zip --no-check-certificate -P /tmp \
+    && unzip /tmp/${GRAVITEEIO_PACKAGE_NAME}-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
     && mv /tmp/graviteeio-full-${GRAVITEEIO_VERSION}/graviteeio-apim-gateway* ${GRAVITEEIO_HOME} \
     && rm -rf /tmp/* \
     && rm -rf /var/lib/apt/lists/* \
