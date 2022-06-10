@@ -1,1 +1,0 @@
-io.gravitee.repository.Repository=io.gravitee.repository.jdbc.JdbcRepositoryProvider
