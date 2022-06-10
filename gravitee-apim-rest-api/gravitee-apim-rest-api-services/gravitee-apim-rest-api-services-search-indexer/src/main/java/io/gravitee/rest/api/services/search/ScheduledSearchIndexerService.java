@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
@@ -63,6 +64,7 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
 
     private final AtomicLong counter = new AtomicLong(0);
 
+    @Lazy
     @Autowired
     private OrganizationRepository organizationRepository;
 

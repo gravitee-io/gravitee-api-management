@@ -38,6 +38,7 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -47,6 +48,7 @@ public abstract class AbstractReferenceMetadataService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(io.gravitee.rest.api.service.impl.AbstractReferenceMetadataService.class);
 
+    @Lazy
     @Autowired
     protected MetadataRepository metadataRepository;
 

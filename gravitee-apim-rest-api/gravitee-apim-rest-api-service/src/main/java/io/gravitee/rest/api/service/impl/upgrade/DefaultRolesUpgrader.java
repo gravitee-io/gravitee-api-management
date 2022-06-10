@@ -27,6 +27,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,7 +45,7 @@ public class DefaultRolesUpgrader extends OneShotUpgrader {
     private final OrganizationRepository organizationRepository;
 
     @Autowired
-    public DefaultRolesUpgrader(RoleService roleService, OrganizationRepository organizationRepository) {
+    public DefaultRolesUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
         super(InstallationService.DEFAULT_ROLES_UPGRADER_STATUS);
         this.roleService = roleService;
         this.organizationRepository = organizationRepository;

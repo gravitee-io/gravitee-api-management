@@ -79,12 +79,14 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     @Autowired
     private ConfigurablePluginManager<NotifierPlugin> notifierManager;
 
+    @Lazy
     @Autowired
     PortalNotificationConfigRepository portalNotificationConfigRepository;
 
     @Autowired
     PortalNotificationService portalNotificationService;
 
+    @Lazy
     @Autowired
     GenericNotificationConfigRepository genericNotificationConfigRepository;
 

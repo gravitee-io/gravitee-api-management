@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -59,6 +60,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     private final Logger logger = LoggerFactory.getLogger(PlanServiceImpl.class);
 
+    @Lazy
     @Autowired
     private PlanRepository planRepository;
 
@@ -80,6 +82,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Autowired
     private PlanSynchronizationProcessor planSynchronizationProcessor;
 
+    @Lazy
     @Autowired
     private ApiRepository apiRepository;
 

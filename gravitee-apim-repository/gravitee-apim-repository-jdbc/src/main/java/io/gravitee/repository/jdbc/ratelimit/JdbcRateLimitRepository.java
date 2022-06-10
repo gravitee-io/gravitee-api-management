@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
@@ -104,7 +105,7 @@ public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
     private final String SELECT_SQL;
 
     public JdbcRateLimitRepository(
-        @Autowired @Qualifier("graviteeTransactionManager") PlatformTransactionManager transactionManager,
+        @Lazy @Autowired @Qualifier("graviteeTransactionManager") PlatformTransactionManager transactionManager,
         @Value("${ratelimit.jdbc.prefix:}") String tablePrefix
     ) {
         this.transactionTemplate = new TransactionTemplate(transactionManager);

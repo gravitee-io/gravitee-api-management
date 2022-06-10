@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -45,6 +46,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
     private final Logger LOGGER = LoggerFactory.getLogger(EnvironmentServiceImpl.class);
 
+    @Lazy
     @Autowired
     private EnvironmentRepository environmentRepository;
 

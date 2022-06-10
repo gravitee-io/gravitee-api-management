@@ -38,6 +38,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,6 +50,7 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserMetadataServiceImpl.class);
 
+    @Lazy
     @Autowired
     protected UserRepository userRepository;
 

@@ -24,6 +24,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,7 +38,7 @@ public class ApiKeySubscriptionsUpgrader extends OneShotUpgrader {
     private final ApiKeyRepository apiKeyRepository;
 
     @Autowired
-    public ApiKeySubscriptionsUpgrader(ApiKeyRepository apiKeyRepository) {
+    public ApiKeySubscriptionsUpgrader(@Lazy ApiKeyRepository apiKeyRepository) {
         super(InstallationService.API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS);
         this.apiKeyRepository = apiKeyRepository;
     }

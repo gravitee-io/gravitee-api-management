@@ -68,30 +68,39 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         entry(Audit.AuditReferenceType.API, AuditReferenceType.API)
     );
 
+    @Lazy
     @Autowired
     private AuditRepository auditRepository;
 
+    @Lazy
     @Autowired
     private PageRepository pageRepository;
 
+    @Lazy
     @Autowired
     private PlanRepository planRepository;
 
+    @Lazy
     @Autowired
     private MetadataRepository metadataRepository;
 
+    @Lazy
     @Autowired
     private GroupRepository groupRepository;
 
+    @Lazy
     @Autowired
     private ApiRepository apiRepository;
 
+    @Lazy
     @Autowired
     private EnvironmentRepository environmentRepository;
 
+    @Lazy
     @Autowired
     private OrganizationRepository organizationRepository;
 
+    @Lazy
     @Autowired
     private ApplicationRepository applicationRepository;
 
