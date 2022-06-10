@@ -1483,6 +1483,7 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
+                              - refactor-distribution-build-process
                   requires:
                       - test
                       - test-repository
@@ -1492,6 +1493,7 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
+                              - refactor-distribution-build-process
                   requires:
                       - test
                       - test-repository
