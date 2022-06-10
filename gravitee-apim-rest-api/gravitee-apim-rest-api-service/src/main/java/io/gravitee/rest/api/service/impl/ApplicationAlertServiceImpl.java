@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -66,7 +67,6 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
     private final ApplicationService applicationService;
     private final AlertService alertService;
-    private final AlertTriggerRepository alertTriggerRepository;
     private final MembershipService membershipService;
     private final UserService userService;
     private final ObjectMapper mapper;
@@ -76,7 +76,6 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     public ApplicationAlertServiceImpl(
         ApplicationService applicationService,
         AlertService alertService,
-        AlertTriggerRepository alertTriggerRepository,
         MembershipService membershipService,
         UserService userService,
         ObjectMapper mapper,
@@ -85,7 +84,6 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     ) {
         this.applicationService = applicationService;
         this.alertService = alertService;
-        this.alertTriggerRepository = alertTriggerRepository;
         this.membershipService = membershipService;
         this.userService = userService;
         this.mapper = mapper;

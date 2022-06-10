@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 
 /**
@@ -33,6 +34,7 @@ public abstract class EnvironmentUpgrader implements Upgrader, Ordered {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EnvironmentUpgrader.class);
 
+    @Lazy
     @Autowired
     private EnvironmentRepository environmentRepository;
 

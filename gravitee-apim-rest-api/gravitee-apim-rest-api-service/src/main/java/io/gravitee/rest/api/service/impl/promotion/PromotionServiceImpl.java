@@ -60,6 +60,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -90,7 +91,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         ApiDuplicatorService apiDuplicatorService,
         ApiExportService apiExportService,
         CockpitPromotionService cockpitPromotionService,
-        PromotionRepository promotionRepository,
+        @Lazy PromotionRepository promotionRepository,
         EnvironmentService environmentService,
         UserService userService,
         PermissionService permissionService,

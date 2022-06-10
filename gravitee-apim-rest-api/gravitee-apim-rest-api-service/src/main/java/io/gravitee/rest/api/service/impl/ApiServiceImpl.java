@@ -148,6 +148,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Component;
 
@@ -168,9 +169,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static final String[] CORS_REGEX_CHARS = new String[] { "{", "[", "(", "*" };
     private static final String URI_PATH_SEPARATOR = "/";
 
+    @Lazy
     @Autowired
     private ApiRepository apiRepository;
 
+    @Lazy
     @Autowired
     private ApiQualityRuleRepository apiQualityRuleRepository;
 

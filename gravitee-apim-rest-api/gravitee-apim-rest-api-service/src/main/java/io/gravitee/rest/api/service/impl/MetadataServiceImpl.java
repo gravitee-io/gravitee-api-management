@@ -48,6 +48,7 @@ import javax.mail.internet.InternetAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -60,6 +61,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     private static final String DEFAULT_REFERENCE_ID = "_";
     private final Logger LOGGER = LoggerFactory.getLogger(MetadataServiceImpl.class);
 
+    @Lazy
     @Autowired
     private MetadataRepository metadataRepository;
 

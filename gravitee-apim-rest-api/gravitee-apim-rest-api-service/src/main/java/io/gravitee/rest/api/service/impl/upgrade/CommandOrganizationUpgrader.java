@@ -25,6 +25,7 @@ import io.gravitee.rest.api.service.InstallationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,7 +40,7 @@ public class CommandOrganizationUpgrader extends OneShotUpgrader {
     private final CommandRepository commandRepository;
 
     @Autowired
-    public CommandOrganizationUpgrader(EnvironmentRepository environmentRepository, CommandRepository commandRepository) {
+    public CommandOrganizationUpgrader(@Lazy EnvironmentRepository environmentRepository, @Lazy CommandRepository commandRepository) {
         super(InstallationService.COMMAND_ORGANIZATION_UPGRADER);
         this.environmentRepository = environmentRepository;
         this.commandRepository = commandRepository;

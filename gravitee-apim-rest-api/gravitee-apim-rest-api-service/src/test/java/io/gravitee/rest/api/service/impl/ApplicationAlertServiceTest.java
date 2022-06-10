@@ -86,9 +86,6 @@ public class ApplicationAlertServiceTest {
     private AlertService alertService;
 
     @Mock
-    private AlertTriggerRepository alertTriggerRepository;
-
-    @Mock
     private MembershipService membershipService;
 
     @Mock
@@ -112,7 +109,6 @@ public class ApplicationAlertServiceTest {
             new ApplicationAlertServiceImpl(
                 applicationService,
                 alertService,
-                alertTriggerRepository,
                 membershipService,
                 userService,
                 mapper,
