@@ -57,10 +57,9 @@ commands:
         steps:
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v6-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-                      - gravitee-api-management-v6-<< parameters.jobName >>-{{ .Branch }}-
-                      - gravitee-api-management-v6-<< parameters.jobName >>-
-                      - gravitee-api-management-v6-
+                      - gravitee-api-management-v7-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v7-<< parameters.jobName >>-{{ .Branch }}-
+                      - gravitee-api-management-v7-<< parameters.jobName >>-
     save-maven-job-cache:
         description: Restore Maven cache for a dedicated job
         parameters:
@@ -72,7 +71,7 @@ commands:
             - save_cache:
                   paths:
                       - ~/.m2
-                  key: gravitee-api-management-v6-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  key: gravitee-api-management-v7-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
                   when: always
 
     notify-on-failure:
@@ -217,9 +216,9 @@ jobs:
                   at: .
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v6-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
-                      - gravitee-api-management-v6-sonarcloud-analysis-{{ .Branch }}-
-                      - gravitee-api-management-v6-sonarcloud-analysis-
+                      - gravitee-api-management-v7-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v7-sonarcloud-analysis-{{ .Branch }}-
+                      - gravitee-api-management-v7-sonarcloud-analysis-
             - keeper/env-export:
                   secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
                   var-name: SONAR_TOKEN
@@ -232,7 +231,7 @@ jobs:
             - save_cache:
                   paths:
                       - /opt/sonar-scanner/.sonar/cache
-                  key: gravitee-api-management-v6-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  key: gravitee-api-management-v7-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
                   when: always
 
     validate:
@@ -275,7 +274,7 @@ jobs:
             - save_cache:
                   paths:
                       - ~/.m2/repository/io/gravitee/apim
-                  key: gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+                  key: gravitee-api-management-v7-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
                   when: on_success
             - run:
                   name: "Exclude APIM artefacts from build cache"
@@ -301,7 +300,7 @@ jobs:
                   jobName: test
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+                      - gravitee-api-management-v7-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
             - run:
                   name: Run APIM definition tests
                   command: |
@@ -336,7 +335,7 @@ jobs:
                   jobName: test-repository
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+                      - gravitee-api-management-v7-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
             - run:
                   name: Run tests
                   command: |
