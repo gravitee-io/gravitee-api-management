@@ -11,21 +11,25 @@
 # Please have a look to http://docs.gravitee.io/ for more options and fine-grained granularity
 ############################################################################################################
 
-# Specify the URL of the Management API and UI of this instance, mandatory if you want to connect it to Cockpit
+# Console settings
 #console:
+## Specify the URL of the Management API and UI of this instance, mandatory if you want to connect it to Cockpit
 #  ui:
 #    url: http://localhost:3000
 #  api:
 #    url: http://localhost:8083/management
 
-# Active Pendo Analysis Tool
+## Pendo Analysis Tool
 # To make our SaaS offering easier to use, we now have the ability to track activity in Pendo. This is disabled by
 # default, but if you'd like to help us in this journey, don't hesitate to reach us to get our key ;)
-#console:
 #  analytics:
 #    pendo:
 #      enabled: false
 #      apiKey: 'myKey'
+
+## Console dashboards
+#  dashboards:
+#    path: ${gravitee.home}/dashboards
 
 # HTTP Server
 #jetty:
@@ -368,11 +372,6 @@ email:
 # Mail templates
 #templates:
 #  path: ${gravitee.home}/templates
-
-# Console dashboards
-#console:
-#  dashboards:
-#    path: ${gravitee.home}/dashboards
 
 #portal:
 #  themes:
