@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.jdbc.ratelimit;
 
-import io.gravitee.repository.Scope;
+import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;

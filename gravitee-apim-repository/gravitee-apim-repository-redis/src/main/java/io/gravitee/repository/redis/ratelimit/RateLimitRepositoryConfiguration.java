@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.redis.ratelimit;
 
-import io.gravitee.repository.Scope;
+import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.redis.common.AbstractRepositoryConfiguration;
 import java.util.List;
 import org.springframework.context.annotation.Bean;

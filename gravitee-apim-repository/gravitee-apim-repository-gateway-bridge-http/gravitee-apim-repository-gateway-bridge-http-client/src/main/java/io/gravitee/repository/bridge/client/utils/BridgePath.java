@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.utils;
 
-import io.gravitee.repository.Scope;
+import io.gravitee.platform.repository.api.Scope;
 import java.net.URI;
 import org.springframework.core.env.Environment;
 
