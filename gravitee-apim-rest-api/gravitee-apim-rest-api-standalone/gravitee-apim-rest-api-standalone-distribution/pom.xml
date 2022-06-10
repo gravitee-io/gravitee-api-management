@@ -37,17 +37,6 @@
     <name>Gravitee.io APIM - Management API - Standalone - Distribution</name>
 
     <properties>
-        <!-- Properties used for building RPM & DEB package -->
-        <packaging.gravitee.management.home.dir>/usr/share/gravitee-management</packaging.gravitee.management.home.dir>
-        <packaging.gravitee.management.bin.dir>${packaging.gravitee.management.home.dir}/bin</packaging.gravitee.management.bin.dir>
-        <packaging.gravitee.management.plugins.dir>${packaging.gravitee.management.home.dir}/plugins</packaging.gravitee.management.plugins.dir>
-        <packaging.gravitee.management.conf.dir>/etc/gravitee-management</packaging.gravitee.management.conf.dir>
-        <packaging.gravitee.management.log.dir>/var/log/gravitee-management</packaging.gravitee.management.log.dir>
-        <packaging.gravitee.management.pid.dir>/var/run/gravitee-management</packaging.gravitee.management.pid.dir>
-        <packaging.gravitee.management.services.dir>/etc/init.d</packaging.gravitee.management.services.dir>
-        <packaging.gravitee.management.user>gravitee</packaging.gravitee.management.user>
-        <packaging.gravitee.management.group>gravitee</packaging.gravitee.management.group>
-
         <!--suppress UnresolvedMavenProperty -->
         <gravitee.management.log.dir>${gravitee.home}/logs</gravitee.management.log.dir>
     </properties>
