@@ -16,11 +16,11 @@
 package io.gravitee.gateway.jupiter.handlers.api.flow;
 
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
+import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
+import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.ArrayList;
 import java.util.List;

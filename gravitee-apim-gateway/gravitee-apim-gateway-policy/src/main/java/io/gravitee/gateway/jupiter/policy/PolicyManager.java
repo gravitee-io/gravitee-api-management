@@ -16,9 +16,9 @@
 package io.gravitee.gateway.jupiter.policy;
 
 import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
+import io.gravitee.gateway.policy.PolicyMetadata;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

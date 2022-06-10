@@ -23,9 +23,9 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
-import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;

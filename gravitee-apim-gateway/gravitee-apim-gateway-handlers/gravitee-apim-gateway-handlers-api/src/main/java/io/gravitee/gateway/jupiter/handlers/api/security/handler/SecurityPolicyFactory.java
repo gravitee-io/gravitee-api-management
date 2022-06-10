@@ -16,11 +16,11 @@
 package io.gravitee.gateway.jupiter.handlers.api.security.handler;
 
 import io.gravitee.definition.model.Plan;
-import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

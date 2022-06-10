@@ -24,7 +24,6 @@ import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.handlers.api.processor.AbstractProcessorTest;
-
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
