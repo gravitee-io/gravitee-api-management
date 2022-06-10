@@ -78,7 +78,7 @@
 
         <fileSet>
             <directory>src/main/resources/license</directory>
-            <outputDirectory>lib</outputDirectory>
+            <outputDirectory>license</outputDirectory>
             <includes>
                 <include>*.*</include>
             </includes>
