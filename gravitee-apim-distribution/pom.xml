@@ -103,7 +103,7 @@
         <gravitee-fetcher-gitlab.version>1.11.0</gravitee-fetcher-gitlab.version>
         <gravitee-fetcher-http.version>1.12.0</gravitee-fetcher-http.version>
         <!-- Gateway Only -->
-        <gravitee-reporter-elasticsearch.version>3.8.5</gravitee-reporter-elasticsearch.version>
+        <gravitee-reporter-elasticsearch.version>3.8.6</gravitee-reporter-elasticsearch.version>
         <gravitee-reporter-file.version>2.4.3</gravitee-reporter-file.version>
         <gravitee-reporter-kafka.version>1.3.0</gravitee-reporter-kafka.version>
         <gravitee-reporter-tcp.version>1.3.3</gravitee-reporter-tcp.version>
