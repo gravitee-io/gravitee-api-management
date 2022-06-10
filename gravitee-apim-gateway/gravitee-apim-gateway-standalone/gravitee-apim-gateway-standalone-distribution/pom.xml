@@ -34,18 +34,6 @@
     <name>Gravitee.io APIM - Gateway - Standalone - Distribution</name>
 
     <properties>
-        <!-- Properties used for building RPM & DEB package-->
-        <packaging.gravitee.gateway.home.dir>/usr/share/gravitee-gateway</packaging.gravitee.gateway.home.dir>
-        <packaging.gravitee.gateway.bin.dir>${packaging.gravitee.gateway.home.dir}/bin</packaging.gravitee.gateway.bin.dir>
-        <packaging.gravitee.gateway.plugins.dir>${packaging.gravitee.gateway.home.dir}/plugins</packaging.gravitee.gateway.plugins.dir>
-        <packaging.gravitee.gateway.apis.dir>${packaging.gravitee.gateway.home.dir}/apis</packaging.gravitee.gateway.apis.dir>
-        <packaging.gravitee.gateway.conf.dir>/etc/gravitee-gateway</packaging.gravitee.gateway.conf.dir>
-        <packaging.gravitee.gateway.log.dir>/var/log/gravitee-gateway</packaging.gravitee.gateway.log.dir>
-        <packaging.gravitee.gateway.pid.dir>/var/run/gravitee-gateway</packaging.gravitee.gateway.pid.dir>
-        <packaging.gravitee.gateway.services.dir>/etc/init.d</packaging.gravitee.gateway.services.dir>
-        <packaging.gravitee.gateway.user>gravitee</packaging.gravitee.gateway.user>
-        <packaging.gravitee.gateway.group>gravitee</packaging.gravitee.gateway.group>
-
         <!--suppress UnresolvedMavenProperty -->
         <gravitee.gateway.log.dir>${gravitee.home}/logs</gravitee.gateway.log.dir>
     </properties>
@@ -120,16 +108,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-jar</id>
-                        <phase>none</phase>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
