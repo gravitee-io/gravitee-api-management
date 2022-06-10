@@ -19,7 +19,7 @@ import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_
 import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_KEY;
 
 import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
+import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.report.impl.NodeMonitoringReporterService;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;

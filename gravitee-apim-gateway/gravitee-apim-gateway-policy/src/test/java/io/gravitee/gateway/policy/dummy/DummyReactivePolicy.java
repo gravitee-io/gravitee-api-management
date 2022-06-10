@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.policy.dummy;
 
-import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.jupiter.api.policy.Policy;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

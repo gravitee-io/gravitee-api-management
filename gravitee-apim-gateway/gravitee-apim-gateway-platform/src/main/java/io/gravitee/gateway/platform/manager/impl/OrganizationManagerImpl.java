@@ -21,7 +21,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationEvent;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
-import io.gravitee.gateway.reactive.platform.PlatformPolicyManager;
+import io.gravitee.gateway.jupiter.platform.PlatformPolicyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

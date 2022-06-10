@@ -17,7 +17,6 @@ package io.gravitee.gateway.reactor.handler.impl;
 
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.*;
 import java.util.*;

@@ -19,7 +19,7 @@ import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_
 import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_KEY;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.gateway.reactive.standalone.vertx.HttpProtocolVerticle;
+import io.gravitee.gateway.jupiter.standalone.vertx.HttpProtocolVerticle;
 import io.gravitee.node.vertx.verticle.factory.SpringVerticleFactory;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;

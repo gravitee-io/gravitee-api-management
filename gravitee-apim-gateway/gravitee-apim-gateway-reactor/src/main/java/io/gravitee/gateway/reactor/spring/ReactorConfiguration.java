@@ -15,20 +15,20 @@
  */
 package io.gravitee.gateway.reactor.spring;
 
-import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_REQUEST_ID_HEADER;
-import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_TRANSACTION_ID_HEADER;
+import static io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_REQUEST_ID_HEADER;
+import static io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_TRANSACTION_ID_HEADER;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.utils.Hex;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
-import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
-import io.gravitee.gateway.reactive.reactor.handler.DefaultEntrypointResolver;
-import io.gravitee.gateway.reactive.reactor.handler.EntrypointResolver;
-import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
-import io.gravitee.gateway.reactive.reactor.processor.PlatformProcessorChainFactory;
+import io.gravitee.gateway.jupiter.reactor.DefaultHttpRequestDispatcher;
+import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
+import io.gravitee.gateway.jupiter.reactor.handler.DefaultEntrypointResolver;
+import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
+import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
@@ -79,16 +79,16 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory(
+    public io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory(
         @Value("${handlers.request.transaction.header:" + DEFAULT_TRANSACTION_ID_HEADER + "}") String transactionHeader,
         @Value("${handlers.request.request.header:" + DEFAULT_REQUEST_ID_HEADER + "}") String requestHeader
     ) {
-        return new io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory(transactionHeader, requestHeader);
+        return new io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory(transactionHeader, requestHeader);
     }
 
     @Bean
     public PlatformProcessorChainFactory globalProcessorChainFactory(
-        io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
+        io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
         @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
         ReporterService reporterService,
         AlertEventProducer eventProducer,
