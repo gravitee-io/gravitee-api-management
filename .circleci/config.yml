@@ -758,7 +758,7 @@ jobs:
             - run:
                   name: Maven deploy to Gravitee's private Artifactory
                   command: |
-                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U -P gio-artifactory-release,gio-release clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
+                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U -P gio-artifactory-release,gio-release-3.5.x clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
             - save-maven-job-cache:
                   jobName: release
 
