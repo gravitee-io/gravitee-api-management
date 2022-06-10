@@ -142,7 +142,6 @@
                 <exclude>*:*:jar</exclude>
                 <exclude>io.gravitee.fetcher:*:zip</exclude>
                 <exclude>io.gravitee.cockpit:gravitee-cockpit-connectors-ws:zip</exclude>
-                <exclude>io.gravitee.repository:gravitee-apim-repository-elasticsearch:zip</exclude>
                 <!-- for EE version -->
                 <exclude>io.gravitee.notifier:*:zip</exclude>
                 <exclude>com.graviteesource.notifier:*:zip</exclude>
