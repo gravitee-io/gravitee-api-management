@@ -1,3 +1,10 @@
+## [3.12.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/3.12.1...3.12.2) (2022-06-10)
+
+
+### Bug Fixes
+
+* align template api response time type with metrics api response time type ([78e7eb7](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/78e7eb77a53a56ad3e5a53602812e5dc6fc26d65))
+
 ## [3.12.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/3.12.0...3.12.1) (2022-05-18)
 
 
