@@ -98,7 +98,7 @@ services:
       test: [ "CMD", "curl", "-f", "http://admin:adminadmin@localhost:18083/_node" ]
       interval: 2s
       timeout: 10s
-      retries: 30
+      retries: 60
     networks:
       - storage
       - apim
@@ -127,7 +127,7 @@ services:
       test: [ "CMD", "curl", "-f", "http://admin:adminadmin@localhost:18082/_node" ]
       interval: 2s
       timeout: 10s
-      retries: 30
+      retries: 60
     networks:
       - storage
       - apim

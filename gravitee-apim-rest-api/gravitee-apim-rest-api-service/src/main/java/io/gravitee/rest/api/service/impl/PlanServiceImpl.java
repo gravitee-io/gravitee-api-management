@@ -82,6 +82,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Autowired
     private PlanSynchronizationProcessor planSynchronizationProcessor;
 
+    @Lazy
     @Autowired
     private ApiRepository apiRepository;
 
