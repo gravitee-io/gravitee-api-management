@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.handlers.api.spring;
 
-import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY;
-
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
@@ -33,10 +31,9 @@ import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
-import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
-import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
-import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
+import io.gravitee.gateway.jupiter.policy.PolicyFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.node.api.Node;

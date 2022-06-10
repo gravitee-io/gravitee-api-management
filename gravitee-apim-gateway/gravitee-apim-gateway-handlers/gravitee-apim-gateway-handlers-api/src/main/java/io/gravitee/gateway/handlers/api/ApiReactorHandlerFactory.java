@@ -49,13 +49,11 @@ import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
-import io.gravitee.gateway.reactive.api.hook.Hook;
-import io.gravitee.gateway.reactive.core.tracing.TracingHook;
-import io.gravitee.gateway.reactive.handlers.api.SyncApiReactor;
-import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
-import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
-import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.SyncApiReactor;
+import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
+import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.jupiter.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
@@ -77,7 +75,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
 
@@ -97,7 +94,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     private final Configuration configuration;
     private final Node node;
     private final io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator;
-    private final io.gravitee.gateway.reactive.policy.PolicyFactory policyFactory;
+    private final io.gravitee.gateway.jupiter.policy.PolicyFactory policyFactory;
     private final PolicyChainProviderLoader policyChainProviderLoader;
     private final ApiProcessorChainFactory apiProcessorChainFactory;
     private ApplicationContext applicationContext;
@@ -107,7 +104,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         Configuration configuration,
         Node node,
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
-        io.gravitee.gateway.reactive.policy.PolicyFactory policyFactory,
+        io.gravitee.gateway.jupiter.policy.PolicyFactory policyFactory,
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory
     ) {
@@ -207,7 +204,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                     v3ApiReactor.setExecutionContextFactory(v3ExecutionContextFactory(api, apiComponentProvider, referenceRegister));
                     return v3ApiReactor;
                 } else {
-                    final io.gravitee.gateway.reactive.policy.PolicyManager policyManager = policyManager(
+                    final io.gravitee.gateway.jupiter.policy.PolicyManager policyManager = policyManager(
                         api,
                         policyFactory,
                         policyConfigurationFactory(),
@@ -215,12 +212,12 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                         apiComponentProvider
                     );
 
-                    final io.gravitee.gateway.reactive.policy.PolicyChainFactory platformPolicyChainFactory = applicationContext.getBean(
+                    final io.gravitee.gateway.jupiter.policy.PolicyChainFactory platformPolicyChainFactory = applicationContext.getBean(
                         "platformPolicyChainFactory",
-                        io.gravitee.gateway.reactive.policy.PolicyChainFactory.class
+                        io.gravitee.gateway.jupiter.policy.PolicyChainFactory.class
                     );
 
-                    final io.gravitee.gateway.reactive.policy.PolicyChainFactory apiPolicyChainFactory = new DefaultPolicyChainFactory(
+                    final io.gravitee.gateway.jupiter.policy.PolicyChainFactory apiPolicyChainFactory = new DefaultPolicyChainFactory(
                         api.getId(),
                         configuration,
                         policyManager
@@ -333,9 +330,9 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         );
     }
 
-    public io.gravitee.gateway.reactive.policy.PolicyManager policyManager(
+    public io.gravitee.gateway.jupiter.policy.PolicyManager policyManager(
         Api api,
-        io.gravitee.gateway.reactive.policy.PolicyFactory factory,
+        io.gravitee.gateway.jupiter.policy.PolicyFactory factory,
         PolicyConfigurationFactory policyConfigurationFactory,
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider
@@ -348,7 +345,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
             beanNamesForType[0]
         );
 
-        return new io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager(
+        return new io.gravitee.gateway.jupiter.handlers.api.ApiPolicyManager(
             applicationContext.getBean(DefaultClassLoader.class),
             api,
             factory,

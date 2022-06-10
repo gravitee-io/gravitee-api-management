@@ -27,10 +27,9 @@ import io.gravitee.gateway.platform.providers.OnRequestPlatformPolicyChainProvid
 import io.gravitee.gateway.platform.providers.OnResponsePlatformPolicyChainProvider;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
-import io.gravitee.gateway.reactive.platform.PlatformPolicyManager;
-import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
-import io.gravitee.gateway.reactive.policy.PolicyFactory;
-import io.gravitee.gateway.reactive.policy.PolicyFactoryCreator;
+import io.gravitee.gateway.jupiter.platform.PlatformPolicyManager;
+import io.gravitee.gateway.jupiter.policy.DefaultPolicyChainFactory;
+import io.gravitee.gateway.jupiter.policy.PolicyFactory;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
@@ -149,7 +148,7 @@ public class PlatformConfiguration {
     }
 
     @Bean("platformPolicyChainFactory")
-    public io.gravitee.gateway.reactive.policy.PolicyChainFactory platformPolicyChainFactory(
+    public io.gravitee.gateway.jupiter.policy.PolicyChainFactory platformPolicyChainFactory(
         io.gravitee.node.api.configuration.Configuration configuration,
         PlatformPolicyManager platformPolicyManager
     ) {

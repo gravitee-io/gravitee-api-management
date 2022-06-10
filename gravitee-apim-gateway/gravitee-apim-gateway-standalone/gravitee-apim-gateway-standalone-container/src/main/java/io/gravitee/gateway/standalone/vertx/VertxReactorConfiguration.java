@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
-import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
-import io.gravitee.gateway.reactive.standalone.vertx.HttpProtocolVerticle;
+import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
+import io.gravitee.gateway.jupiter.standalone.vertx.HttpProtocolVerticle;
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.vertx.VertxHttpServerFactory;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;

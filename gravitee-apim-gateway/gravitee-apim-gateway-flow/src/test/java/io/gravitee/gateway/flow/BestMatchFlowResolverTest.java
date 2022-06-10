@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.reactive.flow.BestMatchFlowBaseTest;
+import io.gravitee.gateway.jupiter.flow.BestMatchFlowBaseTest;
 import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;

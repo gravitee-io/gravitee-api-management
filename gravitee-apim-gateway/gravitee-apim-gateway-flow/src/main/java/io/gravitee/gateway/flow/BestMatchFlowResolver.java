@@ -17,7 +17,7 @@ package io.gravitee.gateway.flow;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.reactive.flow.BestMatchFlowSelector;
+import io.gravitee.gateway.jupiter.flow.BestMatchFlowSelector;
 import java.util.Collections;
 import java.util.List;
 
