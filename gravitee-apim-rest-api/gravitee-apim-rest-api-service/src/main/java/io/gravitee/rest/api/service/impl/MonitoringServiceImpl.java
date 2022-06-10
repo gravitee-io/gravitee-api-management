@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.MonitoringService;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
@@ -33,6 +34,7 @@ public class MonitoringServiceImpl implements MonitoringService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MonitoringServiceImpl.class);
 
+    @Lazy
     @Inject
     private MonitoringRepository monitoringRepository;
 

@@ -93,6 +93,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -117,6 +118,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Value("${documentation.markdown.sanitize:false}")
     private boolean markdownSanitize;
 
+    @Lazy
     @Autowired
     private PageRepository pageRepository;
 

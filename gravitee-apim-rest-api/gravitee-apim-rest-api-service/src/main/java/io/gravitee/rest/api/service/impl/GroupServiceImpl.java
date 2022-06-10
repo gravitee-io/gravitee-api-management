@@ -72,6 +72,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -83,12 +84,15 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
     private final Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
 
+    @Lazy
     @Autowired
     private GroupRepository groupRepository;
 
+    @Lazy
     @Autowired
     private ApiRepository apiRepository;
 
+    @Lazy
     @Autowired
     private ApplicationRepository applicationRepository;
 
@@ -110,12 +114,15 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Autowired
     private InvitationService invitationService;
 
+    @Lazy
     @Autowired
     private PageRepository pageRepository;
 
+    @Lazy
     @Autowired
     private PlanRepository planRepository;
 
+    @Lazy
     @Autowired
     private IdentityProviderRepository identityProviderRepository;
 

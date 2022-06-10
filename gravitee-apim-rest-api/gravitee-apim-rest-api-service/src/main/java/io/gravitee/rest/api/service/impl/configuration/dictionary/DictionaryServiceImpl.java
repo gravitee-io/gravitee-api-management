@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,6 +51,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
     private final Logger LOGGER = LoggerFactory.getLogger(DictionaryServiceImpl.class);
 
+    @Lazy
     @Autowired
     private DictionaryRepository dictionaryRepository;
 

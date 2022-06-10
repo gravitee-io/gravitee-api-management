@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,7 +55,7 @@ public class AlertAnalyticsServiceImpl implements AlertAnalyticsService {
 
     private final AlertEventRepository alertEventRepository;
 
-    public AlertAnalyticsServiceImpl(AlertTriggerRepository alertTriggerRepository, AlertEventRepository alertEventRepository) {
+    public AlertAnalyticsServiceImpl(@Lazy AlertTriggerRepository alertTriggerRepository, @Lazy AlertEventRepository alertEventRepository) {
         this.alertTriggerRepository = alertTriggerRepository;
         this.alertEventRepository = alertEventRepository;
     }

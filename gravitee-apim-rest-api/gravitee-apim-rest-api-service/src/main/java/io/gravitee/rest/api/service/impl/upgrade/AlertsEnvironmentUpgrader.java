@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -65,10 +66,10 @@ public class AlertsEnvironmentUpgrader extends OneShotUpgrader {
 
     @Autowired
     public AlertsEnvironmentUpgrader(
-        AlertTriggerRepository alertTriggerRepository,
+        @Lazy AlertTriggerRepository alertTriggerRepository,
         AlertTriggerConverter alertTriggerConverter,
-        ApiRepository apiRepository,
-        ApplicationRepository applicationRepository
+        @Lazy ApiRepository apiRepository,
+        @Lazy ApplicationRepository applicationRepository
     ) {
         super(InstallationService.ALERTS_ENVIRONMENT_UPGRADER);
         this.alertTriggerRepository = alertTriggerRepository;

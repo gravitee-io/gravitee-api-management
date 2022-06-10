@@ -62,6 +62,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ParameterServiceImpl.class);
 
+    @Lazy
     @Inject
     private ParameterRepository parameterRepository;
 

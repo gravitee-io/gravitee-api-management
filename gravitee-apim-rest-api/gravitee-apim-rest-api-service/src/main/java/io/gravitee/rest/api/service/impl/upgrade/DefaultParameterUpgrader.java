@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
@@ -43,6 +44,7 @@ public class DefaultParameterUpgrader implements Upgrader, Ordered {
      */
     private final Logger logger = LoggerFactory.getLogger(DefaultParameterUpgrader.class);
 
+    @Lazy
     @Autowired
     private ParameterRepository parameterRepository;
 

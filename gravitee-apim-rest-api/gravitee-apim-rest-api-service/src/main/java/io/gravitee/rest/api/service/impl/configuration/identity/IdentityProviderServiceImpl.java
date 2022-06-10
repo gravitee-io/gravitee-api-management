@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,6 +52,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
     private static final String CLIENT_SECRET = "clientSecret";
     private final Logger LOGGER = LoggerFactory.getLogger(IdentityProviderServiceImpl.class);
 
+    @Lazy
     @Autowired
     private IdentityProviderRepository identityProviderRepository;
 

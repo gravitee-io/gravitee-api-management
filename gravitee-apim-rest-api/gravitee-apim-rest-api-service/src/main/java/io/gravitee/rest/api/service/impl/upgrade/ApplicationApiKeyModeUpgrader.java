@@ -34,6 +34,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,12 +49,15 @@ public class ApplicationApiKeyModeUpgrader extends OneShotUpgrader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationApiKeyModeUpgrader.class);
 
+    @Lazy
     @Autowired
     private PlanRepository planRepository;
 
+    @Lazy
     @Autowired
     private ApplicationRepository applicationRepository;
 
+    @Lazy
     @Autowired
     private SubscriptionRepository subscriptionRepository;
 

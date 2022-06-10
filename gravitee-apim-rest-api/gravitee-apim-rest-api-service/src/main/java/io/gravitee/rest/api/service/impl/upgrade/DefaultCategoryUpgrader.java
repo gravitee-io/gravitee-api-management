@@ -27,6 +27,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
@@ -43,11 +44,9 @@ public class DefaultCategoryUpgrader implements Upgrader, Ordered {
      */
     private final Logger logger = LoggerFactory.getLogger(DefaultCategoryUpgrader.class);
 
+    @Lazy
     @Autowired
     private CategoryRepository categoryRepository;
-
-    @Autowired
-    private ApiRepository apiRepository;
 
     @Override
     public boolean upgrade() {

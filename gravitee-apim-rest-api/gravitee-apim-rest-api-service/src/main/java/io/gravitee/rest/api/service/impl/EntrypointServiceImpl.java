@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,6 +53,7 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     @Autowired
     private AuditService auditService;
 
+    @Lazy
     @Autowired
     private EntrypointRepository entrypointRepository;
 

@@ -47,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -61,6 +62,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     private static final String DEFAULT_THEME_PATH = "/definition.json";
     private static final String DEFAULT_THEME_ID = "default";
 
+    @Lazy
     @Autowired
     private ThemeRepository themeRepository;
 

@@ -43,6 +43,7 @@ import javax.xml.bind.DatatypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,6 +56,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
 
     private final Logger LOGGER = LoggerFactory.getLogger(CategoryServiceImpl.class);
 
+    @Lazy
     @Autowired
     private CategoryRepository categoryRepository;
 

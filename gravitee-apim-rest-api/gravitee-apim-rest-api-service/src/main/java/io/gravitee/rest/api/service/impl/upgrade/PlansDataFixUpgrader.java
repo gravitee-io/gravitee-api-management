@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,12 +53,15 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
         "This plan has been recreated during a data fix process. See documentation : https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#upgrade_to_3_10_8";
     private static final String PLAN_NAME_SUFFIX = "-Recreated";
 
+    @Lazy
     @Autowired
     private ApiRepository apiRepository;
 
+    @Lazy
     @Autowired
     private PlanRepository planRepository;
 
+    @Lazy
     @Autowired
     private EnvironmentRepository environmentRepository;
 
