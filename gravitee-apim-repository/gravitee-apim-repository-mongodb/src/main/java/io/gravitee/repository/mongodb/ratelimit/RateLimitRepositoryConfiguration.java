@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.mongodb.ratelimit;
 
-import io.gravitee.repository.Scope;
+import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import java.net.URI;

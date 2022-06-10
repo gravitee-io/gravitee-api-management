@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
-import io.gravitee.repository.Scope;
+import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.bridge.client.http.WebClientFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;

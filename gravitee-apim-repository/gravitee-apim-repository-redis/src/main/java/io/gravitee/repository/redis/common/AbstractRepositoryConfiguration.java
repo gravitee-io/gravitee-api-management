@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.redis.common;
 
-import io.gravitee.repository.Scope;
+import io.gravitee.platform.repository.api.Scope;
 import org.springframework.context.annotation.Bean;
 
 /**
