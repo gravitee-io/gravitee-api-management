@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -80,6 +81,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private static final String FIELD_PLAN = "plan";
     private static final String FIELD_GEOIP_COUNTRY_ISO_CODE = "geoip.country_iso_code";
 
+    @Lazy
     @Autowired
     private AnalyticsRepository analyticsRepository;
 

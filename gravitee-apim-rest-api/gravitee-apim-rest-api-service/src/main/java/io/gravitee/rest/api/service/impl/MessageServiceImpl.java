@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -58,12 +59,14 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     private static final String API_SUBSCRIBERS = "API_SUBSCRIBERS";
     private final Logger LOGGER = LoggerFactory.getLogger(MessageServiceImpl.class);
 
+    @Lazy
     @Autowired
     ApiRepository apiRepository;
 
     @Autowired
     MembershipService membershipService;
 
+    @Lazy
     @Autowired
     SubscriptionRepository subscriptionRepository;
 

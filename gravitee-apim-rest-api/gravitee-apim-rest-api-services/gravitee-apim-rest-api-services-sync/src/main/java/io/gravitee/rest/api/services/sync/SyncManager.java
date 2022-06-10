@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -55,6 +56,7 @@ public class SyncManager {
     @Autowired
     private DictionaryManager dictionaryManager;
 
+    @Lazy
     @Autowired
     private EventRepository eventRepository;
 

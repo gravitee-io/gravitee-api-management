@@ -65,6 +65,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.yaml.snakeyaml.Yaml;
@@ -84,6 +85,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     @Value("${templates.path:${gravitee.home}/templates}")
     private String templatesPath;
 
+    @Lazy
     @Autowired
     private NotificationTemplateRepository notificationTemplateRepository;
 

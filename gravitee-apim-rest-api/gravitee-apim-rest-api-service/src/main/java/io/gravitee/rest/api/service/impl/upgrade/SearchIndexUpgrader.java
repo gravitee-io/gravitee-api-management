@@ -46,6 +46,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
@@ -77,11 +78,11 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
 
     @Autowired
     public SearchIndexUpgrader(
-        ApiRepository apiRepository,
+        @Lazy ApiRepository apiRepository,
         PageService pageService,
-        UserRepository userRepository,
+        @Lazy UserRepository userRepository,
         SearchEngineService searchEngineService,
-        EnvironmentRepository environmentRepository,
+        @Lazy EnvironmentRepository environmentRepository,
         ApiConverter apiConverter,
         UserConverter userConverter
     ) {
