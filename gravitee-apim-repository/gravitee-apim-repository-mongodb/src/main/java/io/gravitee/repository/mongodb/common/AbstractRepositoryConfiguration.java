@@ -99,11 +99,6 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
         return initialEntitySet;
     }
 
-    @Bean
-    public AbstractPlatformTransactionManager graviteeTransactionManager() {
-        return new NoTransactionManager();
-    }
-
     public static void configureCollectionName(Annotation annotation, String prefix) {
         if (StringUtils.hasText(prefix)) {
             Object handler = Proxy.getInvocationHandler(annotation);
