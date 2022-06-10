@@ -24,14 +24,15 @@ export class SafePipe implements PipeTransform {
 
   public transform(value: any, type: string): SafeHtml | SafeStyle | SafeScript | SafeUrl | SafeResourceUrl {
     switch (type) {
+      // No Sonar because the bypass is deliberate and should only be used with safe data
       case 'html':
-        return this.sanitizer.bypassSecurityTrustHtml(value);
+        return this.sanitizer.bypassSecurityTrustHtml(value); // NOSONAR
       case 'style':
-        return this.sanitizer.bypassSecurityTrustStyle(value);
+        return this.sanitizer.bypassSecurityTrustStyle(value); // NOSONAR
       case 'script':
-        return this.sanitizer.bypassSecurityTrustScript(value);
+        return this.sanitizer.bypassSecurityTrustScript(value); // NOSONAR
       case 'url':
-        return this.sanitizer.bypassSecurityTrustUrl(value);
+        return this.sanitizer.bypassSecurityTrustUrl(value); // NOSONAR
       case 'resourceUrl':
         return this.sanitizer.bypassSecurityTrustResourceUrl(value);
       default:
