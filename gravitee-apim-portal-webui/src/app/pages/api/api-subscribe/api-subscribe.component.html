@@ -56,7 +56,7 @@
               [innerHTML]="'apiSubscribe.apps.connectedApps' | translate: { count: getConnectedAppsCount(), apiName: apiName }"
             ></p>
             <p *ngIf="!hasAvailableApplications()">
-              <b>{{ 'apiSubscribe.apps.noAvailableApplications' | translate }}</b>
+              <strong>{{ 'apiSubscribe.apps.noAvailableApplications' | translate }}</strong>
             </p>
             <a
               *ngIf="!hasAvailableApplications() && canCreateApp()"
