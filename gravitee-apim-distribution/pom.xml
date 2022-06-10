@@ -48,7 +48,7 @@
         <!-- Management API & Gateway -->
         <gravitee-alert-engine-connectors-ws.version>1.0.0</gravitee-alert-engine-connectors-ws.version>
         <gravitee-connector-http.version>2.0.0</gravitee-connector-http.version>
-        <gravitee-policy-apikey.version>2.4.0</gravitee-policy-apikey.version>
+        <gravitee-policy-apikey.version>2.5.0-prototype-reactive-SNAPSHOT</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>1.7.0</gravitee-policy-assign-content.version>
         <gravitee-policy-cache.version>1.15.1</gravitee-policy-cache.version>
