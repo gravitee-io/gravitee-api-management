@@ -16,7 +16,7 @@
 package io.gravitee.repository.mongodb.management;
 
 import com.mongodb.client.MongoClient;
-import io.gravitee.repository.Scope;
+import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import io.gravitee.repository.mongodb.management.converters.BsonUndefinedToNullReadingConverter;

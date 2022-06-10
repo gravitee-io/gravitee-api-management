@@ -13,26 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository;
+package io.gravitee.apim.gateway.tests.sdk.repository;
+
+import io.gravitee.platform.repository.api.RepositoryProvider;
+import io.gravitee.platform.repository.api.Scope;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum Scope {
-    MANAGEMENT("management"),
-    RATE_LIMIT("ratelimit"),
-    ANALYTICS("analytics"),
-    CACHE("cache"),
-    KEY_VALUE("keyvalue");
+public class MockRepositoryProvider implements RepositoryProvider {
 
-    String name;
-
-    Scope(String name) {
-        this.name = name;
+    @Override
+    public String type() {
+        return "mock";
     }
 
-    public String getName() {
-        return this.name;
+    @Override
+    public Scope[] scopes() {
+        return new Scope[] { Scope.MANAGEMENT };
+    }
+
+    @Override
+    public Class<?> configuration(Scope scope) {
+        return RepositoryConfiguration.class;
     }
 }
