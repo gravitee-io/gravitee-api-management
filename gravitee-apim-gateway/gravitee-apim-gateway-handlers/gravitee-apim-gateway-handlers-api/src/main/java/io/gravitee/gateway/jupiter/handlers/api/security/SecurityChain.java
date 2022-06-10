@@ -19,10 +19,10 @@ import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static io.reactivex.Completable.defer;
 
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.jupiter.handlers.api.security.handler.SecurityPlan;
-import io.gravitee.gateway.jupiter.handlers.api.security.handler.SecurityPlanFactory;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.handlers.api.security.handler.SecurityPlan;
+import io.gravitee.gateway.jupiter.handlers.api.security.handler.SecurityPlanFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;

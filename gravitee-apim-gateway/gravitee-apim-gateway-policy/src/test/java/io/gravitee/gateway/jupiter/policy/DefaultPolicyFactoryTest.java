@@ -20,13 +20,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
+import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.policy.Policy;
+import io.gravitee.gateway.jupiter.policy.adapter.policy.PolicyAdapter;
 import io.gravitee.gateway.policy.*;
 import io.gravitee.gateway.policy.dummy.*;
 import io.gravitee.gateway.policy.impl.PolicyManifestBuilder;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
-import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.policy.Policy;
-import io.gravitee.gateway.jupiter.policy.adapter.policy.PolicyAdapter;
 import io.gravitee.plugin.policy.internal.PolicyMethodResolver;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.stream.Stream;

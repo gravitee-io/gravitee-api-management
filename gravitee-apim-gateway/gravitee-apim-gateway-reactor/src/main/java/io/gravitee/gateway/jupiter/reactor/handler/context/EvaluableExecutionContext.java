@@ -17,7 +17,6 @@ package io.gravitee.gateway.jupiter.reactor.handler.context;
 
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-
 import java.util.Map;
 
 /**

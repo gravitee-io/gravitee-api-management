@@ -416,7 +416,7 @@ jobs:
             - run:
                   name: Run tests
                   command: |
-                      mvn -pl 'gravitee-apim-definition, gravitee-apim-rest-api, gravitee-apim-gateway' -amd --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -T 2C
+                      mvn -U -pl 'gravitee-apim-definition, gravitee-apim-rest-api, gravitee-apim-gateway' -amd --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
                   command: |

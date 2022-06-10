@@ -18,7 +18,6 @@ package io.gravitee.gateway.jupiter.core.context;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-
 import java.util.Collection;
 
 /**

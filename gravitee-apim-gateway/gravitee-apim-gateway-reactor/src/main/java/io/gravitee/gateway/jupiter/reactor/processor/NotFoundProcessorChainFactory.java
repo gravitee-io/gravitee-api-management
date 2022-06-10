@@ -25,7 +25,6 @@ import io.gravitee.gateway.jupiter.reactor.processor.responsetime.ResponseTimePr
 import io.gravitee.gateway.report.ReporterService;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.core.env.Environment;
 
 /**

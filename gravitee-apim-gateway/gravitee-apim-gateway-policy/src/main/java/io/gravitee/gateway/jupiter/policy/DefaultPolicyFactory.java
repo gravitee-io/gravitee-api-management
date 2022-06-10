@@ -16,10 +16,10 @@
 package io.gravitee.gateway.jupiter.policy;
 
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
-import io.gravitee.gateway.policy.*;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.policy.adapter.policy.PolicyAdapter;
+import io.gravitee.gateway.policy.*;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;

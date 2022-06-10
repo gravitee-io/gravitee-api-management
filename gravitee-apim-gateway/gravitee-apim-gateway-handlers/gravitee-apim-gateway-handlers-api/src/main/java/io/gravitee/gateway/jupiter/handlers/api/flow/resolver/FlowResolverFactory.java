@@ -17,11 +17,11 @@ package io.gravitee.gateway.jupiter.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.platform.Organization;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.jupiter.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.jupiter.flow.FlowResolver;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.condition.ConditionEvaluatorAdapter;
+import io.gravitee.gateway.platform.Organization;
+import io.gravitee.gateway.platform.manager.OrganizationManager;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)

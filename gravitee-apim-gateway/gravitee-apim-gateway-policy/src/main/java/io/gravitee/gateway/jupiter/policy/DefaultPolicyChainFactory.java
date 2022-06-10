@@ -20,12 +20,12 @@ import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
-import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.hook.Hook;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.policy.tracing.TracingMessageHook;
 import io.gravitee.gateway.jupiter.policy.tracing.TracingPolicyHook;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
 import io.gravitee.node.api.configuration.Configuration;
