@@ -19,11 +19,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
 import java.util.List;
+import lombok.Data;
 
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Data
 public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
 
     private Alert alert;
@@ -56,105 +57,9 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         jupiterMode = new JupiterMode();
     }
 
-    // Getters & setters
-    public Alert getAlert() {
-        return alert;
-    }
-
-    public void setAlert(Alert alert) {
-        this.alert = alert;
-    }
-
-    public ConsoleAuthentication getAuthentication() {
-        return authentication;
-    }
-
-    public void setAuthentication(ConsoleAuthentication authentication) {
-        this.authentication = authentication;
-    }
-
-    public ConsoleCors getCors() {
-        return cors;
-    }
-
-    public void setCors(ConsoleCors cors) {
-        this.cors = cors;
-    }
-
-    public ConsoleReCaptcha getReCaptcha() {
-        return reCaptcha;
-    }
-
-    public void setReCaptcha(ConsoleReCaptcha reCaptcha) {
-        this.reCaptcha = reCaptcha;
-    }
-
-    public ConsoleScheduler getScheduler() {
-        return scheduler;
-    }
-
-    public void setScheduler(ConsoleScheduler scheduler) {
-        this.scheduler = scheduler;
-    }
-
-    public ConsoleAnalyticsPendo getAnalyticsPendo() {
-        return analyticsPendo;
-    }
-
-    public void setAnalyticsPendo(ConsoleAnalyticsPendo analyticsPendo) {
-        this.analyticsPendo = analyticsPendo;
-    }
-
-    public Logging getLogging() {
-        return logging;
-    }
-
-    public void setLogging(Logging logging) {
-        this.logging = logging;
-    }
-
-    public Maintenance getMaintenance() {
-        return maintenance;
-    }
-
-    public void setMaintenance(Maintenance maintenance) {
-        this.maintenance = maintenance;
-    }
-
-    public Management getManagement() {
-        return management;
-    }
-
-    public void setManagement(Management management) {
-        this.management = management;
-    }
-
-    public Newsletter getNewsletter() {
-        return newsletter;
-    }
-
-    public void setNewsletter(Newsletter newsletter) {
-        this.newsletter = newsletter;
-    }
-
-    public Theme getTheme() {
-        return theme;
-    }
-
-    public void setTheme(Theme theme) {
-        this.theme = theme;
-    }
-
-    public JupiterMode getJupiterMode() {
-        return jupiterMode;
-    }
-
-    public void setJupiterMode(JupiterMode jupiterMode) {
-        this.jupiterMode = jupiterMode;
-    }
-
     //Classes
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @Data
     public static class ConsoleCors {
 
         @ParameterKey(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN)
@@ -171,45 +76,5 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
 
         @ParameterKey(Key.CONSOLE_HTTP_CORS_MAX_AGE)
         private Integer maxAge;
-
-        public List<String> getAllowOrigin() {
-            return allowOrigin;
-        }
-
-        public void setAllowOrigin(List<String> allowOrigin) {
-            this.allowOrigin = allowOrigin;
-        }
-
-        public List<String> getAllowHeaders() {
-            return allowHeaders;
-        }
-
-        public void setAllowHeaders(List<String> allowHeaders) {
-            this.allowHeaders = allowHeaders;
-        }
-
-        public List<String> getAllowMethods() {
-            return allowMethods;
-        }
-
-        public void setAllowMethods(List<String> allowMethods) {
-            this.allowMethods = allowMethods;
-        }
-
-        public List<String> getExposedHeaders() {
-            return exposedHeaders;
-        }
-
-        public void setExposedHeaders(List<String> exposedHeaders) {
-            this.exposedHeaders = exposedHeaders;
-        }
-
-        public Integer getMaxAge() {
-            return maxAge;
-        }
-
-        public void setMaxAge(Integer maxAge) {
-            this.maxAge = maxAge;
-        }
     }
 }

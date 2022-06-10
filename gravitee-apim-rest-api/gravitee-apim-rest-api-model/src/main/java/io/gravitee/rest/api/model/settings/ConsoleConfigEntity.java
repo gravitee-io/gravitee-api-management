@@ -15,10 +15,12 @@
  */
 package io.gravitee.rest.api.model.settings;
 
+import lombok.Data;
+
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Data
 public class ConsoleConfigEntity {
 
     private Alert alert;
@@ -46,94 +48,5 @@ public class ConsoleConfigEntity {
         analyticsPendo = new ConsoleAnalyticsPendo();
         theme = new Theme();
         jupiterMode = new JupiterMode();
-    }
-
-    // Getters & setters
-    public Alert getAlert() {
-        return alert;
-    }
-
-    public void setAlert(Alert alert) {
-        this.alert = alert;
-    }
-
-    public ConsoleAuthentication getAuthentication() {
-        return authentication;
-    }
-
-    public void setAuthentication(ConsoleAuthentication authentication) {
-        this.authentication = authentication;
-    }
-
-    public ConsoleReCaptcha getReCaptcha() {
-        return reCaptcha;
-    }
-
-    public void setReCaptcha(ConsoleReCaptcha reCaptcha) {
-        this.reCaptcha = reCaptcha;
-    }
-
-    public ConsoleScheduler getScheduler() {
-        return scheduler;
-    }
-
-    public void setScheduler(ConsoleScheduler scheduler) {
-        this.scheduler = scheduler;
-    }
-
-    public ConsoleAnalyticsPendo getAnalyticsPendo() {
-        return analyticsPendo;
-    }
-
-    public void setAnalyticsPendo(ConsoleAnalyticsPendo analyticsPendo) {
-        this.analyticsPendo = analyticsPendo;
-    }
-
-    public Logging getLogging() {
-        return logging;
-    }
-
-    public void setLogging(Logging logging) {
-        this.logging = logging;
-    }
-
-    public Maintenance getMaintenance() {
-        return maintenance;
-    }
-
-    public void setMaintenance(Maintenance maintenance) {
-        this.maintenance = maintenance;
-    }
-
-    public Management getManagement() {
-        return management;
-    }
-
-    public void setManagement(Management management) {
-        this.management = management;
-    }
-
-    public Newsletter getNewsletter() {
-        return newsletter;
-    }
-
-    public void setNewsletter(Newsletter newsletter) {
-        this.newsletter = newsletter;
-    }
-
-    public Theme getTheme() {
-        return theme;
-    }
-
-    public void setTheme(Theme theme) {
-        this.theme = theme;
-    }
-
-    public JupiterMode getJupiterMode() {
-        return jupiterMode;
-    }
-
-    public void setJupiterMode(JupiterMode jupiterMode) {
-        this.jupiterMode = jupiterMode;
     }
 }
