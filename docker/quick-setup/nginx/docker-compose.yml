@@ -41,7 +41,7 @@ services:
     networks:
       - frontend
   mongodb:
-    image: mongo:${MONGODB_VERSION:-3.6}
+    image: mongo:${MONGODB_VERSION:-4.0.28}
     container_name: gio_apim_mongodb
     restart: always
     volumes:
