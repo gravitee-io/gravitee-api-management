@@ -293,6 +293,12 @@
             </dependency>
 
             <dependency>
+                <groupId>com.graviteesource.license</groupId>
+                <artifactId>gravitee-license-node</artifactId>
+                <version>${gravitee-license-node.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.plugin</groupId>
                 <artifactId>gravitee-plugin-service-discovery</artifactId>
                 <version>${gravitee-plugin.version}</version>
