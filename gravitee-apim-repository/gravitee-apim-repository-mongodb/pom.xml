@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee.apim.repository</groupId>
         <artifactId>gravitee-apim-repository</artifactId>
-        <version>3.10.16</version>
+        <version>3.10.17-SNAPSHOT</version>
     </parent>
 
 	<artifactId>gravitee-apim-repository-mongodb</artifactId>
