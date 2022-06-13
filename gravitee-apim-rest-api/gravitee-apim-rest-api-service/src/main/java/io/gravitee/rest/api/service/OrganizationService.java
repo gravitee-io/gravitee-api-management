@@ -35,7 +35,7 @@ public interface OrganizationService {
 
     void delete(String organizationId);
 
-    void initialize();
+    OrganizationEntity initialize();
 
     /**
      * Find all existing organizations.
@@ -43,4 +43,6 @@ public interface OrganizationService {
      * @return the list of all organizations.
      */
     Collection<OrganizationEntity> findAll();
+
+    OrganizationEntity getDefaultOrInitialize();
 }

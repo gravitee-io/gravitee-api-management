@@ -36,7 +36,9 @@ public interface EnvironmentService {
 
     void delete(String environmentId);
 
-    void initialize();
+    EnvironmentEntity initialize();
 
     EnvironmentEntity findByCockpitId(String cockpitId);
+
+    EnvironmentEntity getDefaultOrInitialize();
 }

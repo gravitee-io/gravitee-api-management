@@ -19,7 +19,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
@@ -29,7 +31,6 @@ import io.gravitee.cockpit.api.command.hello.HelloReply;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.node.api.Node;
-import io.gravitee.repository.management.model.Installation;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
@@ -136,7 +137,7 @@ public class HelloCommandProducerTest {
         defaultEnvironment.setOrganizationId("org#1");
 
         when(installationService.getOrInitialize()).thenReturn(new InstallationEntity());
-        when(environmentService.findById(defaultEnvId)).thenReturn(defaultEnvironment);
+        when(environmentService.getDefaultOrInitialize()).thenReturn(defaultEnvironment);
 
         cut.handleReply(helloReply);
 
@@ -164,7 +165,7 @@ public class HelloCommandProducerTest {
         defaultOrganization.setFlowMode(FlowMode.DEFAULT);
 
         when(installationService.getOrInitialize()).thenReturn(new InstallationEntity());
-        when(organizationService.findById(defaultOrgId)).thenReturn(defaultOrganization);
+        when(organizationService.getDefaultOrInitialize()).thenReturn(defaultOrganization);
 
         cut.handleReply(helloReply);
 

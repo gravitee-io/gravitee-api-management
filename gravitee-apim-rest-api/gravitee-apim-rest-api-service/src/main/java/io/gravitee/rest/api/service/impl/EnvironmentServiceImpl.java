@@ -158,7 +158,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     }
 
     @Override
-    public void initialize() {
+    public EnvironmentEntity initialize() {
         Environment defaultEnvironment = new Environment();
         defaultEnvironment.setId(GraviteeContext.getDefaultEnvironment());
         defaultEnvironment.setName("Default environment");
@@ -167,6 +167,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         defaultEnvironment.setOrganizationId(GraviteeContext.getDefaultOrganization());
         try {
             environmentRepository.create(defaultEnvironment);
+            return convert(defaultEnvironment);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create default environment", ex);
             throw new TechnicalManagementException("An error occurs while trying to create default environment", ex);
@@ -198,6 +199,16 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 "An error occurs while trying to find all environments by organization " + organizationId,
                 ex
             );
+        }
+    }
+
+    @Override
+    public EnvironmentEntity getDefaultOrInitialize() {
+        try {
+            return environmentRepository.findById(GraviteeContext.getDefaultEnvironment()).map(this::convert).orElseGet(this::initialize);
+        } catch (final Exception ex) {
+            LOGGER.error("Error while getting installation : {}", ex.getMessage());
+            throw new TechnicalManagementException("Error while getting installation", ex);
         }
     }
 
