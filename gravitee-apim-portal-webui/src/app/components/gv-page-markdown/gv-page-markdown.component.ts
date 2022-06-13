@@ -73,13 +73,13 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     return {
       image(href, title, text) {
         // is it a portal media ?
-        let parsedURL = /.*\/environments\/(?:[\w-]+)\/portal\/media\/([A-Za-z0-9]*).*/g.exec(href);
+        let parsedURL = /\/environments\/(?:[\w-]+)\/portal\/media\/([\w-]+)/g.exec(href);
         if (parsedURL) {
           const portalHref = `${that.baseURL}/media/${parsedURL[1]}`;
           return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
         } else {
           // is it a API media ?
-          parsedURL = /.*\/environments\/(?:[\w-]+)\/apis\/((?:[\w-]+))\/media\/([\w-]+).*/g.exec(href);
+          parsedURL = /\/environments\/(?:[\w-]+)\/apis\/([\w-]+)\/media\/([\w-]+)/g.exec(href);
           if (parsedURL) {
             const portalHref = `${that.baseURL}/apis/${parsedURL[1]}/media/${parsedURL[2]}`;
             return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
