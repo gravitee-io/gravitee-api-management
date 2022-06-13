@@ -56,9 +56,9 @@
 
     <properties>
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-gateway-standalone-container -->
-        <vertx.version>4.2.6</vertx.version>
+        <vertx.version>4.2.7</vertx.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>2.4</gravitee-bom.version>
+        <gravitee-bom.version>2.6</gravitee-bom.version>
         <gravitee-alert-api.version>1.9.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>1.10.0</gravitee-cockpit-api.version>
         <gravitee-common.version>1.25.0</gravitee-common.version>
@@ -115,7 +115,7 @@
         <json-smart.version>2.4.7</json-smart.version>
         <jsoup.version>1.14.3</jsoup.version>
         <lucene.version>7.7.3</lucene.version>
-        <netty-tcnative-boringssl-static.version>2.0.46.Final</netty-tcnative-boringssl-static.version>
+        <netty-tcnative-boringssl-static.version>2.0.48.Final</netty-tcnative-boringssl-static.version>
         <nimbus-jose-jwt.version>8.23</nimbus-jose-jwt.version>
         <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
         <protobuf-java.version>3.19.3</protobuf-java.version>
@@ -139,6 +139,7 @@
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
         <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
+        <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
         <prettier-maven-plugin.version>0.16</prettier-maven-plugin.version>
     </properties>
 
@@ -480,7 +481,7 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-tcnative-boringssl-static</artifactId>
                 <version>${netty-tcnative-boringssl-static.version}</version>
-                <classifier>linux-x86_64</classifier>
+                <classifier>${os.detected.classifier}</classifier>
             </dependency>
 
             <dependency>
@@ -775,6 +776,13 @@
                 <artifactId>wsdl4j</artifactId>
                 <version>${wsdl4j.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>${os-maven-plugin.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
