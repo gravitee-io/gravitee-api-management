@@ -34,7 +34,7 @@ export class SafePipe implements PipeTransform {
       case 'url':
         return this.sanitizer.bypassSecurityTrustUrl(value); // NOSONAR
       case 'resourceUrl':
-        return this.sanitizer.bypassSecurityTrustResourceUrl(value);
+        return this.sanitizer.bypassSecurityTrustResourceUrl(value); // NOSONAR
       default:
         throw new Error(`Invalid safe type specified: ${type}`);
     }
