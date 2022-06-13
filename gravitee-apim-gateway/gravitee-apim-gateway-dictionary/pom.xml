@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.apim.gateway</groupId>
         <artifactId>gravitee-apim-gateway</artifactId>
-        <version>3.10.16-SNAPSHOT</version>
+        <version>3.10.16</version>
     </parent>
 
     <artifactId>gravitee-apim-gateway-dictionary</artifactId>
