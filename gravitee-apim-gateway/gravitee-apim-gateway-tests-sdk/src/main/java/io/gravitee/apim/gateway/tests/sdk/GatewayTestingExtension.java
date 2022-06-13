@@ -138,6 +138,7 @@ public class GatewayTestingExtension implements BeforeAllCallback, BeforeEachCal
         if (testInstance instanceof AbstractGatewayTest) {
             gatewayTest = (AbstractGatewayTest) testInstance;
             final GatewayConfigurationBuilder gatewayConfigurationBuilder = GatewayConfigurationBuilder.emptyConfiguration();
+            gatewayConfigurationBuilder.set("http.instances", 1);
             gatewayTest.configureGateway(gatewayConfigurationBuilder);
             gatewayRunner = new GatewayRunner(gatewayConfigurationBuilder, gatewayTest);
 
