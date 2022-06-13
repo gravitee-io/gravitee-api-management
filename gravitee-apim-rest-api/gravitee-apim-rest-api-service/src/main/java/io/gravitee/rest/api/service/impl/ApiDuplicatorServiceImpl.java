@@ -402,7 +402,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
                 boolean presentWithSameRole = isPresentWithSameRole(membersAlreadyPresent, memberToImport);
 
-                List<String> rolesToImport = getRolesToImport(memberToImport);
+                List<String> roleIdsToImport = getRoleIdsToImport(memberToImport);
                 addOrUpdateMembers(
                     apiId,
                     organizationId,
@@ -410,7 +410,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     poRoleId,
                     currentPo,
                     memberToImport,
-                    rolesToImport,
+                    roleIdsToImport,
                     presentWithSameRole
                 );
 
@@ -418,12 +418,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 if (
                     currentPo.getSourceId().equals(memberToImport.getSourceId()) &&
                     currentPo.getSource().equals(memberToImport.getSource()) &&
-                    !rolesToImport.contains(poRoleId)
+                    !roleIdsToImport.contains(poRoleId)
                 ) {
-                    roleUsedInTransfert = rolesToImport;
+                    roleUsedInTransfert = roleIdsToImport;
                 }
 
-                if (rolesToImport.contains(poRoleId)) {
+                if (roleIdsToImport.contains(poRoleId)) {
                     futurePo = memberToImport;
                 }
             }
@@ -451,37 +451,30 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         );
     }
 
-    protected List<String> getRolesToImport(MemberToImport memberToImport) {
-        List<String> rolesToImport = memberToImport.getRoles();
-        if (rolesToImport == null) {
-            rolesToImport = new ArrayList<>();
-            memberToImport.setRoles(rolesToImport);
+    protected List<String> getRoleIdsToImport(MemberToImport memberToImport) {
+        // Starting with v3, multiple roles per member can be imported and it is a list of role Ids.
+        List<String> roleIdsToImport = memberToImport.getRoles();
+        if (roleIdsToImport == null) {
+            roleIdsToImport = new ArrayList<>();
+            memberToImport.setRoles(roleIdsToImport);
         } else {
-            rolesToImport = new ArrayList<>(rolesToImport);
+            roleIdsToImport = new ArrayList<>(roleIdsToImport);
         }
 
-        // Before v3, only one role per member could be imported
-        String roleToAdd = memberToImport.getRole();
-        if (roleToAdd != null && !roleToAdd.isEmpty()) {
-            rolesToImport.add(roleToAdd);
+        // Before v3, only one role per member could be imported and it was a role name.
+        String roleNameToAdd = memberToImport.getRole();
+        if (roleNameToAdd != null && !roleNameToAdd.isEmpty()) {
+            Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(RoleScope.API, roleNameToAdd);
+            if (optRoleToAddEntity.isPresent()) {
+                roleIdsToImport.add(optRoleToAddEntity.get().getId());
+            } else {
+                LOGGER.warn("Role {} does not exist", roleNameToAdd);
+            }
         }
 
-        return rolesToImport
-            .stream()
-            .map(
-                role -> {
-                    final Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(RoleScope.API, role);
-                    if (optRoleToAddEntity.isPresent()) {
-                        return role;
-                    } else {
-                        LOGGER.warn("Role {} does not exist", roleToAdd);
-                        return null;
-                    }
-                }
-            )
-            .filter(Objects::nonNull)
-            .sorted(Comparator.naturalOrder())
-            .collect(Collectors.toList());
+        roleIdsToImport.sort(Comparator.naturalOrder());
+
+        return roleIdsToImport;
     }
 
     private void addOrUpdateMembers(
@@ -594,7 +587,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     protected void updatePlans(String apiId, JsonNode jsonNode, String environmentId, boolean isUpdate) throws IOException {
         final JsonNode plansDefinition = jsonNode.path(API_DEFINITION_FIELD_PLANS);
-        if (plansDefinition != null && plansDefinition.isArray() && plansDefinition.size() > 0) {
+        if (plansDefinition != null && plansDefinition.isArray()) {
             Map<String, PlanEntity> existingPlans = isUpdate
                 ? planService.findByApi(apiId).stream().collect(toMap(PlanEntity::getId, plan -> plan))
                 : Collections.emptyMap();
