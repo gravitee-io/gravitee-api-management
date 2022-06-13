@@ -525,7 +525,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
-        when(roleService.findByScopeAndName(RoleScope.API, "API_OWNER")).thenReturn(Optional.of(ownerRoleEntity));
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
