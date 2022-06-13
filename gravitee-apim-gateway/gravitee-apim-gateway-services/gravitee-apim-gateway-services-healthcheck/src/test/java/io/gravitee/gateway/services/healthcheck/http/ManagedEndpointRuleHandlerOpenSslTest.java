@@ -23,10 +23,10 @@ import org.junit.runner.RunWith;
  * @author GraviteeSource Team
  */
 @RunWith(VertxUnitRunner.class)
-public class ManagedEndpointRuleHandlerTest extends AbstractManagedEndpointRuleHandlerTest {
+public class ManagedEndpointRuleHandlerOpenSslTest extends AbstractManagedEndpointRuleHandlerTest {
 
     @Override
     protected Boolean useOpenSsl() {
-        return false;
+        return true;
     }
 }
