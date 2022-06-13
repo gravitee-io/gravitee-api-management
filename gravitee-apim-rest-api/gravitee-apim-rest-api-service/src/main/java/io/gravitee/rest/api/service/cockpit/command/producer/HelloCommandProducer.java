@@ -22,7 +22,11 @@ import io.gravitee.cockpit.api.command.hello.HelloCommand;
 import io.gravitee.cockpit.api.command.hello.HelloPayload;
 import io.gravitee.cockpit.api.command.hello.HelloReply;
 import io.gravitee.node.api.Node;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.InstallationEntity;
+import io.gravitee.rest.api.model.OrganizationEntity;
+import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
+import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.OrganizationService;
@@ -110,7 +114,7 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
     }
 
     private void updateDefaultEnvironmentCockpitId(String defaultEnvironmentCockpitId) {
-        EnvironmentEntity defaultEnvironment = environmentService.findById(GraviteeContext.getDefaultEnvironment());
+        EnvironmentEntity defaultEnvironment = environmentService.getDefaultOrInitialize();
 
         UpdateEnvironmentEntity updateEnvironment = new UpdateEnvironmentEntity(defaultEnvironment);
         updateEnvironment.setCockpitId(defaultEnvironmentCockpitId);
@@ -119,7 +123,7 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
     }
 
     private void updateDefaultOrganizationCockpitId(String defaultOrganizationCockpitId) {
-        OrganizationEntity defaultOrganization = organizationService.findById(GraviteeContext.getDefaultOrganization());
+        OrganizationEntity defaultOrganization = organizationService.getDefaultOrInitialize();
 
         UpdateOrganizationEntity updateOrganization = new UpdateOrganizationEntity(defaultOrganization);
         updateOrganization.setCockpitId(defaultOrganizationCockpitId);

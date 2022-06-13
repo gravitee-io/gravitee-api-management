@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
@@ -213,7 +212,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     @Override
-    public void initialize() {
+    public OrganizationEntity initialize() {
         Organization defaultOrganization = new Organization();
         defaultOrganization.setId(GraviteeContext.getDefaultOrganization());
         defaultOrganization.setName("Default organization");
@@ -221,6 +220,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         defaultOrganization.setDescription("Default organization");
         try {
             organizationRepository.create(defaultOrganization);
+            return convert(defaultOrganization);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create default organization", ex);
             throw new TechnicalManagementException("An error occurs while trying to create default organization", ex);
@@ -234,6 +234,16 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to list all organizations", ex);
             throw new TechnicalManagementException("An error occurs while trying to list all organizations", ex);
+        }
+    }
+
+    @Override
+    public OrganizationEntity getDefaultOrInitialize() {
+        try {
+            return organizationRepository.findById(GraviteeContext.getDefaultOrganization()).map(this::convert).orElseGet(this::initialize);
+        } catch (final Exception ex) {
+            LOGGER.error("Error while getting installation : {}", ex.getMessage());
+            throw new TechnicalManagementException("Error while getting installation", ex);
         }
     }
 }
