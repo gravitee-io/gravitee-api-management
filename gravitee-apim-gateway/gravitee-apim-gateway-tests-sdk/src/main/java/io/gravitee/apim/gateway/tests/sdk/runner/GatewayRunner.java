@@ -162,7 +162,7 @@ public class GatewayRunner {
         System.setProperty("gravitee.home", graviteeHome);
         System.setProperty("gravitee.conf", graviteeHome + File.separator + "config" + File.separator + "gravitee.yml");
 
-        gatewayConfigurationBuilder.build().forEach((k, v) -> System.setProperty((String) k, (String) v));
+        gatewayConfigurationBuilder.build().forEach((k, v) -> System.setProperty(String.valueOf(k), String.valueOf(v)));
         System.setProperty("http.port", String.valueOf(gatewayPort));
         System.setProperty("services.core.http.port", String.valueOf(technicalApiPort));
         System.setProperty("services.core.http.enabled", String.valueOf(false));
