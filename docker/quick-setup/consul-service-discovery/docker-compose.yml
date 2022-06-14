@@ -27,6 +27,20 @@ volumes:
   data-mongo:
 
 services:
+  consul-server:
+    image: hashicorp/consul:1.11.4
+    container_name: consul-server
+    restart: always
+    volumes:
+      - ./config/server.json:/consul/config/server.json:ro
+    ports:
+      - "8500:8500"
+      - "8600:8600/tcp"
+      - "8600:8600/udp"
+    command: "agent"
+    networks:
+      - frontend
+
   mongodb:
     image: mongo:${MONGODB_VERSION:-4.0.28}
     container_name: gio_apim_mongodb
@@ -60,19 +74,8 @@ services:
     networks:
       - storage
 
-  alert_engine:
-    image: graviteeio/ae-engine:${AE_VERSION:-1.4.0}
-    container_name: gio_ae_engine
-    restart: always
-    ports:
-      - "8072:8072"
-    volumes:
-      - ./.logs/ae-engine:/opt/graviteeio-alert-engine/logs
-      - ./.plugins:/opt/graviteeio-alert-engine/plugins-ext
-      - ./.license:/opt/graviteeio-alert-engine/license
-
   gateway:
-    image: graviteeio/apim-gateway:${APIM_VERSION:-nightly}
+    image: graviteeio/apim-gateway:${APIM_VERSION:-latest}
     container_name: gio_apim_gateway
     restart: always
     ports:
@@ -82,8 +85,6 @@ services:
       - elasticsearch
     volumes:
       - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
-      - ./.license:/opt/graviteeio-gateway/license
-      - ./.plugins:/opt/graviteeio-gateway/plugins-ext
     environment:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
@@ -93,7 +94,7 @@ services:
       - frontend
 
   management_api:
-    image: graviteeio/apim-management-api:${APIM_VERSION:-nightly}
+    image: graviteeio/apim-management-api:${APIM_VERSION:-latest}
     container_name: gio_apim_management_api
     restart: always
     ports:
@@ -101,28 +102,20 @@ services:
     links:
       - mongodb
       - elasticsearch
-      - "alert_engine:alert-engine"
     depends_on:
       - mongodb
       - elasticsearch
     volumes:
       - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
-      - ./.license:/opt/graviteeio-management-api/license
-      - ./.plugins:/opt/graviteeio-management-api/plugins-ext
     environment:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_alerts_alert-engine_enabled=true
-      - gravitee_alerts_alert-engine_ws_discovery=true
-      - gravitee_alerts_alert-engine_ws_endpoints[0]=http://alert-engine:8072/
-      - gravitee_alerts_alert-engine_ws_security_username=admin
-      - gravitee_alerts_alert-engine_ws_security_password=adminadmin
     networks:
       - storage
       - frontend
 
   management_ui:
-    image: graviteeio/apim-management-ui:${APIM_VERSION:-nightly}
+    image: graviteeio/apim-management-ui:${APIM_VERSION:-latest}
     container_name: gio_apim_management_ui
     restart: always
     ports:
@@ -137,7 +130,7 @@ services:
       - frontend
 
   portal_ui:
-    image: graviteeio/apim-portal-ui:${APIM_VERSION:-nightly}
+    image: graviteeio/apim-portal-ui:${APIM_VERSION:-latest}
     container_name: gio_apim_portal_ui
     restart: always
     ports:

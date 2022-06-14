@@ -17,14 +17,13 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.node.api.Monitoring;
 import io.gravitee.node.api.NodeMonitoringRepository;
-import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.mongodb.management.internal.model.MonitoringMongo;
-import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
 import io.gravitee.repository.mongodb.management.internal.node.NodeMonitoringMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -44,14 +43,30 @@ public class MongoNodeMonitoringRepository implements NodeMonitoringRepository {
 
     @Override
     public Maybe<Monitoring> findByNodeIdAndType(String nodeId, String type) {
-        MonitoringMongo monitoring = internalNodeMonitoringRepository.findByNodeIdAndType(nodeId, type);
-        return monitoring != null ? Maybe.just(map(monitoring)) : Maybe.empty();
+        return Maybe
+            .<Monitoring>create(
+                emitter -> {
+                    MonitoringMongo monitoring = internalNodeMonitoringRepository.findByNodeIdAndType(nodeId, type);
+                    if (monitoring != null) {
+                        emitter.onSuccess(map(monitoring));
+                    } else {
+                        emitter.onComplete();
+                    }
+                }
+            )
+            .subscribeOn(Schedulers.io());
     }
 
     @Override
     public Single<Monitoring> create(Monitoring monitoring) {
-        MonitoringMongo monitoringMongo = internalNodeMonitoringRepository.insert(map(monitoring));
-        return Single.just(map(monitoringMongo));
+        return Single
+            .<Monitoring>create(
+                emitter -> {
+                    MonitoringMongo monitoringMongo = internalNodeMonitoringRepository.insert(map(monitoring));
+                    emitter.onSuccess(map(monitoringMongo));
+                }
+            )
+            .subscribeOn(Schedulers.io());
     }
 
     @Override
@@ -60,22 +75,32 @@ public class MongoNodeMonitoringRepository implements NodeMonitoringRepository {
             return Single.error(new IllegalStateException("Node monitoring to update must have an id"));
         }
 
-        MonitoringMongo monitoringMongo = internalNodeMonitoringRepository.findById(monitoring.getId()).orElse(null);
+        return Single
+            .<Monitoring>create(
+                emitter -> {
+                    MonitoringMongo monitoringMongo = internalNodeMonitoringRepository.findById(monitoring.getId()).orElse(null);
 
-        if (monitoringMongo == null) {
-            return Single.error(new IllegalStateException(String.format("No node monitoring found with id [%s]", monitoring.getId())));
-        }
+                    if (monitoringMongo == null) {
+                        emitter.onError(
+                            new IllegalStateException(String.format("No node monitoring found with id [%s]", monitoring.getId()))
+                        );
+                    }
 
-        monitoringMongo = map(monitoring);
-        monitoringMongo = internalNodeMonitoringRepository.save(monitoringMongo);
-        return Single.just(map(monitoringMongo));
+                    monitoringMongo = map(monitoring);
+                    monitoringMongo = internalNodeMonitoringRepository.save(monitoringMongo);
+                    emitter.onSuccess(map(monitoringMongo));
+                }
+            )
+            .subscribeOn(Schedulers.io());
     }
 
     @Override
     public Flowable<Monitoring> findByTypeAndTimeFrame(String type, long from, long to) {
-        return Flowable.fromIterable(
-            internalNodeMonitoringRepository.findByTypeAndTimeFrame(type, from, to).stream().map(this::map).collect(Collectors.toList())
-        );
+        return Flowable
+            .fromIterable(
+                internalNodeMonitoringRepository.findByTypeAndTimeFrame(type, from, to).stream().map(this::map).collect(Collectors.toList())
+            )
+            .subscribeOn(Schedulers.io());
     }
 
     private MonitoringMongo map(Monitoring item) {

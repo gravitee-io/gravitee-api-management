@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api;
 
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
@@ -33,8 +34,11 @@ import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.node.api.Node;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -59,6 +63,12 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
     private PolicyManager policyManager;
 
     private GroupLifecycleManager groupLifecycleManager;
+
+    private Node node;
+
+    private final AtomicInteger pendingRequests = new AtomicInteger(0);
+
+    private long pendingRequestsTimeout;
 
     public ApiReactorHandler(final Api api) {
         super(api);
@@ -86,6 +96,10 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         request.metrics().setApi(reactable.getId());
         request.metrics().setPath(request.pathInfo());
 
+        // keep track of executing request to avoid 500 errors
+        // when stop is called while running a policy chain
+        pendingRequests.incrementAndGet();
+
         // It's time to process incoming client request
         handleClientRequest(context);
     }
@@ -99,6 +113,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
             .errorHandler(failure -> handleError(context, failure))
             .exitHandler(
                 __ -> {
+                    pendingRequests.decrementAndGet();
                     context.request().resume();
                     handler.handle(context);
                 }
@@ -165,10 +180,13 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
                     handleError(context, (ProcessorFailure) proxyResponse);
                 } else {
                     handler.handle(context);
+                    pendingRequests.decrementAndGet();
                 }
             } else {
                 handleClientResponse(context, proxyResponse);
             }
+        } else {
+            pendingRequests.decrementAndGet();
         }
     }
 
@@ -198,7 +216,12 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
                     handleError(context, failure);
                 }
             )
-            .exitHandler(__ -> handler.handle(context))
+            .exitHandler(
+                __ -> {
+                    handler.handle(context);
+                    pendingRequests.decrementAndGet();
+                }
+            )
             .handler(
                 stream -> {
                     chain.bodyHandler(chunk -> context.response().write(chunk)).endHandler(__ -> handler.handle(context));
@@ -228,6 +251,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
                                     .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
 
                                 chain.end();
+                                pendingRequests.decrementAndGet();
                             }
                         );
 
@@ -254,7 +278,21 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
             context.request().resume();
         }
 
-        errorProcessorChain.create().handler(__ -> handler.handle(context)).errorHandler(__ -> handler.handle(context)).handle(context);
+        errorProcessorChain
+            .create()
+            .handler(
+                __ -> {
+                    handler.handle(context);
+                    pendingRequests.decrementAndGet();
+                }
+            )
+            .errorHandler(
+                __ -> {
+                    handler.handle(context);
+                    pendingRequests.decrementAndGet();
+                }
+            )
+            .handle(context);
     }
 
     @Override
@@ -276,12 +314,28 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
     @Override
     protected void doStop() throws Exception {
-        logger.debug("API handler is now stopping, closing context for {} ...", this);
+        if (!node.lifecycleState().equals(Lifecycle.State.STARTED)) {
+            logger.debug("Current node is not started, API handler will be stopped immediately");
+            stopNow();
+        } else {
+            logger.debug("Current node is started, API handler will wait for pending requests before stopping");
+            long timeout = System.currentTimeMillis() + pendingRequestsTimeout;
+            stopUntil(timeout);
+        }
+    }
 
+    private void stopUntil(long timeout) throws Exception {
+        while (pendingRequests.get() > 0 && System.currentTimeMillis() <= timeout) {
+            TimeUnit.MILLISECONDS.sleep(100);
+        }
+        stopNow();
+    }
+
+    private void stopNow() throws Exception {
+        logger.debug("API handler is now stopping, closing context for {} ...", this);
         policyManager.stop();
         resourceLifecycleManager.stop();
         groupLifecycleManager.stop();
-
         super.doStop();
         logger.debug("API handler is now stopped: {}", this);
     }
@@ -325,6 +379,14 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
     public void setGroupLifecycleManager(GroupLifecycleManager groupLifecycleManager) {
         this.groupLifecycleManager = groupLifecycleManager;
+    }
+
+    public void setNode(Node node) {
+        this.node = node;
+    }
+
+    public void setPendingRequestsTimeout(long pendingRequestsTimeout) {
+        this.pendingRequestsTimeout = pendingRequestsTimeout;
     }
 
     @Override
