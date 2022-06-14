@@ -40,11 +40,6 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
                     <execution>
-                        <!-- avoid the execution defined in APIM parent pom.xml to be executed -->
-                        <id>make-plugin-assembly</id>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
                         <!-- avoid the execution defined in APIM rest-api standalone distribution pom.xml to be executed -->
                         <id>make-distribution</id>
                         <phase>none</phase>
