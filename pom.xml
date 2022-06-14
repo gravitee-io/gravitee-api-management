@@ -28,7 +28,7 @@
 
     <groupId>io.gravitee.apim</groupId>
     <artifactId>gravitee-api-management</artifactId>
-    <version>3.10.17-SNAPSHOT</version>
+    <version>${revision}${sha1}${changelist}</version>
     <packaging>pom</packaging>
 
     <name>Gravitee.io APIM</name>
@@ -55,6 +55,11 @@
     </modules>
 
     <properties>
+        <!-- Version properties -->
+        <revision>3.10.17</revision>
+        <sha1/>
+        <changelist>-SNAPSHOT</changelist>
+
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-apim-gateway-standalone-container -->
         <vertx.version>4.1.3</vertx.version>
         <!-- Gravitee dependencies version -->
@@ -829,6 +834,31 @@
                         <phase>verify</phase>
                         <goals>
                             <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.2.7</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
                         </goals>
                     </execution>
                 </executions>

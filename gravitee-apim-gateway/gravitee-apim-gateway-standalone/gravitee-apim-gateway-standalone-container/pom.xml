@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.apim.gateway.standalone</groupId>
         <artifactId>gravitee-apim-gateway-standalone</artifactId>
-        <version>3.10.17-SNAPSHOT</version>
+        <version>${revision}${sha1}${changelist}</version>
     </parent>
 
     <artifactId>gravitee-apim-gateway-standalone-container</artifactId>
