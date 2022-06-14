@@ -47,6 +47,8 @@ public class DefaultReactor extends AbstractService<Reactor> implements Reactor,
 
     private final Logger LOGGER = LoggerFactory.getLogger(DefaultReactor.class);
 
+    protected EntrypointResolver entrypointResolver;
+
     @Autowired
     protected EventManager eventManager;
 
@@ -54,22 +56,24 @@ public class DefaultReactor extends AbstractService<Reactor> implements Reactor,
     private ReactorHandlerRegistry reactorHandlerRegistry;
 
     @Autowired
-    private EntrypointResolver entrypointResolver;
-
-    @Autowired
     private GatewayConfiguration gatewayConfiguration;
-
-    @Autowired
-    @Qualifier("v3RequestProcessorChainFactory")
-    private RequestProcessorChainFactory requestProcessorChainFactory;
-
-    @Autowired
-    @Qualifier("v3ResponseProcessorChainFactory")
-    private ResponseProcessorChainFactory responseProcessorChainFactory;
 
     @Autowired
     @Qualifier("v3NotFoundProcessorChainFactory")
     private NotFoundProcessorChainFactory notFoundProcessorChainFactory;
+
+    private final RequestProcessorChainFactory requestProcessorChainFactory;
+    private final ResponseProcessorChainFactory responseProcessorChainFactory;
+
+    public DefaultReactor(
+        EntrypointResolver entrypointResolver,
+        RequestProcessorChainFactory requestProcessorChainFactory,
+        ResponseProcessorChainFactory responseProcessorChainFactory
+    ) {
+        this.entrypointResolver = entrypointResolver;
+        this.requestProcessorChainFactory = requestProcessorChainFactory;
+        this.responseProcessorChainFactory = responseProcessorChainFactory;
+    }
 
     @Override
     public void route(Request serverRequest, Response serverResponse, Handler<ExecutionContext> handler) {

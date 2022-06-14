@@ -25,6 +25,8 @@ import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
+import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
+import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
 import java.util.Optional;
 import org.junit.Before;
@@ -40,9 +42,6 @@ import org.mockito.Spy;
  */
 public class ReactorTest {
 
-    @InjectMocks
-    private DefaultReactor reactor;
-
     @Mock
     private EntrypointResolver handlerResolver;
 
@@ -54,6 +53,18 @@ public class ReactorTest {
 
     @Mock
     private ExecutionContextFactory executionContextFactory;
+
+    @Mock
+    private EntrypointResolver entrypointResolver;
+
+    @Mock
+    private RequestProcessorChainFactory requestProcessorChainFactory;
+
+    @Mock
+    private ResponseProcessorChainFactory responseProcessorChainFactory;
+
+    @InjectMocks
+    private DefaultReactor reactor = new DefaultReactor(entrypointResolver, requestProcessorChainFactory, responseProcessorChainFactory);
 
     private DummyReactorHandler dummyReactorHandler = new DummyReactorHandler();
 
