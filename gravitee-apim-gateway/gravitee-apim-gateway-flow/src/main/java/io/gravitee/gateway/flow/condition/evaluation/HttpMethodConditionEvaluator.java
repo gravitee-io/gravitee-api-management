@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.flow.condition.evaluation;
 
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
@@ -30,6 +31,10 @@ public class HttpMethodConditionEvaluator implements ConditionEvaluator<Flow> {
 
     @Override
     public boolean evaluate(ExecutionContext context, Flow flow) {
-        return flow.getMethods() == null || flow.getMethods().isEmpty() || flow.getMethods().contains(context.request().method());
+        return evaluate(context.request().method(), flow);
+    }
+
+    protected boolean evaluate(HttpMethod method, Flow flow) {
+        return flow.getMethods() == null || flow.getMethods().isEmpty() || flow.getMethods().contains(method);
     }
 }

@@ -32,12 +32,12 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ExpressionLanguageBasedConditionEvaluatorTest {
+public class ExpressionLanguageBasedConditionFilterTest {
 
     @Mock
     private ExecutionContext context;
 
-    private final TemplateEngine templateEngine = new SpelTemplateEngine();
+    private final TemplateEngine templateEngine = TemplateEngine.templateEngine();
 
     @Before
     public void setUp() {

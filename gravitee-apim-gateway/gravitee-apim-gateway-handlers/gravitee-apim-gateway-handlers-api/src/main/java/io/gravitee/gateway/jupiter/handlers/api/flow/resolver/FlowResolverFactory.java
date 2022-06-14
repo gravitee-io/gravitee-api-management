@@ -16,54 +16,59 @@
 package io.gravitee.gateway.jupiter.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.FlowMode;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.jupiter.flow.FlowResolver;
-import io.gravitee.gateway.jupiter.handlers.api.adapter.condition.ConditionEvaluatorAdapter;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 
 /**
+ * Factory allowing to create a {@link FlowResolver} to be used to resolve flows to execute at api plan level, api level or platform level.
+ *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class FlowResolverFactory {
 
-    public static FlowResolver forApi(Api api) {
-        ApiFlowResolver flowProvider = new ApiFlowResolver(api, ConditionEvaluatorAdapter.DEFAULT_FLOW_EVALUATOR);
+    private final ConditionFilter<Flow> flowFilter;
 
-        if (isBestMatchFlowMode(api.getFlowMode())) {
-            return new BestMatchFlowResolver(flowProvider);
-        }
-
-        return flowProvider;
+    public FlowResolverFactory(ConditionFilter<Flow> flowFilter) {
+        this.flowFilter = flowFilter;
     }
 
-    public static FlowResolver forApiPlan(Api api) {
-        ApiPlanFlowResolver flowProvider = new ApiPlanFlowResolver(api, ConditionEvaluatorAdapter.DEFAULT_FLOW_EVALUATOR);
+    public FlowResolver forApi(Api api) {
+        ApiFlowResolver flowResolver = new ApiFlowResolver(api, flowFilter);
 
         if (isBestMatchFlowMode(api.getFlowMode())) {
-            return new BestMatchFlowResolver(flowProvider);
+            return new BestMatchFlowResolver(flowResolver);
         }
 
-        return flowProvider;
+        return flowResolver;
     }
 
-    public static FlowResolver forPlatform(Api api, OrganizationManager organizationManager) {
-        PlatformFlowResolver flowProvider = new PlatformFlowResolver(
-            api,
-            organizationManager,
-            ConditionEvaluatorAdapter.DEFAULT_FLOW_EVALUATOR
-        );
+    public FlowResolver forApiPlan(Api api) {
+        ApiPlanFlowResolver flowResolver = new ApiPlanFlowResolver(api, flowFilter);
+
+        if (isBestMatchFlowMode(api.getFlowMode())) {
+            return new BestMatchFlowResolver(flowResolver);
+        }
+
+        return flowResolver;
+    }
+
+    public FlowResolver forPlatform(Api api, OrganizationManager organizationManager) {
+        PlatformFlowResolver flowResolver = new PlatformFlowResolver(api, organizationManager, flowFilter);
 
         final Organization organization = organizationManager.getCurrentOrganization();
         if (organization != null) {
             if (isBestMatchFlowMode(organization.getFlowMode())) {
-                return new BestMatchFlowResolver(flowProvider);
+                return new BestMatchFlowResolver(flowResolver);
             }
         }
 
-        return flowProvider;
+        return flowResolver;
     }
 
     private static boolean isBestMatchFlowMode(FlowMode flowMode) {

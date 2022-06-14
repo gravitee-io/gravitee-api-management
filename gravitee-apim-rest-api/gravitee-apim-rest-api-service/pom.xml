@@ -128,6 +128,11 @@
 			<artifactId>gravitee-plugin-connector</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>io.gravitee.el</groupId>
+			<artifactId>gravitee-expression-language</artifactId>
+		</dependency>
+
 		<!-- Lucene -->
 		<dependency>
 			<groupId>org.apache.lucene</groupId>

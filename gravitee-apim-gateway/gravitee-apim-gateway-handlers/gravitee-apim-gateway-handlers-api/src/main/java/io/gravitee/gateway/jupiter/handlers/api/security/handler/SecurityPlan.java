@@ -119,8 +119,7 @@ public class SecurityPlan {
             return TRUE;
         }
 
-        // TODO: subject to evolve when reactive EL will be supported.
-        return Single.just(ctx.getTemplateEngine().getValue(selectionRule, Boolean.class));
+        return ctx.getTemplateEngine().eval(selectionRule, Boolean.class).toSingle();
     }
 
     private Completable validateSubscription(RequestExecutionContext ctx) {

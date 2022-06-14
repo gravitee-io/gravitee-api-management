@@ -29,9 +29,9 @@ import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.api.PolicyConfiguration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -39,7 +39,7 @@ import java.util.Set;
  */
 public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager {
 
-    protected final Map<String, PolicyManifest> policies = new HashMap<>();
+    protected final Map<String, PolicyManifest> manifests;
     protected final PolicyFactory policyFactory;
     protected final PolicyConfigurationFactory policyConfigurationFactory;
     protected final PolicyLoader policyLoader;
@@ -52,6 +52,7 @@ public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<P
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider
     ) {
+        this.manifests = new ConcurrentHashMap<>();
         this.policyFactory = policyFactory;
         this.policyConfigurationFactory = policyConfigurationFactory;
         this.policyLoader = new PolicyLoader(classLoader, policyPluginManager, policyClassLoaderFactory, componentProvider);
@@ -60,19 +61,19 @@ public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<P
     @Override
     protected void doStart() throws Exception {
         // Load policies
-        policies.putAll(policyLoader.load(dependencies()));
+        manifests.putAll(policyLoader.load(dependencies()));
 
         // Activate policy context
-        policyLoader.activatePolicyContext(policies);
+        policyLoader.activatePolicyContext(manifests);
     }
 
     @Override
     protected void doStop() throws Exception {
         // Deactivate policy context
-        policyLoader.disablePolicyContext(policies, policyFactory::cleanup);
+        policyLoader.disablePolicyContext(manifests, policyFactory::cleanup);
 
         // Be sure to remove all references to policies.
-        policies.clear();
+        manifests.clear();
 
         // This action aims to avoid memory leak by making sure that no Gravitee ClassLoader is still referenced by Jackson TypeFactory.
         TypeFactory.defaultInstance().clearCache();
@@ -80,7 +81,7 @@ public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<P
 
     @Override
     public Policy create(final ExecutionPhase executionPhase, final PolicyMetadata policyMetadata) {
-        PolicyManifest manifest = policies.get(policyMetadata.getName());
+        PolicyManifest manifest = manifests.get(policyMetadata.getName());
         if (manifest != null) {
             PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
                 manifest.configuration(),

@@ -225,7 +225,7 @@ public class VertxHttpServerRequest implements MutableRequest {
     public Maybe<Buffer> body() {
         // Reduce all the chunks to create a unique buffer containing all the content.
         final Maybe<Buffer> body = chunks().reduce(Buffer::appendBuffer);
-        cacheChunks(body.toFlowable());
+        cacheChunks(body.toFlowable(), false);
 
         return chunks.firstElement();
     }
@@ -244,7 +244,7 @@ public class VertxHttpServerRequest implements MutableRequest {
     public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
         // Reduce all the chunks then apply the transformation.
         final Maybe<Buffer> body = chunks.reduce(Buffer::appendBuffer).compose(onBody);
-        cacheChunks(body.toFlowable());
+        cacheChunks(body.toFlowable(), true);
 
         return chunks.ignoreElements();
     }
@@ -261,15 +261,15 @@ public class VertxHttpServerRequest implements MutableRequest {
 
     @Override
     public Completable onChunk(FlowableTransformer<Buffer, Buffer> chunkTransformer) {
-        cacheChunks(chunks.compose(chunkTransformer));
+        cacheChunks(chunks.compose(chunkTransformer), true);
 
         return chunks.ignoreElements();
     }
 
-    private void cacheChunks(Flowable<Buffer> chunks) {
+    private void cacheChunks(Flowable<Buffer> chunks, boolean force) {
         this.chunks = chunks;
 
-        if (cached.compareAndSet(false, true)) {
+        if (force || cached.compareAndSet(false, true)) {
             // Make sure the request body is cached to avoid multiple consumptions when multiple subscriptions occur (especially with v3 adapters).
             this.chunks = this.chunks.cache();
         }

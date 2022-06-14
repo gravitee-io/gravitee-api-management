@@ -21,67 +21,84 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.FlowMode;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.jupiter.flow.FlowResolver;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 class FlowResolverFactoryTest {
 
     protected static final String ORGANIZATION_ID = "ORGANIZATION_ID";
 
+    @Mock
+    private ConditionFilter<Flow> filter;
+
+    private FlowResolverFactory cut;
+
+    @BeforeEach
+    void init() {
+        cut = new FlowResolverFactory(filter);
+    }
+
     @Test
-    public void shouldCreateApiFlowResolver() {
+    void shouldCreateApiFlowResolver() {
         final Api api = new Api();
         api.setFlowMode(FlowMode.DEFAULT);
 
-        final FlowResolver flowResolver = FlowResolverFactory.forApi(api);
+        final FlowResolver flowResolver = cut.forApi(api);
 
         assertNotNull(flowResolver);
         assertTrue(flowResolver instanceof ApiFlowResolver);
     }
 
     @Test
-    public void shouldCreateBestMatchApiFlowResolver() {
+    void shouldCreateBestMatchApiFlowResolver() {
         final Api api = new Api();
         api.setFlowMode(FlowMode.BEST_MATCH);
 
-        final FlowResolver flowResolver = FlowResolverFactory.forApi(api);
+        final FlowResolver flowResolver = cut.forApi(api);
 
         assertNotNull(flowResolver);
         assertTrue(flowResolver instanceof BestMatchFlowResolver);
     }
 
     @Test
-    public void shouldCreateApiPlanFlowResolver() {
+    void shouldCreateApiPlanFlowResolver() {
         final Api api = new Api();
         api.setFlowMode(FlowMode.DEFAULT);
 
-        final FlowResolver flowResolver = FlowResolverFactory.forApiPlan(api);
+        final FlowResolver flowResolver = cut.forApiPlan(api);
 
         assertNotNull(flowResolver);
         assertTrue(flowResolver instanceof ApiPlanFlowResolver);
     }
 
     @Test
-    public void shouldCreateBestMatchApiPlanFlowResolver() {
+    void shouldCreateBestMatchApiPlanFlowResolver() {
         final Api api = new Api();
         api.setFlowMode(FlowMode.BEST_MATCH);
 
-        final FlowResolver flowResolver = FlowResolverFactory.forApiPlan(api);
+        final FlowResolver flowResolver = cut.forApiPlan(api);
 
         assertNotNull(flowResolver);
         assertTrue(flowResolver instanceof BestMatchFlowResolver);
     }
 
     @Test
-    public void shouldCreatePlatformFlowResolver() {
+    void shouldCreatePlatformFlowResolver() {
         final OrganizationManager organizationManager = mock(OrganizationManager.class);
         final Organization organization = mock(Organization.class);
         final Api api = mock(Api.class);
@@ -91,28 +108,27 @@ class FlowResolverFactoryTest {
         when(organization.getId()).thenReturn(ORGANIZATION_ID);
         when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
 
-        final FlowResolver flowResolver = FlowResolverFactory.forPlatform(api, organizationManager);
+        final FlowResolver flowResolver = cut.forPlatform(api, organizationManager);
 
         assertNotNull(flowResolver);
         assertTrue(flowResolver instanceof PlatformFlowResolver);
     }
 
     @Test
-    public void shouldCreatePlatformFlowResolverWhenNoOrganization() {
+    void shouldCreatePlatformFlowResolverWhenNoOrganization() {
         final OrganizationManager organizationManager = mock(OrganizationManager.class);
         final Api api = mock(Api.class);
 
         when(organizationManager.getCurrentOrganization()).thenReturn(null);
-        when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
 
-        final FlowResolver flowResolver = FlowResolverFactory.forPlatform(api, organizationManager);
+        final FlowResolver flowResolver = cut.forPlatform(api, organizationManager);
 
         assertNotNull(flowResolver);
         assertTrue(flowResolver instanceof PlatformFlowResolver);
     }
 
     @Test
-    public void shouldCreateBestMatchPlatformFlowResolver() {
+    void shouldCreateBestMatchPlatformFlowResolver() {
         final OrganizationManager organizationManager = mock(OrganizationManager.class);
         final Organization organization = mock(Organization.class);
         final Api api = mock(Api.class);
@@ -120,9 +136,8 @@ class FlowResolverFactoryTest {
         when(organizationManager.getCurrentOrganization()).thenReturn(organization);
         when(organization.getFlowMode()).thenReturn(FlowMode.BEST_MATCH);
         when(organization.getId()).thenReturn(ORGANIZATION_ID);
-        when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
 
-        final FlowResolver flowResolver = FlowResolverFactory.forPlatform(mock(Api.class), organizationManager);
+        final FlowResolver flowResolver = cut.forPlatform(mock(Api.class), organizationManager);
 
         assertNotNull(flowResolver);
         assertTrue(flowResolver instanceof BestMatchFlowResolver);

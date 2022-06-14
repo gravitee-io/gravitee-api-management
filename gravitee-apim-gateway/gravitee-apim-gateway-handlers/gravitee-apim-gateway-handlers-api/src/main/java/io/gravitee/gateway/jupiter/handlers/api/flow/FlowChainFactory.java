@@ -35,16 +35,19 @@ public class FlowChainFactory {
     private final PolicyChainFactory platformPolicyChainFactory;
     private final PolicyChainFactory apiPolicyChainFactory;
     private final OrganizationManager organizationManager;
+    private final FlowResolverFactory flowResolverFactory;
 
     public FlowChainFactory(
         final PolicyChainFactory platformPolicyChainFactory,
         final PolicyChainFactory apiPolicyChainFactory,
         final OrganizationManager organizationManager,
-        final Configuration configuration
+        final Configuration configuration,
+        final FlowResolverFactory flowResolverFactory
     ) {
         this.platformPolicyChainFactory = platformPolicyChainFactory;
         this.apiPolicyChainFactory = apiPolicyChainFactory;
         this.organizationManager = organizationManager;
+        this.flowResolverFactory = flowResolverFactory;
         boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
         if (tracing) {
             flowHooks.add(new TracingHook("flow"));
@@ -54,7 +57,7 @@ public class FlowChainFactory {
     public FlowChain createPlatformFlow(final Api api) {
         FlowChain flowPlatformChain = new FlowChain(
             "flow-platform",
-            FlowResolverFactory.forPlatform(api, organizationManager),
+            flowResolverFactory.forPlatform(api, organizationManager),
             platformPolicyChainFactory
         );
         flowPlatformChain.addHooks(flowHooks);
@@ -62,13 +65,13 @@ public class FlowChainFactory {
     }
 
     public FlowChain createPlanFlow(final Api api) {
-        FlowChain flowPlanChain = new FlowChain("flow-api-plan", FlowResolverFactory.forApiPlan(api), apiPolicyChainFactory);
+        FlowChain flowPlanChain = new FlowChain("flow-api-plan", flowResolverFactory.forApiPlan(api), apiPolicyChainFactory);
         flowPlanChain.addHooks(flowHooks);
         return flowPlanChain;
     }
 
     public FlowChain createApiFlow(final Api api) {
-        FlowChain flowApiChain = new FlowChain("flow-api", FlowResolverFactory.forApi(api), apiPolicyChainFactory);
+        FlowChain flowApiChain = new FlowChain("flow-api", flowResolverFactory.forApi(api), apiPolicyChainFactory);
         flowApiChain.addHooks(flowHooks);
         return flowApiChain;
     }

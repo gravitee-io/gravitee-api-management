@@ -38,6 +38,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.context.ApiTemplateVariableProvider;
+import io.gravitee.gateway.handlers.api.context.ContentTemplateVariableProvider;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.policy.security.PlanBasedAuthenticationHandlerEnhancer;
 import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
@@ -46,6 +47,7 @@ import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.SyncApiReactor;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
@@ -97,7 +99,9 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     private final io.gravitee.gateway.jupiter.policy.PolicyFactory policyFactory;
     private final PolicyChainProviderLoader policyChainProviderLoader;
     private final ApiProcessorChainFactory apiProcessorChainFactory;
+    private final FlowResolverFactory flowResolverFactory;
     private ApplicationContext applicationContext;
+    protected final ContentTemplateVariableProvider contentTemplateVariableProvider;
 
     public ApiReactorHandlerFactory(
         ApplicationContext applicationContext,
@@ -106,7 +110,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         io.gravitee.gateway.jupiter.policy.PolicyFactory policyFactory,
         PolicyChainProviderLoader policyChainProviderLoader,
-        ApiProcessorChainFactory apiProcessorChainFactory
+        ApiProcessorChainFactory apiProcessorChainFactory,
+        FlowResolverFactory flowResolverFactory
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
@@ -115,6 +120,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         this.policyFactory = policyFactory;
         this.policyChainProviderLoader = policyChainProviderLoader;
         this.apiProcessorChainFactory = apiProcessorChainFactory;
+        this.flowResolverFactory = flowResolverFactory;
+        this.contentTemplateVariableProvider = new ContentTemplateVariableProvider();
     }
 
     @Override
@@ -229,7 +236,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                         platformPolicyChainFactory,
                         apiPolicyChainFactory,
                         organizationManager,
-                        configuration
+                        configuration,
+                        flowResolverFactory
                     );
 
                     return new SyncApiReactor(
@@ -285,6 +293,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     private List<TemplateVariableProvider> templateVariableProviders(Api api, DefaultReferenceRegister referenceRegister) {
         List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
         templateVariableProviders.add(new ApiTemplateVariableProvider(api));
+        templateVariableProviders.add(contentTemplateVariableProvider);
         templateVariableProviders.add(referenceRegister);
         templateVariableProviders.addAll(
             applicationContext.getBean(ApiTemplateVariableProviderFactory.class).getTemplateVariableProviders()

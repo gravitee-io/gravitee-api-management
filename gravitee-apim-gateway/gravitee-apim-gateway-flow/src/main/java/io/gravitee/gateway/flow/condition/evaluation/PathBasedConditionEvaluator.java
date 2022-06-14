@@ -42,11 +42,13 @@ public class PathBasedConditionEvaluator implements ConditionEvaluator<Flow> {
 
     @Override
     public boolean evaluate(ExecutionContext context, Flow flow) {
+        return evaluate(context.request().pathInfo(), flow);
+    }
+
+    protected boolean evaluate(String pathInfo, Flow flow) {
         Pattern pattern = cache.computeIfAbsent(flow.getPath(), this::transform);
 
-        return (flow.getOperator() == Operator.EQUALS)
-            ? pattern.matcher(context.request().pathInfo()).matches()
-            : pattern.matcher(context.request().pathInfo()).lookingAt();
+        return (flow.getOperator() == Operator.EQUALS) ? pattern.matcher(pathInfo).matches() : pattern.matcher(pathInfo).lookingAt();
     }
 
     private Pattern transform(String path) {

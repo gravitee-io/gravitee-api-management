@@ -19,11 +19,12 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
-import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
+import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.jupiter.policy.adapter.policy.PolicyAdapter;
-import io.gravitee.gateway.policy.*;
+import io.gravitee.gateway.policy.PolicyManifest;
+import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.dummy.*;
 import io.gravitee.gateway.policy.impl.PolicyManifestBuilder;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
@@ -50,7 +51,7 @@ class DefaultPolicyFactoryTest {
 
     @BeforeEach
     public void init() {
-        policyFactory = new DefaultPolicyFactory(new PolicyPluginFactoryImpl(), new ExpressionLanguageStringConditionEvaluator());
+        policyFactory = new DefaultPolicyFactory(new PolicyPluginFactoryImpl(), new ExpressionLanguageConditionFilter<>());
         policyConfiguration = new DummyPolicyConfiguration();
         ((DummyPolicyConfiguration) policyConfiguration).setValue(1);
         policyMetadata = new PolicyMetadata("dummy-reactive", "{\"value\": 1}");
@@ -77,6 +78,25 @@ class DefaultPolicyFactoryTest {
         assertInstanceOf(DummyReactivePolicyWithConfig.class, policy);
         DummyReactivePolicyWithConfig dummyReactivePolicy = (DummyReactivePolicyWithConfig) policy;
         assertThat(dummyReactivePolicy.getDummyPolicyConfiguration()).isEqualTo(policyConfiguration);
+    }
+
+    @ParameterizedTest
+    @EnumSource(ExecutionPhase.class)
+    public void shouldCreateReactiveConditionPolicy(final ExecutionPhase phase) {
+        PolicyManifest policyManifest = policyManifestBuilder.setPolicy(DummyReactivePolicy.class).build();
+        policyMetadata = new PolicyMetadata("dummy-reactive", "{\"value\": 1}", "condition");
+        Policy policy = policyFactory.create(phase, policyManifest, null, policyMetadata);
+
+        assertInstanceOf(ConditionalPolicy.class, policy);
+    }
+
+    @ParameterizedTest
+    @EnumSource(ExecutionPhase.class)
+    public void shouldNotCreateConditionalPolicyWhenConditionIsEmpty(final ExecutionPhase phase) {
+        PolicyManifest policyManifest = policyManifestBuilder.setPolicy(DummyReactivePolicy.class).build();
+        policyMetadata = new PolicyMetadata("dummy-reactive", "{\"value\": 1}", "");
+        Policy policy = policyFactory.create(phase, policyManifest, null, policyMetadata);
+        assertInstanceOf(DummyReactivePolicy.class, policy);
     }
 
     @Test

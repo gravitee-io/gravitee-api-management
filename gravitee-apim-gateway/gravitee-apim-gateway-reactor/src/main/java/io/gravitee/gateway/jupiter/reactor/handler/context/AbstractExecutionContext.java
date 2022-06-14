@@ -35,17 +35,13 @@ import java.util.Set;
 
 abstract class AbstractExecutionContext implements MutableRequestExecutionContext {
 
-    private static final String TEMPLATE_ATTRIBUTE_REQUEST = "request";
-    private static final String TEMPLATE_ATTRIBUTE_RESPONSE = "response";
-    private static final String TEMPLATE_ATTRIBUTE_CONTEXT = "context";
-
-    private final Map<String, Object> attributes = new HashMap<>();
+    private final Map<String, Object> attributes = new ContextAttributeMap();
     private final Map<String, Object> internalAttributes = new HashMap<>();
     private final MutableRequest request;
     private final MutableResponse response;
     private ComponentProvider componentProvider;
     private Collection<TemplateVariableProvider> templateVariableProviders;
-    private TemplateEngine templateEngine;
+    protected TemplateEngine templateEngine;
 
     protected AbstractExecutionContext(MutableRequest request, MutableResponse response) {
         this.request = request;
@@ -142,13 +138,16 @@ abstract class AbstractExecutionContext implements MutableRequestExecutionContex
         if (templateEngine == null) {
             templateEngine = TemplateEngine.templateEngine();
 
-            TemplateContext templateContext = templateEngine.getTemplateContext();
-            templateContext.setVariable(TEMPLATE_ATTRIBUTE_REQUEST, new EvaluableRequest(request()));
-            templateContext.setVariable(TEMPLATE_ATTRIBUTE_RESPONSE, new EvaluableResponse(response()));
+            final TemplateContext templateContext = templateEngine.getTemplateContext();
+            final EvaluableRequest evaluableRequest = new EvaluableRequest(request());
+            final EvaluableResponse evaluableResponse = new EvaluableResponse(response());
+
+            templateContext.setVariable(TEMPLATE_ATTRIBUTE_REQUEST, evaluableRequest);
+            templateContext.setVariable(TEMPLATE_ATTRIBUTE_RESPONSE, evaluableResponse);
             templateContext.setVariable(TEMPLATE_ATTRIBUTE_CONTEXT, new EvaluableExecutionContext(this));
 
             if (templateVariableProviders != null) {
-                templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide(templateContext));
+                templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide(this));
             }
         }
 

@@ -22,6 +22,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.utils.Hex;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.jupiter.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
@@ -131,6 +132,7 @@ public class ReactorConfiguration {
         ReactorHandlerRegistry reactorHandlerRegistry,
         EntrypointResolver entrypointResolver,
         IdGenerator idGenerator,
+        ComponentProvider globalComponentProvider,
         RequestProcessorChainFactory v3RequestProcessorChainFactory,
         ResponseProcessorChainFactory v3ResponseProcessorChainFactory,
         PlatformProcessorChainFactory platformProcessorChainFactory,
@@ -143,6 +145,7 @@ public class ReactorConfiguration {
             reactorHandlerRegistry,
             entrypointResolver,
             idGenerator,
+            globalComponentProvider,
             v3RequestProcessorChainFactory,
             v3ResponseProcessorChainFactory,
             platformProcessorChainFactory,
