@@ -86,7 +86,7 @@ public class HeartbeatServiceTest {
     }
 
     @Test
-    public void shouldRepublishEventWhenIllegalArgumentExceptionIsThrown() throws TechnicalException {
+    public void shouldNotRepublishEventWhenIllegalArgumentExceptionIsThrown() throws TechnicalException {
         Event event = new Event();
         event.setId(UUID.toString(UUID.random()));
         event.setProperties(new HashMap<>());
@@ -97,8 +97,8 @@ public class HeartbeatServiceTest {
             .thenThrow(new IllegalStateException(String.format("No event found with id [%s]", event.getId())));
         cut.onMessage(message);
 
-        verify(topic).publish(event);
-        assertEquals("recreate", event.getProperties().get(EVENT_STATE_PROPERTY));
+        verifyNoInteractions(topic);
+        assertTrue(event.getProperties().isEmpty());
     }
 
     @Test

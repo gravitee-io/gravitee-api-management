@@ -81,8 +81,8 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     @Autowired
     private ApplicationContext applicationContext;
 
-    @Value("${reporters.logging.max_size:-1}")
-    private int maxSizeLogMessage;
+    @Value("${reporters.logging.max_size:#{null}}")
+    private String maxSizeLogMessage;
 
     @Value("${reporters.logging.excluded_response_types:#{null}}")
     private String excludedResponseTypes;

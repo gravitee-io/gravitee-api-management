@@ -151,28 +151,39 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
         // Writing event to the repository is the responsibility of the master node
         if (clusterManager.isMasterNode()) {
             Event event = message.getMessageObject();
-            try {
-                String state = event.getProperties().get(EVENT_STATE_PROPERTY);
-                if (state != null) {
+
+            String state = event.getProperties().get(EVENT_STATE_PROPERTY);
+            if (state != null) {
+                try {
                     eventRepository.create(event);
                     // Remove the state to not include it in the underlying repository as it's just used for internal purpose
                     heartbeatEvent.getProperties().remove(EVENT_STATE_PROPERTY);
-                } else {
-                    eventRepository.update(event);
+                } catch (Exception ex) {
+                    // We make the assumption that an IllegalStateException is thrown when trying to update the
+                    // event while it is not existing in the database anymore.
+                    // This can be caused, for instance, by a db event cleanup without taking care of the heartbeat event.
+                    event.getProperties().put(EVENT_STATE_PROPERTY, "recreate");
+                    LOGGER.error(
+                        "An error occurred while trying to create the heartbeat event id[{}] type[{}] while it is not existing anymore",
+                        event.getId(),
+                        event.getType(),
+                        ex
+                    );
+                    topic.publish(event);
                 }
-            } catch (IllegalStateException isex) {
-                // We make the assumption that an IllegalStateException is thrown when trying to update the event while it is not existing in the database anymore.
-                // This can be caused, for instance, by a db event cleanup without taking care of the heartbeat event.
-                event.getProperties().put(EVENT_STATE_PROPERTY, "recreate");
-                topic.publish(event);
-            } catch (Exception ex) {
-                // We assume to loose the event if something goes wrong and not republish it to avoid infinite loop and cpu starving. It will be overridden by the next heartbeat event.
-                LOGGER.warn(
-                    "An error occurred while pushing heartbeat event id[{}] type[{}]. Message is: {}",
-                    event.getId(),
-                    event.getType(),
-                    ex.getMessage()
-                );
+            } else {
+                try {
+                    eventRepository.update(event);
+                } catch (Exception ex) {
+                    // We assume to lose the event if something goes wrong and not republish it to avoid infinite
+                    // loop and cpu starving. It will be overridden by the next heartbeat event.
+                    LOGGER.warn(
+                        "An error occurred while trying to update the heartbeat event id[{}] type[{}], skipping it...",
+                        event.getId(),
+                        event.getType(),
+                        ex
+                    );
+                }
             }
         }
     }
