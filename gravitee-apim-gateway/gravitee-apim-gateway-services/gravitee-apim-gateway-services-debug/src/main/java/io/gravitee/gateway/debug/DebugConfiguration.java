@@ -124,7 +124,7 @@ public class DebugConfiguration {
 
     @Bean
     @Qualifier("debugEntryPointResolver")
-    public EntrypointResolver reactorHandlerResolver(
+    public EntrypointResolver debugEntryPointResolver(
         @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry
     ) {
         return new DefaultEntrypointResolver(reactorHandlerRegistry);

@@ -43,6 +43,8 @@ import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFac
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,10 +59,25 @@ public class ReactorConfiguration {
 
     private static final String HEX_FORMAT = "hex";
 
+    //    @Autowired
+    //    protected io.gravitee.gateway.reactor.handler.EntrypointResolver entrypointResolver;
+    //
+    //    @Autowired
+    //    @Qualifier("v3RequestProcessorChainFactory")
+    //    private RequestProcessorChainFactory requestProcessorChainFactory;
+    //
+    //    @Autowired
+    //    @Qualifier("v3ResponseProcessorChainFactory")
+    //    private ResponseProcessorChainFactory responseProcessorChainFactory;
+
     @Bean
-    public Reactor v3Reactor() {
+    public Reactor v3Reactor(
+        io.gravitee.gateway.reactor.handler.EntrypointResolver entrypointResolver,
+        @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
+        @Qualifier("v3ResponseProcessorChainFactory") ResponseProcessorChainFactory responseProcessorChainFactory
+    ) {
         // DefaultReactor bean must be kept while we are still supporting v3 execution mode.
-        return new DefaultReactor();
+        return new DefaultReactor(entrypointResolver, requestProcessorChainFactory, responseProcessorChainFactory);
     }
 
     @Bean

@@ -23,19 +23,28 @@ import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
+import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
 import io.gravitee.gateway.reactor.impl.ReactableWrapper;
+import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
+import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
-import io.vertx.core.net.*;
-import java.util.*;
+import io.vertx.core.net.OpenSSLEngineOptions;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +69,14 @@ public class DebugReactor extends DefaultReactor {
     @Autowired
     @Qualifier("debugReactorHandlerRegistry")
     private ReactorHandlerRegistry reactorHandlerRegistry;
+
+    public DebugReactor(
+        EntrypointResolver entrypointResolver,
+        RequestProcessorChainFactory requestProcessorChainFactory,
+        ResponseProcessorChainFactory responseProcessorChainFactory
+    ) {
+        super(entrypointResolver, requestProcessorChainFactory, responseProcessorChainFactory);
+    }
 
     @Override
     public void onEvent(Event<ReactorEvent, Reactable> reactorEvent) {

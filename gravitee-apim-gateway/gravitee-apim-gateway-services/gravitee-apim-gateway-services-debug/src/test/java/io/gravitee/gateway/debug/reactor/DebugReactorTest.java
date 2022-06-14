@@ -34,8 +34,11 @@ import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.reactor.ReactorEvent;
+import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.ReactableWrapper;
+import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
+import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
@@ -47,7 +50,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,8 +72,14 @@ public class DebugReactorTest {
 
     private static final String PAYLOAD = "Debugged Api payload";
 
-    @InjectMocks
-    private final DebugReactor debugReactor = new DebugReactor();
+    @Mock
+    private EntrypointResolver entrypointResolver;
+
+    @Mock
+    private RequestProcessorChainFactory requestProcessorChainFactory;
+
+    @Mock
+    private ResponseProcessorChainFactory responseProcessorChainFactory;
 
     @Mock
     private ReactorHandlerRegistry reactorHandlerRegistry;
@@ -87,6 +95,13 @@ public class DebugReactorTest {
 
     @Mock
     private VertxDebugHttpClientConfiguration debugHttpClientConfiguration;
+
+    @InjectMocks
+    private final DebugReactor debugReactor = new DebugReactor(
+        entrypointResolver,
+        requestProcessorChainFactory,
+        responseProcessorChainFactory
+    );
 
     @Captor
     ArgumentCaptor<io.gravitee.repository.management.model.Event> eventCaptor;

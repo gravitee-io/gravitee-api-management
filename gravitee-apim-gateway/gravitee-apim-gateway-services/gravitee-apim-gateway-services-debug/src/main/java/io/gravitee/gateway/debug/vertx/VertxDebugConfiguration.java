@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.debug.reactor.DebugReactor;
 import io.gravitee.gateway.debug.reactor.processor.DebugResponseProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactor;
+import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
@@ -46,8 +47,12 @@ public class VertxDebugConfiguration {
     }
 
     @Bean
-    public Reactor reactor() {
-        return new DebugReactor();
+    public Reactor reactor(
+        @Qualifier("debugEntryPointResolver") EntrypointResolver entrypointResolver,
+        @Qualifier("debugRequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
+        @Qualifier("debugResponseProcessorChainFactory") ResponseProcessorChainFactory responseProcessorChainFactory
+    ) {
+        return new DebugReactor(entrypointResolver, requestProcessorChainFactory, responseProcessorChainFactory);
     }
 
     @Bean
@@ -61,11 +66,13 @@ public class VertxDebugConfiguration {
     }
 
     @Bean
+    @Qualifier("debugRequestProcessorChainFactory")
     public RequestProcessorChainFactory requestProcessorChainFactory() {
         return new RequestProcessorChainFactory();
     }
 
     @Bean
+    @Qualifier("debugResponseProcessorChainFactory")
     public ResponseProcessorChainFactory responseProcessorChainFactory(EventRepository eventRepository, ObjectMapper objectMapper) {
         return new DebugResponseProcessorChainFactory(eventRepository, objectMapper);
     }
