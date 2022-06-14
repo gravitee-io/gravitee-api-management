@@ -23,7 +23,6 @@ import io.gravitee.gateway.jupiter.reactor.processor.alert.AlertProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.forward.XForwardForProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.responsetime.ResponseTimeProcessor;
-import io.gravitee.gateway.jupiter.reactor.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.transaction.TraceContextProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
@@ -88,7 +87,7 @@ public class PlatformProcessorChainFactory {
         }
 
         preProcessorList.add(transactionHandlerFactory.create());
-        preProcessorChain = new ProcessorChain("processor-chain-post-platform", preProcessorList);
+        preProcessorChain = new ProcessorChain("processor-chain-pre-platform", preProcessorList);
         preProcessorChain.addHooks(processorHooks);
     }
 
@@ -101,7 +100,6 @@ public class PlatformProcessorChainFactory {
 
     private void initPostProcessorChain() {
         List<Processor> postProcessorList = new ArrayList<>();
-        postProcessorList.add(new ShutdownProcessor(node));
         postProcessorList.add(new ResponseTimeProcessor());
         postProcessorList.add(new ReporterProcessor(reporterService));
 

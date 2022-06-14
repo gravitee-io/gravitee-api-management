@@ -79,28 +79,30 @@ public class PolicyAdapter implements Policy {
      * @return a {@link Completable} indicating the execution is completed.
      */
     private Completable execute(final RequestExecutionContext ctx, final ExecutionPhase phase) {
+        final ExecutionContextAdapter adaptedCtx = ExecutionContextAdapter.create(ctx);
+
         Completable completable;
 
         if (policy.isRunnable()) {
             // Execute the policy.execute(...) function.
-            completable = this.policyExecute(ctx);
+            completable = this.policyExecute(adaptedCtx);
         } else {
             completable = Completable.complete();
         }
 
         if (policy.isStreamable()) {
             // Chain execution with the execution of the policy.stream(...) function.
-            completable = completable.andThen(this.policyStream(ctx, phase));
+            completable = completable.andThen(this.policyStream(adaptedCtx, phase));
         }
 
-        return completable;
+        return completable.doFinally(adaptedCtx::restore);
     }
 
-    private Completable policyExecute(RequestExecutionContext ctx) {
+    private Completable policyExecute(ExecutionContextAdapter adaptedCtx) {
         return Completable.create(
             emitter -> {
                 try {
-                    policy.execute(new PolicyChainAdapter(ctx, emitter), ExecutionContextAdapter.create(ctx));
+                    policy.execute(new PolicyChainAdapter(adaptedCtx.getDelegate(), emitter), adaptedCtx);
                 } catch (Throwable t) {
                     emitter.tryOnError(new Exception("An error occurred while trying to execute policy " + policy.id(), t));
                 }
@@ -108,15 +110,13 @@ public class PolicyAdapter implements Policy {
         );
     }
 
-    private Completable policyStream(RequestExecutionContext ctx, ExecutionPhase phase) {
+    private Completable policyStream(ExecutionContextAdapter adaptedCtx, ExecutionPhase phase) {
         return Completable.create(
             emitter -> {
                 try {
                     // Invoke the policy to get the appropriate read/write stream.
-                    final ReadWriteStream<Buffer> stream = policy.stream(
-                        new PolicyChainAdapter(ctx, emitter),
-                        ExecutionContextAdapter.create(ctx)
-                    );
+                    final RequestExecutionContext ctx = adaptedCtx.getDelegate();
+                    final ReadWriteStream<Buffer> stream = policy.stream(new PolicyChainAdapter(ctx, emitter), adaptedCtx);
 
                     if (stream == null) {
                         // Null stream means that the policy does nothing.

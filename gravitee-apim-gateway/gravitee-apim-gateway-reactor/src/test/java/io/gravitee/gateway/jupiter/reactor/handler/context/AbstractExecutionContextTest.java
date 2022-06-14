@@ -15,9 +15,13 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler.context;
 
+import static io.gravitee.gateway.jupiter.reactor.handler.context.AbstractExecutionContext.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.el.TemplateContext;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -53,6 +57,21 @@ abstract class AbstractExecutionContextTest {
         final Map<String, Object> attributes = executionContext.getAttributes();
 
         for (int i = 0; i < 10; i++) {
+            assertEquals(ATTRIBUTE_VALUE + i, attributes.get(ATTRIBUTE_KEY + i));
+        }
+    }
+
+    @Test
+    public void shouldGetAllPrefixedAttributes() {
+        for (int i = 0; i < 10; i++) {
+            // Put attribute with prefix.
+            executionContext.putAttribute(ExecutionContext.ATTR_PREFIX + ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
+        }
+
+        final Map<String, Object> attributes = executionContext.getAttributes();
+
+        for (int i = 0; i < 10; i++) {
+            // Get attribute without prefix.
             assertEquals(ATTRIBUTE_VALUE + i, attributes.get(ATTRIBUTE_KEY + i));
         }
     }
@@ -163,5 +182,24 @@ abstract class AbstractExecutionContextTest {
     @Test
     public void shouldReturnNullWhenGetUnknownInternalAttribute() {
         assertNull(executionContext.getInternalAttribute(ATTRIBUTE_KEY));
+    }
+
+    @Test
+    public void shouldPopulateTemplateContextWithVariables() {
+        final TemplateEngine templateEngine = executionContext.getTemplateEngine();
+        final TemplateContext templateContext = templateEngine.getTemplateContext();
+
+        assertNotNull(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST));
+        assertNotNull(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE));
+        assertNotNull(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_CONTEXT));
+    }
+
+    @Test
+    public void shouldInitializeTemplateEngineOnlyOnce() {
+        final TemplateEngine templateEngine = executionContext.getTemplateEngine();
+
+        for (int i = 0; i < 10; i++) {
+            assertEquals(templateEngine, executionContext.getTemplateEngine());
+        }
     }
 }

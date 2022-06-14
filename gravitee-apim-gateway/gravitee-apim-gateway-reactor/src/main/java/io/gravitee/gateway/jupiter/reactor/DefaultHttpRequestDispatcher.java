@@ -87,6 +87,7 @@ public class DefaultHttpRequestDispatcher
     private final PlatformProcessorChainFactory platformProcessorChainFactory;
     private final NotFoundProcessorChainFactory notFoundProcessorChainFactory;
     private final List<ChainHook> processorChainHooks;
+    private final ComponentProvider globalComponentProvider;
 
     public DefaultHttpRequestDispatcher(
         EventManager eventManager,
@@ -94,6 +95,7 @@ public class DefaultHttpRequestDispatcher
         ReactorHandlerRegistry reactorHandlerRegistry,
         EntrypointResolver entrypointResolver,
         IdGenerator idGenerator,
+        ComponentProvider globalComponentProvider,
         RequestProcessorChainFactory requestProcessorChainFactory,
         ResponseProcessorChainFactory responseProcessorChainFactory,
         PlatformProcessorChainFactory platformProcessorChainFactory,
@@ -105,12 +107,14 @@ public class DefaultHttpRequestDispatcher
         this.reactorHandlerRegistry = reactorHandlerRegistry;
         this.entrypointResolver = entrypointResolver;
         this.idGenerator = idGenerator;
+        this.globalComponentProvider = globalComponentProvider;
         this.requestProcessorChainFactory = requestProcessorChainFactory;
         this.responseProcessorChainFactory = responseProcessorChainFactory;
         this.platformProcessorChainFactory = platformProcessorChainFactory;
         this.notFoundProcessorChainFactory = notFoundProcessorChainFactory;
 
-        processorChainHooks = new ArrayList<>();
+        this.processorChainHooks = new ArrayList<>();
+
         if (tracingEnabled) {
             processorChainHooks.add(new TracingHook("processor-chain"));
         }
@@ -138,7 +142,6 @@ public class DefaultHttpRequestDispatcher
             // Set gateway tenants and zones in request metrics.
             prepareMetrics(request.metrics());
 
-            final ComponentProvider globalComponentProvider = applicationContext.getBean(ComponentProvider.class);
             MutableRequestExecutionContext ctx = new DefaultRequestExecutionContext(request, request.response());
             ctx.componentProvider(globalComponentProvider);
 
@@ -315,7 +318,6 @@ public class DefaultHttpRequestDispatcher
     @Override
     protected void doStart() throws Exception {
         super.doStart();
-
         eventManager.subscribeForEvents(this, ReactorEvent.class);
     }
 

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.policy.impl;
 
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.policy.*;
 import io.gravitee.policy.api.PolicyConfiguration;
@@ -32,6 +33,10 @@ public class PolicyFactoryImpl implements PolicyFactory {
 
     private final PolicyPluginFactory policyPluginFactory;
     private final ConditionEvaluator<String> conditionEvaluator;
+
+    public PolicyFactoryImpl(final PolicyPluginFactory policyPluginFactory) {
+        this(policyPluginFactory, null);
+    }
 
     public PolicyFactoryImpl(final PolicyPluginFactory policyPluginFactory, final ConditionEvaluator<String> conditionEvaluator) {
         this.policyPluginFactory = policyPluginFactory;
@@ -62,9 +67,15 @@ public class PolicyFactoryImpl implements PolicyFactory {
         }
 
         final ExecutablePolicy executablePolicy = new ExecutablePolicy(policyManifest.id(), policy, headMethod, streamMethod);
-        final String condition = policyMetadata.getCondition();
-        if (condition != null && !condition.isBlank()) {
-            return new ConditionalExecutablePolicy(executablePolicy, condition, conditionEvaluator);
+
+        if (
+            conditionEvaluator != null && ExecutionMode.JUPITER != policyMetadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE)
+        ) {
+            // Conditional policy are directly managed by Jupiter. ConditionalExecutablePolicy must only be instantiated for v3 execution.
+            final String condition = policyMetadata.getCondition();
+            if (condition != null && !condition.isBlank()) {
+                return new ConditionalExecutablePolicy(executablePolicy, condition, conditionEvaluator);
+            }
         }
         return executablePolicy;
     }

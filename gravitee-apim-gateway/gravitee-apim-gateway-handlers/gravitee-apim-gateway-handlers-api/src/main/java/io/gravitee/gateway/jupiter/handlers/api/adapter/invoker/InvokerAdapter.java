@@ -56,28 +56,30 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
 
     @Override
     public Completable invoke(RequestExecutionContext ctx) {
-        return Completable.create(
-            nextEmitter -> {
-                log.debug("Executing invoker {}", id);
-                final ExecutionContextAdapter ctxAdapter = ExecutionContextAdapter.create(ctx);
+        final ExecutionContextAdapter adaptedCtx = ExecutionContextAdapter.create(ctx);
+        return Completable
+            .create(
+                nextEmitter -> {
+                    log.debug("Executing invoker {}", id);
 
-                // Stream adapter allowing to write the request content to the upstream.
-                final ReadWriteStreamAdapter streamAdapter = new ReadWriteStreamAdapter(ctxAdapter, nextEmitter);
+                    // Stream adapter allowing to write the request content to the upstream.
+                    final ReadWriteStreamAdapter streamAdapter = new ReadWriteStreamAdapter(adaptedCtx, nextEmitter);
 
-                // Connection handler adapter to receive the response from the invoker.
-                final ConnectionHandlerAdapter connectionHandlerAdapter = new ConnectionHandlerAdapter(ctx, nextEmitter);
+                    // Connection handler adapter to receive the response from the invoker.
+                    final ConnectionHandlerAdapter connectionHandlerAdapter = new ConnectionHandlerAdapter(ctx, nextEmitter);
 
-                // Assign the chunks from the connection handler to the response.
-                ctx.response().chunks(connectionHandlerAdapter.getChunks());
+                    // Assign the chunks from the connection handler to the response.
+                    ctx.response().chunks(connectionHandlerAdapter.getChunks());
 
-                try {
-                    // Invoke to make the connection happen.
-                    legacyInvoker.invoke(ctxAdapter, streamAdapter, connectionHandlerAdapter);
-                } catch (Throwable t) {
-                    nextEmitter.tryOnError(new Exception("An error occurred while trying to execute invoker " + id, t));
+                    try {
+                        // Invoke to make the connection happen.
+                        legacyInvoker.invoke(adaptedCtx, streamAdapter, connectionHandlerAdapter);
+                    } catch (Throwable t) {
+                        nextEmitter.tryOnError(new Exception("An error occurred while trying to execute invoker " + id, t));
+                    }
                 }
-            }
-        );
+            )
+            .doFinally(adaptedCtx::restore);
     }
 
     @Override

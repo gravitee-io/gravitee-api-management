@@ -24,6 +24,8 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
+import io.gravitee.gateway.jupiter.policy.adapter.context.RequestAdapter;
 import io.reactivex.CompletableEmitter;
 import io.reactivex.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +49,9 @@ class InvokerAdapterTest {
     private Invoker invoker;
 
     @Mock
+    private RequestAdapter adaptedRequest;
+
+    @Mock
     private Response response;
 
     @Mock
@@ -64,20 +69,7 @@ class InvokerAdapterTest {
         when(ctx.response()).thenReturn(response);
 
         // Simulate the ConnectionHandlerAdapter behavior by completing the nextEmitter (this will complete the InvokerAdapter execution).
-        doAnswer(
-                invocation -> {
-                    ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
-                    final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
-                        ConnectionHandlerAdapter.class,
-                        "nextEmitter",
-                        connectionHandlerAdapter
-                    );
-                    ((CompletableEmitter) nextEmitter.get()).onComplete();
-                    return null;
-                }
-            )
-            .when(invoker)
-            .invoke(any(ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
+        mockComplete();
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
@@ -98,5 +90,80 @@ class InvokerAdapterTest {
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
         obs.assertError(e -> e.getCause().getMessage().equals(MOCK_EXCEPTION_MESSAGE));
+    }
+
+    @Test
+    public void shouldRestoreContextWhenInvokerExecutionCompleted() {
+        final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
+
+        when(ctx.getInternalAttribute(io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_ADAPTED_CONTEXT))
+            .thenReturn(adaptedExecutionContext);
+        when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
+        when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
+        when(ctx.response()).thenReturn(response);
+
+        mockComplete();
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test();
+
+        obs.assertComplete();
+
+        // Verify the response body has been set.
+        verify(response).chunks(any(FlowableProxyResponse.class));
+        verify(adaptedExecutionContext).restore();
+    }
+
+    @Test
+    public void shouldRestoreContextWhenInvokerExecutionCancelled() {
+        final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
+
+        when(ctx.getInternalAttribute(io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_ADAPTED_CONTEXT))
+            .thenReturn(adaptedExecutionContext);
+        when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
+        when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
+        when(ctx.response()).thenReturn(response);
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test(true);
+
+        obs.assertNotComplete();
+
+        verify(adaptedExecutionContext).restore();
+    }
+
+    @Test
+    public void shouldRestoreContextWhenInvokerExecutionError() {
+        final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
+
+        when(ctx.getInternalAttribute(io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_ADAPTED_CONTEXT))
+            .thenReturn(adaptedExecutionContext);
+        when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
+        when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
+        when(ctx.response()).thenReturn(response);
+
+        doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE))
+            .when(invoker)
+            .invoke(any(ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test();
+
+        obs.assertError(e -> e.getCause().getMessage().equals(MOCK_EXCEPTION_MESSAGE));
+        verify(adaptedExecutionContext).restore();
+    }
+
+    private void mockComplete() {
+        doAnswer(
+                invocation -> {
+                    ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
+                    final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
+                        ConnectionHandlerAdapter.class,
+                        "nextEmitter",
+                        connectionHandlerAdapter
+                    );
+                    ((CompletableEmitter) nextEmitter.get()).onComplete();
+                    return null;
+                }
+            )
+            .when(invoker)
+            .invoke(any(ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
     }
 }

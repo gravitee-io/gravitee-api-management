@@ -35,7 +35,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ExpressionLanguageStringConditionEvaluatorTest {
+public class ExpressionLanguageStringConditionFilterTest {
 
     private final ConditionEvaluator<String> evaluator = new ExpressionLanguageStringConditionEvaluator();
 

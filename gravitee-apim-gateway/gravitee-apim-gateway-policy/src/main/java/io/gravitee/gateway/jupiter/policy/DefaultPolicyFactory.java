@@ -15,11 +15,14 @@
  */
 package io.gravitee.gateway.jupiter.policy;
 
-import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
+import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.jupiter.policy.adapter.policy.PolicyAdapter;
-import io.gravitee.gateway.policy.*;
+import io.gravitee.gateway.policy.PolicyManifest;
+import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.policy.PolicyPluginFactory;
+import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,10 +37,16 @@ public class DefaultPolicyFactory implements PolicyFactory {
     private final ConcurrentMap<String, Policy> policies = new ConcurrentHashMap<>();
     private final PolicyPluginFactory policyPluginFactory;
     private final io.gravitee.gateway.policy.PolicyFactory v3PolicyFactory;
+    private final ExpressionLanguageConditionFilter<ConditionalPolicy> filter;
 
-    public DefaultPolicyFactory(final PolicyPluginFactory policyPluginFactory, final ConditionEvaluator<String> conditionEvaluator) {
+    public DefaultPolicyFactory(
+        final PolicyPluginFactory policyPluginFactory,
+        final ExpressionLanguageConditionFilter<ConditionalPolicy> filter
+    ) {
         this.policyPluginFactory = policyPluginFactory;
-        v3PolicyFactory = new io.gravitee.gateway.policy.impl.PolicyFactoryImpl(policyPluginFactory, conditionEvaluator);
+        this.filter = filter;
+        // V3 policy factory doesn't need condition evaluator anymore as condition is directly handled by jupiter.
+        this.v3PolicyFactory = new io.gravitee.gateway.policy.impl.PolicyFactoryImpl(policyPluginFactory);
     }
 
     @Override
@@ -59,9 +68,10 @@ public class DefaultPolicyFactory implements PolicyFactory {
         final PolicyConfiguration policyConfiguration,
         final PolicyMetadata policyMetadata
     ) {
+        Policy policy = null;
+
         if (Policy.class.isAssignableFrom(policyManifest.policy())) {
-            Object policy = policyPluginFactory.create(policyManifest.policy(), policyConfiguration);
-            return (Policy) policy;
+            policy = (Policy) policyPluginFactory.create(policyManifest.policy(), policyConfiguration);
         } else if (phase == ExecutionPhase.REQUEST || phase == ExecutionPhase.RESPONSE) {
             StreamType streamType = phase == ExecutionPhase.REQUEST ? StreamType.ON_REQUEST : StreamType.ON_RESPONSE;
             if (policyManifest.accept(streamType)) {
@@ -71,14 +81,22 @@ public class DefaultPolicyFactory implements PolicyFactory {
                     policyConfiguration,
                     policyMetadata
                 );
-                return new PolicyAdapter(v3Policy);
+                policy = new PolicyAdapter(v3Policy);
             }
         } else {
             throw new IllegalArgumentException(
                 String.format("Cannot create policy instance with [phase=%s, policy=%s]", phase, policyManifest.id())
             );
         }
-        return null;
+
+        if (policy != null) {
+            final String condition = policyMetadata.getCondition();
+            if (condition != null && !condition.isBlank()) {
+                policy = new ConditionalPolicy(policy, condition, filter);
+            }
+        }
+
+        return policy;
     }
 
     @Override

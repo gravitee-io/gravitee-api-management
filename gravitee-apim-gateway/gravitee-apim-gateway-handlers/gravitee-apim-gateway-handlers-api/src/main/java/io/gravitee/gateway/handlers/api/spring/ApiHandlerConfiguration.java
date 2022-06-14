@@ -27,6 +27,11 @@ import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.NodeApisEndpointInitializer;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
+import io.gravitee.gateway.jupiter.core.condition.CompositeConditionFilter;
+import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
+import io.gravitee.gateway.jupiter.flow.condition.evaluation.HttpMethodConditionFilter;
+import io.gravitee.gateway.jupiter.flow.condition.evaluation.PathBasedConditionFilter;
+import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
@@ -99,7 +104,7 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public PolicyFactory policyFactory(final PolicyPluginFactory policyPluginFactory) {
-        return new DefaultPolicyFactory(policyPluginFactory, new ExpressionLanguageStringConditionEvaluator());
+        return new DefaultPolicyFactory(policyPluginFactory, new ExpressionLanguageConditionFilter<>());
     }
 
     @Bean
@@ -119,7 +124,18 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public ApiProcessorChainFactory apiProcessorChainFactory() {
-        return new ApiProcessorChainFactory(configuration);
+        return new ApiProcessorChainFactory(configuration, node);
+    }
+
+    @Bean
+    public FlowResolverFactory flowResolverFactory() {
+        return new FlowResolverFactory(
+            new CompositeConditionFilter<>(
+                new HttpMethodConditionFilter(),
+                new PathBasedConditionFilter(),
+                new ExpressionLanguageConditionFilter<>()
+            )
+        );
     }
 
     @Bean
@@ -127,7 +143,8 @@ public class ApiHandlerConfiguration {
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactory policyFactory,
         PolicyChainProviderLoader policyChainProviderLoader,
-        ApiProcessorChainFactory apiProcessorChainFactory
+        ApiProcessorChainFactory apiProcessorChainFactory,
+        FlowResolverFactory flowResolverFactory
     ) {
         return new ApiReactorHandlerFactory(
             applicationContext,
@@ -136,7 +153,8 @@ public class ApiHandlerConfiguration {
             v3PolicyFactoryCreator,
             policyFactory,
             policyChainProviderLoader,
-            apiProcessorChainFactory
+            apiProcessorChainFactory,
+            flowResolverFactory
         );
     }
 }

@@ -25,6 +25,7 @@ import io.gravitee.gateway.handlers.api.ApiReactorHandler;
 import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
@@ -49,7 +50,8 @@ public class DebugApiContextHandlerFactory extends ApiReactorHandlerFactory {
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactory policyFactory,
         PolicyChainProviderLoader policyChainProviderLoader,
-        ApiProcessorChainFactory apiProcessorChainFactory
+        ApiProcessorChainFactory apiProcessorChainFactory,
+        FlowResolverFactory flowResolverFactory
     ) {
         super(
             applicationContext,
@@ -58,7 +60,8 @@ public class DebugApiContextHandlerFactory extends ApiReactorHandlerFactory {
             v3PolicyFactoryCreator,
             policyFactory,
             policyChainProviderLoader,
-            apiProcessorChainFactory
+            apiProcessorChainFactory,
+            flowResolverFactory
         );
     }
 

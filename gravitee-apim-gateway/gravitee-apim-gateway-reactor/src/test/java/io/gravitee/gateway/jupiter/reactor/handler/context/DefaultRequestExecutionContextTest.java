@@ -30,6 +30,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DefaultRequestExecutionContextTest extends AbstractExecutionContextTest {
 
+    protected static final String TEST_CONTENT = "Test content";
+
     @Mock
     protected MutableRequest request;
 

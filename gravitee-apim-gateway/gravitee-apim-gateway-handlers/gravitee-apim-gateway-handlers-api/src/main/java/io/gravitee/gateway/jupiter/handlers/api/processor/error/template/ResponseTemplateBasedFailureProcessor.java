@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
@@ -26,6 +27,7 @@ import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.AbstractFailureProcessor;
 import io.reactivex.Completable;
+import io.reactivex.Single;
 import java.util.List;
 import java.util.Map;
 
@@ -139,18 +141,25 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
 
         if (template.getBody() != null && !template.getBody().isEmpty()) {
             // Prepare templating context
-            context.getTemplateEngine().getTemplateContext().setVariable("error", new EvaluableExecutionFailure(executionFailure));
-            context.getTemplateEngine().getTemplateContext().setVariable("request", new EvaluableRequest(context.request()));
+            final TemplateEngine templateEngine = context.getTemplateEngine();
+            templateEngine.getTemplateContext().setVariable("error", new EvaluableExecutionFailure(executionFailure));
 
             if (executionFailure.parameters() != null && !executionFailure.parameters().isEmpty()) {
-                context.getTemplateEngine().getTemplateContext().setVariable("parameters", executionFailure.parameters());
+                templateEngine.getTemplateContext().setVariable("parameters", executionFailure.parameters());
             }
 
             // Apply templating
-            String body = context.getTemplateEngine().getValue(template.getBody(), String.class);
-            Buffer payload = Buffer.buffer(body);
-            context.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
-            context.response().body(payload);
+            return templateEngine
+                .eval(template.getBody(), String.class)
+                .switchIfEmpty(Single.just(""))
+                .flatMapCompletable(
+                    body -> {
+                        Buffer payload = Buffer.buffer(body);
+                        context.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
+                        context.response().body(payload);
+                        return Completable.complete();
+                    }
+                );
         }
         return Completable.complete();
     }

@@ -16,7 +16,6 @@
 package io.gravitee.gateway.policy;
 
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -67,5 +66,6 @@ public class PolicyMetadata {
 
     public enum MetadataKeys {
         STAGE,
+        EXECUTION_MODE,
     }
 }

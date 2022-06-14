@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
@@ -94,7 +95,8 @@ class DefaultPolicyChainFactoryTest {
                     metadata ->
                         metadata.getName().equals("policy-step2") &&
                         metadata.getConfiguration().equals("config-step2") &&
-                        metadata.getCondition().equals("condition-step2")
+                        metadata.getCondition().equals("condition-step2") &&
+                        metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
                 )
             );
 
@@ -128,7 +130,8 @@ class DefaultPolicyChainFactoryTest {
                     metadata ->
                         metadata.getName().equals("policy-step2") &&
                         metadata.getConfiguration().equals("config-step2") &&
-                        metadata.getCondition().equals("condition-step2")
+                        metadata.getCondition().equals("condition-step2") &&
+                        metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
                 )
             );
 
@@ -167,7 +170,8 @@ class DefaultPolicyChainFactoryTest {
                     metadata ->
                         metadata.getName().equals("policy-step1") &&
                         metadata.getConfiguration().equals("config-step1") &&
-                        metadata.getCondition().equals("condition-step1")
+                        metadata.getCondition().equals("condition-step1") &&
+                        metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
                 )
             );
 
@@ -178,7 +182,8 @@ class DefaultPolicyChainFactoryTest {
                     metadata ->
                         metadata.getName().equals("policy-step2") &&
                         metadata.getConfiguration().equals("config-step2") &&
-                        metadata.getCondition().equals("condition-step2")
+                        metadata.getCondition().equals("condition-step2") &&
+                        metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
                 )
             );
 

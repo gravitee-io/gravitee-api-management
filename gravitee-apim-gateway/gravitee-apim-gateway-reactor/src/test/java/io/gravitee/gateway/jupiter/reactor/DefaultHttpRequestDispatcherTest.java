@@ -26,6 +26,7 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
@@ -120,6 +121,9 @@ class DefaultHttpRequestDispatcherTest {
     @Mock
     private ReporterService reporterService;
 
+    @Mock
+    private ComponentProvider globalComponentProvider;
+
     private DefaultHttpRequestDispatcher cut;
 
     @BeforeEach
@@ -160,6 +164,7 @@ class DefaultHttpRequestDispatcherTest {
                 reactorHandlerRegistry,
                 entrypointResolver,
                 idGenerator,
+                globalComponentProvider,
                 new RequestProcessorChainFactory(),
                 responseProcessorChainFactory,
                 platformProcessorChainFactory,

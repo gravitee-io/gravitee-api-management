@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.reactor.processor.shutdown;
+package io.gravitee.gateway.jupiter.handlers.api.processor.shutdown;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpHeadersValues;

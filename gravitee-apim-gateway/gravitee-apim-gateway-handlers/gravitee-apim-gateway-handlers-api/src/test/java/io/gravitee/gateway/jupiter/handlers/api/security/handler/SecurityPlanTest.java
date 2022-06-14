@@ -30,6 +30,7 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import io.reactivex.Completable;
+import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
 import java.util.ArrayList;
@@ -87,7 +88,7 @@ class SecurityPlanTest {
         when(plan.getSelectionRule()).thenReturn(SELECTION_RULE);
         when(policy.support(ctx)).thenReturn(Single.just(true));
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
-        when(templateEngine.getValue(SELECTION_RULE, Boolean.class)).thenReturn(true);
+        when(templateEngine.eval(SELECTION_RULE, Boolean.class)).thenReturn(Maybe.just(true));
 
         final SecurityPlan cut = new SecurityPlan(plan, policy);
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
@@ -100,7 +101,7 @@ class SecurityPlanTest {
         when(plan.getSelectionRule()).thenReturn(V3_SELECTION_RULE);
         when(policy.support(ctx)).thenReturn(Single.just(true));
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
-        when(templateEngine.getValue(SELECTION_RULE, Boolean.class)).thenReturn(true);
+        when(templateEngine.eval(SELECTION_RULE, Boolean.class)).thenReturn(Maybe.just(true));
 
         final SecurityPlan cut = new SecurityPlan(plan, policy);
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
@@ -113,7 +114,7 @@ class SecurityPlanTest {
         when(plan.getSelectionRule()).thenReturn(SELECTION_RULE);
         when(policy.support(ctx)).thenReturn(Single.just(true));
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
-        when(templateEngine.getValue(SELECTION_RULE, Boolean.class)).thenReturn(false);
+        when(templateEngine.eval(SELECTION_RULE, Boolean.class)).thenReturn(Maybe.just(false));
 
         final SecurityPlan cut = new SecurityPlan(plan, policy);
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();

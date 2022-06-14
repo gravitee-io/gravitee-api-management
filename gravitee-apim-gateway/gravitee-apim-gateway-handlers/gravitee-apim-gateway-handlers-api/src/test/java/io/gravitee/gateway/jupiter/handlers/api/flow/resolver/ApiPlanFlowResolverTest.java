@@ -24,8 +24,8 @@ import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.core.condition.ConditionEvaluator;
-import io.reactivex.Flowable;
+import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
+import io.reactivex.Maybe;
 import io.reactivex.subscribers.TestSubscriber;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +45,7 @@ class ApiPlanFlowResolverTest {
     private Api api;
 
     @Mock
-    private ConditionEvaluator<Flow> evaluator;
+    private ConditionFilter<Flow> filter;
 
     @Mock
     private RequestExecutionContext ctx;
@@ -79,7 +79,7 @@ class ApiPlanFlowResolverTest {
         when(plan1.getFlows()).thenReturn(planFlows1);
         when(plan2.getFlows()).thenReturn(planFlows2);
 
-        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, evaluator);
+        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow1, flow2, flow3, flow4);
@@ -114,7 +114,7 @@ class ApiPlanFlowResolverTest {
         when(plan1.getFlows()).thenReturn(planFlows1);
         when(plan2.getFlows()).thenReturn(planFlows2);
 
-        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, evaluator);
+        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow2, flow4);
@@ -124,7 +124,7 @@ class ApiPlanFlowResolverTest {
     public void shouldProvideEmptyFlowsWhenNullApiPlans() {
         when(api.getPlans()).thenReturn(null);
 
-        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, evaluator);
+        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
@@ -134,7 +134,7 @@ class ApiPlanFlowResolverTest {
     public void shouldProvideEmptyFlowsWhenEmptyApiPlans() {
         when(api.getPlans()).thenReturn(emptyList());
 
-        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, evaluator);
+        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
@@ -144,7 +144,7 @@ class ApiPlanFlowResolverTest {
     public void shouldProvideEmptyFlowsWhenNullApiPlanFlows() {
         when(api.getPlans()).thenReturn(List.of(new Plan()));
 
-        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, evaluator);
+        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
@@ -156,7 +156,7 @@ class ApiPlanFlowResolverTest {
         plan.setFlows(emptyList());
         when(api.getPlans()).thenReturn(List.of(plan));
 
-        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, evaluator);
+        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
@@ -190,9 +190,9 @@ class ApiPlanFlowResolverTest {
         when(api.getPlans()).thenReturn(plans);
         when(plan1.getFlows()).thenReturn(planFlows1);
         when(plan2.getFlows()).thenReturn(planFlows2);
-        when(evaluator.filter(eq(ctx), any())).thenAnswer(i -> i.getArgument(1));
+        when(filter.filter(eq(ctx), any())).thenAnswer(i -> Maybe.just(i.getArgument(1)));
 
-        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, evaluator);
+        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.resolve(ctx).test();
 
         obs.assertResult(flow1, flow2, flow3, flow4);
@@ -226,9 +226,9 @@ class ApiPlanFlowResolverTest {
         when(api.getPlans()).thenReturn(plans);
         when(plan1.getFlows()).thenReturn(planFlows1);
         when(plan2.getFlows()).thenReturn(planFlows2);
-        when(evaluator.filter(eq(ctx), any())).thenReturn(Flowable.empty());
+        when(filter.filter(eq(ctx), any())).thenReturn(Maybe.empty());
 
-        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, evaluator);
+        final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.resolve(ctx).test();
 
         obs.assertResult();

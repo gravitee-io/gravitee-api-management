@@ -16,13 +16,18 @@
 package io.gravitee.gateway.jupiter.policy.adapter.context;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.core.processor.RuntimeProcessorFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
+import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -31,7 +36,7 @@ import org.junit.jupiter.api.Test;
 class ExecutionContextAdapterTest {
 
     @Test
-    public void shouldAddInternalExecutionFailureFromProcessorFailure() {
+    void shouldAddInternalExecutionFailureFromProcessorFailure() {
         DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null);
         ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(requestExecutionContext);
 
@@ -44,7 +49,7 @@ class ExecutionContextAdapterTest {
     }
 
     @Test
-    public void shouldGetProcessorFailureFromInternalExecutionFailure() {
+    void shouldGetProcessorFailureFromInternalExecutionFailure() {
         DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null);
         requestExecutionContext.setInternalAttribute(
             io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE,
@@ -59,7 +64,7 @@ class ExecutionContextAdapterTest {
     }
 
     @Test
-    public void shouldRemoveInternalExecutionFailure() {
+    void shouldRemoveInternalExecutionFailure() {
         DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null);
         requestExecutionContext.setInternalAttribute(
             io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE,
@@ -73,5 +78,27 @@ class ExecutionContextAdapterTest {
                 io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE
             )
         );
+    }
+
+    @Test
+    void shouldInstantiateAdaptedTemplateEngineOnce() {
+        final ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(mock(RequestExecutionContext.class));
+        final TemplateEngine templateEngine = contextAdapter.getTemplateEngine();
+
+        for (int i = 0; i < 10; i++) {
+            assertEquals(templateEngine, contextAdapter.getTemplateEngine());
+        }
+    }
+
+    @Test
+    void shouldRestoreTemplateEngine() {
+        final ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(mock(RequestExecutionContext.class));
+        final TemplateEngineAdapter templateEngine = mock(TemplateEngineAdapter.class);
+
+        ReflectionTestUtils.setField(contextAdapter, "adaptedTemplateEngine", templateEngine);
+
+        contextAdapter.restore();
+
+        verify(templateEngine).restore();
     }
 }

@@ -13,15 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.core.condition;
+package io.gravitee.gateway.jupiter.flow.condition.evaluation;
 
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.reactivex.Flowable;
+import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
+import io.reactivex.Maybe;
 
 /**
+ * This {@link ConditionFilter} evaluates to true if the method of the request is matching the
+ * methods declared within the {@link Flow}.
+ *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ConditionEvaluator<T> {
-    Flowable<T> filter(RequestExecutionContext ctx, Flowable<T> flows);
+public class HttpMethodConditionFilter
+    extends io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator
+    implements ConditionFilter<Flow> {
+
+    @Override
+    public Maybe<Flow> filter(RequestExecutionContext ctx, Flow flow) {
+        return evaluate(ctx.request().method(), flow) ? Maybe.just(flow) : Maybe.empty();
+    }
 }

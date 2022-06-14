@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.policy;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.ASYNC_REQUEST;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
 
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
@@ -86,7 +87,7 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
             final List<Policy> policies = steps
                 .stream()
                 .filter(Step::isEnabled)
-                .map(step -> new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition()))
+                .map(this::buildPolicyMetadata)
                 .map(policyMetadata -> policyManager.create(phase, policyMetadata))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -98,6 +99,13 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
         }
 
         return policyChain;
+    }
+
+    private PolicyMetadata buildPolicyMetadata(Step step) {
+        final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
+        policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.EXECUTION_MODE, ExecutionMode.JUPITER);
+
+        return policyMetadata;
     }
 
     private List<Step> getSteps(Flow flow, ExecutionPhase phase) {

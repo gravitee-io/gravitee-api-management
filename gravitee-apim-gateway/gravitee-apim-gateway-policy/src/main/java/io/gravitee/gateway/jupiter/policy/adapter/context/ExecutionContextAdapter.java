@@ -37,6 +37,7 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
     private final RequestExecutionContext ctx;
     private RequestAdapter adaptedRequest;
     private ResponseAdapter adaptedResponse;
+    private TemplateEngineAdapter adaptedTemplateEngine;
 
     private ExecutionContextAdapter(RequestExecutionContext ctx) {
         this.ctx = ctx;
@@ -126,11 +127,23 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
 
     @Override
     public TemplateEngine getTemplateEngine() {
-        return ctx.getTemplateEngine();
+        if (adaptedTemplateEngine == null) {
+            adaptedTemplateEngine = new TemplateEngineAdapter(ctx.getTemplateEngine());
+        }
+        return adaptedTemplateEngine;
     }
 
     @Override
     public Tracer getTracer() {
         return ctx.getComponent(Tracer.class);
+    }
+
+    /**
+     * Restore method can be called to restore the template engine context and avoid clashes with jupiter.
+     */
+    public void restore() {
+        if (adaptedTemplateEngine != null) {
+            adaptedTemplateEngine.restore();
+        }
     }
 }

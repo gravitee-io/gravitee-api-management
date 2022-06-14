@@ -24,10 +24,10 @@ import static org.mockito.Mockito.when;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.core.condition.ConditionEvaluator;
+import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
-import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 import io.reactivex.subscribers.TestSubscriber;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +55,7 @@ class PlatformFlowResolverTest {
     private Organization organization;
 
     @Mock
-    private ConditionEvaluator<Flow> evaluator;
+    private ConditionFilter<Flow> filter;
 
     @Mock
     private RequestExecutionContext ctx;
@@ -77,7 +77,7 @@ class PlatformFlowResolverTest {
         when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
         when(organization.getFlows()).thenReturn(flows);
 
-        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, evaluator);
+        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow1, flow2);
@@ -100,7 +100,7 @@ class PlatformFlowResolverTest {
         when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
         when(organization.getFlows()).thenReturn(flows);
 
-        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, evaluator);
+        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow2);
@@ -113,7 +113,7 @@ class PlatformFlowResolverTest {
         when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
         when(organization.getFlows()).thenReturn(null);
 
-        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, evaluator);
+        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
@@ -126,7 +126,7 @@ class PlatformFlowResolverTest {
         when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
         when(organization.getFlows()).thenReturn(emptyList());
 
-        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, evaluator);
+        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
@@ -138,7 +138,7 @@ class PlatformFlowResolverTest {
         when(organization.getId()).thenReturn("OTHER_ORGANIZATION");
         when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
 
-        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, evaluator);
+        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
@@ -160,9 +160,9 @@ class PlatformFlowResolverTest {
         when(organization.getId()).thenReturn(ORGANIZATION_ID);
         when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
         when(organization.getFlows()).thenReturn(flows);
-        when(evaluator.filter(eq(ctx), any())).thenAnswer(i -> i.getArgument(1));
+        when(filter.filter(eq(ctx), any())).thenAnswer(i -> Maybe.just(i.getArgument(1)));
 
-        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, evaluator);
+        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
         final TestSubscriber<Flow> obs = cut.resolve(ctx).test();
 
         obs.assertResult(flow1, flow2);
@@ -184,9 +184,9 @@ class PlatformFlowResolverTest {
         when(organization.getId()).thenReturn(ORGANIZATION_ID);
         when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
         when(organization.getFlows()).thenReturn(flows);
-        when(evaluator.filter(eq(ctx), any())).thenReturn(Flowable.empty());
+        when(filter.filter(eq(ctx), any())).thenReturn(Maybe.empty());
 
-        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, evaluator);
+        final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
         final TestSubscriber<Flow> obs = cut.resolve(ctx).test();
 
         obs.assertResult();

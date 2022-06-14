@@ -18,6 +18,7 @@ package io.gravitee.definition.model.flow;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.ConditionSupplier;
 import java.io.Serializable;
 import java.util.*;
 
@@ -26,7 +27,7 @@ import java.util.*;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux@graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Flow implements Serializable {
+public class Flow implements Serializable, ConditionSupplier {
 
     @JsonProperty("name")
     private String name;

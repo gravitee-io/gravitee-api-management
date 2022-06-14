@@ -21,8 +21,8 @@ import static org.mockito.Mockito.*;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.core.condition.ConditionEvaluator;
-import io.reactivex.Flowable;
+import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
+import io.reactivex.Maybe;
 import io.reactivex.subscribers.TestSubscriber;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,7 +43,7 @@ class ApiFlowResolverTest {
     private Api api;
 
     @Mock
-    private ConditionEvaluator<Flow> evaluator;
+    private ConditionFilter<Flow> filter;
 
     @Mock
     private RequestExecutionContext ctx;
@@ -61,7 +61,7 @@ class ApiFlowResolverTest {
         when(flow2.isEnabled()).thenReturn(true);
         when(api.getFlows()).thenReturn(flows);
 
-        final ApiFlowResolver cut = new ApiFlowResolver(api, evaluator);
+        final ApiFlowResolver cut = new ApiFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow1, flow2);
@@ -80,7 +80,7 @@ class ApiFlowResolverTest {
         when(flow2.isEnabled()).thenReturn(true);
         when(api.getFlows()).thenReturn(flows);
 
-        final ApiFlowResolver cut = new ApiFlowResolver(api, evaluator);
+        final ApiFlowResolver cut = new ApiFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow2);
@@ -90,7 +90,7 @@ class ApiFlowResolverTest {
     public void shouldProvideEmptyFlowsWhenNullApiFlows() {
         when(api.getFlows()).thenReturn(null);
 
-        final ApiFlowResolver cut = new ApiFlowResolver(api, evaluator);
+        final ApiFlowResolver cut = new ApiFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
@@ -100,7 +100,7 @@ class ApiFlowResolverTest {
     public void shouldProvideEmptyFlowsWhenEmptyApiFlows() {
         when(api.getFlows()).thenReturn(Collections.emptyList());
 
-        final ApiFlowResolver cut = new ApiFlowResolver(api, evaluator);
+        final ApiFlowResolver cut = new ApiFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
@@ -118,9 +118,9 @@ class ApiFlowResolverTest {
         when(flow1.isEnabled()).thenReturn(true);
         when(flow2.isEnabled()).thenReturn(true);
         when(api.getFlows()).thenReturn(flows);
-        when(evaluator.filter(eq(ctx), any())).thenAnswer(i -> i.getArgument(1));
+        when(filter.filter(eq(ctx), any())).thenAnswer(i -> Maybe.just(i.getArgument(1)));
 
-        final ApiFlowResolver cut = new ApiFlowResolver(api, evaluator);
+        final ApiFlowResolver cut = new ApiFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.resolve(ctx).test();
 
         obs.assertResult(flow1, flow2);
@@ -138,9 +138,9 @@ class ApiFlowResolverTest {
         when(flow1.isEnabled()).thenReturn(true);
         when(flow2.isEnabled()).thenReturn(true);
         when(api.getFlows()).thenReturn(flows);
-        when(evaluator.filter(eq(ctx), any())).thenReturn(Flowable.empty());
+        when(filter.filter(eq(ctx), any())).thenReturn(Maybe.empty());
 
-        final ApiFlowResolver cut = new ApiFlowResolver(api, evaluator);
+        final ApiFlowResolver cut = new ApiFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.resolve(ctx).test();
 
         obs.assertResult();
