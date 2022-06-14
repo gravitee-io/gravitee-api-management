@@ -173,17 +173,17 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
 
     public static class RequestProcessorChainFactoryOptions {
 
-        private int maxSizeLogMessage = -1;
+        private String maxSizeLogMessage;
 
         private String excludedResponseTypes;
 
         private boolean overrideXForwardedPrefix = false;
 
-        public int getMaxSizeLogMessage() {
+        public String getMaxSizeLogMessage() {
             return maxSizeLogMessage;
         }
 
-        public RequestProcessorChainFactoryOptions setMaxSizeLogMessage(int maxSizeLogMessage) {
+        public RequestProcessorChainFactoryOptions setMaxSizeLogMessage(String maxSizeLogMessage) {
             this.maxSizeLogMessage = maxSizeLogMessage;
             return this;
         }

@@ -321,7 +321,13 @@ describe('ConsoleSettingsComponent', () => {
           maxAge: 42,
         },
         metadata: {
-          readonly: ['cors.allowOrigin', 'cors.allowMethods', 'cors.allowHeaders', 'cors.exposedHeaders', 'cors.maxAge'],
+          readonly: [
+            'http.api.management.cors.allow-origin',
+            'http.api.management.cors.allow-methods',
+            'http.api.management.cors.allow-headers',
+            'http.api.management.cors.exposed-headers',
+            'http.api.management.cors.max-age',
+          ],
         },
       });
 

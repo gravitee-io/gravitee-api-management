@@ -72,15 +72,7 @@ class ApiHealthCheckConfigureController {
         this.endpointToDisplay != null &&
         (this.endpointToDisplay.type?.toLowerCase() === 'http' || this.endpointToDisplay.type?.toLowerCase() === 'grpc');
     } else {
-      // Find endpoints that can have HC
-      const httpEndpoints = this.api.proxy.groups
-        ?.filter((group) => group.endpoints != null && group.endpoints.length > 0)
-        ?.reduce((endpoints, group) => endpoints.concat(group.endpoints), [])
-        .filter((endpoint) => ['http', 'grpc'].includes(endpoint.type?.toLowerCase()));
-      this.hasHealthCheck = httpEndpoints.length > 0;
-      if (httpEndpoints.length === 1) {
-        this.endpointToDisplay = httpEndpoints[0];
-      }
+      this.hasHealthCheck = true;
       this.healthcheck = this.api.services && this.api.services['health-check'];
     }
     this.healthcheck = this.healthcheck || { enabled: false, inherit: false, schedule: '*/1 * * * * *' };
