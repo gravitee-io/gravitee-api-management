@@ -157,6 +157,7 @@ public class Endpoint implements Serializable {
         this.healthCheck = healthCheck;
     }
 
+    @JsonIgnore
     public Set<EndpointStatusListener> getEndpointAvailabilityListeners() {
         return this.listeners;
     }

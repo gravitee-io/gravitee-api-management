@@ -412,11 +412,14 @@ ds:
 #      cache:
 #        capacity: 8200  #if null defaults to 4096
 
-# Encrypt API properties using this secret
 api:
+  # Encrypt API properties using this secret
   properties:
     encryption:
       secret: vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6
+  # when an API is un-deployed (either because it has been stopped or because it has restarted due to a configuration
+  # change), this timeout will be the maximum time (in milliseconds) to wait for all pending requests to terminate
+#  pending_requests_timeout: 10000
 
 # Graceful shutdown.
 #gracefulShutdown:
