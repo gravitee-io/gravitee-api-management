@@ -110,7 +110,7 @@ public class FlowServiceTest {
             "  \"type\": \"object\",\n" +
             "  \"id\": \"apim\",\n" +
             "  \"properties\": {\n" +
-            "    \"flow-mode\": {\n" +
+            "    \"flow_mode\": {\n" +
             "      \"title\": \"Flow Mode\",\n" +
             "      \"description\": \"The flow mode\",\n" +
             "      \"type\": \"string\",\n" +

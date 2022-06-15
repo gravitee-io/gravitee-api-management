@@ -126,7 +126,7 @@ class ApiHistoryController {
       resources: api.resources,
       plans: api.plans != null ? api.plans : [],
       properties: api.properties,
-      'flow-mode': api.flow_mode,
+      flow_mode: api.flow_mode,
     };
     this.studio.services = api.services || {};
   }
