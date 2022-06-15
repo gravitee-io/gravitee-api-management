@@ -116,14 +116,7 @@ commands:
 parameters:
     gio_action:
         type: enum
-        enum:
-            [
-                release,
-                package_bundle,
-                nexus_staging,
-                pull_requests,
-                build_rpm_&_docker_images,
-            ]
+        enum: [release, package_bundle, nexus_staging, pull_requests, build_rpm_&_docker_images]
         default: pull_requests
     dry_run:
         type: boolean
@@ -450,7 +443,7 @@ jobs:
                       if [ "<< parameters.enterprise_edition >>" == "true" ]; then
                         dockerTag=$(echo $dockerTag | sed 's/-/-ee-/')
                       fi
-                      
+
                       export REST_API_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${dockerTag}
                       export GATEWAY_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:${dockerTag}
 
@@ -952,34 +945,34 @@ jobs:
                   jobName: nexus-staging
 
     publish_rpm_packages:
-      parameters:
-        dry_run:
-          default: true
-          type: boolean
-        graviteeio_version:
-          type: string
-          default: ""
-      machine:
-        image: ubuntu-2004:202201-01
-      resource_class: medium
-      steps:
-        - keeper/env-export:
-            secret-url: keeper://8CG6HxY5gYsl-85eJKuIoA/field/password
-            var-name: GIO_PACKAGECLOUD_TOKEN
-        - run:
-            name: "Building and publishing RPMs"
-            command: |
-              export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
-              git clone git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
-              
-              cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x
-              ./build.sh -v << parameters.graviteeio_version >>
-              
-              if [ "<< parameters.dry_run >>" == "false" ]; then
-                  docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
-              else
-                  echo "This is just a DRY RUN, no RPMs will be published"
-              fi;                    
+        parameters:
+            dry_run:
+                default: true
+                type: boolean
+            graviteeio_version:
+                type: string
+                default: ""
+        machine:
+            image: ubuntu-2004:202201-01
+        resource_class: medium
+        steps:
+            - keeper/env-export:
+                  secret-url: keeper://8CG6HxY5gYsl-85eJKuIoA/field/password
+                  var-name: GIO_PACKAGECLOUD_TOKEN
+            - run:
+                  name: "Building and publishing RPMs"
+                  command: |
+                      export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
+                      git clone git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
+
+                      cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x
+                      ./build.sh -v << parameters.graviteeio_version >>
+
+                      if [ "<< parameters.dry_run >>" == "false" ]; then
+                          docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
+                      else
+                          echo "This is just a DRY RUN, no RPMs will be published"
+                      fi;
 
     package-bundle:
         docker:
@@ -1013,7 +1006,7 @@ jobs:
                   name: "Prepare bundles for uploading"
                   command: |
                       workingDir=$(pwd)
-                    
+
                       ####################
                       #Distribution - Full                                            
                       ####################
@@ -1041,7 +1034,7 @@ jobs:
                       sha1sum gravitee-apim-gateway-${RELEASE_VERSION}.zip > gravitee-apim-gateway-${RELEASE_VERSION}.zip.sha1
 
                       cd $workingDir
-                      
+
                       ######################
                       #Components - Rest API
                       ######################
@@ -1075,13 +1068,13 @@ jobs:
                       ####################
                       mkdir -p graviteeio-apim/components/gravitee-portal-webui
                       cp ./tmp/${RELEASE_VERSION}/portals/gravitee-apim-portal-webui-${RELEASE_VERSION}.zip graviteeio-apim/components/gravitee-portal-webui/
-                      
+
                       cd graviteeio-apim/components/gravitee-portal-webui
 
                       md5sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.md5
                       sha512sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.sha512sum
                       sha1sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.sha1
-                      
+
                       cd $workingDir
 
                       #############
@@ -1111,8 +1104,8 @@ jobs:
                   var-name: AWS_SECRET_ACCESS_KEY
             - aws-s3/sync:
                   arguments: |
-                    --endpoint-url https://cellar-c2.services.clever-cloud.com \
-                    --acl public-read
+                      --endpoint-url https://cellar-c2.services.clever-cloud.com \
+                      --acl public-read
                   from: graviteeio-apim
                   to: "s3://gravitee-releases-downloads/graviteeio-apim"
             - run:
@@ -1120,38 +1113,38 @@ jobs:
                   command: |
                       workingDir=$(pwd)
                       eeWorkingDir=./tmp/${RELEASE_VERSION}/ee
-                      
+
                       mkdir -p graviteeio-ee/apim/distributions
                       mkdir -p $eeWorkingDir
                       unzip ./tmp/${RELEASE_VERSION}/dist/graviteeio-full-${RELEASE_VERSION}.zip -d $eeWorkingDir
                       cd $eeWorkingDir
-                      
+
                       # move to EE node
                       wget https://download.gravitee.io/graviteeio-ee/license/gravitee-license-node-enterprise-${LICENSE_VERSION}.jar --no-check-certificate
                       cp gravitee-license-node-enterprise-${LICENSE_VERSION}.jar graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-rest-api-${RELEASE_VERSION}/lib/
                       cp gravitee-license-node-enterprise-${LICENSE_VERSION}.jar graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-gateway-${RELEASE_VERSION}/lib/
-  
+
                       # add the WS connector
                       wget https://download.gravitee.io/graviteeio-ae/plugins/connectors/gravitee-ae-connectors-ws/gravitee-ae-connectors-ws-${AE_VERSION}.zip --no-check-certificate
                       cp gravitee-ae-connectors-ws-${AE_VERSION}.zip graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-rest-api-${RELEASE_VERSION}/plugins/
                       cp gravitee-ae-connectors-ws-${AE_VERSION}.zip graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-gateway-${RELEASE_VERSION}/plugins/
-  
+
                       # add the notifiers
                       wget https://download.gravitee.io/plugins/notifiers/gravitee-notifier-email/gravitee-notifier-email-${NOTIFIER_EMAIL_VERSION}.zip --no-check-certificate -P graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-rest-api-${RELEASE_VERSION}/plugins
                       wget https://download.gravitee.io/plugins/notifiers/gravitee-notifier-slack/gravitee-notifier-slack-${NOTIFIER_SLACK_VERSION}.zip --no-check-certificate -P graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-rest-api-${RELEASE_VERSION}/plugins
                       wget https://download.gravitee.io/plugins/notifiers/gravitee-notifier-webhook/gravitee-notifier-webhook-${NOTIFIER_WEBHOOK_VERSION}.zip --no-check-certificate -P graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-rest-api-${RELEASE_VERSION}/plugins
-  
+
                       # Prepare license directory
                       mkdir graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-rest-api-${RELEASE_VERSION}/license
                       mkdir graviteeio-full-${RELEASE_VERSION}/graviteeio-apim-gateway-${RELEASE_VERSION}/license
-  
+
                       # rezip
                       zip -r -9 graviteeio-ee-full-${RELEASE_VERSION}.zip graviteeio-full-${RELEASE_VERSION} release.json
                       cd $workingDir
-                      
+
                       cp $eeWorkingDir/graviteeio-ee-full-${RELEASE_VERSION}.zip graviteeio-ee/apim/distributions
                       cd graviteeio-ee/apim/distributions
-                      
+
                       md5sum graviteeio-ee-full-${RELEASE_VERSION}.zip > graviteeio-ee-full-${RELEASE_VERSION}.zip.md5
                       sha512sum graviteeio-ee-full-${RELEASE_VERSION}.zip > graviteeio-ee-full-${RELEASE_VERSION}.zip.sha512sum
                       sha1sum graviteeio-ee-full-${RELEASE_VERSION}.zip > graviteeio-ee-full-${RELEASE_VERSION}.zip.sha1
@@ -1232,18 +1225,18 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-            -   publish-images-azure-registry:
-                    name: Publish ce images on azure registry
-                    context: cicd-orchestrator
-                    enterprise_edition: false
-                    requires:
-                        - test
-                        - test-repository
-                    filters:
-                        branches:
-                            only:
-                                - master
-                                - /^\d+\.\d+\.x$/
+            - publish-images-azure-registry:
+                  name: Publish ce images on azure registry
+                  context: cicd-orchestrator
+                  enterprise_edition: false
+                  requires:
+                      - test
+                      - test-repository
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /^\d+\.\d+\.x$/
             - webui-install:
                   name: Install APIM Console
                   apim-ui-project: gravitee-apim-console-webui
