@@ -22,7 +22,6 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.config.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.ApiKeyMode;

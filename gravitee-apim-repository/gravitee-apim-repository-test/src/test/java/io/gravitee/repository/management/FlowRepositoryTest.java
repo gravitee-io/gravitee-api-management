@@ -18,7 +18,6 @@ package io.gravitee.repository.management;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.repository.config.AbstractManagementRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.flow.*;
 import java.util.*;
@@ -37,7 +36,7 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Override
     protected String getModelPackage() {
-        return "flow.";
+        return super.getModelPackage() + "flow.";
     }
 
     @Test

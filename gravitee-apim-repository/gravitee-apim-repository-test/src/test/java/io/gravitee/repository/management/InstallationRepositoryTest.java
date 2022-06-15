@@ -17,7 +17,6 @@ package io.gravitee.repository.management;
 
 import static org.junit.Assert.*;
 
-import io.gravitee.repository.config.AbstractManagementRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Installation;
 import io.gravitee.repository.utils.DateUtils;

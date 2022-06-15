@@ -17,7 +17,6 @@ package io.gravitee.repository.management;
 
 import static org.junit.Assert.*;
 
-import io.gravitee.repository.config.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.model.Organization;
 import java.util.*;
 import org.junit.Assert;

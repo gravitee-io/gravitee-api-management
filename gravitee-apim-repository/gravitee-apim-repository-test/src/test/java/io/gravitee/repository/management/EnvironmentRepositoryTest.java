@@ -17,7 +17,6 @@ package io.gravitee.repository.management;
 
 import static org.junit.Assert.*;
 
-import io.gravitee.repository.config.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.model.Environment;
 import java.util.Arrays;
 import java.util.HashSet;

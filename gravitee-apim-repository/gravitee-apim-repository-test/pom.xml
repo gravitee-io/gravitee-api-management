@@ -106,7 +106,7 @@
                 <version>3.1.0</version>
                 <configuration>
                     <excludes>
-                        <exclude>**/MockTestRepositoryConfiguration.class</exclude>
+                        <exclude>**/mock/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>

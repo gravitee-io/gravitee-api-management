@@ -18,7 +18,6 @@ package io.gravitee.repository.management;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
-import io.gravitee.repository.config.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.model.ApiHeader;
 import java.util.Date;
 import java.util.Optional;

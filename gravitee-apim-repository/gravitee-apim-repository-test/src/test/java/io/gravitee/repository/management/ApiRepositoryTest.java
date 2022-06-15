@@ -26,7 +26,6 @@ import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.config.AbstractManagementRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.search.ApiCriteria;
