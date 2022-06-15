@@ -236,11 +236,14 @@
         </p>
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!isReadonlySetting('cors.allowOrigin')"
+          [matTooltipDisabled]="!isReadonlySetting('http.api.management.cors.allow-origin')"
           class="settings-general__form__card__form-field"
           appearance="fill"
         >
-          <mat-icon *ngIf="isReadonlySetting('cors.allowOrigin')" class="settings-general__form__card__form-field__icon" matPrefix
+          <mat-icon
+            *ngIf="isReadonlySetting('http.api.management.cors.allow-origin')"
+            class="settings-general__form__card__form-field__icon"
+            matPrefix
             >lock</mat-icon
           >
           <mat-label>Allow-Origin</mat-label>
@@ -261,11 +264,14 @@
         <p>Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.</p>
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!isReadonlySetting('cors.allowMethods')"
+          [matTooltipDisabled]="!isReadonlySetting('http.api.management.cors.allow-methods')"
           class="settings-general__form__card__form-field"
           appearance="fill"
         >
-          <mat-icon *ngIf="isReadonlySetting('cors.allowMethods')" class="settings-general__form__card__form-field__icon" matPrefix
+          <mat-icon
+            *ngIf="isReadonlySetting('http.api.management.cors.allow-methods')"
+            class="settings-general__form__card__form-field__icon"
+            matPrefix
             >lock</mat-icon
           >
           <mat-label>Access-Control-Allow-Methods</mat-label>
@@ -279,11 +285,14 @@
         <mat-form-field
           *ngIf="formSettings.get('cors.allowHeaders'); let allowHeadersFormControl"
           [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!isReadonlySetting('cors.allowHeaders')"
+          [matTooltipDisabled]="!isReadonlySetting('http.api.management.cors.allow-headers')"
           class="settings-general__form__card__form-field"
           appearance="fill"
         >
-          <mat-icon *ngIf="isReadonlySetting('cors.allowHeaders')" class="settings-general__form__card__form-field__icon" matPrefix
+          <mat-icon
+            *ngIf="isReadonlySetting('http.api.management.cors.allow-headers')"
+            class="settings-general__form__card__form-field__icon"
+            matPrefix
             >lock</mat-icon
           >
           <mat-label>Allow-Headers</mat-label>
@@ -318,11 +327,14 @@
         <mat-form-field
           *ngIf="formSettings.get('cors.exposedHeaders'); let exposedHeadersFormControl"
           [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!isReadonlySetting('cors.exposedHeaders')"
+          [matTooltipDisabled]="!isReadonlySetting('http.api.management.cors.exposed-headers')"
           class="settings-general__form__card__form-field"
           appearance="fill"
         >
-          <mat-icon *ngIf="isReadonlySetting('cors.exposedHeaders')" class="settings-general__form__card__form-field__icon" matPrefix
+          <mat-icon
+            *ngIf="isReadonlySetting('http.api.management.cors.exposed-headers')"
+            class="settings-general__form__card__form-field__icon"
+            matPrefix
             >lock</mat-icon
           >
           <mat-label>Exposed-Headers</mat-label>
@@ -361,11 +373,14 @@
         <p>How long the response from a pre-flight request can be cached by clients</p>
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!isReadonlySetting('cors.maxAge')"
+          [matTooltipDisabled]="!isReadonlySetting('http.api.management.cors.max-age')"
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('cors.maxAge')" class="settings-general__form__card__form-field__icon" matPrefix
+          <mat-icon
+            *ngIf="isReadonlySetting('http.api.management.cors.max-age')"
+            class="settings-general__form__card__form-field__icon"
+            matPrefix
             >lock</mat-icon
           >
           <mat-label>Max age</mat-label>

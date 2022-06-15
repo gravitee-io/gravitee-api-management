@@ -80,6 +80,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     public static final String REPORTERS_LOGGING_MAX_SIZE_PROPERTY = "reporters.logging.max_size";
     public static final String HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY = "handlers.request.headers.x-forwarded-prefix";
     public static final String REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY = "reporters.logging.excluded_response_types";
+    public static final String API_PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
     private final Logger logger = LoggerFactory.getLogger(ApiContextHandlerFactory.class);
 
     private ApplicationContext applicationContext;
@@ -107,6 +108,9 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         try {
             if (api.isEnabled()) {
                 final ApiReactorHandler handler = getApiReactorHandler(api);
+
+                handler.setNode(node);
+                handler.setPendingRequestsTimeout(configuration.getProperty(API_PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L));
 
                 final ComponentProvider globalComponentProvider = applicationContext.getBean(ComponentProvider.class);
                 final CustomComponentProvider customComponentProvider = new CustomComponentProvider();
@@ -344,7 +348,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         FlowPolicyResolverFactory flowPolicyResolverFactory
     ) {
         RequestProcessorChainFactory.RequestProcessorChainFactoryOptions options = new RequestProcessorChainFactory.RequestProcessorChainFactoryOptions();
-        options.setMaxSizeLogMessage(configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, Integer.class, -1));
+        options.setMaxSizeLogMessage(configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null));
         options.setOverrideXForwardedPrefix(
             configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false)
         );

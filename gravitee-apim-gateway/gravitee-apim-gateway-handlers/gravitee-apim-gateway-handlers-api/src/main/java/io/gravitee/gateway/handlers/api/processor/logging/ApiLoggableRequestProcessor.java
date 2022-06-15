@@ -46,8 +46,12 @@ public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
         return false;
     }
 
-    public void setMaxSizeLogMessage(int maxSizeLogMessage) {
+    public void setMaxSizeLogMessage(String maxSizeLogMessage) {
         this.loggingContext.setMaxSizeLogMessage(maxSizeLogMessage);
+    }
+
+    public int getMaxSizeLogMessage() {
+        return this.loggingContext.getMaxSizeLogMessage();
     }
 
     public void setExcludedResponseTypes(String excludedResponseTypes) {
