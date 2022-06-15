@@ -15,19 +15,15 @@
  */
 package io.gravitee.repository.config.mock;
 
-import static io.gravitee.repository.QualityRuleRepositoryTest.DATE;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
+import static io.gravitee.repository.management.QualityRuleRepositoryTest.DATE;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
-import io.gravitee.repository.QualityRuleRepositoryTest;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.model.QualityRule;
-import java.util.Date;
-import java.util.List;
+
 import java.util.Set;
 
 /**
