@@ -60,7 +60,7 @@ class PoliciesController {
                 return flow;
               })
             : [],
-        'flow-mode': this.organization.flowMode,
+        flow_mode: this.organization.flowMode,
       };
     }
   }
@@ -76,7 +76,7 @@ class PoliciesController {
       });
       return flow;
     });
-    this.organization.flowMode = definition['flow-mode'];
+    this.organization.flowMode = definition.flow_mode;
 
     this.showConfirmDialog().then((validation) => {
       if (validation) {
