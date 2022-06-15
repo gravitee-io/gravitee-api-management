@@ -249,7 +249,7 @@ public class DebugReactor extends DefaultReactor {
     MultiMap convertHeaders(Map<String, List<String>> headers) {
         final HeadersMultiMap headersMultiMap = new HeadersMultiMap();
         if (headers != null) {
-            headers.forEach((key, value) -> headersMultiMap.add(key, String.join(", ", value)));
+            headers.forEach(headersMultiMap::set);
         }
         return headersMultiMap;
     }

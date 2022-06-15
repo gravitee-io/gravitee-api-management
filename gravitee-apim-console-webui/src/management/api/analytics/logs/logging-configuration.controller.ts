@@ -15,10 +15,11 @@
  */
 import * as _ from 'lodash';
 
-import DialogConfigureLoggingEditorController from './configure-logging-editor.dialog.controller';
+import { ConfigureLoggingDialogController } from './configure-logging.dialog';
 
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
+
 import '@gravitee/ui-components/wc/gv-switch';
 import '@gravitee/ui-components/wc/gv-expression-language';
 import '@gravitee/ui-components/wc/gv-option';
@@ -181,9 +182,9 @@ class ApiLoggingConfigurationController {
   showConditionEditor() {
     this.$mdDialog
       .show({
-        controller: DialogConfigureLoggingEditorController,
+        controller: ConfigureLoggingDialogController,
         controllerAs: '$ctrl',
-        template: require('./configure-logging-editor.dialog.html'),
+        template: require('./configure-logging.dialog.html'),
         clickOutsideToClose: true,
         resolve: {
           subscribers: ($stateParams, ApiService: ApiService) => {

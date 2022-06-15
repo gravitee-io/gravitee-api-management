@@ -456,7 +456,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         FlowPolicyResolverFactory flowPolicyResolverFactory
     ) {
         RequestProcessorChainFactory.RequestProcessorChainFactoryOptions options = new RequestProcessorChainFactory.RequestProcessorChainFactoryOptions();
-        options.setMaxSizeLogMessage(configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, Integer.class, -1));
+        options.setMaxSizeLogMessage(configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null));
         options.setOverrideXForwardedPrefix(
             configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false)
         );

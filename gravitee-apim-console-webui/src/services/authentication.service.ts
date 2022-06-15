@@ -41,12 +41,18 @@ class AuthenticationService {
   authenticate(provider: IdentityProvider, state?: string) {
     let satellizerProvider = this.SatellizerConfig.providers[provider.id];
     if (!satellizerProvider) {
-      satellizerProvider = _.merge(provider, {
+      const newSatellizerProviderConfig: any = {
         oauthType: '2.0',
-        requiredUrlParams: ['scope', 'state'],
-        scopeDelimiter: ' ',
         scope: provider.scopes,
-      });
+      };
+      if (provider.type === 'GOOGLE' || provider.type === 'GITHUB') {
+        newSatellizerProviderConfig.requiredUrlParams = provider.requiredUrlParams;
+        newSatellizerProviderConfig.optionalUrlParams = provider.optionalUrlParams;
+      } else {
+        newSatellizerProviderConfig.requiredUrlParams = ['scope', 'state'];
+      }
+
+      satellizerProvider = _.merge(provider, newSatellizerProviderConfig);
     } else {
       provider.scope = provider.scopes;
       _.merge(satellizerProvider, provider);
