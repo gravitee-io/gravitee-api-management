@@ -31,18 +31,119 @@
 
     <fileSets>
         <fileSet>
-            <directory>../target/distribution</directory>
-            <outputDirectory>.</outputDirectory>
+            <directory>../src/main/resources/apis</directory>
+            <outputDirectory>bin</outputDirectory>
+            <excludes>
+                <exclude>*</exclude>
+            </excludes>
+            <fileMode>644</fileMode>
+        </fileSet>
+
+        <fileSet>
+            <directory>../src/main/resources/bin</directory>
+            <outputDirectory>bin</outputDirectory>
             <includes>
-                <include>bin/**</include>
-                <include>config/**</include>
-                <include>lib/**</include>
-                <include>logs</include>
-                <include>metrics</include>
-                <include>plugins/gravitee-apim-gateway-*</include>
-                <include>plugins/ext/*</include>
+                <include>**/*</include>
             </includes>
+            <fileMode>755</fileMode>
+        </fileSet>
+
+        <fileSet>
+            <directory>../src/main/resources/config</directory>
+            <outputDirectory>config</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <fileMode>644</fileMode>
+            <filtered>true</filtered>
+        </fileSet>
+
+        <fileSet>
+            <directory>../src/main/resources/lib</directory>
+            <outputDirectory>lib</outputDirectory>
+            <includes>
+                <include>*.*</include>
+            </includes>
+            <fileMode>644</fileMode>
+        </fileSet>
+
+        <fileSet>
+            <directory>../src/main/resources/license</directory>
+            <outputDirectory>license</outputDirectory>
+            <includes>
+                <include>*.*</include>
+            </includes>
+            <fileMode>644</fileMode>
+        </fileSet>
+
+        <fileSet>
+            <directory>../src/main/resources/logs</directory>
+            <outputDirectory>logs</outputDirectory>
+            <excludes>
+                <exclude>*</exclude>
+            </excludes>
+            <fileMode>644</fileMode>
+        </fileSet>
+
+        <fileSet>
+            <directory>../src/main/resources/metrics</directory>
+            <outputDirectory>metrics</outputDirectory>
+            <excludes>
+                <exclude>*</exclude>
+            </excludes>
+            <fileMode>644</fileMode>
+        </fileSet>
+
+        <fileSet>
+            <directory>../src/main/resources/plugins</directory>
+            <outputDirectory>plugins</outputDirectory>
+            <includes>
+                <include>**.*</include>
+            </includes>
+            <fileMode>755</fileMode>
+        </fileSet>
+        <!-- Just to create an empty directory -->
+        <fileSet>
+            <directory>../src/main/assembly</directory>
+            <outputDirectory>plugins/ext/repository-jdbc</outputDirectory>
+            <excludes>
+                <exclude>*</exclude>
+            </excludes>
         </fileSet>
     </fileSets>
+
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <unpack>false</unpack>
+            <includes>
+                <include>io.gravitee.*:*:jar</include>
+            </includes>
+            <scope>compile</scope>
+            <useProjectArtifact>false</useProjectArtifact>
+            <fileMode>644</fileMode>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>lib/ext</outputDirectory>
+            <unpack>false</unpack>
+            <excludes>
+                <exclude>io.gravitee.*:*:*</exclude>
+                <exclude>com.graviteesource.*:*:*</exclude>
+            </excludes>
+            <scope>compile</scope>
+            <useProjectArtifact>false</useProjectArtifact>
+            <fileMode>644</fileMode>
+        </dependencySet>
+
+        <dependencySet>
+            <outputDirectory>plugins</outputDirectory>
+            <unpack>false</unpack>
+            <includes>
+                <include>io.gravitee.apim.gateway*:*:zip</include>
+            </includes>
+            <useProjectArtifact>false</useProjectArtifact>
+            <fileMode>755</fileMode>
+        </dependencySet>
+    </dependencySets>
 
 </assembly>
