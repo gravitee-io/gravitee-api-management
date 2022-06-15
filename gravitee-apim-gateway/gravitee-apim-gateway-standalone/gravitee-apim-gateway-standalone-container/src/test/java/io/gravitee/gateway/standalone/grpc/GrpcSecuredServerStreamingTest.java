@@ -18,7 +18,6 @@ package io.gravitee.gateway.standalone.grpc;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest;
 import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
-import io.gravitee.gateway.standalone.AbstractGatewayTest;
 import io.gravitee.gateway.standalone.AbstractSecuredGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
@@ -35,7 +34,6 @@ import io.vertx.grpc.VertxServerBuilder;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -46,7 +44,6 @@ import org.junit.rules.TestRule;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Ignore("Disabled for now because there are some race condition between https and http tests when running all tests.")
 @ApiDescriptor("/io/gravitee/gateway/standalone/grpc/streaming-greeter.json")
 public class GrpcSecuredServerStreamingTest extends AbstractSecuredGatewayTest {
 
@@ -100,6 +97,7 @@ public class GrpcSecuredServerStreamingTest extends AbstractSecuredGatewayTest {
         // Prepare gRPC Client
         ManagedChannel channel = VertxChannelBuilder
             .forAddress(vertx, "localhost", 8082)
+            .usePlaintext()
             .useSsl(
                 new Handler<ClientOptionsBase>() {
                     @Override
