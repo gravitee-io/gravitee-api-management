@@ -1481,6 +1481,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         MembershipMember member,
         List<RoleEntity> newPrimaryOwnerRoles
     ) {
+        if (MembershipMemberType.GROUP.equals(member.getMemberType()) && !this.hasApiPrimaryOwnerMemberInGroup(member.getMemberId())) {
+            throw new ApiOwnershipTransferException(apiId);
+        }
+
         this.transferOwnership(
                 MembershipReferenceType.API,
                 RoleScope.API,
@@ -1649,5 +1653,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             .stream()
             .map(role -> _addRoleToMemberOnReference(reference, member, role, source, false, true, environmentId, organizationId))
             .collect(Collectors.toList());
+    }
+
+    private boolean hasApiPrimaryOwnerMemberInGroup(String groupId) {
+        return this.getMembersByReference(MembershipReferenceType.GROUP, groupId)
+            .stream()
+            .anyMatch(member -> member.getRoles().stream().anyMatch(RoleEntity::isApiPrimaryOwner));
     }
 }
