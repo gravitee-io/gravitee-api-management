@@ -36,6 +36,7 @@ public class PropertySourceRepositoryInitializer implements ApplicationContextIn
     private static final String REPOSITORY_PROPERTY_SOURCE = "repository.properties";
 
     @Override
+    @SuppressWarnings("rawtypes")
     public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
         ConfigurableEnvironment environment = configurableApplicationContext.getEnvironment();
 

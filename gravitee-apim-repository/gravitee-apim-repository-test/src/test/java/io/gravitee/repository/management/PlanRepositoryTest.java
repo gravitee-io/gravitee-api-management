@@ -20,7 +20,6 @@ import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
 
-import io.gravitee.repository.config.AbstractManagementRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Plan;
 import java.util.*;

@@ -16,7 +16,6 @@
 package io.gravitee.repository.management;
 
 import io.gravitee.node.api.Monitoring;
-import io.gravitee.repository.config.AbstractManagementRepositoryTest;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.subscribers.TestSubscriber;
 import java.util.Date;

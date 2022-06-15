@@ -22,11 +22,15 @@ import java.util.Arrays;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.ReactiveMongoOperations;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -35,7 +39,7 @@ import org.testcontainers.utility.DockerImageName;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ComponentScan("io.gravitee.repository.mongodb.management")
+@ComponentScan({ "io.gravitee.repository.mongodb.management", "io.gravitee.repository.mongodb.ratelimit" })
 @EnableMongoRepositories
 public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
@@ -68,10 +72,24 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
         return MongoClients.create(mongoDBContainer.getReplicaSetUrl());
     }
 
+    @Bean
+    public com.mongodb.reactivestreams.client.MongoClient reactiveMongoClient() {
+        return com.mongodb.reactivestreams.client.MongoClients.create(mongoDBContainer.getReplicaSetUrl());
+    }
+
     @Bean(name = "managementMongoTemplate")
     public MongoOperations mongoOperations(MongoClient mongoClient) {
         try {
             return new MongoTemplate(mongoClient, getDatabaseName());
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Bean
+    public ReactiveMongoOperations rateLimitMongoTemplate(com.mongodb.reactivestreams.client.MongoClient mongoClient) {
+        try {
+            return new ReactiveMongoTemplate(mongoClient, getDatabaseName());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

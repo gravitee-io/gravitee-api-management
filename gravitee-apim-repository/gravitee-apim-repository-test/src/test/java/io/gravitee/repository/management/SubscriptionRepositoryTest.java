@@ -23,7 +23,6 @@ import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.config.AbstractManagementRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;

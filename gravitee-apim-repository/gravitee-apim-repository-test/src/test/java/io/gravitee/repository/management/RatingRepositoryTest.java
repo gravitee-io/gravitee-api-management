@@ -20,7 +20,6 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.config.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Rating;

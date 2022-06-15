@@ -24,7 +24,7 @@ import java.util.Objects;
  */
 public class RateLimit implements Serializable {
 
-    private final String key;
+    private String key;
 
     private long counter = 0;
 
@@ -33,6 +33,8 @@ public class RateLimit implements Serializable {
     private long limit;
 
     private String subscription;
+
+    private RateLimit() {}
 
     public RateLimit(String key) {
         this.key = key;

@@ -20,7 +20,6 @@ import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.*;
 
-import io.gravitee.repository.config.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.model.CustomUserField;
 import io.gravitee.repository.management.model.MetadataFormat;
 import java.util.Arrays;

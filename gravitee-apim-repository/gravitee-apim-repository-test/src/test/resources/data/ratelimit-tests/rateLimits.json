@@ -1,0 +1,16 @@
+[
+  {
+    "key": "rl-1",
+    "subscription": "rl-1-subscription",
+    "resetTime": 10000,
+    "limit": 100,
+    "counter": 0
+  },
+  {
+    "key": "rl-2",
+    "subscription": "rl-2-subscription",
+    "resetTime": 50000,
+    "limit": 1000,
+    "counter": 40
+  }
+]

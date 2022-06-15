@@ -17,9 +17,7 @@ package io.gravitee.repository.management;
 
 import static org.junit.Assert.*;
 
-import io.gravitee.repository.config.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.model.Token;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
