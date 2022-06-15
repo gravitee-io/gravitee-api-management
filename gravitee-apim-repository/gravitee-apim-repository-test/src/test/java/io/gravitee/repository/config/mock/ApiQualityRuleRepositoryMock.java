@@ -15,8 +15,8 @@
  */
 package io.gravitee.repository.config.mock;
 
-import static io.gravitee.repository.ApiQualityRuleRepositoryTest.DATE;
-import static io.gravitee.repository.ApiQualityRuleRepositoryTest.NEW_DATE;
+import static io.gravitee.repository.management.ApiQualityRuleRepositoryTest.DATE;
+import static io.gravitee.repository.management.ApiQualityRuleRepositoryTest.NEW_DATE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.model.ApiQualityRule;
-import java.util.Collections;
+
 import java.util.List;
 
 /**
