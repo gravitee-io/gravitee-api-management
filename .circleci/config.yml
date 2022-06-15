@@ -80,7 +80,7 @@ commands:
     notify-on-failure:
         steps:
             - slack/notify:
-                  branch_pattern: master,\d+\.\d+\.x
+                  branch_pattern: master,[0-9]+\.[0-9]+\.x
                   event: fail
                   template: basic_fail_1
 
