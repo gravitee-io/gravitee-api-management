@@ -921,11 +921,6 @@ jobs:
                       kubectl rollout restart deployment/${K8S_NAME}-apim3-ui -n ${K8S_NAMESPACE}
                       kubectl rollout restart deployment/${K8S_NAME}-apim3-gateway -n ${K8S_NAMESPACE}
 
-                      kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-api -n ${K8S_NAMESPACE}-jdbc
-                      kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-portal -n ${K8S_NAMESPACE}-jdbc
-                      kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-ui -n ${K8S_NAMESPACE}-jdbc
-                      kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-gateway -n ${K8S_NAMESPACE}-jdbc
-
             - notify-on-failure
 
     ## Release Jobs
