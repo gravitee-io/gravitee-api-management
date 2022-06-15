@@ -35,13 +35,11 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 
@@ -74,8 +72,7 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/")).willReturn(notFound()));
 
-        EndpointRule rule = mock(EndpointRule.class);
-        when(rule.endpoint()).thenReturn(createEndpoint());
+        EndpointRule rule = createEndpointRule();
 
         io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
         Request request = new Request("/", HttpMethod.GET);
@@ -115,8 +112,7 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"green\"}")));
 
         // Prepare
-        EndpointRule rule = mock(EndpointRule.class);
-        when(rule.endpoint()).thenReturn(createEndpoint());
+        EndpointRule rule = createEndpointRule();
 
         io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
         Request request = new Request("/", HttpMethod.GET);
@@ -156,8 +152,7 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"yellow\"}")));
 
         // Prepare
-        EndpointRule rule = mock(EndpointRule.class);
-        when(rule.endpoint()).thenReturn(createEndpoint());
+        EndpointRule rule = createEndpointRule();
 
         io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
         Request request = new Request("/", HttpMethod.GET);
@@ -203,10 +198,7 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         stubFor(get(urlEqualTo("/")).willReturn(ok()));
 
         // Prepare
-        EndpointRule rule = mock(EndpointRule.class);
-        Endpoint endpoint = createEndpoint();
-        endpoint.setTarget(endpoint.getTarget() + "/additional-but-unused-path-for-hc");
-        when(rule.endpoint()).thenReturn(endpoint);
+        EndpointRule rule = createEndpointRule("/additional-but-unused-path-for-hc");
 
         io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
         Request request = new Request("/", HttpMethod.GET);
@@ -242,9 +234,23 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         async.awaitSuccess();
     }
 
-    private Endpoint createEndpoint() {
-        HttpEndpoint aDefault = new HttpEndpoint("default", "http://localhost:" + wireMockRule.port());
+    private Endpoint createEndpoint(String targetPath) {
+        HttpEndpoint aDefault = new HttpEndpoint(
+            "default",
+            "http://localhost:" + wireMockRule.port() + (targetPath != null ? targetPath : "")
+        );
         aDefault.setHttpClientOptions(new HttpClientOptions());
         return aDefault;
+    }
+
+    private EndpointRule createEndpointRule() {
+        return createEndpointRule(null);
+    }
+
+    private EndpointRule createEndpointRule(String targetPath) {
+        EndpointRule rule = mock(EndpointRule.class);
+        when(rule.endpoint()).thenReturn(createEndpoint(targetPath));
+        when(rule.schedule()).thenReturn("*/5 * * * * *");
+        return rule;
     }
 }
