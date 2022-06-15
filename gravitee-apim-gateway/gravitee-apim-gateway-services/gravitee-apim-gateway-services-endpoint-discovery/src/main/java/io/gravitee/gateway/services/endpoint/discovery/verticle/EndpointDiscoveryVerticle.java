@@ -111,7 +111,11 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
         }
     }
 
-    private void startServiceDiscovery(final Api api, final EndpointGroup group, final EndpointDiscoveryService discoveryService) {
+    private synchronized void startServiceDiscovery(
+        final Api api,
+        final EndpointGroup group,
+        final EndpointDiscoveryService discoveryService
+    ) {
         LOGGER.info(
             "A discovery service is defined for API id[{}] name[{}] group[{}] type[{}]",
             api.getId(),

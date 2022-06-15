@@ -20,47 +20,35 @@ import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import java.io.Serializable;
-import java.util.Date;
-import org.springframework.scheduling.support.CronTrigger;
-import org.springframework.scheduling.support.SimpleTriggerContext;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointRuleCronHandler implements Handler<Long>, Serializable {
+public class EndpointRuleCronHandler<T extends Endpoint> implements Handler<Long>, Serializable {
 
     private final transient Vertx vertx;
-    private final CronTrigger expression;
     private final Endpoint endpoint;
-    private transient EndpointRuleHandler handler;
+    private transient EndpointRuleHandler<T> handler;
     private long timerId;
 
-    public EndpointRuleCronHandler(Vertx vertx, EndpointRule rule) {
+    public EndpointRuleCronHandler(Vertx vertx, EndpointRule<T> rule) {
         this.vertx = vertx;
-        this.expression = new CronTrigger(rule.schedule());
         this.endpoint = rule.endpoint();
     }
 
-    public EndpointRuleCronHandler schedule(EndpointRuleHandler handler) {
+    public EndpointRuleCronHandler<T> schedule(EndpointRuleHandler<T> handler) {
         if (handler == null) {
             throw new IllegalArgumentException("Handler is null.");
         }
         this.handler = handler;
-        final long delay = getDelay(expression);
-        timerId = vertx.setTimer(delay, this);
+        timerId = vertx.setTimer(handler.getDelayMillis(), this);
         return this;
-    }
-
-    private long getDelay(CronTrigger expression) {
-        final Date next = expression.nextExecutionTime(new SimpleTriggerContext());
-        return next.getTime() - new Date().getTime();
     }
 
     @Override
     public void handle(final Long timerId) {
-        final long delay = getDelay(expression);
-        this.timerId = vertx.setTimer(delay, this);
+        this.timerId = vertx.setTimer(handler.getDelayMillis(), this);
         handler.handle(timerId);
     }
 

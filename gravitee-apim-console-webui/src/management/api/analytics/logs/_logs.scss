@@ -126,8 +126,19 @@
   margin: 0 5%;
   width: 90%;
 }
-.api-analytics-logging-configuration_form-details_input {
+
+.logging-configuration__input-container {
   width: 100%;
+
+  &__expression-container {
+    display: flex;
+    flex: 1 1 auto;
+
+    &__input {
+      flex-grow: 1;
+      overflow: hidden;
+    }
+  }
 }
 
 .api-analytics-logging-configuration_enabled {

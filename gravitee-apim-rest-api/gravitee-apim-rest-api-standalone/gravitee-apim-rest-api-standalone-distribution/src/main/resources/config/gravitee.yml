@@ -71,26 +71,30 @@ http:
 #      cors:
 # Allows to configure the header Access-Control-Allow-Origin (default value: *)
 # '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.
-#       allow-origin: http://developer.mycompany.com
+#        allow-origin: '*'
 # Allows to define how long the result of the preflight request should be cached for (default value; 1728000 [20 days])
-#       max-age: 864000
+#        max-age: 1728000
 # Which methods to allow (default value: OPTIONS, GET, POST, PUT, DELETE)
-#      allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
+#        allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
 # Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token)
-#      allow-headers: 'X-Requested-With'
+#        allow-headers: 'Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token'
+#  Allows to configure the header Access-Control-Expose-Headers
+#        exposed-headers: 'ETag;X-Xsrf-Token'
 #    portal:
 #      enabled: true
 #      entrypoint: ${http.api.entrypoint}portal
 #      cors:
-    # Allows to configure the header Access-Control-Allow-Origin (default value: *)
-    # '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.
-#       allow-origin: http://developer.mycompany.com
-    # Allows to define how long the result of the preflight request should be cached for (default value; 1728000 [20 days])
-#       max-age: 864000
-    # Which methods to allow (default value: OPTIONS, GET, POST, PUT, DELETE)
-#      allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
-    # Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token)
-#      allow-headers: 'X-Requested-With'
+# Allows to configure the header Access-Control-Allow-Origin (default value: *)
+# '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.
+#        allow-origin: '*'
+# Allows to define how long the result of the preflight request should be cached for (default value; 1728000 [20 days])
+#        max-age: 1728000
+# Which methods to allow (default value: OPTIONS, GET, POST, PUT, DELETE)
+#        allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
+# Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token)
+#        allow-headers: 'Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token'
+#  Allows to configure the header Access-Control-Expose-Headers
+#        exposed-headers: 'ETag;X-Xsrf-Token'
   csrf:
     # Allows to enable or disable the CSRF protection. Enabled by default.
     enabled: true

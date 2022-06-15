@@ -90,11 +90,14 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
           }),
           alert: this.fb.group({ enabled: [toFormState(this.settings, 'alert.enabled')] }),
           cors: this.fb.group({
-            allowOrigin: [toFormState(this.settings, 'cors.allowOrigin', []), [CorsUtil.allowOriginValidator()]],
-            allowMethods: [toFormState(this.settings, 'cors.allowMethods', [])],
-            allowHeaders: [toFormState(this.settings, 'cors.allowHeaders', [])],
-            exposedHeaders: [toFormState(this.settings, 'cors.exposedHeaders', [])],
-            maxAge: [toFormState(this.settings, 'cors.maxAge')],
+            allowOrigin: [
+              toFormState(this.settings, 'cors.allowOrigin', [], 'http.api.management.cors.allow-origin'),
+              [CorsUtil.allowOriginValidator()],
+            ],
+            allowMethods: [toFormState(this.settings, 'cors.allowMethods', [], 'http.api.management.cors.allow-methods')],
+            allowHeaders: [toFormState(this.settings, 'cors.allowHeaders', [], 'http.api.management.cors.allow-headers')],
+            exposedHeaders: [toFormState(this.settings, 'cors.exposedHeaders', [], 'http.api.management.cors.exposed-headers')],
+            maxAge: [toFormState(this.settings, 'cors.maxAge', undefined, 'http.api.management.cors.max-age')],
           }),
 
           email: this.fb.group({
@@ -205,15 +208,15 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
       .subscribe(() => this.ngOnInit());
   }
 
-  isReadonlySetting(property: string): boolean {
-    return isReadonlySetting(this.settings, property);
+  isReadonlySetting(readonlyKey: string): boolean {
+    return isReadonlySetting(this.settings, readonlyKey);
   }
 }
 
-const isReadonlySetting = (consoleSettings: ConsoleSettings, property: string): boolean => {
-  return ConsoleSettingsService.isReadonly(consoleSettings, property);
+const isReadonlySetting = (consoleSettings: ConsoleSettings, readonlyKey: string): boolean => {
+  return ConsoleSettingsService.isReadonly(consoleSettings, readonlyKey);
 };
 
-const toFormState = (consoleSettings: ConsoleSettings, path: string, defaultValue: unknown = undefined) => {
-  return { value: get(consoleSettings, path, defaultValue), disabled: isReadonlySetting(consoleSettings, path) };
+const toFormState = (consoleSettings: ConsoleSettings, path: string, defaultValue: unknown = undefined, readonlyKey: string = path) => {
+  return { value: get(consoleSettings, path, defaultValue), disabled: isReadonlySetting(consoleSettings, readonlyKey) };
 };

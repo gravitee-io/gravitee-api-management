@@ -383,6 +383,8 @@ public class DebugReactorTest {
         assertThat(result.get("X-Gravitee-Transaction-Id")).contains("transaction-id");
         assertThat(result.get("content-type")).contains("application/json");
         assertThat(result.get("X-Gravitee-Request-Id")).contains("request-id");
-        assertThat(result.get("accept-encoding")).contains("deflate", "gzip", "compress");
+        assertThat(result.getAll("accept-encoding")).containsAll(List.of("deflate", "gzip", "compress"));
+        // Implementation returned by convertHeaders(headers) will return the first value when using get(key)
+        assertThat(result.get("accept-encoding")).contains("deflate");
     }
 }

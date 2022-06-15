@@ -30,7 +30,6 @@ import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.RequestOptions;
@@ -59,7 +58,8 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
 
         // Set timeout on request
         if (rule.endpoint().getHttpClientOptions() != null) {
-            options.setTimeout(rule.endpoint().getHttpClientOptions().getReadTimeout());
+            // We want to ensure that the read/write timeout will expire BEFORE an other HC will be executed
+            options.setTimeout(Math.min(getDelayMillis(), rule.endpoint().getHttpClientOptions().getReadTimeout()));
         }
 
         return options;
@@ -68,7 +68,9 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     @Override
     protected HttpClientOptions createHttpClientOptions(final HttpEndpoint endpoint, final URI requestUri) throws Exception {
         // Prepare HTTP client
-        HttpClientOptions httpClientOptions = new HttpClientOptions().setMaxPoolSize(1);
+        HttpClientOptions httpClientOptions = new HttpClientOptions() // The queue size can contain only a single inflight request for HC
+            .setMaxWaitQueueSize(1)
+            .setMaxPoolSize(1);
 
         if (endpoint.getHttpClientOptions() != null) {
             if (environment.getProperty("http.ssl.openssl", Boolean.class, false)) {
@@ -79,7 +81,8 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                 .setKeepAlive(endpoint.getHttpClientOptions().isKeepAlive())
                 .setTcpKeepAlive(endpoint.getHttpClientOptions().isKeepAlive())
                 .setIdleTimeout((int) (endpoint.getHttpClientOptions().getIdleTimeout() / 1000))
-                .setConnectTimeout((int) endpoint.getHttpClientOptions().getConnectTimeout())
+                // We want to ensure that the connect timeout will expire BEFORE an other HC will be executed
+                .setConnectTimeout((int) Math.min(getDelayMillis(), endpoint.getHttpClientOptions().getConnectTimeout()))
                 .setTryUseCompression(endpoint.getHttpClientOptions().isUseCompression());
 
             if (endpoint.getHttpClientOptions().getVersion() == ProtocolVersion.HTTP_2) {

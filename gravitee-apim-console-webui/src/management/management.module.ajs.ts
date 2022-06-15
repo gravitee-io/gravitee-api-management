@@ -175,7 +175,6 @@ import LogsFiltersController from '../components/logs/logs-filters.controller';
 
 import { LogComponent } from './api/analytics/logs/log.component';
 import ApiLoggingConfigurationController from '../management/api/analytics/logs/logging-configuration.controller';
-import DialogConfigureLoggingEditorController from '../management/api/analytics/logs/configure-logging-editor.dialog.controller';
 // Others
 import ThemeElementDirective from '../components/theme/theme-element.directive';
 import EnvironmentService from '../services/environment.service';
@@ -538,6 +537,7 @@ import DialogTransferOwnershipController from './configuration/groups/group/tran
 
 import { upgradeModule } from '@uirouter/angular-hybrid';
 import uiRouter from '@uirouter/angularjs';
+import { ConfigureLoggingDialogController } from './api/analytics/logs/configure-logging.dialog';
 import { GioBannerComponent } from '@gravitee/ui-particles-angular';
 import { GioPendoService } from '@gravitee/ui-analytics';
 import ApplicationSubscriptionsListComponent from '../management/application/details/subscriptions/application-subscriptions-list.component';
@@ -964,7 +964,7 @@ graviteeManagementModule.component('log', LogComponent);
 graviteeManagementModule.component('gvLogsFilters', LogsFiltersComponent);
 graviteeManagementModule.controller('LogsFiltersController', LogsFiltersController);
 graviteeManagementModule.controller('ApiLoggingConfigurationController', ApiLoggingConfigurationController);
-graviteeManagementModule.controller('DialogConfigureLoggingEditorController', DialogConfigureLoggingEditorController);
+graviteeManagementModule.controller('configureLoggingDialogController', ConfigureLoggingDialogController);
 
 graviteeManagementModule.component('gvAudit', AuditComponent);
 graviteeManagementModule.component('gvNewsletterReminder', NewsletterReminderComponent);
