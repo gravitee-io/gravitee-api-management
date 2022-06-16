@@ -21,20 +21,17 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.Plan;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.SubscriptionRepository;
-import io.gravitee.repository.management.api.search.SubscriptionCriteria;
-import io.gravitee.repository.management.model.Subscription;
 import io.reactivex.Completable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
-import java.util.ArrayList;
-import java.util.Date;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -53,6 +50,7 @@ class SecurityPlanTest {
     protected static final String CLIENT_ID = "clientId";
     protected static final String PLAN_ID = "planId";
     protected static final String APPLICATION_ID = "applicationId";
+    protected static final String SUBSCRIPTION_ID = "subscriptionId";
     protected static final String MOCK_EXCEPTION = "Mock exception";
 
     @Mock
@@ -71,7 +69,7 @@ class SecurityPlanTest {
     private TemplateEngine templateEngine;
 
     @Mock
-    private SubscriptionRepository subscriptionRepository;
+    private SubscriptionService subscriptionService;
 
     @Test
     void shouldReturnTrueWhenPolicyCanHandleAndSelectionRuleIsNull() {
@@ -153,24 +151,23 @@ class SecurityPlanTest {
     }
 
     @Test
-    void shouldValidateSubscription() throws TechnicalException {
-        final ArrayList<Subscription> subscriptions = new ArrayList<>();
+    void shouldValidateSubscription_withApiAndClientIdInContext() {
         final Subscription subscription = mock(Subscription.class);
-        subscriptions.add(subscription);
 
         when(subscription.getPlan()).thenReturn(PLAN_ID);
         when(subscription.getApplication()).thenReturn(APPLICATION_ID);
-        when(subscription.getEndingAt()).thenReturn(new Date(System.currentTimeMillis() + 3600000));
+        when(subscription.isTimeValid(anyLong())).thenReturn(true);
         when(plan.getId()).thenReturn(PLAN_ID);
 
         when(ctx.request()).thenReturn(request);
         when(request.timestamp()).thenReturn(System.currentTimeMillis());
         when(policy.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy.requireSubscription()).thenReturn(true);
+        when(ctx.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID)).thenReturn(null);
         when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(ctx.getAttribute(SecurityPlan.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
-        when(ctx.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(subscriptions);
+        when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
+        when(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).thenReturn(Optional.of(subscription));
 
         final SecurityPlan cut = new SecurityPlan(plan, policy);
         final TestObserver<Void> obs = cut.execute(ctx).test();
@@ -180,22 +177,43 @@ class SecurityPlanTest {
     }
 
     @Test
-    void shouldCallOnSubscriptionInvalidWhenSubscriptionIsLinkedToAnotherPlan() throws TechnicalException {
-        final ArrayList<Subscription> subscriptions = new ArrayList<>();
+    void shouldValidateSubscription_withSubscriptionIdInContext() {
         final Subscription subscription = mock(Subscription.class);
-        subscriptions.add(subscription);
+
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(subscription.getApplication()).thenReturn(APPLICATION_ID);
+        when(subscription.isTimeValid(anyLong())).thenReturn(true);
+        when(plan.getId()).thenReturn(PLAN_ID);
+
+        when(ctx.request()).thenReturn(request);
+        when(request.timestamp()).thenReturn(System.currentTimeMillis());
+        when(policy.onRequest(ctx)).thenReturn(Completable.complete());
+        when(policy.requireSubscription()).thenReturn(true);
+        when(ctx.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID)).thenReturn(SUBSCRIPTION_ID);
+        when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
+        when(subscriptionService.getById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+
+        final SecurityPlan cut = new SecurityPlan(plan, policy);
+        final TestObserver<Void> obs = cut.execute(ctx).test();
+
+        obs.assertResult();
+        verify(policy, times(0)).onInvalidSubscription(any());
+    }
+
+    @Test
+    void shouldCallOnSubscriptionInvalidWhenSubscriptionIsLinkedToAnotherPlan() {
+        final Subscription subscription = mock(Subscription.class);
 
         when(subscription.getPlan()).thenReturn("other plan");
         when(plan.getId()).thenReturn(PLAN_ID);
 
-        when(ctx.request()).thenReturn(request);
-        when(request.timestamp()).thenReturn(System.currentTimeMillis());
         when(policy.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy.requireSubscription()).thenReturn(true);
+        when(ctx.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID)).thenReturn(null);
         when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(ctx.getAttribute(SecurityPlan.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
-        when(ctx.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(subscriptions);
+        when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
+        when(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).thenReturn(Optional.of(subscription));
         when(policy.onInvalidSubscription(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
         final SecurityPlan cut = new SecurityPlan(plan, policy);
@@ -205,23 +223,22 @@ class SecurityPlanTest {
     }
 
     @Test
-    void shouldCallOnSubscriptionInvalidWhenSubscriptionIsExpired() throws TechnicalException {
-        final ArrayList<Subscription> subscriptions = new ArrayList<>();
+    void shouldCallOnSubscriptionInvalidWhenSubscriptionIsExpired() {
         final Subscription subscription = mock(Subscription.class);
-        subscriptions.add(subscription);
 
         when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(subscription.getEndingAt()).thenReturn(new Date(System.currentTimeMillis() - 3600000));
+        when(subscription.isTimeValid(anyLong())).thenReturn(false);
         when(plan.getId()).thenReturn(PLAN_ID);
 
         when(ctx.request()).thenReturn(request);
         when(request.timestamp()).thenReturn(System.currentTimeMillis());
         when(policy.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy.requireSubscription()).thenReturn(true);
+        when(ctx.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID)).thenReturn(null);
         when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(ctx.getAttribute(SecurityPlan.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
-        when(ctx.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(subscriptions);
+        when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
+        when(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).thenReturn(Optional.of(subscription));
         when(policy.onInvalidSubscription(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
         final SecurityPlan cut = new SecurityPlan(plan, policy);
@@ -231,15 +248,14 @@ class SecurityPlanTest {
     }
 
     @Test
-    void shouldCallOnSubscriptionInvalidWhenNoSubscriptionFound() throws TechnicalException {
-        final ArrayList<Subscription> subscriptions = new ArrayList<>();
-
+    void shouldCallOnSubscriptionInvalidWhenNoSubscriptionFound() {
         when(policy.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy.requireSubscription()).thenReturn(true);
+        when(ctx.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID)).thenReturn(null);
         when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(ctx.getAttribute(SecurityPlan.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
-        when(ctx.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(subscriptions);
+        when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
+        when(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).thenReturn(Optional.empty());
         when(policy.onInvalidSubscription(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
         final SecurityPlan cut = new SecurityPlan(plan, policy);
@@ -249,15 +265,14 @@ class SecurityPlanTest {
     }
 
     @Test
-    void shouldCallOnSubscriptionInvalidWhenExceptionOccurredWhileSearchingSubscriptions() throws TechnicalException {
-        final ArrayList<Subscription> subscriptions = new ArrayList<>();
-
+    void shouldCallOnSubscriptionInvalidWhenExceptionOccurredWhileSearchingSubscriptions() {
         when(policy.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy.requireSubscription()).thenReturn(true);
+        when(ctx.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID)).thenReturn(null);
         when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(ctx.getAttribute(SecurityPlan.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
-        when(ctx.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenThrow(new RuntimeException("Mock TechnicalException"));
+        when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
+        when(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).thenThrow(new RuntimeException("Mock TechnicalException"));
         when(policy.onInvalidSubscription(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
         final SecurityPlan cut = new SecurityPlan(plan, policy);

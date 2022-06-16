@@ -711,19 +711,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         subscription
                     );
 
-                    // handle associated active API Keys
-                    streamActiveApiKeys(executionContext, subscription.getId())
-                        .forEach(
-                            apiKey -> {
-                                if (!application.hasApiKeySharedMode()) {
-                                    apiKeyService.revoke(executionContext, apiKey, false);
-                                } else {
-                                    // don't revoke shared api keys as they are used by other subscriptions
-                                    // but update them to ensure they will trigger the IncrementalApiKeyRefresher
-                                    apiKeyService.update(executionContext, apiKey);
-                                }
-                            }
-                        );
+                    // revoke associated active API Keys (if they are not shared)
+                    if (!application.hasApiKeySharedMode()) {
+                        streamActiveApiKeys(executionContext, subscription.getId())
+                            .forEach(apiKey -> apiKeyService.revoke(executionContext, apiKey, false));
+                    }
 
                     return convert(subscription);
                 case PENDING:
@@ -787,18 +779,16 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     subscription
                 );
 
-                // active API Keys are automatically paused (except shared ones)
-                streamActiveApiKeys(executionContext, subscription.getId())
-                    .forEach(
-                        apiKey -> {
-                            // don't pause shared api keys as they are used by other subscriptions
-                            // but update them to ensure they will trigger the IncrementalApiKeyRefresher
-                            if (!application.hasApiKeySharedMode()) {
+                // active API Keys are automatically paused (if they are not shared)
+                if (!application.hasApiKeySharedMode()) {
+                    streamActiveApiKeys(executionContext, subscription.getId())
+                        .forEach(
+                            apiKey -> {
                                 apiKey.setPaused(true);
+                                apiKeyService.update(executionContext, apiKey);
                             }
-                            apiKeyService.update(executionContext, apiKey);
-                        }
-                    );
+                        );
+                }
 
                 return convert(subscription);
             }

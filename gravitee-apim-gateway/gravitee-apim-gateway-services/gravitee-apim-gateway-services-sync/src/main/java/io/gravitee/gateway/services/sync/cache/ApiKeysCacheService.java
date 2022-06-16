@@ -21,15 +21,14 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.Plan;
+import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.services.sync.cache.handler.ApiKeysServiceHandler;
-import io.gravitee.gateway.services.sync.cache.repository.ApiKeyRepositoryWrapper;
 import io.gravitee.gateway.services.sync.cache.task.FullApiKeyRefresher;
 import io.gravitee.gateway.services.sync.cache.task.IncrementalApiKeyRefresher;
 import io.gravitee.gateway.services.sync.cache.task.Result;
-import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -44,8 +43,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -55,8 +52,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public class ApiKeysCacheService extends AbstractService implements EventListener<ReactorEvent, Reactable> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiKeysCacheService.class);
-
-    private static final String API_KEY_CACHE_NAME = "apikeys";
 
     @Value("${services.sync.bulk_items:100}")
     private int bulkItems;
@@ -70,11 +65,13 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     private EventManager eventManager;
 
     @Autowired
-    private CacheManager cacheManager;
-
     private ApiKeyRepository apiKeyRepository;
 
+    @Autowired
     private SubscriptionRepository subscriptionRepository;
+
+    @Autowired
+    private ApiKeyService apiKeyService;
 
     @Autowired
     @Qualifier("syncExecutor")
@@ -104,31 +101,8 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     protected void doStart() throws Exception {
         super.doStart();
 
-        LOGGER.info("Overriding API key repository implementation with cached API Key repository");
-        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
-            (ConfigurableApplicationContext) applicationContext.getParent()
-        ).getBeanFactory();
-
-        this.apiKeyRepository = beanFactory.getBean(ApiKeyRepository.class);
-        LOGGER.debug("Current API key repository implementation is {}", apiKeyRepository.getClass().getName());
-
-        this.subscriptionRepository = beanFactory.getBean(SubscriptionRepository.class);
-        LOGGER.debug("Current subscription repository implementation is {}", subscriptionRepository.getClass().getName());
-
-        String[] beanNames = beanFactory.getBeanNamesForType(ApiKeyRepository.class);
-        String oldBeanName = beanNames[0];
-
-        beanFactory.destroySingleton(oldBeanName);
-
-        LOGGER.debug("Register API key repository implementation {}", ApiKeyRepositoryWrapper.class.getName());
-        beanFactory.registerSingleton(
-            ApiKeyRepository.class.getName(),
-            new ApiKeyRepositoryWrapper(this.apiKeyRepository, new ApiKeysCache(cacheManager.getOrCreateCache(API_KEY_CACHE_NAME)))
-        );
-
-        LOGGER.info("Associate a new HTTP handler on {}", PATH);
-
         // Set API-keys handler
+        LOGGER.info("Associate a new HTTP handler on {}", PATH);
         ApiKeysServiceHandler apiKeysHandler = new ApiKeysServiceHandler(executorService);
         applicationContext.getAutowireCapableBeanFactory().autowireBean(apiKeysHandler);
         router.get(PATH).produces(MediaType.APPLICATION_JSON).handler(apiKeysHandler);
@@ -172,7 +146,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                                 );
                                 refresher.setApiKeyRepository(apiKeyRepository);
                                 refresher.setSubscriptionRepository(subscriptionRepository);
-                                refresher.setCache(new ApiKeysCache(cacheManager.getOrCreateCache(API_KEY_CACHE_NAME)));
+                                refresher.setApiKeyService(apiKeyService);
 
                                 return refresher;
                             }
@@ -289,7 +263,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                 final FullApiKeyRefresher refresher = new FullApiKeyRefresher(planIds);
                 refresher.setApiKeyRepository(apiKeyRepository);
                 refresher.setSubscriptionRepository(subscriptionRepository);
-                refresher.setCache(new ApiKeysCache(cacheManager.getOrCreateCache(API_KEY_CACHE_NAME)));
+                refresher.setApiKeyService(apiKeyService);
 
                 CompletableFuture
                     .supplyAsync(refresher::call, executorService)

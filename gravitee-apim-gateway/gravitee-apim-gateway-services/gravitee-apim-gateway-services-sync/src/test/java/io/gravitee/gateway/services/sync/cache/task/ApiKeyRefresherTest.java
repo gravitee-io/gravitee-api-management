@@ -15,10 +15,9 @@
  */
 package io.gravitee.gateway.services.sync.cache.task;
 
-import static io.gravitee.repository.management.model.Subscription.Status.*;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.gateway.services.sync.cache.ApiKeysCache;
+import io.gravitee.gateway.handlers.api.services.ApiKeyService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -47,77 +46,61 @@ public class ApiKeyRefresherTest {
     private SubscriptionRepository subscriptionRepository;
 
     @Mock
-    private ApiKeysCache cache;
+    private ApiKeyService apiKeyService;
 
     @Before
     public void setup() {
         apiKeyRefresher.setApiKeyRepository(apiKeyRepository);
         apiKeyRefresher.setSubscriptionRepository(subscriptionRepository);
-        apiKeyRefresher.setCache(cache);
+        apiKeyRefresher.setApiKeyService(apiKeyService);
     }
 
     @Test
-    public void doRefresh_should_cache_subscriptions() throws TechnicalException {
+    public void doRefresh_should_read_apikeys_from_repository_and_cache_them() throws TechnicalException {
         ApiKeyCriteria apiKeyCriteria = mock(ApiKeyCriteria.class);
 
         List<ApiKey> apiKeysList = List.of(
             buildTestApiKey("key-1", List.of("sub-1", "sub-2", "sub-3")),
-            buildTestApiKey("key-2", List.of("sub-1", "sub-4"), true, false),
-            buildTestApiKey("key-3", List.of()),
-            buildTestApiKey("key-4", List.of("sub-1", "sub-4", "sub-5")),
-            buildTestApiKey("key-5", List.of("sub-1", "sub-4"), false, true),
-            buildTestApiKey("key-6", List.of("sub-unknown"))
+            buildTestApiKey("key-2", List.of()),
+            buildTestApiKey("key-3", List.of("sub-1", "sub-4")),
+            buildTestApiKey("key-4", List.of("sub-unknown"))
         );
 
         when(apiKeyRepository.findByCriteria(apiKeyCriteria)).thenReturn(apiKeysList);
 
-        when(subscriptionRepository.findByIdIn(Set.of("sub-1", "sub-2", "sub-3", "sub-4", "sub-5", "sub-unknown")))
+        when(subscriptionRepository.findByIdIn(Set.of("sub-1", "sub-2", "sub-3", "sub-4", "sub-unknown")))
             .thenReturn(
                 List.of(
-                    buildTestSubscription("sub-1", CLOSED),
-                    buildTestSubscription("sub-2", ACCEPTED),
-                    buildTestSubscription("sub-3", REJECTED),
-                    buildTestSubscription("sub-4", ACCEPTED),
-                    buildTestSubscription("sub-5", ACCEPTED)
+                    buildTestSubscription("sub-1"),
+                    buildTestSubscription("sub-2"),
+                    buildTestSubscription("sub-3"),
+                    buildTestSubscription("sub-4"),
+                    buildTestSubscription("sub-5")
                 )
             );
 
         apiKeyRefresher.doRefresh(apiKeyCriteria);
 
-        // those API keys have been put in cache because they are active and their subscription is active
-        verify(cache, times(1)).put(argThat(apiKey -> apiKey.getId().equals("key-1") && apiKey.getSubscription().equals("sub-2")));
-        verify(cache, times(1)).put(argThat(apiKey -> apiKey.getId().equals("key-4") && apiKey.getSubscription().equals("sub-4")));
-        verify(cache, times(1)).put(argThat(apiKey -> apiKey.getId().equals("key-4") && apiKey.getSubscription().equals("sub-5")));
+        // all API keys have been saved in cache
+        verify(apiKeyService, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-1") && apiKey.getSubscription().equals("sub-1")));
+        verify(apiKeyService, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-1") && apiKey.getSubscription().equals("sub-2")));
+        verify(apiKeyService, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-1") && apiKey.getSubscription().equals("sub-3")));
+        verify(apiKeyService, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-3") && apiKey.getSubscription().equals("sub-1")));
+        verify(apiKeyService, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-3") && apiKey.getSubscription().equals("sub-4")));
 
-        // those API keys have been removed from cache because they are inactive, or their subscription is not active
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-1") && apiKey.getSubscription().equals("sub-1")));
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-1") && apiKey.getSubscription().equals("sub-3")));
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-2") && apiKey.getSubscription().equals("sub-1")));
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-2") && apiKey.getSubscription().equals("sub-4")));
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-4") && apiKey.getSubscription().equals("sub-1")));
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-5") && apiKey.getSubscription().equals("sub-1")));
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-5") && apiKey.getSubscription().equals("sub-4")));
-
-        verifyNoMoreInteractions(cache);
+        verifyNoMoreInteractions(apiKeyService);
     }
 
     private ApiKey buildTestApiKey(String id, List<String> subscriptions) {
-        return buildTestApiKey(id, subscriptions, false, false);
-    }
-
-    private ApiKey buildTestApiKey(String id, List<String> subscriptions, boolean revoked, boolean paused) {
         ApiKey apiKey = new ApiKey();
         apiKey.setId(id);
         apiKey.setSubscriptions(subscriptions);
-        apiKey.setRevoked(revoked);
-        apiKey.setPaused(paused);
         return apiKey;
     }
 
-    private Subscription buildTestSubscription(String id, Subscription.Status status) {
+    private Subscription buildTestSubscription(String id) {
         Subscription subscription = new Subscription();
         subscription.setId(id);
-        subscription.setStatus(status);
         return subscription;
     }
 }

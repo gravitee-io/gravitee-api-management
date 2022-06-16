@@ -27,6 +27,8 @@ import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.NodeApisEndpointInitializer;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
+import io.gravitee.gateway.handlers.api.services.ApiKeyService;
+import io.gravitee.gateway.handlers.api.services.SubscriptionService;
 import io.gravitee.gateway.jupiter.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.jupiter.flow.condition.evaluation.HttpMethodConditionFilter;
@@ -44,6 +46,7 @@ import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.cache.CacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -163,5 +166,15 @@ public class ApiHandlerConfiguration {
             apiProcessorChainFactory,
             flowResolverFactory
         );
+    }
+
+    @Bean
+    public ApiKeyService apiKeyService(CacheManager cacheManager) {
+        return new ApiKeyService(cacheManager);
+    }
+
+    @Bean
+    public SubscriptionService subscriptionService(CacheManager cacheManager) {
+        return new SubscriptionService(cacheManager);
     }
 }
