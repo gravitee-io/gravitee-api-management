@@ -16,7 +16,7 @@
     "@asyncapi/web-component": "1.0.0-next.15",
     "@fontsource/libre-franklin": "4.4.5",
     "@gravitee/ui-analytics": "3.5.0",
-    "@gravitee/ui-components": "3.36.0",
+    "@gravitee/ui-components": "3.36.1",
     "@gravitee/ui-particles-angular": "3.4.0",
     "@gravitee/ui-policy-studio-angular": "3.0.1",
     "@highcharts/map-collection": "1.1.4",
