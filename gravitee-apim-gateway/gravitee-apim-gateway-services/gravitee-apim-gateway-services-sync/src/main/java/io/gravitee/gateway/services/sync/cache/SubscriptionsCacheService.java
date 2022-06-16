@@ -15,21 +15,22 @@
  */
 package io.gravitee.gateway.services.sync.cache;
 
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.*;
+
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.Plan;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.services.sync.cache.handler.SubscriptionsServiceHandler;
-import io.gravitee.gateway.services.sync.cache.repository.SubscriptionRepositoryWrapper;
 import io.gravitee.gateway.services.sync.cache.task.FullSubscriptionRefresher;
 import io.gravitee.gateway.services.sync.cache.task.IncrementalSubscriptionRefresher;
 import io.gravitee.gateway.services.sync.cache.task.Result;
-import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.vertx.ext.web.Router;
@@ -37,15 +38,12 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -55,8 +53,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public class SubscriptionsCacheService extends AbstractService implements EventListener<ReactorEvent, Reactable> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionsCacheService.class);
-
-    private static final String CACHE_NAME = "subscriptions";
 
     @Value("${services.sync.bulk_items:100}")
     private int bulkItems;
@@ -70,9 +66,10 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
     private EventManager eventManager;
 
     @Autowired
-    private CacheManager cacheManager;
-
     private SubscriptionRepository subscriptionRepository;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
 
     @Autowired
     @Qualifier("syncExecutor")
@@ -102,29 +99,9 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
     protected void doStart() throws Exception {
         super.doStart();
 
-        LOGGER.info("Overriding subscription repository implementation with a cached subscription repository");
-        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
-            (ConfigurableApplicationContext) applicationContext.getParent()
-        ).getBeanFactory();
-
-        this.subscriptionRepository = beanFactory.getBean(SubscriptionRepository.class);
-        LOGGER.debug("Current subscription repository implementation is {}", subscriptionRepository.getClass().getName());
-
-        String[] beanNames = beanFactory.getBeanNamesForType(SubscriptionRepository.class);
-        String oldBeanName = beanNames[0];
-
-        beanFactory.destroySingleton(oldBeanName);
-
-        LOGGER.debug("Register subscription repository implementation {}", SubscriptionRepositoryWrapper.class.getName());
-        beanFactory.registerSingleton(
-            SubscriptionRepository.class.getName(),
-            new SubscriptionRepositoryWrapper(subscriptionRepository, cacheManager.getOrCreateCache(CACHE_NAME))
-        );
-
-        LOGGER.info("Associate a new HTTP handler on {}", PATH);
-
         // Create handlers
         // Set subscriptions handler
+        LOGGER.info("Associate a new HTTP handler on {}", PATH);
         SubscriptionsServiceHandler subscriptionsServiceHandler = new SubscriptionsServiceHandler(executorService);
         applicationContext.getAutowireCapableBeanFactory().autowireBean(subscriptionsServiceHandler);
         router.get(PATH).produces(MediaType.APPLICATION_JSON).handler(subscriptionsServiceHandler);
@@ -160,19 +137,16 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
                     final List<Callable<Result<Boolean>>> callables = chunks
                         .stream()
                         .map(
-                            new Function<List<String>, IncrementalSubscriptionRefresher>() {
-                                @Override
-                                public IncrementalSubscriptionRefresher apply(List<String> chunks) {
-                                    IncrementalSubscriptionRefresher refresher = new IncrementalSubscriptionRefresher(
-                                        lastRefreshAt,
-                                        nextLastRefreshAt,
-                                        chunks
-                                    );
-                                    refresher.setSubscriptionRepository(subscriptionRepository);
-                                    refresher.setCache(cacheManager.getOrCreateCache(CACHE_NAME));
+                            plansChunk -> {
+                                IncrementalSubscriptionRefresher refresher = new IncrementalSubscriptionRefresher(
+                                    lastRefreshAt,
+                                    nextLastRefreshAt,
+                                    plansChunk
+                                );
+                                refresher.setSubscriptionRepository(subscriptionRepository);
+                                refresher.setSubscriptionService(subscriptionService);
 
-                                    return refresher;
-                                }
+                                return refresher;
                             }
                         )
                         .collect(Collectors.toList());
@@ -267,12 +241,9 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
                             .stream()
                             .filter(
                                 plan ->
-                                    io.gravitee.repository.management.model.Plan.PlanSecurityType.OAUTH2
-                                        .name()
-                                        .equalsIgnoreCase(plan.getSecurity()) ||
-                                    io.gravitee.repository.management.model.Plan.PlanSecurityType.JWT
-                                        .name()
-                                        .equalsIgnoreCase(plan.getSecurity())
+                                    OAUTH2.name().equalsIgnoreCase(plan.getSecurity()) ||
+                                    JWT.name().equalsIgnoreCase(plan.getSecurity()) ||
+                                    API_KEY.name().equalsIgnoreCase(plan.getSecurity())
                             )
                             .map(Plan::getId)
                             .collect(Collectors.toSet())
@@ -289,7 +260,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
             if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
                 final FullSubscriptionRefresher refresher = new FullSubscriptionRefresher(planIds);
                 refresher.setSubscriptionRepository(subscriptionRepository);
-                refresher.setCache(cacheManager.getOrCreateCache(CACHE_NAME));
+                refresher.setSubscriptionService(subscriptionService);
 
                 CompletableFuture
                     .supplyAsync(refresher::call, executorService)

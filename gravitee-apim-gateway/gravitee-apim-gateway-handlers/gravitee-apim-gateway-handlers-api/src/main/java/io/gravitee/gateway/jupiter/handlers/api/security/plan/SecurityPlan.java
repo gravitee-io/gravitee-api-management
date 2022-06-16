@@ -21,17 +21,13 @@ import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_PLAN
 import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_SUBSCRIPTION_ID;
 
 import io.gravitee.definition.model.Plan;
+import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
-import io.gravitee.repository.management.api.SubscriptionRepository;
-import io.gravitee.repository.management.api.search.SubscriptionCriteria;
-import io.gravitee.repository.management.model.Subscription;
 import io.reactivex.Completable;
 import io.reactivex.Single;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
@@ -136,33 +132,24 @@ public class SecurityPlan {
         return Completable.defer(
             () -> {
                 try {
-                    SubscriptionRepository subscriptionRepository = ctx.getComponent(SubscriptionRepository.class);
+                    SubscriptionService subscriptionService = ctx.getComponent(SubscriptionService.class);
 
-                    // Get plan and client_id from execution context
+                    Optional<Subscription> subscriptionOpt = Optional.empty();
+                    String subscriptionId = ctx.getAttribute(ATTR_SUBSCRIPTION_ID);
                     String api = ctx.getAttribute(ATTR_API);
                     String clientId = ctx.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
+                    if (subscriptionId != null) {
+                        subscriptionOpt = subscriptionService.getById(subscriptionId);
+                    } else if (api != null && clientId != null) {
+                        subscriptionOpt = subscriptionService.getByApiAndClientId(api, clientId);
+                    }
 
-                    List<Subscription> subscriptions = subscriptionRepository.search(
-                        new SubscriptionCriteria.Builder()
-                            .apis(Collections.singleton(api))
-                            .clientId(clientId)
-                            .status(Subscription.Status.ACCEPTED)
-                            .build()
-                    );
+                    if (subscriptionOpt.isPresent()) {
+                        Subscription subscription = subscriptionOpt.get();
 
-                    if (subscriptions != null && !subscriptions.isEmpty()) {
-                        final Date requestDate = new Date(ctx.request().timestamp());
-                        final Optional<Subscription> optSubscription = subscriptions
-                            .stream()
-                            .filter(sub -> sub.getPlan().equals(plan.getId()))
-                            .filter(sub -> sub.getEndingAt() == null || sub.getEndingAt().after(requestDate))
-                            .findFirst();
-
-                        if (optSubscription.isPresent()) {
-                            Subscription subscription = optSubscription.get();
+                        if (subscription.getPlan().equals(plan.getId()) && subscription.isTimeValid(ctx.request().timestamp())) {
                             ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
                             ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
-
                             return Completable.complete();
                         }
                     }

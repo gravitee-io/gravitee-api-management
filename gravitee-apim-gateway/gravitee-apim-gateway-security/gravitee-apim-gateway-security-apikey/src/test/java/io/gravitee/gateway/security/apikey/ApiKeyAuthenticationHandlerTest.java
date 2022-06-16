@@ -26,16 +26,19 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.api.service.ApiKey;
+import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.security.apikey.policy.CheckSubscriptionPolicy;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
+import io.gravitee.gateway.security.core.HookAuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.http.SecurityType;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.model.ApiKey;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
@@ -68,7 +71,7 @@ public class ApiKeyAuthenticationHandlerTest {
     private AuthenticationContext authenticationContext;
 
     @Mock
-    private ApiKeyRepository apiKeyRepository;
+    private ApiKeyService apiKeyService;
 
     @Mock
     private Api api;
@@ -79,7 +82,7 @@ public class ApiKeyAuthenticationHandlerTest {
 
         ComponentProvider provider = mock(ComponentProvider.class);
 
-        when(provider.getComponent(ApiKeyRepository.class)).thenReturn(apiKeyRepository);
+        when(provider.getComponent(ApiKeyService.class)).thenReturn(apiKeyService);
         when(provider.getComponent(Api.class)).thenReturn(api);
 
         Environment environment = mock(Environment.class);
@@ -112,7 +115,7 @@ public class ApiKeyAuthenticationHandlerTest {
         HttpHeaders headers = HttpHeaders.create();
         headers.set("X-Gravitee-Api-Key", "xxxxx-xxxx-xxxxx");
         when(request.headers()).thenReturn(headers);
-        when(apiKeyRepository.findByKeyAndApi("xxxxx-xxxx-xxxxx", "api-id")).thenReturn(of(new ApiKey()));
+        when(apiKeyService.getByApiAndKey("api-id", "xxxxx-xxxx-xxxxx")).thenReturn(of(new ApiKey()));
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertTrue(handle);
@@ -128,7 +131,7 @@ public class ApiKeyAuthenticationHandlerTest {
         MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.put("api-key", Collections.singletonList("xxxxx-xxxx-xxxxx"));
         when(request.parameters()).thenReturn(parameters);
-        when(apiKeyRepository.findByKeyAndApi("xxxxx-xxxx-xxxxx", "api-id")).thenReturn(of(new ApiKey()));
+        when(apiKeyService.getByApiAndKey("api-id", "xxxxx-xxxx-xxxxx")).thenReturn(of(new ApiKey()));
 
         HttpHeaders headers = HttpHeaders.create();
         when(request.headers()).thenReturn(headers);
@@ -159,10 +162,15 @@ public class ApiKeyAuthenticationHandlerTest {
 
         List<AuthenticationPolicy> apikeyProviderPolicies = authenticationHandler.handle(executionContext);
 
-        Assert.assertEquals(1, apikeyProviderPolicies.size());
+        Assert.assertEquals(2, apikeyProviderPolicies.size());
 
-        PluginAuthenticationPolicy policy = (PluginAuthenticationPolicy) apikeyProviderPolicies.iterator().next();
+        Iterator<AuthenticationPolicy> policyIterator = apikeyProviderPolicies.iterator();
+
+        PluginAuthenticationPolicy policy = (PluginAuthenticationPolicy) policyIterator.next();
         Assert.assertEquals(policy.name(), ApiKeyAuthenticationHandler.API_KEY_POLICY);
+
+        HookAuthenticationPolicy policy2 = (HookAuthenticationPolicy) policyIterator.next();
+        Assert.assertEquals(CheckSubscriptionPolicy.class, policy2.clazz());
     }
 
     @Test

@@ -17,15 +17,12 @@ package io.gravitee.apim.gateway.tests.sdk.container;
 
 import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
 import io.gravitee.apim.gateway.tests.sdk.tracer.NoOpTracer;
+import io.gravitee.gateway.api.service.ApiKeyService;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.standalone.GatewayContainer;
 import io.gravitee.node.container.NodeFactory;
 import io.gravitee.reporter.api.Reporter;
-import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.api.InstallationRepository;
-import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.*;
 import io.gravitee.tracing.api.Tracer;
 import java.util.List;
 import org.mockito.Mockito;
@@ -94,6 +91,16 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public ApiKeyRepository apiKeyRepository() {
             return Mockito.mock(ApiKeyRepository.class);
+        }
+
+        @Bean
+        public ApiKeyService apiKeyService() {
+            return Mockito.mock(ApiKeyService.class);
+        }
+
+        @Bean
+        public SubscriptionService subscriptionService() {
+            return Mockito.mock(SubscriptionService.class);
         }
     }
 }

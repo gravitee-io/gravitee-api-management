@@ -1264,15 +1264,10 @@ public class SubscriptionServiceTest {
             buildTestApiKey("apikey-3", false, false),
             buildTestApiKey("apikey-4", false, true)
         );
-        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(apiKeys);
 
         subscriptionService.close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
 
-        // no key has been revoked, as their application use shared api key mode
-        // but non revoked keys have been updated to ensure cache refresh
-        verify(apiKeyService, times(1)).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
-        verify(apiKeyService, times(1)).update(GraviteeContext.getExecutionContext(), apiKeys.get(0));
-        verify(apiKeyService, times(1)).update(GraviteeContext.getExecutionContext(), apiKeys.get(2));
+        // no key has been revoked nor updated, as their application use shared api key mode
         verifyNoMoreInteractions(apiKeyService);
     }
 
