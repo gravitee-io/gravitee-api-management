@@ -16,7 +16,7 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -113,7 +113,7 @@
         <gravitee-reporter-tcp.version>1.4.2</gravitee-reporter-tcp.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
         <!--    <gravitee-gateway-services-ratelimit.version>1.15.0</gravitee-gateway-services-ratelimit.version>    -->
-        <gravitee-tracer-jaeger.version>1.1.0</gravitee-tracer-jaeger.version>
+        <gravitee-tracer-jaeger.version>1.2.0</gravitee-tracer-jaeger.version>
     </properties>
 
     <dependencies>
