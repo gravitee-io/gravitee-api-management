@@ -79,7 +79,7 @@ function configurationRouterConfig($stateProvider) {
       url: '/categories',
       component: 'categories',
       resolve: {
-        categories: (CategoryService: CategoryService) => CategoryService.list().then((response) => response.data),
+        categories: (CategoryService: CategoryService) => CategoryService.list(['total-apis']).then((response) => response.data),
       },
       data: {
         menu: null,

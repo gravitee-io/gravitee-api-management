@@ -34,6 +34,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -56,24 +57,14 @@ public class CategoriesResource extends AbstractCategoryResource {
     @Inject
     private CategoryService categoryService;
 
+    private static final String INCLUDE_TOTAL_APIS = "total-apis";
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Retrieve list of categories")
-    public List<CategoryEntity> getCategories() {
-        //TODO: Total APIs is not required when loading categories for editing an API from the console.
-        // But this service is also used to managed Categories from Settings.
-        // We should find a way to load total API only when necessary (ie. not while editing an API)
-        Set<ApiEntity> apis;
+    public List<CategoryEntity> getCategories(@QueryParam("include") List<String> include) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (isAdmin()) {
-            apis = apiService.findAllByEnvironment(executionContext);
-        } else if (isAuthenticated()) {
-            apis = apiService.findByUser(executionContext, getAuthenticatedUser(), null, true);
-        } else {
-            apis = apiService.findByVisibility(executionContext, Visibility.PUBLIC);
-        }
-
-        boolean All = hasPermission(
+        boolean hasAllPermissions = hasPermission(
             executionContext,
             RolePermission.ENVIRONMENT_CATEGORY,
             RolePermissionAction.UPDATE,
@@ -81,20 +72,33 @@ public class CategoriesResource extends AbstractCategoryResource {
             RolePermissionAction.DELETE
         );
 
-        return categoryService
+        Stream<CategoryEntity> categoryEntityStream = categoryService
             .findAll(GraviteeContext.getCurrentEnvironment())
             .stream()
-            .filter(c -> All || !c.isHidden())
+            .filter(c -> hasAllPermissions || !c.isHidden())
             .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
             // set picture
-            .map(c -> setPictures(c, true))
-            .map(
-                c -> {
-                    c.setTotalApis(categoryService.getTotalApisByCategory(apis, c));
-                    return c;
-                }
-            )
-            .collect(Collectors.toList());
+            .map(c -> setPictures(c, true));
+
+        if (include.contains(INCLUDE_TOTAL_APIS)) {
+            Set<ApiEntity> apis;
+            if (isAdmin()) {
+                apis = apiService.findAllByEnvironment(executionContext);
+            } else if (isAuthenticated()) {
+                apis = apiService.findByUser(executionContext, getAuthenticatedUser(), null, true);
+            } else {
+                apis = apiService.findByVisibility(executionContext, Visibility.PUBLIC);
+            }
+            categoryEntityStream =
+                categoryEntityStream.map(
+                    c -> {
+                        c.setTotalApis(categoryService.getTotalApisByCategory(apis, c));
+                        return c;
+                    }
+                );
+        }
+
+        return categoryEntityStream.collect(Collectors.toList());
     }
 
     @POST
