@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { createPipeFactory, SpectatorPipe } from '@ngneat/spectator';
+import { createPipeFactory, SpectatorPipe } from '@ngneat/spectator/jest';
+
 import { SafePipe } from './safe.pipe';
 
 describe('SafePipe', () => {
@@ -38,7 +39,7 @@ describe('SafePipe', () => {
 
   it('should safe HTML', () => {
     spectator = createPipe(`{{ '<div>foo</div>' | safe:'html' }}`);
-    expect(spectator.element).toHaveText('foo');
+    expect(spectator.element.innerHTML).toContain('foo');
   });
 
   it('should safe Script', () => {
@@ -48,12 +49,12 @@ describe('SafePipe', () => {
         value,
       },
     });
-    expect(spectator.element).toHaveText(value);
+    expect(spectator.element.innerHTML).toContain(value);
   });
 
   it('should safe Resource URL', () => {
     spectator = createPipe(`{{ '/assets/foo/bar' | safe:'resourceUrl' }}`);
-    expect(spectator.element).toHaveText('/assets/foo/bar');
+    expect(spectator.element.innerHTML).toContain('/assets/foo/bar');
   });
 
   it('should safe style', () => {
@@ -63,6 +64,6 @@ describe('SafePipe', () => {
 
   it('should safe URL', () => {
     spectator = createPipe(`{{ 'http://foo.bar' | safe:'url' }}`);
-    expect(spectator.element).toHaveText('http://foo.bar');
+    expect(spectator.element.innerHTML).toContain('http://foo.bar');
   });
 });
