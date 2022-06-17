@@ -19,8 +19,9 @@ class CategoryService {
     'ngInject';
   }
 
-  list() {
-    return this.$http.get(`${this.Constants.env.baseURL}/configuration/categories/`);
+  list(include?: string[]) {
+    const queryParam = include ? `?include=${include.join(',')}` : '';
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/categories/` + queryParam);
   }
 
   get(categoryId) {
