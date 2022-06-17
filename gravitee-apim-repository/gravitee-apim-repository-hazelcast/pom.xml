@@ -42,6 +42,7 @@
 		<dependency>
 			<groupId>io.gravitee.platform</groupId>
 			<artifactId>gravitee-platform-repository-api</artifactId>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
