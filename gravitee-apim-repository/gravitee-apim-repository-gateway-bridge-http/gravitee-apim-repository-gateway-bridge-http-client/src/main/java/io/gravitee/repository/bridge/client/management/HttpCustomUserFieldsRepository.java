@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.model.CustomUserField;
@@ -32,31 +33,37 @@ import org.springframework.stereotype.Component;
 public class HttpCustomUserFieldsRepository extends AbstractRepository implements CustomUserFieldsRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public CustomUserField create(CustomUserField field) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public CustomUserField update(CustomUserField field) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String key, String refId, CustomUserFieldReferenceType refType) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<CustomUserField> findById(String key, String refId, CustomUserFieldReferenceType refType) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<CustomUserField> findByReferenceIdAndReferenceType(String refId, CustomUserFieldReferenceType refType) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<CustomUserField> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

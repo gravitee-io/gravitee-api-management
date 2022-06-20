@@ -17,13 +17,12 @@ package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Subscription;
 import java.util.Collection;
 import java.util.List;
@@ -39,21 +38,25 @@ import org.springframework.stereotype.Component;
 public class HttpSubscriptionRepository extends AbstractRepository implements SubscriptionRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Subscription> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Subscription create(Subscription item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Subscription update(Subscription item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
@@ -75,11 +78,13 @@ public class HttpSubscriptionRepository extends AbstractRepository implements Su
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Subscription> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

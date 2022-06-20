@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -33,16 +34,19 @@ import org.springframework.stereotype.Component;
 public class HttpPortalNotificationConfigRepository extends AbstractRepository implements PortalNotificationConfigRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public PortalNotificationConfig create(PortalNotificationConfig portalNotificationConfig) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public PortalNotificationConfig update(PortalNotificationConfig portalNotificationConfig) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(PortalNotificationConfig portalNotificationConfig) throws TechnicalException {
         throw new IllegalStateException();
     }
@@ -54,21 +58,25 @@ public class HttpPortalNotificationConfigRepository extends AbstractRepository i
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void deleteByUser(String user) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void deleteReference(NotificationReferenceType referenceType, String referenceId) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<PortalNotificationConfig> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

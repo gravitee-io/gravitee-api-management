@@ -16,6 +16,7 @@
 package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
@@ -36,21 +37,25 @@ public class HttpDictionaryRepository extends AbstractRepository implements Dict
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Dictionary create(Dictionary dictionary) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Dictionary update(Dictionary dictionary) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Dictionary> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }

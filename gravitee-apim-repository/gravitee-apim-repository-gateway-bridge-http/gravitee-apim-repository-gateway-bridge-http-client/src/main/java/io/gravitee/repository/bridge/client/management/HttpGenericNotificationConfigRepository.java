@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
@@ -32,21 +33,25 @@ import org.springframework.stereotype.Component;
 public class HttpGenericNotificationConfigRepository extends AbstractRepository implements GenericNotificationConfigRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public GenericNotificationConfig create(GenericNotificationConfig genericNotificationConfig) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public GenericNotificationConfig update(GenericNotificationConfig genericNotificationConfig) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String id) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<GenericNotificationConfig> findById(String id) throws TechnicalException {
         throw new IllegalStateException();
     }
@@ -61,16 +66,19 @@ public class HttpGenericNotificationConfigRepository extends AbstractRepository 
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void deleteByConfig(String config) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<GenericNotificationConfig> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

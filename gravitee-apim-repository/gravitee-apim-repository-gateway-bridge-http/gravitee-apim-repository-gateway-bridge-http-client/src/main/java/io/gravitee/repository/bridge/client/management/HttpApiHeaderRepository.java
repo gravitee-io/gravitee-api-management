@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiHeaderRepository;
 import io.gravitee.repository.management.model.ApiHeader;
@@ -30,31 +31,37 @@ import org.springframework.stereotype.Component;
 public class HttpApiHeaderRepository extends AbstractRepository implements ApiHeaderRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<ApiHeader> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<ApiHeader> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public ApiHeader create(ApiHeader apiHeader) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public ApiHeader update(ApiHeader apiHeader) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException {
         throw new IllegalStateException();
     }

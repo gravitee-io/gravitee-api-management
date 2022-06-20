@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.model.RatingAnswer;
@@ -31,31 +32,37 @@ import org.springframework.stereotype.Component;
 public class HttpRatingAnswerRepository extends AbstractRepository implements RatingAnswerRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public RatingAnswer create(RatingAnswer ratingAnswer) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<RatingAnswer> findByRating(String rating) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<RatingAnswer> findById(String id) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public RatingAnswer update(RatingAnswer ratingAnswer) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String id) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<RatingAnswer> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

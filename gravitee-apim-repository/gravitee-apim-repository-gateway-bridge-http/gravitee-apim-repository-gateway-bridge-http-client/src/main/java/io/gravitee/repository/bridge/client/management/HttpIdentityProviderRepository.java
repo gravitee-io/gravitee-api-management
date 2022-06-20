@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.model.IdentityProvider;
@@ -30,31 +31,37 @@ import org.springframework.stereotype.Component;
 public class HttpIdentityProviderRepository extends AbstractRepository implements IdentityProviderRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<IdentityProvider> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<IdentityProvider> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public IdentityProvider create(IdentityProvider item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public IdentityProvider update(IdentityProvider item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<IdentityProvider> findAllByOrganizationId(String organizationId) throws TechnicalException {
         throw new IllegalStateException();
     }

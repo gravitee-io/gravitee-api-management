@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationRepository;
 import io.gravitee.repository.management.model.PortalNotification;
@@ -31,36 +32,43 @@ import org.springframework.stereotype.Component;
 public class HttpPortalNotificationRepository extends AbstractRepository implements PortalNotificationRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public PortalNotification create(PortalNotification item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<PortalNotification> findByUser(String user) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void create(List<PortalNotification> notifications) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void deleteAll(String user) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<PortalNotification> findById(String id) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<PortalNotification> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
