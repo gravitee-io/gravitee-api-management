@@ -21,6 +21,7 @@ export type HttpMethod = 'GET' | 'PUT' | 'POST' | 'DELETE';
 interface GatewayRequest {
   contextPath: string;
   expectedStatusCode: number;
+  expectedResponseValidator: (response: Response) => boolean; // Allows to validate if the expected request is the right one. Useful in case of api redeployment.
   method: HttpMethod;
   body?: string;
   headers?: HeadersInit;
@@ -61,7 +62,10 @@ async function _fetchGatewayWithRetries(request: Partial<GatewayRequest>): Promi
     body: request.body,
     headers: request.headers,
   });
-  if (response.status != request.expectedStatusCode) {
+
+  const expectedResponseValidator = request.expectedResponseValidator ? request.expectedResponseValidator(response) : true;
+
+  if (response.status != request.expectedStatusCode || !expectedResponseValidator) {
     return new Promise((successCallback, failureCallback) => {
       setTimeout(() => {
         if (request.failAfterMs - request.timeBetweenRetries <= 0) {
