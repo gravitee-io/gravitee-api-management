@@ -16,6 +16,7 @@
 package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
@@ -33,11 +34,13 @@ import org.springframework.stereotype.Component;
 public class HttpApiKeyRepository extends AbstractRepository implements ApiKeyRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<ApiKey> findById(String id) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<ApiKey> findByKey(String apiKey) {
         throw new IllegalStateException();
     }
@@ -48,21 +51,25 @@ public class HttpApiKeyRepository extends AbstractRepository implements ApiKeyRe
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public ApiKey create(ApiKey apiKey) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public ApiKey update(ApiKey key) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<ApiKey> findBySubscription(String subscription) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<ApiKey> findByPlan(String plan) {
         throw new IllegalStateException();
     }
@@ -73,11 +80,13 @@ public class HttpApiKeyRepository extends AbstractRepository implements ApiKeyRe
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<ApiKey> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<ApiKey> findByApplication(String applicationId) throws TechnicalException {
         throw new IllegalStateException();
     }

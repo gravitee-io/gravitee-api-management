@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TokenRepository;
 import io.gravitee.repository.management.model.Token;
@@ -31,31 +32,37 @@ import org.springframework.stereotype.Component;
 public class HttpTokenRepository extends AbstractRepository implements TokenRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Token> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Token create(Token item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Token update(Token item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Token> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<Token> findByReference(String s, String s1) throws TechnicalException {
         throw new IllegalStateException();
     }

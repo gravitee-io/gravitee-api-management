@@ -16,6 +16,7 @@
 package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
@@ -37,46 +38,55 @@ import org.springframework.stereotype.Component;
 public class HttpApplicationRepository extends AbstractRepository implements ApplicationRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Application> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Application create(Application item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Application update(Application item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Application> findAll(ApplicationStatus... statuses) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Application> findByIds(Collection<String> ids) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Application> findByIds(Collection<String> ids, Sortable sortable) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Application> findByGroups(List<String> groupIds, ApplicationStatus... statuses) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... statuses) {
         throw new IllegalStateException();
     }
@@ -92,6 +102,7 @@ public class HttpApplicationRepository extends AbstractRepository implements App
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Application> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

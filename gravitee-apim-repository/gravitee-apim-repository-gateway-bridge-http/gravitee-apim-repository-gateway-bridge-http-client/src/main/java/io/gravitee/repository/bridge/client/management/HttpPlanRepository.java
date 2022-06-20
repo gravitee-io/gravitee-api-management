@@ -16,6 +16,7 @@
 package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
@@ -38,16 +39,19 @@ public class HttpPlanRepository extends AbstractRepository implements PlanReposi
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Plan create(Plan item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Plan update(Plan item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
@@ -63,11 +67,13 @@ public class HttpPlanRepository extends AbstractRepository implements PlanReposi
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Plan> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException {
         throw new IllegalStateException();
     }

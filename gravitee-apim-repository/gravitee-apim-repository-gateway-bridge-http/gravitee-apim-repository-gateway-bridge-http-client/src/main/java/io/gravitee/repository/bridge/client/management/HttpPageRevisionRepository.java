@@ -16,6 +16,7 @@
 package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRevisionRepository;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -33,31 +34,37 @@ import org.springframework.stereotype.Component;
 public class HttpPageRevisionRepository extends AbstractRepository implements PageRevisionRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<PageRevision> findById(String pageId, int revision) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Page<PageRevision> findAll(Pageable pageable) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public PageRevision create(PageRevision item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<PageRevision> findAllByPageId(String pageId) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<PageRevision> findLastByPageId(String pageId) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<PageRevision> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

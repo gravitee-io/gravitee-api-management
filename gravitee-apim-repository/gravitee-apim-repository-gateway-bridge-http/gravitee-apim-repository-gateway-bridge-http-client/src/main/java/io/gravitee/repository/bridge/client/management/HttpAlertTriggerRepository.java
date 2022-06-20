@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AlertTriggerRepository;
 import io.gravitee.repository.management.model.AlertTrigger;
@@ -31,31 +32,37 @@ import org.springframework.stereotype.Component;
 public class HttpAlertTriggerRepository extends AbstractRepository implements AlertTriggerRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<AlertTrigger> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<AlertTrigger> findByReferenceAndReferenceIds(String referenceType, List<String> referenceIds) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<AlertTrigger> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public AlertTrigger create(AlertTrigger item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public AlertTrigger update(AlertTrigger item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }

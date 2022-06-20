@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TagRepository;
 import io.gravitee.repository.management.model.Tag;
@@ -31,36 +32,43 @@ import org.springframework.stereotype.Component;
 public class HttpTagRepository extends AbstractRepository implements TagRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Tag> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Tag create(Tag item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Tag update(Tag item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Tag> findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Tag> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

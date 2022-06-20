@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
@@ -30,46 +31,55 @@ import org.springframework.stereotype.Component;
 public class HttpCategoryRepository extends AbstractRepository implements CategoryRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Category> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Category> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Category create(Category item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Category update(Category item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Category> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Category> findAllByEnvironment(String environmentId) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Category> findByKey(String key, String environment) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Category> findByPage(String page) throws TechnicalException {
         throw new IllegalStateException();
     }

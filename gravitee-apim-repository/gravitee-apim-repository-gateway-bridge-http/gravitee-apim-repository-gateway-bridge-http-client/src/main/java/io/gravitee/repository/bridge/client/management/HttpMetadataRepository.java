@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.Metadata;
@@ -32,41 +33,49 @@ import org.springframework.stereotype.Component;
 public class HttpMetadataRepository extends AbstractRepository implements MetadataRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Metadata create(Metadata metadata) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Metadata update(Metadata metadata) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String key, String referenceId, MetadataReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Metadata> findById(String key, String referenceId, MetadataReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<Metadata> findByKeyAndReferenceType(String key, MetadataReferenceType referenceType) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<Metadata> findByReferenceType(MetadataReferenceType referenceType) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Metadata> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

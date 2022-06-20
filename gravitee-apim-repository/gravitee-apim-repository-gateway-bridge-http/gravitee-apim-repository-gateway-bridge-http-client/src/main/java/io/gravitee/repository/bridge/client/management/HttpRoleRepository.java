@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
@@ -32,26 +33,31 @@ import org.springframework.stereotype.Component;
 public class HttpRoleRepository extends AbstractRepository implements RoleRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Role> findById(String roleId) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Role create(Role role) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Role update(Role role) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String roleId) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Role> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
@@ -63,6 +69,7 @@ public class HttpRoleRepository extends AbstractRepository implements RoleReposi
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }

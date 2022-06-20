@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
@@ -34,21 +35,25 @@ import org.springframework.stereotype.Component;
 public class HttpMembershipRepository extends AbstractRepository implements MembershipRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Membership create(Membership membership) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Membership update(Membership membership) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String membershipId) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Membership> findById(String membershipId) throws TechnicalException {
         throw new IllegalStateException();
     }
@@ -58,21 +63,25 @@ public class HttpMembershipRepository extends AbstractRepository implements Memb
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Membership> findByIds(Set<String> membershipIds) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Membership> findByRoleId(String roleId) {
         throw new IllegalStateException();
     }
@@ -128,6 +137,7 @@ public class HttpMembershipRepository extends AbstractRepository implements Memb
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Membership> findByMemberIdAndMemberType(String memberId, MembershipMemberType memberType) {
         throw new IllegalStateException();
     }
@@ -152,6 +162,7 @@ public class HttpMembershipRepository extends AbstractRepository implements Memb
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Membership> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.model.Parameter;
@@ -32,36 +33,43 @@ import org.springframework.stereotype.Component;
 public class HttpParameterRepository extends AbstractRepository implements ParameterRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Parameter> findById(String s, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Parameter create(Parameter item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Parameter update(Parameter item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<Parameter> findAll(String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Parameter> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

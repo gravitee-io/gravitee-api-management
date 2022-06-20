@@ -16,14 +16,10 @@
 package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.AlertTriggerRepository;
 import io.gravitee.repository.management.api.InstallationRepository;
-import io.gravitee.repository.management.model.AlertTrigger;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Installation;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Component;
@@ -36,26 +32,31 @@ import org.springframework.stereotype.Component;
 public class HttpInstallationRepository extends AbstractRepository implements InstallationRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Installation> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Installation create(Installation item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Installation update(Installation item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Installation> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

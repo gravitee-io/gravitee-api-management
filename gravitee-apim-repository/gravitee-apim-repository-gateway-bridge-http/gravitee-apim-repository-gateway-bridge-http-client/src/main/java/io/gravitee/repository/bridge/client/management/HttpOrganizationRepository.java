@@ -16,6 +16,7 @@
 package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
@@ -36,21 +37,25 @@ public class HttpOrganizationRepository extends AbstractRepository implements Or
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Organization create(Organization item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Organization update(Organization item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Long count() {
         throw new IllegalStateException();
     }

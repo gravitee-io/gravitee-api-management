@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TenantRepository;
 import io.gravitee.repository.management.model.Tenant;
@@ -31,36 +32,43 @@ import org.springframework.stereotype.Component;
 public class HttpTenantRepository extends AbstractRepository implements TenantRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Tenant> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Tenant create(Tenant item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Tenant update(Tenant item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Tenant> findByReference(String referenceId, TenantReferenceType referenceType) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Tenant> findByIdAndReference(String tenantId, String referenceId, TenantReferenceType referenceType) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Tenant> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

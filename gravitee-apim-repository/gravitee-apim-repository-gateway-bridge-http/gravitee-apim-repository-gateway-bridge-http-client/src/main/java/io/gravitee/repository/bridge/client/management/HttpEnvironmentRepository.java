@@ -16,6 +16,7 @@
 package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
@@ -36,16 +37,19 @@ public class HttpEnvironmentRepository extends AbstractRepository implements Env
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Environment create(Environment item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Environment update(Environment item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
@@ -92,6 +96,7 @@ public class HttpEnvironmentRepository extends AbstractRepository implements Env
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Environment> findByCockpit(String cockpitId) throws TechnicalException {
         throw new IllegalStateException();
     }

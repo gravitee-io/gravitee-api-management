@@ -17,6 +17,7 @@ package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -43,16 +44,19 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Api create(Api item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Api update(Api item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
@@ -68,6 +72,7 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<Api> search(ApiCriteria apiCriteria) {
         throw new IllegalStateException();
     }
@@ -89,26 +94,31 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Api> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
         throw new IllegalStateException();
     }

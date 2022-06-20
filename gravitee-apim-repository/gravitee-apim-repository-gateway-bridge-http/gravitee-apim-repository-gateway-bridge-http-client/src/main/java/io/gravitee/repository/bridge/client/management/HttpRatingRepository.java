@@ -16,6 +16,7 @@
 package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -35,21 +36,25 @@ import org.springframework.stereotype.Component;
 public class HttpRatingRepository extends AbstractRepository implements RatingRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Rating create(Rating rating) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Rating> findById(String id) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Rating update(Rating rating) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String id) throws TechnicalException {
         throw new IllegalStateException();
     }
@@ -64,21 +69,25 @@ public class HttpRatingRepository extends AbstractRepository implements RatingRe
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public List<Rating> findByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<String> findReferenceIdsOrderByRate(RatingCriteria ratingCriteria) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Rating> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

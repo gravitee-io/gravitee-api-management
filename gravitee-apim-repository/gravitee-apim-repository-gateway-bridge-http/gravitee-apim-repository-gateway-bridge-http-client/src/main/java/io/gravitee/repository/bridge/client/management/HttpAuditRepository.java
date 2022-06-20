@@ -16,6 +16,7 @@
 package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.search.AuditCriteria;
@@ -33,21 +34,25 @@ import org.springframework.stereotype.Component;
 public class HttpAuditRepository extends AbstractRepository implements AuditRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<Audit> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Audit create(Audit item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Page<Audit> search(AuditCriteria filter, Pageable pageable) {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<Audit> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

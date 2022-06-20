@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.NotificationTemplateRepository;
 import io.gravitee.repository.management.model.NotificationTemplate;
@@ -32,26 +33,31 @@ import org.springframework.stereotype.Component;
 public class HttpNotificationTemplateRepository extends AbstractRepository implements NotificationTemplateRepository {
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Set<NotificationTemplate> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Optional<NotificationTemplate> findById(String id) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public NotificationTemplate create(NotificationTemplate notificationTemplate) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public NotificationTemplate update(NotificationTemplate notificationTemplate) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public void delete(String id) throws TechnicalException {
         throw new IllegalStateException();
     }
