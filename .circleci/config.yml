@@ -367,7 +367,7 @@ jobs:
             - save_cache:
                   paths:
                       - ~/.m2/repository/io/gravitee/apim
-                  key: gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+                  key: gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
                   when: on_success
             - run:
                   name: "Exclude APIM artefacts from build cache"
@@ -412,7 +412,7 @@ jobs:
                   jobName: test
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+                      - gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
             - run:
                   name: Run tests
                   command: |
@@ -447,7 +447,7 @@ jobs:
                   jobName: test-repository
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+                      - gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
             - run:
                   name: Run tests
                   command: |
