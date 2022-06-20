@@ -96,26 +96,46 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
     public ProxyConnection request(ProxyRequest proxyRequest) {
         final String uri = proxyRequest.uri();
 
-        // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the request
-        proxyRequest.metrics().setEndpoint(uri);
-
         try {
-            final URL url = new URL(null, uri, URL_HANDLER);
 
-            final String protocol = url.getProtocol();
+            proxyRequest.headers().remove(HttpHeaders.HOST);
 
-            final int port = url.getPort() != -1 ? url.getPort() :
-                    protocol.charAt(protocol.length() - 1) == 's' ? SECURE_PORT : UNSECURE_PORT;
-
-            final String host = (port == UNSECURE_PORT || port == SECURE_PORT) ?
-                    url.getHost() : url.getHost() + ':' + port;
-
-            proxyRequest.headers().set(HttpHeaders.HOST, host);
+            String customHost = null;
 
             // Enhance proxy request with endpoint configuration
             if (endpoint.getHeaders() != null && !endpoint.getHeaders().isEmpty()) {
                 endpoint.getHeaders().forEach(proxyRequest.headers()::set);
+                for (String httpHeaderName: endpoint.getHeaders().keySet()) {
+                    String httpHeaderValue = endpoint.getHeaders().get(httpHeaderName);
+                    if (httpHeaderName.equals(HttpHeaders.HOST)) {
+                        customHost = httpHeaderValue;
+                    } else {
+                        proxyRequest.headers().set(httpHeaderValue, httpHeaderValue);
+                    }
+                }
             }
+
+            URL url = new URL(null, uri, URL_HANDLER);
+
+            final String protocol = url.getProtocol();
+
+            final int port = url.getPort() != -1 ? url.getPort() :
+                protocol.charAt(protocol.length() - 1) == 's' ? SECURE_PORT : UNSECURE_PORT;
+
+            if (customHost != null) {
+                String[] hostAndPort = customHost.split(":");
+                url =
+                    new URL(
+                        url.getProtocol(),
+                        hostAndPort[0],
+                        hostAndPort.length > 1 ? Integer.parseInt(hostAndPort[1]) : url.getPort(),
+                        url.getFile(),
+                        URL_HANDLER
+                    );
+            }
+
+            // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the request
+            proxyRequest.metrics().setEndpoint(url.toString());
 
             // Create the connector to the upstream
             final AbstractHttpProxyConnection connection = create(proxyRequest);
