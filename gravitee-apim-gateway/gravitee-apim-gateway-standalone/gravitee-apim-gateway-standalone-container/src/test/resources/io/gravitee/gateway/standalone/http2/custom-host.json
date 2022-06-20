@@ -1,0 +1,39 @@
+{
+  "id": "api-test",
+  "name": "api-test",
+
+  "proxy": {
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "name": "endpoint-1",
+        "type": "http",
+        "target": "http://localhost:8080/team",
+        "http": {
+          "version" : "HTTP_2"
+        },
+        "headers": {
+          "Host": "toto.com.org.io",
+          "Cache-Control": "no-cache"
+        }
+      }, {
+        "name": "endpoint-2",
+        "type": "http",
+        "target": "http://toto.com.org.io:8080/team",
+        "http": {
+          "version" : "HTTP_2"
+        },
+        "headers": {
+          "Host": "localhost",
+          "Cache-Control": "no-cache"
+        }
+      }
+    ],
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}
