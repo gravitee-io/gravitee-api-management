@@ -32,7 +32,7 @@
 
     <properties>
         <jetty94.wiremock.version>9.4.44.v20210927</jetty94.wiremock.version>
-        <gravitee-connector-http.version>1.1.5</gravitee-connector-http.version>
+        <gravitee-connector-http.version>1.1.6-6719-http2-headers-SNAPSHOT</gravitee-connector-http.version>
     </properties>
 
     <dependencyManagement>
