@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.apim.gateway.services</groupId>
         <artifactId>gravitee-apim-gateway-services</artifactId>
-        <version>3.18.0-SNAPSHOT</version>
+        <version>3.19.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-apim-gateway-services-localregistry</artifactId>
