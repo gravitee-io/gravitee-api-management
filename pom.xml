@@ -26,7 +26,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>20.2</version>
+        <version>20.3</version>
     </parent>
 
     <groupId>io.gravitee.apim</groupId>
