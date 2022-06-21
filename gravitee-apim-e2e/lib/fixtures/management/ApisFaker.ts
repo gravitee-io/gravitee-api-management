@@ -24,13 +24,27 @@ import { NewRatingEntity } from '@management-models/NewRatingEntity';
 import { RatingInput } from '@portal-models/RatingInput';
 import { Plan } from '@management-models/Plan';
 import { PrimaryOwnerEntity } from '@management-models/PrimaryOwnerEntity';
+import { ResponseTemplate } from '@management-models/ResponseTemplate';
 
-export interface ApiImportEntity extends ApiEntity {
+export interface ApiImportEntity {
+  id?: string;
+  name?: string;
+  version?: string;
+  description?: string;
+  visibility?: Visibility;
+  gravitee?: string;
+  flow_mode?: ApiEntityFlowModeEnum;
+  resources?: Array<any>;
+  properties?: Array<any>;
+  groups?: Array<string>;
+  path_mappings?: Array<string>;
   members?: Array<any>;
   pages?: Array<PageEntity>;
   plans?: Array<Plan>;
   metadata?: any;
   primaryOwner?: PrimaryOwnerEntity;
+  response_templates?: { [key: string]: { [key: string]: ResponseTemplate } };
+  proxy?: Proxy;
 }
 
 export enum ApiMetadataFormat {
@@ -55,7 +69,26 @@ export class ApisFaker {
   }
 
   static apiImport(attributes?: Partial<ApiImportEntity>): ApiImportEntity {
-    return this.api(attributes);
+    const name = faker.commerce.productName();
+    const version = this.version();
+    const description = faker.commerce.productDescription();
+
+    return {
+      name,
+      version,
+      description,
+      visibility: Visibility.PRIVATE,
+      gravitee: '2.0.0',
+      flow_mode: ApiEntityFlowModeEnum.DEFAULT,
+      resources: [],
+      properties: [],
+      groups: [],
+      plans: [],
+      path_mappings: [],
+      proxy: this.proxy(),
+      response_templates: {},
+      ...attributes,
+    };
   }
 
   static api(attributes?: Partial<ApiEntity>): ApiEntity {

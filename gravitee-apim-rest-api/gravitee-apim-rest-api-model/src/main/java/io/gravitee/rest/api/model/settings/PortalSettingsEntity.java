@@ -36,7 +36,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
     private PortalCors cors;
     private Documentation documentation;
     private OpenAPIDocViewer openAPIDocViewer;
-    private Plan plan;
+    private PlanSettings plan;
     private Portal portal;
     private PortalReCaptcha reCaptcha;
     private PortalScheduler scheduler;
@@ -54,7 +54,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
         cors = new PortalCors();
         documentation = new Documentation();
         openAPIDocViewer = new OpenAPIDocViewer();
-        plan = new Plan();
+        plan = new PlanSettings();
         portal = new Portal();
         reCaptcha = new PortalReCaptcha();
         scheduler = new PortalScheduler();
@@ -142,11 +142,11 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
         this.openAPIDocViewer = openAPIDocViewer;
     }
 
-    public Plan getPlan() {
+    public PlanSettings getPlan() {
         return plan;
     }
 
-    public void setPlan(Plan plan) {
+    public void setPlan(PlanSettings plan) {
         this.plan = plan;
     }
 

@@ -49,10 +49,10 @@ import {
     OpenAPIDocViewerFromJSON,
     OpenAPIDocViewerFromJSONTyped,
     OpenAPIDocViewerToJSON,
-    Plan,
-    PlanFromJSON,
-    PlanFromJSONTyped,
-    PlanToJSON,
+    PlanSettings,
+    PlanSettingsFromJSON,
+    PlanSettingsFromJSONTyped,
+    PlanSettingsToJSON,
     Portal,
     PortalFromJSON,
     PortalFromJSONTyped,
@@ -165,10 +165,10 @@ export interface PortalSettingsEntity {
     openAPIDocViewer?: OpenAPIDocViewer;
     /**
      * 
-     * @type {Plan}
+     * @type {PlanSettings}
      * @memberof PortalSettingsEntity
      */
-    plan?: Plan;
+    plan?: PlanSettings;
     /**
      * 
      * @type {Portal}
@@ -212,7 +212,7 @@ export function PortalSettingsEntityFromJSONTyped(json: any, ignoreDiscriminator
         'email': !exists(json, 'email') ? undefined : EmailFromJSON(json['email']),
         'metadata': !exists(json, 'metadata') ? undefined : json['metadata'],
         'openAPIDocViewer': !exists(json, 'openAPIDocViewer') ? undefined : OpenAPIDocViewerFromJSON(json['openAPIDocViewer']),
-        'plan': !exists(json, 'plan') ? undefined : PlanFromJSON(json['plan']),
+        'plan': !exists(json, 'plan') ? undefined : PlanSettingsFromJSON(json['plan']),
         'portal': !exists(json, 'portal') ? undefined : PortalFromJSON(json['portal']),
         'reCaptcha': !exists(json, 'reCaptcha') ? undefined : PortalReCaptchaFromJSON(json['reCaptcha']),
         'scheduler': !exists(json, 'scheduler') ? undefined : PortalSchedulerFromJSON(json['scheduler']),
@@ -240,7 +240,7 @@ export function PortalSettingsEntityToJSON(value?: PortalSettingsEntity | null):
         'documentation': DocumentationToJSON(value.documentation),
         'email': EmailToJSON(value.email),
         'openAPIDocViewer': OpenAPIDocViewerToJSON(value.openAPIDocViewer),
-        'plan': PlanToJSON(value.plan),
+        'plan': PlanSettingsToJSON(value.plan),
         'portal': PortalToJSON(value.portal),
         'reCaptcha': PortalReCaptchaToJSON(value.reCaptcha),
         'scheduler': PortalSchedulerToJSON(value.scheduler),

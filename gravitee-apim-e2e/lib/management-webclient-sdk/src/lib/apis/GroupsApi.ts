@@ -23,9 +23,6 @@ import {
     GroupMembership,
     GroupMembershipFromJSON,
     GroupMembershipToJSON,
-    GroupSimpleEntity,
-    GroupSimpleEntityFromJSON,
-    GroupSimpleEntityToJSON,
     InvitationEntity,
     InvitationEntityFromJSON,
     InvitationEntityToJSON,
@@ -125,10 +122,6 @@ export interface GetGroupMembershipsRequest {
 
 export interface GetGroupsRequest {
     envId: string;
-    orgId: string;
-}
-
-export interface GetGroups1Request {
     orgId: string;
 }
 
@@ -724,41 +717,6 @@ export class GroupsApi extends runtime.BaseAPI {
      */
     async getGroups(requestParameters: GetGroupsRequest): Promise<Array<GroupEntity>> {
         const response = await this.getGroupsRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * Find all groups for current organizationOnly administrators could see all groups.Only users with MANAGE_API permissions could see API groups.
-     * Find groups
-     */
-    async getGroups1Raw(requestParameters: GetGroups1Request): Promise<runtime.ApiResponse<Array<GroupSimpleEntity>>> {
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getGroups1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/groups`.replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(GroupSimpleEntityFromJSON));
-    }
-
-    /**
-     * Find all groups for current organizationOnly administrators could see all groups.Only users with MANAGE_API permissions could see API groups.
-     * Find groups
-     */
-    async getGroups1(requestParameters: GetGroups1Request): Promise<Array<GroupSimpleEntity>> {
-        const response = await this.getGroups1Raw(requestParameters);
         return await response.value();
     }
 

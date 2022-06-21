@@ -33,10 +33,10 @@ import {
     HttpResponseFromJSON,
     HttpResponseFromJSONTyped,
     HttpResponseToJSON,
-    Plan,
-    PlanFromJSON,
-    PlanFromJSONTyped,
-    PlanToJSON,
+    PlanEntity,
+    PlanEntityFromJSON,
+    PlanEntityFromJSONTyped,
+    PlanEntityToJSON,
     PrimaryOwnerEntity,
     PrimaryOwnerEntityFromJSON,
     PrimaryOwnerEntityFromJSONTyped,
@@ -142,6 +142,12 @@ export interface DebugApiEntity {
      */
     entrypoints?: Array<ApiEntrypointEntity>;
     /**
+     * Api's execution mode. Define if the execution mode should use v3 or jupiter mode.
+     * @type {string}
+     * @memberof DebugApiEntity
+     */
+    execution_mode?: DebugApiEntityExecutionModeEnum;
+    /**
      * API's flow mode.
      * @type {string}
      * @memberof DebugApiEntity
@@ -221,10 +227,10 @@ export interface DebugApiEntity {
     picture_url?: string;
     /**
      * a list of plans with flows (the policies configuration)
-     * @type {Array<Plan>}
+     * @type {Array<PlanEntity>}
      * @memberof DebugApiEntity
      */
-    plans?: Array<Plan>;
+    plans?: Array<PlanEntity>;
     /**
      * A dictionary (could be dynamic) of properties available in the API context.
      * @type {Array<Property>}
@@ -325,6 +331,7 @@ export function DebugApiEntityFromJSONTyped(json: any, ignoreDiscriminator: bool
         'description': !exists(json, 'description') ? undefined : json['description'],
         'disable_membership_notifications': !exists(json, 'disable_membership_notifications') ? undefined : json['disable_membership_notifications'],
         'entrypoints': !exists(json, 'entrypoints') ? undefined : ((json['entrypoints'] as Array<any>).map(ApiEntrypointEntityFromJSON)),
+        'execution_mode': !exists(json, 'execution_mode') ? undefined : json['execution_mode'],
         'flow_mode': !exists(json, 'flow_mode') ? undefined : json['flow_mode'],
         'flows': !exists(json, 'flows') ? undefined : ((json['flows'] as Array<any>).map(FlowFromJSON)),
         'gravitee': !exists(json, 'gravitee') ? undefined : json['gravitee'],
@@ -338,7 +345,7 @@ export function DebugApiEntityFromJSONTyped(json: any, ignoreDiscriminator: bool
         'paths': !exists(json, 'paths') ? undefined : json['paths'],
         'picture': !exists(json, 'picture') ? undefined : json['picture'],
         'picture_url': !exists(json, 'picture_url') ? undefined : json['picture_url'],
-        'plans': !exists(json, 'plans') ? undefined : ((json['plans'] as Array<any>).map(PlanFromJSON)),
+        'plans': !exists(json, 'plans') ? undefined : ((json['plans'] as Array<any>).map(PlanEntityFromJSON)),
         'properties': !exists(json, 'properties') ? undefined : ((json['properties'] as Array<any>).map(PropertyFromJSON)),
         'proxy': ProxyFromJSON(json['proxy']),
         'request': !exists(json, 'request') ? undefined : HttpRequestFromJSON(json['request']),
@@ -374,6 +381,7 @@ export function DebugApiEntityToJSON(value?: DebugApiEntity | null): any {
         'description': value.description,
         'disable_membership_notifications': value.disable_membership_notifications,
         'entrypoints': value.entrypoints === undefined ? undefined : ((value.entrypoints as Array<any>).map(ApiEntrypointEntityToJSON)),
+        'execution_mode': value.execution_mode,
         'flow_mode': value.flow_mode,
         'flows': value.flows === undefined ? undefined : ((value.flows as Array<any>).map(FlowToJSON)),
         'gravitee': value.gravitee,
@@ -387,7 +395,7 @@ export function DebugApiEntityToJSON(value?: DebugApiEntity | null): any {
         'paths': value.paths,
         'picture': value.picture,
         'picture_url': value.picture_url,
-        'plans': value.plans === undefined ? undefined : ((value.plans as Array<any>).map(PlanToJSON)),
+        'plans': value.plans === undefined ? undefined : ((value.plans as Array<any>).map(PlanEntityToJSON)),
         'properties': value.properties === undefined ? undefined : ((value.properties as Array<any>).map(PropertyToJSON)),
         'proxy': ProxyToJSON(value.proxy),
         'request': HttpRequestToJSON(value.request),
@@ -404,6 +412,14 @@ export function DebugApiEntityToJSON(value?: DebugApiEntity | null): any {
     };
 }
 
+/**
+* @export
+* @enum {string}
+*/
+export enum DebugApiEntityExecutionModeEnum {
+    V3 = 'V3',
+    JUPITER = 'JUPITER'
+}
 /**
 * @export
 * @enum {string}
