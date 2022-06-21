@@ -45,10 +45,10 @@ import {
     OpenAPIDocViewerFromJSON,
     OpenAPIDocViewerFromJSONTyped,
     OpenAPIDocViewerToJSON,
-    Plan,
-    PlanFromJSON,
-    PlanFromJSONTyped,
-    PlanToJSON,
+    PlanSettings,
+    PlanSettingsFromJSON,
+    PlanSettingsFromJSONTyped,
+    PlanSettingsToJSON,
     Portal,
     PortalFromJSON,
     PortalFromJSONTyped,
@@ -139,10 +139,10 @@ export interface PortalConfigEntity {
     openAPIDocViewer?: OpenAPIDocViewer;
     /**
      * 
-     * @type {Plan}
+     * @type {PlanSettings}
      * @memberof PortalConfigEntity
      */
-    plan?: Plan;
+    plan?: PlanSettings;
     /**
      * 
      * @type {Portal}
@@ -183,7 +183,7 @@ export function PortalConfigEntityFromJSONTyped(json: any, ignoreDiscriminator: 
         'dashboards': !exists(json, 'dashboards') ? undefined : DashboardsFromJSON(json['dashboards']),
         'documentation': !exists(json, 'documentation') ? undefined : DocumentationFromJSON(json['documentation']),
         'openAPIDocViewer': !exists(json, 'openAPIDocViewer') ? undefined : OpenAPIDocViewerFromJSON(json['openAPIDocViewer']),
-        'plan': !exists(json, 'plan') ? undefined : PlanFromJSON(json['plan']),
+        'plan': !exists(json, 'plan') ? undefined : PlanSettingsFromJSON(json['plan']),
         'portal': !exists(json, 'portal') ? undefined : PortalFromJSON(json['portal']),
         'reCaptcha': !exists(json, 'reCaptcha') ? undefined : PortalReCaptchaFromJSON(json['reCaptcha']),
         'scheduler': !exists(json, 'scheduler') ? undefined : PortalSchedulerFromJSON(json['scheduler']),
@@ -209,7 +209,7 @@ export function PortalConfigEntityToJSON(value?: PortalConfigEntity | null): any
         'dashboards': DashboardsToJSON(value.dashboards),
         'documentation': DocumentationToJSON(value.documentation),
         'openAPIDocViewer': OpenAPIDocViewerToJSON(value.openAPIDocViewer),
-        'plan': PlanToJSON(value.plan),
+        'plan': PlanSettingsToJSON(value.plan),
         'portal': PortalToJSON(value.portal),
         'reCaptcha': PortalReCaptchaToJSON(value.reCaptcha),
         'scheduler': PortalSchedulerToJSON(value.scheduler),

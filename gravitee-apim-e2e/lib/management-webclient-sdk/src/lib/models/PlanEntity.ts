@@ -40,7 +40,7 @@ import {
 } from './';
 
 /**
- * 
+ * a list of plans with flows (the policies configuration)
  * @export
  * @interface PlanEntity
  */

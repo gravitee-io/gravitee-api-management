@@ -139,6 +139,12 @@ export interface UserDetails {
     sourceId?: string;
     /**
      * 
+     * @type {boolean}
+     * @memberof UserDetails
+     */
+    system?: boolean;
+    /**
+     * 
      * @type {Date}
      * @memberof UserDetails
      */
@@ -173,6 +179,7 @@ export function UserDetailsFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'roles': !exists(json, 'roles') ? undefined : ((json['roles'] as Array<any>).map(UserDetailRoleFromJSON)),
         'source': !exists(json, 'source') ? undefined : json['source'],
         'sourceId': !exists(json, 'sourceId') ? undefined : json['sourceId'],
+        'system': !exists(json, 'system') ? undefined : json['system'],
         'updated_at': !exists(json, 'updated_at') ? undefined : (new Date(json['updated_at'])),
     };
 }
@@ -204,6 +211,7 @@ export function UserDetailsToJSON(value?: UserDetails | null): any {
         'roles': value.roles === undefined ? undefined : ((value.roles as Array<any>).map(UserDetailRoleToJSON)),
         'source': value.source,
         'sourceId': value.sourceId,
+        'system': value.system,
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }

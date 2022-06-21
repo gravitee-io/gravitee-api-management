@@ -24,11 +24,11 @@ import io.gravitee.rest.api.model.parameters.Key;
  * @author GraviteeSource Team
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Plan {
+public class PlanSettings {
 
     private PlanSecurity security;
 
-    public Plan() {
+    public PlanSettings() {
         security = new PlanSecurity();
     }
 

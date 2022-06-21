@@ -860,6 +860,7 @@ export interface GetApisRequest {
     state?: string;
     visibility?: string;
     version?: string;
+    executionMode?: GetApisExecutionModeEnum;
     name?: string;
     tag?: string;
     portal?: boolean;
@@ -877,6 +878,7 @@ export interface GetApisPagedRequest {
     state?: string;
     visibility?: string;
     version?: string;
+    executionMode?: GetApisPagedExecutionModeEnum;
     name?: string;
     tag?: string;
     portal?: boolean;
@@ -5152,6 +5154,10 @@ export class APIsApi extends runtime.BaseAPI {
             queryParameters['version'] = requestParameters.version;
         }
 
+        if (requestParameters.executionMode !== undefined) {
+            queryParameters['executionMode'] = requestParameters.executionMode;
+        }
+
         if (requestParameters.name !== undefined) {
             queryParameters['name'] = requestParameters.name;
         }
@@ -5237,6 +5243,10 @@ export class APIsApi extends runtime.BaseAPI {
 
         if (requestParameters.version !== undefined) {
             queryParameters['version'] = requestParameters.version;
+        }
+
+        if (requestParameters.executionMode !== undefined) {
+            queryParameters['executionMode'] = requestParameters.executionMode;
         }
 
         if (requestParameters.name !== undefined) {
@@ -7542,4 +7552,20 @@ export class APIsApi extends runtime.BaseAPI {
 export enum GetApiSubscriptionsExpandEnum {
     Keys = 'keys',
     Security = 'security'
+}
+/**
+    * @export
+    * @enum {string}
+    */
+export enum GetApisExecutionModeEnum {
+    V3 = 'V3',
+    JUPITER = 'JUPITER'
+}
+/**
+    * @export
+    * @enum {string}
+    */
+export enum GetApisPagedExecutionModeEnum {
+    V3 = 'V3',
+    JUPITER = 'JUPITER'
 }
