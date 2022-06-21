@@ -17,12 +17,13 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { takeUntil, tap } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { of, Subject } from 'rxjs';
 
 import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { Constants } from '../../../entities/Constants';
 import { InstallationService } from '../../../services-ngx/installation.service';
 import { Installation } from '../../../entities/installation/installation';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-creation-get-started',
@@ -46,11 +47,13 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject('Constants') private readonly constants: Constants,
     private readonly installationService: InstallationService,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   ngOnInit(): void {
-    this.installationService
-      .get()
+    const hasInstallationPermission = this.permissionService.hasAnyMatching(['organization-installation-r']);
+
+    (hasInstallationPermission ? this.installationService.get() : of(undefined))
       .pipe(
         takeUntil(this.unsubscribe$),
         tap((installation) => {
@@ -74,7 +77,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
     this.ajsState.go('management.apis.new-import', { definitionVersion });
   }
 
-  private getCockpitLink(installation: Installation): string {
+  private getCockpitLink(installation?: Installation): string {
     if (installation?.additionalInformation.COCKPIT_INSTALLATION_STATUS === 'ACCEPTED') {
       return installation.cockpitURL;
     } else {
