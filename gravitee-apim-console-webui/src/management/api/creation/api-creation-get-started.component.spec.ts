@@ -23,8 +23,10 @@ import { ApiCreationGetStartedComponent } from './api-creation-get-started.compo
 import { ApiCreationModule } from './api-creation.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { UIRouterState } from '../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
 import { fakeInstallation } from '../../../entities/installation/installation.fixture';
+import { User } from '../../../entities/user';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 describe('ApiCreationGetStartedComponent', () => {
   const fakeAjsState = {
@@ -35,10 +37,16 @@ describe('ApiCreationGetStartedComponent', () => {
   let component: ApiCreationGetStartedComponent;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(() => {
+  const initConfigureTestingModule = (currentUser: User) => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiCreationModule, MatIconTestingModule],
-      providers: [{ provide: UIRouterState, useValue: fakeAjsState }],
+      imports: [NoopAnimationsModule, GioPermissionModule, GioHttpTestingModule, ApiCreationModule, MatIconTestingModule],
+      providers: [
+        { provide: UIRouterState, useValue: fakeAjsState },
+        {
+          provide: CurrentUserService,
+          useValue: { currentUser },
+        },
+      ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -53,40 +61,62 @@ describe('ApiCreationGetStartedComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
 
     fixture.detectChanges();
+  };
+
+  describe('as Admin', function () {
+    beforeEach(() => {
+      const currentUser = new User();
+      currentUser.userPermissions = ['organization-installation-r'];
+      initConfigureTestingModule(currentUser);
+    });
+
+    it('should use the cockpit link', async () => {
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`).flush(
+        fakeInstallation({
+          cockpitURL: 'https://cockpit.gravitee.io',
+          additionalInformation: {
+            COCKPIT_INSTALLATION_STATUS: 'ACCEPTED',
+          },
+        }),
+      );
+      expect(component.cockpitLink).toEqual('https://cockpit.gravitee.io');
+    });
+
+    it('should use the gravitee.io link', async () => {
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`).flush(
+        fakeInstallation({
+          cockpitURL: 'https://cockpit.gravitee.io',
+          additionalInformation: {},
+        }),
+      );
+      expect(component.cockpitLink).toEqual('https://www.gravitee.io/platform/api-designer?utm_source=apim');
+    });
+
+    it('should go to api creation wizard', async () => {
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`);
+      component.goToApiCreationWizard();
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create', { definitionVersion: '2.0.0' });
+    });
+
+    it('should go to api creation import', async () => {
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`);
+      component.goToApiImport();
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.new-import', { definitionVersion: '2.0.0' });
+    });
   });
 
-  it('should use the cockpit link', async () => {
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`).flush(
-      fakeInstallation({
-        cockpitURL: 'https://cockpit.gravitee.io',
-        additionalInformation: {
-          COCKPIT_INSTALLATION_STATUS: 'ACCEPTED',
-        },
-      }),
-    );
-    expect(component.cockpitLink).toEqual('https://cockpit.gravitee.io');
-  });
+  describe('as ApiUser', function () {
+    beforeEach(() => {
+      const currentUser = new User();
+      currentUser.userPermissions = [];
+      initConfigureTestingModule(currentUser);
+    });
 
-  it('should use the gravitee.io link', async () => {
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`).flush(
-      fakeInstallation({
-        cockpitURL: 'https://cockpit.gravitee.io',
-        additionalInformation: {},
-      }),
-    );
-    expect(component.cockpitLink).toEqual('https://www.gravitee.io/platform/api-designer?utm_source=apim');
-  });
+    it('should use the gravitee.io link', async () => {
+      httpTestingController.expectNone(`${CONSTANTS_TESTING.org.baseURL}/installation`);
 
-  it('should go to api creation wizard', async () => {
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`);
-    component.goToApiCreationWizard();
-    expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create', { definitionVersion: '2.0.0' });
-  });
-
-  it('should go to api creation import', async () => {
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`);
-    component.goToApiImport();
-    expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.new-import', { definitionVersion: '2.0.0' });
+      expect(component.cockpitLink).toEqual('https://www.gravitee.io/platform/api-designer?utm_source=apim');
+    });
   });
 
   afterEach(() => {
