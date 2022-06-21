@@ -38,6 +38,7 @@ export interface DeleteCategoryRequest {
 }
 
 export interface GetCategoriesRequest {
+    include?: Array<string>;
     envId: string;
     orgId: string;
 }
@@ -179,6 +180,10 @@ export class CategoriesApi extends runtime.BaseAPI {
         }
 
         const queryParameters: runtime.HTTPQuery = {};
+
+        if (requestParameters.include) {
+            queryParameters['include'] = requestParameters.include;
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 

@@ -30,7 +30,7 @@ public class PortalConfigEntity {
     private Company company;
     private Documentation documentation;
     private OpenAPIDocViewer openAPIDocViewer;
-    private Plan plan;
+    private PlanSettings plan;
     private Portal portal;
     private PortalReCaptcha reCaptcha;
     private PortalScheduler scheduler;
@@ -47,7 +47,7 @@ public class PortalConfigEntity {
         company = new Company();
         documentation = new Documentation();
         openAPIDocViewer = new OpenAPIDocViewer();
-        plan = new Plan();
+        plan = new PlanSettings();
         portal = new Portal();
         reCaptcha = new PortalReCaptcha();
         scheduler = new PortalScheduler();
@@ -127,11 +127,11 @@ public class PortalConfigEntity {
         this.openAPIDocViewer = openAPIDocViewer;
     }
 
-    public Plan getPlan() {
+    public PlanSettings getPlan() {
         return plan;
     }
 
-    public void setPlan(Plan plan) {
+    public void setPlan(PlanSettings plan) {
         this.plan = plan;
     }
 

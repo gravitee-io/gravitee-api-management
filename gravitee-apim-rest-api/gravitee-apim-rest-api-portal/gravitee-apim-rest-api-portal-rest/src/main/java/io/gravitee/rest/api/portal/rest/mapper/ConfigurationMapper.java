@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.settings.*;
-import io.gravitee.rest.api.model.settings.Plan;
+import io.gravitee.rest.api.model.settings.PlanSettings;
 import io.gravitee.rest.api.model.settings.PortalApplicationSettings;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Enabled;
@@ -123,13 +123,13 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationPlan convert(Plan plan) {
+    private ConfigurationPlan convert(PlanSettings plan) {
         ConfigurationPlan configuration = new ConfigurationPlan();
         configuration.setSecurity(convert(plan.getSecurity()));
         return configuration;
     }
 
-    private ConfigurationPlanSecurity convert(Plan.PlanSecurity security) {
+    private ConfigurationPlanSecurity convert(PlanSettings.PlanSecurity security) {
         ConfigurationPlanSecurity configuration = new ConfigurationPlanSecurity();
         configuration.setApikey(convert(security.getApikey()));
         configuration.setSharedApiKey(convert(security.getSharedApiKey()));

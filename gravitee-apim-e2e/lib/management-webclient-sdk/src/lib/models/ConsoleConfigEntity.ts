@@ -17,6 +17,10 @@ import {
     AlertFromJSON,
     AlertFromJSONTyped,
     AlertToJSON,
+    ConsoleAnalyticsPendo,
+    ConsoleAnalyticsPendoFromJSON,
+    ConsoleAnalyticsPendoFromJSONTyped,
+    ConsoleAnalyticsPendoToJSON,
     ConsoleAuthentication,
     ConsoleAuthenticationFromJSON,
     ConsoleAuthenticationFromJSONTyped,
@@ -29,6 +33,10 @@ import {
     ConsoleSchedulerFromJSON,
     ConsoleSchedulerFromJSONTyped,
     ConsoleSchedulerToJSON,
+    JupiterMode,
+    JupiterModeFromJSON,
+    JupiterModeFromJSONTyped,
+    JupiterModeToJSON,
     Logging,
     LoggingFromJSON,
     LoggingFromJSONTyped,
@@ -65,10 +73,22 @@ export interface ConsoleConfigEntity {
     alert?: Alert;
     /**
      * 
+     * @type {ConsoleAnalyticsPendo}
+     * @memberof ConsoleConfigEntity
+     */
+    analyticsPendo?: ConsoleAnalyticsPendo;
+    /**
+     * 
      * @type {ConsoleAuthentication}
      * @memberof ConsoleConfigEntity
      */
     authentication?: ConsoleAuthentication;
+    /**
+     * 
+     * @type {JupiterMode}
+     * @memberof ConsoleConfigEntity
+     */
+    jupiterMode?: JupiterMode;
     /**
      * 
      * @type {Logging}
@@ -124,7 +144,9 @@ export function ConsoleConfigEntityFromJSONTyped(json: any, ignoreDiscriminator:
     return {
         
         'alert': !exists(json, 'alert') ? undefined : AlertFromJSON(json['alert']),
+        'analyticsPendo': !exists(json, 'analyticsPendo') ? undefined : ConsoleAnalyticsPendoFromJSON(json['analyticsPendo']),
         'authentication': !exists(json, 'authentication') ? undefined : ConsoleAuthenticationFromJSON(json['authentication']),
+        'jupiterMode': !exists(json, 'jupiterMode') ? undefined : JupiterModeFromJSON(json['jupiterMode']),
         'logging': !exists(json, 'logging') ? undefined : LoggingFromJSON(json['logging']),
         'maintenance': !exists(json, 'maintenance') ? undefined : MaintenanceFromJSON(json['maintenance']),
         'management': !exists(json, 'management') ? undefined : ManagementFromJSON(json['management']),
@@ -145,7 +167,9 @@ export function ConsoleConfigEntityToJSON(value?: ConsoleConfigEntity | null): a
     return {
         
         'alert': AlertToJSON(value.alert),
+        'analyticsPendo': ConsoleAnalyticsPendoToJSON(value.analyticsPendo),
         'authentication': ConsoleAuthenticationToJSON(value.authentication),
+        'jupiterMode': JupiterModeToJSON(value.jupiterMode),
         'logging': LoggingToJSON(value.logging),
         'maintenance': MaintenanceToJSON(value.maintenance),
         'management': ManagementToJSON(value.management),
