@@ -399,6 +399,26 @@ jobs:
                   paths:
                       - ./docker-cache
 
+    community-build:
+        docker:
+            - image: cimg/openjdk:11.0
+        resource_class: medium
+        steps:
+            - checkout
+            - restore-maven-job-cache:
+                  jobName: community-build
+            - run:
+                  name: "Build project"
+                  command: |
+                      mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C
+            - notify-on-failure
+            - run:
+                  name: "Exclude APIM artefacts from build cache"
+                  command: |
+                      rm -rf ~/.m2/repository/io/gravitee/apim
+            - save-maven-job-cache:
+                  jobName: community-build
+
     test:
         docker:
             - image: cimg/openjdk:11.0
@@ -1440,6 +1460,13 @@ workflows:
             and:
                 - equal: [pull_requests, << pipeline.parameters.gio_action >>]
         jobs:
+            - community-build:
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /^\d+\.\d+\.x$/
+                              - fix-community-buid
             - setup:
                   context: cicd-orchestrator
             - validate:
