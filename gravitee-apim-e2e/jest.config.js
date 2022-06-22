@@ -88,6 +88,7 @@ module.exports = {
     '@api-test-resources/(.*)': '<rootDir>/api-test/resources/$1',
     '@lib/jest-utils': '<rootDir>/lib/jest-utils',
     '@lib/gateway': '<rootDir>/lib/gateway',
+    '@lib/management': '<rootDir>/lib/management',
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
