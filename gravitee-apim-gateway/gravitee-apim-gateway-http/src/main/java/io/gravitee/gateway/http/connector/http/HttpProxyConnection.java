@@ -17,6 +17,7 @@ package io.gravitee.gateway.http.connector.http;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
+import io.gravitee.definition.model.ProtocolVersion;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
@@ -332,7 +333,11 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
         // with chunk value
         if (content) {
             String encoding = headers.getFirst(HttpHeaders.TRANSFER_ENCODING);
-            if (encoding != null && encoding.contains(HttpHeadersValues.TRANSFER_ENCODING_CHUNKED)) {
+            if (
+                encoding != null &&
+                encoding.contains(HttpHeadersValues.TRANSFER_ENCODING_CHUNKED) ||
+                ProtocolVersion.HTTP_2.equals(endpoint.getHttpClientOptions().getVersion())
+            ) {
                 httpClientRequest.setChunked(true);
             }
         } else {
