@@ -127,7 +127,14 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
     private Query buildQuery(ApiFieldInclusionFilter apiFieldInclusionFilter, ApiCriteria... orApiCriteria) {
         final Query query = new Query();
         if (apiFieldInclusionFilter != null) {
-            query.fields().include(apiFieldInclusionFilter.includedFields());
+            String[] fields = apiFieldInclusionFilter.includedFields();
+            // If there is no field to include, then the Mongo query will behave like there is no filter, and so will include all available fields.
+            // In that case we need to explicitly add the "_id" column.
+            if (fields.length > 0) {
+                query.fields().include(fields);
+            } else {
+                query.fields().include("_id");
+            }
         }
         fillQuery(query, orApiCriteria);
         query.with(Sort.by(ASC, "name"));
