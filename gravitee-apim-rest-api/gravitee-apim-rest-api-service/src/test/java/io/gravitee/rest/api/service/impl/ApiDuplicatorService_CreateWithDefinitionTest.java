@@ -427,7 +427,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
             );
 
         // check find plans by API has been called once to remove potential pre-existing plans on target API
-        verify(planService, times(1)).findByApi(GraviteeContext.getExecutionContext(), "id-api");
+        verify(planService, times(2)).findByApi(eq(GraviteeContext.getExecutionContext()), any());
         // check planService has been called twice to create 2 plans, with same IDs as API definition
         verify(planService, times(1))
             .createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), argThat(plan -> plan.getId().equals(plan1newId)));
