@@ -14,6 +14,7 @@ module.exports = {
     '@api-test-resources/(.*)': '<rootDir>/api-test/resources/$1',
     '@lib/jest-utils': '<rootDir>/dist/lib/jest-utils',
     '@lib/gateway': '<rootDir>/dist/lib/gateway',
+    '@lib/management': '<rootDir>/dist/lib/management',
   },
 
   // The test environment that will be used for testing

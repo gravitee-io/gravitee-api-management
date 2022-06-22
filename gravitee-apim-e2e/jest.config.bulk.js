@@ -15,6 +15,7 @@ module.exports = {
     '@portal-models/(.*)': '<rootDir>/lib/portal-webclient-sdk/src/lib/models/$1',
     '@api-test-resources/(.*)': '<rootDir>/api-test/resources/$1',
     '@lib/gateway': '<rootDir>/lib/gateway',
+    '@lib/management': '<rootDir>/lib/management',
   },
 
   // The test environment that will be used for testing

@@ -21,6 +21,7 @@
       "@api-test-resources/*": ["<rootDir>/api-test/resources/$1"],
       "@lib/jest-utils": ["lib/jest-utils"],
       "@lib/gateway": ["lib/gateway"],
+      "@lib/management": ["lib/management"],
       "@portal-fakers/*": ["lib/fixtures/portal/*"]
     }
   },

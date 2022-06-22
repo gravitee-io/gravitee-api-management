@@ -20,27 +20,20 @@ import { ApisFaker } from '@management-fakers/ApisFaker';
 import { ApiEntity } from '@management-models/ApiEntity';
 import { PlansFaker } from '@management-fakers/PlansFaker';
 import { PlanStatus } from '@management-models/PlanStatus';
-import { APIPlansApi } from '@management-apis/APIPlansApi';
 import { PlanSecurityType } from '@management-models/PlanSecurityType';
-import { ApplicationEntity } from '@management-models/ApplicationEntity';
-import { Subscription } from '@management-models/Subscription';
-import { ApiKeyEntity } from '@management-models/ApiKeyEntity';
 import { LifecycleAction } from '@management-models/LifecycleAction';
-import { ApplicationsApi } from '@management-apis/ApplicationsApi';
-import { ApplicationSubscriptionsApi } from '@management-apis/ApplicationSubscriptionsApi';
 import { fetchGatewaySuccess } from '@lib/gateway';
-import { FlowMethodsEnum } from '@management-models/Flow';
 import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
 import { PlanEntity } from '@management-models/PlanEntity';
 import { OrganizationEntityToJSON } from '@management-models/OrganizationEntity';
 import { OrganizationApi } from '@management-apis/OrganizationApi';
 import { NewApiEntityFlowModeEnum } from '@management-models/NewApiEntity';
+import { teardownApisAndApplications } from '@lib/management';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
 
 const apisResource = new APIsApi(forManagementAsApiUser());
-const apiPlansResource = new APIPlansApi(forManagementAsApiUser());
 const organizationApi = new OrganizationApi(forManagementAsAdminUser());
 
 describe('Create global flows and use them', () => {
@@ -215,29 +208,6 @@ describe('Create global flows and use them', () => {
   });
 
   afterAll(async () => {
-    if (createdApi) {
-      // Stop API
-      await apisResource.doApiLifecycleAction({
-        envId,
-        orgId,
-        api: createdApi.id,
-        action: LifecycleAction.STOP,
-      });
-
-      // Close Keyless plan
-      await apiPlansResource.closeApiPlan({
-        envId,
-        orgId,
-        plan: createdKeylessPlan.id,
-        api: createdApi.id,
-      });
-
-      // Delete API
-      await apisResource.deleteApi({
-        envId,
-        orgId,
-        api: createdApi.id,
-      });
-    }
+    await teardownApisAndApplications(orgId, envId, [createdApi.id]);
   });
 });

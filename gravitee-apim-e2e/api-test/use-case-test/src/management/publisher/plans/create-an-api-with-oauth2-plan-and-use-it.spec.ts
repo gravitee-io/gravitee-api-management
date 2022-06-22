@@ -18,10 +18,9 @@ import { APIsApi } from '@management-apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
 import { ApplicationsApi } from '@management-apis/ApplicationsApi';
 import { ApplicationSubscriptionsApi } from '@management-apis/ApplicationSubscriptionsApi';
-import { APIPlansApi } from '@management-apis/APIPlansApi';
 import { ApiEntity, ApiEntityToJSON } from '@management-models/ApiEntity';
 import { ApplicationEntity, ApplicationEntityToJSON } from '@management-models/ApplicationEntity';
-import { PlanEntity, PlanEntityToJSON } from '@management-models/PlanEntity';
+import { PlanEntity } from '@management-models/PlanEntity';
 import { Subscription } from '@management-models/Subscription';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { PlansFaker } from '@management-fakers/PlansFaker';
@@ -33,6 +32,7 @@ import { LifecycleAction } from '@management-models/LifecycleAction';
 import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@lib/gateway';
 import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
 import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
+import { teardownApisAndApplications } from '@lib/management';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -40,7 +40,6 @@ const envId = 'DEFAULT';
 const apisResource = new APIsApi(forManagementAsApiUser());
 const applicationsResource = new ApplicationsApi(forManagementAsApiUser());
 const applicationSubscriptionsResource = new ApplicationSubscriptionsApi(forManagementAsApiUser());
-const apiPlansResource = new APIPlansApi(forManagementAsApiUser());
 
 describe('Create an API with OAuth2 plan and use it', () => {
   const OAUTH2_RESOURCE_NAME = 'OAuth2-resource';
@@ -211,38 +210,6 @@ describe('Create an API with OAuth2 plan and use it', () => {
   });
 
   afterAll(async () => {
-    if (createdApi) {
-      // Stop API
-      await apisResource.doApiLifecycleAction({
-        envId,
-        orgId,
-        api: createdApi.id,
-        action: LifecycleAction.STOP,
-      });
-
-      // Close OAuth2 plan
-      await apiPlansResource.closeApiPlan({
-        envId,
-        orgId,
-        plan: createdOAuth2Plan.id,
-        api: createdApi.id,
-      });
-
-      // Delete API
-      await apisResource.deleteApi({
-        envId,
-        orgId,
-        api: createdApi.id,
-      });
-    }
-
-    // Delete application
-    if (createdApplication) {
-      await applicationsResource.deleteApplication({
-        envId,
-        orgId,
-        application: createdApplication.id,
-      });
-    }
+    await teardownApisAndApplications(orgId, envId, [createdApi.id], [createdApplication.id]);
   });
 });

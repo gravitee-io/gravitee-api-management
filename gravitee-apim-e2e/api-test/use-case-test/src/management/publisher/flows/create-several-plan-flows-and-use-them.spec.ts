@@ -36,6 +36,7 @@ import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
 import { PlanEntity, PlanEntityToJSON } from '@management-models/PlanEntity';
 import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
 import { succeed } from '@lib/jest-utils';
+import { teardownApisAndApplications } from '@lib/management';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -324,46 +325,6 @@ describe('Create several plan flows and use them', () => {
   });
 
   afterAll(async () => {
-    if (createdApi) {
-      // stop API
-      await apisResource.doApiLifecycleAction({
-        envId,
-        orgId,
-        api: createdApi.id,
-        action: LifecycleAction.STOP,
-      });
-
-      // close Keyless plan
-      await apiPlansResource.closeApiPlan({
-        envId,
-        orgId,
-        plan: createdKeylessPlan.id,
-        api: createdApi.id,
-      });
-
-      // close ApiKey plan
-      await apiPlansResource.closeApiPlan({
-        envId,
-        orgId,
-        plan: createdApiKeyPlan.id,
-        api: createdApi.id,
-      });
-
-      // delete API
-      await apisResource.deleteApi({
-        envId,
-        orgId,
-        api: createdApi.id,
-      });
-    }
-
-    // delete application
-    if (createdApplication) {
-      await applicationsResource.deleteApplication({
-        envId,
-        orgId,
-        application: createdApplication.id,
-      });
-    }
+    await teardownApisAndApplications(orgId, envId, [createdApi.id], [createdApplication.id]);
   });
 });
