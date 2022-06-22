@@ -14,7 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-<project name="Example Ant Build with JaCoCo" default="report" xmlns:jacoco="antlib:org.jacoco.ant">
+<project name="Example Ant Build with JaCoCo" default="report" xmlns:jacoco="antlib:org.jacoco.ant" basedir=".">
 
     <description>
         Generate APIM E2E Coverage Reports
@@ -23,14 +23,12 @@ limitations under the License.
     <property name="project.dir" location="../.."/>
 
     <property name="management.api.dir" location="${project.dir}/gravitee-apim-rest-api" />
-    <property name="management.classes.dir" location="${project.dir}/rest-api-docker-context/distribution/lib" />
 
     <property name="management.console.rest.src.dir" location="${management.api.dir}/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/src/main/java" />
     <property name="management.portal.rest.src.dir" location="${management.api.dir}/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest" />
     <property name="management.service.src.dir" location="${management.api.dir}/gravitee-apim-rest-api-service/src/main/java" />
 
     <property name="gateway.dir" location="${project.dir}/gravitee-apim-gateway" />
-    <property name="gateway.classes.dir" location="${project.dir}/gateway-docker-context/distribution/lib" />
 
     <property name="gateway.core.src.dir" location="${gateway.dir}/gravitee-apim-gateway-core/src/main/java" />
     <property name="gateway.handlers.src.dir" location="${gateway.dir}/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/main/java" />
@@ -41,11 +39,20 @@ limitations under the License.
     <property name="result.report.dir" location="./reports" />
     <property name="result.exec.file" location="./jacoco.exec" />
 
+    <property environment="env"/>
+    <property name="custom.properties.file" value="properties.${env.ENV}.xml"/>
+
+    <import file="${custom.properties.file}" />
+
     <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
         <classpath path="lib/jacocoant.jar" />
     </taskdef>
 
-    <target name="report">
+    <target name="clean">
+        <delete dir="${result.report.dir}" />
+    </target>
+
+    <target name="report" depends="clean">
         <jacoco:report>
             <executiondata>
                 <file file="${result.exec.file}" />

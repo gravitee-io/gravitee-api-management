@@ -16,6 +16,8 @@
         "test:api": "docker-compose -f ./docker/common/docker-compose-apis.yml -f ./docker/api-tests/docker-compose-api-tests.yml -f ./docker/common/docker-compose-wiremock.yml -p api-integration-test --project-directory $PWD up --abort-on-container-exit --exit-code-from jest-e2e",
         "test:api:dev": "jest --runInBand --no-cache",
         "test:api:ci": "jest --runInBand --ci -c jest.config.ci.js --no-cache",
+        "test:report": "ENV=ci ant -f jacoco/build.xml",
+        "test:report:dev": "ENV=dev ant -f jacoco/build.xml",
         "lint": "npm run prettier && npm run lint:license",
         "lint:fix": "npm run prettier:fix && npm run lint:license:fix && tsc --noEmit",
         "lint:license": "license-check-and-add check -f license-check-config.json",

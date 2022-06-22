@@ -39,7 +39,8 @@
     "api-test/resources/**",
     "jacoco/lib/**",
     "jacoco/jacoco.exec",
-    "jacoco/reports/**"
+    "jacoco/reports/**",
+    "jacoco/README.md"
   ],
   "license": "LICENSE_TEMPLATE.txt",
   "licenseFormats": {
