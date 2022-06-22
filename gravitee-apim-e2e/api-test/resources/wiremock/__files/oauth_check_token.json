@@ -1,0 +1,1 @@
+{ "scope": [], "active": true, "exp": 1544940147, "authorities": ["ADMIN"], "client_id": "{{request.pathSegments.[0]}}" }
