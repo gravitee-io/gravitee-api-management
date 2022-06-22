@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPattern": "/.*/oauth/check_token\\?token=.*"
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "oauth_check_token.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
