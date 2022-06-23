@@ -19,6 +19,7 @@ version: '3.8'
 services:
   wiremock:
     image: wiremock/wiremock:2.33.2
+    command: "--global-response-templating"
     volumes:
       - ./api-test/resources/wiremock:/home/wiremock
     ports:
