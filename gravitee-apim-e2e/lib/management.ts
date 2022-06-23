@@ -32,11 +32,11 @@ const applicationsResource = new ApplicationsApi(forManagementAsAdminUser());
  * @param applicationIds
  */
 export const teardownApisAndApplications = async (orgId: string, envId: string, apiIds?: string[], applicationIds?: string[]) => {
-  for (const apiId of apiIds) {
+  for (const apiId of apiIds ?? []) {
     await deleteApi(orgId, envId, apiId);
   }
 
-  for (const applicationId of applicationIds) {
+  for (const applicationId of applicationIds ?? []) {
     await deleteApplication(orgId, envId, applicationId);
   }
 };
