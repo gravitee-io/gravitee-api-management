@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe } from '@jest/globals';
-import { ApiEntity } from '@management-models/ApiEntity';
+import { ApiEntity, ApiEntityToJSON } from '@management-models/ApiEntity';
 import { Application } from '@portal-models/Application';
 import { Subscription as PortalSubscription } from '@portal-models/Subscription';
 import { ApisFaker } from '@management-fakers/ApisFaker';
@@ -28,17 +28,18 @@ import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '@portal-apis/Su
 import { fetchGatewaySuccess } from '@lib/gateway';
 import { APIsApi } from '@management-apis/APIsApi';
 import { forManagementAsApiUser, forPortalAsAppUser } from '@client-conf/*';
-import { APIPlansApi } from '@management-apis/APIPlansApi';
 import { ApplicationApi } from '@portal-apis/ApplicationApi';
 import * as jwt from 'jsonwebtoken';
+import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
+import { teardownApisAndApplications } from '@lib/management';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
 
 const JWT_SECURE_GIVEN_KEY = 'JWT_SECURE_GIVEN_KEY_eyJpc3MiOiJncmF2aXRl';
+const OAUTH2_RESOURCE_NAME = 'OAuth2-resource';
 
 const apisResource = new APIsApi(forManagementAsApiUser());
-const apiPlansResource = new APIPlansApi(forManagementAsApiUser());
 const portalApplicationResource = new ApplicationApi(forPortalAsAppUser());
 const portalSubscriptionResource = new SubscriptionApi(forPortalAsAppUser());
 
@@ -92,14 +93,6 @@ describe('Subscribe to API Key & JWT plans and use them', () => {
       },
     });
 
-    // Start it
-    await apisResource.doApiLifecycleAction({
-      envId,
-      orgId,
-      api: createdApi.id,
-      action: LifecycleAction.START,
-    });
-
     // Create an application from portal
     createdPortalApplication = await portalApplicationResource.createApplication({
       applicationInput: PortalApplicationFaker.newApplicationInput(),
@@ -127,6 +120,14 @@ describe('Subscribe to API Key & JWT plans and use them', () => {
         application: createdPortalApplication.id,
         plan: createdApi.plans.find((p) => p.security === PlanSecurityType.JWT).id,
       },
+    });
+
+    // Start it
+    await apisResource.doApiLifecycleAction({
+      envId,
+      orgId,
+      api: createdApi.id,
+      action: LifecycleAction.START,
     });
   });
 
@@ -169,56 +170,197 @@ describe('Subscribe to API Key & JWT plans and use them', () => {
   });
 
   afterAll(async () => {
-    if (createdApi) {
-      // stop API
-      await apisResource.doApiLifecycleAction({
-        envId,
-        orgId,
-        api: createdApi.id,
-        action: LifecycleAction.STOP,
-      });
-
-      // close plan
-      await apiPlansResource.closeApiPlan({
-        envId,
-        orgId,
-        plan: createdApi.plans[0].id,
-        api: createdApi.id,
-      });
-      await apiPlansResource.closeApiPlan({
-        envId,
-        orgId,
-        plan: createdApi.plans[1].id,
-        api: createdApi.id,
-      });
-
-      // un-publish the API
-      await apisResource.updateApi({
-        envId,
-        orgId,
-        api: createdApi.id,
-        updateApiEntity: {
-          lifecycle_state: ApiLifecycleState.UNPUBLISHED,
-          description: createdApi.description,
-          name: createdApi.name,
-          proxy: createdApi.proxy,
-          version: createdApi.version,
-          visibility: createdApi.visibility,
-        },
-      });
-
-      // delete API
-      await apisResource.deleteApi({
-        envId,
-        orgId,
-        api: createdApi.id,
-      });
-    }
+    await teardownApisAndApplications(orgId, envId, [createdApi.id]);
 
     if (createdPortalApplication) {
       await portalApplicationResource.deleteApplicationByApplicationId({
         applicationId: createdPortalApplication.id,
       });
     }
+  });
+});
+
+// 📝 JWT and OAuth2 can be subscribed to same application
+describe('Subscribe to OAuth plan and use it', () => {
+  let createdApi: ApiEntity;
+  let createdPortalApplication: Application;
+  let createdJOAuth2PlanPortalSubscription: PortalSubscription;
+
+  beforeAll(async () => {
+    // Create an API
+    createdApi = await apisResource.importApiDefinition({
+      envId,
+      orgId,
+      body: ApisFaker.apiImport({
+        plans: [
+          // With a published OAuth2 plan
+          PlansFaker.plan({
+            security: PlanSecurityType.OAUTH2,
+            status: PlanStatus.PUBLISHED,
+            securityDefinition: JSON.stringify({
+              extractPayload: false,
+              checkRequiredScopes: false,
+              modeStrict: true,
+              propagateAuthHeader: true,
+              oauthResource: OAUTH2_RESOURCE_NAME,
+            }),
+          }),
+        ],
+      }),
+    });
+
+    // Publish the API
+    await apisResource.updateApi({
+      envId,
+      orgId,
+      api: createdApi.id,
+      updateApiEntity: {
+        lifecycle_state: ApiLifecycleState.PUBLISHED,
+        description: createdApi.description,
+        name: createdApi.name,
+        proxy: createdApi.proxy,
+        version: createdApi.version,
+        visibility: createdApi.visibility,
+      },
+    });
+
+    // Create an application from portal
+    createdPortalApplication = await portalApplicationResource.createApplication({
+      applicationInput: PortalApplicationFaker.newApplicationInput(),
+    });
+
+    // Add OAuth2 resource
+    await apisResource.updateApi({
+      envId,
+      orgId,
+      api: createdApi.id,
+      updateApiEntity: {
+        ...UpdateApiEntityFromJSON(ApiEntityToJSON(createdApi)),
+        resources: [
+          {
+            name: OAUTH2_RESOURCE_NAME,
+            enabled: true,
+            type: 'oauth2',
+            configuration: {
+              // 📝 We pass the client_id in url to allow wiremock to add it introspectionEndpoint response. Next this allows the gateway to find the right application.
+              authorizationServerUrl: `${process.env.WIREMOCK_BASE_PATH}/${createdPortalApplication.settings.app.client_id}`,
+              introspectionEndpoint: '/oauth/check_token',
+              useSystemProxy: false,
+              introspectionEndpointMethod: 'GET',
+              scopeSeparator: ' ',
+              userInfoEndpoint: '/userinfo',
+              userInfoEndpointMethod: 'GET',
+              useClientAuthorizationHeader: true,
+              clientAuthorizationHeaderName: 'Authorization',
+              clientAuthorizationHeaderScheme: 'Basic',
+              tokenIsSuppliedByQueryParam: true,
+              tokenQueryParamName: 'token',
+              tokenIsSuppliedByHttpHeader: false,
+              tokenIsSuppliedByFormUrlEncoded: false,
+              tokenFormUrlEncodedName: 'token',
+              userClaim: 'sub',
+              clientId: 'Client Id',
+              clientSecret: 'Client Secret',
+            },
+          },
+        ],
+      },
+    });
+
+    // Subscribe application to OAuth2 plan
+    createdJOAuth2PlanPortalSubscription = await portalSubscriptionResource.createSubscription({
+      subscriptionInput: {
+        application: createdPortalApplication.id,
+        plan: createdApi.plans[0].id,
+      },
+    });
+
+    // Start it
+    await apisResource.doApiLifecycleAction({
+      envId,
+      orgId,
+      api: createdApi.id,
+      action: LifecycleAction.START,
+    });
+  });
+
+  describe('Gateway call with OAuth2 token in HTTP header', () => {
+    describe('Gateway call with correct `Authorization` header using portal subscription', () => {
+      test('Should return 200 OK', async () => {
+        // Token always validated by wiremock with /oauth/check_token
+        const token = 'realFakeToken';
+
+        await fetchGatewaySuccess({
+          contextPath: createdApi.context_path,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      });
+    });
+  });
+
+  afterAll(async () => {
+    await teardownApisAndApplications(orgId, envId, [createdApi.id]);
+
+    if (createdPortalApplication) {
+      await portalApplicationResource.deleteApplicationByApplicationId({
+        applicationId: createdPortalApplication.id,
+      });
+    }
+  });
+});
+
+describe('Subscribe to Keyless plan and use it', () => {
+  let createdApi: ApiEntity;
+
+  beforeAll(async () => {
+    // Create an API
+    createdApi = await apisResource.importApiDefinition({
+      envId,
+      orgId,
+      body: ApisFaker.apiImport({
+        plans: [
+          // With a published Keyless plan
+          PlansFaker.plan({
+            security: PlanSecurityType.KEYLESS,
+            status: PlanStatus.PUBLISHED,
+          }),
+        ],
+      }),
+    });
+
+    // Publish the API
+    await apisResource.updateApi({
+      envId,
+      orgId,
+      api: createdApi.id,
+      updateApiEntity: {
+        lifecycle_state: ApiLifecycleState.PUBLISHED,
+        description: createdApi.description,
+        name: createdApi.name,
+        proxy: createdApi.proxy,
+        version: createdApi.version,
+        visibility: createdApi.visibility,
+      },
+    });
+
+    // Start it
+    await apisResource.doApiLifecycleAction({
+      envId,
+      orgId,
+      api: createdApi.id,
+      action: LifecycleAction.START,
+    });
+  });
+
+  describe('Gateway call with Keyless plan', () => {
+    test('Should return 200 OK', async () => {
+      await fetchGatewaySuccess({ contextPath: createdApi.context_path });
+    });
+  });
+
+  afterAll(async () => {
+    await teardownApisAndApplications(orgId, envId, [createdApi.id]);
   });
 });
