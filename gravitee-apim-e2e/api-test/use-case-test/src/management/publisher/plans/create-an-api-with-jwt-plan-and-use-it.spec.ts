@@ -31,7 +31,7 @@ import { UpdatePlanEntityFromJSON } from '@management-models/UpdatePlanEntity';
 import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
 import { LifecycleAction } from '@management-models/LifecycleAction';
 import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@lib/gateway';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
