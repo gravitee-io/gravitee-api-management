@@ -16,7 +16,7 @@
     "@asyncapi/web-component": "1.0.0-next.15",
     "@fontsource/libre-franklin": "4.4.5",
     "@fontsource/material-icons": "^4.5.4",
-    "@gravitee/ui-components": "3.35.3",
+    "@gravitee/ui-components": "3.36.1",
     "@gravitee/ui-particles-angular": "1.4.0",
     "@highcharts/map-collection": "1.1.3",
     "@toast-ui/editor": "2.5.2",

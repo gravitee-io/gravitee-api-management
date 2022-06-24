@@ -57,10 +57,9 @@ commands:
         steps:
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v6-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-                      - gravitee-api-management-v6-<< parameters.jobName >>-{{ .Branch }}-
-                      - gravitee-api-management-v6-<< parameters.jobName >>-
-                      - gravitee-api-management-v6-
+                      - gravitee-api-management-v7-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v7-<< parameters.jobName >>-{{ .Branch }}-
+                      - gravitee-api-management-v7-<< parameters.jobName >>-
     save-maven-job-cache:
         description: Restore Maven cache for a dedicated job
         parameters:
@@ -72,7 +71,7 @@ commands:
             - save_cache:
                   paths:
                       - ~/.m2
-                  key: gravitee-api-management-v6-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  key: gravitee-api-management-v7-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
                   when: always
 
     notify-on-failure:
@@ -210,9 +209,9 @@ jobs:
                   at: .
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v6-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
-                      - gravitee-api-management-v6-sonarcloud-analysis-{{ .Branch }}-
-                      - gravitee-api-management-v6-sonarcloud-analysis-
+                      - gravitee-api-management-v7-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v7-sonarcloud-analysis-{{ .Branch }}-
+                      - gravitee-api-management-v7-sonarcloud-analysis-
             - keeper/env-export:
                   secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
                   var-name: SONAR_TOKEN
@@ -225,7 +224,7 @@ jobs:
             - save_cache:
                   paths:
                       - /opt/sonar-scanner/.sonar/cache
-                  key: gravitee-api-management-v6-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  key: gravitee-api-management-v7-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
                   when: always
 
     validate:
@@ -268,7 +267,7 @@ jobs:
             - save_cache:
                   paths:
                       - ~/.m2/repository/io/gravitee/apim
-                  key: gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+                  key: gravitee-api-management-v7-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
                   when: on_success
             - run:
                   name: "Exclude APIM artefacts from build cache"
@@ -294,7 +293,7 @@ jobs:
                   jobName: test
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+                      - gravitee-api-management-v7-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
             - run:
                   name: Run tests
                   command: |
@@ -329,7 +328,7 @@ jobs:
                   jobName: test-repository
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v6-build-apim-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+                      - gravitee-api-management-v7-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
             - run:
                   name: Run tests
                   command: |
@@ -863,8 +862,8 @@ jobs:
                       # Update maven dependencies versions from properties
                       mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -T 2C -no-transfer-progress
 
-                      # Remove `-SNAPSHOT` from versions
-                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false --no-transfer-progress
+                      # Remove `-SNAPSHOT` from version                    
+                      mvn versions:set-property -Dproperty=changelist -DnewVersion=
             - prepare-gpg
             - prepare-env-var
             - run:
@@ -902,8 +901,11 @@ jobs:
                       # If support branch for this version does not exist, create it, update versions, commit and push
                       if [ "x${GIT_BRANCH_FILTER}" == "x" ]; then
                         git checkout -b ${MAINTENANCE_GIT_BRANCH}
-                        # Set the version to the next support version (bump patch version + '-SNAPSHOT')                        
-                        mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B versions:set -DnextSnapshot=true -DgenerateBackupPoms=false
+                        # Set the version to the next support version (bump patch version + '-SNAPSHOT')        
+                        export NEXT_PATCH_VERSION=$((${MVN_PRJ_VERSION_PATCH}+1))
+                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.${NEXT_PATCH_VERSION}"     
+                        mvn versions:set-property -Dproperty=revision -DnewVersion=${NEXT_SNAPSHOT_VERSION}                    
+                        mvn versions:set-property -Dproperty=changelist -DnewVersion=-SNAPSHOT
                         git add --update
                         git commit -m 'chore: prepare next version [skip ci]'
                         if [ "${DRY_RUN}" == "false" ]; then
@@ -919,12 +921,17 @@ jobs:
                       # If releasing a feature version (i.e. patch number == 0) then bump the minor version for the next 
                       if [ "${MVN_PRJ_VERSION_PATCH}" == "0" ]; then
                         export NEXT_MINOR_VERSION=$((${MVN_PRJ_VERSION_MINOR}+1))
-                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${NEXT_MINOR_VERSION}.0-SNAPSHOT"
-                        mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B versions:set -DnewVersion=${NEXT_SNAPSHOT_VERSION} -DgenerateBackupPoms=false
+                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${NEXT_MINOR_VERSION}.0"
+                        mvn versions:set-property -Dproperty=revision -DnewVersion=${NEXT_SNAPSHOT_VERSION}                    
+                        mvn versions:set-property -Dproperty=changelist -DnewVersion=-SNAPSHOT                    
                       else
                         # Else just set the version to the next support version (bump patch version + '-SNAPSHOT')                        
-                        mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B versions:set -DnextSnapshot=true -DgenerateBackupPoms=false
+                        export NEXT_PATCH_VERSION=$((${MVN_PRJ_VERSION_PATCH}+1))
+                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.${NEXT_PATCH_VERSION}"     
+                        mvn versions:set-property -Dproperty=revision -DnewVersion=${NEXT_SNAPSHOT_VERSION}                    
+                        mvn versions:set-property -Dproperty=changelist -DnewVersion=-SNAPSHOT
                       fi;
+                    
                       git add --update
                       git commit -m 'chore: prepare next version [skip ci]'
                       if [ "${DRY_RUN}" == "false" ]; then
