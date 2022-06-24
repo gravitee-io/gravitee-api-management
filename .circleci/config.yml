@@ -1240,7 +1240,7 @@ jobs:
                   name: Run API & e2e tests
                   command: |
                       cd gravitee-apim-e2e
-                      APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$APIM_VERSION npm run test:api
+                      APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$APIM_VERSION npm run test:api:mongo
             - notify-on-failure
 
     e2e-cypress:
