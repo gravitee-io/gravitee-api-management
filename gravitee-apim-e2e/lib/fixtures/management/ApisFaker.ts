@@ -25,6 +25,7 @@ import { RatingInput } from '@portal-models/RatingInput';
 import { Plan } from '@management-models/Plan';
 import { PrimaryOwnerEntity } from '@management-models/PrimaryOwnerEntity';
 import { ResponseTemplate } from '@management-models/ResponseTemplate';
+import { Flow } from '@management-models/Flow';
 
 export interface ApiImportEntity {
   id?: string;
@@ -34,6 +35,7 @@ export interface ApiImportEntity {
   visibility?: Visibility;
   gravitee?: string;
   flow_mode?: ApiEntityFlowModeEnum;
+  flows?: Array<Flow>;
   resources?: Array<any>;
   properties?: Array<any>;
   groups?: Array<string>;
@@ -87,6 +89,7 @@ export class ApisFaker {
       path_mappings: [],
       proxy: this.proxy(),
       response_templates: {},
+      flows: [],
       ...attributes,
     };
   }
@@ -124,7 +127,7 @@ export class ApisFaker {
       name,
       description,
       version,
-      endpoint: `${process.env.WIREMOCK_BASE_PATH}/whattimeisit`,
+      endpoint: `${process.env.WIREMOCK_BASE_PATH}/hello`,
       ...attributes,
     };
   }
@@ -145,7 +148,7 @@ export class ApisFaker {
             {
               inherit: true,
               name: 'default',
-              target: `${process.env.WIREMOCK_BASE_PATH}/whattimeisit`,
+              target: `${process.env.WIREMOCK_BASE_PATH}/hello`,
               weight: 1,
               backup: false,
               type: 'http',

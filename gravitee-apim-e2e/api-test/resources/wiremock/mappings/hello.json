@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPattern": "/hello.*"
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "hello.json.hbs",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

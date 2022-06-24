@@ -1,0 +1,4 @@
+{{#assign 'name'}}{{defaultIfEmpty request.query.name 'world'}}{{/assign}}
+{
+  "message": "Hello, {{ capitalize name }}!"
+}
