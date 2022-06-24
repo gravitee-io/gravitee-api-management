@@ -16,71 +16,16 @@
 
 version: '3.8'
 
-networks:
-  apim:
-    name: apim
-  storage:
-    name: storage
-
-volumes:
-  data-elasticsearch:
-  data-mongo:
-
 services:
-  mongodb:
-    image: circleci/mongo:${MONGODB_VERSION:-5}
-    container_name: gio_apim_mongodb
-    restart: always
-    ports:
-      - "30017:27017"
-    volumes:
-      - data-mongo:/data/db
-      - ./.logs/apim-mongodb:/var/log/mongodb
-    healthcheck:
-      test: echo 'db.runCommand({serverStatus:1}).ok' | mongo admin --quiet | grep 1
-      interval: 2s
-      timeout: 10s
-      retries: 5
-    networks:
-      - storage
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-7.7.0}
-    container_name: gio_apim_elasticsearch
-    restart: always
-    volumes:
-      - data-elasticsearch:/usr/share/elasticsearch/data
-    environment:
-      - http.host=0.0.0.0
-      - transport.host=0.0.0.0
-      - xpack.security.enabled=false
-      - xpack.monitoring.enabled=false
-      - cluster.name=elasticsearch
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile: 65536
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cat/health?h=st" ]
-      interval: 2s
-      timeout: 10s
-      retries: 30
-    networks:
-      - storage
-
   management_api:
     image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_TAG:-3}
     container_name: gio_apim_management_api
     restart: always
     links:
-      - mongodb
+      - database
       - elasticsearch
     depends_on:
-      mongodb:
+      database:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
@@ -89,7 +34,6 @@ services:
     volumes:
       - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
     environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
       - gravitee_newsletter_enabled=false
       - gravitee_security_providers[0].users[0].email=user@gravitee.io
@@ -108,10 +52,10 @@ services:
     container_name: gio_apim_gateway
     restart: always
     links:
-      - mongodb
+      - database
       - elasticsearch
     depends_on:
-      mongodb:
+      database:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
@@ -120,8 +64,6 @@ services:
     volumes:
       - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
     environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://admin:adminadmin@localhost:18082/_node" ]
