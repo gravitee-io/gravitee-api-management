@@ -1,0 +1,135 @@
+{
+  "name": "World Time API",
+  "version": "1.0.0",
+  "description": "World Time API",
+  "visibility": "PUBLIC",
+  "gravitee": "2.0.0",
+  "flow_mode": "DEFAULT",
+  "resources": [
+    {
+      "name": "keycloak-resource",
+      "type": "oauth2-keycloak-resource",
+      "enabled": true,
+      "configuration": {
+        "type": "oauth2-keycloak-resource",
+        "enabled": true,
+        "validateTokenLocally": true,
+        "userClaim": "clientId",
+        "verifyHost": false,
+        "trustAll": false,
+        "keycloakConfiguration": "{\n    \"realm\": \"gio\",\n    \"auth-server-url\": \"http://auth.localhost/auth\",\n    \"ssl-required\": \"external\",\n    \"resource\": \"gravitee\",\n    \"credentials\": {\n        \"secret\": \"00dc0118-2a0d-4249-86a3-3e133f5de145\"\n    },\n    \"confidential-port\": \"0\",\n    \"policy-enforcer\": {}\n}"
+      }
+    }
+  ],
+  "properties": [],
+  "plans": [
+    {
+      "id": "60012052-62fe-3187-b57a-e2021cd2c7ae",
+      "name": "OAUTH PLAN",
+      "description": "OAUTH PLAN",
+      "validation": "AUTO",
+      "security": "OAUTH2",
+      "securityDefinition": "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"modeStrict\":false,\"propagateAuthHeader\":true,\"oauthResource\":\"keycloak-resource\"}",
+      "type": "API",
+      "status": "PUBLISHED",
+      "api": "7fce4bf3-7f9f-47c5-8e4b-f37f9f07c504",
+      "order": 0,
+      "characteristics": [],
+      "tags": [],
+      "created_at": 1656074830142,
+      "updated_at": 1656082840627,
+      "paths": {
+        "/": []
+      },
+      "flows": [
+        {
+          "name": "",
+          "path-operator": {
+            "path": "/",
+            "operator": "STARTS_WITH"
+          },
+          "condition": "",
+          "consumers": [],
+          "methods": [],
+          "pre": [],
+          "post": [],
+          "enabled": true
+        }
+      ],
+      "excluded_groups": [],
+      "comment_required": false
+    }
+  ],
+  "id": "7fce4bf3-7f9f-47c5-8e4b-f37f9f07c504",
+  "path_mappings": [],
+  "proxy": {
+    "virtual_hosts": [
+      {
+        "path": "/worldtimeapi"
+      }
+    ],
+    "strip_context_path": false,
+    "preserve_host": false,
+    "logging": {
+      "mode": "CLIENT_PROXY",
+      "content": "HEADERS_PAYLOADS",
+      "scope": "REQUEST_RESPONSE"
+    },
+    "groups": [
+      {
+        "name": "default-group",
+        "endpoints": [
+          {
+            "name": "default",
+            "target": "http://worldtimeapi.org/api",
+            "weight": 1,
+            "backup": false,
+            "type": "HTTP",
+            "inherit": true
+          }
+        ],
+        "load_balancing": {
+          "type": "ROUND_ROBIN"
+        },
+        "http": {
+          "connectTimeout": 5000,
+          "idleTimeout": 60000,
+          "keepAlive": true,
+          "readTimeout": 10000,
+          "pipelining": false,
+          "maxConcurrentConnections": 100,
+          "useCompression": true,
+          "followRedirects": false
+        }
+      }
+    ],
+    "cors": {
+      "enabled": true,
+      "allowCredentials": false,
+      "allowOrigin": [
+        "*"
+      ],
+      "allowHeaders": [
+        "authorization"
+      ],
+      "allowMethods": [
+        "TRACE",
+        "HEAD",
+        "DELETE",
+        "POST",
+        "GET",
+        "OPTIONS",
+        "PATCH",
+        "PUT"
+      ],
+      "exposeHeaders": [],
+      "maxAge": -1
+    }
+  },
+  "response_templates": {},
+  "primaryOwner": {
+    "id": "7609e317-8af0-4427-89e3-178af05427be",
+    "displayName": "admin",
+    "type": "USER"
+  }
+}
