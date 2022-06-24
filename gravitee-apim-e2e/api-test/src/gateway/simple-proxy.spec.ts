@@ -24,6 +24,7 @@ import { LifecycleAction } from '@management-models/LifecycleAction';
 import { PlanStatus } from '@management-models/PlanStatus';
 import { fetchGatewaySuccess } from '@lib/gateway';
 import { APIPlansApi } from '@management-apis/APIPlansApi';
+import { LoadBalancerTypeEnum } from '@management-models/LoadBalancer';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -42,6 +43,36 @@ describe('Gateway - Simple proxy', () => {
         orgId,
         body: ApisFaker.apiImport({
           plans: [PlansFaker.plan({ status: PlanStatus.PUBLISHED })],
+          proxy: ApisFaker.proxy({
+            groups: [
+              {
+                name: 'default-group',
+                endpoints: [
+                  {
+                    inherit: true,
+                    name: 'default',
+                    target: `${process.env.WIREMOCK_BASE_PATH}/hello`,
+                    weight: 1,
+                    backup: false,
+                    type: 'http',
+                  },
+                ],
+                load_balancing: {
+                  type: LoadBalancerTypeEnum.ROUNDROBIN,
+                },
+                http: {
+                  connectTimeout: 5000,
+                  idleTimeout: 60000,
+                  keepAlive: true,
+                  readTimeout: 10000,
+                  pipelining: false,
+                  maxConcurrentConnections: 100,
+                  useCompression: true,
+                  followRedirects: false,
+                },
+              },
+            ],
+          }),
         }),
       }),
     );
@@ -60,8 +91,7 @@ describe('Gateway - Simple proxy', () => {
       await fetchGatewaySuccess({ contextPath: createdApi.context_path })
         .then((res) => res.json())
         .then((json) => {
-          expect(json.date).toBe('11/05/2022 13:19:44.009');
-          expect(json.timestamp).toBe(1652275184009);
+          expect(json.message).toBe('Hello, World!');
         });
     });
   });

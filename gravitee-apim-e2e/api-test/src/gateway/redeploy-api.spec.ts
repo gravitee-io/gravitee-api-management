@@ -119,8 +119,7 @@ describe('Redeploy Api', () => {
       await fetchUniqueGatewayCall
         .then((res) => res.json())
         .then((json) => {
-          expect(json.date).toBe('11/05/2022 13:19:44.009');
-          expect(json.timestamp).toBe(1652275184009);
+          expect(json.message).toBe('Hello, World!');
         });
     });
   });
