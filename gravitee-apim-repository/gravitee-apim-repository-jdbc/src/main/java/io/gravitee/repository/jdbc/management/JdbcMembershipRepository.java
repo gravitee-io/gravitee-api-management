@@ -484,7 +484,14 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
                         referenceId
                     );
             } else {
-                memberships = jdbcTemplate.query(query, getOrm().getRowMapper(), memberId, memberType.name(), referenceType.name());
+                memberships =
+                    jdbcTemplate.query(
+                        query + " and reference_id is null",
+                        getOrm().getRowMapper(),
+                        memberId,
+                        memberType.name(),
+                        referenceType.name()
+                    );
             }
 
             return new HashSet<>(memberships);
