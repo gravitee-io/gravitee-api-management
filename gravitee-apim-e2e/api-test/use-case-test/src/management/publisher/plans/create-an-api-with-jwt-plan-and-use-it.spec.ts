@@ -32,6 +32,7 @@ import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
 import { LifecycleAction } from '@management-models/LifecycleAction';
 import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@lib/gateway';
 import * as jwt from 'jsonwebtoken';
+import { teardownApisAndApplications } from '@lib/management';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -145,38 +146,6 @@ describe('Create an API with JWT plan and use it', () => {
   });
 
   afterAll(async () => {
-    if (createdApi) {
-      // Stop API
-      await apisResource.doApiLifecycleAction({
-        envId,
-        orgId,
-        api: createdApi.id,
-        action: LifecycleAction.STOP,
-      });
-
-      // Close JWT plan
-      await apiPlansResource.closeApiPlan({
-        envId,
-        orgId,
-        plan: createdJWTPlan.id,
-        api: createdApi.id,
-      });
-
-      // Delete API
-      await apisResource.deleteApi({
-        envId,
-        orgId,
-        api: createdApi.id,
-      });
-    }
-
-    // Delete application
-    if (createdApplication) {
-      await applicationsResource.deleteApplication({
-        envId,
-        orgId,
-        application: createdApplication.id,
-      });
-    }
+    await teardownApisAndApplications(orgId, envId, [createdApi.id], [createdApplication.id]);
   });
 });
