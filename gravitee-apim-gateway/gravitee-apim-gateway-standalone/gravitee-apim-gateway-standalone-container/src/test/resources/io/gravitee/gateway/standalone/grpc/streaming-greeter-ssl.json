@@ -1,0 +1,24 @@
+{
+  "id": "api-streaming-greeter",
+  "name": "streaming-greeter",
+
+  "proxy": {
+    "context_path": "/manualflowcontrol.StreamingGreeter",
+    "endpoints": [
+      {
+        "name": "endpoint",
+        "type": "grpc",
+        "target": "https://localhost:50051/manualflowcontrol.StreamingGreeter",
+        "ssl": {
+          "trustAll": true
+        }
+      }
+    ],
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}
