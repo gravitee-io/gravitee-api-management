@@ -29,7 +29,6 @@ volumes:
 services:
   mongodb:
     image: mongo:${MONGODB_VERSION:-4.0.28}
-    container_name: gio_apim_mongodb
     restart: always
     volumes:
       - data-mongo:/data/db
@@ -39,7 +38,6 @@ services:
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-7.7.0}
-    container_name: gio_apim_elasticsearch
     restart: always
     volumes:
       - data-elasticsearch:/usr/share/elasticsearch/data
@@ -61,8 +59,7 @@ services:
       - storage
 
   gateway:
-    image: graviteeio/apim-gateway:${APIM_VERSION:-nightly}
-    container_name: gio_apim_https_gateway
+    image: graviteeio/apim-gateway:${APIM_VERSION:-latest}
     restart: always
     ports:
       - "8082:8082"
@@ -72,10 +69,12 @@ services:
     volumes:
       - ./.logs/apim-gateway-internal:/opt/graviteeio-gateway/logs
       - ./.certificates:/opt/graviteeio-gateway/certificates
+      - ./.plugins:/opt/graviteeio-gateway/plugins-ext
     environment:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_http_alpn=true
       - gravitee_http_secured=true
       - gravitee_http_ssl_clientAuth=request
       - gravitee_http_ssl_keystore_type=pkcs12
@@ -84,13 +83,14 @@ services:
       - gravitee_http_ssl_truststore_type=pkcs12
       - gravitee_http_ssl_truststore_path=/opt/graviteeio-gateway/certificates/ca.p12
       - gravitee_http_ssl_truststore_password=ca-secret
+      - gravitee_plugins_path_0=$${gravitee.home}/plugins
+      - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
     networks:
       - storage
       - frontend
 
   management_api:
-    image: graviteeio/apim-management-api:${APIM_VERSION:-nightly}
-    container_name: gio_apim_management_api
+    image: graviteeio/apim-management-api:${APIM_VERSION:-latest}
     restart: always
     ports:
       - "8083:8083"
@@ -110,8 +110,7 @@ services:
       - frontend
 
   management_ui:
-    image: graviteeio/apim-management-ui:${APIM_VERSION:-nightly}
-    container_name: gio_apim_management_ui
+    image: graviteeio/apim-management-ui:${APIM_VERSION:-latest}
     restart: always
     ports:
       - "8084:8080"
@@ -125,8 +124,7 @@ services:
       - frontend
 
   portal_ui:
-    image: graviteeio/apim-portal-ui:${APIM_VERSION:-nightly}
-    container_name: gio_apim_portal_ui
+    image: graviteeio/apim-portal-ui:${APIM_VERSION:-latest}
     restart: always
     ports:
       - "8085:8080"
