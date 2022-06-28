@@ -47,10 +47,6 @@ public class ApiConverter {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public ApiEntity toApiEntity(Api api) {
-        return toApiEntity(api, null);
-    }
-
     public ApiEntity toApiEntity(Api api, PrimaryOwnerEntity primaryOwnerEntity) {
         ApiEntity apiEntity = new ApiEntity();
 

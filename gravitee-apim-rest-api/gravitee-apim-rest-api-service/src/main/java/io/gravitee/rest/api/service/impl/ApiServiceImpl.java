@@ -842,7 +842,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public Optional<ApiEntity> findByEnvironmentIdAndCrossId(String environment, String crossId) {
         try {
-            return apiRepository.findByEnvironmentIdAndCrossId(environment, crossId).map(apiConverter::toApiEntity);
+            return apiRepository.findByEnvironmentIdAndCrossId(environment, crossId).map(api -> apiConverter.toApiEntity(api, null));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 "An error occurred while finding API by environment " + environment + " and crossId " + crossId,
@@ -3578,7 +3578,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void triggerUpdateNotification(ExecutionContext executionContext, Api api) {
-        ApiEntity apiEntity = apiConverter.toApiEntity(api);
+        ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
         triggerNotification(executionContext, apiEntity.getId(), ApiHook.API_UPDATED, apiEntity);
     }
 
