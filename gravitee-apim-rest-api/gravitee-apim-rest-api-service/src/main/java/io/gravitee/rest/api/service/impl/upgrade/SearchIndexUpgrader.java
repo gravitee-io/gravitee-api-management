@@ -28,8 +28,10 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -61,6 +63,8 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
 
     private final ApiRepository apiRepository;
 
+    private final ApiService apiService;
+
     private final PageService pageService;
 
     private final UserRepository userRepository;
@@ -78,6 +82,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     @Autowired
     public SearchIndexUpgrader(
         ApiRepository apiRepository,
+        ApiService apiService,
         PageService pageService,
         UserRepository userRepository,
         SearchEngineService searchEngineService,
@@ -86,6 +91,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         UserConverter userConverter
     ) {
         this.apiRepository = apiRepository;
+        this.apiService = apiService;
         this.pageService = pageService;
         this.userRepository = userRepository;
         this.searchEngineService = searchEngineService;
@@ -154,7 +160,9 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
             }
         );
 
-        return runApiIndexationAsync(new ExecutionContext(organizationId, environmentId), apiConverter.toApiEntity(api), executorService);
+        ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
+        PrimaryOwnerEntity primaryOwner = apiService.getPrimaryOwner(executionContext, api.getId());
+        return runApiIndexationAsync(executionContext, apiConverter.toApiEntity(api, primaryOwner), executorService);
     }
 
     private CompletableFuture<?> runApiIndexationAsync(
