@@ -200,10 +200,6 @@ public class ApisResource extends AbstractResource<Api, String> {
         return filter != null ? FilteringService.FilterType.valueOf(filter.name()) : null;
     }
 
-    private Collection<String> findApisForCurrentUser(ApisParam apisParam) {
-        return findApisForCurrentUser(apisParam, null);
-    }
-
     private Collection<String> findApisForCurrentUser(ApisParam apisParam, ApiQuery apiQuery) {
         return filteringService.filterApis(
             getAuthenticatedUserOrNull(),
