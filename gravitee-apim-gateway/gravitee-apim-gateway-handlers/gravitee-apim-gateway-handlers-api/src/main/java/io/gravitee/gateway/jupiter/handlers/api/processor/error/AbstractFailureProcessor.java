@@ -55,16 +55,20 @@ public abstract class AbstractFailureProcessor implements Processor {
     @Override
     public Completable execute(final RequestExecutionContext executionContext) {
         ExecutionFailure executionFailure = executionContext.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
-        if (executionFailure != null) {
-            // If no application has been associated to the request (for example in case security chain can not be processed
-            // correctly) set the default application to track it.
-            if (executionContext.request().metrics().getApplication() == null) {
-                executionContext.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
-            }
 
-            return processFailure(executionContext, executionFailure);
+        if (executionFailure == null) {
+            executionFailure =
+                new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
+                .message(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
         }
-        return Completable.complete();
+
+        // If no application has been associated to the request (for example in case security chain can not be processed
+        // correctly) set the default application to track it.
+        if (executionContext.request().metrics().getApplication() == null) {
+            executionContext.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
+        }
+
+        return processFailure(executionContext, executionFailure);
     }
 
     protected Completable processFailure(final RequestExecutionContext context, final ExecutionFailure executionFailure) {

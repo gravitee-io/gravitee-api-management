@@ -32,7 +32,7 @@ public class PlanProcessor implements Processor {
 
     static final String APPLICATION_NAME_ANONYMOUS = "1";
     static final String PLAN_NAME_ANONYMOUS = "1";
-    public static final String ID = "plan";
+    public static final String ID = "processor-plan";
 
     private PlanProcessor() {}
 

@@ -68,14 +68,18 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
         this.subscriber = subscriber;
         this.subscription = new ProxyResponseSubscription();
 
-        // Capture all the chunks and write them in the response.
-        proxyResponse.bodyHandler(this::handleChunk);
+        if (proxyResponse != null) {
+            // Capture all the chunks and write them in the response.
+            proxyResponse.bodyHandler(this::handleChunk);
 
-        // When complete, propagate the complete event to the reactive chain.
-        proxyResponse.endHandler(v -> handleEnd());
+            // When complete, propagate the complete event to the reactive chain.
+            proxyResponse.endHandler(v -> handleEnd());
 
-        // Finally, pass the subscription to the subscriber, so it can invoke onNext on it.
-        subscriber.onSubscribe(subscription);
+            // Finally, pass the subscription to the subscriber, so it can invoke onNext on it.
+            subscriber.onSubscribe(subscription);
+        } else {
+            subscriber.onComplete();
+        }
     }
 
     private void handleChunk(Buffer chunk) {

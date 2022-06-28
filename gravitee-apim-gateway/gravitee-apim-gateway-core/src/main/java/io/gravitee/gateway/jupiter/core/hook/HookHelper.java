@@ -25,6 +25,7 @@ import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import java.util.List;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,7 @@ public class HookHelper {
     private HookHelper() {}
 
     public static <T extends Hook> Completable hook(
-        final Completable completable,
+        final Supplier<Completable> completableSupplier,
         final String componentId,
         final List<T> hooks,
         final RequestExecutionContext ctx,
@@ -47,19 +48,19 @@ public class HookHelper {
     ) {
         if (hooks != null && !hooks.isEmpty()) {
             return executeHooks(componentId, hooks, HookPhase.PRE, ctx, executionPhase, null, null)
-                .andThen(completable)
+                .andThen(Completable.defer(completableSupplier::get))
                 .andThen(executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null))
                 .onErrorResumeNext(
                     throwable ->
                         executeHookOnError(componentId, hooks, ctx, executionPhase, throwable).andThen(Completable.error(throwable))
                 );
         } else {
-            return completable;
+            return completableSupplier.get();
         }
     }
 
-    public static <T> Maybe<T> hook(
-        final Maybe<T> maybe,
+    public static <T> Maybe<T> hookMaybe(
+        final Supplier<Maybe<T>> maybeSupplier,
         final String componentId,
         final List<MessageHook> hooks,
         final RequestExecutionContext ctx,
@@ -67,7 +68,7 @@ public class HookHelper {
     ) {
         if (hooks != null && !hooks.isEmpty()) {
             return executeHooks(componentId, hooks, HookPhase.PRE, ctx, executionPhase, null, null)
-                .andThen(maybe)
+                .andThen(Maybe.defer(maybeSupplier::get))
                 .switchIfEmpty(executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null).toMaybe())
                 .flatMap(t -> executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null).andThen(Maybe.just(t)))
                 .onErrorResumeNext(
@@ -76,7 +77,7 @@ public class HookHelper {
                     }
                 );
         } else {
-            return maybe;
+            return maybeSupplier.get();
         }
     }
 

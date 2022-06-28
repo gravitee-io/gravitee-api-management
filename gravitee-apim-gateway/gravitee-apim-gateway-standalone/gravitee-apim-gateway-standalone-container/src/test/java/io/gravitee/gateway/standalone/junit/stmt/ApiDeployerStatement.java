@@ -161,6 +161,7 @@ public class ApiDeployerStatement extends Statement {
             }
             apiToRegister.setDeployedAt(new Date());
             apiManager.register(apiToRegister);
+            api.setExecutionMode(apiToRegister.getExecutionMode());
             base.evaluate();
         } catch (Exception e) {
             logger.error("An error occurred", e);

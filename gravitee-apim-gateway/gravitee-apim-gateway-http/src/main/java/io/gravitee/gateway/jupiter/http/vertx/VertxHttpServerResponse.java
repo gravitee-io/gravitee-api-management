@@ -31,7 +31,7 @@ import io.vertx.reactivex.core.http.HttpServerResponse;
 public class VertxHttpServerResponse extends AbstractHttpChunks implements MutableResponse {
 
     protected final VertxHttpServerRequest serverRequest;
-    protected final HttpHeaders headers;
+    protected HttpHeaders headers;
     protected final HttpHeaders trailers;
     protected final HttpServerResponse nativeResponse;
 
@@ -96,7 +96,7 @@ public class VertxHttpServerResponse extends AbstractHttpChunks implements Mutab
             }
 
             // As per https://tools.ietf.org/html/rfc7540#section-8.1.2.2
-            // connection-specific header fields must be remove from response headers
+            // connection-specific header fields must be removed from response headers
             headers
                 .remove(io.vertx.core.http.HttpHeaders.CONNECTION)
                 .remove(io.vertx.core.http.HttpHeaders.KEEP_ALIVE)
@@ -131,5 +131,10 @@ public class VertxHttpServerResponse extends AbstractHttpChunks implements Mutab
                 return nativeResponse.rxEnd();
             }
         );
+    }
+
+    @Override
+    public void setHeaders(HttpHeaders headers) {
+        this.headers = headers;
     }
 }

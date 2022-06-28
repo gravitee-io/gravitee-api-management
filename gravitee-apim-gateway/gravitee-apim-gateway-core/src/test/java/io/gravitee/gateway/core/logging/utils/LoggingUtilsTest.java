@@ -15,77 +15,175 @@
  */
 package io.gravitee.gateway.core.logging.utils;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Logging;
+import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.logging.LoggingContext;
-import java.lang.reflect.Field;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class LoggingUtilsTest {
+@ExtendWith(MockitoExtension.class)
+class LoggingUtilsTest {
+
+    @Mock
+    private ExecutionContext executionContext;
+
+    @Mock
+    private LoggingContext loggingContext;
+
+    @BeforeEach
+    void init() {
+        ReflectionTestUtils.setField(LoggingUtils.class, "EXCLUDED_CONTENT_TYPES_PATTERN", null);
+    }
 
     @Test
-    public void shouldLogByDefault() throws Exception {
-        resetStatic();
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+    void shouldLogByDefault() throws Exception {
         assertTrue(LoggingUtils.isContentTypeLoggable("application/json", executionContext));
     }
 
     @Test
-    public void shouldNotLogImageByDefault() throws Exception {
-        resetStatic();
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+    void shouldNotLogImageByDefault() throws Exception {
         assertFalse(LoggingUtils.isContentTypeLoggable("image/png", executionContext));
     }
 
     @Test
-    public void shouldNotLogAudioByDefault() throws Exception {
-        resetStatic();
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+    void shouldNotLogAudioByDefault() throws Exception {
         assertFalse(LoggingUtils.isContentTypeLoggable("audio/ogg", executionContext));
     }
 
     @Test
-    public void shouldNotLogVideoByDefault() throws Exception {
-        resetStatic();
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+    void shouldNotLogVideoByDefault() throws Exception {
         assertFalse(LoggingUtils.isContentTypeLoggable("video/ogg", executionContext));
     }
 
     @Test
-    public void shouldNotLogPDFByDefault() throws Exception {
-        resetStatic();
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+    void shouldNotLogPDFByDefault() throws Exception {
         assertFalse(LoggingUtils.isContentTypeLoggable("application/pdf", executionContext));
     }
 
     @Test
-    public void shouldNotLogCustom() throws Exception {
-        resetStatic();
-        LoggingContext loggingContext = mock(LoggingContext.class);
+    void shouldNotLogCustom() throws Exception {
         when(loggingContext.getExcludedResponseTypes()).thenReturn("foo/bar");
-        ExecutionContext executionContext = mock(ExecutionContext.class);
         when(executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE)).thenReturn(loggingContext);
         assertFalse(LoggingUtils.isContentTypeLoggable("foo/bar", executionContext));
     }
 
     @Test
-    public void shouldLogCustom() throws Exception {
-        resetStatic();
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+    void shouldLogCustom() throws Exception {
         assertTrue(LoggingUtils.isContentTypeLoggable("foo/bar", executionContext));
     }
 
-    private void resetStatic() throws NoSuchFieldException, IllegalAccessException {
-        Field pathField = LoggingUtils.class.getDeclaredField("EXCLUDED_CONTENT_TYPES_PATTERN");
-        pathField.setAccessible(true);
-        pathField.set(null, null);
+    @Test
+    void shouldAppendBufferWhenUnlimitedMaxSize() {
+        final Buffer buffer = Buffer.buffer("Existing buffer ");
+        final Buffer chunk = Buffer.buffer("Chunk to append");
+
+        LoggingUtils.appendBuffer(buffer, chunk, -1);
+
+        assertEquals("Existing buffer Chunk to append", buffer.toString());
+    }
+
+    @Test
+    void shouldAppendBufferWhenMaxSizeNotExceed() {
+        final Buffer buffer = Buffer.buffer("Existing buffer ");
+        final Buffer chunk = Buffer.buffer("Chunk to append");
+
+        LoggingUtils.appendBuffer(buffer, chunk, 50);
+
+        assertEquals("Existing buffer Chunk to append", buffer.toString());
+    }
+
+    @Test
+    void shouldAppendPartialBufferWhenMaxSizeExceed() {
+        final Buffer buffer = Buffer.buffer("Existing buffer ");
+        final Buffer chunk = Buffer.buffer("Chunk to append");
+
+        LoggingUtils.appendBuffer(buffer, chunk, 21);
+
+        assertEquals("Existing buffer Chunk", buffer.toString());
+    }
+
+    @Test
+    void shouldNotAppendBufferWhenMaxSizeExceed() {
+        final Buffer buffer = Buffer.buffer("Existing buffer ");
+        final Buffer chunk = Buffer.buffer("Chunk to append");
+
+        LoggingUtils.appendBuffer(buffer, chunk, 1);
+
+        assertEquals("Existing buffer ", buffer.toString());
+    }
+
+    @Test
+    void shouldGetLoggingContextFromApi() {
+        final Api api = new Api();
+        final Proxy proxy = new Proxy();
+        final Logging logging = new Logging();
+        logging.setMode(LoggingMode.CLIENT_PROXY);
+        proxy.setLogging(logging);
+        api.setProxy(proxy);
+
+        final LoggingContext loggingContext = LoggingUtils.getLoggingContext(api);
+        assertNotNull(loggingContext);
+        assertTrue(loggingContext.clientMode());
+        assertTrue(loggingContext.proxyMode());
+    }
+
+    @Test
+    void shouldGetNullLoggingContextFromApiWhenNullLoggingConfiguration() {
+        final Api api = new Api();
+        final Proxy proxy = new Proxy();
+        proxy.setLogging(null);
+        api.setProxy(proxy);
+
+        final LoggingContext loggingContext = LoggingUtils.getLoggingContext(api);
+        assertNull(loggingContext);
+    }
+
+    @Test
+    void shouldGetNullLoggingContextFromApiWhenNoneLoggingConfiguration() {
+        final Api api = new Api();
+        final Proxy proxy = new Proxy();
+        final Logging logging = new Logging();
+        logging.setMode(LoggingMode.NONE);
+        proxy.setLogging(logging);
+        api.setProxy(proxy);
+
+        final LoggingContext loggingContext = LoggingUtils.getLoggingContext(api);
+        assertNull(loggingContext);
+    }
+
+    @Test
+    void shouldReturnInfiniteMaxSizeLogMessageWhenLoggingContextIsNull() {
+        when(executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE)).thenReturn(null);
+        assertEquals(-1, LoggingUtils.getMaxSizeLogMessage(executionContext));
+    }
+
+    @Test
+    void shouldReturnConfigureMaxSizeLogMessageWhenLoggingContextIsNull() {
+        final int maxSizeLogMessage = 10;
+        when(loggingContext.getMaxSizeLogMessage()).thenReturn(maxSizeLogMessage);
+        when(executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE)).thenReturn(loggingContext);
+
+        assertEquals(maxSizeLogMessage, LoggingUtils.getMaxSizeLogMessage(executionContext));
+    }
+
+    @Test
+    void shouldReturnInfiniteMaxSizeLogMessageWhenExceptionOccurs() {
+        when(executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE)).thenThrow(new RuntimeException("Mock Exception"));
+        assertEquals(-1, LoggingUtils.getMaxSizeLogMessage(executionContext));
     }
 }

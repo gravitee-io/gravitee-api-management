@@ -55,10 +55,12 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
-    public void shouldCompleteWithChangingResponseWithoutExecutionFailure() {
+    public void shouldCompleteWith500StatusWithoutExecutionFailure() {
         simpleFailureProcessor.execute(ctx).test().assertResult();
-        verifyNoInteractions(mockRequest);
-        verifyNoInteractions(mockResponse);
+        verify(mockMetrics).setApplication(eq("1"));
+        verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
+        verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
     }
 
     @Test

@@ -149,6 +149,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Spring test -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Buffer is required for testing purpose -->
         <dependency>
             <groupId>io.gravitee.apim.gateway</groupId>

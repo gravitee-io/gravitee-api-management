@@ -148,7 +148,7 @@ public class DefaultHttpRequestDispatcher
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
             return HookHelper
                 .hook(
-                    preProcessorChain.execute(ctx, ExecutionPhase.REQUEST),
+                    () -> preProcessorChain.execute(ctx, ExecutionPhase.REQUEST),
                     preProcessorChain.getId(),
                     processorChainHooks,
                     ctx,
@@ -165,7 +165,7 @@ public class DefaultHttpRequestDispatcher
                                 return handleJupiterRequest(ctx, handlerEntrypoint)
                                     .andThen(
                                         HookHelper.hook(
-                                            postProcessorChain.execute(ctx, ExecutionPhase.RESPONSE),
+                                            () -> postProcessorChain.execute(ctx, ExecutionPhase.RESPONSE),
                                             postProcessorChain.getId(),
                                             processorChainHooks,
                                             ctx,
@@ -190,7 +190,7 @@ public class DefaultHttpRequestDispatcher
         ctx.request().contextPath(ctx.request().path());
         ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
         return HookHelper.hook(
-            processorChain.execute(ctx, ExecutionPhase.RESPONSE),
+            () -> processorChain.execute(ctx, ExecutionPhase.RESPONSE),
             processorChain.getId(),
             processorChainHooks,
             ctx,

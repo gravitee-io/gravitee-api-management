@@ -15,15 +15,18 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.adapter.invoker;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.stream.ReadStream;
+import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
 import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +65,9 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
                 nextEmitter -> {
                     log.debug("Executing invoker {}", id);
 
+                    // Http status set to 0 to reflect the fact we are waiting for the backend http status.
+                    ctx.response().status(0);
+
                     // Stream adapter allowing to write the request content to the upstream.
                     final ReadWriteStreamAdapter streamAdapter = new ReadWriteStreamAdapter(adaptedCtx, nextEmitter);
 
@@ -79,7 +85,14 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
                     }
                 }
             )
-            .doFinally(adaptedCtx::restore);
+            .doFinally(adaptedCtx::restore)
+            .onErrorResumeNext(
+                throwable -> {
+                    // In case of any error, make sure to reset the response content.
+                    ctx.response().chunks(Flowable.empty());
+                    return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502));
+                }
+            );
     }
 
     @Override
