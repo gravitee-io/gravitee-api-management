@@ -71,7 +71,7 @@ public class ApiConverterTest {
         apiDefinition.setFlows(List.of(new Flow(), new Flow()));
         when(objectMapper.readValue("my-api-definition", io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
 
-        ApiEntity apiEntity = apiConverter.toApiEntity(api);
+        ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
 
         assertNotNull(apiEntity.getFlows());
         assertEquals(2, apiEntity.getFlows().size());
@@ -87,7 +87,7 @@ public class ApiConverterTest {
         apiDefinition.setFlows(null);
         when(objectMapper.readValue("my-api-definition", io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
 
-        ApiEntity apiEntity = apiConverter.toApiEntity(api);
+        ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
 
         assertNotNull(apiEntity.getFlows());
         assertEquals(0, apiEntity.getFlows().size());
