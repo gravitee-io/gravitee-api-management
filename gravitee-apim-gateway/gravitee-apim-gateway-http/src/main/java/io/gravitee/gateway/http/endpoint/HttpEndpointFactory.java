@@ -17,8 +17,11 @@ package io.gravitee.gateway.http.endpoint;
 
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointType;
+import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.ProtocolVersion;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.api.Connector;
+import io.gravitee.gateway.http.connector.http.Http2Connector;
 import io.gravitee.gateway.http.connector.http.HttpConnector;
 
 /**
@@ -34,6 +37,11 @@ public class HttpEndpointFactory extends AbstractEndpointFactory {
 
     @Override
     protected Connector create(io.gravitee.definition.model.Endpoint endpoint) {
-        return new HttpConnector<>((HttpEndpoint) endpoint);
+        HttpEndpoint httpEndpoint = (HttpEndpoint) endpoint;
+        HttpClientOptions httpClientOptions = httpEndpoint.getHttpClientOptions();
+        if (httpClientOptions != null && ProtocolVersion.HTTP_2.equals(httpClientOptions.getVersion())) {
+            return new Http2Connector<>(httpEndpoint);
+        }
+        return new HttpConnector<>(httpEndpoint);
     }
 }

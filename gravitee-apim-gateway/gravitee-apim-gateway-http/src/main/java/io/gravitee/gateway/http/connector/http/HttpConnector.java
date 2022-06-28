@@ -23,6 +23,8 @@ import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.http.connector.AbstractConnector;
 import io.gravitee.gateway.http.connector.AbstractHttpProxyConnection;
 import io.gravitee.gateway.http.connector.http.ws.WebSocketProxyConnection;
+import java.net.URL;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -31,9 +33,22 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class HttpConnector<T extends HttpEndpoint> extends AbstractConnector<T> {
 
+    protected static final Set<CharSequence> HTTP2_PSEUDO_HEADERS;
+
+    static {
+        HTTP2_PSEUDO_HEADERS = Set.of(Http2PseudoHeaderNames.AUTHORITY, Http2PseudoHeaderNames.PATH, Http2PseudoHeaderNames.SCHEME);
+    }
+
     @Autowired
     public HttpConnector(T endpoint) {
         super(endpoint);
+    }
+
+    @Override
+    protected void convertHeadersForHttpVersion(URL url, ProxyRequest request, String host) {
+        request.headers().set(HttpHeaders.HOST, host);
+        // Strip all HTTP/2 headers
+        HTTP2_PSEUDO_HEADERS.forEach(name -> request.headers().remove(name));
     }
 
     @Override
