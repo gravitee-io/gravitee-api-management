@@ -2456,14 +2456,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public void deleteTagFromAPIs(ExecutionContext executionContext, final String tagId) {
-        findAllByEnvironment(executionContext)
-            .forEach(
-                api -> {
-                    if (api.getTags() != null && api.getTags().contains(tagId)) {
-                        removeTag(executionContext, api.getId(), tagId);
-                    }
-                }
-            );
+        environmentService
+            .findByOrganization(executionContext.getOrganizationId())
+            .stream()
+            .map(ExecutionContext::new)
+            .flatMap(ctx -> findAllByEnvironment(ctx).stream())
+            .filter(api -> api.getTags() != null && api.getTags().contains(tagId))
+            .forEach(api -> removeTag(executionContext, api.getId(), tagId));
     }
 
     @Override
