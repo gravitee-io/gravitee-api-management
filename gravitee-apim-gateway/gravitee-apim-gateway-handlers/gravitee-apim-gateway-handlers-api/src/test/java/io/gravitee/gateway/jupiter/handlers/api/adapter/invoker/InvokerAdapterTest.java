@@ -15,18 +15,26 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.adapter.invoker;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
+import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.jupiter.policy.adapter.context.RequestAdapter;
+import io.reactivex.Completable;
 import io.reactivex.CompletableEmitter;
+import io.reactivex.Flowable;
 import io.reactivex.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,6 +90,8 @@ class InvokerAdapterTest {
     @Test
     public void shouldErrorWhenExceptionOccurs() {
         when(ctx.response()).thenReturn(response);
+        when(ctx.interruptWith(any(ExecutionFailure.class)))
+            .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
 
         doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE))
             .when(invoker)
@@ -89,7 +99,14 @@ class InvokerAdapterTest {
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
-        obs.assertError(e -> e.getCause().getMessage().equals(MOCK_EXCEPTION_MESSAGE));
+        obs.assertError(
+            e -> {
+                assertTrue(e instanceof InterruptionFailureException);
+                assertEquals(HttpStatusCode.BAD_GATEWAY_502, ((InterruptionFailureException) e).getExecutionFailure().statusCode());
+                return true;
+            }
+        );
+        verify(response).chunks(Flowable.empty());
     }
 
     @Test
@@ -139,6 +156,8 @@ class InvokerAdapterTest {
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
+        when(ctx.interruptWith(any(ExecutionFailure.class)))
+            .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
 
         doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE))
             .when(invoker)
@@ -146,8 +165,15 @@ class InvokerAdapterTest {
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
-        obs.assertError(e -> e.getCause().getMessage().equals(MOCK_EXCEPTION_MESSAGE));
+        obs.assertError(
+            e -> {
+                assertTrue(e instanceof InterruptionFailureException);
+                assertEquals(HttpStatusCode.BAD_GATEWAY_502, ((InterruptionFailureException) e).getExecutionFailure().statusCode());
+                return true;
+            }
+        );
         verify(adaptedExecutionContext).restore();
+        verify(response).chunks(Flowable.empty());
     }
 
     private void mockComplete() {

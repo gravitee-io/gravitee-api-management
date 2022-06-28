@@ -15,10 +15,16 @@
  */
 package io.gravitee.gateway.core.logging.utils;
 
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Logging;
+import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.logging.LoggingContext;
+import io.reactivex.Completable;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -33,19 +39,44 @@ public final class LoggingUtils {
 
     private static Pattern EXCLUDED_CONTENT_TYPES_PATTERN;
 
+    @Nullable
+    public static LoggingContext getLoggingContext(@Nonnull final Api api) {
+        final Logging logging = api.getProxy().getLogging();
+
+        if (logging != null) {
+            final LoggingMode loggingMode = logging.getMode();
+
+            if (loggingMode != null && loggingMode != LoggingMode.NONE) {
+                return new LoggingContext(logging);
+            }
+        }
+
+        return null;
+    }
+
     public static int getMaxSizeLogMessage(ExecutionContext executionContext) {
         try {
-            return getLoggingContext(executionContext).getMaxSizeLogMessage();
+            final LoggingContext loggingContext = getLoggingContext(executionContext);
+
+            if (loggingContext == null) {
+                return -1;
+            }
+
+            return loggingContext.getMaxSizeLogMessage();
         } catch (Exception ex) {
             return -1;
         }
     }
 
     public static boolean isContentTypeLoggable(final String contentType, final ExecutionContext executionContext) {
+        return isContentTypeLoggable(contentType, getLoggingContext(executionContext));
+    }
+
+    public static boolean isContentTypeLoggable(final String contentType, final LoggingContext loggingContext) {
         // init pattern
         if (EXCLUDED_CONTENT_TYPES_PATTERN == null) {
             try {
-                final String responseTypes = getLoggingContext(executionContext).getExcludedResponseTypes();
+                final String responseTypes = loggingContext.getExcludedResponseTypes();
                 EXCLUDED_CONTENT_TYPES_PATTERN = Pattern.compile(responseTypes);
             } catch (Exception e) {
                 EXCLUDED_CONTENT_TYPES_PATTERN = Pattern.compile(DEFAULT_EXCLUDED_CONTENT_TYPES);
@@ -100,7 +131,7 @@ public final class LoggingUtils {
     }
 
     public static void appendBuffer(Buffer buffer, Buffer chunk, int maxLength) {
-        if ((buffer.length() + chunk.length()) > maxLength) {
+        if (maxLength != -1 && (buffer.length() + chunk.length()) > maxLength) {
             final int remainingSpace = maxLength - buffer.length();
             if (remainingSpace > 0) {
                 buffer.appendBuffer(chunk, remainingSpace);

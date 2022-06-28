@@ -93,6 +93,15 @@ class FlowableProxyResponseTest {
     }
 
     @Test
+    public void shouldErrorImmediatelyWhenNoProxyResponse() {
+        cut = new FlowableProxyResponse();
+
+        final TestSubscriber<Buffer> obs = cut.test();
+
+        obs.assertComplete();
+    }
+
+    @Test
     public void shouldCompleteAndReceiveProxyResponseWhenSubscribing() {
         final TestSubscriber<Buffer> obs = cut.test();
 

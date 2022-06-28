@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.jupiter.policy;
 
+import static io.reactivex.Completable.defer;
+
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
@@ -115,7 +117,7 @@ public class PolicyChain implements Hookable<Hook> {
         }
 
         if (ExecutionPhase.REQUEST == phase || ExecutionPhase.ASYNC_REQUEST == phase) {
-            Completable requestExecution = HookHelper.hook(policy.onRequest(ctx), policy.id(), policyHooks, ctx, phase);
+            Completable requestExecution = HookHelper.hook(() -> policy.onRequest(ctx), policy.id(), policyHooks, ctx, phase);
             if (ExecutionPhase.ASYNC_REQUEST == phase) {
                 MessageExecutionContext messageExecutionContext = (MessageExecutionContext) ctx;
                 return requestExecution.andThen(
@@ -127,8 +129,8 @@ public class PolicyChain implements Hookable<Hook> {
                                     .onMessageFlow(messageExecutionContext, upstream)
                                     .flatMapMaybe(
                                         message ->
-                                            HookHelper.hook(
-                                                policy.onMessage(messageExecutionContext, message),
+                                            HookHelper.hookMaybe(
+                                                () -> policy.onMessage(messageExecutionContext, message),
                                                 policy.id(),
                                                 messageHooks,
                                                 ctx,
@@ -140,7 +142,7 @@ public class PolicyChain implements Hookable<Hook> {
             }
             return requestExecution;
         } else {
-            Completable responseExecution = HookHelper.hook(policy.onResponse(ctx), policy.id(), policyHooks, ctx, phase);
+            Completable responseExecution = HookHelper.hook(() -> policy.onResponse(ctx), policy.id(), policyHooks, ctx, phase);
             if (ExecutionPhase.ASYNC_RESPONSE == phase) {
                 MessageExecutionContext messageExecutionContext = (MessageExecutionContext) ctx;
                 return responseExecution.andThen(
@@ -152,8 +154,8 @@ public class PolicyChain implements Hookable<Hook> {
                                     .onMessageFlow(messageExecutionContext, upstream)
                                     .flatMapMaybe(
                                         message ->
-                                            HookHelper.hook(
-                                                policy.onMessage(messageExecutionContext, message),
+                                            HookHelper.hookMaybe(
+                                                () -> policy.onMessage(messageExecutionContext, message),
                                                 policy.id(),
                                                 messageHooks,
                                                 ctx,

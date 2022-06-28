@@ -60,7 +60,7 @@ public class ProcessorChain implements Hookable<ProcessorHook> {
 
     private Completable executeNext(final RequestExecutionContext ctx, final Processor processor, final ExecutionPhase phase) {
         log.debug("Executing processor {}", processor.getId());
-        return HookHelper.hook(processor.execute(ctx), processor.getId(), processorHooks, ctx, phase);
+        return HookHelper.hook(() -> processor.execute(ctx), processor.getId(), processorHooks, ctx, phase);
     }
 
     public String getId() {

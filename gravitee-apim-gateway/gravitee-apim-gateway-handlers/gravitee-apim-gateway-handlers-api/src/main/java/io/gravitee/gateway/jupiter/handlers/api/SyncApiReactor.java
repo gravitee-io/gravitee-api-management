@@ -28,6 +28,8 @@ import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
+import io.gravitee.gateway.core.logging.LoggingContext;
+import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
@@ -45,6 +47,7 @@ import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.hook.logging.LoggingHook;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.security.SecurityChain;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
@@ -78,6 +81,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final Api api;
     protected final List<ChainHook> processorChainHooks;
     protected final List<InvokerHook> invokerHooks;
+    protected final LoggingContext loggingContext;
     protected final ComponentProvider componentProvider;
     protected final List<TemplateVariableProvider> templateVariableProviders;
     protected final Invoker defaultInvoker;
@@ -129,14 +133,21 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         this.node = node;
 
-        tracingEnabled = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
-        pendingRequestsTimeout = configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L);
+        this.tracingEnabled = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
+        this.pendingRequestsTimeout = configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L);
 
-        processorChainHooks = new ArrayList<>();
-        invokerHooks = new ArrayList<>();
+        this.processorChainHooks = new ArrayList<>();
+        this.invokerHooks = new ArrayList<>();
+
         if (tracingEnabled) {
             processorChainHooks.add(new TracingHook("processor-chain"));
             invokerHooks.add(new TracingHook("invoker"));
+        }
+
+        this.loggingContext = LoggingUtils.getLoggingContext(api);
+
+        if (loggingContext != null) {
+            invokerHooks.add(new LoggingHook());
         }
     }
 
@@ -164,6 +175,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         ctx.setAttribute(ExecutionContext.ATTR_INVOKER, defaultInvoker);
         ctx.setAttribute(ExecutionContext.ATTR_ORGANIZATION, api.getOrganizationId());
         ctx.setAttribute(ExecutionContext.ATTR_ENVIRONMENT, api.getEnvironmentId());
+        ctx.setInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE, loggingContext);
     }
 
     private void prepareMetrics(RequestExecutionContext ctx) {
@@ -195,7 +207,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             // Platform post flows must always be executed
             .andThen(executeFlowChain(ctx, platformFlowChain, RESPONSE))
             // Catch all possible unexpected errors.
-            .onErrorResumeNext(t -> handleError(ctx, t))
+            .onErrorResumeNext(t -> handleUnexpectedError(ctx, t))
             // Finally, end the response.
             .andThen(endResponse(ctx));
     }
@@ -214,7 +226,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final ProcessorChain processorChain,
         final ExecutionPhase phase
     ) {
-        return defer(() -> HookHelper.hook(processorChain.execute(ctx, phase), processorChain.getId(), processorChainHooks, ctx, phase));
+        return HookHelper.hook(() -> processorChain.execute(ctx, phase), processorChain.getId(), processorChainHooks, ctx, phase);
     }
 
     /**
@@ -245,7 +257,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
                         Invoker invoker = getInvoker(ctx);
 
                         if (invoker != null) {
-                            return HookHelper.hook(invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
+                            return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
                         }
                     }
                     return Completable.complete();
@@ -307,7 +319,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         }
     }
 
-    private Completable handleError(final RequestExecutionContext ctx, final Throwable throwable) {
+    private Completable handleUnexpectedError(final RequestExecutionContext ctx, final Throwable throwable) {
         return Completable.fromRunnable(
             () -> {
                 log.error("Unexpected error while handling request", throwable);

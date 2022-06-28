@@ -47,7 +47,7 @@ public class AbstractHttpChunks {
 
     public void body(Buffer buffer) {
         this.requiredBodyCache.set(true);
-        this.chunks = chunks().compose(upstream -> Flowable.just(buffer));
+        this.chunks = chunks().compose(upstream -> upstream.ignoreElements().andThen(Flowable.just(buffer)));
     }
 
     public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
@@ -64,11 +64,7 @@ public class AbstractHttpChunks {
 
     public void chunks(final Flowable<Buffer> chunks) {
         this.requiredBodyCache.set(true);
-        if (this.chunks == null) {
-            this.chunks = chunks;
-        } else {
-            this.chunks = this.chunks.compose(upstream -> chunks);
-        }
+        this.chunks = chunks;
     }
 
     public Completable onChunk(final FlowableTransformer<Buffer, Buffer> chunkTransformer) {

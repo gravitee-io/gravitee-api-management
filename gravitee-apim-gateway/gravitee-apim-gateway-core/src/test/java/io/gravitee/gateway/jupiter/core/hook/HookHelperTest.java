@@ -72,7 +72,7 @@ class HookHelperTest {
     public void shouldCompleteWithoutHookingCompleteCompletable() {
         // Just use call a mock to be sure the completable has been subscribed
         Completable completable = Completable.fromRunnable(() -> mockCtx.getAttributes());
-        HookHelper.hook(completable, "componentId", List.of(), mockCtx, ExecutionPhase.REQUEST).test().assertResult();
+        HookHelper.hook(() -> completable, "componentId", List.of(), mockCtx, ExecutionPhase.REQUEST).test().assertResult();
         verifyNoMoreInteractions(mockHook);
         verify(mockCtx).getAttributes();
         verifyNoMoreInteractions(mockHook2);
@@ -82,7 +82,10 @@ class HookHelperTest {
     public void shouldCompleteWhenHookingCompleteCompletable() {
         // Just use call a mock to be sure the completable has been subscribed
         Completable completable = Completable.fromRunnable(() -> mockCtx.getAttributes());
-        HookHelper.hook(completable, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST).test().assertResult();
+        HookHelper
+            .hook(() -> completable, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
+            .test()
+            .assertResult();
         verify(mockHook).pre(eq("componentId"), any(), any());
         verify(mockHook).post(eq("componentId"), any(), any());
         verify(mockHook, times(0)).error(any(), any(), any(), any());
@@ -104,7 +107,7 @@ class HookHelperTest {
     public void shouldCompleteOnErrorWhenHookingErrorCompletable() {
         Completable completable = Completable.error(new RuntimeException());
         HookHelper
-            .hook(completable, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
+            .hook(() -> completable, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
             .test()
             .assertFailure(RuntimeException.class);
         verify(mockHook).pre(eq("componentId"), any(), any());
@@ -125,7 +128,7 @@ class HookHelperTest {
     public void shouldCompleteOnErrorWhenHookingInterruptionCompletable() {
         Completable completable = Completable.error(new InterruptionException());
         HookHelper
-            .hook(completable, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
+            .hook(() -> completable, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
             .test()
             .assertFailure(RuntimeException.class);
         verify(mockHook).pre(eq("componentId"), any(), any());
@@ -146,7 +149,7 @@ class HookHelperTest {
     public void shouldCompleteOnErrorWhenHookingInterruptionWithFailureCompletable() {
         Completable completable = Completable.error(new InterruptionFailureException(new ExecutionFailure(404)));
         HookHelper
-            .hook(completable, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
+            .hook(() -> completable, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
             .test()
             .assertFailure(RuntimeException.class);
         verify(mockHook).pre(eq("componentId"), any(), any());
@@ -171,7 +174,7 @@ class HookHelperTest {
                 return "string";
             }
         );
-        HookHelper.hook(maybe, "componentId", List.of(), mockCtx, ExecutionPhase.REQUEST).test().assertResult("string");
+        HookHelper.hookMaybe(() -> maybe, "componentId", List.of(), mockCtx, ExecutionPhase.REQUEST).test().assertResult("string");
         verifyNoMoreInteractions(mockHook);
         verify(mockCtx).getAttributes();
         verifyNoMoreInteractions(mockHook2);
@@ -186,7 +189,10 @@ class HookHelperTest {
                 return "string";
             }
         );
-        HookHelper.hook(maybe, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST).test().assertResult("string");
+        HookHelper
+            .hookMaybe(() -> maybe, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
+            .test()
+            .assertResult("string");
         verify(mockHook).pre(eq("componentId"), any(), any());
         verify(mockHook).post(eq("componentId"), any(), any());
         verify(mockHook, times(0)).error(any(), any(), any(), any());
@@ -213,7 +219,10 @@ class HookHelperTest {
                 return null;
             }
         );
-        HookHelper.hook(maybe, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST).test().assertResult();
+        HookHelper
+            .hookMaybe(() -> maybe, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
+            .test()
+            .assertResult();
         verify(mockHook).pre(eq("componentId"), any(), any());
         verify(mockHook).post(eq("componentId"), any(), any());
         verify(mockHook, times(0)).error(any(), any(), any(), any());
@@ -233,9 +242,9 @@ class HookHelperTest {
 
     @Test
     public void shouldReturnMaybeOnErrorWhenHookingErrorMaybe() {
-        Maybe maybe = Maybe.error(new RuntimeException());
+        Maybe<?> maybe = Maybe.error(new RuntimeException());
         HookHelper
-            .hook(maybe, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
+            .hookMaybe(() -> maybe, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
             .test()
             .assertFailure(RuntimeException.class);
         verify(mockHook).pre(eq("componentId"), any(), any());
@@ -254,9 +263,9 @@ class HookHelperTest {
 
     @Test
     public void shouldReturnMaybeOnErrorWhenHookingInterruptionCompletable() {
-        Maybe maybe = Maybe.error(new InterruptionException());
+        Maybe<?> maybe = Maybe.error(new InterruptionException());
         HookHelper
-            .hook(maybe, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
+            .hookMaybe(() -> maybe, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
             .test()
             .assertFailure(RuntimeException.class);
         verify(mockHook).pre(eq("componentId"), any(), any());
@@ -275,9 +284,9 @@ class HookHelperTest {
 
     @Test
     public void shouldReturnMaybeOnErrorWhenHookingInterruptionWithFailureCompletable() {
-        Maybe maybe = Maybe.error(new InterruptionFailureException(new ExecutionFailure(404)));
+        Maybe<?> maybe = Maybe.error(new InterruptionFailureException(new ExecutionFailure(404)));
         HookHelper
-            .hook(maybe, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
+            .hookMaybe(() -> maybe, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
             .test()
             .assertFailure(RuntimeException.class);
         verify(mockHook).pre(eq("componentId"), any(), any());

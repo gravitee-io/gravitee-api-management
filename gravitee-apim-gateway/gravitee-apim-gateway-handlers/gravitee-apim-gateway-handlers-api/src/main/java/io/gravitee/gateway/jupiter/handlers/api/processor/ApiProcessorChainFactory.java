@@ -16,6 +16,10 @@
 package io.gravitee.gateway.jupiter.handlers.api.processor;
 
 import io.gravitee.definition.model.Cors;
+import io.gravitee.definition.model.Logging;
+import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.gateway.core.logging.LoggingContext;
+import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
@@ -26,11 +30,14 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.cors.CorsSimpleRequest
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.SimpleFailureProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.template.ResponseTemplateBasedFailureProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.forward.XForwardedPrefixProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogRequestProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogResponseProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.plan.PlanProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.reactivex.Completable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +75,11 @@ public class ApiProcessorChainFactory {
         }
 
         preProcessorList.add(PlanProcessor.instance());
+
+        if (LoggingUtils.getLoggingContext(api) != null) {
+            preProcessorList.add(LogRequestProcessor.instance());
+        }
+
         ProcessorChain processorChain = new ProcessorChain("processor-chain-pre-api", preProcessorList);
         processorChain.addHooks(processorHooks);
         return processorChain;
@@ -84,6 +96,10 @@ public class ApiProcessorChainFactory {
         Map<String, Pattern> pathMappings = api.getPathMappings();
         if (pathMappings != null && !pathMappings.isEmpty()) {
             postProcessorList.add(PathMappingProcessor.instance());
+        }
+
+        if (LoggingUtils.getLoggingContext(api) != null) {
+            postProcessorList.add(LogResponseProcessor.instance());
         }
 
         ProcessorChain processorChain = new ProcessorChain("processor-chain-post-api", postProcessorList);
@@ -108,7 +124,11 @@ public class ApiProcessorChainFactory {
             errorProcessorList.add(SimpleFailureProcessor.instance());
         }
 
-        ProcessorChain processorChain = new ProcessorChain("error-api-processor-chain", errorProcessorList);
+        if (LoggingUtils.getLoggingContext(api) != null) {
+            errorProcessorList.add(LogResponseProcessor.instance());
+        }
+
+        ProcessorChain processorChain = new ProcessorChain("processor-chain-error-api", errorProcessorList);
         processorChain.addHooks(processorHooks);
         return processorChain;
     }

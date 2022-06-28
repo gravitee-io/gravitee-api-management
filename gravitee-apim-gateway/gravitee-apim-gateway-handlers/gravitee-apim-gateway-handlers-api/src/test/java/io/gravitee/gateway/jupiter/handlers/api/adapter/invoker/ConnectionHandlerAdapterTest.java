@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.adapter.invoker;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.handler.Handler;
@@ -78,6 +78,8 @@ class ConnectionHandlerAdapterTest {
 
         when(ctx.response()).thenReturn(response);
         when(response.headers()).thenReturn(responseHeaders);
+        when(response.ended()).thenReturn(false);
+        when(proxyResponse.connected()).thenReturn(true);
         when(proxyResponse.status()).thenReturn(200);
         when(proxyResponse.headers()).thenReturn(MOCK_HTTP_HEADERS);
 
@@ -90,12 +92,50 @@ class ConnectionHandlerAdapterTest {
     }
 
     @Test
+    public void shouldNotSetResponseStatusWhenProxyResponseNotConnected() {
+        final HttpHeaders responseHeaders = HttpHeaders.create();
+
+        cut.handle(proxyConnection);
+
+        verify(proxyConnection).responseHandler(handlerCaptor.capture());
+        when(proxyResponse.connected()).thenReturn(false);
+
+        final Handler<ProxyResponse> proxyResponseHandler = handlerCaptor.getValue();
+        proxyResponseHandler.handle(proxyResponse);
+
+        verify(response, times(0)).status(anyInt());
+        assertTrue(responseHeaders.isEmpty());
+        verify(nexEmitter).onComplete();
+    }
+
+    @Test
+    public void shouldNotSetResponseStatusWhenProxyResponseEnded() {
+        final HttpHeaders responseHeaders = HttpHeaders.create();
+
+        cut.handle(proxyConnection);
+
+        verify(proxyConnection).responseHandler(handlerCaptor.capture());
+        when(proxyResponse.connected()).thenReturn(true);
+        when(ctx.response()).thenReturn(response);
+        when(response.ended()).thenReturn(true);
+
+        final Handler<ProxyResponse> proxyResponseHandler = handlerCaptor.getValue();
+        proxyResponseHandler.handle(proxyResponse);
+
+        verify(response, times(0)).status(anyInt());
+        assertTrue(responseHeaders.isEmpty());
+        verify(nexEmitter).onComplete();
+    }
+
+    @Test
     public void shouldErrorWhenExceptionOccurs() {
         cut.handle(proxyConnection);
 
         verify(proxyConnection).responseHandler(handlerCaptor.capture());
 
         when(ctx.response()).thenReturn(response);
+        when(response.ended()).thenReturn(false);
+        when(proxyResponse.connected()).thenReturn(true);
         when(proxyResponse.status()).thenReturn(200);
         when(response.status(anyInt())).thenThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE));
 

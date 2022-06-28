@@ -122,7 +122,7 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
                 canExecute -> {
                     if (canExecute) {
                         return HookHelper
-                            .hook(securityPlan.execute(ctx), securityPlan.id(), securityPlanHooks, ctx, ExecutionPhase.REQUEST)
+                            .hook(() -> securityPlan.execute(ctx), securityPlan.id(), securityPlanHooks, ctx, ExecutionPhase.REQUEST)
                             .andThen(TRUE);
                     }
                     return FALSE;

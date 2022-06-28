@@ -19,10 +19,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.flow.policy.RemoveQueryParameterPolicy;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.apache.http.HttpResponse;
@@ -41,7 +44,14 @@ public class ExpressionLanguageConditionFlowTest extends AbstractWiremockGateway
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
         final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team?my-param=value")).returnResponse();
-        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatusLine().getStatusCode());
+
+        if (isJupiterMode()) {
+            // With Jupiter, flow condition is now evaluated once for the whole flow (EL based on a param suppressed during request policy chain and re-evaluated at response phase).
+            assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
+        } else {
+            assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatusLine().getStatusCode());
+        }
+
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
     }
 
@@ -51,5 +61,12 @@ public class ExpressionLanguageConditionFlowTest extends AbstractWiremockGateway
 
         PolicyPlugin myPolicy = PolicyBuilder.build("remove-param-policy", RemoveQueryParameterPolicy.class);
         policyPluginManager.register(myPolicy);
+    }
+
+    private boolean isJupiterMode() {
+        final Configuration configuration = context.getBean(Configuration.class);
+        return (
+            configuration.getProperty("api.jupiterMode.enabled", Boolean.class, false) && api.getExecutionMode() == ExecutionMode.JUPITER
+        );
     }
 }

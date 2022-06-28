@@ -443,11 +443,6 @@
                             <environmentVariables>
                                 <gravitee.api.jupiterMode.enabled>true</gravitee.api.jupiterMode.enabled>
                             </environmentVariables>
-                            <excludes>
-                                <!-- FIXME: the following tests has been temporarily excluded because they concern feature not yet implemented on Jupiter. -->
-                                <!-- FIXME: Do not forget to re-include the test after implementing the feature -->
-                                <exclude>**/LoggableClientResponseWithRequestTimeoutTest.java</exclude>
-                            </excludes>
                         </configuration>
                     </execution>
                     <execution>
@@ -461,14 +456,6 @@
                                 <gravitee.api.jupiterMode.enabled>true</gravitee.api.jupiterMode.enabled>
                                 <gravitee.api.jupiterMode.default>always</gravitee.api.jupiterMode.default>
                             </environmentVariables>
-                            <excludes>
-                                <!-- FIXME: the following tests has been temporarily excluded because they concern feature not yet implemented on Jupiter. -->
-                                <!-- FIXME: Do not forget to re-include the test after implementing the feature -->
-                                <exclude>**/LoggableClientResponseWithRequestTimeoutTest.java</exclude>
-                                <!-- This test is no more valid with Jupiter because flow condition is now evaluated once for the whole flow
-                                    (EL based on a param suppressed during request policy chain and re-evaluated at response phase). -->
-                                <exclude>**/ExpressionLanguageConditionFlowTest.java</exclude>
-                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
