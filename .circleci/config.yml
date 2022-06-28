@@ -1253,6 +1253,9 @@ jobs:
             image: ubuntu-2004:202101-01
         resource_class: large
         parameters:
+            with_report:
+                default: false
+                type: boolean
             database:
                 type: enum
                 default: "mongo"
@@ -1274,60 +1277,67 @@ jobs:
                   name: Run API & e2e tests
                   command: |
                       cd gravitee-apim-e2e
-                      APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$APIM_VERSION npm run test:api<< parameters.database >>
-                      npm run test:report
-            - run:
-                  name: Remove Report Details (Only keep index files)
-                  command: |
-                      cd gravitee-apim-e2e/jacoco/reports
-                      rm -f report.xml
-                      find . -type f -not -name 'index.html' -name '*.html' -delete
-            - store_artifacts:
-                  name: Upload jacoco report
-                  path: gravitee-apim-e2e/jacoco/reports
-            - store_artifacts:
-                  name: Upload jacoco exec file
-                  path: gravitee-apim-e2e/jacoco/jacoco.exec
-            - gh/setup
-            - run:
-                  name: Edit Pull Request Description
-                  command: |
-                      # First check there is an associated pull request, otherwise just stop the job here
-                      if ! gh pr view --json title;
-                      then
-                        echo "No PR found for this branch, stopping the job here."
-                        exit 0
-                      fi
-
-                      # If PR state is different from OPEN
-                      if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
-                      then
-                        echo "PR is not opened, stopping the job here."
-                        exit 0
-                      fi
-                      
-                      pushd gravitee-apim-e2e/jacoco/reports
-                        export COVERAGE_SUMMARY=$(sed -nE 's/^.*<td>Total<([^>]+>){4}([^<]*)([^>]+>){4}([^<]*).*$/\2 | \4/p' index.html)
-                      popd
-
-                      export COVERAGE_URL="https://output.circle-artifacts.com/output/job/${CIRCLE_WORKFLOW_JOB_ID}/artifacts/0/gravitee-apim-e2e/jacoco/reports/index.html"
-                      
-                      export PR_BODY_COVERAGE_SECTION="
-                      <!-- E2E Coverage placeholder -->
-                      ---
-                      ### 🧪 End-to-End Coverage
-                      
-                      | INSTRUCTIONS | BRANCHES |
-                      | :----------: | :------: |
-                      |   ${COVERAGE_SUMMARY}   |
-                      
-                      A more detailed report has been uploaded to [circleci](${COVERAGE_URL})
-                      <!-- E2E Coverage placeholder end -->
-                      "
-
-                      export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/E2E Coverage placeholder -->/,/E2E Coverage placeholder end -->/d')
-
-                      gh pr edit --body "$CLEAN_BODY$PR_BODY_COVERAGE_SECTION"
+                      APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$APIM_VERSION npm run test:api:<< parameters.database >>
+            - when:
+                  condition: << parameters.with_report >>
+                  steps:
+                    - run:
+                          name: Run API & e2e tests
+                          command: |
+                              cd gravitee-apim-e2e
+                              npm run test:report
+                    - run:
+                          name: Remove Report Details (Only keep index files)
+                          command: |
+                              cd gravitee-apim-e2e/jacoco/reports
+                              rm -f report.xml
+                              find . -type f -not -name 'index.html' -name '*.html' -delete
+                    - store_artifacts:
+                          name: Upload jacoco report
+                          path: gravitee-apim-e2e/jacoco/reports
+                    - store_artifacts:
+                          name: Upload jacoco exec file
+                          path: gravitee-apim-e2e/jacoco/jacoco.exec
+                    - gh/setup
+                    - run:
+                          name: Edit Pull Request Description
+                          command: |
+                              # First check there is an associated pull request, otherwise just stop the job here
+                              if ! gh pr view --json title;
+                              then
+                                echo "No PR found for this branch, stopping the job here."
+                                exit 0
+                              fi
+        
+                              # If PR state is different from OPEN
+                              if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
+                              then
+                                echo "PR is not opened, stopping the job here."
+                                exit 0
+                              fi
+                              
+                              pushd gravitee-apim-e2e/jacoco/reports
+                                export COVERAGE_SUMMARY=$(sed -nE 's/^.*<td>Total<([^>]+>){4}([^<]*)([^>]+>){4}([^<]*).*$/\2 | \4/p' index.html)
+                              popd
+        
+                              export COVERAGE_URL="https://output.circle-artifacts.com/output/job/${CIRCLE_WORKFLOW_JOB_ID}/artifacts/0/gravitee-apim-e2e/jacoco/reports/index.html"
+                              
+                              export PR_BODY_COVERAGE_SECTION="
+                              <!-- E2E Coverage placeholder -->
+                              ---
+                              ### 🧪 End-to-End Coverage
+                              
+                              | INSTRUCTIONS | BRANCHES |
+                              | :----------: | :------: |
+                              |   ${COVERAGE_SUMMARY}   |
+                              
+                              A more detailed report has been uploaded to [circleci](${COVERAGE_URL})
+                              <!-- E2E Coverage placeholder end -->
+                              "
+        
+                              export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/E2E Coverage placeholder -->/,/E2E Coverage placeholder end -->/d')
+        
+                              gh pr edit --body "$CLEAN_BODY$PR_BODY_COVERAGE_SECTION"
             - notify-on-failure
 
     e2e-cypress:
@@ -1698,6 +1708,7 @@ workflows:
                       - Lint & Build APIM e2e
                       - build-images
                   database: mongo
+                  with_report: true
                   filters:
                       branches:
                           only:
