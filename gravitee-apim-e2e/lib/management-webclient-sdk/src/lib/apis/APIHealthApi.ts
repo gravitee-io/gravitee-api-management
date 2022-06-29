@@ -17,6 +17,9 @@ import {
     AnalyticsAverageType,
     AnalyticsAverageTypeFromJSON,
     AnalyticsAverageTypeToJSON,
+    ApiMetrics,
+    ApiMetricsFromJSON,
+    ApiMetricsToJSON,
     HealthcheckField,
     HealthcheckFieldFromJSON,
     HealthcheckFieldToJSON,
@@ -76,7 +79,7 @@ export class APIHealthApi extends runtime.BaseAPI {
     /**
      * Health-check statistics for API
      */
-    async getApiHealthRaw(requestParameters: GetApiHealthRequest): Promise<runtime.ApiResponse<void>> {
+    async getApiHealthRaw(requestParameters: GetApiHealthRequest): Promise<runtime.ApiResponse<ApiMetrics>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiHealth.');
         }
@@ -111,14 +114,15 @@ export class APIHealthApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.VoidApiResponse(response);
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiMetricsFromJSON(jsonValue));
     }
 
     /**
      * Health-check statistics for API
      */
-    async getApiHealth(requestParameters: GetApiHealthRequest): Promise<void> {
-        await this.getApiHealthRaw(requestParameters);
+    async getApiHealth(requestParameters: GetApiHealthRequest): Promise<ApiMetrics> {
+        const response = await this.getApiHealthRaw(requestParameters);
+        return await response.value();
     }
 
     /**

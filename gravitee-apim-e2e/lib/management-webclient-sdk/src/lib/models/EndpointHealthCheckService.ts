@@ -13,10 +13,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    Step,
-    StepFromJSON,
-    StepFromJSONTyped,
-    StepToJSON,
+    HealthCheckStep,
+    HealthCheckStepFromJSON,
+    HealthCheckStepFromJSONTyped,
+    HealthCheckStepToJSON,
 } from './';
 
 /**
@@ -45,10 +45,10 @@ export interface EndpointHealthCheckService {
     schedule?: string;
     /**
      * 
-     * @type {Array<Step>}
+     * @type {Array<HealthCheckStep>}
      * @memberof EndpointHealthCheckService
      */
-    steps?: Array<Step>;
+    steps?: Array<HealthCheckStep>;
 }
 
 export function EndpointHealthCheckServiceFromJSON(json: any): EndpointHealthCheckService {
@@ -64,7 +64,7 @@ export function EndpointHealthCheckServiceFromJSONTyped(json: any, ignoreDiscrim
         'enabled': !exists(json, 'enabled') ? undefined : json['enabled'],
         'inherit': !exists(json, 'inherit') ? undefined : json['inherit'],
         'schedule': !exists(json, 'schedule') ? undefined : json['schedule'],
-        'steps': !exists(json, 'steps') ? undefined : ((json['steps'] as Array<any>).map(StepFromJSON)),
+        'steps': !exists(json, 'steps') ? undefined : ((json['steps'] as Array<any>).map(HealthCheckStepFromJSON)),
     };
 }
 
@@ -80,7 +80,7 @@ export function EndpointHealthCheckServiceToJSON(value?: EndpointHealthCheckServ
         'enabled': value.enabled,
         'inherit': value.inherit,
         'schedule': value.schedule,
-        'steps': value.steps === undefined ? undefined : ((value.steps as Array<any>).map(StepToJSON)),
+        'steps': value.steps === undefined ? undefined : ((value.steps as Array<any>).map(HealthCheckStepToJSON)),
     };
 }
 
