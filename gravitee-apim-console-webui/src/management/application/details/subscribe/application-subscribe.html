@@ -89,7 +89,7 @@
           </div>
 
           <div
-            ng-if="$ctrl.plans && $ctrl.selectedAPI"
+            ng-if="$ctrl.selectedAPI"
             layout="column"
             flex
             layout-align="center"
@@ -115,7 +115,10 @@
                   on-subscribe="$ctrl.onSubscribe($ctrl.selectedAPI, plan)"
                   on-unsubscribe="$ctrl.onUnsubscribe($ctrl.selectedAPI, plan)"
                 ></api-plan>
-                <h3 ng-if="$ctrl.plans.length === 0">
+                <h3 ng-if="$ctrl.selectedAPI && !$ctrl.canAccessSelectedApiPlans">
+                  You don't have sufficient privileges to access plans of this API
+                </h3>
+                <h3 ng-if="$ctrl.plans.length === 0 && $ctrl.canAccessSelectedApiPlans">
                   There is no published plan for this API that you can subscribe with this type of application
                 </h3>
               </div>
