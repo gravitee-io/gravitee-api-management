@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee.apim</groupId>
         <artifactId>gravitee-api-management</artifactId>
-        <version>3.16.5-SNAPSHOT</version>
+        <version>${revision}${sha1}${changelist}</version>
     </parent>
 
     <groupId>io.gravitee.apim.distribution</groupId>
@@ -46,7 +46,7 @@
     <properties>
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
-        <gravitee-connector-http.version>1.1.5</gravitee-connector-http.version>
+        <gravitee-connector-http.version>1.1.6</gravitee-connector-http.version>
         <gravitee-policy-apikey.version>2.4.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>1.7.0</gravitee-policy-assign-content.version>
@@ -55,7 +55,7 @@
         <gravitee-policy-dynamic-routing.version>1.11.1</gravitee-policy-dynamic-routing.version>
         <gravitee-policy-generate-http-signature.version>1.1.0</gravitee-policy-generate-http-signature.version>
         <gravitee-policy-generate-jwt.version>1.5.0</gravitee-policy-generate-jwt.version>
-        <gravitee-policy-groovy.version>2.2.0</gravitee-policy-groovy.version>
+        <gravitee-policy-groovy.version>2.2.2</gravitee-policy-groovy.version>
         <gravitee-policy-html-json.version>1.6.0</gravitee-policy-html-json.version>
         <gravitee-policy-http-signature.version>1.5.0</gravitee-policy-http-signature.version>
         <gravitee-policy-ipfiltering.version>1.9.0</gravitee-policy-ipfiltering.version>

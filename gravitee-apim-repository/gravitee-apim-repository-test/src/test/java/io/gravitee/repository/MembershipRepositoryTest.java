@@ -233,7 +233,6 @@ public class MembershipRepositoryTest extends AbstractRepositoryTest {
         assertEquals("API_OWNER", membership.getRoleId());
         assertEquals("api1", membership.getReferenceId());
         assertEquals("user1", membership.getMemberId());
-        assertEquals("API_OWNER", membership.getRoleId());
     }
 
     @Test
@@ -251,7 +250,22 @@ public class MembershipRepositoryTest extends AbstractRepositoryTest {
         assertEquals("API_OWNER", membership.getRoleId());
         assertEquals("api1", membership.getReferenceId());
         assertEquals("user1", membership.getMemberId());
-        assertEquals("API_OWNER", membership.getRoleId());
+    }
+
+    @Test
+    public void shouldFindMembershipWithNullReferenceId() throws TechnicalException {
+        Set<Membership> memberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+            "group1",
+            MembershipMemberType.GROUP,
+            MembershipReferenceType.API,
+            null
+        );
+        assertNotNull("result must not be null", memberships);
+        assertFalse(memberships.isEmpty());
+        Membership membership = memberships.iterator().next();
+        assertEquals("11baec92-8823-4f8b-baec-9288238f8b5c", membership.getRoleId());
+        assertNull(membership.getReferenceId());
+        assertEquals("group1", membership.getMemberId());
     }
 
     @Test

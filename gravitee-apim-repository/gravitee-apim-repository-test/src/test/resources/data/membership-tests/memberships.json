@@ -89,5 +89,16 @@
     "roleId": "OWNER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
+  },
+  {
+    "id": "group_membership_default_api_role",
+    "memberId": "group1",
+    "memberType": "GROUP",
+    "referenceType": "API",
+    "referenceId" : null,
+    "roleId": "11baec92-8823-4f8b-baec-9288238f8b5c",
+    "source": "system",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883"
   }
 ]
