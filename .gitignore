@@ -53,3 +53,6 @@ gravitee-apim-cypress/cypress/screenshots/
 
 # Deepcode (Snyk Code) cache
 **/.dccache
+
+# Exclude flattened version of the pom, for details see https://maven.apache.org/maven-ci-friendly.html#install-deploy
+.flattened-pom.xml

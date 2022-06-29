@@ -196,11 +196,22 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(groupedApiProjection.getId()).thenReturn("grouped-api");
         when(groupedApiProjection.getCategories()).thenReturn(Set.of("category-1"));
 
+        Api groupedApiProjectionWithoutCategory = Mockito.mock(Api.class);
+        when(groupedApiProjectionWithoutCategory.getId()).thenReturn("grouped-api");
+
         Api bigNameApiProjection = Mockito.mock(Api.class);
         when(bigNameApiProjection.getId()).thenReturn("big-name");
 
-        when(apiRepository.search(any(), any(ApiFieldInclusionFilter.class)))
+        when(apiRepository.search(any(), argThat((ApiFieldInclusionFilter filter) -> null != filter && filter.hasCategories())))
             .thenReturn(Set.of(apiToUpdateProjection, groupedApiProjection, bigNameApiProjection));
+
+        when(
+            apiRepository.search(
+                any(),
+                argThat((ApiFieldInclusionFilter filter) -> null != filter && Boolean.FALSE.equals(filter.hasCategories()))
+            )
+        )
+            .thenReturn(Set.of(apiToUpdateProjection, groupedApiProjectionWithoutCategory, bigNameApiProjection));
 
         Set<String> categories = new LinkedHashSet<>();
         categories.add("category-1");

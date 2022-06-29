@@ -191,14 +191,9 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         System.clearProperty("liquibase.databaseChangeLogTableName");
         System.clearProperty("liquibase.databaseChangeLogLockTableName");
         System.clearProperty("gravitee_prefix");
-        jt.execute(
-            (Connection con) -> {
-                for (final String table : tablesToTruncate) {
-                    jt.execute("truncate table " + escapeReservedWord(prefix + table));
-                }
-                jt.execute("truncate table " + escapeReservedWord(rateLimitPrefix + "ratelimit"));
-                return null;
-            }
-        );
+        for (final String table : tablesToTruncate) {
+            jt.update("delete from " + escapeReservedWord(prefix + table));
+        }
+        jt.update("delete from " + escapeReservedWord(rateLimitPrefix + "ratelimit"));
     }
 }
