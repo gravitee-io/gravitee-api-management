@@ -127,7 +127,7 @@ export class ApisFaker {
       name,
       description,
       version,
-      endpoint: `${process.env.WIREMOCK_BASE_PATH}/hello`,
+      endpoint: `${process.env.WIREMOCK_BASE_URL}/hello`,
       ...attributes,
     };
   }
@@ -148,7 +148,7 @@ export class ApisFaker {
             {
               inherit: true,
               name: 'default',
-              target: `${process.env.WIREMOCK_BASE_PATH}/hello`,
+              target: `${process.env.WIREMOCK_BASE_URL}/hello`,
               weight: 1,
               backup: false,
               type: 'http',

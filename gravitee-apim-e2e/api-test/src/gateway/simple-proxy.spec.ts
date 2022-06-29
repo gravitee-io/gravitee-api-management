@@ -51,7 +51,7 @@ describe('Gateway - Simple proxy', () => {
                   {
                     inherit: true,
                     name: 'default',
-                    target: `${process.env.WIREMOCK_BASE_PATH}/hello`,
+                    target: `${process.env.WIREMOCK_BASE_URL}/hello`,
                     weight: 1,
                     backup: false,
                     type: 'http',
