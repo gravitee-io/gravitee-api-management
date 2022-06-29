@@ -67,17 +67,18 @@ describe('API - Imports with metadata', () => {
     metadata: [thirdExpectedMetadata],
   });
 
-  // Api with metadata having an undefined key
+  // Api with metadata having an undefined key at the creation
   const fourthApiId = '4d73b285-5b87-4186-928e-f6f6240708f3';
   const fourthExpectedApiId = '08ee5d81-a6b8-3562-aaf6-b2c1313398cd';
   const fourthExpectedMetadata = {
     name: 'team',
+    key: 'team',
     format: 'STRING',
     value: 'QA',
   };
   const fourthApi = ApisFaker.apiImport({
     id: fourthApiId,
-    metadata: [fourthExpectedMetadata],
+    metadata: [{ ...fourthExpectedMetadata, key: undefined }],
   });
 
   beforeAll(async () => {
@@ -105,7 +106,7 @@ describe('API - Imports with metadata', () => {
   });
 
   afterAll(async () => {
-    const deletedApis = [firstExpectedApiId, secondExpectedApiId, thirdExpectedApiId].map(
+    const deletedApis = [firstExpectedApiId, secondExpectedApiId, thirdExpectedApiId, fourthExpectedApiId].map(
       async (apiId) =>
         await apisResourceAsAdminUser.deleteApi({
           envId,
