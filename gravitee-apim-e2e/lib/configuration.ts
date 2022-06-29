@@ -59,7 +59,7 @@ export const forManagementAsSimpleUser = () => {
 
 export const forManagement = (auth: BasicAuthentication = ADMIN_USER, headers = {}) => {
   return new ManagementConfiguration({
-    basePath: process.env.MANAGEMENT_BASE_PATH,
+    basePath: process.env.MANAGEMENT_BASE_URL,
     fetchApi,
     ...auth,
     headers: { ...defaultHeaders, ...headers },
@@ -76,7 +76,7 @@ const defaultHeaders = {
 
 export const forPortal = ({ auth = ANONYMOUS, envId = 'DEFAULT', headers = {} }) => {
   return new PortalConfiguration({
-    basePath: `${process.env.PORTAL_BASE_PATH}/${envId}`,
+    basePath: `${process.env.PORTAL_BASE_URL}/${envId}`,
     fetchApi,
     ...auth,
     headers: { ...defaultHeaders, ...headers },

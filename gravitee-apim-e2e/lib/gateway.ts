@@ -57,7 +57,7 @@ async function _fetchGateway(request?: Partial<GatewayRequest>): Promise<Respons
 async function _fetchGatewayWithRetries(request: Partial<GatewayRequest>): Promise<Response> {
   console.log('Try to fetch gateway', request.contextPath, request.failAfterMs);
   console.log('With headers', request.headers);
-  const response = await fetchApi(`${process.env.GATEWAY_BASE_PATH}${request.contextPath}`, {
+  const response = await fetchApi(`${process.env.GATEWAY_BASE_URL}${request.contextPath}`, {
     method: request.method,
     body: request.body,
     headers: request.headers,
@@ -69,7 +69,7 @@ async function _fetchGatewayWithRetries(request: Partial<GatewayRequest>): Promi
     return new Promise((successCallback, failureCallback) => {
       setTimeout(() => {
         if (request.failAfterMs - request.timeBetweenRetries <= 0) {
-          failureCallback(new Error(`Gateway [${process.env.GATEWAY_BASE_PATH}${request.contextPath}] returned HTTP ${response.status}`));
+          failureCallback(new Error(`Gateway [${process.env.GATEWAY_BASE_URL}${request.contextPath}] returned HTTP ${response.status}`));
         } else {
           request.failAfterMs -= request.timeBetweenRetries;
           successCallback(_fetchGateway(request));

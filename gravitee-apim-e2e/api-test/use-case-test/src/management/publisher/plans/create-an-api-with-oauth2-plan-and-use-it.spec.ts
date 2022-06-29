@@ -150,7 +150,7 @@ describe('Create an API with OAuth2 plan and use it', () => {
             type: 'oauth2',
             configuration: {
               // 📝 We pass the client_id in url to allow wiremock to add it introspectionEndpoint response. Next this allows the gateway to find the right application.
-              authorizationServerUrl: `${process.env.WIREMOCK_BASE_PATH}/${createdApplication.settings.app.client_id}`,
+              authorizationServerUrl: `${process.env.WIREMOCK_BASE_URL}/${createdApplication.settings.app.client_id}`,
               introspectionEndpoint: '/oauth/check_token',
               useSystemProxy: false,
               introspectionEndpointMethod: 'GET',

@@ -24,10 +24,10 @@ services:
       - ./:/test
     command: npm run test:api:ci
     environment:
-      - MANAGEMENT_BASE_PATH=http://management_api:8083/management
-      - PORTAL_BASE_PATH=http://management_api:8083/portal/environments
-      - GATEWAY_BASE_PATH=http://gateway:8082
-      - WIREMOCK_BASE_PATH=http://wiremock:8080
+      - MANAGEMENT_BASE_URL=http://management_api:8083/management
+      - PORTAL_BASE_URL=http://management_api:8083/portal/environments
+      - GATEWAY_BASE_URL=http://gateway:8082
+      - WIREMOCK_BASE_URL=http://wiremock:8080
     depends_on:
       management_api:
         condition: service_healthy

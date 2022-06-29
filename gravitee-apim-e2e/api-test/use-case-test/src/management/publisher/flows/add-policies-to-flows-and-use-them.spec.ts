@@ -55,7 +55,7 @@ describe('Add policies to flows and use them', () => {
                 {
                   inherit: true,
                   name: 'default',
-                  target: `${process.env.WIREMOCK_BASE_PATH}/whattimeisit`,
+                  target: `${process.env.WIREMOCK_BASE_URL}/whattimeisit`,
                   weight: 1,
                   backup: false,
                   type: 'http',
@@ -118,7 +118,7 @@ describe('Add policies to flows and use them', () => {
                   scope: 'REQUEST',
                   errorStatusCode: '500',
                   errorCondition: '{#calloutResponse.status >= 400 and #calloutResponse.status <= 599}',
-                  url: `${process.env.WIREMOCK_BASE_PATH}/hello?name={#request.headers['x-callout-name']}`,
+                  url: `${process.env.WIREMOCK_BASE_URL}/hello?name={#request.headers['x-callout-name']}`,
                   exitOnError: false,
                 },
               },
