@@ -129,7 +129,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode, environmentId);
             ApiEntity createdApiEntity = apiService.createWithApiDefinition(importedApi, userId, jsonNode);
-            createMediaAndSystemFolder(createdApiEntity, jsonNode, environmentId);
+            createMediaAndPages(createdApiEntity, jsonNode, environmentId);
             updateApiReferences(createdApiEntity.getId(), jsonNode, organizationId, environmentId, false);
             return createdApiEntity;
         } catch (IOException e) {
@@ -326,8 +326,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return importedApi;
     }
 
-    private void createMediaAndSystemFolder(ApiEntity createdApiEntity, JsonNode jsonNode, String environmentId)
-        throws JsonProcessingException {
+    private void createMediaAndPages(ApiEntity createdApiEntity, JsonNode jsonNode, String environmentId) throws JsonProcessingException {
         final JsonNode apiMedia = jsonNode.path("apiMedia");
         if (apiMedia != null && apiMedia.isArray()) {
             for (JsonNode media : apiMedia) {
@@ -335,18 +334,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             }
         }
 
-        List<PageEntity> search = pageService.search(
-            new PageQuery.Builder()
-                .api(createdApiEntity.getId())
-                .name(SystemFolderType.ASIDE.folderName())
-                .type(PageType.SYSTEM_FOLDER)
-                .build(),
-            environmentId
-        );
-
-        if (search.isEmpty()) {
-            pageService.createAsideFolder(createdApiEntity.getId(), environmentId);
-        }
+        updatePages(createdApiEntity.getId(), jsonNode, environmentId);
     }
 
     private String fetchApiDefinitionContentFromURL(String apiDefinitionOrURL) {
@@ -367,8 +355,10 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         // Members
         updateMembers(apiId, jsonNode, organizationId, environmentId);
 
-        //Pages
-        updatePages(apiId, jsonNode, environmentId);
+        if (isUpdate) {
+            //Pages
+            updatePages(apiId, jsonNode, environmentId);
+        }
 
         //Plans
         updatePlans(apiId, jsonNode, environmentId, isUpdate);
