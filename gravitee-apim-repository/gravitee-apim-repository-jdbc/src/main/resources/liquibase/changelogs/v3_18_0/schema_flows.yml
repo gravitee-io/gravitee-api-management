@@ -10,3 +10,7 @@ databaseChangeLog:
               tableName: ${gravitee_prefix}flows
               columnName: condition
               newDataType: nvarchar(256)
+        - modifyDataType:
+              tableName: ${gravitee_prefix}flows
+              columnName: path
+              newDataType: nvarchar(256)
