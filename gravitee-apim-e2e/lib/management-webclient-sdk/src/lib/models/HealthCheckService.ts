@@ -13,10 +13,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    Step,
-    StepFromJSON,
-    StepFromJSONTyped,
-    StepToJSON,
+    HealthCheckStep,
+    HealthCheckStepFromJSON,
+    HealthCheckStepFromJSONTyped,
+    HealthCheckStepToJSON,
 } from './';
 
 /**
@@ -39,10 +39,10 @@ export interface HealthCheckService {
     schedule?: string;
     /**
      * 
-     * @type {Array<Step>}
+     * @type {Array<HealthCheckStep>}
      * @memberof HealthCheckService
      */
-    steps?: Array<Step>;
+    steps?: Array<HealthCheckStep>;
 }
 
 export function HealthCheckServiceFromJSON(json: any): HealthCheckService {
@@ -57,7 +57,7 @@ export function HealthCheckServiceFromJSONTyped(json: any, ignoreDiscriminator: 
         
         'enabled': !exists(json, 'enabled') ? undefined : json['enabled'],
         'schedule': !exists(json, 'schedule') ? undefined : json['schedule'],
-        'steps': !exists(json, 'steps') ? undefined : ((json['steps'] as Array<any>).map(StepFromJSON)),
+        'steps': !exists(json, 'steps') ? undefined : ((json['steps'] as Array<any>).map(HealthCheckStepFromJSON)),
     };
 }
 
@@ -72,7 +72,7 @@ export function HealthCheckServiceToJSON(value?: HealthCheckService | null): any
         
         'enabled': value.enabled,
         'schedule': value.schedule,
-        'steps': value.steps === undefined ? undefined : ((value.steps as Array<any>).map(StepToJSON)),
+        'steps': value.steps === undefined ? undefined : ((value.steps as Array<any>).map(HealthCheckStepToJSON)),
     };
 }
 
