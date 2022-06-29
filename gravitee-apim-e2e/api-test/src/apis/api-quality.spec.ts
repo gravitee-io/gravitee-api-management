@@ -54,7 +54,7 @@ const configurationResourceAsReviewer = new ConfigurationApi(forManagementAsSimp
 let createdRule: QualityRuleEntity;
 let reviewerGroup: GroupEntity;
 let userMember: SearchableUser;
-let createdApi: ApiEntity;
+let apiEntity: ApiEntity;
 
 describe('API - Quality', () => {
   beforeAll(async () => {
@@ -139,7 +139,7 @@ describe('API - Quality', () => {
 
   describe('Api publisher asks for review', () => {
     test('should create API', async () => {
-      createdApi = await succeed(
+      apiEntity = await succeed(
         apisResourceAsPublisher.importApiDefinitionRaw({
           envId,
           orgId,
@@ -147,14 +147,14 @@ describe('API - Quality', () => {
         }),
       );
 
-      expect(createdApi.state).toBe(ApiEntityStateEnum.STOPPED);
-      expect(createdApi.visibility).toBe('PRIVATE');
-      expect(createdApi.workflow_state).toBe(WorkflowState.DRAFT);
-      expect(createdApi.lifecycle_state).toBe(ApiLifecycleState.CREATED);
+      expect(apiEntity.state).toBe(ApiEntityStateEnum.STOPPED);
+      expect(apiEntity.visibility).toBe('PRIVATE');
+      expect(apiEntity.workflow_state).toBe(WorkflowState.DRAFT);
+      expect(apiEntity.lifecycle_state).toBe(ApiLifecycleState.CREATED);
     });
 
     test('should add label to API', async () => {
-      let updatedApi = cloneDeep(createdApi);
+      let updatedApi = cloneDeep(apiEntity);
       delete updatedApi.id;
       delete updatedApi.state;
       delete updatedApi.created_at;
@@ -164,16 +164,16 @@ describe('API - Quality', () => {
       delete updatedApi.workflow_state;
       updatedApi.labels = ['quality'];
 
-      updatedApi = await succeed(
+      apiEntity = await succeed(
         apisResourceAsPublisher.updateApiRaw({
           envId,
           orgId,
-          api: createdApi.id,
+          api: apiEntity.id,
           updateApiEntity: updatedApi,
         }),
       );
 
-      expect(updatedApi.labels).toContain('quality');
+      expect(apiEntity.labels).toContain('quality');
     });
 
     test('should ask for API review', async () => {
@@ -181,7 +181,7 @@ describe('API - Quality', () => {
         apisResourceAsPublisher.doApiReviewActionRaw({
           envId,
           orgId,
-          api: createdApi.id,
+          api: apiEntity.id,
           action: ReviewAction.ASK,
           reviewEntity: {},
         }),
@@ -194,7 +194,7 @@ describe('API - Quality', () => {
         apisResourceAsPublisher.doApiLifecycleAction({
           envId,
           orgId,
-          api: createdApi.id,
+          api: apiEntity.id,
           action: LifecycleAction.START,
         }),
         400,
@@ -206,7 +206,7 @@ describe('API - Quality', () => {
   describe('Reviewer reviews and reject it', () => {
     test('should have tasks to review', async () => {
       let tasks = await succeed(currentUserResourceAsReviewer.getUserTasks1Raw({ envId, orgId }));
-      let apiInReview = find(tasks.data, (task) => task.data.referenceId === createdApi.id);
+      let apiInReview = find(tasks.data, (task) => task.data.referenceId === apiEntity.id);
 
       expect(apiInReview.data.type).toBe('REVIEW');
       expect(apiInReview.data.state).toBe('IN_REVIEW');
@@ -214,14 +214,14 @@ describe('API - Quality', () => {
 
     test('should get APIs list containing created api with IN_REVIEW status', async () => {
       let foundApis = await succeed(apisResourceAsReviewer.getApisRaw({ envId, orgId }));
-      let foundApi = find(foundApis, (a) => a.id === createdApi.id);
+      let foundApi = find(foundApis, (a) => a.id === apiEntity.id);
 
       expect(foundApi).toBeTruthy();
       expect(foundApi.workflow_state).toBe(WorkflowState.INREVIEW);
     });
 
     test('should get API with IN_REVIEW status', async () => {
-      let foundApi = await succeed(apisResourceAsReviewer.getApiRaw({ envId, orgId, api: createdApi.id }));
+      let foundApi = await succeed(apisResourceAsReviewer.getApiRaw({ envId, orgId, api: apiEntity.id }));
 
       expect(foundApi).toBeTruthy();
       expect(foundApi.state).toBe(ApiEntityStateEnum.STOPPED);
@@ -239,7 +239,7 @@ describe('API - Quality', () => {
     });
 
     test('should get 25% quality score, custom rule should not be passed', async () => {
-      let metric = await succeed(apisResourceAsReviewer.getApiQualityMetricsRaw({ envId, orgId, api: createdApi.id }));
+      let metric = await succeed(apisResourceAsReviewer.getApiQualityMetricsRaw({ envId, orgId, api: apiEntity.id }));
 
       expect(metric.score).toBe(0.25);
       expect(metric.metrics_passed['api.quality.metrics.description.weight']).toBeFalsy();
@@ -252,9 +252,9 @@ describe('API - Quality', () => {
         apisResourceAsReviewer.createApiQualityRuleRaw({
           envId,
           orgId,
-          api: createdApi.id,
+          api: apiEntity.id,
           newApiQualityRuleEntity: {
-            api: createdApi.id,
+            api: apiEntity.id,
             quality_rule: createdRule.id,
             checked: true,
           },
@@ -266,7 +266,7 @@ describe('API - Quality', () => {
     });
 
     test('should get 75% quality score, custom rule should be passed', async () => {
-      let metric = await succeed(apisResourceAsReviewer.getApiQualityMetricsRaw({ envId, orgId, api: createdApi.id }));
+      let metric = await succeed(apisResourceAsReviewer.getApiQualityMetricsRaw({ envId, orgId, api: apiEntity.id }));
 
       expect(metric.score).toBe(0.75);
       expect(metric.metrics_passed['api.quality.metrics.description.weight']).toBeFalsy();
@@ -279,7 +279,7 @@ describe('API - Quality', () => {
         apisResourceAsReviewer.doApiReviewActionRaw({
           envId,
           orgId,
-          api: createdApi.id,
+          api: apiEntity.id,
           action: ReviewAction.REJECT,
           reviewEntity: {},
         }),
@@ -291,14 +291,14 @@ describe('API - Quality', () => {
   describe('Api publisher fixes API and asks for review', () => {
     test('should have tasks to review', async () => {
       let tasks = await succeed(currentUserResourceAsPublisher.getUserTasks1Raw({ envId, orgId }));
-      let apiInReview = find(tasks.data, (task) => task.data.referenceId === createdApi.id);
+      let apiInReview = find(tasks.data, (task) => task.data.referenceId === apiEntity.id);
 
       expect(apiInReview.data.type).toBe('REVIEW');
       expect(apiInReview.data.state).toBe('REQUEST_FOR_CHANGES');
     });
 
     test('should add a valid description to API', async () => {
-      let updatedApi = cloneDeep(createdApi);
+      let updatedApi = cloneDeep(apiEntity);
       delete updatedApi.id;
       delete updatedApi.state;
       delete updatedApi.created_at;
@@ -308,16 +308,16 @@ describe('API - Quality', () => {
       delete updatedApi.workflow_state;
       updatedApi.description = 'This is a more than 25 characters description';
 
-      updatedApi = await succeed(
+      apiEntity = await succeed(
         apisResourceAsPublisher.updateApiRaw({
           envId,
           orgId,
-          api: createdApi.id,
+          api: apiEntity.id,
           updateApiEntity: updatedApi,
         }),
       );
 
-      expect(updatedApi.description).toBe('This is a more than 25 characters description');
+      expect(apiEntity.description).toBe('This is a more than 25 characters description');
     });
 
     test('should ask for API review', async () => {
@@ -325,7 +325,7 @@ describe('API - Quality', () => {
         apisResourceAsPublisher.doApiReviewActionRaw({
           envId,
           orgId,
-          api: createdApi.id,
+          api: apiEntity.id,
           action: ReviewAction.ASK,
           reviewEntity: {},
         }),
@@ -334,7 +334,7 @@ describe('API - Quality', () => {
     });
 
     test('should get 100% quality score, all metrics passed', async () => {
-      let metric = await succeed(apisResourceAsPublisher.getApiQualityMetricsRaw({ envId, orgId, api: createdApi.id }));
+      let metric = await succeed(apisResourceAsPublisher.getApiQualityMetricsRaw({ envId, orgId, api: apiEntity.id }));
 
       expect(metric.score).toBe(1);
       expect(metric.metrics_passed['api.quality.metrics.description.weight']).toBeTruthy();
@@ -347,7 +347,7 @@ describe('API - Quality', () => {
         apisResourceAsPublisher.doApiLifecycleAction({
           envId,
           orgId,
-          api: createdApi.id,
+          api: apiEntity.id,
           action: LifecycleAction.START,
         }),
         400,
@@ -359,7 +359,7 @@ describe('API - Quality', () => {
   describe('Reviewer reviews and accept it', () => {
     test('should have tasks to review', async () => {
       let tasks = await succeed(currentUserResourceAsReviewer.getUserTasks1Raw({ envId, orgId }));
-      let apiInReview = find(tasks.data, (task) => task.data.referenceId === createdApi.id);
+      let apiInReview = find(tasks.data, (task) => task.data.referenceId === apiEntity.id);
 
       expect(apiInReview.data.type).toBe('REVIEW');
       expect(apiInReview.data.state).toBe('IN_REVIEW');
@@ -367,14 +367,14 @@ describe('API - Quality', () => {
 
     test('should get APIs list containing created api with IN_REVIEW status', async () => {
       let foundApis = await succeed(apisResourceAsReviewer.getApisRaw({ envId, orgId }));
-      let foundApi = find(foundApis, (a) => a.id === createdApi.id);
+      let foundApi = find(foundApis, (a) => a.id === apiEntity.id);
 
       expect(foundApi).toBeTruthy();
       expect(foundApi.workflow_state).toBe(WorkflowState.INREVIEW);
     });
 
     test('should get API with IN_REVIEW status', async () => {
-      let foundApi = await succeed(apisResourceAsReviewer.getApiRaw({ envId, orgId, api: createdApi.id }));
+      let foundApi = await succeed(apisResourceAsReviewer.getApiRaw({ envId, orgId, api: apiEntity.id }));
 
       expect(foundApi).toBeTruthy();
       expect(foundApi.state).toBe(ApiEntityStateEnum.STOPPED);
@@ -392,7 +392,7 @@ describe('API - Quality', () => {
     });
 
     test('should get 100% quality score, all metrics passed', async () => {
-      let metric = await succeed(apisResourceAsReviewer.getApiQualityMetricsRaw({ envId, orgId, api: createdApi.id }));
+      let metric = await succeed(apisResourceAsReviewer.getApiQualityMetricsRaw({ envId, orgId, api: apiEntity.id }));
 
       expect(metric.score).toBe(1);
       expect(metric.metrics_passed['api.quality.metrics.description.weight']).toBeTruthy();
@@ -405,7 +405,7 @@ describe('API - Quality', () => {
         apisResourceAsReviewer.doApiReviewActionRaw({
           envId,
           orgId,
-          api: createdApi.id,
+          api: apiEntity.id,
           action: ReviewAction.ACCEPT,
           reviewEntity: {},
         }),
@@ -417,14 +417,14 @@ describe('API - Quality', () => {
   describe('Api publisher can start the API', () => {
     test('should get APIs list containing created api with REVIEW_OK status', async () => {
       let foundApis = await succeed(apisResourceAsPublisher.getApisRaw({ envId, orgId }));
-      let foundApi = find(foundApis, (a) => a.id === createdApi.id);
+      let foundApi = find(foundApis, (a) => a.id === apiEntity.id);
 
       expect(foundApi).toBeTruthy();
       expect(foundApi.workflow_state).toBe(WorkflowState.REVIEWOK);
     });
 
     test('should get API with REVIEW_OK status', async () => {
-      let foundApi = await succeed(apisResourceAsPublisher.getApiRaw({ envId, orgId, api: createdApi.id }));
+      let foundApi = await succeed(apisResourceAsPublisher.getApiRaw({ envId, orgId, api: apiEntity.id }));
 
       expect(foundApi).toBeTruthy();
       expect(foundApi.state).toBe(ApiEntityStateEnum.STOPPED);
@@ -434,7 +434,7 @@ describe('API - Quality', () => {
     });
 
     test('should get 100% quality score, all metrics passed', async () => {
-      let metric = await succeed(apisResourceAsPublisher.getApiQualityMetricsRaw({ envId, orgId, api: createdApi.id }));
+      let metric = await succeed(apisResourceAsPublisher.getApiQualityMetricsRaw({ envId, orgId, api: apiEntity.id }));
 
       expect(metric.score).toBe(1);
       expect(metric.metrics_passed['api.quality.metrics.description.weight']).toBeTruthy();
@@ -447,23 +447,23 @@ describe('API - Quality', () => {
         apisResourceAsPublisher.doApiLifecycleActionRaw({
           envId,
           orgId,
-          api: createdApi.id,
+          api: apiEntity.id,
           action: LifecycleAction.START,
         }),
         204,
       );
-      createdApi.state = ApiEntityStateEnum.STARTED;
+      apiEntity.state = ApiEntityStateEnum.STARTED;
     });
   });
 
   afterAll(async () => {
     // stop and delete created API
-    if (createdApi) {
-      if (createdApi.state != ApiEntityStateEnum.STOPPED) {
+    if (apiEntity) {
+      if (apiEntity.state != ApiEntityStateEnum.STOPPED) {
         await apisResourceAsPublisher.doApiLifecycleAction({
           envId,
           orgId,
-          api: createdApi.id,
+          api: apiEntity.id,
           action: LifecycleAction.STOP,
         });
       }
@@ -471,7 +471,7 @@ describe('API - Quality', () => {
       await apisResourceAsPublisher.deleteApi({
         envId,
         orgId,
-        api: createdApi.id,
+        api: apiEntity.id,
       });
     }
 
