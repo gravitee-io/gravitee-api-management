@@ -89,6 +89,7 @@ module.exports = {
     '@lib/jest-utils': '<rootDir>/lib/jest-utils',
     '@lib/gateway': '<rootDir>/lib/gateway',
     '@lib/management': '<rootDir>/lib/management',
+    '@lib/wiremock': '<rootDir>/lib/wiremock',
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader

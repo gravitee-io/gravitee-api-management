@@ -15,6 +15,7 @@ module.exports = {
     '@lib/jest-utils': '<rootDir>/dist/lib/jest-utils',
     '@lib/gateway': '<rootDir>/dist/lib/gateway',
     '@lib/management': '<rootDir>/dist/lib/management',
+    '@lib/wiremock': '<rootDir>/dist/lib/wiremock',
   },
 
   // The test environment that will be used for testing
