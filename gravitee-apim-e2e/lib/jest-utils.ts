@@ -20,7 +20,7 @@ interface PortalBusinessError {
   code: string;
   message: string;
   status: string;
-  parameters: { [key: string]: string };
+  parameters: Record<string, string>;
 }
 
 export async function fail(
@@ -56,11 +56,11 @@ export async function fail(
   }
 }
 
-export async function unauthorized(promise: Promise<ApiResponse<any>>) {
+export async function unauthorized<T>(promise: Promise<ApiResponse<T>>): Promise<void> {
   return fail(promise, 401);
 }
 
-export async function authorized(promise: Promise<ApiResponse<any>>, unexpectedStatus: number = 401) {
+export async function authorized<T>(promise: Promise<ApiResponse<T>>, unexpectedStatus: number = 401): Promise<void> {
   try {
     const response = await promise;
     expect(response.raw.status).not.toEqual(unexpectedStatus);
@@ -73,28 +73,28 @@ export async function authorized(promise: Promise<ApiResponse<any>>, unexpectedS
   }
 }
 
-export async function forbidden(promise: Promise<ApiResponse<any>>) {
+export async function forbidden<T>(promise: Promise<ApiResponse<T>>): Promise<void> {
   return fail(promise, 403);
 }
 
-export async function notFound(
-  promise: Promise<ApiResponse<any>>,
+export async function notFound<T>(
+  promise: Promise<ApiResponse<T>>,
   expectedError?: string | Partial<PortalBusinessError> | Array<Partial<PortalBusinessError>>,
 ) {
   return fail(promise, 404, expectedError);
 }
 
-export async function succeed(promise: Promise<ApiResponse<any>>, expectedStatus: number = 200) {
+export async function succeed<T>(promise: Promise<ApiResponse<T>>, expectedStatus: number = 200): Promise<T> {
   const response = await promise;
   expect(response.raw.status).toEqual(expectedStatus);
   return await response.value();
 }
 
-export async function created(promise: Promise<ApiResponse<any>>) {
+export async function created<T>(promise: Promise<ApiResponse<T>>) {
   return succeed(promise, 201);
 }
 
-export async function noContent(promise: Promise<ApiResponse<any>>) {
+export async function noContent<T>(promise: Promise<ApiResponse<T>>) {
   return succeed(promise, 204);
 }
 
