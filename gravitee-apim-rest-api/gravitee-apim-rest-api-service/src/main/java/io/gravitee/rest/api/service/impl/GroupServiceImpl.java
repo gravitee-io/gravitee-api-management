@@ -817,6 +817,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         group.setEmailInvitation(entity.isEmailInvitation());
         group.setEnvironmentId(environmentId);
         group.setDisableMembershipNotifications(entity.isDisableMembershipNotifications());
+        group.setApiPrimaryOwner(entity.getApiPrimaryOwner());
 
         return group;
     }
