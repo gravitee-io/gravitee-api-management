@@ -109,7 +109,7 @@ public class ApiService_DeleteTagsTest {
         when(membershipService.getMembersByReferencesAndRole(any(), any(), anyList(), any())).thenReturn(Set.of(new MemberEntity()));
 
         when(apiConverter.toApiEntity(any(), any())).thenReturn(apiEntity);
-        when(apiConverter.toApiEntity(any())).thenReturn(apiEntity);
+        when(apiConverter.toApiEntity(any(), any())).thenReturn(apiEntity);
 
         when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
         when(objectMapper.writeValueAsString(any())).thenReturn("{}");
