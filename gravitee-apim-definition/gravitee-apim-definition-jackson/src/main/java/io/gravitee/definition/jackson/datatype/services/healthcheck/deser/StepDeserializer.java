@@ -19,45 +19,41 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.common.http.HttpHeader;
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.services.healthcheck.Request;
-import io.gravitee.definition.model.services.healthcheck.Response;
-import io.gravitee.definition.model.services.healthcheck.Step;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class StepDeserializer extends StdScalarDeserializer<Step> {
+public class StepDeserializer extends StdScalarDeserializer<HealthCheckStep> {
 
-    public StepDeserializer(Class<Step> vc) {
+    public StepDeserializer(Class<HealthCheckStep> vc) {
         super(vc);
     }
 
     @Override
-    public Step deserialize(JsonParser jsonParser, DeserializationContext ctxt) throws IOException {
+    public HealthCheckStep deserialize(JsonParser jsonParser, DeserializationContext ctxt) throws IOException {
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
 
-        Step step = new Step();
+        HealthCheckStep step = new HealthCheckStep();
 
         final JsonNode requestNode = node.get("request");
         if (requestNode != null) {
-            step.setRequest(requestNode.traverse(jsonParser.getCodec()).readValueAs(Request.class));
+            step.setRequest(requestNode.traverse(jsonParser.getCodec()).readValueAs(HealthCheckRequest.class));
         } else {
             throw ctxt.mappingException("[health-check] Step request is required");
         }
 
         final JsonNode responseNode = node.get("response");
         if (responseNode != null) {
-            step.setResponse(responseNode.traverse(jsonParser.getCodec()).readValueAs(Response.class));
+            step.setResponse(responseNode.traverse(jsonParser.getCodec()).readValueAs(HealthCheckResponse.class));
         } else {
-            Response response = new Response();
-            response.setAssertions(Collections.singletonList(Response.DEFAULT_ASSERTION));
+            HealthCheckResponse response = new HealthCheckResponse();
+            response.setAssertions(Collections.singletonList(HealthCheckResponse.DEFAULT_ASSERTION));
             step.setResponse(response);
         }
 

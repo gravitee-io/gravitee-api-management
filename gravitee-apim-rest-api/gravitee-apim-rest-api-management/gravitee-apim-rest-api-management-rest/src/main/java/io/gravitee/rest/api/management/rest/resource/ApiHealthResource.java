@@ -24,11 +24,13 @@ import io.gravitee.rest.api.management.rest.resource.param.healthcheck.Healthche
 import io.gravitee.rest.api.management.rest.resource.param.healthcheck.LogsParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.analytics.Analytics;
 import io.gravitee.rest.api.model.analytics.query.Aggregation;
 import io.gravitee.rest.api.model.analytics.query.AggregationType;
 import io.gravitee.rest.api.model.analytics.query.DateHistogramQuery;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
+import io.gravitee.rest.api.model.healthcheck.ApiMetrics;
 import io.gravitee.rest.api.model.healthcheck.Log;
 import io.gravitee.rest.api.model.healthcheck.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -66,6 +68,11 @@ public class ApiHealthResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Health-check statistics for API")
     @Permissions({ @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ) })
+    @ApiResponse(
+        responseCode = "200",
+        description = "API health",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiMetrics.class))
+    )
     public Response getApiHealth(
         @QueryParam("type") @DefaultValue("availability") HealthcheckType healthcheckType,
         @QueryParam("field") @DefaultValue("endpoint") HealthcheckField healthcheckField

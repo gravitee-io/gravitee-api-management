@@ -18,21 +18,21 @@ package io.gravitee.definition.jackson.datatype.services.healthcheck.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import io.gravitee.definition.model.services.healthcheck.Response;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
 import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ResponseSerializer extends StdScalarSerializer<Response> {
+public class ResponseSerializer extends StdScalarSerializer<HealthCheckResponse> {
 
-    public ResponseSerializer(Class<Response> t) {
+    public ResponseSerializer(Class<HealthCheckResponse> t) {
         super(t);
     }
 
     @Override
-    public void serialize(Response response, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(HealthCheckResponse response, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
 
         jgen.writeArrayFieldStart("assertions");
@@ -49,7 +49,7 @@ public class ResponseSerializer extends StdScalarSerializer<Response> {
                     }
                 );
         } else {
-            jgen.writeString(Response.DEFAULT_ASSERTION);
+            jgen.writeString(HealthCheckResponse.DEFAULT_ASSERTION);
         }
 
         jgen.writeEndArray();

@@ -18,21 +18,21 @@ package io.gravitee.definition.jackson.datatype.services.healthcheck.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import io.gravitee.definition.model.services.healthcheck.Step;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class StepSerializer extends StdScalarSerializer<Step> {
+public class StepSerializer extends StdScalarSerializer<HealthCheckStep> {
 
-    public StepSerializer(Class<Step> t) {
+    public StepSerializer(Class<HealthCheckStep> t) {
         super(t);
     }
 
     @Override
-    public void serialize(Step step, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(HealthCheckStep step, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         if (step.getName() != null && !step.getName().isEmpty()) {
             jgen.writeStringField("name", step.getName());

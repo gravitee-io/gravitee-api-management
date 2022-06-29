@@ -24,13 +24,13 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Response implements Serializable {
+public class HealthCheckResponse implements Serializable {
 
-    public static final Response DEFAULT_RESPONSE = new Response();
+    public static final HealthCheckResponse DEFAULT_RESPONSE = new HealthCheckResponse();
     public static final String DEFAULT_ASSERTION = "#response.status == 200";
 
     @JsonProperty("assertions")
-    private List<String> assertions = Collections.singletonList(Response.DEFAULT_ASSERTION);
+    private List<String> assertions = Collections.singletonList(HealthCheckResponse.DEFAULT_ASSERTION);
 
     public List<String> getAssertions() {
         return assertions;

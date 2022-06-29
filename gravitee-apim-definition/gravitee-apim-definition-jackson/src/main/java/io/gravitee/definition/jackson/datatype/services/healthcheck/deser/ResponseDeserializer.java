@@ -19,7 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.services.healthcheck.Response;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,17 +29,17 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ResponseDeserializer extends StdScalarDeserializer<Response> {
+public class ResponseDeserializer extends StdScalarDeserializer<HealthCheckResponse> {
 
-    public ResponseDeserializer(Class<Response> vc) {
+    public ResponseDeserializer(Class<HealthCheckResponse> vc) {
         super(vc);
     }
 
     @Override
-    public Response deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public HealthCheckResponse deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        Response response = new Response();
+        HealthCheckResponse response = new HealthCheckResponse();
 
         final JsonNode assertionsNode = node.get("assertions");
         if (assertionsNode != null) {
@@ -50,7 +50,7 @@ public class ResponseDeserializer extends StdScalarDeserializer<Response> {
 
         if (response.getAssertions().isEmpty()) {
             // Add default assertion
-            response.setAssertions(Collections.singletonList(Response.DEFAULT_ASSERTION));
+            response.setAssertions(Collections.singletonList(HealthCheckResponse.DEFAULT_ASSERTION));
         }
 
         return response;

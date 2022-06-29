@@ -22,15 +22,15 @@ import java.io.Serializable;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Step implements Serializable {
+public class HealthCheckStep implements Serializable {
 
     private String name = "default-step";
 
     @JsonProperty("request")
-    private Request request;
+    private HealthCheckRequest request;
 
     @JsonProperty("response")
-    private Response response = Response.DEFAULT_RESPONSE;
+    private HealthCheckResponse response = HealthCheckResponse.DEFAULT_RESPONSE;
 
     public String getName() {
         return name;
@@ -40,19 +40,19 @@ public class Step implements Serializable {
         this.name = name;
     }
 
-    public Request getRequest() {
+    public HealthCheckRequest getRequest() {
         return request;
     }
 
-    public void setRequest(Request request) {
+    public void setRequest(HealthCheckRequest request) {
         this.request = request;
     }
 
-    public Response getResponse() {
+    public HealthCheckResponse getResponse() {
         return response;
     }
 
-    public void setResponse(Response response) {
+    public void setResponse(HealthCheckResponse response) {
         this.response = response;
     }
 }

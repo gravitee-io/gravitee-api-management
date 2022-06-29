@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.healthcheck.grpc;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRuleHandler;
@@ -41,11 +42,7 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<HttpEndpoin
     }
 
     @Override
-    protected Future<HttpClientRequest> createHttpClientRequest(
-        final HttpClient httpClient,
-        URI request,
-        io.gravitee.definition.model.services.healthcheck.Step step
-    ) {
+    protected Future<HttpClientRequest> createHttpClientRequest(final HttpClient httpClient, URI request, HealthCheckStep step) {
         RequestOptions options = prepareHttpClientRequest(request, step);
 
         return httpClient
@@ -60,7 +57,7 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<HttpEndpoin
     }
 
     @Override
-    protected RequestOptions prepareHttpClientRequest(URI request, io.gravitee.definition.model.services.healthcheck.Step step) {
+    protected RequestOptions prepareHttpClientRequest(URI request, HealthCheckStep step) {
         RequestOptions options = super.prepareHttpClientRequest(request, step);
 
         // Ensure required grpc headers

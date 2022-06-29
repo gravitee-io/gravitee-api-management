@@ -18,21 +18,21 @@ package io.gravitee.definition.jackson.datatype.services.healthcheck.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import io.gravitee.definition.model.services.healthcheck.Request;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
 import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class RequestSerializer extends StdScalarSerializer<Request> {
+public class RequestSerializer extends StdScalarSerializer<HealthCheckRequest> {
 
-    public RequestSerializer(Class<Request> t) {
+    public RequestSerializer(Class<HealthCheckRequest> t) {
         super(t);
     }
 
     @Override
-    public void serialize(Request request, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(HealthCheckRequest request, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("path", request.getPath());
         jgen.writeStringField("method", request.getMethod().name());
