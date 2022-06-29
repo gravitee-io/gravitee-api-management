@@ -16,7 +16,7 @@
 package io.gravitee.gateway.services.healthcheck;
 
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.services.healthcheck.Step;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.vertx.core.Vertx;
@@ -35,7 +35,7 @@ public interface EndpointRule<T extends Endpoint> {
 
     String schedule();
 
-    List<Step> steps();
+    List<HealthCheckStep> steps();
 
     ProxyOptions getSystemProxyOptions();
 

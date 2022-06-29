@@ -16,7 +16,7 @@
 package io.gravitee.gateway.services.healthcheck.eval.assertion;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.services.healthcheck.Response;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
 import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -47,7 +47,7 @@ public class AssertionEvaluationTest {
 
     @Test
     public void shouldValidate_simpleHttpCondition() throws EvaluationException {
-        String assertion = Response.DEFAULT_ASSERTION;
+        String assertion = HealthCheckResponse.DEFAULT_ASSERTION;
         AssertionEvaluation evaluation = new AssertionEvaluation(assertion);
         EvaluableHttpResponse response = new EvaluableHttpResponse();
         response.status = HttpStatusCode.OK_200;

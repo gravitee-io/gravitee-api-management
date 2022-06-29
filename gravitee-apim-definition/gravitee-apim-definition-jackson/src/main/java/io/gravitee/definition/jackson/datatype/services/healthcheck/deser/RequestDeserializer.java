@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.services.healthcheck.Request;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,17 +30,17 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class RequestDeserializer extends StdScalarDeserializer<Request> {
+public class RequestDeserializer extends StdScalarDeserializer<HealthCheckRequest> {
 
-    public RequestDeserializer(Class<Request> vc) {
+    public RequestDeserializer(Class<HealthCheckRequest> vc) {
         super(vc);
     }
 
     @Override
-    public Request deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public HealthCheckRequest deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        Request request = new Request();
+        HealthCheckRequest request = new HealthCheckRequest();
 
         JsonNode pathNode = node.get("path");
         if (pathNode != null) {

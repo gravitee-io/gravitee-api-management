@@ -16,21 +16,18 @@
 package io.gravitee.gateway.services.healthcheck.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.definition.model.services.healthcheck.Request;
-import io.gravitee.definition.model.services.healthcheck.Response;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.reporter.api.health.EndpointStatus;
@@ -40,7 +37,6 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import java.util.Collections;
 import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Before;
@@ -81,12 +77,12 @@ public class ManagedEndpointRuleHandlerTest {
         EndpointRule rule = mock(EndpointRule.class);
         when(rule.endpoint()).thenReturn(createEndpoint());
 
-        io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
-        Request request = new Request("/", HttpMethod.GET);
+        HealthCheckStep step = new HealthCheckStep();
+        HealthCheckRequest request = new HealthCheckRequest("/", HttpMethod.GET);
 
         step.setRequest(request);
-        Response response = new Response();
-        response.setAssertions(Collections.singletonList(Response.DEFAULT_ASSERTION));
+        HealthCheckResponse response = new HealthCheckResponse();
+        response.setAssertions(Collections.singletonList(HealthCheckResponse.DEFAULT_ASSERTION));
         step.setResponse(response);
 
         when(rule.steps()).thenReturn(Collections.singletonList(step));
@@ -122,12 +118,12 @@ public class ManagedEndpointRuleHandlerTest {
         EndpointRule rule = mock(EndpointRule.class);
         when(rule.endpoint()).thenReturn(createEndpoint());
 
-        io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
-        Request request = new Request("/", HttpMethod.GET);
+        HealthCheckStep step = new HealthCheckStep();
+        HealthCheckRequest request = new HealthCheckRequest("/", HttpMethod.GET);
 
         step.setRequest(request);
-        Response response = new Response();
-        response.setAssertions(Collections.singletonList(Response.DEFAULT_ASSERTION));
+        HealthCheckResponse response = new HealthCheckResponse();
+        response.setAssertions(Collections.singletonList(HealthCheckResponse.DEFAULT_ASSERTION));
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
@@ -163,11 +159,11 @@ public class ManagedEndpointRuleHandlerTest {
         EndpointRule rule = mock(EndpointRule.class);
         when(rule.endpoint()).thenReturn(createEndpoint());
 
-        io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
-        Request request = new Request("/", HttpMethod.GET);
+        HealthCheckStep step = new HealthCheckStep();
+        HealthCheckRequest request = new HealthCheckRequest("/", HttpMethod.GET);
 
         step.setRequest(request);
-        Response response = new Response();
+        HealthCheckResponse response = new HealthCheckResponse();
         response.setAssertions(Collections.singletonList("#jsonPath(#response.content, '$.status') == 'green'"));
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
@@ -212,13 +208,13 @@ public class ManagedEndpointRuleHandlerTest {
         endpoint.setTarget(endpoint.getTarget() + "/additional-but-unused-path-for-hc");
         when(rule.endpoint()).thenReturn(endpoint);
 
-        io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
-        Request request = new Request("/", HttpMethod.GET);
+        HealthCheckStep step = new HealthCheckStep();
+        HealthCheckRequest request = new HealthCheckRequest("/", HttpMethod.GET);
         request.setFromRoot(true);
 
         step.setRequest(request);
-        Response response = new Response();
-        response.setAssertions(Collections.singletonList(Response.DEFAULT_ASSERTION));
+        HealthCheckResponse response = new HealthCheckResponse();
+        response.setAssertions(Collections.singletonList(HealthCheckResponse.DEFAULT_ASSERTION));
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 

@@ -20,10 +20,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.datatype.services.core.deser.ScheduledServiceDeserializer;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
-import io.gravitee.definition.model.services.healthcheck.Request;
-import io.gravitee.definition.model.services.healthcheck.Response;
-import io.gravitee.definition.model.services.healthcheck.Step;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,31 +48,31 @@ public class HealthCheckDeserializer<T extends HealthCheckService> extends Sched
             // New version of health-check service
             final JsonNode stepsNode = node.get("steps");
             if (stepsNode != null && stepsNode.isArray()) {
-                List<Step> steps = new ArrayList<>(stepsNode.size());
+                List<HealthCheckStep> steps = new ArrayList<>(stepsNode.size());
 
                 for (JsonNode stepNode : stepsNode) {
-                    Step step = stepNode.traverse(jsonParser.getCodec()).readValueAs(Step.class);
+                    HealthCheckStep step = stepNode.traverse(jsonParser.getCodec()).readValueAs(HealthCheckStep.class);
                     steps.add(step);
                 }
 
                 service.setSteps(steps);
             } else {
                 // Ensure backward compatibility
-                Step step = new Step();
+                HealthCheckStep step = new HealthCheckStep();
 
                 final JsonNode requestNode = node.get("request");
                 if (requestNode != null) {
-                    step.setRequest(requestNode.traverse(jsonParser.getCodec()).readValueAs(Request.class));
+                    step.setRequest(requestNode.traverse(jsonParser.getCodec()).readValueAs(HealthCheckRequest.class));
                 } else {
                     throw ctxt.mappingException("[health-check] Request is required");
                 }
 
                 final JsonNode expectationNode = node.get("expectation");
                 if (expectationNode != null) {
-                    step.setResponse(expectationNode.traverse(jsonParser.getCodec()).readValueAs(Response.class));
+                    step.setResponse(expectationNode.traverse(jsonParser.getCodec()).readValueAs(HealthCheckResponse.class));
                 } else {
-                    Response response = new Response();
-                    response.setAssertions(Collections.singletonList(Response.DEFAULT_ASSERTION));
+                    HealthCheckResponse response = new HealthCheckResponse();
+                    response.setAssertions(Collections.singletonList(HealthCheckResponse.DEFAULT_ASSERTION));
                     step.setResponse(response);
                 }
 

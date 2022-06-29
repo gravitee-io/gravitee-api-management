@@ -21,10 +21,10 @@ import io.gravitee.alert.api.event.Event;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.EndpointStatusDecorator;
@@ -120,24 +120,20 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         logger.debug("Running health-check for endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
 
         // Run request for each step
-        for (io.gravitee.definition.model.services.healthcheck.Step step : rule.steps()) {
+        for (HealthCheckStep step : rule.steps()) {
             runStep(endpoint, step);
         }
     }
 
     protected abstract HttpClientOptions createHttpClientOptions(final T endpoint, final URI requestUri) throws Exception;
 
-    protected Future<HttpClientRequest> createHttpClientRequest(
-        final HttpClient httpClient,
-        URI request,
-        io.gravitee.definition.model.services.healthcheck.Step step
-    ) {
+    protected Future<HttpClientRequest> createHttpClientRequest(final HttpClient httpClient, URI request, HealthCheckStep step) {
         RequestOptions options = prepareHttpClientRequest(request, step);
 
         return httpClient.request(options);
     }
 
-    protected RequestOptions prepareHttpClientRequest(URI request, io.gravitee.definition.model.services.healthcheck.Step step) {
+    protected RequestOptions prepareHttpClientRequest(URI request, HealthCheckStep step) {
         final int port = request.getPort() != -1 ? request.getPort() : (HTTPS_SCHEME.equals(request.getScheme()) ? 443 : 80);
 
         String relativeUri = (request.getRawQuery() == null) ? request.getRawPath() : request.getRawPath() + '?' + request.getRawQuery();
@@ -172,7 +168,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         return options;
     }
 
-    protected URI createRequest(T endpoint, io.gravitee.definition.model.services.healthcheck.Step step) {
+    protected URI createRequest(T endpoint, HealthCheckStep step) {
         URI targetURI = URI.create(endpoint.getTarget());
 
         if (step.getRequest().isFromRoot()) {
@@ -199,7 +195,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         return URI.create(DUPLICATE_SLASH_REMOVER.matcher(uri).replaceAll("/"));
     }
 
-    protected void runStep(T endpoint, io.gravitee.definition.model.services.healthcheck.Step step) {
+    protected void runStep(T endpoint, HealthCheckStep step) {
         try {
             URI hcRequestUri = createRequest(endpoint, step);
             Future<HttpClientRequest> healthRequestPromise = createHttpClientRequest(httpClient, hcRequestUri, step);
@@ -274,7 +270,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
     private void reportThrowable(
         Throwable throwable,
-        io.gravitee.definition.model.services.healthcheck.Step step,
+        HealthCheckStep step,
         EndpointStatus.Builder healthBuilder,
         long startTime,
         Request request,
@@ -289,14 +285,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         report(healthBuilder.build());
     }
 
-    private Step buildStep(
-        io.gravitee.definition.model.services.healthcheck.Step step,
-        long startTime,
-        long endTime,
-        Request request,
-        HttpClientResponse response,
-        String body
-    ) {
+    private Step buildStep(HealthCheckStep step, long startTime, long endTime, Request request, HttpClientResponse response, String body) {
         EndpointStatus.StepBuilder stepBuilder = validateAssertions(step, new EvaluableHttpResponse(response, body));
         stepBuilder.request(request);
         stepBuilder.responseTime(endTime - startTime);
@@ -324,13 +313,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         return stepBuilder.build();
     }
 
-    private Step buildFailingStep(
-        io.gravitee.definition.model.services.healthcheck.Step step,
-        long startTime,
-        long endTime,
-        Request request,
-        Throwable throwable
-    ) {
+    private Step buildFailingStep(HealthCheckStep step, long startTime, long endTime, Request request, Throwable throwable) {
         EndpointStatus.StepBuilder stepBuilder = EndpointStatus.forStep(step.getName());
         stepBuilder.fail(throwable.getMessage());
         stepBuilder.request(request);
@@ -356,16 +339,13 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         return stepBuilder.build();
     }
 
-    private io.gravitee.gateway.api.http.HttpHeaders getHttpHeaders(io.gravitee.definition.model.services.healthcheck.Step step) {
+    private io.gravitee.gateway.api.http.HttpHeaders getHttpHeaders(HealthCheckStep step) {
         io.gravitee.gateway.api.http.HttpHeaders reqHeaders = io.gravitee.gateway.api.http.HttpHeaders.create();
         step.getRequest().getHeaders().forEach(httpHeader -> reqHeaders.add(httpHeader.getName(), httpHeader.getValue()));
         return reqHeaders;
     }
 
-    private EndpointStatus.StepBuilder validateAssertions(
-        final io.gravitee.definition.model.services.healthcheck.Step step,
-        final EvaluableHttpResponse response
-    ) {
+    private EndpointStatus.StepBuilder validateAssertions(final HealthCheckStep step, final EvaluableHttpResponse response) {
         EndpointStatus.StepBuilder stepBuilder = EndpointStatus.forStep(step.getName());
 
         // Run assertions

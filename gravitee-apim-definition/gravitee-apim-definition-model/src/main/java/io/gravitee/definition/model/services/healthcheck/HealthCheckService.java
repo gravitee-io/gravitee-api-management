@@ -28,7 +28,7 @@ public class HealthCheckService extends ScheduledService {
     public static final String SERVICE_KEY = "health-check";
 
     @JsonProperty("steps")
-    private List<Step> steps;
+    private List<HealthCheckStep> steps;
 
     public HealthCheckService() {
         super(SERVICE_KEY);
@@ -38,11 +38,11 @@ public class HealthCheckService extends ScheduledService {
         return SERVICE_KEY;
     }
 
-    public List<Step> getSteps() {
+    public List<HealthCheckStep> getSteps() {
         return steps;
     }
 
-    public void setSteps(List<Step> steps) {
+    public void setSteps(List<HealthCheckStep> steps) {
         this.steps = steps;
     }
 }

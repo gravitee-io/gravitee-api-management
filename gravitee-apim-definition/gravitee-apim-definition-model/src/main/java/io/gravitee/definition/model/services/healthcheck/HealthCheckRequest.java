@@ -25,7 +25,7 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Request implements Serializable {
+public class HealthCheckRequest implements Serializable {
 
     @JsonProperty("path")
     private String path;
@@ -42,9 +42,9 @@ public class Request implements Serializable {
     @JsonProperty("fromRoot")
     private boolean fromRoot;
 
-    public Request() {}
+    public HealthCheckRequest() {}
 
-    public Request(String path, HttpMethod method) {
+    public HealthCheckRequest(String path, HttpMethod method) {
         this.path = path;
         this.method = method;
     }

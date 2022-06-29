@@ -19,6 +19,7 @@ import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.definition.model.ProtocolVersion;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import io.gravitee.definition.model.ssl.jks.JKSKeyStore;
 import io.gravitee.definition.model.ssl.jks.JKSTrustStore;
 import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
@@ -53,7 +54,7 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     }
 
     @Override
-    protected RequestOptions prepareHttpClientRequest(URI request, io.gravitee.definition.model.services.healthcheck.Step step) {
+    protected RequestOptions prepareHttpClientRequest(URI request, HealthCheckStep step) {
         RequestOptions options = super.prepareHttpClientRequest(request, step);
 
         // Set timeout on request
