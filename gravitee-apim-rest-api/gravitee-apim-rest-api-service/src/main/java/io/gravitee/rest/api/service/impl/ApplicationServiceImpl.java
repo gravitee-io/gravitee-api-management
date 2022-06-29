@@ -352,28 +352,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             String clientId = newApplicationEntity.getSettings().getApp().getClientId();
 
             if (clientId != null && !clientId.trim().isEmpty()) {
-                LOGGER.debug("Check that client_id is unique among all applications");
-                try {
-                    final Set<Application> applications = applicationRepository.findAllByEnvironment(
-                        environmentId,
-                        ApplicationStatus.ACTIVE
-                    );
-                    final boolean alreadyExistingApp = applications
-                        .stream()
-                        .anyMatch(
-                            app -> app.getMetadata() != null && clientId.equals(app.getMetadata().get(Application.METADATA_CLIENT_ID))
-                        );
-                    if (alreadyExistingApp) {
-                        LOGGER.error("An application already exists with the same client_id");
-                        throw new ClientIdAlreadyExistsException(clientId);
-                    }
-                } catch (TechnicalException ex) {
-                    LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, userId, ex);
-                    throw new TechnicalManagementException(
-                        "An error occurs while trying create " + newApplicationEntity + " for user " + userId,
-                        ex
-                    );
-                }
+                checkClientIdIsUniqueForEnv(environmentId, clientId);
             }
         } else {
             // Check that client registration is enabled
@@ -718,6 +697,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             if (!ApplicationStatus.ARCHIVED.equals(application.getStatus())) {
                 throw new ApplicationActiveException(application.getName());
+            }
+
+            if (application.getMetadata() != null && application.getMetadata().containsKey(METADATA_CLIENT_ID)) {
+                checkClientIdIsUniqueForEnv(application.getEnvironmentId(), application.getMetadata().get(METADATA_CLIENT_ID));
             }
 
             application.setStatus(ApplicationStatus.ACTIVE);
@@ -1156,6 +1139,25 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             String errorMessage = String.format("An error occurs while trying to find applications by name %s and id %s", name, ids);
             LOGGER.error(errorMessage, ex);
             throw new TechnicalManagementException(errorMessage, ex);
+        }
+    }
+
+    private void checkClientIdIsUniqueForEnv(String environmentId, String clientId) {
+        final boolean alreadyExistingApp;
+        try {
+            alreadyExistingApp =
+                applicationRepository
+                    .findAllByEnvironment(environmentId, ApplicationStatus.ACTIVE)
+                    .stream()
+                    .anyMatch(app -> app.getMetadata() != null && clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID)));
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to fetch applications for environment [" + environmentId + "]",
+                ex
+            );
+        }
+        if (alreadyExistingApp) {
+            throw new ClientIdAlreadyExistsException(clientId);
         }
     }
 }
