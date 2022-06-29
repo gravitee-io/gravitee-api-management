@@ -96,6 +96,6 @@ public class DebugApiContextHandlerFactory extends ApiReactorHandlerFactory {
         ComponentProvider componentProvider,
         DefaultReferenceRegister referenceRegister
     ) {
-        return new DebugExecutionContextFactory(componentProvider);
+        return new DebugExecutionContextFactory(super.v3ExecutionContextFactory(api, componentProvider, referenceRegister));
     }
 }
