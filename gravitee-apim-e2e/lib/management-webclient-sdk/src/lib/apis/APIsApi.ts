@@ -5441,7 +5441,7 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Create an API by importing an existing API definition in JSON format
+     * Create an API by importing an existing API definition in JSON format either with json or via an URL
      * Create an API by importing an API definition
      */
     async importApiDefinitionRaw(requestParameters: ImportApiDefinitionRequest): Promise<runtime.ApiResponse<ApiEntity>> {
@@ -5482,7 +5482,7 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Create an API by importing an existing API definition in JSON format
+     * Create an API by importing an existing API definition in JSON format either with json or via an URL
      * Create an API by importing an API definition
      */
     async importApiDefinition(requestParameters: ImportApiDefinitionRequest): Promise<ApiEntity> {
