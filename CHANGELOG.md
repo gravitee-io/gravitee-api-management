@@ -1,3 +1,10 @@
+## [3.12.4](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/3.12.3...3.12.4) (2022-06-30)
+
+
+### Bug Fixes
+
+* use map iteration style for headers in logging - missed blocks ([5a256cd](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/5a256cd150dda9561b55cb414568dcec00455ee9)), closes [graviteeio/issues#7930](https://github.com/graviteeio/issues/issues/7930)
+
 ## [3.12.3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/3.12.2...3.12.3) (2022-06-30)
 
 
