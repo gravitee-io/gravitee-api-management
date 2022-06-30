@@ -57,9 +57,9 @@
     </#if>
     <#if log.getProxyRequest().getHeaders()??>
     ,"headers":{
-      <#list log.getProxyRequest().getHeaders().names() as header>
-      "${header}": [
-        <#list log.getProxyRequest().getHeaders().getAll(header) as value>
+      <#list log.getProxyRequest().getHeaders() as headerKey, headerValue>
+        "${headerKey}": [
+        <#list headerValue as value>
           <#if value??>
           "${value?j_string}"
             <#sep>,</#sep>
@@ -80,9 +80,9 @@
     </#if>
     <#if log.getProxyResponse().getHeaders()??>
     ,"headers":{
-      <#list log.getProxyResponse().getHeaders().names() as header>
-      "${header}": [
-        <#list log.getProxyResponse().getHeaders().getAll(header) as value>
+      <#list log.getProxyResponse().getHeaders() as headerKey, headerValue>
+        "${headerKey}": [
+        <#list headerValue as value>
           <#if value??>
           "${value?j_string}"
             <#sep>,</#sep>
