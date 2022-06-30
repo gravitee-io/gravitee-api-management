@@ -57,6 +57,7 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
     private Subscription convertModelSubscriptionToCache(io.gravitee.repository.management.model.Subscription subscriptionModel) {
         Subscription subscription = new Subscription();
         subscription.setApi(subscriptionModel.getApi());
+        subscription.setApplication(subscriptionModel.getApplication());
         subscription.setClientId(subscriptionModel.getClientId());
         subscription.setStartingAt(subscriptionModel.getStartingAt());
         subscription.setEndingAt(subscriptionModel.getEndingAt());
