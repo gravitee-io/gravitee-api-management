@@ -254,6 +254,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
+        verify(pageService, times(1)).createAsideFolder(eq(API_ID), eq(GraviteeContext.getCurrentEnvironment()));
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(
                 GraviteeContext.getCurrentOrganization(),
@@ -332,6 +333,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
+        verify(pageService, times(1)).createAsideFolder(eq(API_ID), eq(GraviteeContext.getCurrentEnvironment()));
     }
 
     @Test
@@ -361,6 +363,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
+        verify(pageService, times(1)).createAsideFolder(eq(API_ID), eq(GraviteeContext.getCurrentEnvironment()));
     }
 
     @Test
@@ -390,6 +393,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
+        verify(pageService, times(1)).createAsideFolder(eq(API_ID), eq(GraviteeContext.getCurrentEnvironment()));
     }
 
     @Test
@@ -415,6 +419,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
+        verify(pageService, times(1)).createAsideFolder(eq(API_ID), eq(GraviteeContext.getCurrentEnvironment()));
     }
 
     @Test
@@ -550,6 +555,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
+        verify(pageService, times(1)).createAsideFolder(eq(API_ID), eq(GraviteeContext.getCurrentEnvironment()));
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(
                 GraviteeContext.getCurrentOrganization(),

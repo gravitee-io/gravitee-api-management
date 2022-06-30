@@ -335,6 +335,19 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
 
         updatePages(createdApiEntity.getId(), jsonNode, environmentId);
+
+        List<PageEntity> search = pageService.search(
+            new PageQuery.Builder()
+                .api(createdApiEntity.getId())
+                .name(SystemFolderType.ASIDE.folderName())
+                .type(PageType.SYSTEM_FOLDER)
+                .build(),
+            environmentId
+        );
+
+        if (search.isEmpty()) {
+            pageService.createAsideFolder(createdApiEntity.getId(), environmentId);
+        }
     }
 
     private String fetchApiDefinitionContentFromURL(String apiDefinitionOrURL) {
