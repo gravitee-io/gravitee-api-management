@@ -1,0 +1,8 @@
+{
+  "request": {
+    "headers": [],
+    "path": "/_health",
+    "fromRoot": true,
+    "method": "GET"
+  }
+}
