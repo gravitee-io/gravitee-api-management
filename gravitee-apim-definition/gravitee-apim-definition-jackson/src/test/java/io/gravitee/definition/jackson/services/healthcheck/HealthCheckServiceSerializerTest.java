@@ -30,8 +30,8 @@ public class HealthCheckServiceSerializerTest extends AbstractTest {
 
     @Test
     public void definition_withHealtcheck() throws Exception {
-        String oldDefinition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck.json";
-        String expectedDefinition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v3-expected.json";
+        String oldDefinition = "/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck.json";
+        String expectedDefinition = "/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-v3-expected.json";
         Api api = load(oldDefinition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
@@ -43,8 +43,8 @@ public class HealthCheckServiceSerializerTest extends AbstractTest {
 
     @Test
     public void definition_withHealtcheck_v2() throws Exception {
-        String definition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v2.json";
-        String expectedDefinition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v3-expected.json";
+        String definition = "/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-v2.json";
+        String expectedDefinition = "/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-v3-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
@@ -56,8 +56,8 @@ public class HealthCheckServiceSerializerTest extends AbstractTest {
 
     @Test
     public void definition_withHealtcheck_v3() throws Exception {
-        String definition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v3.json";
-        String expectedDefinition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v3-expected.json";
+        String definition = "/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-v3.json";
+        String expectedDefinition = "/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-v3-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
@@ -69,9 +69,9 @@ public class HealthCheckServiceSerializerTest extends AbstractTest {
 
     @Test
     public void definition_withHealtcheck_v2_fromRoot() throws Exception {
-        String definition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v2-fromroot.json";
+        String definition = "/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-v2-fromroot.json";
         String expectedDefinition =
-            "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v3-fromroot-expected.json";
+            "/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-v3-fromroot-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
@@ -83,9 +83,9 @@ public class HealthCheckServiceSerializerTest extends AbstractTest {
 
     @Test
     public void definition_withHealtcheck_v3_fromRoot() throws Exception {
-        String definition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v3-fromroot.json";
+        String definition = "/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-v3-fromroot.json";
         String expectedDefinition =
-            "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v3-fromroot-expected.json";
+            "/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-v3-fromroot-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
@@ -97,8 +97,8 @@ public class HealthCheckServiceSerializerTest extends AbstractTest {
 
     @Test
     public void definition_withHealtcheck_disabled() throws Exception {
-        String definition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-disabled.json";
-        String expectedDefinition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-expected.json";
+        String definition = "/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-disabled.json";
+        String expectedDefinition = "/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);

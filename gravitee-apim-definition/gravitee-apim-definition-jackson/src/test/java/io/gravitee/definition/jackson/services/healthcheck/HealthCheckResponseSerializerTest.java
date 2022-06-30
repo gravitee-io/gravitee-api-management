@@ -33,7 +33,7 @@ class HealthCheckResponseSerializerTest extends AbstractTest {
         HealthCheckResponse healthCheckResponse = new HealthCheckResponse();
         String expected = IOUtils
             .toString(
-                read("/io/gravitee/definition/jackson/services/healtcheck/api-healthcheck-response-expected.json"),
+                read("/io/gravitee/definition/jackson/services/healthcheck/api-healthcheck-response-expected.json"),
                 Charset.defaultCharset()
             )
             .trim();

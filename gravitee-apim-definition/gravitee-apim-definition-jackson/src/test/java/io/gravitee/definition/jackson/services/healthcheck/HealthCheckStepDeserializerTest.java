@@ -32,7 +32,10 @@ class HealthCheckStepDeserializerTest extends AbstractTest {
 
     @Test
     void testHealthCheckStepDeserializer() throws IOException {
-        HealthCheckStep step = load("/io/gravitee/definition/jackson/services/healtcheck/api-healthcheck-step.json", HealthCheckStep.class);
+        HealthCheckStep step = load(
+            "/io/gravitee/definition/jackson/services/healthcheck/api-healthcheck-step.json",
+            HealthCheckStep.class
+        );
         assertNotNull(step);
         assertEquals("default-step", step.getName());
         assertNotNull(step.getRequest());
@@ -46,7 +49,7 @@ class HealthCheckStepDeserializerTest extends AbstractTest {
         assertThrows(
             JsonMappingException.class,
             () -> {
-                load("/io/gravitee/definition/jackson/services/healtcheck/api-healthcheck-step-no-request.json", HealthCheckStep.class);
+                load("/io/gravitee/definition/jackson/services/healthcheck/api-healthcheck-step-no-request.json", HealthCheckStep.class);
             }
         );
     }
@@ -54,7 +57,7 @@ class HealthCheckStepDeserializerTest extends AbstractTest {
     @Test
     void testHealthCheckStepDeserializer_noResponse() throws IOException {
         HealthCheckStep step = load(
-            "/io/gravitee/definition/jackson/services/healtcheck/api-healthcheck-step-no-response.json",
+            "/io/gravitee/definition/jackson/services/healthcheck/api-healthcheck-step-no-response.json",
             HealthCheckStep.class
         );
         assertNotNull(step.getResponse());
