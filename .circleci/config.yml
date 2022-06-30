@@ -1253,14 +1253,10 @@ jobs:
             image: ubuntu-2004:202101-01
         resource_class: large
         parameters:
-            with_report:
-                default: false
-                type: boolean
+            execution_mode:
+                type: string
             database:
-                type: enum
-                default: "mongo"
-                enum: ["mongo", "jdbc"]
-                description: Database type [mongo|jdbc]
+                type: string
         steps:
             - checkout
             - attach_workspace:
@@ -1274,12 +1270,21 @@ jobs:
                   secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
                   var-name: GITHUB_TOKEN
             - run:
-                  name: Run API & e2e tests
+                  name: Run API & E2E Tests
                   command: |
+                      echo "Running API & E2E tests in << parameters.execution_mode >> mode with << parameters.database >> database"
                       cd gravitee-apim-e2e
+                      if [[ << parameters.execution_mode >> == jupiter ]]
+                      then
+                        echo "Enabling jupiter mode on APIM Gateway and Rest API"
+                        export JUPITER_MODE_ENABLED=true
+                      fi
                       APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$APIM_VERSION npm run test:api:<< parameters.database >>
             - when:
-                  condition: << parameters.with_report >>
+                  condition:
+                      and:
+                        - equal: [v3, << parameters.execution_mode >>]
+                        - equal: [mongo, << parameters.database >>]
                   steps:
                     - run:
                           name: Run API & e2e tests
@@ -1705,24 +1710,14 @@ workflows:
                       - setup
             - e2e-test:
                   context: cicd-orchestrator
-                  name: Test APIM e2e with mongo database
+                  name: Test APIM e2e - << matrix.execution_mode >> - << matrix.database >>
                   requires:
                       - Lint & Build APIM e2e
                       - build-images
-                  database: mongo
-                  with_report: true
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /.*-run-e2e.*/
-            - e2e-test:
-                  context: cicd-orchestrator
-                  name: Test APIM e2e with jdbc database
-                  requires:
-                      - Lint & Build APIM e2e
-                      - build-images
-                  database: jdbc
+                  matrix:
+                      parameters:
+                          execution_mode: ["v3", "jupiter"]
+                          database: ["mongo", "jdbc"]
                   filters:
                       branches:
                           only:
