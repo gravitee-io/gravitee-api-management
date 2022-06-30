@@ -1,0 +1,20 @@
+{
+  "schedule": "*/1 * * * * *",
+  "inherit": false,
+  "steps": [
+    {
+      "request": {
+        "headers": [],
+        "path": "/_health",
+        "fromRoot": true,
+        "method": "GET"
+      },
+      "response": {
+        "assertions": [
+          "#response.status == 200"
+        ]
+      }
+    }
+  ],
+  "enabled": true
+}
