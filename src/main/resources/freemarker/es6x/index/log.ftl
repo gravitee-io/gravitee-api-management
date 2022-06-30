@@ -12,9 +12,9 @@
     </#if>
     <#if log.getClientRequest().getHeaders()??>
     ,"headers":{
-      <#list log.getClientRequest().getHeaders().names() as header>
-      "${header}": [
-        <#list log.getClientRequest().getHeaders().getAll(header) as value>
+      <#list log.getClientRequest().getHeaders() as headerKey, headerValue>
+        "${headerKey}": [
+        <#list headerValue as value>
           <#if value??>
             "${value?j_string}"
             <#sep>,</#sep>
@@ -33,9 +33,9 @@
     </#if>
     <#if log.getClientResponse().getHeaders()??>
     ,"headers":{
-      <#list log.getClientResponse().getHeaders().names() as header>
-      "${header}": [
-        <#list log.getClientResponse().getHeaders().getAll(header) as value>
+      <#list log.getClientResponse().getHeaders() as headerKey, headerValue>
+        "${headerKey}": [
+        <#list headerValue as value>
           <#if value??>
             "${value?j_string}"
             <#sep>,</#sep>
