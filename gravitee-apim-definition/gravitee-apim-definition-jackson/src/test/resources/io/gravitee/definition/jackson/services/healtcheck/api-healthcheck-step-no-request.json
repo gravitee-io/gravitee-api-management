@@ -1,0 +1,7 @@
+{
+  "response": {
+    "assertions": [
+      "#response.status == 200"
+    ]
+  }
+}

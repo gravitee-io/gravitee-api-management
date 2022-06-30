@@ -1,0 +1,13 @@
+{
+  "request": {
+    "headers": [],
+    "path": "/_health",
+    "fromRoot": true,
+    "method": "GET"
+  },
+  "response": {
+    "assertions": [
+      "#response.status == 200"
+    ]
+  }
+}
