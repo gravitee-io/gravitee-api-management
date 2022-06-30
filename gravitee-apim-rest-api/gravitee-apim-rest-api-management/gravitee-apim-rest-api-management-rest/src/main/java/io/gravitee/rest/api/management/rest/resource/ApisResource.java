@@ -20,7 +20,6 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -68,6 +67,7 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import net.minidev.json.JSONObject;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -243,7 +243,7 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
         summary = "Create an API by importing an API definition",
-        description = "Create an API by importing an existing API definition in JSON format"
+        description = "Create an API by importing an existing API definition in JSON format either with json or via an URL"
     )
     @ApiResponse(
         responseCode = "200",
@@ -258,11 +258,14 @@ public class ApisResource extends AbstractResource {
         }
     )
     public Response importApiDefinition(
-        @RequestBody(required = true) @Valid @NotNull JsonNode body,
+        @RequestBody(required = true) @Valid @NotNull Object apiDefinitionOrUrl,
         @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
     ) {
+        String definitionOrUrl = apiDefinitionOrUrl instanceof Map
+            ? new JSONObject((Map) apiDefinitionOrUrl).toString()
+            : apiDefinitionOrUrl.toString();
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(executionContext, body.toString());
+        ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(executionContext, definitionOrUrl);
 
         if (
             DefinitionVersion.valueOfLabel(definitionVersion).equals(DefinitionVersion.V2) &&
