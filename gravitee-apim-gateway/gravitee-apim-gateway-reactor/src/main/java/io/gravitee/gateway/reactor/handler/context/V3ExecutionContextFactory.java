@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.debug.reactor.handler.context;
+package io.gravitee.gateway.reactor.handler.context;
 
+import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
 
 /**
- * The ExecutionContextFactory for debug mode.
+ * A factory of {@link ExecutionContext}. A single instance is created on per {@link io.gravitee.gateway.reactor.Reactable}
+ * basis because {@link TemplateVariableProvider} providers list is containing provider specific to the reactable.
  *
- * {@inheritDoc}
- *
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DebugExecutionContextFactory implements V3ExecutionContextFactory {
-
-    private V3ExecutionContextFactory delegate;
-
-    public DebugExecutionContextFactory(V3ExecutionContextFactory delegate) {
-        this.delegate = delegate;
-    }
-
-    @Override
-    public ExecutionContext create(ExecutionContext executionContext) {
-        return new DebugExecutionContext(delegate.create(executionContext));
-    }
+public interface V3ExecutionContextFactory {
+    /**
+     * Create a new {@link ExecutionContext} for each of the incoming request to the gateway.
+     *
+     * @param wrapped
+     * @return
+     */
+    ExecutionContext create(ExecutionContext wrapped);
 }

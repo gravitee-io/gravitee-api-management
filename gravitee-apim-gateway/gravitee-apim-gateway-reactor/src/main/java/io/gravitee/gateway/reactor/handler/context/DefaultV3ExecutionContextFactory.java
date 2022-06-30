@@ -19,49 +19,31 @@ import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A factory of {@link ExecutionContext}. A single instance is created on per {@link io.gravitee.gateway.reactor.Reactable}
- * basis because {@link TemplateVariableProvider} providers list is containing provider specific to the reactable.
+ * The default ExecutionContextFactory for gateway V3.
+ *
+ * {@inheritDoc}
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ExecutionContextFactory {
+public class DefaultV3ExecutionContextFactory implements V3ExecutionContextFactory {
 
     private final List<TemplateVariableProvider> providers;
 
     private final ComponentProvider componentProvider;
 
-    public ExecutionContextFactory(ComponentProvider componentProvider) {
+    public DefaultV3ExecutionContextFactory(ComponentProvider componentProvider, List<TemplateVariableProvider> providers) {
         this.componentProvider = componentProvider;
-        this.providers = new ArrayList<>();
+        this.providers = providers;
     }
 
-    public ExecutionContextFactory(ExecutionContextFactory executionContextFactory) {
-        this.providers = executionContextFactory.providers;
-        this.componentProvider = executionContextFactory.componentProvider;
-    }
-
-    /**
-     * Create a new {@link ExecutionContext} for each of the incoming request to the gateway.
-     *
-     * @param wrapped
-     * @return
-     */
+    @Override
     public ExecutionContext create(ExecutionContext wrapped) {
         ReactableExecutionContext context = new ReactableExecutionContext((MutableExecutionContext) wrapped, componentProvider);
         context.setProviders(providers);
         return context;
-    }
-
-    public void addTemplateVariableProvider(TemplateVariableProvider templateVariableProvider) {
-        this.providers.add(templateVariableProvider);
-    }
-
-    public List<TemplateVariableProvider> getProviders() {
-        return providers;
     }
 }

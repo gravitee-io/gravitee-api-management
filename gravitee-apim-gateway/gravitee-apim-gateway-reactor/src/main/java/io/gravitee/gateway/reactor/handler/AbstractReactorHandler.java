@@ -24,7 +24,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
+import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.http.ContextualizedHttpServerRequest;
 import java.util.List;
 import org.slf4j.Logger;
@@ -42,7 +42,7 @@ public abstract class AbstractReactorHandler<T extends Reactable>
 
     public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
 
-    private ExecutionContextFactory executionContextFactory;
+    private V3ExecutionContextFactory executionContextFactory;
 
     protected final T reactable;
 
@@ -103,7 +103,7 @@ public abstract class AbstractReactorHandler<T extends Reactable>
 
     protected abstract void doHandle(ExecutionContext executionContext, Handler<ExecutionContext> endHandler);
 
-    public void setExecutionContextFactory(ExecutionContextFactory executionContextFactory) {
+    public void setExecutionContextFactory(V3ExecutionContextFactory executionContextFactory) {
         this.executionContextFactory = executionContextFactory;
     }
 }
