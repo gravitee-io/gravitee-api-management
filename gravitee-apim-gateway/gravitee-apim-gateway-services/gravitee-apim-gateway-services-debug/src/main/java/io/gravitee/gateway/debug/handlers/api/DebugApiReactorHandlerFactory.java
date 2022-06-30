@@ -41,7 +41,7 @@ import io.gravitee.gateway.jupiter.policy.PolicyFactory;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyManager;
-import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
+import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.security.core.AuthenticationHandlerSelector;
 import io.gravitee.gateway.security.core.SecurityPolicyResolver;
@@ -111,7 +111,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
     }
 
     @Override
-    protected ExecutionContextFactory v3ExecutionContextFactory(
+    protected V3ExecutionContextFactory v3ExecutionContextFactory(
         Api api,
         ComponentProvider componentProvider,
         DefaultReferenceRegister referenceRegister

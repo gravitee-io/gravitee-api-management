@@ -59,6 +59,8 @@ import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
+import io.gravitee.gateway.reactor.handler.context.DefaultV3ExecutionContextFactory;
+import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
@@ -244,7 +246,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                     return createSyncApiReactor(
                         api,
                         apiComponentProvider,
-                        templateVariableProviders(api, referenceRegister),
+                        jupiterTemplateVariableProviders(api, referenceRegister),
                         new InvokerAdapter(invoker),
                         resourceLifecycleManager,
                         apiProcessorChainFactory,
@@ -325,34 +327,27 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         );
     }
 
-    protected io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory v3ExecutionContextFactory(
+    protected V3ExecutionContextFactory v3ExecutionContextFactory(
         Api api,
         ComponentProvider componentProvider,
         DefaultReferenceRegister referenceRegister
     ) {
-        final io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory executionContextFactory = new io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory(
-            componentProvider
-        );
-
-        executionContextFactory.addTemplateVariableProvider(new ApiTemplateVariableProvider(api));
-        executionContextFactory.addTemplateVariableProvider(referenceRegister);
-        applicationContext
-            .getBean(ApiTemplateVariableProviderFactory.class)
-            .getTemplateVariableProviders()
-            .forEach(executionContextFactory::addTemplateVariableProvider);
-
-        return executionContextFactory;
+        return new DefaultV3ExecutionContextFactory(componentProvider, v3TemplateVariableProviders(api, referenceRegister));
     }
 
-    protected List<TemplateVariableProvider> templateVariableProviders(Api api, DefaultReferenceRegister referenceRegister) {
+    protected List<TemplateVariableProvider> v3TemplateVariableProviders(Api api, DefaultReferenceRegister referenceRegister) {
         List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
         templateVariableProviders.add(new ApiTemplateVariableProvider(api));
-        templateVariableProviders.add(contentTemplateVariableProvider);
         templateVariableProviders.add(referenceRegister);
         templateVariableProviders.addAll(
             applicationContext.getBean(ApiTemplateVariableProviderFactory.class).getTemplateVariableProviders()
         );
+        return templateVariableProviders;
+    }
 
+    protected List<TemplateVariableProvider> jupiterTemplateVariableProviders(Api api, DefaultReferenceRegister referenceRegister) {
+        List<TemplateVariableProvider> templateVariableProviders = v3TemplateVariableProviders(api, referenceRegister);
+        templateVariableProviders.add(contentTemplateVariableProvider);
         return templateVariableProviders;
     }
 
