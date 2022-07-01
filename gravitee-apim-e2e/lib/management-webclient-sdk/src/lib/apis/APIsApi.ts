@@ -1158,7 +1158,7 @@ export interface UpdateApiWithDefinitionRequest {
     api: string;
     envId: string;
     orgId: string;
-    body: string;
+    body: any;
 }
 
 export interface UpdateApiWithSwaggerRequest {
@@ -1187,7 +1187,7 @@ export interface UpdatePageContentRequest {
 export interface UpdateWithDefinitionRequest {
     envId: string;
     orgId: string;
-    body: string;
+    body: any;
 }
 
 export interface UpdateWithDefinitionPUTRequest {
@@ -7279,6 +7279,7 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
+     * Update the API from the API definition in JSON format either with json or via an URL
      * Update the API from the API definition
      */
     async updateWithDefinitionRaw(requestParameters: UpdateWithDefinitionRequest): Promise<runtime.ApiResponse<ApiEntity>> {
@@ -7315,6 +7316,7 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
+     * Update the API from the API definition in JSON format either with json or via an URL
      * Update the API from the API definition
      */
     async updateWithDefinition(requestParameters: UpdateWithDefinitionRequest): Promise<ApiEntity> {
@@ -7324,7 +7326,7 @@ export class APIsApi extends runtime.BaseAPI {
 
     /**
      * User must have the MANAGE_API permission to use this service
-     * Update the API with an existing API definition
+     * Update the API with an existing API definition in JSON format either with json or via an URL
      */
     async updateWithDefinitionPUTRaw(requestParameters: UpdateWithDefinitionPUTRequest): Promise<runtime.ApiResponse<ApiEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
@@ -7365,7 +7367,7 @@ export class APIsApi extends runtime.BaseAPI {
 
     /**
      * User must have the MANAGE_API permission to use this service
-     * Update the API with an existing API definition
+     * Update the API with an existing API definition in JSON format either with json or via an URL
      */
     async updateWithDefinitionPUT(requestParameters: UpdateWithDefinitionPUTRequest): Promise<ApiEntity> {
         const response = await this.updateWithDefinitionPUTRaw(requestParameters);

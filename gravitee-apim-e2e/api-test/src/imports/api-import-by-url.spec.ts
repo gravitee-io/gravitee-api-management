@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expect, test } from '@jest/globals';
+import { afterAll, describe, expect, test } from '@jest/globals';
 import { APIsApi } from '@management-apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
-import { succeed } from '@lib/jest-utils';
+import { fail, succeed } from '@lib/jest-utils';
+import { ApiEntity } from '@management-models/ApiEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
 
 const apisResourceAsPublisher = new APIsApi(forManagementAsApiUser());
+let createdApi: ApiEntity;
 
 describe('API - Imports by url', () => {
   test('should create an API from url', async () => {
-    const createdApi = await succeed(
+    createdApi = await succeed(
       apisResourceAsPublisher.importApiDefinitionRaw({
         envId,
         orgId,
@@ -33,5 +35,23 @@ describe('API - Imports by url', () => {
       }),
     );
     expect(createdApi).toBeTruthy();
+  });
+
+  test('should update an API from url', async () => {
+    await succeed(
+      apisResourceAsPublisher.updateWithDefinitionPUTRaw({
+        envId,
+        orgId,
+        api: createdApi.id,
+        body: `${process.env.WIREMOCK_BASE_PATH}/api-whattimeisit.json`,
+      }),
+    );
+  });
+
+  afterAll(async () => {
+    for (const plan of createdApi.plans) {
+      await apisResourceAsPublisher.deleteApiPlan({ orgId, envId, api: createdApi.id, plan: plan.id });
+    }
+    await apisResourceAsPublisher.deleteApiRaw({ envId, orgId, api: createdApi.id });
   });
 });

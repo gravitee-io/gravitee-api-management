@@ -54,7 +54,6 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
-import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.VirtualHost;

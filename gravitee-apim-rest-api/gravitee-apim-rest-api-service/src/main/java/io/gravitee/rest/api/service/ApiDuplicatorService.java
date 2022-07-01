@@ -20,13 +20,13 @@ import io.gravitee.rest.api.model.api.DuplicateApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
 public interface ApiDuplicatorService {
-    ApiEntity createWithImportedDefinition(ExecutionContext executionContext, String apiDefinitionOrURL);
+    ApiEntity createWithImportedDefinition(ExecutionContext executionContext, Object apiDefinitionOrURL);
 
     ApiEntity duplicate(ExecutionContext executionContext, ApiEntity apiEntity, DuplicateApiEntity duplicateApiEntity);
 
-    default ApiEntity updateWithImportedDefinition(ExecutionContext executionContext, String apiDefinitionOrURL) {
+    default ApiEntity updateWithImportedDefinition(ExecutionContext executionContext, Object apiDefinitionOrURL) {
         return updateWithImportedDefinition(executionContext, null, apiDefinitionOrURL);
     }
 
-    ApiEntity updateWithImportedDefinition(ExecutionContext executionContext, String apiId, String apiDefinitionOrURL);
+    ApiEntity updateWithImportedDefinition(ExecutionContext executionContext, String apiId, Object apiDefinitionOrURL);
 }
