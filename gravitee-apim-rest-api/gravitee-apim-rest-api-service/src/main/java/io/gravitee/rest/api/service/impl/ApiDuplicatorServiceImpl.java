@@ -277,7 +277,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     private UpdateApiEntity convertToEntity(final ExecutionContext executionContext, String apiDefinition, ImportApiJsonNode apiJsonNode)
-        throws JsonProcessingException {
+        throws IOException {
         final UpdateApiEntity importedApi = objectMapper
             // because definition could contains other values than the api itself (pages, members)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -316,6 +316,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             Set<String> categories = viewsNodes.stream().map(ImportJsonNode::asText).collect(toSet());
             importedApi.setCategories(categories);
         }
+
+        // merge existing plans data with plans definition data
+        // cause plans definition may contain less data than plans entities (for example when rollback an API from gateway event)
+        Map<String, PlanEntity> existingPlans = readApiPlansById(executionContext, apiJsonNode.getId());
+        importedApi.setPlans(readPlansToImportFromDefinition(apiJsonNode, existingPlans));
 
         return importedApi;
     }
@@ -582,12 +587,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     protected void createOrUpdatePlans(final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)
         throws IOException {
         if (apiJsonNode.hasPlans()) {
-            Map<String, PlanEntity> existingPlans = planService
-                .findByApi(executionContext, apiEntity.getId())
-                .stream()
-                .collect(toMap(PlanEntity::getId, Function.identity()));
-
-            List<PlanEntity> plansToImport = readPlansToImportFromDefinition(apiJsonNode, existingPlans);
+            Map<String, PlanEntity> existingPlans = readApiPlansById(executionContext, apiEntity.getId());
+            Set<PlanEntity> plansToImport = readPlansToImportFromDefinition(apiJsonNode, existingPlans);
 
             findRemovedPlansIds(existingPlans.values(), plansToImport).forEach(plan -> planService.delete(executionContext, plan));
 
@@ -599,6 +600,10 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 }
             );
         }
+    }
+
+    private Map<String, PlanEntity> readApiPlansById(ExecutionContext executionContext, String apiId) {
+        return planService.findByApi(executionContext, apiId).stream().collect(toMap(PlanEntity::getId, Function.identity()));
     }
 
     protected void createOrUpdatePages(final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)
@@ -683,9 +688,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return existingPlans.stream().filter(existingPlan -> !importedPlans.contains(existingPlan)).map(PlanEntity::getId);
     }
 
-    private List<PlanEntity> readPlansToImportFromDefinition(ImportApiJsonNode apiJsonNode, Map<String, PlanEntity> existingPlans)
+    private Set<PlanEntity> readPlansToImportFromDefinition(ImportApiJsonNode apiJsonNode, Map<String, PlanEntity> existingPlans)
         throws IOException {
-        List<PlanEntity> plansToImport = new ArrayList<>();
+        Set<PlanEntity> plansToImport = new HashSet<>();
         for (ImportJsonNodeWithIds planNode : apiJsonNode.getPlans()) {
             PlanEntity existingPlan = planNode.hasId() ? existingPlans.get(planNode.getId()) : null;
             if (existingPlan != null) {

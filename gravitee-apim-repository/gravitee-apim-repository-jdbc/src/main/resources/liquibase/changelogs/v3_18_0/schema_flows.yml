@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.18.0.1
+      author: GraviteeSource Team
+      changes:
+        # ################
+        # Flows Changes
+        # ################
+        - modifyDataType:
+              tableName: ${gravitee_prefix}flows
+              columnName: condition
+              newDataType: nvarchar(256)
+        - modifyDataType:
+              tableName: ${gravitee_prefix}flows
+              columnName: path
+              newDataType: nvarchar(256)

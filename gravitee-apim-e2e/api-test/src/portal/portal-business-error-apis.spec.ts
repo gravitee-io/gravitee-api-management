@@ -25,6 +25,7 @@ import { fail, notFound } from '@lib/jest-utils';
 import { ApiEntity } from '@management-models/ApiEntity';
 import { RatingEntity } from '@management-models/RatingEntity';
 import { PortalApiFaker } from '@management-fakers/PortalApiFaker';
+import { ApiResponse } from '../../../lib/portal-webclient-sdk/src/lib';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -133,7 +134,7 @@ describe('Portal: Business Error - apis', () => {
           apiPortalApiAsAdmin.getApiRatingsByApiIdRaw({ apiId }),
           apiPortalApiAsAdmin.getSubscriberApplicationsByApiIdRaw({ apiId }),
           apiPortalApiAsAdmin.createApiRatingRaw({ apiId, ratingInput: PortalApiFaker.newRatingInput() }),
-        ].map((p) => notFound(p)),
+        ].map((p: Promise<ApiResponse<unknown>>) => notFound(p)),
       );
     });
 
@@ -143,7 +144,7 @@ describe('Portal: Business Error - apis', () => {
         [
           apiPortalApiAsAdmin.getPageByApiIdAndPageIdRaw({ apiId, pageId: 'pageId' }),
           apiPortalApiAsAdmin.getPageContentByApiIdAndPageIdRaw({ apiId, pageId: 'pageId' }),
-        ].map((p) => notFound(p)),
+        ].map((p: Promise<ApiResponse<unknown>>) => notFound(p)),
       );
     });
 
@@ -160,7 +161,7 @@ describe('Portal: Business Error - apis', () => {
           apiPortalApiAsAppUser.getApiMetricsByApiIdRaw({ apiId }),
           apiPortalApiAsAppUser.getApiRatingsByApiIdRaw({ apiId }),
           apiPortalApiAsAppUser.getSubscriberApplicationsByApiIdRaw({ apiId }),
-        ].map((p) => notFound(p)),
+        ].map((p: Promise<ApiResponse<unknown>>) => notFound(p)),
       );
     });
   });

@@ -1017,7 +1017,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     private void triggerUpdateNotification(ExecutionContext executionContext, Api api) {
-        ApiEntity apiEntity = apiConverter.toApiEntity(api);
+        ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
         notifierService.trigger(
             executionContext,
             ApiHook.API_UPDATED,
