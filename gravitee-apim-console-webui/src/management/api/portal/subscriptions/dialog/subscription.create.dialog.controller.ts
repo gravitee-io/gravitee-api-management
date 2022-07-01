@@ -90,8 +90,9 @@ function DialogSubscriptionCreateController(
     return this.plans.find((p) => p.general_conditions !== undefined && p.general_conditions !== '') != null;
   };
 
-  this.onApiKeyValueChange = (customApiKey) => {
-    this.selectedPlanCustomApiKey = customApiKey;
+  this.onApiKeyValueChange = (apiKeyValidatedInput) => {
+    this.selectedPlanCustomApiKey = apiKeyValidatedInput.customApiKey;
+    this.customApiKeyInputState = apiKeyValidatedInput.customApiKeyInputState;
   };
 }
 

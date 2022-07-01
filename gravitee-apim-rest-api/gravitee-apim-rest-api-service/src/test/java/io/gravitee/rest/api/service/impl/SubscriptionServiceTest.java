@@ -46,6 +46,7 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import java.util.*;
 import java.util.function.BiFunction;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -76,6 +77,7 @@ public class SubscriptionServiceTest {
     private static final String PAGE_ID = "my-page-gcu";
     private static final String USER_ID = "user";
     private static final String SUBSCRIBER_ID = "subscriber";
+    private static final String ENVIRONMENT_ID = "DEFAULT";
 
     @InjectMocks
     private SubscriptionService subscriptionService = new SubscriptionServiceImpl();
@@ -714,6 +716,57 @@ public class SubscriptionServiceTest {
         verify(apiKeyService).update(apiKey);
         verify(notifierService).trigger(eq(ApiHook.SUBSCRIPTION_PAUSED), anyString(), anyMap());
         verify(notifierService).trigger(eq(ApplicationHook.SUBSCRIPTION_PAUSED), nullable(String.class), anyMap());
+    }
+
+    @Test
+    public void shouldThrowApiKeyAlreadyExistingException() throws Exception {
+        // Prepare data
+        final String customApiKey = "customApiKey";
+
+        ProcessSubscriptionEntity processSubscription = new ProcessSubscriptionEntity();
+        processSubscription.setId(SUBSCRIPTION_ID);
+        processSubscription.setAccepted(true);
+        processSubscription.setCustomApiKey(customApiKey);
+
+        Subscription subscription = new Subscription();
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setApplication(APPLICATION_ID);
+        subscription.setPlan(PLAN_ID);
+        subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
+
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setId(APPLICATION_ID);
+        when(applicationService.findById(ENVIRONMENT_ID, APPLICATION_ID)).thenReturn(applicationEntity);
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(apiKeyService.generate(any(ApplicationEntity.class), any(SubscriptionEntity.class), anyString()))
+            .thenThrow(new ApiKeyAlreadyExistingException());
+
+        // Run
+        assertThrows(ApiKeyAlreadyExistingException.class, () -> subscriptionService.process(processSubscription, USER_ID));
+
+        verify(subscriptionRepository, times(0)).update(any());
+        verify(applicationService).findById(ENVIRONMENT_ID, APPLICATION_ID);
+        verify(planService).findById(PLAN_ID);
+
+        ArgumentCaptor<ApplicationEntity> appCaptor = ArgumentCaptor.forClass(ApplicationEntity.class);
+        ArgumentCaptor<SubscriptionEntity> subscriptionCaptor = ArgumentCaptor.forClass(SubscriptionEntity.class);
+        verify(apiKeyService).generate(appCaptor.capture(), subscriptionCaptor.capture(), eq(customApiKey));
+        Assertions.assertThat(appCaptor.getValue()).extracting(ApplicationEntity::getId).isEqualTo(APPLICATION_ID);
+        Assertions
+            .assertThat(subscriptionCaptor.getValue())
+            .extracting(
+                SubscriptionEntity::getId,
+                SubscriptionEntity::getPlan,
+                SubscriptionEntity::getApplication,
+                SubscriptionEntity::getStatus
+            )
+            .containsExactly(SUBSCRIPTION_ID, PLAN_ID, APPLICATION_ID, SubscriptionStatus.ACCEPTED);
     }
 
     @Test
