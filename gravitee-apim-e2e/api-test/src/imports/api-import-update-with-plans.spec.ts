@@ -23,6 +23,7 @@ import { PlanStatus } from '@management-models/PlanStatus';
 import { PlanSecurityType } from '@management-models/PlanSecurityType';
 import { PlanType } from '@management-models/PlanType';
 import { PlansFaker } from '@management-fakers/PlansFaker';
+import { PlanValidationType } from '@management-models/PlanValidationType';
 
 const apisResource = new APIsApi(forManagementAsAdminUser());
 
@@ -146,6 +147,52 @@ describe('Update API by importing it', () => {
 
       afterAll(async () => {
         await apisResource.deleteApi({ envId, orgId, api: expectedApiId });
+      });
+    });
+
+    describe('Update API with plan with missing data, from gateway event (aka rollback API feature)', () => {
+      let createdApi;
+
+      const existingPlan = PlansFaker.plan({
+        crossId: 'my-plan',
+        status: PlanStatus.STAGING,
+        security: PlanSecurityType.APIKEY,
+        validation: PlanValidationType.AUTO,
+        name: 'my old plan name',
+        description: 'my old plan description',
+      });
+
+      const updatePlanWithMissingData = PlansFaker.plan({
+        crossId: 'my-plan',
+        name: 'my new plan name',
+        security: PlanSecurityType.APIKEY,
+      });
+      // plan from gateway event misses for example, validation, and description
+      delete updatePlanWithMissingData.validation;
+      delete updatePlanWithMissingData.description;
+
+      const existingApi = ApisFaker.apiImport({ crossId: 'my-api', plans: [existingPlan] });
+      const updatedApi = ApisFaker.apiImport({ crossId: 'my-api', plans: [updatePlanWithMissingData] });
+
+      test('should create the API', async () => {
+        createdApi = await succeed(apisResource.importApiDefinitionRaw({ envId, orgId, body: existingApi }));
+      });
+
+      test('should update the API', async () => {
+        await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: createdApi.id, body: updatedApi }));
+      });
+
+      test('should get 1 plan on API : existing data have been updated, and missing data are kept unchanged', async () => {
+        let plans = await succeed(apisResource.getApiPlansRaw({ envId, orgId, api: createdApi.id, status: [PlanStatus.STAGING] }));
+        expect(plans).toHaveLength(1);
+        expect(plans[0].name).toBe('my new plan name');
+        expect(plans[0].description).toBe('my old plan description');
+        expect(plans[0].validation).toBe(PlanValidationType.AUTO);
+        expect(plans[0].security).toBe(PlanSecurityType.APIKEY);
+      });
+
+      afterAll(async () => {
+        await apisResource.deleteApi({ envId, orgId, api: createdApi.id });
       });
     });
 

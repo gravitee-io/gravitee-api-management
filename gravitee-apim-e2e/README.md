@@ -17,7 +17,8 @@ npm run build
 Then, the following NPM scripts are available:
  - `npm run test:ui`: Run the APIM stack and the cypress UI tests in docker ([more details](./docker/ui-tests/README.md))
  - `npm run test:ui:dev`: Run the cypress UI tests against a locally running APIM
- - `npm run test:api`: Run the APIM stack and the jest API tests in docker ([more details](./docker/api-tests/README.md))
+ - `npm run test:api:mongo`: Run the APIM stack with mongo and the jest API tests in docker ([more details](./docker/api-tests/README.md))
+ - `npm run test:api:jdbc`: Run the APIM stack with jdbc and the jest API tests in docker ([more details](./docker/api-tests/README.md))
  - `npm run test:api:dev`: Run the jest API tests against a locally running APIM
  - `npm run apim:serve`: Run the APIM stack in docker with last apim release by default in order to run tests locally from your IDE.  
    To run with latest master use this env-var `APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-latest npm run apim:serve`

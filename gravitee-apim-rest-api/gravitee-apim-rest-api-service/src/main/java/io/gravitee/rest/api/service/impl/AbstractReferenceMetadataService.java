@@ -260,10 +260,10 @@ public abstract class AbstractReferenceMetadataService {
     ) {
         checkReferenceMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId);
         try {
-            final Optional<Metadata> referenceMetadata = metadataRepository.findById(metadataEntity.getKey(), referenceId, referenceType);
-
             final Metadata savedMetadata;
             final Metadata metadata = convertForReference(metadataEntity, referenceType, referenceId);
+
+            final Optional<Metadata> referenceMetadata = metadataRepository.findById(metadata.getKey(), referenceId, referenceType);
             final Date now = new Date();
             if (referenceMetadata.isPresent()) {
                 metadata.setUpdatedAt(now);
@@ -342,11 +342,12 @@ public abstract class AbstractReferenceMetadataService {
         final String referenceId
     ) {
         final Metadata metadata = new Metadata();
-        if (referenceType.equals(MetadataReferenceType.USER)) {
-            metadata.setKey(formatKeyValue(metadataEntity.getName()));
-        } else {
-            metadata.setKey(IdGenerator.generate(metadataEntity.getName()));
-        }
+        metadata.setKey(
+            referenceType.equals(MetadataReferenceType.USER)
+                ? formatKeyValue(metadataEntity.getName())
+                : IdGenerator.generate(metadataEntity.getName())
+        );
+
         metadata.setName(metadataEntity.getName());
         metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.valueOf(metadataEntity.getFormat().name()));
 
@@ -370,7 +371,15 @@ public abstract class AbstractReferenceMetadataService {
         final String referenceId
     ) {
         final Metadata metadata = new Metadata();
-        metadata.setKey(metadataEntity.getKey());
+        if (metadataEntity.getKey() == null) {
+            metadata.setKey(
+                referenceType.equals(MetadataReferenceType.USER)
+                    ? formatKeyValue(metadataEntity.getName())
+                    : IdGenerator.generate(metadataEntity.getName())
+            );
+        } else {
+            metadata.setKey(metadataEntity.getKey());
+        }
         metadata.setName(metadataEntity.getName());
         metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.valueOf(metadataEntity.getFormat().name()));
 

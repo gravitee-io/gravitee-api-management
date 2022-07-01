@@ -410,13 +410,6 @@ class ApiHistoryController {
 
   stringifyCurrentApi() {
     const payload = _.cloneDeep(this.api);
-    // Because server add "/" to virtual_hosts at deploy
-    payload.proxy.virtual_hosts = payload.proxy.virtual_hosts.map((host) => {
-      if (!host.path.endsWith('/')) {
-        host.path = `${host.path}/`;
-      }
-      return host;
-    });
 
     delete payload.deployed_at;
     delete payload.created_at;
@@ -439,6 +432,39 @@ class ApiHistoryController {
     delete payload.tags;
     delete payload.workflow_state;
     delete payload.response_templates;
+
+    if (payload.flows && _.isEmpty(payload.flows)) {
+      delete payload.flows;
+    }
+    if (payload.plans && _.isEmpty(payload.plans)) {
+      delete payload.plans;
+    }
+    if (payload.resources && _.isEmpty(payload.resources)) {
+      delete payload.resources;
+    }
+    if (payload.services && _.isEmpty(payload.services)) {
+      delete payload.services;
+    }
+
+    if (payload.plans) {
+      _.forEach(payload.plans, (plan) => {
+        delete plan.characteristics;
+        delete plan.comment_message;
+        delete plan.comment_required;
+        delete plan.created_at;
+        delete plan.cross_id;
+        delete plan.description;
+        delete plan.excluded_groups;
+        delete plan.need_redeploy_at;
+        delete plan.general_conditions;
+        delete plan.order;
+        delete plan.published_at;
+        delete plan.type;
+        delete plan.updated_at;
+        delete plan.closed_at;
+        delete plan.validation;
+      });
+    }
 
     return JSON.stringify({ definition: JSON.stringify(payload) });
   }

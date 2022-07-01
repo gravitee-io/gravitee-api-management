@@ -93,13 +93,11 @@ describe('API Management Application tests', function () {
 
     test('should fail to delete an application as an unauthorized user', async () => {
       await unauthorized(
-        noContent(
-          managementApplicationsApiAsUnknownUser.deleteApplicationRaw({
-            orgId,
-            envId,
-            application: application.id,
-          }),
-        ),
+        managementApplicationsApiAsUnknownUser.deleteApplicationRaw({
+          orgId,
+          envId,
+          application: application.id,
+        }),
       );
     });
 
