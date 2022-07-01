@@ -13,16 +13,16 @@
     ,"body":"${log.getClientRequest().getBody()?j_string}"
     </#if>
     <#if log.getClientRequest().getHeaders()??>
-    ,"headers":{
-      <#list log.getClientRequest().getHeaders().names() as header>
-      "${header}": [
-        <#list log.getClientRequest().getHeaders().getAll(header) as value>
+      ,"headers":{
+      <#list log.getClientRequest().getHeaders() as headerKey, headerValue>
+        "${headerKey}": [
+        <#list headerValue as value>
           <#if value??>
             "${value?j_string}"
             <#sep>,</#sep>
           </#if>
         </#list>
-      ]
+        ]
         <#sep>,</#sep>
       </#list>
     }
@@ -34,16 +34,16 @@
     ,"body":"${log.getClientResponse().getBody()?j_string}"
     </#if>
     <#if log.getClientResponse().getHeaders()??>
-    ,"headers":{
-      <#list log.getClientResponse().getHeaders().names() as header>
-      "${header}": [
-        <#list log.getClientResponse().getHeaders().getAll(header) as value>
+      ,"headers":{
+      <#list log.getClientResponse().getHeaders() as headerKey, headerValue>
+        "${headerKey}": [
+        <#list headerValue as value>
           <#if value??>
             "${value?j_string}"
             <#sep>,</#sep>
           </#if>
         </#list>
-      ]
+        ]
         <#sep>,</#sep>
       </#list>
     }
@@ -59,16 +59,16 @@
     ,"body":"${log.getProxyRequest().getBody()?j_string}"
     </#if>
     <#if log.getProxyRequest().getHeaders()??>
-    ,"headers":{
-      <#list log.getProxyRequest().getHeaders().names() as header>
-      "${header}": [
-        <#list log.getProxyRequest().getHeaders().getAll(header) as value>
+      ,"headers":{
+      <#list log.getProxyRequest().getHeaders() as headerKey, headerValue>
+        "${headerKey}": [
+        <#list headerValue as value>
           <#if value??>
-          "${value?j_string}"
+            "${value?j_string}"
             <#sep>,</#sep>
           </#if>
         </#list>
-      ]
+        ]
         <#sep>,</#sep>
       </#list>
     }
@@ -82,16 +82,16 @@
     ,"body":"${log.getProxyResponse().getBody()?j_string}"
     </#if>
     <#if log.getProxyResponse().getHeaders()??>
-    ,"headers":{
-      <#list log.getProxyResponse().getHeaders().names() as header>
-      "${header}": [
-        <#list log.getProxyResponse().getHeaders().getAll(header) as value>
+      ,"headers":{
+      <#list log.getProxyResponse().getHeaders() as headerKey, headerValue>
+        "${headerKey}": [
+        <#list headerValue as value>
           <#if value??>
-          "${value?j_string}"
+            "${value?j_string}"
             <#sep>,</#sep>
           </#if>
         </#list>
-      ]
+        ]
         <#sep>,</#sep>
       </#list>
     }
