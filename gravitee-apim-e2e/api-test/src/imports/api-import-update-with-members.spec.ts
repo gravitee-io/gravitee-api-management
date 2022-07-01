@@ -76,7 +76,7 @@ describe('Update API form import with members', () => {
     test('should update the API, without any primaryOwner or members in data', async () => {
       fakeApi.members = [];
       fakeApi.primaryOwner = {};
-      await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: fakeApi }));
+      await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: fakeApi }));
     });
 
     test('should get API members, which has kept both members that were present before update', async () => {
@@ -167,7 +167,7 @@ describe('Update API form import with members', () => {
         { source: 'gravitee', sourceId: member1.email, roles: [role2Id] },
         { source: 'gravitee', sourceId: member2.email, roles: [role2Id] },
       ];
-      await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: fakeApi }));
+      await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: fakeApi }));
     });
 
     test('should export the API, resulting with member with updated roles', async () => {

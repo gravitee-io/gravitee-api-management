@@ -462,7 +462,7 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
     @Operation(
-        summary = "Update the API with an existing API definition in JSON format either with json or via an URL",
+        summary = "Deprecated, Update the API with an existing API definition in JSON format either with json or via an URL",
         description = "User must have the MANAGE_API permission to use this service"
     )
     @ApiResponse(
@@ -472,7 +472,7 @@ public class ApiResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response updateApiWithDefinition(@RequestBody @Valid @NotNull Object apiDefinitionOrUrl) {
+    public Response deprecated_updateApiWithDefinition(@RequestBody @Valid @NotNull Object apiDefinitionOrUrl) {
         ApiEntity updatedApi = apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinitionOrUrl);
         return Response
             .ok(updatedApi)
@@ -495,7 +495,7 @@ public class ApiResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response updateWithDefinitionPUT(@RequestBody @Valid @NotNull Object apiDefinitionOrUrl) {
+    public Response updateApiWithDefinition(@RequestBody @Valid @NotNull Object apiDefinitionOrUrl) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
 
         ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(
@@ -526,7 +526,7 @@ public class ApiResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response updateApiWithSwagger(
+    public Response deprecated_updateApiWithSwagger(
         @Parameter(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
