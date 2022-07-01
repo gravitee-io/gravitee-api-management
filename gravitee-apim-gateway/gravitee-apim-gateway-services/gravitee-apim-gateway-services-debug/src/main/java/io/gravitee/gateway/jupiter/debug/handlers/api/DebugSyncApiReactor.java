@@ -30,6 +30,7 @@ import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.reactivex.Completable;
 import java.util.List;
@@ -50,7 +51,8 @@ public class DebugSyncApiReactor extends SyncApiReactor {
         final PolicyManager policyManager,
         final FlowChainFactory flowChainFactory,
         final GroupLifecycleManager groupLifecycleManager,
-        final Configuration configuration
+        final Configuration configuration,
+        final Node node
     ) {
         super(
             api,
@@ -62,7 +64,8 @@ public class DebugSyncApiReactor extends SyncApiReactor {
             policyManager,
             flowChainFactory,
             groupLifecycleManager,
-            configuration
+            configuration,
+            node
         );
         invokerHooks.add(new DebugInvokerHook());
     }
