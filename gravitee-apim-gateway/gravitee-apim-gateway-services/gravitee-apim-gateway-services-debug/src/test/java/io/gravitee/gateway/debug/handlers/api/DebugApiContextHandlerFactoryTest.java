@@ -39,7 +39,7 @@ import org.springframework.context.ApplicationContext;
 public class DebugApiContextHandlerFactoryTest {
 
     @InjectMocks
-    private DebugApiContextHandlerFactory debugApiContextHandlerFactory;
+    private DebugApiReactorHandlerFactory debugApiContextHandlerFactory;
 
     @Mock
     private ApplicationContext applicationContext;
