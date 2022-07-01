@@ -91,11 +91,13 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     public static final String HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY = "handlers.request.headers.x-forwarded-prefix";
     public static final String REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY = "reporters.logging.excluded_response_types";
     public static final String API_JUPITER_MODE_ENABLED_PROPERTY = "api.jupiterMode.enabled";
-    private static final String PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
+    public static final String PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
+
     protected final ContentTemplateVariableProvider contentTemplateVariableProvider;
+    protected final Node node;
+
     private final Logger logger = LoggerFactory.getLogger(ApiReactorHandlerFactory.class);
     private final Configuration configuration;
-    private final Node node;
     private final io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator;
     private final io.gravitee.gateway.jupiter.policy.PolicyFactory policyFactory;
     private final io.gravitee.gateway.jupiter.policy.PolicyChainFactory platformPolicyChainFactory;
@@ -249,7 +251,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                         policyManager,
                         flowChainFactory,
                         groupLifecycleManager,
-                        configuration
+                        configuration,
+                        node
                     );
                 }
             } else {
@@ -272,7 +275,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         final io.gravitee.gateway.jupiter.policy.PolicyManager policyManager,
         final FlowChainFactory flowChainFactory,
         final GroupLifecycleManager groupLifecycleManager,
-        final Configuration configuration
+        final Configuration configuration,
+        final Node node
     ) {
         return new SyncApiReactor(
             api,
@@ -284,7 +288,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
             policyManager,
             flowChainFactory,
             groupLifecycleManager,
-            configuration
+            configuration,
+            node
         );
     }
 

@@ -15,16 +15,20 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api;
 
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
 import static io.reactivex.Completable.defer;
+import static io.reactivex.Observable.interval;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
+import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
@@ -49,6 +53,7 @@ import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.Entrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.reporter.api.http.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -56,6 +61,8 @@ import io.reactivex.Completable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +73,7 @@ import org.slf4j.LoggerFactory;
 public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor, ReactorHandler {
 
     protected static final String ATTR_INVOKER_SKIP = "invoker.skip";
+
     private static final Logger log = LoggerFactory.getLogger(SyncApiReactor.class);
     protected final Api api;
     protected final List<ChainHook> processorChainHooks;
@@ -82,8 +90,13 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final ProcessorChain apiPreProcessorChain;
     protected final ProcessorChain apiPostProcessorChain;
     protected final ProcessorChain apiErrorProcessorChain;
+    protected final Node node;
+
     private final boolean tracingEnabled;
     protected SecurityChain securityChain;
+    private final AtomicInteger pendingRequests = new AtomicInteger(0);
+
+    private final long pendingRequestsTimeout;
 
     public SyncApiReactor(
         final Api api,
@@ -95,7 +108,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final PolicyManager policyManager,
         final FlowChainFactory flowChainFactory,
         final GroupLifecycleManager groupLifecycleManager,
-        final Configuration configuration
+        final Configuration configuration,
+        final Node node
     ) {
         this.api = api;
         this.componentProvider = componentProvider;
@@ -113,7 +127,10 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.apiPlanFlowChain = flowChainFactory.createPlanFlow(api);
         this.apiFlowChain = flowChainFactory.createApiFlow(api);
 
+        this.node = node;
+
         tracingEnabled = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
+        pendingRequestsTimeout = configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L);
 
         processorChainHooks = new ArrayList<>();
         invokerHooks = new ArrayList<>();
@@ -136,7 +153,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         prepareContextAttributes(ctx);
         prepareMetrics(ctx);
 
-        return handleRequest(ctx);
+        pendingRequests.incrementAndGet();
+        return handleRequest(ctx).doFinally(pendingRequests::decrementAndGet);
     }
 
     private void prepareContextAttributes(RequestExecutionContext ctx) {
@@ -179,8 +197,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             // Catch all possible unexpected errors.
             .onErrorResumeNext(t -> handleError(ctx, t))
             // Finally, end the response.
-            .andThen(endResponse(ctx))
-            .doOnComplete(() -> log.debug("Response has ended"));
+            .andThen(endResponse(ctx));
     }
 
     /**
@@ -337,6 +354,17 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     @Override
     protected void doStop() throws Exception {
+        if (!node.lifecycleState().equals(Lifecycle.State.STARTED)) {
+            log.debug("Current node is not started, API handler will be stopped immediately");
+            stopNow();
+        } else {
+            log.debug("Current node is started, API handler will wait for pending requests before stopping");
+            long timeout = System.currentTimeMillis() + pendingRequestsTimeout;
+            stopUntil(timeout);
+        }
+    }
+
+    private void stopNow() throws Exception {
         log.debug("API reactor is now stopping, closing context for {} ...", this);
 
         policyManager.stop();
@@ -344,6 +372,14 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         groupLifecycleManager.stop();
 
         log.debug("API reactor is now stopped: {}", this);
+    }
+
+    private void stopUntil(long timeout) {
+        interval(100, TimeUnit.MILLISECONDS)
+            .timeout(timeout, TimeUnit.MILLISECONDS)
+            .takeWhile(t -> pendingRequests.get() > 0)
+            .doFinally(this::stopNow)
+            .subscribe();
     }
 
     @Override

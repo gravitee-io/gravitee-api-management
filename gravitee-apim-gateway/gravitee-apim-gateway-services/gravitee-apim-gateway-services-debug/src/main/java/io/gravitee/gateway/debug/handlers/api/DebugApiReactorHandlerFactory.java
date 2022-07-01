@@ -139,7 +139,8 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         final io.gravitee.gateway.jupiter.policy.PolicyManager policyManager,
         final FlowChainFactory flowChainFactory,
         final GroupLifecycleManager groupLifecycleManager,
-        final Configuration configuration
+        final Configuration configuration,
+        final Node node
     ) {
         return new DebugSyncApiReactor(
             api,
@@ -151,7 +152,8 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             policyManager,
             flowChainFactory,
             groupLifecycleManager,
-            configuration
+            configuration,
+            node
         );
     }
 }
