@@ -78,7 +78,7 @@ describe('Update API from import with metadata', () => {
         },
       ];
 
-      await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
+      await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
     });
 
     test('should get the updated API metadata', async () => {
@@ -127,7 +127,7 @@ describe('Update API from import with metadata', () => {
         },
       ];
 
-      await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
+      await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
     });
 
     test('should get the created API metadata', async () => {
@@ -176,7 +176,7 @@ describe('Update API from import with metadata', () => {
         },
       ];
 
-      await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
+      await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
     });
 
     test('should get the API metadata', async () => {
