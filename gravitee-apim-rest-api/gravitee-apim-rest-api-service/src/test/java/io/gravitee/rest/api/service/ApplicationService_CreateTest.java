@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -39,12 +38,11 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
+import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -93,6 +91,9 @@ public class ApplicationService_CreateTest {
 
     @Mock
     private ApplicationTypeService applicationTypeService;
+
+    @Mock
+    private ClientRegistrationService clientRegistrationService;
 
     @Before
     public void setup() {
@@ -232,5 +233,52 @@ public class ApplicationService_CreateTest {
         when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenThrow(TechnicalException.class);
 
         applicationService.create(GraviteeContext.getCurrentEnvironment(), newApplication, USER_NAME);
+    }
+
+    @Test
+    public void shouldCreateOauthApp() throws TechnicalException {
+        when(application.getName()).thenReturn(APPLICATION_NAME);
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(applicationRepository.create(any())).thenReturn(application);
+        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(userService.findById(any())).thenReturn(mock(UserEntity.class));
+
+        // client registration is enabled, and browser app type also
+        when(parameterService.findAsBoolean(eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn(true);
+        when(parameterService.findAsBoolean(eq(Key.APPLICATION_TYPE_BROWSER_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn(true);
+
+        // oauth app settings contains everything required
+        ApplicationSettings settings = new ApplicationSettings();
+        OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
+        oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
+        oAuthClientSettings.setApplicationType("BROWSER");
+        settings.setoAuthClient(oAuthClientSettings);
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(newApplication.getSettings()).thenReturn(settings);
+
+        // mock application type service
+        ApplicationTypeEntity applicationTypeEntity = new ApplicationTypeEntity();
+        ApplicationGrantTypeEntity applicationGrantTypeEntity = new ApplicationGrantTypeEntity();
+        applicationGrantTypeEntity.setType("application-grant-type");
+        applicationGrantTypeEntity.setResponse_types(List.of("response-type"));
+        applicationTypeEntity.setAllowed_grant_types(List.of(applicationGrantTypeEntity));
+        applicationTypeEntity.setRequires_redirect_uris(false);
+        when(applicationTypeService.getApplicationType("BROWSER")).thenReturn(applicationTypeEntity);
+
+        // mock response from DCR with a new client ID
+        ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
+        clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
+        when(clientRegistrationService.register(any())).thenReturn(clientRegistrationResponse);
+
+        applicationService.create(GraviteeContext.getCurrentEnvironment(), newApplication, USER_NAME);
+
+        // ensure app has been created with client_id from DCR in metadata
+        verify(applicationRepository)
+            .create(argThat(application -> application.getMetadata().get(METADATA_CLIENT_ID).equals("client-id-from-clientRegistration")));
     }
 }
