@@ -196,9 +196,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         updatedApi.setId("my-api-id");
         updatedApi.setUpdatedAt(new Date());
 
-        doReturn(updatedApi)
-            .when(apiDuplicatorService)
-            .updateWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), eq(apiDefinition));
+        doReturn(updatedApi).when(apiDuplicatorService).updateWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = envTarget().path("import").request().put(Entity.json(apiDefinition));
 

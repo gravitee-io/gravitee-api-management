@@ -462,7 +462,7 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
     @Operation(
-        summary = "Update the API with an existing API definition",
+        summary = "Update the API with an existing API definition in JSON format either with json or via an URL",
         description = "User must have the MANAGE_API permission to use this service"
     )
     @ApiResponse(
@@ -472,8 +472,8 @@ public class ApiResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response updateApiWithDefinition(@Parameter(name = "definition", required = true) String apiDefinition) {
-        ApiEntity updatedApi = apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinition);
+    public Response updateApiWithDefinition(@RequestBody @Valid @NotNull Object apiDefinitionOrUrl) {
+        ApiEntity updatedApi = apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinitionOrUrl);
         return Response
             .ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
@@ -485,7 +485,7 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
     @Operation(
-        summary = "Update the API with an existing API definition",
+        summary = "Update the API with an existing API definition in JSON format either with json or via an URL",
         description = "User must have the MANAGE_API permission to use this service"
     )
     @ApiResponse(
@@ -495,15 +495,13 @@ public class ApiResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response updateWithDefinitionPUT(
-        @Parameter(schema = @Schema(implementation = JsonNode.class), name = "definition", required = true) String apiDefinition
-    ) {
+    public Response updateWithDefinitionPUT(@RequestBody @Valid @NotNull Object apiDefinitionOrUrl) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
 
         ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(
             GraviteeContext.getExecutionContext(),
             apiEntity.getId(),
-            apiDefinition
+            apiDefinitionOrUrl
         );
         return Response
             .ok(updatedApi)

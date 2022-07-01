@@ -261,11 +261,8 @@ public class ApisResource extends AbstractResource {
         @RequestBody(required = true) @Valid @NotNull Object apiDefinitionOrUrl,
         @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
     ) {
-        String definitionOrUrl = apiDefinitionOrUrl instanceof Map
-            ? new JSONObject((Map) apiDefinitionOrUrl).toString()
-            : apiDefinitionOrUrl.toString();
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(executionContext, definitionOrUrl);
+        ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(executionContext, apiDefinitionOrUrl);
 
         if (
             DefinitionVersion.valueOfLabel(definitionVersion).equals(DefinitionVersion.V2) &&
@@ -404,7 +401,10 @@ public class ApisResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
-    @Operation(summary = "Update the API from the API definition")
+    @Operation(
+        summary = "Update the API from the API definition",
+        description = "Update the API from the API definition in JSON format either with json or via an URL"
+    )
     @ApiResponse(
         responseCode = "200",
         description = "API successfully updated from API definition",
@@ -412,8 +412,8 @@ public class ApisResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Response updateWithDefinition(@Parameter(name = "definition", required = true) String apiDefinition) {
-        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinition);
+    public Response updateWithDefinition(@RequestBody(required = true) @Valid @NotNull Object apiDefinitionOrUrl) {
+        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinitionOrUrl);
         return Response
             .ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
