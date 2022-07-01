@@ -100,6 +100,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     @Override
     public ApiKeyEntity renew(SubscriptionEntity subscription, String customApiKey) {
+        final PlanEntity plan = planService.findById(subscription.getPlan());
+        if (!PlanSecurityType.API_KEY.equals(plan.getSecurity())) {
+            throw new TechnicalManagementException("Invalid plan security.");
+        }
+
         try {
             LOGGER.debug("Renew API Key for subscription {}", subscription.getId());
 

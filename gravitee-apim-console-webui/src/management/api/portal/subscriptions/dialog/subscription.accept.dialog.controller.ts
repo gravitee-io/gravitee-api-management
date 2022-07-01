@@ -21,6 +21,7 @@ class DialogSubscriptionAcceptController {
   private startingAt: Date;
   private endingAt: Date;
   private customApiKey: string;
+  private customApiKeyInputState: string;
   private reason: string;
 
   constructor(
@@ -48,9 +49,10 @@ class DialogSubscriptionAcceptController {
     });
   }
 
-  onApiKeyValueChange(apiKeyValue: string) {
-    this.customApiKey = apiKeyValue;
-  }
+  onApiKeyValueChange = (apiKeyValidatedInput) => {
+    this.customApiKey = apiKeyValidatedInput.customApiKey;
+    this.customApiKeyInputState = apiKeyValidatedInput.customApiKeyInputState;
+  };
 }
 
 export default DialogSubscriptionAcceptController;
