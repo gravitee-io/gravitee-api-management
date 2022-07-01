@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.apim</groupId>
         <artifactId>gravitee-api-management</artifactId>
-        <version>3.17.4-SNAPSHOT</version>
+        <version>${revision}${sha1}${changelist}</version>
     </parent>
 
     <groupId>io.gravitee.apim.definition</groupId>
