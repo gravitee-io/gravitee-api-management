@@ -49,7 +49,7 @@ describe('Update API by importing it', () => {
       });
 
       test('should update the API', async () => {
-        await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: updatedFakeApi }));
+        await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: updatedFakeApi }));
       });
 
       test('should get 2 plans created on API', async () => {
@@ -108,7 +108,7 @@ describe('Update API by importing it', () => {
       });
 
       test('should update the API', async () => {
-        await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: updatedFakeApi }));
+        await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: updatedFakeApi }));
       });
 
       test('should get 2 plans created on API, with specified status', async () => {
@@ -136,7 +136,7 @@ describe('Update API by importing it', () => {
       });
 
       test('should update the API', async () => {
-        await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: updatedFakeApi }));
+        await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: updatedFakeApi }));
       });
 
       test('should get the API plan, which has been updated', async () => {
@@ -179,7 +179,7 @@ describe('Update API by importing it', () => {
       });
 
       test('should update the API', async () => {
-        await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: createdApi.id, body: updatedApi }));
+        await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: createdApi.id, body: updatedApi }));
       });
 
       test('should get 1 plan on API : existing data have been updated, and missing data are kept unchanged', async () => {
@@ -213,7 +213,7 @@ describe('Update API by importing it', () => {
       });
 
       test('should update the API', async () => {
-        await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: updatedFakeApi }));
+        await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: updatedFakeApi }));
       });
 
       test('should get the API plan, containing only the plan that was in the update', async () => {

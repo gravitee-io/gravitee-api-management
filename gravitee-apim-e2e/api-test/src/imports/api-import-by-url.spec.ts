@@ -16,7 +16,7 @@
 import { afterAll, describe, expect, test } from '@jest/globals';
 import { APIsApi } from '@management-apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
-import { fail, succeed } from '@lib/jest-utils';
+import { fail, noContent, succeed } from '@lib/jest-utils';
 import { ApiEntity } from '@management-models/ApiEntity';
 
 const orgId = 'DEFAULT';
@@ -24,6 +24,7 @@ const envId = 'DEFAULT';
 
 const apisResourceAsPublisher = new APIsApi(forManagementAsApiUser());
 let createdApi: ApiEntity;
+let updatedApi: ApiEntity;
 
 describe('API - Imports by url', () => {
   test('should create an API from url', async () => {
@@ -35,23 +36,29 @@ describe('API - Imports by url', () => {
       }),
     );
     expect(createdApi).toBeTruthy();
+    expect(createdApi.plans).toHaveLength(2);
   });
 
   test('should update an API from url', async () => {
-    await succeed(
-      apisResourceAsPublisher.updateWithDefinitionPUTRaw({
+    updatedApi = await succeed(
+      apisResourceAsPublisher.updateApiWithDefinitionRaw({
         envId,
         orgId,
         api: createdApi.id,
         body: `${process.env.WIREMOCK_BASE_PATH}/api-whattimeisit.json`,
       }),
     );
+    expect(updatedApi).toBeTruthy();
+    expect(updatedApi.plans).toHaveLength(2);
   });
 
-  afterAll(async () => {
-    for (const plan of createdApi.plans) {
-      await apisResourceAsPublisher.deleteApiPlan({ orgId, envId, api: createdApi.id, plan: plan.id });
+  test('should delete plans', async () => {
+    for (const plan of updatedApi.plans) {
+      await apisResourceAsPublisher.deleteApiPlanRaw({ orgId, envId, api: updatedApi.id, plan: plan.id });
     }
-    await apisResourceAsPublisher.deleteApiRaw({ envId, orgId, api: createdApi.id });
+  });
+
+  test('should delete api', async () => {
+    await noContent(apisResourceAsPublisher.deleteApiRaw({ envId, orgId, api: updatedApi.id }));
   });
 });
