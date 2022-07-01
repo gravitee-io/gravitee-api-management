@@ -19,6 +19,7 @@ import { APIPlansApi } from '@management-apis/APIPlansApi';
 import { LifecycleAction } from '@management-models/LifecycleAction';
 import { ApplicationsApi } from '@management-apis/ApplicationsApi';
 import { ApiLifecycleState } from '@management-models/ApiLifecycleState';
+import { ApiEntityStateEnum } from '@management-models/ApiEntity';
 
 const apisResource = new APIsApi(forManagementAsAdminUser());
 const apiPlansResource = new APIPlansApi(forManagementAsAdminUser());
@@ -51,14 +52,15 @@ const deleteApi = async (orgId: string, envId: string, apiId: string) => {
   const apiToDelete = await apisResource.getApi({ api: apiId, envId, orgId });
 
   if (apiToDelete) {
-    // Stop API
-    await apisResource.doApiLifecycleAction({
-      envId,
-      orgId,
-      api: apiToDelete.id,
-      action: LifecycleAction.STOP,
-    });
-
+    if (apiToDelete.state === ApiEntityStateEnum.STARTED) {
+      // Stop API
+      await apisResource.doApiLifecycleAction({
+        envId,
+        orgId,
+        api: apiToDelete.id,
+        action: LifecycleAction.STOP,
+      });
+    }
     // Close each api plan
     for (const planToClose of apiToDelete.plans) {
       await apiPlansResource.closeApiPlan({
