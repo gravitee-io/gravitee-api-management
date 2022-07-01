@@ -25,6 +25,7 @@ function DialogSubscriptionRenewController($scope, $mdDialog, locals) {
   $scope.apiId = locals.apiId;
   this.selectedPlanCustomApiKey = null;
   this.customValue = '';
+  this.customApiKeyInputState = null;
 
   this.cancel = function () {
     $mdDialog.hide({ confirmed: false });
@@ -34,8 +35,9 @@ function DialogSubscriptionRenewController($scope, $mdDialog, locals) {
     this.customValue ? $mdDialog.hide({ confirmed: true, customValue: this.customValue }) : $mdDialog.hide({ confirmed: true });
   };
 
-  this.onApiKeyValueChange = (customApiKey) => {
-    this.customValue = customApiKey;
+  this.onApiKeyValueChange = (apiKeyValidatedInput) => {
+    this.customValue = apiKeyValidatedInput.customApiKey;
+    this.customApiKeyInputState = apiKeyValidatedInput.customApiKeyInputState;
   };
 }
 

@@ -32,6 +32,7 @@ function DialogSubscriptionCreateController(
   this.selectedPlan = null;
   this.selectedPlanCustomApiKey = null;
   this.plansWithSubscriptions = [];
+  this.customApiKeyInputState = null;
 
   this.$onInit = () => {
     this.canUseCustomApiKey = Constants.env.settings.plan.security.customApiKey.enabled;
@@ -88,8 +89,9 @@ function DialogSubscriptionCreateController(
     return this.plans.find((p) => p.general_conditions !== undefined && p.general_conditions !== '') != null;
   };
 
-  this.onApiKeyValueChange = (customApiKey) => {
-    this.selectedPlanCustomApiKey = customApiKey;
+  this.onApiKeyValueChange = (apiKeyValidatedInput) => {
+    this.selectedPlanCustomApiKey = apiKeyValidatedInput.customApiKey;
+    this.customApiKeyInputState = apiKeyValidatedInput.customApiKeyInputState;
   };
 }
 

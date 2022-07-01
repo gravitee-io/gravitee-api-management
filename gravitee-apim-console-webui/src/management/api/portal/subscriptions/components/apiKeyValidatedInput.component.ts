@@ -42,25 +42,27 @@ const ApiKeyValidatedInput: ng.IComponentOptions = {
 
     this.valueChange = function () {
       this.checkApiKeyUnicity(this.value);
-      this.onChange(this.value);
     };
 
     this.checkApiKeyUnicity = (apiKey: string) => {
       if (apiKey && apiKey.length > 0) {
-        ApiService.verifyApiKey(this.apiId, apiKey).then(
-          (response) => {
-            if (response && response.data) {
-              this.state = CustomApiKeyInputState.VALID;
-            } else {
+        ApiService.verifyApiKey(this.apiId, apiKey)
+          .then(
+            (response) => {
+              if (response && response.data) {
+                this.state = CustomApiKeyInputState.VALID;
+              } else {
+                this.state = CustomApiKeyInputState.INVALID;
+              }
+            },
+            () => {
               this.state = CustomApiKeyInputState.INVALID;
-            }
-          },
-          () => {
-            this.state = CustomApiKeyInputState.INVALID;
-          },
-        );
+            },
+          )
+          .then(() => this.emitChanges());
       } else {
         this.state = CustomApiKeyInputState.EMPTY;
+        this.emitChanges();
       }
     };
 
@@ -70,6 +72,13 @@ const ApiKeyValidatedInput: ng.IComponentOptions = {
 
     this.isApiKeyInvalid = () => {
       return this.state === CustomApiKeyInputState.INVALID;
+    };
+
+    this.emitChanges = () => {
+      this.onChange({
+        customApiKey: this.value,
+        customApiKeyInputState: this.state,
+      });
     };
   },
 };

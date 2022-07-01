@@ -26,8 +26,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ApiKeyService {
-    ApiKeyEntity generate(String subscription);
-
     ApiKeyEntity generate(String subscription, String customApiKey);
 
     ApiKeyEntity renew(String subscription);
