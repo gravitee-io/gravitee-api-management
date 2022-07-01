@@ -25,8 +25,8 @@ import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
  */
 public class DebugExecutionContextFactory extends ExecutionContextFactory {
 
-    public DebugExecutionContextFactory(ComponentProvider componentProvider) {
-        super(componentProvider);
+    public DebugExecutionContextFactory(ExecutionContextFactory executionContextFactory) {
+        super(executionContextFactory);
     }
 
     @Override

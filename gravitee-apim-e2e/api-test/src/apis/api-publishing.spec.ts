@@ -29,6 +29,7 @@ import { ApiEntity } from '@management-models/ApiEntity';
 import { fail, succeed } from '@lib/jest-utils';
 import { ApiLifecycleState } from '@management-models/ApiLifecycleState';
 import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
+import { ApiResponse } from '../../../lib/management-webclient-sdk/src/lib/runtime';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -60,7 +61,7 @@ describe('API - Publishing', () => {
       ${'API_USER'}    | ${apiResourceApiUser}
       ${'APP_USER'}    | ${apiResourceAppUser}
       ${'SIMPLE_USER'} | ${apiResourceSimpleUser}
-    `('As $user user', ({ apiResource }) => {
+    `('As $user user', ({ apiResource }: { apiResource: ApiApi }) => {
       test('Get APIs should not contain created api', async () => {
         const apisResponse = await succeed(apiResource.getApisRaw({}));
         expect(apisResponse.data.find((api) => api.id === userApi.id)).not.toBeDefined();
@@ -102,7 +103,7 @@ describe('API - Publishing', () => {
       ${'ADMIN'}       | ${apiResourceAdmin}
       ${'APP_USER'}    | ${apiResourceAppUser}
       ${'SIMPLE_USER'} | ${apiResourceSimpleUser}
-    `('As $user user', ({ apiResource }) => {
+    `('As $user user', ({ apiResource }: { apiResource: ApiApi }) => {
       test('Get APIs should not contain created api', async () => {
         const apisResponse = await succeed(apiResource.getApisRaw({}));
         expect(apisResponse.data.find((api) => api.id === userApi.id)).not.toBeDefined();

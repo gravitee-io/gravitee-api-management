@@ -47,10 +47,6 @@ public class ApiConverter {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public ApiEntity toApiEntity(Api api) {
-        return toApiEntity(api, null);
-    }
-
     public ApiEntity toApiEntity(Api api, PrimaryOwnerEntity primaryOwnerEntity) {
         ApiEntity apiEntity = new ApiEntity();
 
@@ -83,11 +79,8 @@ public class ApiConverter {
                 if (apiDefinition.getFlowMode() != null) {
                     apiEntity.setFlowMode(apiDefinition.getFlowMode());
                 }
-                if (DefinitionVersion.V2.equals(apiDefinition.getDefinitionVersion())) {
+                if (apiDefinition.getFlows() != null) {
                     apiEntity.setFlows(apiDefinition.getFlows());
-                } else {
-                    apiEntity.setFlows(null);
-                    apiEntity.setPlans(null);
                 }
 
                 // Issue https://github.com/gravitee-io/issues/issues/3356

@@ -26,6 +26,7 @@ import { PortalApi as PortalManagementApi } from '@management-apis/PortalApi';
 import { RoleScope } from '@management-models/RoleScope';
 import { RoleEntity } from '@management-models/RoleEntity';
 import { UpdateRoleEntityFromJSON } from '@management-models/UpdateRoleEntity';
+import { ApiResponse } from '../../../lib/portal-webclient-sdk/src/lib';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -271,7 +272,7 @@ describe('Portal: Business Error - applications', () => {
             logId,
           }),
           applicationPortalApiAsSimpleUser.renewApplicationSecretRaw({ applicationId }),
-        ].map((p) => forbidden(p)),
+        ].map((p: Promise<ApiResponse<unknown>>) => forbidden(p)),
       );
     });
 
@@ -311,7 +312,7 @@ describe('Portal: Business Error - applications', () => {
           applicationPortalApiAsAdminUser.exportApplicationLogsByApplicationIdRaw({ applicationId }),
           applicationPortalApiAsAdminUser.getApplicationLogsRaw({ applicationId }),
           applicationPortalApiAsAdminUser.renewApplicationSecretRaw({ applicationId }),
-        ].map((p) => notFound(p, { message: `Application [${applicationId}] can not be found.` })),
+        ].map((p: Promise<ApiResponse<unknown>>) => notFound(p, { message: `Application [${applicationId}] can not be found.` })),
       );
     });
 
@@ -329,7 +330,7 @@ describe('Portal: Business Error - applications', () => {
             memberInput: {},
           }),
           applicationPortalApiAsAdminUser.deleteApplicationMemberRaw({ applicationId, memberId }),
-        ].map((p) => notFound(p, { message: `User [${memberId}] can not be found.` })),
+        ].map((p: Promise<ApiResponse<unknown>>) => notFound(p, { message: `User [${memberId}] can not be found.` })),
       );
     });
 

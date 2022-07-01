@@ -1252,6 +1252,12 @@ jobs:
         machine:
             image: ubuntu-2004:202101-01
         resource_class: large
+        parameters:
+            database:
+                type: enum
+                default: "mongo"
+                enum: ["mongo", "jdbc"]
+                description: Database type [mongo|jdbc]
         steps:
             - checkout
             - attach_workspace:
@@ -1268,7 +1274,7 @@ jobs:
                   name: Run API & e2e tests
                   command: |
                       cd gravitee-apim-e2e
-                      APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$APIM_VERSION npm run test:api
+                      APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$APIM_VERSION npm run test:api<< parameters.database >>
                       npm run test:report
             - run:
                   name: Remove Report Details (Only keep index files)
@@ -1687,10 +1693,23 @@ workflows:
                       - setup
             - e2e-test:
                   context: cicd-orchestrator
-                  name: Test APIM e2e
+                  name: Test APIM e2e with mongo database
                   requires:
                       - Lint & Build APIM e2e
                       - build-images
+                  database: mongo
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /.*-run-e2e.*/
+            - e2e-test:
+                  context: cicd-orchestrator
+                  name: Test APIM e2e with jdbc database
+                  requires:
+                      - Lint & Build APIM e2e
+                      - build-images
+                  database: jdbc
                   filters:
                       branches:
                           only:

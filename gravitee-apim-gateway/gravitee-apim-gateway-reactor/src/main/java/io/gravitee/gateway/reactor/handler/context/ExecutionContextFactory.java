@@ -31,12 +31,18 @@ import java.util.List;
  */
 public class ExecutionContextFactory {
 
-    private final List<TemplateVariableProvider> providers = new ArrayList<>();
+    private final List<TemplateVariableProvider> providers;
 
     private final ComponentProvider componentProvider;
 
     public ExecutionContextFactory(ComponentProvider componentProvider) {
         this.componentProvider = componentProvider;
+        this.providers = new ArrayList<>();
+    }
+
+    public ExecutionContextFactory(ExecutionContextFactory executionContextFactory) {
+        this.providers = executionContextFactory.providers;
+        this.componentProvider = executionContextFactory.componentProvider;
     }
 
     /**
@@ -53,5 +59,9 @@ public class ExecutionContextFactory {
 
     public void addTemplateVariableProvider(TemplateVariableProvider templateVariableProvider) {
         this.providers.add(templateVariableProvider);
+    }
+
+    public List<TemplateVariableProvider> getProviders() {
+        return providers;
     }
 }

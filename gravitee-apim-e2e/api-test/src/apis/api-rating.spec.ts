@@ -21,6 +21,7 @@ import { ApiEntity } from '@management-models/ApiEntity';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { fail, succeed } from '@lib/jest-utils';
 import faker from '@faker-js/faker';
+import { ApiApi } from '@portal-apis/ApiApi';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -102,7 +103,7 @@ describe('API - Rating', () => {
       user          | apisResource
       ${'ADMIN'}    | ${apisResourceAsAdmin}
       ${'API_USER'} | ${apisResourceAsApiUser}
-    `('As $user user', ({ apisResource }) => {
+    `('As $user user', ({ apisResource }: { apisResource: APIsApi }) => {
       test('Create API rating should succeed', async () => {
         let rate = faker.datatype.number({ min: 1, max: 5 });
         let createdRating = await succeed(
@@ -110,20 +111,20 @@ describe('API - Rating', () => {
             envId,
             orgId,
             api: createdApi.id,
-            newRatingEntity: { rate },
+            newRatingEntity: { rate: `${rate}` },
           }),
         );
         expect(createdRating.rate).toBe(rate);
       });
 
       test('Create API rating once again should throw 400 error', async () => {
-        let rate = faker.datatype.number({ min: 1, max: 5 }).toString();
+        let rate = faker.datatype.number({ min: 1, max: 5 });
         await fail(
           apisResource.createApiRating({
             envId,
             orgId,
             api: createdApi.id,
-            newRatingEntity: { rate },
+            newRatingEntity: { rate: `${rate}` },
           }),
           400,
         );

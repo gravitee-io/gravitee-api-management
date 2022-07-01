@@ -68,7 +68,7 @@ public class ApiService_DeleteCategoryTest {
 
         when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build())).thenReturn(List.of(firstOrphan, secondOrphan));
 
-        when(apiConverter.toApiEntity(any())).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any())).thenReturn(new ApiEntity());
 
         apiService.deleteCategoryFromAPIs(GraviteeContext.getExecutionContext(), categoryId);
 
