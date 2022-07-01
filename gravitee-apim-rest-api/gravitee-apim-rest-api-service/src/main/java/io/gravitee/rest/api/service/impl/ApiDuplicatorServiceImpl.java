@@ -592,7 +592,13 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             Map<String, PlanEntity> existingPlans = readApiPlansById(executionContext, apiEntity.getId());
             Set<PlanEntity> plansToImport = readPlansToImportFromDefinition(apiJsonNode, existingPlans);
 
-            findRemovedPlansIds(existingPlans.values(), plansToImport).forEach(plan -> planService.delete(executionContext, plan));
+            findRemovedPlans(existingPlans.values(), plansToImport)
+                .forEach(
+                    plan -> {
+                        planService.delete(executionContext, plan.getId());
+                        apiEntity.getPlans().remove(plan);
+                    }
+                );
 
             plansToImport.forEach(
                 planEntity -> {
@@ -686,8 +692,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private Stream<String> findRemovedPlansIds(Collection<PlanEntity> existingPlans, Collection<PlanEntity> importedPlans) {
-        return existingPlans.stream().filter(existingPlan -> !importedPlans.contains(existingPlan)).map(PlanEntity::getId);
+    private Stream<PlanEntity> findRemovedPlans(Collection<PlanEntity> existingPlans, Collection<PlanEntity> importedPlans) {
+        return existingPlans.stream().filter(existingPlan -> !importedPlans.contains(existingPlan));
     }
 
     private Set<PlanEntity> readPlansToImportFromDefinition(ImportApiJsonNode apiJsonNode, Map<String, PlanEntity> existingPlans)
