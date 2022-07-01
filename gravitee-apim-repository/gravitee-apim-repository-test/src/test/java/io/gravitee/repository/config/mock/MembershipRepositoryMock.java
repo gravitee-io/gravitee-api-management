@@ -182,5 +182,28 @@ public class MembershipRepositoryMock extends AbstractRepositoryMock<MembershipR
             )
         )
             .thenReturn(singleton(mock(Membership.class)), emptySet());
+
+        when(
+            membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                "group1",
+                MembershipMemberType.GROUP,
+                MembershipReferenceType.API,
+                null
+            )
+        )
+            .thenReturn(
+                new HashSet<>(
+                    singletonList(
+                        new Membership(
+                            "group_membership_default_api_role",
+                            "group1",
+                            MembershipMemberType.GROUP,
+                            null,
+                            MembershipReferenceType.API,
+                            "11baec92-8823-4f8b-baec-9288238f8b5c"
+                        )
+                    )
+                )
+            );
     }
 }
