@@ -27,8 +27,10 @@ import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
@@ -58,6 +60,9 @@ public class SearchIndexUpgraderTest {
     private PageService pageService;
 
     @Mock
+    private ApiService apiService;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
@@ -72,11 +77,14 @@ public class SearchIndexUpgraderTest {
     @Mock
     private UserConverter userConverter;
 
+    private PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
+
     @Before
     public void setup() throws Exception {
         mockEnvironment("env1", "org1");
         mockEnvironment("env2", "org2");
         mockEnvironment("env3", "org1");
+        when(apiService.getPrimaryOwner(any(), any())).thenReturn(primaryOwnerEntity);
     }
 
     @Test
@@ -192,7 +200,8 @@ public class SearchIndexUpgraderTest {
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(apiId);
-        when(apiConverter.toApiEntity(api)).thenReturn(apiEntity);
+
+        when(apiConverter.toApiEntity(api, primaryOwnerEntity)).thenReturn(apiEntity);
 
         return api;
     }

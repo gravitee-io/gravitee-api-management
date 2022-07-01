@@ -183,6 +183,7 @@ describe('Update API from import with metadata', () => {
       let foundMetadata = await succeed(apisResource.getApiMetadatasRaw({ envId, orgId, api: expectedApiId }));
       expect(foundMetadata[0]).toEqual({
         name: 'team',
+        key: 'team',
         format: ApiMetadataFormat.STRING,
         value: 'Product',
         apiId: expectedApiId,

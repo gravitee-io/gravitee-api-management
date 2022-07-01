@@ -15,16 +15,18 @@
  */
 package io.gravitee.definition.jackson.datatype.api.ser;
 
+import static java.util.Comparator.comparing;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.flow.Step;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -60,7 +62,9 @@ public class FlowSerializer extends StdScalarSerializer<Flow> {
 
         jgen.writeArrayFieldStart("methods");
         if (flow.getMethods() != null) {
-            for (HttpMethod method : flow.getMethods()) {
+            List<HttpMethod> sortedMethods = new ArrayList<>(flow.getMethods());
+            sortedMethods.sort(comparing(HttpMethod::name));
+            for (HttpMethod method : sortedMethods) {
                 jgen.writeString(method.toString().toUpperCase());
             }
         }

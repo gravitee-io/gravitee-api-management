@@ -43,6 +43,7 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
@@ -290,6 +291,52 @@ public class ApiMetadataServiceTest {
         newApiMetadata.setReferenceId(API_ID);
         newApiMetadata.setFormat(STRING);
         newApiMetadata.setName(METADATA_NAME);
+        newApiMetadata.setValue(newValue);
+
+        verify(metadataRepository).update(newApiMetadata);
+        verify(auditService)
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API_ID),
+                any(),
+                eq(METADATA_UPDATED),
+                any(),
+                eq(apiMetadata),
+                eq(newApiMetadata)
+            );
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+    }
+
+    @Test
+    public void shouldUpdateWithoutKey() throws TechnicalException {
+        final UpdateApiMetadataEntity updateApiMetadataEntity = new UpdateApiMetadataEntity();
+        updateApiMetadataEntity.setApiId(API_ID);
+        updateApiMetadataEntity.setFormat(MetadataFormat.STRING);
+        updateApiMetadataEntity.setName(METADATA_NAME);
+        final String newValue = "new value";
+        updateApiMetadataEntity.setValue(newValue);
+
+        when(apiMetadata.getValue()).thenReturn(newValue);
+        when(metadataRepository.findById(eq("metname"), any(), any())).thenReturn(Optional.of(apiMetadata));
+        when(metadataRepository.update(any())).thenReturn(apiMetadata);
+        when(apiService.fetchMetadataForApi(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new ApiEntity());
+
+        final ApiMetadataEntity updatedApiMetadata = apiMetadataService.update(
+            GraviteeContext.getExecutionContext(),
+            updateApiMetadataEntity
+        );
+
+        assertEquals(METADATA_KEY, updatedApiMetadata.getKey());
+        assertEquals(MetadataFormat.STRING, updatedApiMetadata.getFormat());
+        assertEquals(METADATA_NAME, updatedApiMetadata.getName());
+        assertEquals(newValue, updatedApiMetadata.getValue());
+
+        final Metadata newApiMetadata = new Metadata();
+        newApiMetadata.setReferenceType(API);
+        newApiMetadata.setReferenceId(API_ID);
+        newApiMetadata.setFormat(STRING);
+        newApiMetadata.setName(METADATA_NAME);
+        newApiMetadata.setKey("metname");
         newApiMetadata.setValue(newValue);
 
         verify(metadataRepository).update(newApiMetadata);

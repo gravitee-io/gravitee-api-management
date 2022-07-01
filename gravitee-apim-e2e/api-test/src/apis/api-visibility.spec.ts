@@ -95,9 +95,9 @@ describe('API - Visibility', () => {
       ${'ANONYMOUS'} | ${apiResourceAsAnonymous}
       ${'ADMIN'}     | ${apiResourceAsAdmin}
       ${'APP_USER'}  | ${apiResourceAsAppUser}
-    `('As $user user', ({ apiResource }) => {
+    `('As $user user', ({ apiResource }: { apiResource: ApiApi }) => {
       test('Get APIs should not contain created api', async () => {
-        const apis = await succeed(apiResource.getApisRaw({ envId, orgId }));
+        const apis = await succeed(apiResource.getApisRaw({}));
         expect(apis.data.find((api) => api.id === createdApi.id)).not.toBeDefined();
       });
 
@@ -115,9 +115,9 @@ describe('API - Visibility', () => {
       user             | apiResource
       ${'API_USER'}    | ${apiResourceAsApiUser}
       ${'SIMPLE_USER'} | ${apiResourceAsSimpleUser}
-    `('As $user user', ({ apiResource }) => {
+    `('As $user user', ({ apiResource }: { apiResource: ApiApi }) => {
       test('Get APIs should contain created api', async () => {
-        const apis = await succeed(apiResource.getApisRaw({ envId, orgId }));
+        const apis = await succeed(apiResource.getApisRaw({}));
         expect(apis.data.find((api) => api.id === createdApi.id)).toBeDefined();
       });
 
@@ -163,9 +163,9 @@ describe('API - Visibility', () => {
       ${'ANONYMOUS'}   | ${apiResourceAsAnonymous}
       ${'ADMIN'}       | ${apiResourceAsAdmin}
       ${'APP_USER'}    | ${apiResourceAsAppUser}
-    `('As $user user', ({ apiResource }) => {
+    `('As $user user', ({ apiResource }: { apiResource: ApiApi }) => {
       test('Get APIs should contain created api', async () => {
-        const apis = await succeed(apiResource.getApisRaw({ envId, orgId }));
+        const apis = await succeed(apiResource.getApisRaw({}));
         expect(apis.data.find((api) => api.id === createdApi.id)).toBeDefined();
       });
 

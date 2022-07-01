@@ -933,17 +933,12 @@ jobs:
                       export K8S_NAMESPACE=apim-${CIRCLE_BRANCH//\./-}
 
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-                      az aks get-credentials --resource-group apim-hprod --name apim-hprod
+                      az aks get-credentials --resource-group Apim-Preprod-Hosted --name gravitee-apim-preprod-aks-cluster --admin
 
                       kubectl rollout restart deployment/${K8S_NAME}-apim3-api -n ${K8S_NAMESPACE}
                       kubectl rollout restart deployment/${K8S_NAME}-apim3-portal -n ${K8S_NAMESPACE}
                       kubectl rollout restart deployment/${K8S_NAME}-apim3-ui -n ${K8S_NAMESPACE}
                       kubectl rollout restart deployment/${K8S_NAME}-apim3-gateway -n ${K8S_NAMESPACE}
-
-                      kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-api -n ${K8S_NAMESPACE}-jdbc
-                      kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-portal -n ${K8S_NAMESPACE}-jdbc
-                      kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-ui -n ${K8S_NAMESPACE}-jdbc
-                      kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-gateway -n ${K8S_NAMESPACE}-jdbc
 
             - notify-on-failure
 
@@ -1252,6 +1247,12 @@ jobs:
         machine:
             image: ubuntu-2004:202101-01
         resource_class: large
+        parameters:
+            database:
+                type: enum
+                default: "mongo"
+                enum: ["mongo", "jdbc"]
+                description: Database type [mongo|jdbc]
         steps:
             - checkout
             - attach_workspace:
@@ -1268,7 +1269,7 @@ jobs:
                   name: Run API & e2e tests
                   command: |
                       cd gravitee-apim-e2e
-                      APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$APIM_VERSION npm run test:api
+                      APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$APIM_VERSION npm run test:api<< parameters.database >>
                       npm run test:report
             - run:
                   name: Remove Report Details (Only keep index files)
@@ -1687,10 +1688,23 @@ workflows:
                       - setup
             - e2e-test:
                   context: cicd-orchestrator
-                  name: Test APIM e2e
+                  name: Test APIM e2e with mongo database
                   requires:
                       - Lint & Build APIM e2e
                       - build-images
+                  database: mongo
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /.*-run-e2e.*/
+            - e2e-test:
+                  context: cicd-orchestrator
+                  name: Test APIM e2e with jdbc database
+                  requires:
+                      - Lint & Build APIM e2e
+                      - build-images
+                  database: jdbc
                   filters:
                       branches:
                           only:

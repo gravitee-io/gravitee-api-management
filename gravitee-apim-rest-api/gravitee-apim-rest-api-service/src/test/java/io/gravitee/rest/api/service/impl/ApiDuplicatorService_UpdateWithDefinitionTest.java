@@ -470,7 +470,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
-        verify(planService, times(1)).findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
+        verify(planService, times(2)).findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
         // plan1, plan2 and plan4 has to be created or updated
         verify(planService, times(1))
             .createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), argThat(plan -> plan.getId().equals("plan-id1")));

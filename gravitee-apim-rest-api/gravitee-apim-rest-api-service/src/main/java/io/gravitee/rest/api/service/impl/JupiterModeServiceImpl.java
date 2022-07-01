@@ -37,7 +37,8 @@ public class JupiterModeServiceImpl implements JupiterModeService {
     @Autowired
     public JupiterModeServiceImpl(
         @Value("${api.jupiterMode.enabled:false}") boolean enabled,
-        @Value("${api.jupiterMode.default:always}") String defaultMode
+        // TODO: switch to 'always' to enabled Jupiter execution mode by default when jupiter will go GA.
+        @Value("${api.jupiterMode.default:never}") String defaultMode
     ) {
         this.enabled = enabled;
         this.defaultMode = DefaultMode.fromLabel(defaultMode);
