@@ -81,7 +81,7 @@ public class ApplicationService_UpdateTest {
     private UserService userService;
 
     @Mock
-    private UpdateApplicationEntity existingApplication;
+    private UpdateApplicationEntity applicationToUpdate;
 
     @Mock
     private Application application;
@@ -107,12 +107,12 @@ public class ApplicationService_UpdateTest {
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
-        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
-        when(existingApplication.getDescription()).thenReturn("My description");
+        when(applicationToUpdate.getName()).thenReturn(APPLICATION_NAME);
+        when(applicationToUpdate.getDescription()).thenReturn("My description");
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(applicationRepository.update(any())).thenReturn(application);
 
@@ -130,7 +130,7 @@ public class ApplicationService_UpdateTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
 
         verify(applicationRepository)
@@ -148,7 +148,7 @@ public class ApplicationService_UpdateTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
     }
 
@@ -158,19 +158,19 @@ public class ApplicationService_UpdateTest {
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(applicationRepository.update(any())).thenThrow(TechnicalException.class);
 
-        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
-        when(existingApplication.getDescription()).thenReturn("My description");
+        when(applicationToUpdate.getName()).thenReturn(APPLICATION_NAME);
+        when(applicationToUpdate.getDescription()).thenReturn("My description");
 
         applicationService.update(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
     }
 
@@ -187,13 +187,13 @@ public class ApplicationService_UpdateTest {
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
 
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
-        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
-        when(existingApplication.getDescription()).thenReturn("My description");
+        when(applicationToUpdate.getName()).thenReturn(APPLICATION_NAME);
+        when(applicationToUpdate.getDescription()).thenReturn("My description");
         when(applicationRepository.update(any())).thenReturn(application);
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
@@ -210,7 +210,7 @@ public class ApplicationService_UpdateTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
 
         verify(applicationRepository)
@@ -240,13 +240,13 @@ public class ApplicationService_UpdateTest {
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
 
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
 
         applicationService.update(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
     }
 
@@ -259,7 +259,7 @@ public class ApplicationService_UpdateTest {
         // oauth app settings
         ApplicationSettings settings = new ApplicationSettings();
         settings.setoAuthClient(new OAuthClientSettings());
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
 
         // client registration is disabled
         when(parameterService.findAsBoolean(eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
@@ -269,7 +269,7 @@ public class ApplicationService_UpdateTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
     }
 
@@ -282,8 +282,8 @@ public class ApplicationService_UpdateTest {
         // oauth app settings doesn't contain grant types
         ApplicationSettings settings = new ApplicationSettings();
         settings.setoAuthClient(new OAuthClientSettings());
-        when(existingApplication.getSettings()).thenReturn(settings);
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
 
         // client registration is enabled
         when(parameterService.findAsBoolean(eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
@@ -293,7 +293,7 @@ public class ApplicationService_UpdateTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
     }
 
@@ -302,8 +302,8 @@ public class ApplicationService_UpdateTest {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
-        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
-        when(existingApplication.getDescription()).thenReturn("My description");
+        when(applicationToUpdate.getName()).thenReturn(APPLICATION_NAME);
+        when(applicationToUpdate.getDescription()).thenReturn("My description");
         when(application.getType()).thenReturn(ApplicationType.BROWSER);
         when(application.getMetadata()).thenReturn(Map.of(METADATA_CLIENT_ID, "my-previous-client-id"));
         when(application.getMetadata()).thenReturn(Map.of(METADATA_REGISTRATION_PAYLOAD, "{}"));
@@ -328,7 +328,7 @@ public class ApplicationService_UpdateTest {
         oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
         oAuthClientSettings.setApplicationType("application-type");
         settings.setoAuthClient(oAuthClientSettings);
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
 
         ApplicationTypeEntity applicationTypeEntity = new ApplicationTypeEntity();
         ApplicationGrantTypeEntity applicationGrantTypeEntity = new ApplicationGrantTypeEntity();
@@ -341,13 +341,13 @@ public class ApplicationService_UpdateTest {
         // mock response from DCR with a new client ID
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
         clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
-        when(clientRegistrationService.update(any(), same(existingApplication))).thenReturn(clientRegistrationResponse);
+        when(clientRegistrationService.update(any(), same(applicationToUpdate))).thenReturn(clientRegistrationResponse);
 
         applicationService.update(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
 
         // ensure application has been updated with the new client_id from DCR
@@ -360,8 +360,8 @@ public class ApplicationService_UpdateTest {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
-        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
-        when(existingApplication.getDescription()).thenReturn("My description");
+        when(applicationToUpdate.getName()).thenReturn(APPLICATION_NAME);
+        when(applicationToUpdate.getDescription()).thenReturn("My description");
         when(application.getType()).thenReturn(ApplicationType.BROWSER);
         when(application.getMetadata())
             .thenReturn(Map.of(METADATA_REGISTRATION_PAYLOAD, "{}", METADATA_CLIENT_ID, "my-previous-client-id"));
@@ -386,7 +386,7 @@ public class ApplicationService_UpdateTest {
         oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
         oAuthClientSettings.setApplicationType("application-type");
         settings.setoAuthClient(oAuthClientSettings);
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
 
         ApplicationTypeEntity applicationTypeEntity = new ApplicationTypeEntity();
         ApplicationGrantTypeEntity applicationGrantTypeEntity = new ApplicationGrantTypeEntity();
@@ -397,13 +397,13 @@ public class ApplicationService_UpdateTest {
         when(applicationTypeService.getApplicationType("application-type")).thenReturn(applicationTypeEntity);
 
         // DCR throws exception
-        when(clientRegistrationService.update(any(), same(existingApplication))).thenThrow(RuntimeException.class);
+        when(clientRegistrationService.update(any(), same(applicationToUpdate))).thenThrow(RuntimeException.class);
 
         applicationService.update(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
 
         // ensure application has been updated, but kept the previous client_id
