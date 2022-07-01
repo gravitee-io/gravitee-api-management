@@ -171,8 +171,8 @@ describe('Update API by importing it', () => {
       delete updatePlanWithMissingData.validation;
       delete updatePlanWithMissingData.description;
 
-      const existingApi = ApisFaker.apiImport({ crossId: 'my-api', plans: [existingPlan] });
-      const updatedApi = ApisFaker.apiImport({ crossId: 'my-api', plans: [updatePlanWithMissingData] });
+      const existingApi = ApisFaker.apiImport({ plans: [existingPlan] });
+      const updatedApi = ApisFaker.apiImport({ plans: [updatePlanWithMissingData] });
 
       test('should create the API', async () => {
         createdApi = await succeed(apisResource.importApiDefinitionRaw({ envId, orgId, body: existingApi }));
