@@ -29,6 +29,7 @@ import { Flow } from '@management-models/Flow';
 
 export interface ApiImportEntity {
   id?: string;
+  crossId?: string;
   name?: string;
   version?: string;
   description?: string;
