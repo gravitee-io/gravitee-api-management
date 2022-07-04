@@ -115,7 +115,7 @@ describe('Enable Health Check, view health of my endpoint and use it', () => {
     test('should return default endpoint response', async () => {
       const responseBody = await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
-        timeout: 10000, // let the endpoint some time to be flagged as healthy
+        timeout: 11000, // let the endpoint some time to be flagged as healthy
       }).then((res) => res.json());
 
       expect(responseBody.message).toBe('Hello, Healthy!');
