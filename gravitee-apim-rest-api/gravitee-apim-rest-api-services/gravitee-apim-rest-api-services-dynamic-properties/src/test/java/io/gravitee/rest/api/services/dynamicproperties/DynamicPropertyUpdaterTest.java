@@ -26,18 +26,18 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.services.dynamicproperties.DynamicPropertyUpdater;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
+import io.gravitee.test.junit.rules.FlakyRunner;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -46,6 +46,9 @@ import org.mockito.MockitoAnnotations;
  * @author GraviteeSource Team
  */
 public class DynamicPropertyUpdaterTest {
+
+    @Rule
+    public final TestRule chain = RuleChain.outerRule(new FlakyRunner());
 
     private static final long TIMEOUT_SECONDS = 5;
 

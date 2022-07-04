@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.test.junit.rules.FlakyRunner;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
@@ -40,7 +41,10 @@ import java.net.ServerSocket;
 import java.util.List;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -63,6 +67,9 @@ public class ApiKeysHandlerTest {
 
     private WebClient client;
     private Vertx vertx;
+
+    @Rule
+    public final TestRule chain = RuleChain.outerRule(new FlakyRunner());
 
     @Before
     public void setUp(TestContext context) throws Exception {

@@ -329,6 +329,13 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.apim.test</groupId>
+            <artifactId>gravitee-apim-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Wiremock -->
         <dependency>
             <groupId>com.github.tomakehurst</groupId>

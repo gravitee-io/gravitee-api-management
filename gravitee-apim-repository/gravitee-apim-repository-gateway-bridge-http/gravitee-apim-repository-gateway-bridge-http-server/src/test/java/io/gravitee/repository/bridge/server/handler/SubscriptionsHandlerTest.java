@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.test.junit.rules.FlakyRunner;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
@@ -37,7 +38,10 @@ import java.net.ServerSocket;
 import java.util.List;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -48,6 +52,9 @@ import org.mockito.MockitoAnnotations;
  */
 @RunWith(VertxUnitRunner.class)
 public class SubscriptionsHandlerTest {
+
+    @Rule
+    public final TestRule chain = RuleChain.outerRule(new FlakyRunner());
 
     @Mock
     private SubscriptionRepository subscriptionRepository;

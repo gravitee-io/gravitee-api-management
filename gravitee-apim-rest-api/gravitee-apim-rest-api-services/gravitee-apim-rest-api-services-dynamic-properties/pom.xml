@@ -71,6 +71,13 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.apim.test</groupId>
+            <artifactId>gravitee-apim-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <scope>provided</scope>

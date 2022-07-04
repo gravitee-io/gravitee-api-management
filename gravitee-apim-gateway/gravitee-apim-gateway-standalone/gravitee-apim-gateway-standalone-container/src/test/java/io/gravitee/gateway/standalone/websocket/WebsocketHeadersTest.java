@@ -17,6 +17,7 @@ package io.gravitee.gateway.standalone.websocket;
 
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
+import io.gravitee.test.junit.rules.FlakyRunner;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
@@ -36,7 +37,7 @@ import org.junit.rules.TestRule;
 public class WebsocketHeadersTest extends AbstractWebSocketGatewayTest {
 
     @Rule
-    public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
+    public final TestRule chain = RuleChain.outerRule(new FlakyRunner()).around(new ApiDeployer(this));
 
     @Test
     public void websocket_accepted_request() throws InterruptedException {
