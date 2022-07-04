@@ -17,6 +17,7 @@
 import { RequestDebugStep, RequestPolicyDebugStep, ResponsePolicyDebugStep } from './DebugStep';
 import { fakeDebugEvent } from './DebugEvent.fixture';
 import { convertDebugEventToDebugResponse } from './DebugResponse';
+import { DebugEvent } from './DebugEvent';
 
 describe('convertDebugEventToDebugResponse', () => {
   const expectedRequestDebugSteps: RequestPolicyDebugStep[] = [
@@ -425,5 +426,25 @@ describe('convertDebugEventToDebugResponse', () => {
         },
       },
     ]);
+  });
+
+  it('should remove debug step with NO_TRANSFORMATION status', () => {
+    const mockDebugEvent = fakeDebugEvent();
+    const noTransformationDebugStep: DebugEvent['payload']['debugSteps'][number] = {
+      status: 'NO_TRANSFORMATION',
+      policyId: 'Noop',
+      policyInstanceId: 'Noop',
+      stage: 'API',
+      scope: 'ON_REQUEST_CONTENT',
+      result: {},
+      duration: 200,
+    };
+
+    mockDebugEvent.payload.debugSteps.unshift(noTransformationDebugStep);
+
+    const debugResponse = convertDebugEventToDebugResponse(mockDebugEvent);
+
+    expect(debugResponse.requestPolicyDebugSteps).toStrictEqual(expectedRequestDebugSteps);
+    expect(debugResponse.responsePolicyDebugSteps).toStrictEqual(expectedResponseDebugSteps);
   });
 });
