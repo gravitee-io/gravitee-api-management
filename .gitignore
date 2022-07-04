@@ -56,3 +56,6 @@ gravitee-apim-cypress/cypress/screenshots/
 
 # Exclude flattened version of the pom, for details see https://maven.apache.org/maven-ci-friendly.html#install-deploy
 .flattened-pom.xml
+
+# Release scripts
+release/.env
