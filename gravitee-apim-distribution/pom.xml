@@ -46,7 +46,7 @@
     <properties>
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
-        <gravitee-connector-http.version>1.1.6</gravitee-connector-http.version>
+        <gravitee-connector-http.version>1.1.9</gravitee-connector-http.version>
         <gravitee-policy-apikey.version>2.4.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>1.7.0</gravitee-policy-assign-content.version>
@@ -104,9 +104,9 @@
         <gravitee-fetcher-gitlab.version>1.11.0</gravitee-fetcher-gitlab.version>
         <gravitee-fetcher-http.version>1.12.0</gravitee-fetcher-http.version>
         <!-- Gateway Only -->
-        <gravitee-reporter-elasticsearch.version>3.12.2</gravitee-reporter-elasticsearch.version>
-        <gravitee-reporter-file.version>2.5.2</gravitee-reporter-file.version>
-        <gravitee-reporter-tcp.version>1.4.2</gravitee-reporter-tcp.version>
+        <gravitee-reporter-elasticsearch.version>3.12.4</gravitee-reporter-elasticsearch.version>
+        <gravitee-reporter-file.version>2.5.3</gravitee-reporter-file.version>
+        <gravitee-reporter-tcp.version>1.4.3</gravitee-reporter-tcp.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
         <!--    <gravitee-gateway-services-ratelimit.version>1.15.0</gravitee-gateway-services-ratelimit.version>    -->
         <gravitee-tracer-jaeger.version>1.1.0</gravitee-tracer-jaeger.version>
