@@ -486,7 +486,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return roleIdsToImport;
     }
 
-    private void addOrUpdateMembers(
+    protected void addOrUpdateMembers(
         String apiId,
         String organizationId,
         String environmentId,
@@ -509,16 +509,27 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 UserEntity userEntity = userService.findBySource(memberToImport.getSource(), memberToImport.getSourceId(), false);
 
                 rolesToImport.forEach(
-                    role ->
-                        membershipService.addRoleToMemberOnReference(
-                            organizationId,
-                            environmentId,
-                            MembershipReferenceType.API,
-                            apiId,
-                            MembershipMemberType.USER,
-                            userEntity.getId(),
-                            role
-                        )
+                    role -> {
+                        try {
+                            membershipService.addRoleToMemberOnReference(
+                                organizationId,
+                                environmentId,
+                                MembershipReferenceType.API,
+                                apiId,
+                                MembershipMemberType.USER,
+                                userEntity.getId(),
+                                role
+                            );
+                        } catch (Exception e) {
+                            LOGGER.warn(
+                                "Unable to add role '{}' to member '{}' on API '{}' due to : {}",
+                                role,
+                                userEntity.getId(),
+                                apiId,
+                                e.getMessage()
+                            );
+                        }
+                    }
                 );
             } catch (UserNotFoundException unfe) {}
         }
