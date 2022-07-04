@@ -1,0 +1,54 @@
+= Release process
+
+== 📝 Description
+
+This repo contains some https://github.com/google/zx[zx] scripts to execute the different release steps for APIM.
+
+It will allow you to run these pipeline on CircleCI:
+
+1. Release
+2. Package Zip
+3. Docker and RPMs
+4. Generate changelog
+5. Nexus Sync
+
+== 🛠 Requirement
+
+To run the scripts, you need to have:
+
+* Node.js >= 16.0.0 (configured in link:.nvmrc[.nvmrc]] with v18.4.0 )
+* https://github.com/google/zx[zx]; to install it just run:
+
+[source,shell]
+----
+npm i -g zx
+# Check everything is ok:
+zx -v
+----
+* A https://github.com/motdotla/dotenv#readme[dotenv] file containing the variable `CIRCLECI_TOKEN`, which is your personal token on CircleCI. (https://circleci.com/docs/2.0/managing-api-tokens#creating-a-personal-api-token[How to create your CircleCI personal token ?])
+
+== 🏁 Usage
+
+Thanks to link:package.json[package.json], you can run those scripts as simple `npm` commands (do not forget to use `npm i` before starting).
+
+Each of the commands needs:
+
+* A `CIRCLECI_TOKEN` in `.env` file
+* the `--version` parameter
+
+Optional flag:
+
+* `--dry-run`: allow to run the pipeline in dry run mode (except for `nexus_sync` which does not have this mode)
+
+Each commands, when successful, will guide you to the next command to run, for example: `When it's done, run 'npm run nexus_sync -- --version=3.15.11'
+`.
+
+Here are the steps to run to fully release APIM (Releasing 3.15.11, in the following example):
+
+1. `npm run release -- --version=3.15.11`
+2. `npm run package_zip -- --version=3.15.11`:
+ - ⚠️ ☣️  As the release process is under stabilization, it is needed to manually update the `gravitee-api-management` version, commit and create a tag on the `release` repo. Otherwise the package bundle step will fail. This will not be needed anymore as soon as the magic python script replaced by the use of the maven distribution pom.
+ - The pipeline needs versions of EE packages as parameters. There are read from link:../gravitee-apim-distribution/pom.xml[gravitee-apim-distribution/pom.xml]
+3. `npm run docker_rpms -- --version=3.15.11`: You can also provide the `--latest` parameter to flag the image as `latest`.
+4. `npm run changelog -- --version=3.15.11`
+5. `npm run nexus_sync -- --version=3.15.11`
