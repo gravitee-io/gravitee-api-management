@@ -68,6 +68,7 @@ services:
       - ./jacoco:/opt/jacoco
     environment:
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_sync_delay=1000
       - "JAVA_OPTS=-javaagent:/opt/jacoco/lib/org.jacoco.agent-0.8.8-runtime.jar=destfile=/opt/jacoco/jacoco.exec"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://admin:adminadmin@localhost:18082/_node" ]
