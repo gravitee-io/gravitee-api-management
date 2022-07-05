@@ -22,7 +22,7 @@ import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
 import { PlansFaker } from '@management-fakers/PlansFaker';
 import { PlanEntity } from '@management-models/PlanEntity';
 import { RuleMethodsEnum } from '@management-models/Rule';
-import { noContent, succeed } from '@lib/jest-utils';
+import { describeIfV3, noContent, succeed } from '@lib/jest-utils';
 import { LifecycleAction } from '@management-models/LifecycleAction';
 import { fetchGatewaySuccess } from '@lib/gateway';
 import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
@@ -35,7 +35,7 @@ let createdApi: ApiEntity;
 let createdPlan: PlanEntity;
 
 describe('Mock policy', () => {
-  describe('On api v1 - based on paths', () => {
+  describeIfV3('On api v1 - based on paths', () => {
     beforeAll(async () => {
       const newPlanEntity = PlansFaker.newPlan({ status: PlanStatus.PUBLISHED });
 
