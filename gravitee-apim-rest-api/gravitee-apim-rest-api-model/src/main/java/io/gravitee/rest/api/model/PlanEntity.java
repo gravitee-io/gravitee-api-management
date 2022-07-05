@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import java.util.*;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,24 +37,30 @@ public class PlanEntity {
      */
     private String crossId;
 
+    @NotNull
     private String name;
 
+    @NotNull
     private String description;
 
     /**
      * The way to validate subscriptions
      */
+    @NotNull
     private PlanValidationType validation;
 
     @DeploymentRequired
+    @NotNull
     private PlanSecurityType security;
 
     @DeploymentRequired
     private String securityDefinition;
 
+    @NotNull
     private PlanType type;
 
     @DeploymentRequired
+    @NotNull
     private PlanStatus status;
 
     @DeploymentRequired
