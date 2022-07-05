@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -28,6 +30,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiOwnershipTransferException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.impl.MembershipServiceImpl;
@@ -54,6 +57,7 @@ public class MembershipService_TransferOwnershipTest {
     private static final String USER_ID = "user-id-1";
     private static final String ORGANIZATION_ID = "DEFAULT";
     private static final String ENVIRONMENT_ID = "DEFAULT";
+    private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
     private static final String API_OWNER_ROLE_ID = "API_OWNER";
     private static final String API_PRIMARY_OWNER_ROLE_ID = "API_PRIMARY_OWNER";
     private static final String USER_ROLE_ID = "API_USER";
@@ -87,12 +91,12 @@ public class MembershipService_TransferOwnershipTest {
 
         UserEntity user = new UserEntity();
         user.setId(USER_ID);
-        when(userService.findByIds(Collections.singletonList(USER_ID), false)).thenReturn(Collections.singleton(user));
-        when(userService.findById(USER_ID)).thenReturn(user);
+        when(userService.findByIds(EXECUTION_CONTEXT, Collections.singletonList(USER_ID), false)).thenReturn(Collections.singleton(user));
+        when(userService.findById(EXECUTION_CONTEXT, USER_ID)).thenReturn(user);
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
-        when(apiService.findById(API_ID)).thenReturn(apiEntity);
+        when(apiService.findById(EXECUTION_CONTEXT, API_ID)).thenReturn(apiEntity);
     }
 
     @Test
@@ -116,8 +120,7 @@ public class MembershipService_TransferOwnershipTest {
             ApiOwnershipTransferException.class,
             () ->
                 this.membershipService.transferApiOwnership(
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
+                        new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
                         API_ID,
                         new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
                         Collections.singletonList(newPrimaryOwnerRole)
@@ -148,8 +151,7 @@ public class MembershipService_TransferOwnershipTest {
             RoleNotFoundException.class,
             () ->
                 this.membershipService.transferApiOwnership(
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
+                        new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
                         API_ID,
                         new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
                         Collections.singletonList(newPrimaryOwnerRole)
@@ -180,8 +182,7 @@ public class MembershipService_TransferOwnershipTest {
             RoleNotFoundException.class,
             () ->
                 this.membershipService.transferApiOwnership(
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
+                        new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
                         API_ID,
                         new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
                         Collections.singletonList(newPrimaryOwnerRole)
@@ -199,8 +200,9 @@ public class MembershipService_TransferOwnershipTest {
         primaryOwnerRole.setName(SystemRole.PRIMARY_OWNER.name());
         when(roleService.findById(API_PRIMARY_OWNER_ROLE_ID)).thenReturn(primaryOwnerRole);
         when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION_ID, RoleScope.API)).thenReturn(primaryOwnerRole);
-        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name())).thenReturn(Optional.of(primaryOwnerRole));
-        when(roleService.findByScopeAndName(RoleScope.API, USER_ROLE_NAME)).thenReturn(Optional.of(newPrimaryOwnerRole));
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID))
+            .thenReturn(Optional.of(primaryOwnerRole));
+        when(roleService.findByScopeAndName(RoleScope.API, USER_ROLE_NAME, ORGANIZATION_ID)).thenReturn(Optional.of(newPrimaryOwnerRole));
 
         Membership poMembership = new Membership();
         poMembership.setReferenceType(MembershipReferenceType.API);
@@ -214,8 +216,7 @@ public class MembershipService_TransferOwnershipTest {
             .thenReturn(Collections.singleton(poMembership));
 
         this.membershipService.transferApiOwnership(
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
+                EXECUTION_CONTEXT,
                 API_ID,
                 new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
                 Collections.singletonList(newPrimaryOwnerRole)
