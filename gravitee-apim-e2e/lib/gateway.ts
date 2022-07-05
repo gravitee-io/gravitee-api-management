@@ -17,7 +17,7 @@ import 'dotenv/config';
 import fetchApi, { HeadersInit, Response } from 'node-fetch';
 import { sleep } from '@lib/jest-utils';
 
-export type HttpMethod = 'GET' | 'PUT' | 'POST' | 'DELETE';
+export type HttpMethod = 'GET' | 'PUT' | 'POST' | 'DELETE' | 'OPTIONS';
 
 interface GatewayRequest {
   contextPath: string;
@@ -36,6 +36,10 @@ export async function fetchGatewaySuccess(request?: Partial<GatewayRequest>) {
 
 export async function fetchGatewayUnauthorized(request?: Partial<GatewayRequest>) {
   return _fetchGatewayWithRetries({ expectedStatusCode: 401, ...request });
+}
+
+export async function fetchGatewayBadRequest(request?: Partial<GatewayRequest>) {
+  return _fetchGatewayWithRetries({ expectedStatusCode: 400, ...request });
 }
 
 async function _fetchGatewayWithRetries(attributes: Partial<GatewayRequest>): Promise<Response> {
