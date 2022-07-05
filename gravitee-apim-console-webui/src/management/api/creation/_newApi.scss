@@ -14,17 +14,13 @@
 
   .card-import {
     min-width: 490px;
-  }
-
-  .card-import {
     border-radius: 2px;
-    opacity: 0.6;
     box-shadow: 0 0 0 1px var(--gv-theme-neutral-color, #f5f5f5), 0 1px 3px var(--gv-theme-neutral-color-dark, #bfbfbf);
 
     margin: 0 1rem;
     padding: 1rem;
     color: #262626;
-    transition: all 0.3s ease-in-out;
+    background-color: white;
 
     .title {
       padding: 0.5rem;
@@ -38,13 +34,6 @@
       text-align: center;
       padding: 0.5rem;
       font-size: 14px;
-    }
-
-    &:hover {
-      opacity: 1;
-      transform: translateY(-4px);
-      box-shadow: 0 10px 20px -10px var(--gv-theme-neutral-color-dark, #bfbfbf);
-      cursor: pointer;
     }
   }
 
