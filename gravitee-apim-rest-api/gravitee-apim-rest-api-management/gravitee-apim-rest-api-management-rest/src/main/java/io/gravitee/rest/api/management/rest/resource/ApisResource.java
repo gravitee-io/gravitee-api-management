@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -67,7 +68,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import net.minidev.json.JSONObject;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -240,10 +240,11 @@ public class ApisResource extends AbstractResource {
 
     @POST
     @Path("import")
+    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
         summary = "Create an API by importing an API definition",
-        description = "Create an API by importing an existing API definition in JSON format either with json or via an URL"
+        description = "Create an API by importing an existing API definition in JSON format."
     )
     @ApiResponse(
         responseCode = "200",
@@ -258,9 +259,68 @@ public class ApisResource extends AbstractResource {
         }
     )
     public Response importApiDefinition(
-        @RequestBody(required = true) @Valid @NotNull Object apiDefinitionOrUrl,
+        @RequestBody(required = true) @Valid @NotNull JsonNode apiDefinition,
         @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
     ) {
+        return importApiDefinitionOrUrl(apiDefinition, definitionVersion);
+    }
+
+    @POST
+    @Path("import-url")
+    @Consumes({ MediaType.TEXT_PLAIN })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Create an API by importing a URL pointing to an API definition",
+        description = "Create an API by importing an existing API definition via a URL"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "API successfully created",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+        }
+    )
+    public Response importApiDefinitionUrl(
+        @RequestBody(required = true) @Valid @NotNull String apiDefinitionOrUrl,
+        @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
+    ) {
+        return importApiDefinitionOrUrl(apiDefinitionOrUrl, definitionVersion);
+    }
+
+    @Deprecated(since = "3.18.0", forRemoval = true)
+    @POST
+    @Path("import")
+    @Consumes({ MediaType.TEXT_PLAIN })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Deprecated - Create an API by importing an API definition",
+        description = "Old endpoint to create an API by importing an existing API definition via a URL - prefer `/apis/import-url`"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "API successfully created",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+        }
+    )
+    public Response deprecatedImportApiDefinitionUrl(
+        @RequestBody(required = true) @Valid @NotNull String apiDefinitionOrUrl,
+        @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
+    ) {
+        return importApiDefinitionOrUrl(apiDefinitionOrUrl, definitionVersion);
+    }
+
+    private Response importApiDefinitionOrUrl(Object apiDefinitionOrUrl, String definitionVersion) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(executionContext, apiDefinitionOrUrl);
 
