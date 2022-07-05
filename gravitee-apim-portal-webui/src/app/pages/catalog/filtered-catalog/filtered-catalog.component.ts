@@ -386,6 +386,6 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   private computeFilterApiQuery(): FilterApiQuery {
-    return !!this.currentCategory ? null : this.filterApiQuery;
+    return this.currentCategory ? null : this.filterApiQuery;
   }
 }

@@ -17,11 +17,11 @@ import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectat
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { of } from 'rxjs';
 
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { Api, ApiService, ApisResponse, User } from '../../../../../projects/portal-webclient-sdk/src/lib';
-import { of } from 'rxjs';
 import { ConfigurationService } from '../../../services/configuration.service';
 
 import { FilteredCatalogComponent } from './filtered-catalog.component';
