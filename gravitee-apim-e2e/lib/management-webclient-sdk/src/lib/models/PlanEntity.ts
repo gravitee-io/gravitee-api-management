@@ -40,7 +40,7 @@ import {
 } from './';
 
 /**
- * 
+ * a list of plans with flows (the policies configuration)
  * @export
  * @interface PlanEntity
  */
@@ -92,7 +92,7 @@ export interface PlanEntity {
      * @type {string}
      * @memberof PlanEntity
      */
-    description?: string;
+    description: string;
     /**
      * 
      * @type {Array<string>}
@@ -122,7 +122,7 @@ export interface PlanEntity {
      * @type {string}
      * @memberof PlanEntity
      */
-    name?: string;
+    name: string;
     /**
      * 
      * @type {number}
@@ -146,7 +146,7 @@ export interface PlanEntity {
      * @type {PlanSecurityType}
      * @memberof PlanEntity
      */
-    security?: PlanSecurityType;
+    security: PlanSecurityType;
     /**
      * 
      * @type {string}
@@ -164,7 +164,7 @@ export interface PlanEntity {
      * @type {PlanStatus}
      * @memberof PlanEntity
      */
-    status?: PlanStatus;
+    status: PlanStatus;
     /**
      * 
      * @type {Array<string>}
@@ -176,7 +176,7 @@ export interface PlanEntity {
      * @type {PlanType}
      * @memberof PlanEntity
      */
-    type?: PlanType;
+    type: PlanType;
     /**
      * 
      * @type {Date}
@@ -188,7 +188,7 @@ export interface PlanEntity {
      * @type {PlanValidationType}
      * @memberof PlanEntity
      */
-    validation?: PlanValidationType;
+    validation: PlanValidationType;
 }
 
 export function PlanEntityFromJSON(json: any): PlanEntity {
@@ -208,23 +208,23 @@ export function PlanEntityFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'comment_required': !exists(json, 'comment_required') ? undefined : json['comment_required'],
         'created_at': !exists(json, 'created_at') ? undefined : (new Date(json['created_at'])),
         'crossId': !exists(json, 'crossId') ? undefined : json['crossId'],
-        'description': !exists(json, 'description') ? undefined : json['description'],
+        'description': json['description'],
         'excluded_groups': !exists(json, 'excluded_groups') ? undefined : json['excluded_groups'],
         'flows': ((json['flows'] as Array<any>).map(FlowFromJSON)),
         'general_conditions': !exists(json, 'general_conditions') ? undefined : json['general_conditions'],
         'id': !exists(json, 'id') ? undefined : json['id'],
-        'name': !exists(json, 'name') ? undefined : json['name'],
+        'name': json['name'],
         'order': !exists(json, 'order') ? undefined : json['order'],
         'paths': json['paths'],
         'published_at': !exists(json, 'published_at') ? undefined : (new Date(json['published_at'])),
-        'security': !exists(json, 'security') ? undefined : PlanSecurityTypeFromJSON(json['security']),
+        'security': PlanSecurityTypeFromJSON(json['security']),
         'securityDefinition': !exists(json, 'securityDefinition') ? undefined : json['securityDefinition'],
         'selection_rule': !exists(json, 'selection_rule') ? undefined : json['selection_rule'],
-        'status': !exists(json, 'status') ? undefined : PlanStatusFromJSON(json['status']),
+        'status': PlanStatusFromJSON(json['status']),
         'tags': !exists(json, 'tags') ? undefined : json['tags'],
-        'type': !exists(json, 'type') ? undefined : PlanTypeFromJSON(json['type']),
+        'type': PlanTypeFromJSON(json['type']),
         'updated_at': !exists(json, 'updated_at') ? undefined : (new Date(json['updated_at'])),
-        'validation': !exists(json, 'validation') ? undefined : PlanValidationTypeFromJSON(json['validation']),
+        'validation': PlanValidationTypeFromJSON(json['validation']),
     };
 }
 

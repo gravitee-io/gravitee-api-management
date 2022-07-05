@@ -235,9 +235,7 @@ describe('API - Plan', () => {
     });
 
     test('Api publisher excludes simple user group from plan', async () => {
-      updatedPlan = cloneDeep(createdPlan);
-      updatedPlan.order = 1;
-      updatedPlan.excluded_groups = [excludedGroup.id];
+      updatedPlan = { ...cloneDeep(createdPlan), order: 1, excluded_groups: [excludedGroup.id] };
 
       await succeed(
         apiPlansResourceAsApiPublisher.updateApiPlanRaw({

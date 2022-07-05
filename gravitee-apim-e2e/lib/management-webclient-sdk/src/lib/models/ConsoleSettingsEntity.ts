@@ -17,6 +17,10 @@ import {
     AlertFromJSON,
     AlertFromJSONTyped,
     AlertToJSON,
+    ConsoleAnalyticsPendo,
+    ConsoleAnalyticsPendoFromJSON,
+    ConsoleAnalyticsPendoFromJSONTyped,
+    ConsoleAnalyticsPendoToJSON,
     ConsoleAuthentication,
     ConsoleAuthenticationFromJSON,
     ConsoleAuthenticationFromJSONTyped,
@@ -37,6 +41,10 @@ import {
     EmailFromJSON,
     EmailFromJSONTyped,
     EmailToJSON,
+    JupiterMode,
+    JupiterModeFromJSON,
+    JupiterModeFromJSONTyped,
+    JupiterModeToJSON,
     Logging,
     LoggingFromJSON,
     LoggingFromJSONTyped,
@@ -73,6 +81,12 @@ export interface ConsoleSettingsEntity {
     alert?: Alert;
     /**
      * 
+     * @type {ConsoleAnalyticsPendo}
+     * @memberof ConsoleSettingsEntity
+     */
+    analyticsPendo?: ConsoleAnalyticsPendo;
+    /**
+     * 
      * @type {ConsoleAuthentication}
      * @memberof ConsoleSettingsEntity
      */
@@ -89,6 +103,12 @@ export interface ConsoleSettingsEntity {
      * @memberof ConsoleSettingsEntity
      */
     email?: Email;
+    /**
+     * 
+     * @type {JupiterMode}
+     * @memberof ConsoleSettingsEntity
+     */
+    jupiterMode?: JupiterMode;
     /**
      * 
      * @type {Logging}
@@ -150,9 +170,11 @@ export function ConsoleSettingsEntityFromJSONTyped(json: any, ignoreDiscriminato
     return {
         
         'alert': !exists(json, 'alert') ? undefined : AlertFromJSON(json['alert']),
+        'analyticsPendo': !exists(json, 'analyticsPendo') ? undefined : ConsoleAnalyticsPendoFromJSON(json['analyticsPendo']),
         'authentication': !exists(json, 'authentication') ? undefined : ConsoleAuthenticationFromJSON(json['authentication']),
         'cors': !exists(json, 'cors') ? undefined : ConsoleCorsFromJSON(json['cors']),
         'email': !exists(json, 'email') ? undefined : EmailFromJSON(json['email']),
+        'jupiterMode': !exists(json, 'jupiterMode') ? undefined : JupiterModeFromJSON(json['jupiterMode']),
         'logging': !exists(json, 'logging') ? undefined : LoggingFromJSON(json['logging']),
         'maintenance': !exists(json, 'maintenance') ? undefined : MaintenanceFromJSON(json['maintenance']),
         'management': !exists(json, 'management') ? undefined : ManagementFromJSON(json['management']),
@@ -174,9 +196,11 @@ export function ConsoleSettingsEntityToJSON(value?: ConsoleSettingsEntity | null
     return {
         
         'alert': AlertToJSON(value.alert),
+        'analyticsPendo': ConsoleAnalyticsPendoToJSON(value.analyticsPendo),
         'authentication': ConsoleAuthenticationToJSON(value.authentication),
         'cors': ConsoleCorsToJSON(value.cors),
         'email': EmailToJSON(value.email),
+        'jupiterMode': JupiterModeToJSON(value.jupiterMode),
         'logging': LoggingToJSON(value.logging),
         'maintenance': MaintenanceToJSON(value.maintenance),
         'management': ManagementToJSON(value.management),

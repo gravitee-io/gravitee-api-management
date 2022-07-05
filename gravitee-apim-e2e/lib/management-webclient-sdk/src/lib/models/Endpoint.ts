@@ -33,12 +33,6 @@ export interface Endpoint {
     backup?: boolean;
     /**
      * 
-     * @type {Array<any>}
-     * @memberof Endpoint
-     */
-    endpointAvailabilityListeners?: Array<any>;
-    /**
-     * 
      * @type {EndpointHealthCheckService}
      * @memberof Endpoint
      */
@@ -92,7 +86,6 @@ export function EndpointFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
     return {
         
         'backup': !exists(json, 'backup') ? undefined : json['backup'],
-        'endpointAvailabilityListeners': !exists(json, 'endpointAvailabilityListeners') ? undefined : json['endpointAvailabilityListeners'],
         'healthcheck': !exists(json, 'healthcheck') ? undefined : EndpointHealthCheckServiceFromJSON(json['healthcheck']),
         'inherit': !exists(json, 'inherit') ? undefined : json['inherit'],
         'name': !exists(json, 'name') ? undefined : json['name'],
@@ -113,7 +106,6 @@ export function EndpointToJSON(value?: Endpoint | null): any {
     return {
         
         'backup': value.backup,
-        'endpointAvailabilityListeners': value.endpointAvailabilityListeners,
         'healthcheck': EndpointHealthCheckServiceToJSON(value.healthcheck),
         'inherit': value.inherit,
         'name': value.name,

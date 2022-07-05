@@ -874,6 +874,7 @@ export interface GetApisRequest {
     state?: string;
     visibility?: string;
     version?: string;
+    executionMode?: GetApisExecutionModeEnum;
     name?: string;
     tag?: string;
     portal?: boolean;
@@ -891,6 +892,7 @@ export interface GetApisPagedRequest {
     state?: string;
     visibility?: string;
     version?: string;
+    executionMode?: GetApisPagedExecutionModeEnum;
     name?: string;
     tag?: string;
     portal?: boolean;
@@ -927,6 +929,13 @@ export interface ImportApiDefinitionRequest {
     envId: string;
     orgId: string;
     body: any;
+}
+
+export interface ImportApiDefinitionUrlRequest {
+    definitionVersion?: string;
+    envId: string;
+    orgId: string;
+    body: string;
 }
 
 export interface ImportApiPageFilesRequest {
@@ -5252,6 +5261,10 @@ export class APIsApi extends runtime.BaseAPI {
             queryParameters['version'] = requestParameters.version;
         }
 
+        if (requestParameters.executionMode !== undefined) {
+            queryParameters['executionMode'] = requestParameters.executionMode;
+        }
+
         if (requestParameters.name !== undefined) {
             queryParameters['name'] = requestParameters.name;
         }
@@ -5337,6 +5350,10 @@ export class APIsApi extends runtime.BaseAPI {
 
         if (requestParameters.version !== undefined) {
             queryParameters['version'] = requestParameters.version;
+        }
+
+        if (requestParameters.executionMode !== undefined) {
+            queryParameters['executionMode'] = requestParameters.executionMode;
         }
 
         if (requestParameters.name !== undefined) {
@@ -5527,7 +5544,7 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Create an API by importing an existing API definition in JSON format either with json or via an URL
+     * Create an API by importing an existing API definition in JSON format.
      * Create an API by importing an API definition
      */
     async importApiDefinitionRaw(requestParameters: ImportApiDefinitionRequest): Promise<runtime.ApiResponse<ApiEntity>> {
@@ -5568,11 +5585,61 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Create an API by importing an existing API definition in JSON format either with json or via an URL
+     * Create an API by importing an existing API definition in JSON format.
      * Create an API by importing an API definition
      */
     async importApiDefinition(requestParameters: ImportApiDefinitionRequest): Promise<ApiEntity> {
         const response = await this.importApiDefinitionRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Create an API by importing an existing API definition via a URL
+     * Create an API by importing a URL pointing to an API definition
+     */
+    async importApiDefinitionUrlRaw(requestParameters: ImportApiDefinitionUrlRequest): Promise<runtime.ApiResponse<ApiEntity>> {
+        if (requestParameters.envId === null || requestParameters.envId === undefined) {
+            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling importApiDefinitionUrl.');
+        }
+
+        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
+            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling importApiDefinitionUrl.');
+        }
+
+        if (requestParameters.body === null || requestParameters.body === undefined) {
+            throw new runtime.RequiredError('body','Required parameter requestParameters.body was null or undefined when calling importApiDefinitionUrl.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        if (requestParameters.definitionVersion !== undefined) {
+            queryParameters['definitionVersion'] = requestParameters.definitionVersion;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'text/plain';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/organizations/{orgId}/environments/{envId}/apis/import-url`.replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters.body as any,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
+    }
+
+    /**
+     * Create an API by importing an existing API definition via a URL
+     * Create an API by importing a URL pointing to an API definition
+     */
+    async importApiDefinitionUrl(requestParameters: ImportApiDefinitionUrlRequest): Promise<ApiEntity> {
+        const response = await this.importApiDefinitionUrlRaw(requestParameters);
         return await response.value();
     }
 
@@ -7544,4 +7611,20 @@ export class APIsApi extends runtime.BaseAPI {
 export enum GetApiSubscriptionsExpandEnum {
     Keys = 'keys',
     Security = 'security'
+}
+/**
+    * @export
+    * @enum {string}
+    */
+export enum GetApisExecutionModeEnum {
+    V3 = 'V3',
+    JUPITER = 'JUPITER'
+}
+/**
+    * @export
+    * @enum {string}
+    */
+export enum GetApisPagedExecutionModeEnum {
+    V3 = 'V3',
+    JUPITER = 'JUPITER'
 }
