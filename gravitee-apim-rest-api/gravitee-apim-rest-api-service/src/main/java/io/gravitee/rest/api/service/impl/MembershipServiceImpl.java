@@ -18,7 +18,8 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMBERSHIP_CREATED;
 import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMBERSHIP_DELETED;
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -33,9 +34,7 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
@@ -1522,6 +1521,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         MembershipMember member,
         List<RoleEntity> newPrimaryOwnerRoles
     ) {
+        if (
+            MembershipMemberType.GROUP.equals(member.getMemberType()) &&
+            !this.hasApiPrimaryOwnerMemberInGroup(executionContext, member.getMemberId())
+        ) {
+            throw new ApiOwnershipTransferException(apiId);
+        }
+
         this.transferOwnership(executionContext, MembershipReferenceType.API, RoleScope.API, apiId, member, newPrimaryOwnerRoles);
     }
 
@@ -1674,5 +1680,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             .stream()
             .map(role -> _addRoleToMemberOnReference(executionContext, reference, member, role, source, false, true))
             .collect(Collectors.toList());
+    }
+
+    private boolean hasApiPrimaryOwnerMemberInGroup(ExecutionContext executionContext, String groupId) {
+        return this.getMembersByReference(executionContext, MembershipReferenceType.GROUP, groupId)
+            .stream()
+            .anyMatch(member -> member.getRoles().stream().anyMatch(RoleEntity::isApiPrimaryOwner));
     }
 }

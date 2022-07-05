@@ -943,7 +943,11 @@ jobs:
             - run:
                   name: Update maven dependencies versions from properties
                   command: |
-                      mvn versions:update-properties --batch-mode -Dmaven.version.rules.serverId=artifactory-gravitee -Dincludes="io.gravitee.*:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" --settings .gravitee.settings.xml --update-snapshots -T 2C
+                      # Update maven dependencies versions from properties
+                      mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -T 2C -no-transfer-progress
+
+                      # Remove `-SNAPSHOT` from version                    
+                      mvn versions:set-property -Dproperty=changelist -DnewVersion=
             - prepare-gpg
             - prepare-env-var
             - run:
@@ -998,8 +1002,11 @@ jobs:
                       # If support branch for this version does not exist, create it, update versions, commit and push
                       if [ "x${GIT_BRANCH_FILTER}" == "x" ]; then
                         git checkout -b ${MAINTENANCE_GIT_BRANCH}
-                        # Set the version to the next support version (bump patch version + '-SNAPSHOT')                        
-                        mvn versions:set --batch-mode -DnextSnapshot=true -DgenerateBackupPoms=false --settings .gravitee.settings.xml
+                        # Set the version to the next support version (bump patch version + '-SNAPSHOT')        
+                        export NEXT_PATCH_VERSION=$((${MVN_PRJ_VERSION_PATCH}+1))
+                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.${NEXT_PATCH_VERSION}"     
+                        mvn versions:set-property -Dproperty=revision -DnewVersion=${NEXT_SNAPSHOT_VERSION}                    
+                        mvn versions:set-property -Dproperty=changelist -DnewVersion=-SNAPSHOT
                         git add --update
                         git commit -m 'chore: prepare next version [skip ci]'
                         if [ "${DRY_RUN}" == "false" ]; then
@@ -1015,14 +1022,17 @@ jobs:
                       # If releasing a feature version (i.e. patch number == 0) then bump the minor version for the next 
                       if [ "${MVN_PRJ_VERSION_PATCH}" == "0" ]; then
                         export NEXT_MINOR_VERSION=$((${MVN_PRJ_VERSION_MINOR}+1))
-                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${NEXT_MINOR_VERSION}.0-SNAPSHOT"
-                        mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B versions:set -DnewVersion=${NEXT_SNAPSHOT_VERSION} -DgenerateBackupPoms=false
-                        mvn versions:set --batch-mode -DnewVersion=${NEXT_SNAPSHOT_VERSION} -DgenerateBackupPoms=false --settings .gravitee.settings.xml
+                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${NEXT_MINOR_VERSION}.0"
+                        mvn versions:set-property -Dproperty=revision -DnewVersion=${NEXT_SNAPSHOT_VERSION}                    
+                        mvn versions:set-property -Dproperty=changelist -DnewVersion=-SNAPSHOT                    
                       else
                         # Else just set the version to the next support version (bump patch version + '-SNAPSHOT')                        
-                        mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B versions:set -DnextSnapshot=true -DgenerateBackupPoms=false
-                        mvn versions:set --batch-mode -DnextSnapshot=true -DgenerateBackupPoms=false --settings .gravitee.settings.xml
+                        export NEXT_PATCH_VERSION=$((${MVN_PRJ_VERSION_PATCH}+1))
+                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.${NEXT_PATCH_VERSION}"     
+                        mvn versions:set-property -Dproperty=revision -DnewVersion=${NEXT_SNAPSHOT_VERSION}                    
+                        mvn versions:set-property -Dproperty=changelist -DnewVersion=-SNAPSHOT
                       fi;
+                    
                       git add --update
                       git commit -m 'chore: prepare next version [skip ci]'
                       if [ "${DRY_RUN}" == "false" ]; then
