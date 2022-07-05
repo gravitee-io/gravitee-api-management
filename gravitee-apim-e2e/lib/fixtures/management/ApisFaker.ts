@@ -22,13 +22,13 @@ import { NewApiEntity } from '@management-models/NewApiEntity';
 import faker from '@faker-js/faker';
 import { NewRatingEntity } from '@management-models/NewRatingEntity';
 import { RatingInput } from '@portal-models/RatingInput';
-import { Plan } from '@management-models/Plan';
 import { PrimaryOwnerEntity } from '@management-models/PrimaryOwnerEntity';
+import { PlanEntity } from '@management-models/PlanEntity';
 
 export interface ApiImportEntity extends ApiEntity {
   members?: Array<any>;
   pages?: Array<PageEntity>;
-  plans?: Array<Plan>;
+  plans?: Array<PlanEntity>;
   metadata?: any;
   primaryOwner?: PrimaryOwnerEntity;
 }

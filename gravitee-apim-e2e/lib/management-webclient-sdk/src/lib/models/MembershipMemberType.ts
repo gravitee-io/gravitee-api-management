@@ -12,7 +12,7 @@
  */
 
 /**
- * 
+ * Type's name
  * @export
  * @enum {string}
  */

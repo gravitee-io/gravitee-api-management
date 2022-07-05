@@ -45,6 +45,12 @@ export interface Management {
     support?: Enabled;
     /**
      * 
+     * @type {Enabled}
+     * @memberof Management
+     */
+    systemRoleEdition?: Enabled;
+    /**
+     * 
      * @type {string}
      * @memberof Management
      */
@@ -76,6 +82,7 @@ export function ManagementFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'automaticValidation': !exists(json, 'automaticValidation') ? undefined : EnabledFromJSON(json['automaticValidation']),
         'pathBasedApiCreation': !exists(json, 'pathBasedApiCreation') ? undefined : EnabledFromJSON(json['pathBasedApiCreation']),
         'support': !exists(json, 'support') ? undefined : EnabledFromJSON(json['support']),
+        'systemRoleEdition': !exists(json, 'systemRoleEdition') ? undefined : EnabledFromJSON(json['systemRoleEdition']),
         'title': !exists(json, 'title') ? undefined : json['title'],
         'url': !exists(json, 'url') ? undefined : json['url'],
         'userCreation': !exists(json, 'userCreation') ? undefined : EnabledFromJSON(json['userCreation']),
@@ -94,6 +101,7 @@ export function ManagementToJSON(value?: Management | null): any {
         'automaticValidation': EnabledToJSON(value.automaticValidation),
         'pathBasedApiCreation': EnabledToJSON(value.pathBasedApiCreation),
         'support': EnabledToJSON(value.support),
+        'systemRoleEdition': EnabledToJSON(value.systemRoleEdition),
         'title': value.title,
         'url': value.url,
         'userCreation': EnabledToJSON(value.userCreation),

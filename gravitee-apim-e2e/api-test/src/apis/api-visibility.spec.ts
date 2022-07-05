@@ -30,9 +30,10 @@ import { fail, succeed } from '@lib/jest-utils';
 import { ApiLifecycleState } from '@management-models/ApiLifecycleState';
 import { SearchableUser } from '@management-models/SearchableUser';
 import { UsersApi } from '@management-apis/UsersApi';
-import { cloneDeep, find } from 'lodash';
+import { find } from 'lodash';
 import { APIMembershipsApi } from '@management-apis/APIMembershipsApi';
-import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
+import { UpdateApiEntity, UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
+import { Visibility } from '@management-models/Visibility';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -139,20 +140,22 @@ describe('API - Visibility', () => {
   describe('Public', () => {
     beforeAll(async () => {
       // make API public
-      let updatedApi = cloneDeep(createdApi);
-      delete updatedApi.id;
-      delete updatedApi.state;
-      delete updatedApi.created_at;
-      delete updatedApi.updated_at;
-      delete updatedApi.owner;
-      delete updatedApi.context_path;
-      updatedApi.lifecycle_state = ApiLifecycleState.PUBLISHED;
-      updatedApi.visibility = 'PUBLIC';
+      const updateApiEntity: UpdateApiEntity = {
+        description: createdApi.description,
+        version: createdApi.version,
+        name: createdApi.name,
+        paths: createdApi.paths,
+        proxy: createdApi.proxy,
+        response_templates: createdApi.response_templates,
+        lifecycle_state: ApiLifecycleState.PUBLISHED,
+        visibility: Visibility.PUBLIC,
+      } as const;
+
       await apisResourceAsApiUser.updateApi({
         envId,
         orgId,
         api: createdApi.id,
-        updateApiEntity: updatedApi,
+        updateApiEntity,
       });
     });
 
