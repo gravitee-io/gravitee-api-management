@@ -1339,6 +1339,8 @@ jobs:
         
                               gh pr edit --body "$CLEAN_BODY$PR_BODY_COVERAGE_SECTION"
             - notify-on-failure
+            - store_test_results:
+                path: ~/test-results
 
     e2e-cypress:
         machine:
