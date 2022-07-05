@@ -122,7 +122,7 @@ describe('Add dynamic properties and use them', () => {
           return response.headers.get('x-version') === '1.0.0';
         },
         timeBetweenRetries: 1000,
-        failAfterMs: 5000,
+        failAfterMs: 10000,
       });
     });
   });
@@ -139,7 +139,7 @@ describe('Add dynamic properties and use them', () => {
           return response.headers.get('x-version') === '1.0.1';
         },
         timeBetweenRetries: 1000,
-        failAfterMs: 5000,
+        failAfterMs: 10000,
       });
     });
 
