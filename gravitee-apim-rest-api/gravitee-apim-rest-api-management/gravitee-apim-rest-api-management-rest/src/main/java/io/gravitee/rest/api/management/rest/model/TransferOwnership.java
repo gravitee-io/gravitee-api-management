@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.MembershipMemberType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -28,18 +29,22 @@ public class TransferOwnership {
     /**
      * Member identifier
      */
+    @Schema(name = "id", description = "User's technical identifier.")
     private String id;
 
     /**
      * Member reference
      */
+    @Schema(name = "reference", description = "User's reference for user providing from an identity provider.")
     private String reference;
 
     /**
      * Member type
      */
+    @Schema(name = "type", description = "Type's name", required = true, example = "USER")
     private MembershipMemberType type;
 
+    @Schema(name = "role", description = "Role's name", required = true)
     @JsonProperty("role")
     private String poRole;
 

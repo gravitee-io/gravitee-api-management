@@ -423,6 +423,26 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldNotIncludeCategories() {
+        ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build();
+        ApiFieldInclusionFilter filter = ApiFieldInclusionFilter.builder().build();
+
+        Set<Api> apis = apiRepository.search(criteria, filter);
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(3, apis.size());
+
+        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-update", "grouped-api", "big-name")));
+        assertTrue(apis.stream().map(Api::getName).anyMatch(Objects::isNull));
+        assertTrue(apis.stream().map(Api::getDefinition).anyMatch(Objects::isNull));
+        assertTrue(apis.stream().map(Api::getPicture).anyMatch(Objects::isNull));
+        assertTrue(apis.stream().map(Api::getBackground).anyMatch(Objects::isNull));
+
+        List<String> categories = apis.stream().map(Api::getCategories).filter(Objects::nonNull).flatMap(Set::stream).collect(toList());
+        assertEquals(0, categories.size());
+    }
+
+    @Test
     public void shouldListCategories() throws TechnicalException {
         final Set<String> categories = apiRepository.listCategories(new ApiCriteria.Builder().build());
         assertNotNull(categories);
