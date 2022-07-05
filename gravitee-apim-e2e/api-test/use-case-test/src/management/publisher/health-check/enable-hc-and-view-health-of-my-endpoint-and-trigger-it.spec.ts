@@ -29,6 +29,7 @@ import { setWiremockState } from '@lib/wiremock';
 import { LifecycleAction } from '@management-models/LifecycleAction';
 import { HealthcheckType } from '@management-models/HealthcheckType';
 import { fetchGatewaySuccess } from '@lib/gateway';
+import { flakyRunner } from '@lib/jest-utils';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -115,13 +116,12 @@ describe('Enable Health Check, view health of my endpoint and use it', () => {
     test('should return default endpoint response', async () => {
       const responseBody = await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
-        timeout: 11000, // let the endpoint some time to be flagged as healthy
       }).then((res) => res.json());
 
       expect(responseBody.message).toBe('Hello, Healthy!');
     });
 
-    test('should be 100% available', async () => {
+    flakyRunner(3, 5000).test('should be 100% available', async () => {
       const metric = await apisResource.getApiHealth({ orgId, envId, api: createdApi.id, type: HealthcheckType.AVAILABILITY });
       expect(metric.global['1m']).toBe(100);
     });
@@ -133,15 +133,16 @@ describe('Enable Health Check, view health of my endpoint and use it', () => {
     });
 
     test('should return failover response', async () => {
-      const responseBody = await fetchGatewaySuccess({
+      await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
-        timeout: 10000, // let the endpoint some time to be flagged as unhealthy
-      }).then((res) => res.json());
-
-      expect(responseBody.message).toBe('Hello, Unhealthy!');
+        async expectedResponseValidator(response) {
+          const body = await response.json();
+          return body.message === 'Hello, Unhealthy!';
+        },
+      });
     });
 
-    test('should NOT be 100% available', async () => {
+    flakyRunner(3, 5000).test('should NOT be 100% available', async () => {
       const metric = await apisResource.getApiHealth({ orgId, envId, api: createdApi.id, type: HealthcheckType.AVAILABILITY });
       expect(metric.global['1m']).not.toBe(100);
     });
