@@ -26,7 +26,7 @@ import { ApiEntity, ApiEntityToJSON } from '@management-models/ApiEntity';
 import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
 import { teardownApisAndApplications } from '@lib/management';
 import { DebugApiEntity, DebugApiEntityFromJSON } from '@management-models/DebugApiEntity';
-import { succeed } from '@lib/jest-utils';
+import { describeIfV3, succeed } from '@lib/jest-utils';
 import { delayWhen, from, Observable, switchMap, tap, timer, map, retryWhen, Subscription } from 'rxjs';
 import { EventEntity } from '@management-models/EventEntity';
 
@@ -36,7 +36,7 @@ const envId = 'DEFAULT';
 const apisResource = new APIsApi(forManagementAsApiUser());
 const organizationApi = new OrganizationApi(forManagementAsAdminUser());
 
-describe('Call my API (incl. query params, Headers and body) and view debug session with proper info', () => {
+describeIfV3('Call my API (incl. query params, Headers and body) and view debug session with proper info', () => {
   let apiEntity: ApiEntity;
 
   beforeAll(async () => {
