@@ -29,7 +29,7 @@ let updatedApi: ApiEntity;
 describe('API - Imports by url', () => {
   test('should create an API from url', async () => {
     createdApi = await succeed(
-      apisResourceAsPublisher.importApiDefinitionRaw({
+      apisResourceAsPublisher.importApiDefinitionUrlRaw({
         envId,
         orgId,
         body: `${process.env.WIREMOCK_BASE_PATH}/api-whattimeisit.json`,
@@ -41,7 +41,7 @@ describe('API - Imports by url', () => {
 
   test('should update an API from url', async () => {
     updatedApi = await succeed(
-      apisResourceAsPublisher.updateApiWithDefinitionRaw({
+      apisResourceAsPublisher.updateApiWithUrlRaw({
         envId,
         orgId,
         api: createdApi.id,
