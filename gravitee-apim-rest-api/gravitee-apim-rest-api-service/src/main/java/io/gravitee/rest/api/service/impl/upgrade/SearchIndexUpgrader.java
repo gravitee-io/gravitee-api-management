@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import static io.gravitee.rest.api.service.common.SecurityContextHelper.authenticateAsSystem;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -29,19 +30,24 @@ import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.UserRoleEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.SecurityContextHelper;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
@@ -147,6 +153,8 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     }
 
     private CompletableFuture<?> runApiIndexationAsync(ExecutorService executorService, Api api) {
+        authenticateAsAdmin();
+
         String environmentId = api.getEnvironmentId();
         String organizationId = organizationIdByEnvironmentIdMap.computeIfAbsent(
             environmentId,
@@ -230,5 +238,12 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     @Override
     public int getOrder() {
         return 250;
+    }
+
+    private void authenticateAsAdmin() {
+        UserRoleEntity adminRole = new UserRoleEntity();
+        adminRole.setScope(RoleScope.ORGANIZATION);
+        adminRole.setName(SystemRole.ADMIN.name());
+        authenticateAsSystem("SearchIndexUpgrader", Set.of(adminRole));
     }
 }
