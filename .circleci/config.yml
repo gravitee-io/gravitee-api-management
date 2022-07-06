@@ -947,7 +947,8 @@ jobs:
                       mvn -s .gravitee.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -T 2C -no-transfer-progress
 
                       # Remove `-SNAPSHOT` from version                    
-                      mvn versions:set-property -Dproperty=changelist -DnewVersion=
+                      sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
+
             - prepare-gpg
             - prepare-env-var
             - run:
@@ -959,8 +960,8 @@ jobs:
 
     release-commit-and-prepare-next-version:
         docker:
-            - image: cimg/openjdk:11.0.13
-        resource_class: large
+            - image: cimg/base
+        resource_class: medium
 
         environment:
             DRY_RUN: << pipeline.parameters.dry_run >>
@@ -986,27 +987,28 @@ jobs:
             - run:
                   name: Git release
                   command: |
-                      export MVN_PRJ_VERSION=$(mvn exec:exec -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive --quiet --settings .gravitee.settings.xml)
+                      export MVN_PRJ_VERSION="<< pipeline.parameters.graviteeio_version >>"
                       export MVN_PRJ_VERSION_MAJOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $1}')
                       export MVN_PRJ_VERSION_MINOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $2}')
                       export MVN_PRJ_VERSION_PATCH=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $3}')
 
-                      export CURRENT_GIT_BRANCH=$(git branch --show-current)
-                      export MAINTENANCE_GIT_BRANCH="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.x"
-                      export GIT_BRANCH_FILTER=$(git branch -a | grep "${MAINTENANCE_GIT_BRANCH}")
+                      # Remove `-SNAPSHOT` from version                    
+                      sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
 
                       git add --update
                       git commit -m "${MVN_PRJ_VERSION}"
                       git tag ${MVN_PRJ_VERSION}
+                    
+                      # If we are on master branch, we need to create the support branch
+                      if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                        export MAINTENANCE_GIT_BRANCH="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.x"
 
-                      # If support branch for this version does not exist, create it, update versions, commit and push
-                      if [ "x${GIT_BRANCH_FILTER}" == "x" ]; then
                         git checkout -b ${MAINTENANCE_GIT_BRANCH}
+                        
                         # Set the version to the next support version (bump patch version + '-SNAPSHOT')        
-                        export NEXT_PATCH_VERSION=$((${MVN_PRJ_VERSION_PATCH}+1))
-                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.${NEXT_PATCH_VERSION}"     
-                        mvn versions:set-property -Dproperty=revision -DnewVersion=${NEXT_SNAPSHOT_VERSION}                    
-                        mvn versions:set-property -Dproperty=changelist -DnewVersion=-SNAPSHOT
+                        sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.1</revision>#" pom.xml
+                        sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+
                         git add --update
                         git commit -m 'chore: prepare next version [skip ci]'
                         if [ "${DRY_RUN}" == "false" ]; then
@@ -1016,23 +1018,18 @@ jobs:
                         else
                           echo "# --->>> THIS IS A DRY RUN : SKIPPPING GIT PUSH"
                         fi;
-                        git checkout ${CURRENT_GIT_BRANCH}
+
+                        git checkout ${CIRCLE_BRANCH}
+                      fi
+                    
+                      if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                        sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_VERSION_MAJOR}.$((${MVN_PRJ_VERSION_MINOR}+1)).0</revision>#" pom.xml
+                        sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+                      else
+                        sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.$((${MVN_PRJ_VERSION_PATCH}+1))</revision>#" pom.xml
+                        sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
                       fi;
 
-                      # If releasing a feature version (i.e. patch number == 0) then bump the minor version for the next 
-                      if [ "${MVN_PRJ_VERSION_PATCH}" == "0" ]; then
-                        export NEXT_MINOR_VERSION=$((${MVN_PRJ_VERSION_MINOR}+1))
-                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${NEXT_MINOR_VERSION}.0"
-                        mvn versions:set-property -Dproperty=revision -DnewVersion=${NEXT_SNAPSHOT_VERSION}                    
-                        mvn versions:set-property -Dproperty=changelist -DnewVersion=-SNAPSHOT                    
-                      else
-                        # Else just set the version to the next support version (bump patch version + '-SNAPSHOT')                        
-                        export NEXT_PATCH_VERSION=$((${MVN_PRJ_VERSION_PATCH}+1))
-                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.${NEXT_PATCH_VERSION}"     
-                        mvn versions:set-property -Dproperty=revision -DnewVersion=${NEXT_SNAPSHOT_VERSION}                    
-                        mvn versions:set-property -Dproperty=changelist -DnewVersion=-SNAPSHOT
-                      fi;
-                    
                       git add --update
                       git commit -m 'chore: prepare next version [skip ci]'
                       if [ "${DRY_RUN}" == "false" ]; then
