@@ -15,7 +15,17 @@
  */
 package io.gravitee.gateway.standalone.websocket;
 
+import static org.junit.Assert.assertTrue;
+
 import io.gravitee.gateway.standalone.AbstractGatewayTest;
+import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpServer;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import org.junit.After;
+import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,5 +39,41 @@ public abstract class AbstractWebSocketGatewayTest extends AbstractGatewayTest {
 
     static {
         System.setProperty("vertx.disableWebsockets", Boolean.FALSE.toString());
+    }
+
+    protected Vertx vertx;
+    protected HttpServer httpServer;
+    protected HttpClient httpClient;
+
+    @Before
+    public void initHttpClientAndServer() {
+        vertx = Vertx.vertx();
+        httpServer = vertx.createHttpServer();
+        httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
+    }
+
+    @After
+    public void closeHttpClientAndServer() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(2);
+
+        httpClient.close(
+            result -> {
+                if (result.failed()) {
+                    logger.warn("Unable to close http client", result.cause());
+                }
+                latch.countDown();
+            }
+        );
+
+        httpServer.close(
+            result -> {
+                if (result.failed()) {
+                    logger.warn("Unable to close http server", result.cause());
+                }
+                latch.countDown();
+            }
+        );
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
     }
 }

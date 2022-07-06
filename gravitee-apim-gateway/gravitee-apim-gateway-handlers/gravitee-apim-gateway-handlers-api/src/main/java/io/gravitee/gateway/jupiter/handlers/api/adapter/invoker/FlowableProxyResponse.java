@@ -78,7 +78,8 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
             // Finally, pass the subscription to the subscriber, so it can invoke onNext on it.
             subscriber.onSubscribe(subscription);
         } else {
-            subscriber.onComplete();
+            log.debug("Proxy response not defined, completing without any value.");
+            EmptySubscription.complete(subscriber);
         }
     }
 

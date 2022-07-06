@@ -35,8 +35,6 @@ import org.junit.rules.TestRule;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-// FIXME: These tests are flaky when run on CircleCI and need to be fixed
-@Ignore("These tests are flaky when run on CircleCI and need to be fixed")
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
 
@@ -45,29 +43,27 @@ public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
 
     @Test
     public void websocket_accepted_request() throws InterruptedException {
-        Vertx vertx = Vertx.vertx();
         VertxTestContext testContext = new VertxTestContext();
 
-        HttpServer httpServer = vertx.createHttpServer();
         httpServer
             .webSocketHandler(
-                event -> {
-                    event.accept();
-                    event.writeTextMessage("PING");
+                serverWebSocket -> {
+                    serverWebSocket.exceptionHandler(testContext::failNow);
+                    serverWebSocket.accept();
+                    serverWebSocket.writeTextMessage("PING");
                 }
             )
             .listen(16664);
-
-        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
 
         httpClient.webSocket(
             "/test",
             event -> {
                 if (event.failed()) {
-                    logger.error("An error occurred during websocket call", event.cause());
-                    Assert.fail();
+                    testContext.failNow(event.cause());
                 } else {
                     final WebSocket webSocket = event.result();
+                    webSocket.exceptionHandler(testContext::failNow);
+
                     webSocket.frameHandler(
                         frame -> {
                             if (frame.isText()) {
@@ -83,7 +79,6 @@ public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
         );
 
         testContext.awaitCompletion(10, TimeUnit.SECONDS);
-        httpServer.close();
         Assert.assertTrue(testContext.completed());
     }
 }

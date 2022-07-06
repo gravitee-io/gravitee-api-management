@@ -41,13 +41,9 @@ public class WebsocketRejectTest extends AbstractWebSocketGatewayTest {
 
     @Test
     public void websocket_rejected_request() throws InterruptedException {
-        Vertx vertx = Vertx.vertx();
         VertxTestContext testContext = new VertxTestContext();
 
-        HttpServer httpServer = vertx.createHttpServer();
         httpServer.webSocketHandler(webSocket -> webSocket.reject(HttpStatusCode.UNAUTHORIZED_401)).listen(16664);
-
-        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
 
         httpClient.webSocket(
             "/test",
@@ -61,7 +57,6 @@ public class WebsocketRejectTest extends AbstractWebSocketGatewayTest {
         );
 
         testContext.awaitCompletion(10, TimeUnit.SECONDS);
-        httpServer.close();
         Assert.assertTrue(testContext.completed());
     }
 }

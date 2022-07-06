@@ -23,8 +23,11 @@ import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.api.ws.WebSocket;
+import io.gravitee.gateway.http.utils.WebSocketUtils;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
+import io.gravitee.gateway.jupiter.http.vertx.ws.VertxWebSocket;
 import io.gravitee.reporter.api.http.Metrics;
 import io.vertx.reactivex.core.http.HttpServerRequest;
 import io.vertx.reactivex.core.net.SocketAddress;
@@ -45,6 +48,8 @@ public class VertxHttpServerRequest extends AbstractHttpChunks implements Mutabl
     protected String transactionId;
     protected String remoteAddress;
     protected String localAddress;
+    protected Boolean isWebSocket = null;
+    protected WebSocket webSocket;
     protected MultiValueMap<String, String> queryParameters = null;
     protected MultiValueMap<String, String> pathParameters = null;
     protected HttpHeaders headers;
@@ -187,8 +192,7 @@ public class VertxHttpServerRequest extends AbstractHttpChunks implements Mutabl
     @Override
     public String localAddress() {
         if (localAddress == null) {
-            SocketAddress localAddress = nativeRequest.localAddress();
-            this.localAddress = extractAddress(localAddress);
+            this.localAddress = extractAddress(nativeRequest.localAddress());
         }
         return localAddress;
     }
@@ -215,6 +219,37 @@ public class VertxHttpServerRequest extends AbstractHttpChunks implements Mutabl
     @Override
     public boolean ended() {
         return nativeRequest.isEnded();
+    }
+
+    @Override
+    public boolean isWebSocket() {
+        if (isWebSocket == null) {
+            String connectionHeader = nativeRequest.getHeader(io.vertx.reactivex.core.http.HttpHeaders.CONNECTION);
+            String upgradeHeader = nativeRequest.getHeader(io.vertx.reactivex.core.http.HttpHeaders.UPGRADE);
+            final io.vertx.core.http.HttpVersion httpVersion = nativeRequest.version();
+            isWebSocket =
+                (httpVersion == io.vertx.core.http.HttpVersion.HTTP_1_0 || httpVersion == io.vertx.core.http.HttpVersion.HTTP_1_1) &&
+                WebSocketUtils.isWebSocket(method().name(), connectionHeader, upgradeHeader);
+        }
+        return isWebSocket;
+    }
+
+    @Override
+    public WebSocket webSocket() {
+        if (isWebSocket() && webSocket == null) {
+            webSocket = new VertxWebSocket(nativeRequest);
+        }
+        return webSocket;
+    }
+
+    /**
+     * Indicates if the request is a websocket request and the connection has been upgraded (meaning, a websocket connection has been created).
+     *
+     * @return <code>true</code> if the connection has been upgraded to websocket, <code>false</code> else.
+     * @see #webSocket()
+     */
+    public boolean isWebSocketUpgraded() {
+        return webSocket != null && webSocket.upgraded();
     }
 
     @Override
