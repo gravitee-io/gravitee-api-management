@@ -27,7 +27,7 @@ import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
 import { teardownApisAndApplications } from '@lib/management';
 import { DebugApiEntity, DebugApiEntityFromJSON } from '@management-models/DebugApiEntity';
 import { succeed } from '@lib/jest-utils';
-import { delayWhen, from, Observable, switchMap, tap, timer, map, retryWhen } from 'rxjs';
+import { delayWhen, from, Observable, switchMap, tap, timer, map, retryWhen, Subscription } from 'rxjs';
 import { EventEntity } from '@management-models/EventEntity';
 
 const orgId = 'DEFAULT';
@@ -213,9 +213,10 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
 
   describe('Get debug event on `GET /?name=TheFox`', () => {
     let debugResult;
+    let debugEventSubscription: Subscription;
 
     beforeEach((done) => {
-      createAndWaitForDebugResult$({
+      debugEventSubscription = createAndWaitForDebugResult$({
         ...DebugApiEntityFromJSON(ApiEntityToJSON(apiEntity)),
         entrypoints: undefined,
         request: {
@@ -228,6 +229,10 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
         debugResult = JSON.parse(value.payload);
         done();
       });
+    });
+
+    afterEach(() => {
+      debugEventSubscription.unsubscribe();
     });
 
     test('Should send query params to backend', () => {
@@ -319,9 +324,9 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
       retryWhen((errors) =>
         errors.pipe(
           // log error message
-          tap((value) => console.error(`Fail to get SUCCESS event`, value)),
-          // restart in 0.5 seconds
-          delayWhen((value) => timer(500)),
+          tap((value) => console.info(`Fail to get SUCCESS event`, value)),
+          // restart in 1 seconds
+          delayWhen((value) => timer(1000)),
         ),
       ),
     );

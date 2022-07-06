@@ -91,7 +91,7 @@ describe('Redeploy Api', () => {
       // Fist fetch Gateway to be sure api is deployed
       await fetchGatewaySuccess({ contextPath: createdApi.context_path + '?activeLatency=false' });
 
-      // Update a Plan to desynchronize Api definition
+      // Update a Plan to de-synchronize Api definition
       await apiManagementApiAsApiUser.updateApiPlan({
         envId,
         orgId,
@@ -108,7 +108,7 @@ describe('Redeploy Api', () => {
       // Execute a request during which we will redeploy the api (only one try, no delay before call)
       const fetchUniqueGatewayCall = fetchGatewaySuccess({
         contextPath: createdApi.context_path + '?activeLatency=true',
-        maxRetries: 1,
+        maxRetries: 0,
       });
 
       // Redeploy the api

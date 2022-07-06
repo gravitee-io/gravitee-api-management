@@ -18,13 +18,11 @@ import { APIsApi } from '@management-apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
 import { ApplicationsApi } from '@management-apis/ApplicationsApi';
 import { ApiEntity } from '@management-models/ApiEntity';
-import { ApplicationEntity } from '@management-models/ApplicationEntity';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { PlansFaker } from '@management-fakers/PlansFaker';
 import { PlanSecurityType } from '@management-models/PlanSecurityType';
 import { PlanStatus } from '@management-models/PlanStatus';
 import { LifecycleAction } from '@management-models/LifecycleAction';
-import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
 import { teardownApisAndApplications } from '@lib/management';
 import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
 import { fetchGatewaySuccess } from '@lib/gateway';
@@ -38,7 +36,6 @@ const applicationsResource = new ApplicationsApi(forManagementAsApiUser());
 
 describe('Add policies to flows and use them', () => {
   let createdApi: ApiEntity;
-  let createdApplication: ApplicationEntity;
   let cachedResponseBody: any;
 
   beforeAll(async () => {
@@ -163,12 +160,6 @@ describe('Add policies to flows and use them', () => {
       api: createdApi.id,
       action: LifecycleAction.START,
     });
-
-    createdApplication = await applicationsResource.createApplication({
-      envId,
-      orgId,
-      newApplicationEntity: ApplicationsFaker.newApplication(),
-    });
   });
 
   describe('Use cache policy, waiting for cache eviction', () => {
@@ -182,25 +173,32 @@ describe('Add policies to flows and use them', () => {
     });
 
     test('Should respond using cache resource', async () => {
-      const responseBody = await fetchGatewaySuccess({
+      await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
         headers: {
           'x-cache-key': 'gravitee-test',
         },
-      }).then((res) => res.json());
-
-      expect(responseBody).toEqual(cachedResponseBody);
+        maxRetries: 1,
+        async expectedResponseValidator(res) {
+          const responseBody = await res.json();
+          expect(responseBody).toEqual(cachedResponseBody);
+          return true;
+        },
+      });
     });
 
     test('Should respond with endpoint body after cache has expired', async () => {
-      const responseBody = await fetchGatewaySuccess({
+      await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
         headers: {
           'x-cache-key': 'gravitee-test',
         },
+        async expectedResponseValidator(res) {
+          const responseBody = await res.json();
+          expect(responseBody).not.toEqual(cachedResponseBody);
+          return true;
+        },
       });
-
-      expect(responseBody).not.toEqual(cachedResponseBody);
     });
   });
 
@@ -307,6 +305,6 @@ describe('Add policies to flows and use them', () => {
   });
 
   afterAll(async () => {
-    await teardownApisAndApplications(orgId, envId, [createdApi?.id], [createdApplication?.id]);
+    await teardownApisAndApplications(orgId, envId, [createdApi?.id]);
   });
 });
