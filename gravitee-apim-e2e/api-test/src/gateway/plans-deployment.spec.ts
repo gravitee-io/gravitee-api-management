@@ -48,6 +48,8 @@ let createdApiKey: ApiKeyEntity;
 let createdApplication: ApplicationEntity;
 let createdSubscription: Subscription;
 
+const timeBetweenRetries = 5000;
+
 describe('Gateway - Plans deployment', () => {
   beforeAll(async () => {
     // create an API with a published API key plan
@@ -107,7 +109,7 @@ describe('Gateway - Plans deployment', () => {
     });
 
     test('gateway should succeed with HTTP 200', async () => {
-      await fetchGatewaySuccess({ contextPath: createdApi.context_path });
+      await fetchGatewaySuccess({ contextPath: createdApi.context_path, timeBetweenRetries });
     });
 
     test('should close plan', async () => {
@@ -115,7 +117,7 @@ describe('Gateway - Plans deployment', () => {
     });
 
     test('gateway should still succeed with HTTP 200 cause closed plan not deployed', async () => {
-      await fetchGatewaySuccess({ contextPath: createdApi.context_path });
+      await fetchGatewaySuccess({ contextPath: createdApi.context_path, timeBetweenRetries });
     });
 
     test('should redeploy the API with closed plan', async () => {
@@ -123,7 +125,7 @@ describe('Gateway - Plans deployment', () => {
     });
 
     test('gateway should return HTTP 401 cause free plan is closed', async () => {
-      await fetchGatewayUnauthorized({ contextPath: createdApi.context_path });
+      await fetchGatewayUnauthorized({ contextPath: createdApi.context_path, timeBetweenRetries });
     });
   });
 
@@ -172,8 +174,12 @@ describe('Gateway - Plans deployment', () => {
     });
 
     test('gateway should succeed with HTTP 200 on API key plan, but still not authorized on free plan', async () => {
-      await fetchGatewaySuccess({ contextPath: createdApi.context_path, headers: { 'X-Gravitee-Api-Key': createdApiKey.key } });
-      await fetchGatewayUnauthorized({ contextPath: createdApi.context_path });
+      await fetchGatewaySuccess({
+        contextPath: createdApi.context_path,
+        headers: { 'X-Gravitee-Api-Key': createdApiKey.key },
+        timeBetweenRetries,
+      });
+      await fetchGatewayUnauthorized({ contextPath: createdApi.context_path, timeBetweenRetries });
     });
 
     test('should recreate 1 published free plan', async () => {
@@ -190,8 +196,12 @@ describe('Gateway - Plans deployment', () => {
     });
 
     test('gateway should succeed with HTTP 200 on API key plan, and on free plan', async () => {
-      await fetchGatewaySuccess({ contextPath: createdApi.context_path, headers: { 'X-Gravitee-Api-Key': createdApiKey.key } });
-      await fetchGatewaySuccess({ contextPath: createdApi.context_path });
+      await fetchGatewaySuccess({
+        contextPath: createdApi.context_path,
+        headers: { 'X-Gravitee-Api-Key': createdApiKey.key },
+        timeBetweenRetries,
+      });
+      await fetchGatewaySuccess({ contextPath: createdApi.context_path, timeBetweenRetries });
     });
 
     test('should close free plan', async () => {
@@ -203,8 +213,12 @@ describe('Gateway - Plans deployment', () => {
     });
 
     test('gateway should succeed with HTTP 200 on apikey plan, but no more on free plan', async () => {
-      await fetchGatewaySuccess({ contextPath: createdApi.context_path, headers: { 'X-Gravitee-Api-Key': createdApiKey.key } });
-      await fetchGatewayUnauthorized({ contextPath: createdApi.context_path });
+      await fetchGatewaySuccess({
+        contextPath: createdApi.context_path,
+        headers: { 'X-Gravitee-Api-Key': createdApiKey.key },
+        timeBetweenRetries,
+      });
+      await fetchGatewayUnauthorized({ contextPath: createdApi.context_path, timeBetweenRetries });
     });
 
     test('should close apikey plan', async () => {
@@ -216,8 +230,12 @@ describe('Gateway - Plans deployment', () => {
     });
 
     test('gateway should fail with HTTP 401 on both plans', async () => {
-      await fetchGatewayUnauthorized({ contextPath: createdApi.context_path, headers: { 'X-Gravitee-Api-Key': createdApiKey.key } });
-      await fetchGatewayUnauthorized({ contextPath: createdApi.context_path });
+      await fetchGatewayUnauthorized({
+        contextPath: createdApi.context_path,
+        headers: { 'X-Gravitee-Api-Key': createdApiKey.key },
+        timeBetweenRetries,
+      });
+      await fetchGatewayUnauthorized({ contextPath: createdApi.context_path, timeBetweenRetries });
     });
 
     afterAll(async () => {
