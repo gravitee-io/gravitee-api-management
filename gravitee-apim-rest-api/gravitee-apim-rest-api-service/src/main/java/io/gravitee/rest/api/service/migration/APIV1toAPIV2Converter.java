@@ -15,15 +15,7 @@
  */
 package io.gravitee.rest.api.service.migration;
 
-import static io.gravitee.common.http.HttpMethod.CONNECT;
-import static io.gravitee.common.http.HttpMethod.DELETE;
-import static io.gravitee.common.http.HttpMethod.GET;
-import static io.gravitee.common.http.HttpMethod.HEAD;
-import static io.gravitee.common.http.HttpMethod.OPTIONS;
-import static io.gravitee.common.http.HttpMethod.PATCH;
-import static io.gravitee.common.http.HttpMethod.POST;
-import static io.gravitee.common.http.HttpMethod.PUT;
-import static io.gravitee.common.http.HttpMethod.TRACE;
+import static io.gravitee.common.http.HttpMethod.*;
 import static io.gravitee.rest.api.service.validator.JsonHelper.clearNullValues;
 import static java.util.Collections.reverseOrder;
 
@@ -32,7 +24,6 @@ import com.github.fge.jackson.JsonLoader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
@@ -44,16 +35,7 @@ import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -159,6 +141,9 @@ public class APIV1toAPIV2Converter {
                     plan.setName(planEntity.getName());
                     plan.setSecurity(planEntity.getSecurity());
                     plan.setSecurityDefinition(planEntity.getSecurityDefinition());
+                    plan.setValidation(planEntity.getValidation());
+                    plan.setDescription(planEntity.getDescription());
+                    plan.setType(planEntity.getType());
                     plan.setStatus(planEntity.getStatus());
                     plan.setFlows(migratePathsToFlows(planEntity.getPaths(), policies));
                     if (planEntity.getTags() != null) {
