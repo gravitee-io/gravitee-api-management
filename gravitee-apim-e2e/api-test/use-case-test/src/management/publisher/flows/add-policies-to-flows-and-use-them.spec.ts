@@ -198,8 +198,7 @@ describe('Add policies to flows and use them', () => {
         headers: {
           'x-cache-key': 'gravitee-test',
         },
-        timeout: 6000, // wait for cache eviction before calling the entrypoint
-      }).then((res) => res.json());
+      });
 
       expect(responseBody).not.toEqual(cachedResponseBody);
     });
@@ -216,15 +215,17 @@ describe('Add policies to flows and use them', () => {
     });
 
     test('Should respond with endpoint body with a new cache key', async () => {
-      const responseBody = await fetchGatewaySuccess({
+      await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
-        failAfterMs: 5000,
         headers: {
           'x-cache-key': 'gravitee-dev',
         },
-      }).then((res) => res.json());
-
-      expect(responseBody).not.toEqual(cachedResponseBody);
+        async expectedResponseValidator(res) {
+          const responseBody = await res.json();
+          expect(responseBody).not.toEqual(cachedResponseBody);
+          return true;
+        },
+      });
     });
   });
 
@@ -239,16 +240,18 @@ describe('Add policies to flows and use them', () => {
     });
 
     test('Should respond with endpoint body with cache bypass header', async () => {
-      const responseBody = await fetchGatewaySuccess({
+      await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
-        failAfterMs: 5000,
         headers: {
           'x-cache-key': 'gravitee-test',
           'x-gravitee-cache': 'BY_PASS',
         },
-      }).then((res) => res.json());
-
-      expect(responseBody).not.toEqual(cachedResponseBody);
+        async expectedResponseValidator(res) {
+          const responseBody = await res.json();
+          expect(responseBody).not.toEqual(cachedResponseBody);
+          return true;
+        },
+      });
     });
   });
 
@@ -263,15 +266,17 @@ describe('Add policies to flows and use them', () => {
     });
 
     test('Should respond with endpoint body with cache bypass query parameter', async () => {
-      const responseBody = await fetchGatewaySuccess({
+      await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}?cache=BY_PASS_`,
-        failAfterMs: 5000,
         headers: {
           'x-cache-key': 'gravitee-dev',
         },
-      }).then((res) => res.json());
-
-      expect(responseBody).not.toEqual(cachedResponseBody);
+        async expectedResponseValidator(res) {
+          const responseBody = await res.json();
+          expect(responseBody).not.toEqual(cachedResponseBody);
+          return true;
+        },
+      });
     });
   });
 
@@ -286,15 +291,18 @@ describe('Add policies to flows and use them', () => {
     });
 
     test('Should callout using request header and assign body content', async () => {
-      const responseBody = await fetchGatewaySuccess({
+      await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
         headers: {
           'x-callout-name': 'gravitee',
         },
-      }).then((res) => res.json());
-
-      expect(responseBody.timestamp).toBeUndefined();
-      expect(responseBody.message).toBe('Hello, Gravitee!');
+        async expectedResponseValidator(res) {
+          const responseBody = await res.json();
+          expect(responseBody.timestamp).toBeUndefined();
+          expect(responseBody.message).toBe('Hello, Gravitee!');
+          return true;
+        },
+      });
     });
   });
 

@@ -108,8 +108,7 @@ describe('Redeploy Api', () => {
       // Execute a request during which we will redeploy the api (only one try, no delay before call)
       const fetchUniqueGatewayCall = fetchGatewaySuccess({
         contextPath: createdApi.context_path + '?activeLatency=true',
-        failAfterMs: 0,
-        timeout: 0,
+        maxRetries: 1,
       });
 
       // Redeploy the api
