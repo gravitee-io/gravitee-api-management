@@ -1683,6 +1683,7 @@ workflows:
             - webui-build:
                   name: Build APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
+                  docker-image-name: apim-portal-ui
                   requires:
                       - setup
             - webui-publish-artifactory:
@@ -1702,6 +1703,7 @@ workflows:
             - webui-build:
                   name: Build APIM Console
                   apim-ui-project: gravitee-apim-console-webui
+                  docker-image-name: apim-management-ui
                   requires:
                       - setup
             - webui-publish-artifactory:
