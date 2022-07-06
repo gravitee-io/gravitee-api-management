@@ -121,7 +121,7 @@ describe('Enable Health Check, view health of my endpoint and use it', () => {
       expect(responseBody.message).toBe('Hello, Healthy!');
     });
 
-    flakyRunner(3, 5000).test('should be 100% available', async () => {
+    flakyRunner(5, 5000).test('should be 100% available', async () => {
       const metric = await apisResource.getApiHealth({ orgId, envId, api: createdApi.id, type: HealthcheckType.AVAILABILITY });
       expect(metric.global['1m']).toBe(100);
     });
@@ -142,7 +142,7 @@ describe('Enable Health Check, view health of my endpoint and use it', () => {
       });
     });
 
-    flakyRunner(3, 5000).test('should NOT be 100% available', async () => {
+    flakyRunner(5, 5000).test('should NOT be 100% available', async () => {
       const metric = await apisResource.getApiHealth({ orgId, envId, api: createdApi.id, type: HealthcheckType.AVAILABILITY });
       expect(metric.global['1m']).not.toBe(100);
     });

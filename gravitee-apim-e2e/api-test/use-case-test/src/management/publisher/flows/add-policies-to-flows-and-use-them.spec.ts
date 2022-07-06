@@ -27,6 +27,7 @@ import { teardownApisAndApplications } from '@lib/management';
 import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
 import { fetchGatewaySuccess } from '@lib/gateway';
 import { LoadBalancerTypeEnum } from '@management-models/LoadBalancer';
+import { flakyRunner } from '@lib/jest-utils';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -36,7 +37,6 @@ const applicationsResource = new ApplicationsApi(forManagementAsApiUser());
 
 describe('Add policies to flows and use them', () => {
   let createdApi: ApiEntity;
-  let cachedResponseBody: any;
 
   beforeAll(async () => {
     createdApi = await apisResource.importApiDefinition({
@@ -162,7 +162,35 @@ describe('Add policies to flows and use them', () => {
     });
   });
 
-  describe('Use cache policy, waiting for cache eviction', () => {
+  describe('Use cache policy', () => {
+    flakyRunner().test('Should respond using cache resource', async () => {
+      let cachedResponseBody = await fetchGatewaySuccess({
+        contextPath: `${createdApi.context_path}`,
+        headers: {
+          'x-cache-key': 'gravitee-test',
+        },
+      }).then((res) => res.json());
+
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // ensure one second has passed before calling
+
+      await fetchGatewaySuccess({
+        contextPath: `${createdApi.context_path}`,
+        headers: {
+          'x-cache-key': 'gravitee-test',
+        },
+        maxRetries: 0,
+        async expectedResponseValidator(res) {
+          const responseBody = await res.json();
+          expect(responseBody).toEqual(cachedResponseBody);
+          return true;
+        },
+      });
+    });
+  });
+
+  describe('Use cache policy, waiting for eviction', () => {
+    let cachedResponseBody: any;
+
     beforeAll(async () => {
       cachedResponseBody = await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
@@ -172,27 +200,13 @@ describe('Add policies to flows and use them', () => {
       }).then((res) => res.json());
     });
 
-    test('Should respond using cache resource', async () => {
-      await fetchGatewaySuccess({
-        contextPath: `${createdApi.context_path}`,
-        headers: {
-          'x-cache-key': 'gravitee-test',
-        },
-        maxRetries: 1,
-        async expectedResponseValidator(res) {
-          const responseBody = await res.json();
-          expect(responseBody).toEqual(cachedResponseBody);
-          return true;
-        },
-      });
-    });
-
     test('Should respond with endpoint body after cache has expired', async () => {
       await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
         headers: {
           'x-cache-key': 'gravitee-test',
         },
+        timeBetweenRetries: 2000,
         async expectedResponseValidator(res) {
           const responseBody = await res.json();
           expect(responseBody).not.toEqual(cachedResponseBody);
@@ -203,6 +217,8 @@ describe('Add policies to flows and use them', () => {
   });
 
   describe('Use cache policy, using a new cache key', () => {
+    let cachedResponseBody: any;
+
     beforeAll(async () => {
       cachedResponseBody = await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
@@ -228,6 +244,8 @@ describe('Add policies to flows and use them', () => {
   });
 
   describe('Use cache policy, bypassing cache from a header', () => {
+    let cachedResponseBody: any;
+
     beforeAll(async () => {
       cachedResponseBody = await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
@@ -254,6 +272,8 @@ describe('Add policies to flows and use them', () => {
   });
 
   describe('Use cache policy, bypassing cache from a query parameter', () => {
+    let cachedResponseBody: any;
+
     beforeAll(async () => {
       cachedResponseBody = await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
@@ -279,6 +299,8 @@ describe('Add policies to flows and use them', () => {
   });
 
   describe('Use HTTP callout policy and assign content', () => {
+    let cachedResponseBody: any;
+
     beforeAll(async () => {
       cachedResponseBody = await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
