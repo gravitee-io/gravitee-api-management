@@ -26,58 +26,69 @@ interface GatewayRequest {
   body?: string;
   headers?: HeadersInit;
   timeBetweenRetries: number;
-  failAfterMs: number;
-  timeout: number;
+  maxRetries: number;
 }
 
 export async function fetchGatewaySuccess(request?: Partial<GatewayRequest>) {
-  return _fetchGateway({ expectedStatusCode: 200, ...request });
+  return _fetchGatewayWithRetries({ expectedStatusCode: 200, ...request });
 }
 
 export async function fetchGatewayUnauthorized(request?: Partial<GatewayRequest>) {
-  return _fetchGateway({ expectedStatusCode: 401, ...request });
+  return _fetchGatewayWithRetries({ expectedStatusCode: 401, ...request });
 }
 
-async function _fetchGateway(request?: Partial<GatewayRequest>): Promise<Response> {
-  request = <GatewayRequest>{
+async function _fetchGatewayWithRetries(attributes: Partial<GatewayRequest>): Promise<Response> {
+  const request = <GatewayRequest>{
     expectedStatusCode: 200,
     method: 'GET',
-    timeBetweenRetries: 500,
-    failAfterMs: 5000,
-    timeout: 1500,
-    ...request,
+    timeBetweenRetries: 1500,
+    maxRetries: 5,
+    expectedResponseValidator: () => true,
+    ...attributes,
   };
-  return new Promise((successCallback) => {
-    setTimeout(() => {
-      successCallback(_fetchGatewayWithRetries(request));
-    }, request.timeout);
-  });
+
+  if (request.maxRetries <= 0) {
+    return await _fetchGateway(request);
+  }
+
+  let lastError: Error;
+
+  for (let retries = request.maxRetries; retries > 0; --retries) {
+    try {
+      return await _fetchGateway(request);
+    } catch (error) {
+      lastError = error;
+      if (retries > 0) {
+        console.info(`Retrying in ${request.timeBetweenRetries} ms with ${retries} attempts`);
+        await new Promise((resolve) => setTimeout(resolve, request.timeBetweenRetries));
+      }
+    }
+  }
+
+  console.info(
+    `[${request.method}] [${process.env.GATEWAY_BASE_URL}${request.contextPath}] failed after ${request.maxRetries} retries with error`,
+    lastError,
+  );
+
+  throw lastError;
 }
 
-async function _fetchGatewayWithRetries(request: Partial<GatewayRequest>): Promise<Response> {
-  console.log('Try to fetch gateway', request.contextPath, request.failAfterMs);
-  console.log('With headers', request.headers);
+async function _fetchGateway(request: Partial<GatewayRequest>): Promise<Response> {
   const response = await fetchApi(`${process.env.GATEWAY_BASE_URL}${request.contextPath}`, {
     method: request.method,
     body: request.body,
     headers: request.headers,
   });
 
-  const expectedResponseValidator = async () =>
-    request.expectedResponseValidator ? await request.expectedResponseValidator(response) : true;
+  const isValidResponse = await request.expectedResponseValidator(response);
 
-  // expect status first then expect validate response
-  if (response.status != request.expectedStatusCode || !(await expectedResponseValidator())) {
-    return new Promise((successCallback, failureCallback) => {
-      setTimeout(() => {
-        if (request.failAfterMs - request.timeBetweenRetries <= 0) {
-          failureCallback(new Error(`Gateway [${process.env.GATEWAY_BASE_URL}${request.contextPath}] returned HTTP ${response.status}`));
-        } else {
-          request.failAfterMs -= request.timeBetweenRetries;
-          successCallback(_fetchGateway(request));
-        }
-      }, request.timeBetweenRetries);
-    });
+  if (!isValidResponse) {
+    throw new Error(`Unexpected response for [${request.method}] [${process.env.GATEWAY_BASE_URL}${request.contextPath}]`);
   }
+
+  if (response.status != request.expectedStatusCode) {
+    throw new Error(`[${request.method}] [${process.env.GATEWAY_BASE_URL}${request.contextPath}] returned HTTP ${response.status}`);
+  }
+
   return response;
 }
