@@ -79,6 +79,7 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
@@ -2255,7 +2256,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         final ApiEntity deployed = convert(executionContext, singletonList(api)).iterator().next();
 
-        if (!getAuthenticatedUser().isSystem()) {
+        if (getAuthenticatedUser() != null && !getAuthenticatedUser().isSystem()) {
             notifierService.trigger(
                 executionContext,
                 ApiHook.API_DEPLOYED,
