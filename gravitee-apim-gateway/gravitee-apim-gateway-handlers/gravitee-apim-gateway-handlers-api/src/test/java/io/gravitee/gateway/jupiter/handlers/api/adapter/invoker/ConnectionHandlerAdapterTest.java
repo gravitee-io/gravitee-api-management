@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.handlers.api.adapter.invoker;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
@@ -25,6 +26,7 @@ import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.reactivex.CompletableEmitter;
+import io.reactivex.subscribers.TestSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -92,20 +94,29 @@ class ConnectionHandlerAdapterTest {
     }
 
     @Test
-    public void shouldNotSetResponseStatusWhenProxyResponseNotConnected() {
+    public void shouldNotInitializeResponseChunksWhenProxyResponseNotConnected() {
         final HttpHeaders responseHeaders = HttpHeaders.create();
 
         cut.handle(proxyConnection);
-
         verify(proxyConnection).responseHandler(handlerCaptor.capture());
+
+        when(ctx.response()).thenReturn(response);
+        when(response.headers()).thenReturn(responseHeaders);
+        when(response.ended()).thenReturn(false);
+        when(proxyResponse.status()).thenReturn(200);
+        when(proxyResponse.headers()).thenReturn(MOCK_HTTP_HEADERS);
         when(proxyResponse.connected()).thenReturn(false);
 
         final Handler<ProxyResponse> proxyResponseHandler = handlerCaptor.getValue();
         proxyResponseHandler.handle(proxyResponse);
 
-        verify(response, times(0)).status(anyInt());
-        assertTrue(responseHeaders.isEmpty());
+        final TestSubscriber<Buffer> obs = cut.getChunks().test();
+        obs.assertComplete();
+        obs.assertNoValues();
+
+        verify(response).status(200);
         verify(nexEmitter).onComplete();
+        assertTrue(responseHeaders.deeplyEquals(MOCK_HTTP_HEADERS));
     }
 
     @Test
@@ -115,7 +126,6 @@ class ConnectionHandlerAdapterTest {
         cut.handle(proxyConnection);
 
         verify(proxyConnection).responseHandler(handlerCaptor.capture());
-        when(proxyResponse.connected()).thenReturn(true);
         when(ctx.response()).thenReturn(response);
         when(response.ended()).thenReturn(true);
 
@@ -135,8 +145,6 @@ class ConnectionHandlerAdapterTest {
 
         when(ctx.response()).thenReturn(response);
         when(response.ended()).thenReturn(false);
-        when(proxyResponse.connected()).thenReturn(true);
-        when(proxyResponse.status()).thenReturn(200);
         when(response.status(anyInt())).thenThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE));
 
         final Handler<ProxyResponse> proxyResponseHandler = handlerCaptor.getValue();

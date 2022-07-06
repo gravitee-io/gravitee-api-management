@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.standalone.websocket;
 
+import static org.junit.Assert.assertTrue;
+
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.vertx.core.Vertx;
@@ -24,6 +26,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.WebSocket;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -44,15 +47,14 @@ public class WebsocketBidirectionalTest extends AbstractWebSocketGatewayTest {
 
     @Test
     public void websocket_bidirectional_request() throws InterruptedException {
-        Vertx vertx = Vertx.vertx();
         VertxTestContext testContext = new VertxTestContext();
 
-        HttpServer httpServer = vertx.createHttpServer();
         httpServer
             .webSocketHandler(
-                event -> {
-                    event.accept();
-                    event.frameHandler(
+                serverWebSocket -> {
+                    serverWebSocket.exceptionHandler(testContext::failNow);
+                    serverWebSocket.accept();
+                    serverWebSocket.frameHandler(
                         frame -> {
                             if (frame.isText()) {
                                 Assert.assertEquals("PONG", frame.textData());
@@ -62,21 +64,19 @@ public class WebsocketBidirectionalTest extends AbstractWebSocketGatewayTest {
                             }
                         }
                     );
-                    event.writeTextMessage("PING");
+                    serverWebSocket.writeTextMessage("PING");
                 }
             )
             .listen(16664);
-
-        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
 
         httpClient.webSocket(
             "/test",
             event -> {
                 if (event.failed()) {
-                    logger.error("An error occurred during websocket call", event.cause());
-                    Assert.fail();
+                    testContext.failNow(event.cause());
                 } else {
                     final WebSocket webSocket = event.result();
+                    webSocket.exceptionHandler(testContext::failNow);
                     webSocket.frameHandler(
                         frame -> {
                             if (frame.isText()) {
@@ -90,7 +90,6 @@ public class WebsocketBidirectionalTest extends AbstractWebSocketGatewayTest {
         );
 
         testContext.awaitCompletion(10, TimeUnit.SECONDS);
-        httpServer.close();
         Assert.assertTrue(testContext.completed());
     }
 }

@@ -648,7 +648,7 @@
                 <!-- Versions of the plugins for the full distribution on dev environment-->
                 <!-- Management API & Gateway -->
                 <!-- Community plugins -->
-                <gravitee-connector-kafka.version>1.1.0</gravitee-connector-kafka.version>
+                <gravitee-connector-kafka.version>1.1.1</gravitee-connector-kafka.version>
                 <gravitee-policy-aws-lambda.version>1.1.0</gravitee-policy-aws-lambda.version>
                 <gravitee-policy-basic-authentication.version>1.2.0</gravitee-policy-basic-authentication.version>
                 <gravitee-policy-circuit-breaker.version>1.0.1</gravitee-policy-circuit-breaker.version>

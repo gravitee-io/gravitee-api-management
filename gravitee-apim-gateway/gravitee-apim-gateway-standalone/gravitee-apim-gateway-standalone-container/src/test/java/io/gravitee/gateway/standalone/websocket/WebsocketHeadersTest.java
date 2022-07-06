@@ -20,6 +20,7 @@ import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
+import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
@@ -39,13 +40,12 @@ public class WebsocketHeadersTest extends AbstractWebSocketGatewayTest {
     public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
 
     @Test
-    public void websocket_accepted_request() throws InterruptedException {
-        Vertx vertx = Vertx.vertx();
-
+    public void websocket_header_request() throws InterruptedException {
         final String customHeaderName = "Custom-Header";
         final String customHeaderValue = "My-Custom-Header-Value";
 
-        HttpServer httpServer = vertx.createHttpServer();
+        VertxTestContext testContext = new VertxTestContext();
+
         httpServer
             .webSocketHandler(
                 event -> {
@@ -59,11 +59,6 @@ public class WebsocketHeadersTest extends AbstractWebSocketGatewayTest {
             )
             .listen(16664);
 
-        // Wait for result
-        final CountDownLatch latch = new CountDownLatch(1);
-
-        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
-
         WebSocketConnectOptions options = new WebSocketConnectOptions();
         options.setURI("/test").setHeaders(MultiMap.caseInsensitiveMultiMap().add(customHeaderName, customHeaderValue));
 
@@ -71,22 +66,25 @@ public class WebsocketHeadersTest extends AbstractWebSocketGatewayTest {
             options,
             event -> {
                 if (event.failed()) {
-                    logger.error("An error occurred during websocket call", event.cause());
-                    Assert.fail();
+                    testContext.failNow(event.cause());
                 } else {
                     final WebSocket webSocket = event.result();
+                    webSocket.exceptionHandler(testContext::failNow);
                     webSocket.frameHandler(
                         frame -> {
-                            Assert.assertTrue(frame.isText());
-                            Assert.assertEquals("PING", frame.textData());
-                            latch.countDown();
+                            if (frame.isText()) {
+                                Assert.assertEquals("PING", frame.textData());
+                                testContext.completeNow();
+                            } else {
+                                testContext.failNow("The frame is not a text frame");
+                            }
                         }
                     );
                 }
             }
         );
 
-        Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
-        httpServer.close();
+        testContext.awaitCompletion(10, TimeUnit.SECONDS);
+        Assert.assertTrue(testContext.completed());
     }
 }

@@ -17,7 +17,6 @@ package io.gravitee.gateway.jupiter.http.vertx;
 
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpVersion;
-import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
@@ -108,6 +107,10 @@ public class VertxHttpServerResponse extends AbstractHttpChunks implements Mutab
     public Completable end() {
         return Completable.defer(
             () -> {
+                if (serverRequest.isWebSocketUpgraded()) {
+                    return Completable.complete();
+                }
+
                 if (!valid()) {
                     return Completable.error(new IllegalStateException("The response is already ended"));
                 }

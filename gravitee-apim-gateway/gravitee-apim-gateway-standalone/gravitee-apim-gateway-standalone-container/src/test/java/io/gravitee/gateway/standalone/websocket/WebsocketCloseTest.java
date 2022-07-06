@@ -44,37 +44,33 @@ public class WebsocketCloseTest extends AbstractWebSocketGatewayTest {
     public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
 
     @Test
-    public void websocket_accepted_request() throws InterruptedException {
-        Vertx vertx = Vertx.vertx();
+    public void websocket_closed_request() throws InterruptedException {
         VertxTestContext testContext = new VertxTestContext();
 
-        HttpServer httpServer = vertx.createHttpServer();
         httpServer
             .webSocketHandler(
-                event -> {
-                    event.accept();
-                    event.close((short) HttpStatusCode.OK_200);
+                serverWebSocket -> {
+                    serverWebSocket.exceptionHandler(testContext::failNow);
+                    serverWebSocket.accept();
+                    serverWebSocket.close();
                 }
             )
             .listen(16664);
-
-        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
 
         httpClient.webSocket(
             "/test",
             event -> {
                 if (event.failed()) {
-                    logger.error("An error occurred during websocket call", event.cause());
-                    Assert.fail();
+                    testContext.failNow(event.cause());
                 } else {
                     final WebSocket webSocket = event.result();
+                    webSocket.exceptionHandler(testContext::failNow);
                     webSocket.closeHandler(__ -> testContext.completeNow());
                 }
             }
         );
 
         testContext.awaitCompletion(10, TimeUnit.SECONDS);
-        httpServer.close();
         Assert.assertTrue(testContext.completed());
     }
 }

@@ -159,12 +159,12 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
 
     @Override
     public boolean isWebSocket() {
-        return false;
+        return request.isWebSocket();
     }
 
     @Override
     public WebSocket websocket() {
-        return null;
+        return request.webSocket();
     }
 
     @Override

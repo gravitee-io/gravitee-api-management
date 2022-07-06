@@ -44,16 +44,15 @@ public class WebsocketPingFrameTest extends AbstractWebSocketGatewayTest {
     public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
 
     @Test
-    public void websocket_bidirectional_request() throws InterruptedException {
-        Vertx vertx = Vertx.vertx();
+    public void websocket_ping_request() throws InterruptedException {
         VertxTestContext testContext = new VertxTestContext();
 
-        HttpServer httpServer = vertx.createHttpServer();
         httpServer
             .webSocketHandler(
-                event -> {
-                    event.accept();
-                    event.frameHandler(
+                serverWebSocket -> {
+                    serverWebSocket.exceptionHandler(testContext::failNow);
+                    serverWebSocket.accept();
+                    serverWebSocket.frameHandler(
                         frame -> {
                             if (frame.isPing()) {
                                 Assert.assertEquals("PING", frame.textData());
@@ -67,23 +66,20 @@ public class WebsocketPingFrameTest extends AbstractWebSocketGatewayTest {
             )
             .listen(16664);
 
-        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
-
         httpClient.webSocket(
             "/test",
             event -> {
                 if (event.failed()) {
-                    logger.error("An error occurred during websocket call", event.cause());
-                    Assert.fail();
+                    testContext.failNow(event.cause());
                 } else {
                     final WebSocket webSocket = event.result();
+                    webSocket.exceptionHandler(testContext::failNow);
                     webSocket.writePing(Buffer.buffer("PING"));
                 }
             }
         );
 
         testContext.awaitCompletion(10, TimeUnit.SECONDS);
-        httpServer.close();
         Assert.assertTrue(testContext.completed());
     }
 }

@@ -70,15 +70,17 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
     private void handleProxyResponse(ProxyConnection connection, ProxyResponse proxyResponse) {
         try {
             // In case of connectivity error, a 502 error may already have been returned to the client and the response is complete.
-            if (proxyResponse.connected() && !ctx.response().ended()) {
+            if (!ctx.response().ended()) {
                 // Set the response status with the status coming from the invoker.
                 ctx.response().status(proxyResponse.status());
 
                 // Capture invoker headers and copy them to the response.
                 proxyResponse.headers().forEach(entry -> ctx.response().headers().add(entry.getKey(), entry.getValue()));
 
-                // Keep a reference on the proxy response to be able to resume it when a subscription will occur on the Flowable<Buffer> chunks.
-                chunks.initialize(ctx, connection, proxyResponse);
+                if (proxyResponse.connected()) {
+                    // Keep a reference on the proxy response to be able to resume it when a subscription will occur on the Flowable<Buffer> chunks.
+                    chunks.initialize(ctx, connection, proxyResponse);
+                }
             } else {
                 tryCancel(proxyResponse);
             }

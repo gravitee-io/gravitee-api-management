@@ -64,24 +64,21 @@ class VertxHttpServerResponseTest {
     @Captor
     private ArgumentCaptor<Flowable<io.vertx.reactivex.core.buffer.Buffer>> chunksCaptor;
 
-    private Flowable<Buffer> chunks;
-
     private AtomicInteger subscriptionCount;
     private VertxHttpServerResponse cut;
 
     @BeforeEach
     void init() {
         subscriptionCount = new AtomicInteger(0);
-        chunks =
-            Flowable
-                .just(Buffer.buffer("chunk1"), Buffer.buffer("chunk2"), Buffer.buffer("chunk3"))
-                .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
+        Flowable<Buffer> chunks = Flowable
+            .just(Buffer.buffer("chunk1"), Buffer.buffer("chunk2"), Buffer.buffer("chunk3"))
+            .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
 
         when(httpServerResponse.headers()).thenReturn(HttpHeaders.headers());
         when(httpServerResponse.trailers()).thenReturn(HttpHeaders.headers());
         when(httpServerRequest.response()).thenReturn(httpServerResponse);
-        when(request.metrics()).thenReturn(metrics);
-        when(httpServerResponse.rxSend(any(Flowable.class))).thenReturn(Completable.complete());
+        lenient().when(request.metrics()).thenReturn(metrics);
+        lenient().when(httpServerResponse.rxSend(any(Flowable.class))).thenReturn(Completable.complete());
 
         ReflectionTestUtils.setField(request, "nativeRequest", httpServerRequest);
 
@@ -216,5 +213,16 @@ class VertxHttpServerResponseTest {
         obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
 
         assertEquals(1, subscriptionCount.get());
+    }
+
+    @Test
+    void shouldNotSubscribeAndCompleteWhenRequestIsWebSocket() {
+        when(request.isWebSocketUpgraded()).thenReturn(true);
+
+        final TestObserver<Void> obs = cut.end().test();
+
+        obs.assertComplete();
+        verify(httpServerResponse, times(0)).rxSend(any(Flowable.class));
+        verify(httpServerResponse, times(0)).rxEnd();
     }
 }
