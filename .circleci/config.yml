@@ -1622,6 +1622,7 @@ workflows:
                           only:
                               - master
                               - /.*-run-e2e.*/
+                              - /^\d+\.\d+\.x$/
             - e2e-test:
                   context: cicd-orchestrator
                   name: Test APIM e2e with jdbc database
@@ -1634,6 +1635,7 @@ workflows:
                           only:
                               - master
                               - /.*-run-e2e.*/
+                              - /^\d+\.\d+\.x$/
             - e2e-cypress:
                   name: Run Cypress UI tests
                   requires:
@@ -1645,6 +1647,7 @@ workflows:
                           only:
                               - master
                               - /.*-run-e2e.*/
+                              - /^\d+\.\d+\.x$/
 
     build_rpm_&_docker_images:
         when:
