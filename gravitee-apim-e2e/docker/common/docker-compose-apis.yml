@@ -41,8 +41,8 @@ services:
       - gravitee_security_providers[0].users[1].email=admin@gravitee.io
       - "JAVA_OPTS=-javaagent:/opt/jacoco/lib/org.jacoco.agent-0.8.8-runtime.jar=destfile=/opt/jacoco/jacoco.exec"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://admin:adminadmin@localhost:18083/_node" ]
-      interval: 2s
+      test: [ "CMD", "curl", "-f", "http://admin:admin@localhost:8083/management/organizations/DEFAULT/user" ]
+      interval: 3s
       timeout: 10s
       retries: 30
     networks:
@@ -57,9 +57,7 @@ services:
       - database
       - elasticsearch
     depends_on:
-      database:
-        condition: service_healthy
-      elasticsearch:
+      management_api:
         condition: service_healthy
     ports:
       - "8082:8082"
