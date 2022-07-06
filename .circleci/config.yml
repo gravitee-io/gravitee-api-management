@@ -927,8 +927,6 @@ jobs:
         docker:
             - image: cimg/openjdk:11.0.13
         resource_class: large
-        environment:
-            DRY_RUN: << pipeline.parameters.dry_run >>
         steps:
             - checkout
             - restore-maven-job-cache:
@@ -963,8 +961,6 @@ jobs:
             - image: cimg/base
         resource_class: medium
 
-        environment:
-            DRY_RUN: << pipeline.parameters.dry_run >>
         steps:
             - checkout
             - attach_workspace:
@@ -983,9 +979,8 @@ jobs:
                   command: |
                       git config --global user.name "${GIT_USER_NAME}"
                       git config --global user.email "${GIT_USER_EMAIL}"
-
             - run:
-                  name: Git release
+                  name: Git release <<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
                   command: |
                       export MVN_PRJ_VERSION="<< pipeline.parameters.graviteeio_version >>"
                       export MVN_PRJ_VERSION_MAJOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $1}')
@@ -998,7 +993,7 @@ jobs:
                       git add --update
                       git commit -m "${MVN_PRJ_VERSION}"
                       git tag ${MVN_PRJ_VERSION}
-                    
+
                       # If we are on master branch, we need to create the support branch
                       if [ "${CIRCLE_BRANCH}" == "master" ]; then
                         export MAINTENANCE_GIT_BRANCH="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.x"
@@ -1011,17 +1006,12 @@ jobs:
 
                         git add --update
                         git commit -m 'chore: prepare next version [skip ci]'
-                        if [ "${DRY_RUN}" == "false" ]; then
-                          echo "# --->>> NO IT IS NOT A DRY RUN : GIT PUSH"
-                          git push -u origin ${MAINTENANCE_GIT_BRANCH}
-                          git push --tags origin ${MAINTENANCE_GIT_BRANCH}
-                        else
-                          echo "# --->>> THIS IS A DRY RUN : SKIPPPING GIT PUSH"
-                        fi;
+
+                        git push -u <<# pipeline.parameters.dry_run >>--dry-run<</ pipeline.parameters.dry_run >> origin ${MAINTENANCE_GIT_BRANCH}
 
                         git checkout ${CIRCLE_BRANCH}
                       fi
-                    
+
                       if [ "${CIRCLE_BRANCH}" == "master" ]; then
                         sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_VERSION_MAJOR}.$((${MVN_PRJ_VERSION_MINOR}+1)).0</revision>#" pom.xml
                         sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
@@ -1032,14 +1022,9 @@ jobs:
 
                       git add --update
                       git commit -m 'chore: prepare next version [skip ci]'
-                      if [ "${DRY_RUN}" == "false" ]; then
-                        echo "# --->>> NO IT IS NOT A DRY RUN"
-                        echo " so that CURRENT_GIT_BRANCH=MAINTENANCE_GIT_BRANCH"
-                        git push -u origin ${CURRENT_GIT_BRANCH}
-                        git push --tags origin ${CURRENT_GIT_BRANCH}
-                      else
-                        echo "# --->>> THIS IS A DRY RUN"
-                      fi;
+
+                      git push -u <<# pipeline.parameters.dry_run >>--dry-run<</ pipeline.parameters.dry_run >> origin ${CIRCLE_BRANCH}
+                      git push --tags <<# pipeline.parameters.dry_run >>--dry-run<</ pipeline.parameters.dry_run >> origin ${CIRCLE_BRANCH}
 
     publish_prod_docker_images:
         parameters:
