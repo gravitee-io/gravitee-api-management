@@ -39,6 +39,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     @Override
     public List<EndpointGroup> validateAndSanitize(List<EndpointGroup> endpointGroups) {
         if (endpointGroups != null && !endpointGroups.isEmpty()) {
+<<<<<<< HEAD
             endpointGroups.forEach(
                 endpointGroup -> {
                     validateName(endpointGroup.getName());
@@ -57,6 +58,22 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                     }
                 }
             );
+=======
+            endpointGroups.forEach(endpointGroup -> {
+                validateName(endpointGroup.getName());
+                if (endpointGroup.getEndpoints() != null && !endpointGroups.isEmpty()) {
+                    endpointGroup
+                        .getEndpoints()
+                        .forEach(endpoint -> {
+                            validateName(endpoint.getName());
+                            endpoint.setConfiguration(
+                                // TODO this need to be improved when endpoint connector are implemented in order to check the configuration schema
+                                connectorService.validateConnectorConfiguration(endpoint.getType(), endpoint.getConfiguration())
+                            );
+                        });
+                }
+            });
+>>>>>>> 2a8318ccf0 (feat(definition): add api definition v4 classes)
         }
         return endpointGroups;
     }

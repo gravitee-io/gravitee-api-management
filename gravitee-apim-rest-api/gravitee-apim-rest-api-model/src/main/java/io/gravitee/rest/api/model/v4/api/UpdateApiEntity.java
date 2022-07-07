@@ -17,7 +17,10 @@ package io.gravitee.rest.api.model.v4.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.Api;
+<<<<<<< HEAD
 import io.gravitee.definition.model.v4.ApiType;
+=======
+>>>>>>> 2a8318ccf0 (feat(definition): add api definition v4 classes)
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.Visibility;

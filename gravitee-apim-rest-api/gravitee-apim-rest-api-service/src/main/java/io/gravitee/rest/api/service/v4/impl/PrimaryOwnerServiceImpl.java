@@ -55,10 +55,10 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
     private final ParameterService parameterService;
 
     public PrimaryOwnerServiceImpl(
-        final UserService userService,
-        final MembershipService membershipService,
-        final GroupService groupService,
-        final ParameterService parameterService
+            final UserService userService,
+            final MembershipService membershipService,
+            final GroupService groupService,
+            final ParameterService parameterService
     ) {
         this.userService = userService;
         this.membershipService = membershipService;
@@ -68,11 +68,11 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
 
     @Override
     public PrimaryOwnerEntity getPrimaryOwner(final ExecutionContext executionContext, final String apiId)
-        throws TechnicalManagementException {
+            throws TechnicalManagementException {
         MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(
-            executionContext.getOrganizationId(),
-            io.gravitee.rest.api.model.MembershipReferenceType.API,
-            apiId
+                executionContext.getOrganizationId(),
+                io.gravitee.rest.api.model.MembershipReferenceType.API,
+                apiId
         );
         if (primaryOwnerMemberEntity == null) {
             log.error("The API {} doesn't have any primary owner.", apiId);
@@ -86,12 +86,12 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
 
     @Override
     public PrimaryOwnerEntity getPrimaryOwner(
-        final ExecutionContext executionContext,
-        final String userId,
-        final PrimaryOwnerEntity currentPrimaryOwner
+            final ExecutionContext executionContext,
+            final String userId,
+            final PrimaryOwnerEntity currentPrimaryOwner
     ) {
         ApiPrimaryOwnerMode poMode = ApiPrimaryOwnerMode.valueOf(
-            this.parameterService.find(executionContext, Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)
+                this.parameterService.find(executionContext, Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)
         );
         switch (poMode) {
             case USER:
@@ -122,10 +122,10 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
                         final String poUserId = currentPrimaryOwner.getId();
                         userService.findById(executionContext, poUserId);
                         final Set<GroupEntity> poGroupsOfPoUser = groupService
-                            .findByUser(poUserId)
-                            .stream()
-                            .filter(group -> group.getApiPrimaryOwner() != null && !group.getApiPrimaryOwner().isEmpty())
-                            .collect(toSet());
+                                .findByUser(poUserId)
+                                .stream()
+                                .filter(group -> group.getApiPrimaryOwner() != null && !group.getApiPrimaryOwner().isEmpty())
+                                .collect(toSet());
                         if (poGroupsOfPoUser.isEmpty()) {
                             return getFirstPoGroupUserBelongsTo(userId);
                         }
@@ -167,10 +167,10 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
     @NotNull
     private PrimaryOwnerEntity getFirstPoGroupUserBelongsTo(final String userId) {
         final Set<GroupEntity> poGroupsOfCurrentUser = groupService
-            .findByUser(userId)
-            .stream()
-            .filter(group -> !StringUtils.isEmpty(group.getApiPrimaryOwner()))
-            .collect(toSet());
+                .findByUser(userId)
+                .stream()
+                .filter(group -> !StringUtils.isEmpty(group.getApiPrimaryOwner()))
+                .collect(toSet());
         if (poGroupsOfCurrentUser.isEmpty()) {
             throw new NoPrimaryOwnerGroupForUserException(userId);
         }

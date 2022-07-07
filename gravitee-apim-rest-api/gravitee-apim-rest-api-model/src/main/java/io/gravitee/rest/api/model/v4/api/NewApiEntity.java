@@ -64,8 +64,8 @@ public class NewApiEntity {
 
     @NotBlank
     @Schema(
-        description = "API's description. A short description of your API.",
-        example = "I can use a hundred characters to describe this API."
+            description = "API's description. A short description of your API.",
+            example = "I can use a hundred characters to describe this API."
     )
     private String description;
 

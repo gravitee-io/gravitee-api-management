@@ -132,28 +132,28 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     public ApiServiceImpl(
-        @Lazy final ApiRepository apiRepository,
-        final ApiMapper apiMapper,
-        final GenericApiMapper genericApiMapper,
-        final PrimaryOwnerService primaryOwnerService,
-        final ApiValidationService apiValidationService,
-        final ParameterService parameterService,
-        final WorkflowService workflowService,
-        final AuditService auditService,
-        final MembershipService membershipService,
-        final GenericNotificationConfigService genericNotificationConfigService,
-        final ApiMetadataService apiMetadataService,
-        final FlowService flowService,
-        final SearchEngineService searchEngineService,
-        final PlanService planService,
-        final SubscriptionService subscriptionService,
-        final EventService eventService,
-        final PageService pageService,
-        final TopApiService topApiService,
-        final GenericNotificationConfigService portalNotificationConfigService,
-        final AlertService alertService,
-        @Lazy final ApiQualityRuleRepository apiQualityRuleRepository,
-        final MediaService mediaService
+            @Lazy final ApiRepository apiRepository,
+            final ApiMapper apiMapper,
+            final GenericApiMapper genericApiMapper,
+            final PrimaryOwnerService primaryOwnerService,
+            final ApiValidationService apiValidationService,
+            final ParameterService parameterService,
+            final WorkflowService workflowService,
+            final AuditService auditService,
+            final MembershipService membershipService,
+            final GenericNotificationConfigService genericNotificationConfigService,
+            final ApiMetadataService apiMetadataService,
+            final FlowService flowService,
+            final SearchEngineService searchEngineService,
+            final PlanService planService,
+            final SubscriptionService subscriptionService,
+            final EventService eventService,
+            final PageService pageService,
+            final TopApiService topApiService,
+            final GenericNotificationConfigService portalNotificationConfigService,
+            final AlertService alertService,
+            @Lazy final ApiQualityRuleRepository apiQualityRuleRepository,
+            final MediaService mediaService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -185,7 +185,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         DefinitionVersion definitionVersion = DefinitionVersion.valueOfLabel(api.getDefinitionVersion());
         if (definitionVersion != DefinitionVersion.V4) {
             throw new IllegalArgumentException(
-                String.format("Api found doesn't support v%s definition model.", DefinitionVersion.V4.getLabel())
+                    String.format("Api found doesn't support v%s definition model.", DefinitionVersion.V4.getLabel())
             );
         }
 
@@ -207,8 +207,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return apiRepository.findIdByEnvironmentIdAndCrossId(environment, crossId);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurred while finding API by environment " + environment + " and crossId " + crossId,
-                e
+                    "An error occurred while finding API by environment " + environment + " and crossId " + crossId,
+                    e
             );
         }
     }
@@ -230,21 +230,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Audit
             auditService.createApiAuditLog(
-                executionContext,
-                createdApi.getId(),
-                Collections.emptyMap(),
-                API_CREATED,
-                createdApi.getCreatedAt(),
-                null,
-                createdApi
+                    executionContext,
+                    createdApi.getId(),
+                    Collections.emptyMap(),
+                    API_CREATED,
+                    createdApi.getCreatedAt(),
+                    null,
+                    createdApi
             );
 
             // Add the primary owner of the newly created API
             membershipService.addRoleToMemberOnReference(
-                executionContext,
-                new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
-                new MembershipService.MembershipMember(primaryOwner.getId(), null, MembershipMemberType.valueOf(primaryOwner.getType())),
-                new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
+                    executionContext,
+                    new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
+                    new MembershipService.MembershipMember(primaryOwner.getId(), null, MembershipMemberType.valueOf(primaryOwner.getType())),
+                    new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
             );
 
             // create the default mail notification
@@ -291,10 +291,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public ApiEntity update(
-        final ExecutionContext executionContext,
-        final String apiId,
-        final UpdateApiEntity api,
-        final boolean checkPlans
+            final ExecutionContext executionContext,
+            final String apiId,
+            final UpdateApiEntity api,
+            final boolean checkPlans
     ) {
         return null;
     }
@@ -312,10 +312,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // Delete plans
                 Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
                 Set<String> plansNotClosed = plans
-                    .stream()
-                    .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
-                    .map(PlanEntity::getName)
-                    .collect(toSet());
+                        .stream()
+                        .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
+                        .map(PlanEntity::getName)
+                        .collect(toSet());
 
                 if (!plansNotClosed.isEmpty()) {
                     throw new ApiNotDeletableException(plansNotClosed);
@@ -343,11 +343,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
                 }
                 eventService.createApiEvent(
-                    executionContext,
-                    singleton(executionContext.getEnvironmentId()),
-                    EventType.UNPUBLISH_API,
-                    null,
-                    properties
+                        executionContext,
+                        singleton(executionContext.getEnvironmentId()),
+                        EventType.UNPUBLISH_API,
+                        null,
+                        properties
                 );
 
                 // Delete pages

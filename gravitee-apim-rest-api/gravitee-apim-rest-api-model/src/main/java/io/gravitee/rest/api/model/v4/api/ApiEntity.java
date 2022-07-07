@@ -20,7 +20,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
+<<<<<<< HEAD
 import io.gravitee.definition.model.v4.ApiType;
+=======
+>>>>>>> 2a8318ccf0 (feat(definition): add api definition v4 classes)
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
@@ -79,9 +82,12 @@ public class ApiEntity implements Indexable, IndexableApi {
     @Schema(description = "API's gravitee definition version")
     private DefinitionVersion definitionVersion;
 
+<<<<<<< HEAD
     @Schema(description = "API's type", example = "async")
     private ApiType type;
 
+=======
+>>>>>>> 2a8318ccf0 (feat(definition): add api definition v4 classes)
     @Schema(description = "The last date (as timestamp) when the API was deployed.", example = "1581256457163")
     private Date deployedAt;
 

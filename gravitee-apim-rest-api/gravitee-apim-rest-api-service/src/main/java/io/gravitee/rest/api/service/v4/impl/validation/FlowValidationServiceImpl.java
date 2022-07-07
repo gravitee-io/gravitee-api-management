@@ -41,6 +41,7 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
     @Override
     public List<Flow> validateAndSanitize(List<Flow> flows) {
         if (flows != null) {
+<<<<<<< HEAD
             flows.forEach(
                 flow ->
                     Stream
@@ -49,6 +50,15 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
                         .flatMap(Collection::stream)
                         .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)
                         .forEach(step -> policyService.validatePolicyConfiguration(step.getPolicy(), step.getConfiguration()))
+=======
+            flows.forEach(flow ->
+                Stream
+                    .of(flow.getRequest(), flow.getResponse(), flow.getSubscribe(), flow.getPublish())
+                    .filter(Objects::nonNull)
+                    .flatMap(Collection::stream)
+                    .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)
+                    .forEach(step -> policyService.validatePolicyConfiguration(step.getPolicy(), step.getConfiguration()))
+>>>>>>> 2a8318ccf0 (feat(definition): add api definition v4 classes)
             );
         }
         return flows;

@@ -58,14 +58,14 @@ public class ApisResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create an API", description = "User must have API_PUBLISHER or ADMIN role to create an API.")
     @ApiResponse(
-        responseCode = "201",
-        description = "API successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
+            responseCode = "201",
+            description = "API successfully created",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response createApi(@Parameter(name = "api", required = true) @Valid @NotNull final NewApiEntity newApiEntity)
-        throws ApiAlreadyExistsException {
+            throws ApiAlreadyExistsException {
         ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
         if (newApi != null) {
             return Response.created(this.getLocationHeader(newApi.getId())).entity(newApi).build();

@@ -34,7 +34,11 @@ import org.springframework.stereotype.Component;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+<<<<<<< HEAD
 @Component("PlanMapperV4")
+=======
+@Component
+>>>>>>> 2a8318ccf0 (feat(definition): add api definition v4 classes)
 @Slf4j
 public class PlanMapper {
 

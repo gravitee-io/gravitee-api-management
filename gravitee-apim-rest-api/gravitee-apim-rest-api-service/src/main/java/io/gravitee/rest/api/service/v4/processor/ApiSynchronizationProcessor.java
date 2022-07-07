@@ -30,7 +30,11 @@ import org.springframework.stereotype.Component;
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
  * @author GraviteeSource Team
  */
+<<<<<<< HEAD
 @Component("ApiSynchronizationProcessorV4")
+=======
+@Component
+>>>>>>> 2a8318ccf0 (feat(definition): add api definition v4 classes)
 public class ApiSynchronizationProcessor {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ApiSynchronizationProcessor.class);
