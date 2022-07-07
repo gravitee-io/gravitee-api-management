@@ -40,7 +40,7 @@ export function flakyRunner(retries = 3, delayMs = 1000) {
           } catch (error) {
             latestError = error;
             console.info('Test failed, available retries:', retries - tries);
-            await new Promise((resolve) => setTimeout(resolve, delayMs));
+            await sleep(delayMs);
           }
         }
 
@@ -48,4 +48,8 @@ export function flakyRunner(retries = 3, delayMs = 1000) {
       });
     },
   };
+}
+
+export async function sleep(time: number) {
+  return new Promise((resolve) => setTimeout(resolve, time));
 }
