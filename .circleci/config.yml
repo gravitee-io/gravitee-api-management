@@ -1251,6 +1251,7 @@ jobs:
     e2e-test:
         machine:
             image: ubuntu-2004:202101-01
+            docker_layer_caching: true
         resource_class: large
         parameters:
             execution_mode:
