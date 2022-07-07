@@ -958,7 +958,7 @@ jobs:
 
     release-commit-and-prepare-next-version:
         docker:
-            - image: cimg/base
+            - image: cimg/base:stable
         resource_class: medium
 
         steps:
