@@ -19,6 +19,7 @@
         "test:api:ci": "jest --runInBand --ci -c jest.config.ci.js --no-cache",
         "test:report": "ENV=ci ant -f jacoco/build.xml",
         "test:report:dev": "ENV=dev ant -f jacoco/build.xml",
+        "test:report:merge": "ant -f jacoco/merge.xml",
         "lint": "npm run prettier && npm run lint:license",
         "lint:fix": "npm run prettier:fix && npm run lint:license:fix && tsc --noEmit",
         "lint:license": "license-check-and-add check -f license-check-config.json",
