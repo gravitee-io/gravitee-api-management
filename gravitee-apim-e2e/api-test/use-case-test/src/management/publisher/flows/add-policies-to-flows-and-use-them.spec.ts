@@ -27,7 +27,7 @@ import { teardownApisAndApplications } from '@lib/management';
 import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
 import { fetchGatewaySuccess } from '@lib/gateway';
 import { LoadBalancerTypeEnum } from '@management-models/LoadBalancer';
-import { flakyRunner } from '@lib/jest-utils';
+import { flakyRunner, sleep } from '@lib/jest-utils';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -171,7 +171,7 @@ describe('Add policies to flows and use them', () => {
         },
       }).then((res) => res.json());
 
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // ensure one second has passed before calling
+      await sleep(1000); // ensure one second has passed before calling
 
       await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,

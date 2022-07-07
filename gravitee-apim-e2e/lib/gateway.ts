@@ -15,6 +15,7 @@
  */
 import 'dotenv/config';
 import fetchApi, { HeadersInit, Response } from 'node-fetch';
+import { sleep } from '@lib/jest-utils';
 
 export type HttpMethod = 'GET' | 'PUT' | 'POST' | 'DELETE';
 
@@ -61,7 +62,7 @@ async function _fetchGatewayWithRetries(attributes: Partial<GatewayRequest>): Pr
       lastError = error;
       if (retries > 0) {
         console.info(`Retrying in ${request.timeBetweenRetries} ms with ${retries} attempts`);
-        await new Promise((resolve) => setTimeout(resolve, request.timeBetweenRetries));
+        await sleep(request.timeBetweenRetries);
       }
     }
   }
