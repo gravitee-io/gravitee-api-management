@@ -54,17 +54,6 @@ public class Api {
      * This includes everything regarding the definition of the apis (plans, flows, metadata, ...)
      */
     public static final String MODE_API_DEFINITION_ONLY = "api_definition_only";
-
-    public enum AuditEvent implements Audit.ApiAuditEvent {
-        API_CREATED,
-        API_UPDATED,
-        API_DELETED,
-        API_ROLLBACKED,
-        API_LOGGING_ENABLED,
-        API_LOGGING_DISABLED,
-        API_LOGGING_UPDATED,
-    }
-
     /**
      * The api ID.
      */
@@ -94,7 +83,6 @@ public class Api {
      * The origin of the api (management, kubernetes, ...). Default is {@link Api#ORIGIN_MANAGEMENT}.
      */
     private String origin = ORIGIN_MANAGEMENT;
-
     /**
      * How the api is managed by the origin (fully, api_definition_only, ...).
      * Default is {@link Api#MODE_FULLY_MANAGED}.
