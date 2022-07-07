@@ -16,7 +16,6 @@
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { APIsApi } from '@management-apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
-import { ApplicationsApi } from '@management-apis/ApplicationsApi';
 import { ApiEntity } from '@management-models/ApiEntity';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { PlansFaker } from '@management-fakers/PlansFaker';
@@ -33,7 +32,6 @@ const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
 
 const apisResource = new APIsApi(forManagementAsApiUser());
-const applicationsResource = new ApplicationsApi(forManagementAsApiUser());
 
 describe('Add policies to flows and use them', () => {
   let createdApi: ApiEntity;
