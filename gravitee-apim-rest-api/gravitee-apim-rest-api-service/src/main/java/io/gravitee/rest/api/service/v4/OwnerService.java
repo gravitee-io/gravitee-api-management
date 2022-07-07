@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4.validation;
+package io.gravitee.rest.api.service.v4;
 
-<<<<<<< HEAD
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-=======
->>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Set;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface GroupValidationService {
-<<<<<<< HEAD
-    Set<String> validateAndSanitize(ExecutionContext executionContext, Set<String> groups, final PrimaryOwnerEntity primaryOwnerEntity);
-=======
-    Set<String> validateAndSanitize(ExecutionContext executionContext, Set<String> groups);
->>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
+public interface OwnerService {
+    PrimaryOwnerEntity getPrimaryOwner(ExecutionContext executionContext, String apiId) throws TechnicalManagementException;
 }

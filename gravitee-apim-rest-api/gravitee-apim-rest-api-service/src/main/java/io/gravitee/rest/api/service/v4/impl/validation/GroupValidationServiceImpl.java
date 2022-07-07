@@ -22,7 +22,10 @@ import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+<<<<<<< HEAD
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+=======
+>>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -54,11 +57,15 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
     }
 
     @Override
+<<<<<<< HEAD
     public Set<String> validateAndSanitize(
         final ExecutionContext executionContext,
         final Set<String> groups,
         final PrimaryOwnerEntity primaryOwnerEntity
     ) {
+=======
+    public Set<String> validateAndSanitize(final ExecutionContext executionContext, final Set<String> groups) {
+>>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
         Set<String> sanitizedGroups = new HashSet<>();
         if (groups != null && !groups.isEmpty()) {
             checkGroupExistence(groups);
@@ -74,8 +81,16 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
         sanitizedGroups.addAll(defaultGroups);
 
         // if primary owner is a group, add it as a member of the API
+<<<<<<< HEAD
         if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerEntity.getType())) {
             sanitizedGroups.add(primaryOwnerEntity.getId());
+=======
+        if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwner.getType())) {
+            if (repoApi.getGroups() == null) {
+                repoApi.setGroups(new HashSet<>());
+            }
+            repoApi.getGroups().add(primaryOwner.getId());
+>>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
         }
 
         return sanitizedGroups;

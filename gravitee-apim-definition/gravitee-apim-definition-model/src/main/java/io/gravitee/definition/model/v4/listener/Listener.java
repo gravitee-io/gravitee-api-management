@@ -16,8 +16,13 @@
 package io.gravitee.definition.model.v4.listener;
 
 import static io.gravitee.definition.model.v4.listener.Listener.HTTP_LABEL;
+<<<<<<< HEAD
 import static io.gravitee.definition.model.v4.listener.Listener.SUBSCRIPTION_LABEL;
 import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
+=======
+import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
+import static io.gravitee.definition.model.v4.listener.Listener.WEBHOOK_LABEL;
+>>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -51,14 +56,22 @@ import lombok.experimental.FieldNameConstants;
 @JsonSubTypes(
     {
         @JsonSubTypes.Type(value = ListenerHttp.class, name = HTTP_LABEL),
+<<<<<<< HEAD
         @JsonSubTypes.Type(value = ListenerSubscription.class, name = SUBSCRIPTION_LABEL),
+=======
+        @JsonSubTypes.Type(value = ListenerSubscription.class, name = WEBHOOK_LABEL),
+>>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
         @JsonSubTypes.Type(value = ListenerTcp.class, name = TCP_LABEL),
     }
 )
 public abstract class Listener implements Serializable {
 
     public static final String HTTP_LABEL = "http";
+<<<<<<< HEAD
     public static final String SUBSCRIPTION_LABEL = "subscription";
+=======
+    public static final String WEBHOOK_LABEL = "webhook";
+>>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
     public static final String TCP_LABEL = "tcp";
 
     @JsonProperty(required = true)
