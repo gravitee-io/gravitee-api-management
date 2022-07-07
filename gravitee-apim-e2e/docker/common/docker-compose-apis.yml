@@ -41,6 +41,7 @@ services:
       - gravitee_security_providers[0].users[1].email=admin@gravitee.io
       - gravitee_api_jupiterMode_enabled=${JUPITER_MODE_ENABLED:-false}
       - gravitee_api_jupiterMode_default=always
+      - gravitee_services_sync_cron=*/2 * * * * *
       - "JAVA_OPTS=-javaagent:/opt/jacoco/lib/org.jacoco.agent-0.8.8-runtime.jar=destfile=/opt/jacoco/jacoco.exec"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://admin:admin@localhost:8083/management/organizations/DEFAULT/user" ]
@@ -69,7 +70,7 @@ services:
     environment:
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
       - gravitee_api_jupiterMode_enabled=${JUPITER_MODE_ENABLED:-false}
-      - gravitee_services_sync_delay=1000
+      - gravitee_services_sync_delay=2000
       - "JAVA_OPTS=-javaagent:/opt/jacoco/lib/org.jacoco.agent-0.8.8-runtime.jar=destfile=/opt/jacoco/jacoco.exec"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://admin:adminadmin@localhost:18082/_node" ]
