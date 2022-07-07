@@ -24,7 +24,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.*;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -32,7 +36,15 @@ import io.gravitee.repository.management.model.Visibility;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +61,16 @@ import org.springframework.util.StringUtils;
 public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> implements ApiRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiRepository.class);
+    private static final JdbcHelper.ChildAdder<Api> CHILD_ADDER = (Api parent, ResultSet rs) -> {
+        Set<String> categories = parent.getCategories();
+        if (categories == null) {
+            categories = new HashSet<>();
+            parent.setCategories(categories);
+        }
+        if (rs.getString("category") != null) {
+            categories.add(rs.getString("category"));
+        }
+    };
     private final String API_CATEGORIES;
     private final String API_LABELS;
     private final String API_GROUPS;
@@ -70,7 +92,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("version", Types.NVARCHAR, String.class)
+            .addColumn("version_definition", Types.NVARCHAR, String.class)
             .addColumn("definition", Types.NVARCHAR, String.class)
+            .addColumn("type", Types.NVARCHAR, String.class)
             .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
@@ -82,17 +106,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .addColumn("background", Types.NVARCHAR, String.class)
             .build();
     }
-
-    private static final JdbcHelper.ChildAdder<Api> CHILD_ADDER = (Api parent, ResultSet rs) -> {
-        Set<String> categories = parent.getCategories();
-        if (categories == null) {
-            categories = new HashSet<>();
-            parent.setCategories(categories);
-        }
-        if (rs.getString("category") != null) {
-            categories.add(rs.getString("category"));
-        }
-    };
 
     private void addLabels(Api parent) {
         List<String> labels = getLabels(parent.getId());

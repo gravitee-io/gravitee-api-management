@@ -21,6 +21,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.*;
+import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;

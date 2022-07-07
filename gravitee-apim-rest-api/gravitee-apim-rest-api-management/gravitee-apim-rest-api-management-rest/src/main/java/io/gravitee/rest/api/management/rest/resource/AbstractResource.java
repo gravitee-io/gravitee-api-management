@@ -132,14 +132,18 @@ public abstract class AbstractResource {
     }
 
     protected boolean canManageApi(final ApiEntity api) {
-        return isAdmin() || isDirectMember(api) || isMemberThroughGroup(api);
+        return isAdmin() || isDirectMember(api.getId()) || isMemberThroughGroup(api.getGroups());
     }
 
-    private boolean isDirectMember(ApiEntity api) {
+    protected boolean canManageV4Api(final io.gravitee.rest.api.model.v4.api.ApiEntity api) {
+        return isAdmin() || isDirectMember(api.getId()) || isMemberThroughGroup(api.getGroups());
+    }
+
+    private boolean isDirectMember(String apiId) {
         return membershipService
             .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), API)
             .stream()
-            .filter(membership -> membership.getReferenceId().equals(api.getId()))
+            .filter(membership -> membership.getReferenceId().equals(apiId))
             .filter(membership -> membership.getRoleId() != null)
             .anyMatch(
                 membership -> {
@@ -149,8 +153,8 @@ public abstract class AbstractResource {
             );
     }
 
-    private boolean isMemberThroughGroup(ApiEntity api) {
-        if (CollectionUtils.isEmpty(api.getGroups())) {
+    private boolean isMemberThroughGroup(Set<String> apiGroups) {
+        if (CollectionUtils.isEmpty(apiGroups)) {
             return false;
         }
 
@@ -167,37 +171,37 @@ public abstract class AbstractResource {
             .map(MembershipEntity::getReferenceId)
             .collect(Collectors.toSet());
 
-        groups.retainAll(api.getGroups());
+        groups.retainAll(apiGroups);
 
         return !groups.isEmpty();
     }
 
-    protected void canReadApi(final ExecutionContext executionContext, final String api) {
+    protected void canReadApi(final ExecutionContext executionContext, final String apiId) {
         if (!isAdmin()) {
             // get memberships of the current user
             List<MembershipEntity> memberships = retrieveApiMembership().collect(Collectors.toList());
             Set<String> groups = memberships
                 .stream()
                 .filter(m -> GROUP.equals(m.getReferenceType()))
-                .map(m -> m.getReferenceId())
+                .map(MembershipEntity::getReferenceId)
                 .collect(Collectors.toSet());
             Set<String> directMembers = memberships
                 .stream()
                 .filter(m -> API.equals(m.getReferenceType()))
-                .map(m -> m.getReferenceId())
+                .map(MembershipEntity::getReferenceId)
                 .collect(Collectors.toSet());
 
             // if the current user is member of the API, continue
-            if (directMembers.contains(api)) {
+            if (directMembers.contains(apiId)) {
                 return;
             }
 
             // fetch group memberships
             final ApiQuery apiQuery = new ApiQuery();
             apiQuery.setGroups(new ArrayList<>(groups));
-            apiQuery.setIds(Collections.singletonList(api));
+            apiQuery.setIds(Collections.singletonList(apiId));
             final Collection<String> strings = apiService.searchIds(executionContext, apiQuery);
-            final boolean canReadAPI = strings.contains(api);
+            final boolean canReadAPI = strings.contains(apiId);
             if (!canReadAPI) {
                 throw new ForbiddenAccessException();
             }

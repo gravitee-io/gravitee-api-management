@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.*;
+import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import io.gravitee.repository.mock.AbstractRepositoryMock;
 import java.util.*;
 
@@ -52,8 +53,9 @@ public class FlowRepositoryMock extends AbstractRepositoryMock<FlowRepository> {
         FlowStep tag1PostStep2 = mock(FlowStep.class);
         FlowStep tag1PostStep3 = mock(FlowStep.class);
 
-        when(flow1.getPre()).thenReturn(Arrays.asList(tag1PreStep1, tag1PreStep2));
-        when(flow1.getPost()).thenReturn(Arrays.asList(tag1PostStep1, tag1PostStep2, tag1PostStep3));
+        when(flow1.getRequest()).thenReturn(Arrays.asList(tag1PreStep1, tag1PreStep2));
+        when(flow1.getResponse()).thenReturn(Arrays.asList(tag1PostStep1, tag1PostStep2, tag1PostStep3));
+
         when(flow1.getCondition()).thenReturn("my-condition");
         when(flow1.getCreatedAt()).thenReturn(new Date(1470157767000L));
         when(flow1.getId()).thenReturn("flow-tag1");
