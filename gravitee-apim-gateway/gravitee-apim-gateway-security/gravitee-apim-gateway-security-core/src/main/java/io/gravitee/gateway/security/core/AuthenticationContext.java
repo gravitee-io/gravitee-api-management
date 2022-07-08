@@ -50,5 +50,15 @@ public interface AuthenticationContext {
      */
     Object get(String name);
 
+    boolean contains(String apikeyContextAttribute);
+
     Map<String, Object> attributes();
+
+    String getApi();
+
+    void setSubscription(String subscription);
+
+    void setApplication(String application);
+
+    void setPlan(String plan);
 }

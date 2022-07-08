@@ -69,7 +69,12 @@ public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
         if (criteria.getClientId() == null) {
             return this.wrapped.search(criteria);
         } else {
-            String key = criteria.getApis().iterator().next() + '-' + criteria.getClientId();
+            String key = String.format(
+                "%s.%s.%s",
+                criteria.getApis().iterator().next(),
+                criteria.getClientId(),
+                criteria.getPlans().iterator().next()
+            );
             Subscription subscription = this.cache.get(key);
             return (subscription != null) ? Collections.singletonList(subscription) : null;
         }

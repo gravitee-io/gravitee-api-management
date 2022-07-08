@@ -153,6 +153,6 @@ public class OAuth2AuthenticationHandlerTest {
 
     @Test
     public void shouldReturnOrder() {
-        Assert.assertEquals(0, authenticationHandler.order());
+        Assert.assertEquals(100, authenticationHandler.order());
     }
 }

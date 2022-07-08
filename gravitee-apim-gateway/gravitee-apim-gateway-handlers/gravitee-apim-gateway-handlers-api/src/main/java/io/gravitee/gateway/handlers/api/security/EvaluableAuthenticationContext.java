@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.security.core;
+package io.gravitee.gateway.handlers.api.security;
 
-import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.security.core.AuthenticationContext;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@FunctionalInterface
-public interface AuthenticationHandlerSelector {
-    /**
-     * Get an {@link AuthenticationHandler} from the ExecutionContext.
-     *
-     * @param executionContext ExecutionContext.
-     * @return The authentication handler to apply to the incoming request.
-     */
-    AuthenticationHandler select(ExecutionContext executionContext);
+public class EvaluableAuthenticationContext {
+
+    private final AuthenticationContext authenticationContext;
+
+    EvaluableAuthenticationContext(AuthenticationContext authenticationContext) {
+        this.authenticationContext = authenticationContext;
+    }
+
+    public Map<String, Object> getAttributes() {
+        return authenticationContext.attributes();
+    }
 }
