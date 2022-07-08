@@ -1,7 +1,7 @@
 #!/bin/bash
 
 npx @openapitools/openapi-generator-cli@1.0.18-4.3.1 generate \
--i ../gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/openapi.yaml \
+-i ../gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml \
 -g typescript-angular \
 -o projects/portal-webclient-sdk/src/lib/ \
 -puseSingleRequestParameter=true \
