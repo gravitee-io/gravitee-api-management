@@ -163,4 +163,42 @@
 		</dependency>
 	</dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.openapitools.swagger</groupId>
+                <artifactId>swagger-maven-plugin</artifactId>
+                <version>${swagger-maven-plugin.version}</version>
+                <configuration>
+                    <resourcePackages>
+                        <resourcePackage>io.gravitee.rest.api.management.rest.resource</resourcePackage>
+                    </resourcePackages>
+                    <useResourcePackagesChildren>true</useResourcePackagesChildren>
+                    <outputDirectory>${basedir}/target/classes</outputDirectory>
+                    <outputFilename>console-openapi</outputFilename>
+                    <outputFormats>JSON,YAML</outputFormats>
+                    <swaggerConfig>
+                        <servers>
+                            <server>
+                                <url>http://localhost:8083/management</url>
+                            </server>
+                        </servers>
+                        <info>
+                            <title>Gravitee.io - Management API</title>
+                            <version>${project.version}</version>
+                        </info>
+                    </swaggerConfig>
+
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
