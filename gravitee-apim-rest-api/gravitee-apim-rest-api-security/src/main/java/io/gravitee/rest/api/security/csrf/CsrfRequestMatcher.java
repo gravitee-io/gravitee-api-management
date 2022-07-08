@@ -36,18 +36,17 @@ public class CsrfRequestMatcher implements RequestMatcher {
 
     @Override
     public boolean matches(HttpServletRequest request) {
+        return !allowedMethods.contains(request.getMethod()) && hasAuthenticationCookie(request) && hasRefererOrOrigin(request);
+    }
+
+    private boolean hasAuthenticationCookie(HttpServletRequest request) {
         return (
-            !allowedMethods.contains(request.getMethod()) &&
-            (
-                request.getHeader(HttpHeaders.REFERER) != null ||
-                request.getHeader(HttpHeaders.ORIGIN) != null ||
-                (
-                    request.getCookies() != null &&
-                    Arrays
-                        .stream(request.getCookies())
-                        .anyMatch(cookie -> TokenAuthenticationFilter.AUTH_COOKIE_NAME.equals(cookie.getName()))
-                )
-            )
+            request.getCookies() != null &&
+            Arrays.stream(request.getCookies()).anyMatch(cookie -> TokenAuthenticationFilter.AUTH_COOKIE_NAME.equals(cookie.getName()))
         );
+    }
+
+    private boolean hasRefererOrOrigin(HttpServletRequest request) {
+        return request.getHeader(HttpHeaders.REFERER) != null || request.getHeader(HttpHeaders.ORIGIN) != null;
     }
 }
