@@ -1296,6 +1296,7 @@ jobs:
                   - persist_to_workspace:
                       root: .
                       paths:
+                        - .git
                         - gravitee-apim-gateway
                         - gravitee-apim-rest-api
                         - rest-api-docker-context
@@ -1377,6 +1378,11 @@ jobs:
               "
               
               export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/E2E Coverage placeholder -->/,/E2E Coverage placeholder end -->/d')
+              
+              echo "
+                Editing PR description with body:
+                  $CLEAN_BODY$PR_BODY_COVERAGE_SECTION
+              "
               
               gh pr edit --body "$CLEAN_BODY$PR_BODY_COVERAGE_SECTION"
     e2e-cypress:
