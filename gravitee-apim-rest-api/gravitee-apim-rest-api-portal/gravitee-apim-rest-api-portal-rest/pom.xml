@@ -59,7 +59,7 @@
 						</goals>
 						<configuration>
 							<includes>
-								<include>${project.basedir}/src/main/resources/openapi.yaml</include>
+								<include>${project.basedir}/src/main/resources/portal-openapi.yaml</include>
 							</includes>
 							<replacements>
 								<replacement>
@@ -82,7 +82,7 @@
                           <goal>generate</goal>
                       </goals>
                       <configuration>
-                          <inputSpec>${project.basedir}/src/main/resources/openapi.yaml</inputSpec>
+                          <inputSpec>${project.basedir}/src/main/resources/portal-openapi.yaml</inputSpec>
                           <generatorName>java</generatorName>
                           <library>jersey2</library>
                           <modelPackage>${openapi.modelPackage}</modelPackage>

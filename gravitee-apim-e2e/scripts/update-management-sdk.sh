@@ -27,7 +27,7 @@
 # limitations under the License.
 
 npx @openapitools/openapi-generator-cli@1.0.18-4.3.1 generate \
-  -i ../gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/openapi.json \
+  -i ../gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.json \
   -g typescript-fetch \
   -o lib/management-webclient-sdk/src/lib/ \
   -puseSingleRequestParameter=true \

@@ -175,7 +175,7 @@
                     </resourcePackages>
                     <useResourcePackagesChildren>true</useResourcePackagesChildren>
                     <outputDirectory>${basedir}/target/classes</outputDirectory>
-                    <outputFilename>openapi</outputFilename>
+                    <outputFilename>console-openapi</outputFilename>
                     <outputFormats>JSON,YAML</outputFormats>
                     <swaggerConfig>
                         <servers>

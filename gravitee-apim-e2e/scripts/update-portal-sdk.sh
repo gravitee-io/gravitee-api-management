@@ -26,7 +26,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 npx @openapitools/openapi-generator-cli@1.0.18-4.3.1 generate \
-  -i ../gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/openapi.yaml \
+  -i ../gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml \
   -g typescript-fetch \
   -o lib/portal-webclient-sdk/src/lib/ \
   -puseSingleRequestParameter=true \
