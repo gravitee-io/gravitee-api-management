@@ -630,6 +630,10 @@ jobs:
             - artifactory-orb/install
             - artifactory-orb/configure
             - run:
+                name: Update Build version
+                command: |
+                  sed -i "s/-SNAPSHOT//" dist/build.json
+            - run:
                   name: Rename and zip dist folder
                   command: mv dist << parameters.apim-ui-project >>-${APIM_VERSION%-SNAPSHOT} && zip -r dist.zip << parameters.apim-ui-project >>-${APIM_VERSION%-SNAPSHOT}
                   working_directory: << parameters.apim-ui-project >>
@@ -669,6 +673,10 @@ jobs:
             - setup_remote_docker
             - webui-install:
                   apim-ui-project: << parameters.apim-ui-project >>
+            - run:
+                name: Update Build version
+                command: |
+                  sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${APIM_VERSION}\"/" << parameters.apim-ui-project >>/build.json
             - run:
                   name: Build
                   command: npm run build:prod
@@ -987,8 +995,13 @@ jobs:
                       export MVN_PRJ_VERSION_MINOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $2}')
                       export MVN_PRJ_VERSION_PATCH=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $3}')
 
-                      # Remove `-SNAPSHOT` from version                    
+                      # Remove `-SNAPSHOT` from source
+                      # Backend
                       sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
+                      
+                      # UI
+                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${APIM_VERSION%-SNAPSHOT}\"/" gravitee-apim-console-webui/build.json
+                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${APIM_VERSION%-SNAPSHOT}\"/" gravitee-apim-portal-webui/build.json
 
                       git add --update
                       git commit -m "${MVN_PRJ_VERSION}"
