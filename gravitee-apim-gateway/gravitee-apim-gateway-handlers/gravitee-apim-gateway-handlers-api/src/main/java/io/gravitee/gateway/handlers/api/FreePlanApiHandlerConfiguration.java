@@ -16,8 +16,8 @@
 package io.gravitee.gateway.handlers.api;
 
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.policy.security.FreePlanAuthenticationHandlerEnhancer;
-import io.gravitee.gateway.security.core.*;
+import io.gravitee.gateway.handlers.api.security.FreePlanAuthenticationHandlerEnhancer;
+import io.gravitee.gateway.security.core.AuthenticationHandlerEnhancer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

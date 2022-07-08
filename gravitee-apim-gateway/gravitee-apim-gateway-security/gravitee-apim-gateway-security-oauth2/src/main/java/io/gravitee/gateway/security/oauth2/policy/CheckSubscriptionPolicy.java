@@ -39,8 +39,6 @@ import java.util.List;
  */
 public class CheckSubscriptionPolicy implements Policy {
 
-    static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
-        ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
     static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
 
@@ -74,25 +72,20 @@ public class CheckSubscriptionPolicy implements Policy {
         String api = (String) executionContext.getAttribute(ExecutionContext.ATTR_API);
 
         try {
+            final String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
             List<Subscription> subscriptions = subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
                     .apis(Collections.singleton(api))
                     .clientId(clientId)
+                    .plans(Collections.singleton(plan))
                     .status(Subscription.Status.ACCEPTED)
                     .build()
             );
 
             if (subscriptions != null && !subscriptions.isEmpty()) {
-                final String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
-                final boolean selectionRuleBasedPlan = Boolean.TRUE.equals(
-                    executionContext.getAttribute(CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)
-                );
-                final Subscription subscription = !selectionRuleBasedPlan
-                    ? subscriptions.get(0)
-                    : subscriptions.stream().filter(sub -> sub.getPlan().equals(plan)).findAny().orElse(null);
+                final Subscription subscription = subscriptions.get(0);
                 if (
                     subscription != null &&
-                    subscription.getClientId().equals(clientId) &&
                     (
                         subscription.getEndingAt() == null ||
                         subscription.getEndingAt().after(new Date(executionContext.request().timestamp()))

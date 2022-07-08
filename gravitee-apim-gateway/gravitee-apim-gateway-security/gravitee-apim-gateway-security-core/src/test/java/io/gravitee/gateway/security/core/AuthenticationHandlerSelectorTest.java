@@ -21,32 +21,32 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.ExecutionContext;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RunWith(MockitoJUnitRunner.class)
 public class AuthenticationHandlerSelectorTest {
 
     @Mock
     private AuthenticationHandlerManager authenticationHandlerManager;
 
     @Mock
-    private Request request;
+    private ExecutionContext executionContext;
 
     private DefaultAuthenticationHandlerSelector authenticationHandlerSelector;
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-
         authenticationHandlerSelector = new DefaultAuthenticationHandlerSelector();
         authenticationHandlerSelector.setProviderManager(authenticationHandlerManager);
     }
@@ -55,45 +55,33 @@ public class AuthenticationHandlerSelectorTest {
     public void shouldNotResolveSecurityPolicy() {
         when(authenticationHandlerManager.getAuthenticationHandlers()).thenReturn(Collections.emptyList());
 
-        authenticationHandlerManager.afterPropertiesSet();
-        AuthenticationHandler securityProvider = authenticationHandlerSelector.select(request);
+        AuthenticationHandler securityProvider = authenticationHandlerSelector.select(executionContext);
         assertNull(securityProvider);
     }
 
     @Test
     public void shouldResolveSecurityPolicy1() {
         AuthenticationHandler securityProvider1 = mock(AuthenticationHandler.class);
-        when(securityProvider1.name()).thenReturn("keyless");
         when(securityProvider1.canHandle(any(AuthenticationContext.class))).thenReturn(true);
-        when(securityProvider1.order()).thenReturn(1000);
 
         AuthenticationHandler securityProvider2 = mock(AuthenticationHandler.class);
-        when(securityProvider2.name()).thenReturn("apikey");
-        when(securityProvider2.order()).thenReturn(500);
 
         when(authenticationHandlerManager.getAuthenticationHandlers()).thenReturn(Arrays.asList(securityProvider1, securityProvider2));
-        authenticationHandlerManager.afterPropertiesSet();
 
-        AuthenticationHandler securityProvider = authenticationHandlerSelector.select(request);
+        AuthenticationHandler securityProvider = authenticationHandlerSelector.select(executionContext);
         assertEquals(securityProvider1, securityProvider);
     }
 
     @Test
     public void shouldResolveSecurityPolicy2() {
         AuthenticationHandler securityProvider1 = mock(AuthenticationHandler.class);
-        when(securityProvider1.name()).thenReturn("keyless");
-        when(securityProvider1.order()).thenReturn(1000);
 
         AuthenticationHandler securityProvider2 = mock(AuthenticationHandler.class);
-        when(securityProvider2.name()).thenReturn("apikey");
         when(securityProvider2.canHandle(any(AuthenticationContext.class))).thenReturn(true);
-        when(securityProvider2.order()).thenReturn(500);
 
         when(authenticationHandlerManager.getAuthenticationHandlers()).thenReturn(Arrays.asList(securityProvider1, securityProvider2));
 
-        authenticationHandlerManager.afterPropertiesSet();
-
-        AuthenticationHandler securityProvider = authenticationHandlerSelector.select(request);
+        AuthenticationHandler securityProvider = authenticationHandlerSelector.select(executionContext);
         assertEquals(securityProvider2, securityProvider);
     }
 }

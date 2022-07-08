@@ -15,12 +15,15 @@
  */
 package io.gravitee.gateway.standalone.container;
 
+import static org.mockito.Mockito.mock;
+
 import io.gravitee.gateway.standalone.GatewayContainer;
 import io.gravitee.gateway.standalone.reporter.FakeReporter;
 import io.gravitee.gateway.standalone.tracer.NoOpTracer;
 import io.gravitee.node.container.NodeFactory;
 import io.gravitee.node.reporter.ReporterManager;
 import io.gravitee.reporter.api.Reporter;
+import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.tracing.api.Tracer;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
@@ -58,6 +61,11 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public Reporter fakeReporter() {
             return new FakeReporter();
+        }
+
+        @Bean
+        public SubscriptionRepository subscriptionRepository() {
+            return mock(SubscriptionRepository.class);
         }
     }
 }
