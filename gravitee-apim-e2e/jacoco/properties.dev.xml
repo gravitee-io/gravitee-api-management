@@ -15,11 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <project name="properties-dev" basedir=".">
-    <property name="lib.path" value="target/distribution/lib" />
+    <property name="distribution.path" value="target/distribution" />
 
     <property name="management.distribution.dir" location="${management.api.dir}/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution" />
-    <property name="management.classes.dir" location="${management.distribution.dir}/${lib.path}" />
+    <property name="management.classes.dir" location="${management.distribution.dir}/${distribution.path}/lib" />
 
     <property name="gateway.distribution.dir" location="${gateway.dir}/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution" />
-    <property name="gateway.classes.dir" location="${gateway.distribution.dir}/${lib.path}" />
+    <property name="gateway.classes.dir" location="${gateway.distribution.dir}/${distribution.path}/lib" />
+
 </project>

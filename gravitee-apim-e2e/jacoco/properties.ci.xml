@@ -16,5 +16,7 @@ limitations under the License.
 -->
 <project name="properties-dev" >
     <property name="management.classes.dir" location="${project.dir}/rest-api-docker-context/distribution/lib" />
+    <property name="management.plugins.dir" location="${project.dir}/rest-api-docker-context/distribution/plugins" />
     <property name="gateway.classes.dir" location="${project.dir}/gateway-docker-context/distribution/lib" />
+    <property name="gateway.plugins.dir" location="${project.dir}/gateway-docker-context/distribution/plugins" />
 </project>

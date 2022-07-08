@@ -36,6 +36,8 @@ limitations under the License.
     <property name="gateway.policy.src.dir" location="${gateway.dir}/gravitee-apim-gateway-policy/src/main/java" />
     <property name="gateway.http.src.dir" location="${gateway.dir}/gravitee-apim-gateway-http/src/main/java" />
 
+    <property name="result.temp.dir" location="./temp" />
+    <property name="result.class.dir" location="./classes" />
     <property name="result.report.dir" location="./reports" />
     <property name="result.exec.file" location="./jacoco.exec" />
 
@@ -44,15 +46,53 @@ limitations under the License.
 
     <import file="${custom.properties.file}" />
 
+    <property name="management.plugins.dir" location="${management.classes.dir}/../plugins" />
+    <property name="gateway.plugins.dir" location="${gateway.classes.dir}/../plugins" />
+
+
     <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
         <classpath path="lib/jacocoant.jar" />
     </taskdef>
 
     <target name="clean">
         <delete dir="${result.report.dir}" />
+        <delete dir="${result.temp.dir}" />
     </target>
 
-    <target name="report" depends="clean">
+    <target name="extract-plugins" depends="clean">
+        <unzip dest="${result.temp.dir}/">
+            <patternset>
+                <include name="**/*.jar"/>
+            </patternset>
+            <fileset dir="${management.plugins.dir}">
+                <include name="*.zip"/>
+            </fileset>
+            <fileset dir="${gateway.plugins.dir}">
+                <include name="*.zip"/>
+            </fileset>
+        </unzip>
+
+        <delete dir="${result.temp.dir}/lib" />
+
+        <copy todir="${result.temp.dir}">
+            <fileset file="${management.classes.dir}/*.jar"/>
+            <fileset file="${gateway.classes.dir}/*.jar"/>
+        </copy>
+
+        <unzip dest="${result.class.dir}">
+            <patternset>
+                <include name="io/gravitee/**/*.class"/>
+            </patternset>
+            <fileset dir="${result.temp.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </unzip>
+
+        <delete dir="${result.temp.dir}" />
+
+    </target>
+
+    <target name="report" depends="extract-plugins">
         <jacoco:report>
             <executiondata>
                 <file file="${result.exec.file}" />
@@ -60,8 +100,7 @@ limitations under the License.
 
             <structure name="APIM E2E Coverage Reports">
                 <classfiles>
-                    <fileset file="${management.classes.dir}/*.jar" />
-                    <fileset file="${gateway.classes.dir}/*.jar" />
+                    <fileset dir="${result.class.dir}" />
                 </classfiles>
 
                 <sourcefiles>
