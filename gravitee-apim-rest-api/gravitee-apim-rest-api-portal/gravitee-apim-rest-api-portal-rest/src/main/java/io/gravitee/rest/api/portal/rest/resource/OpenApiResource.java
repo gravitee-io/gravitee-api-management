@@ -36,6 +36,6 @@ public class OpenApiResource extends AbstractResource {
     @GET
     @Produces({ MediaType.TEXT_PLAIN })
     public Response getOpenApiDefinition() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi.yaml")).build();
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("portal-openapi.yaml")).build();
     }
 }
