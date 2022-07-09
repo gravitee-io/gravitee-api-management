@@ -36,7 +36,7 @@ const apisResource = new APIsApi(forManagementAsApiUser());
 
 const timeBetweenRetries = 3000;
 
-describe('Add dynamic properties and use them', () => {
+describe.skip('Add dynamic properties and use them', () => {
   let createdApi: ApiEntity;
 
   beforeAll(async () => {
