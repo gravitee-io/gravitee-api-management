@@ -50,7 +50,7 @@ let createdSubscription: Subscription;
 
 const timeBetweenRetries = 5000;
 
-describe('Gateway - Plans deployment', () => {
+describe.skip('Gateway - Plans deployment', () => {
   beforeAll(async () => {
     // create an API with a published API key plan
     createdApi = await apisResource.importApiDefinition({

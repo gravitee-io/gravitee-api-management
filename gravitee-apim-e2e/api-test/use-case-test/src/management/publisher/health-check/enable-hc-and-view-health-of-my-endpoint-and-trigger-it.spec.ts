@@ -36,7 +36,7 @@ const envId = 'DEFAULT';
 
 const apisResource = new APIsApi(forManagementAsApiUser());
 
-describe('Enable Health Check, view health of my endpoint and use it', () => {
+describe.skip('Enable Health Check, view health of my endpoint and use it', () => {
   let createdApi: ApiEntity;
 
   beforeAll(async () => {
