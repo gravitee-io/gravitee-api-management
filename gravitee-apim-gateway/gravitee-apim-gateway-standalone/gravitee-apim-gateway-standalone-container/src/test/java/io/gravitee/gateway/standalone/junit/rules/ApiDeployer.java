@@ -17,9 +17,11 @@ package io.gravitee.gateway.standalone.junit.rules;
 
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.stmt.ApiDeployerStatement;
+import java.util.function.Supplier;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,6 +30,7 @@ import org.junit.runners.model.Statement;
 public class ApiDeployer implements TestRule {
 
     private final Object target;
+    private Supplier<ApplicationContext> gatewayApplicationContext = null;
 
     public ApiDeployer(Object target) {
         this.target = target;
@@ -39,11 +42,16 @@ public class ApiDeployer implements TestRule {
 
         if (hasAnnotation(description)) {
             result = new ApiDeployerStatement(base, target);
+            gatewayApplicationContext = ((ApiDeployerStatement) result).getApplicationContext();
         } else {
             result = base;
         }
 
         return result;
+    }
+
+    public Supplier<ApplicationContext> getGatewayApplicationContext() {
+        return gatewayApplicationContext;
     }
 
     private boolean hasAnnotation(Description description) {

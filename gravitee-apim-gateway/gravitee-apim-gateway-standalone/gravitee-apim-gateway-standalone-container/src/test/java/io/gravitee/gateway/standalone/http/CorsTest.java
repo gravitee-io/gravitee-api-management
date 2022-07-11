@@ -85,7 +85,12 @@ public class CorsTest extends AbstractWiremockGatewayTest {
             .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        assertEquals("*", response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).getValue());
+        // CORS behavior differs from V3 to Jupiter. Jupiter fixes default '*' return to use instead the Origin header from the request.
+        if (isJupiterModeEnabled()) {
+            assertEquals("http://localhost", response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).getValue());
+        } else {
+            assertEquals("*", response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).getValue());
+        }
         assertEquals("x-forwarded-host", response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS).getValue());
 
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
