@@ -456,6 +456,14 @@
                                 <gravitee.api.jupiterMode.enabled>true</gravitee.api.jupiterMode.enabled>
                                 <gravitee.api.jupiterMode.default>always</gravitee.api.jupiterMode.default>
                             </environmentVariables>
+                            <excludes>
+                                <!-- TODO: https://github.com/gravitee-io/issues/issues/8083 -->
+                                <exclude>**/Grpc*Test.java</exclude>
+                                <!-- TODO: https://github.com/gravitee-io/issues/issues/8075 -->
+                                <exclude>**/ClientConnectionResponseTemplateTest.java</exclude>
+                                <!-- TODO: https://github.com/gravitee-io/issues/issues/8086 -->
+                                <exclude>**/FailoverTest.java</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
