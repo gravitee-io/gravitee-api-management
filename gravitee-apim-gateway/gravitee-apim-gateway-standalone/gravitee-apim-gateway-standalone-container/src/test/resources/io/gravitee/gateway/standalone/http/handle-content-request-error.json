@@ -16,17 +16,7 @@
   "flows": [
     {
       "name": "flow-1",
-      "methods": [
-        "GET",
-        "POST",
-        "PUT",
-        "DELETE",
-        "HEAD",
-        "PATCH",
-        "OPTIONS",
-        "TRACE",
-        "CONNECT"
-      ],
+      "methods": [ ],
       "enabled": true,
       "path-operator": {
         "path": "/",
@@ -41,15 +31,7 @@
           "configuration": { }
         }
       ],
-      "post": [
-        {
-          "name": "content-response-error",
-          "description": "",
-          "enabled": true,
-          "policy": "content-response-error",
-          "configuration": { }
-        }
-      ]
+      "post": []
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "id": "api-echo",
   "name": "api-echo",
-
+  "gravitee": "2.0.0",
   "proxy": {
     "context_path": "/api",
     "endpoints": [
@@ -22,9 +22,17 @@
     "strip_context_path": false,
     "dumpRequest": true
   },
-
-  "paths": {
-    "/*": [
-    ]
-  }
+  "flows": [
+    {
+      "name": "flow-1",
+      "methods": [],
+      "enabled": true,
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [],
+      "post": []
+    }
+  ]
 }

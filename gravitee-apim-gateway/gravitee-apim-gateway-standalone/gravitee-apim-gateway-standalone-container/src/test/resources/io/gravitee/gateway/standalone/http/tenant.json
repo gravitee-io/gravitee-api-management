@@ -1,7 +1,7 @@
 {
   "id": "api-test",
   "name": "api-test",
-
+  "gravitee": "2.0.0",
   "proxy": {
     "context_path": "/test",
     "endpoints": [
@@ -19,9 +19,17 @@
     "dumpRequest": true,
     "multiTenant": true
   },
-
-  "paths": {
-    "/*": [
-    ]
-  }
+  "flows": [
+    {
+      "name": "flow-1",
+      "methods": [],
+      "enabled": true,
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [],
+      "post": []
+    }
+  ]
 }

@@ -1,7 +1,7 @@
 {
   "id": "api-test",
   "name": "api-test",
-
+  "gravitee": "2.0.0",
   "proxy": {
     "context_path": "/api",
     "endpoints": [
@@ -13,37 +13,100 @@
     "strip_context_path": false,
     "dumpRequest": true
   },
-
-  "paths": {
-    "/": [
-      {
-        "methods": [
-          "GET",
-          "POST",
-          "PUT",
-          "DELETE",
-          "HEAD",
-          "PATCH",
-          "OPTIONS",
-          "TRACE",
-          "CONNECT"
-        ],
-        "stream-fail": {}
+  "flows": [
+    {
+      "name": "flow-1",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "HEAD",
+        "PATCH",
+        "OPTIONS",
+        "TRACE",
+        "CONNECT"
+      ],
+      "enabled": true,
+      "path-operator": {
+        "path": "/two-flows",
+        "operator": "STARTS_WITH"
       },
-      {
-        "methods": [
-          "GET",
-          "POST",
-          "PUT",
-          "DELETE",
-          "HEAD",
-          "PATCH",
-          "OPTIONS",
-          "TRACE",
-          "CONNECT"
-        ],
-        "stream-fail-2": {}
-      }
-    ]
-  }
+      "pre": [
+        {
+          "name": "stream-fail",
+          "description": "",
+          "enabled": true,
+          "policy": "stream-fail",
+          "configuration": { }
+        }
+      ],
+      "post": []
+    },
+    {
+      "name": "flow-2",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "HEAD",
+        "PATCH",
+        "OPTIONS",
+        "TRACE",
+        "CONNECT"
+      ],
+      "enabled": true,
+      "path-operator": {
+        "path": "/two-flows",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [
+        {
+          "name": "stream-fail-2",
+          "description": "",
+          "enabled": true,
+          "policy": "stream-fail-2",
+          "configuration": { }
+        }
+      ],
+      "post": []
+    },
+    {
+      "name": "flow-multipolicies",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "HEAD",
+        "PATCH",
+        "OPTIONS",
+        "TRACE",
+        "CONNECT"
+      ],
+      "enabled": true,
+      "path-operator": {
+        "path": "/one-flow-two-policies",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [
+        {
+          "name": "stream-fail",
+          "description": "",
+          "enabled": true,
+          "policy": "stream-fail",
+          "configuration": { }
+        },
+        {
+          "name": "stream-fail-2",
+          "description": "",
+          "enabled": true,
+          "policy": "stream-fail-2",
+          "configuration": { }
+        }
+      ],
+      "post": []
+    }
+  ]
 }

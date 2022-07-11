@@ -33,7 +33,7 @@ import org.junit.Test;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiDescriptor(value = "/io/gravitee/gateway/standalone/http/handle-content-error.json")
+@ApiDescriptor(value = "/io/gravitee/gateway/standalone/http/handle-content-response-error.json")
 public class ResponseInvalidContentTest extends AbstractWiremockGatewayTest {
 
     @Test

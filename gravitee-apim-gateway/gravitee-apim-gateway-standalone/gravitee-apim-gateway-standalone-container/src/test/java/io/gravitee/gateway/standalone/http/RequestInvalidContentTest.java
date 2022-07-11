@@ -34,7 +34,7 @@ import org.junit.Test;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiDescriptor(value = "/io/gravitee/gateway/standalone/http/handle-content-error.json")
+@ApiDescriptor(value = "/io/gravitee/gateway/standalone/http/handle-content-request-error.json")
 public class RequestInvalidContentTest extends AbstractWiremockGatewayTest {
 
     @Test
@@ -56,7 +56,7 @@ public class RequestInvalidContentTest extends AbstractWiremockGatewayTest {
     public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.registerPolicy(policyPluginManager);
 
-        PolicyPlugin errorRequestStreamPolicy = PolicyBuilder.build("content-response-error", ValidateRequestPolicy.class);
+        PolicyPlugin errorRequestStreamPolicy = PolicyBuilder.build("content-request-error", ValidateRequestPolicy.class);
         policyPluginManager.register(errorRequestStreamPolicy);
     }
 }

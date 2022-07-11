@@ -1,7 +1,7 @@
 {
   "id": "api-streaming-greeter",
   "name": "streaming-greeter",
-
+  "gravitee": "2.0.0",
   "proxy": {
     "context_path": "/an_invalid_path",
     "endpoints": [
@@ -13,9 +13,17 @@
     ],
     "strip_context_path": false
   },
-
-  "paths": {
-    "/*": [
-    ]
-  }
+  "flows": [
+    {
+      "name": "flow-1",
+      "methods": [],
+      "enabled": true,
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [],
+      "post": []
+    }
+  ]
 }

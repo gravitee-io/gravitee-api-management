@@ -1,7 +1,7 @@
 {
   "id": "api-test",
   "name": "api-test",
-
+  "gravitee": "2.0.0",
   "proxy": {
     "context_path": "/api",
     "endpoints": [
@@ -13,23 +13,35 @@
     "strip_context_path": false,
     "dumpRequest": true
   },
-
-  "paths": {
-    "/": [
-      {
-        "methods": [
-          "GET",
-          "POST",
-          "PUT",
-          "DELETE",
-          "HEAD",
-          "PATCH",
-          "OPTIONS",
-          "TRACE",
-          "CONNECT"
-        ],
-        "override-request-content": {}
-      }
-    ]
-  }
+  "flows": [
+    {
+      "name": "flow-1",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "HEAD",
+        "PATCH",
+        "OPTIONS",
+        "TRACE",
+        "CONNECT"
+      ],
+      "enabled": true,
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [
+        {
+          "name": "override-request-content",
+          "description": "",
+          "enabled": true,
+          "policy": "override-request-content",
+          "configuration": { }
+        }
+      ],
+      "post": []
+    }
+  ]
 }

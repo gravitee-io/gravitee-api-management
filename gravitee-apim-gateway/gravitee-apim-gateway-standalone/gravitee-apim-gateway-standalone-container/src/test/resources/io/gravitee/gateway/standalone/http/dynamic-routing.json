@@ -1,7 +1,7 @@
 {
   "id": "unreachable-api",
   "name": "My unreachable API",
-
+  "gravitee": "2.0.0",
   "proxy": {
     "context_path": "/test",
     "endpoints": [
@@ -13,23 +13,35 @@
     "strip_context_path": false,
     "dumpRequest": true
   },
-
-  "paths": {
-    "/": [
-      {
-        "methods": [
-          "GET",
-          "POST",
-          "PUT",
-          "DELETE",
-          "HEAD",
-          "PATCH",
-          "OPTIONS",
-          "TRACE",
-          "CONNECT"
-        ],
-        "dynamic-routing": {}
-      }
-    ]
-  }
+  "flows": [
+    {
+      "name": "flow-1",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "HEAD",
+        "PATCH",
+        "OPTIONS",
+        "TRACE",
+        "CONNECT"
+      ],
+      "enabled": true,
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [
+        {
+          "name": "dynamic-routing",
+          "description": "",
+          "enabled": true,
+          "policy": "dynamic-routing",
+          "configuration": { }
+        }
+      ],
+      "post": []
+    }
+  ]
 }
