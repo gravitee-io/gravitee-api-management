@@ -40,6 +40,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
+import junit.framework.AssertionFailedError;
 import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,6 +134,11 @@ public class ApiDeployerStatement extends Statement {
 
         try {
             final io.gravitee.gateway.handlers.api.definition.Api apiToRegister = new io.gravitee.gateway.handlers.api.definition.Api(api);
+
+            if (DefinitionVersion.V1.equals(apiToRegister.getDefinitionVersion())) {
+                throw new RuntimeException("API Definition version should be >= 2.0.0");
+            }
+
             final boolean jupiterEnabled = environment.getProperty("api.jupiterMode.enabled", Boolean.class, false);
 
             if (jupiterEnabled) {
@@ -145,17 +151,6 @@ public class ApiDeployerStatement extends Statement {
                     } else if (jupiterDefault.equalsIgnoreCase("never")) {
                         // Switch back the execution mode to V3 as required by the environment variable.
                         apiToRegister.setExecutionMode(ExecutionMode.V3);
-                    }
-
-                    if (
-                        apiToRegister.getExecutionMode() == ExecutionMode.JUPITER &&
-                        apiToRegister.getDefinitionVersion() == DefinitionVersion.V1
-                    ) {
-                        // Jupiter does not support V1 api definition, switch to V3 execution mode.
-                        apiToRegister.setExecutionMode(ExecutionMode.V3);
-                        logger.warn(
-                            "JUPITER EXECUTION MODE IS SET ON AN API DEFINITION V1. V1 IS NOT SUPPORTED BY JUPITER, SWITCH EXECUTION MODE TO V3"
-                        );
                     }
                 }
             }
