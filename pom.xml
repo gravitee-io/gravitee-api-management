@@ -869,6 +869,7 @@
                         <exclude>src/main/packaging/**</exclude>
                         <exclude>src/test/resources/**</exclude>
                         <exclude>src/main/resources/**</exclude>
+                        <exclude>src/main/resources-filtered/**</exclude>
                         <exclude>src/main/webapp/**</exclude>
                         <exclude>assets/**</exclude>
                         <exclude>**/dist/**</exclude>
