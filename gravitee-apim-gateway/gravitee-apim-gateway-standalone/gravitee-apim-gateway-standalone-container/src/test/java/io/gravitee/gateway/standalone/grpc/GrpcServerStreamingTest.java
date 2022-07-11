@@ -117,7 +117,7 @@ public class GrpcServerStreamingTest extends AbstractGatewayTest {
 
                             @Override
                             public void onError(Throwable throwable) {
-                                Assert.fail();
+                                Assert.fail(throwable.getMessage());
                             }
 
                             @Override

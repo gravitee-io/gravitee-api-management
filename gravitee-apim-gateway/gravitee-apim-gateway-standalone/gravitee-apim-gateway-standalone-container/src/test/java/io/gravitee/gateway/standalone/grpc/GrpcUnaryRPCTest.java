@@ -92,7 +92,7 @@ public class GrpcUnaryRPCTest extends AbstractGatewayTest {
 
                             @Override
                             public void onError(Throwable throwable) {
-                                Assert.fail();
+                                Assert.fail(throwable.getMessage());
                             }
 
                             @Override
