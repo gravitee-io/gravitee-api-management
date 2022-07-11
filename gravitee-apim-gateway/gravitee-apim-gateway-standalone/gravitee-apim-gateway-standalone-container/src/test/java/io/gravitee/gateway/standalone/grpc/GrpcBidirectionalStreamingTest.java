@@ -126,7 +126,9 @@ public class GrpcBidirectionalStreamingTest extends AbstractGatewayTest {
                             }
 
                             @Override
-                            public void onError(Throwable throwable) {}
+                            public void onError(Throwable throwable) {
+                                Assert.fail(throwable.getMessage());
+                            }
 
                             @Override
                             public void onCompleted() {
