@@ -1,14 +1,22 @@
 {
   "id": "api-hello-world",
   "name": "hello-world",
-
+  "gravitee": "2.0.0",
   "proxy": {
     "context_path": "/helloworld.Greeter",
     "strip_context_path": false
   },
-
-  "paths": {
-    "/*": [
-    ]
-  }
+  "flows": [
+    {
+      "name": "flow-1",
+      "methods": [],
+      "enabled": true,
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [],
+      "post": []
+    }
+  ]
 }

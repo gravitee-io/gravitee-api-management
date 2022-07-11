@@ -16,30 +16,14 @@
   "flows": [
     {
       "name": "flow-1",
-      "methods": [
-        "GET",
-        "POST",
-        "PUT",
-        "DELETE",
-        "HEAD",
-        "PATCH",
-        "OPTIONS",
-        "TRACE",
-        "CONNECT"
-      ],
+      "methods": [ ],
       "enabled": true,
       "path-operator": {
         "path": "/",
         "operator": "STARTS_WITH"
       },
       "pre": [
-        {
-          "name": "content-request-error",
-          "description": "",
-          "enabled": true,
-          "policy": "content-request-error",
-          "configuration": { }
-        }
+
       ],
       "post": [
         {
