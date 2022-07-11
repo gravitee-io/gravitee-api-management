@@ -179,13 +179,13 @@ const restApiDependenciesExclusion = [
   'io.gravitee.apim.ui',
   'io.gravitee.apim.gateway.standalone.distribution',
   'io.gravitee.apim.rest.api.standalone.distribution',
-  'io.gravitee.apim.repository.gateway.bridge.http',
   'io.gravitee.reporter',
   'io.gravitee.tracer',
   // ArtifactIds to exclude
   'gravitee-gateway-services-ratelimit',
   'gravitee-apim-repository-hazelcast',
   'gravitee-apim-repository-redis',
+  'gravitee-apim-repository-gateway-bridge-http-client'
 ];
 await spinner('Add plugins to Rest API...', () =>
   Promise.all(

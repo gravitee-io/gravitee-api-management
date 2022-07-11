@@ -458,8 +458,7 @@ def prepare_mgmt_bundle(mgmt):
     copy_files_into(fetchers_path, bundle_path + "plugins")
     copy_files_into(repositories_path, bundle_path + "plugins",
                     [".*gravitee-repository-ehcache.*", ".*gravitee-apim-repository-gateway-bridge-http-client.*",
-                     ".*gravitee-apim-repository-gateway-bridge-http-server.*", ".*gravitee-apim-repository-hazelcast.*",
-                     ".*gravitee-apim-repository-redis.*"])
+                     ".*gravitee-apim-repository-hazelcast.*", ".*gravitee-apim-repository-redis.*"])
     copy_files_into(services_path, bundle_path + "plugins", [".*gravitee-gateway-services-ratelimit.*"])
     copy_files_into(connectors_path, bundle_path + "plugins", [".*gravitee-connector-kafka.*"])
     copy_files_into(notifiers_path, bundle_path + "plugins")
