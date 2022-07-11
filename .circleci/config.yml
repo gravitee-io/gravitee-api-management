@@ -422,7 +422,7 @@ jobs:
     test:
         docker:
             - image: cimg/openjdk:11.0
-        resource_class: medium
+        resource_class: medium+
         steps:
             - checkout
             - attach_workspace:
