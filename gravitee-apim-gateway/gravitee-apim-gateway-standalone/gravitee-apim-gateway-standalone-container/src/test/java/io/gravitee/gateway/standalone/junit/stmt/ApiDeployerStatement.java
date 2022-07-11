@@ -40,6 +40,8 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import junit.framework.AssertionFailedError;
 import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
@@ -61,10 +63,15 @@ public class ApiDeployerStatement extends Statement {
 
     private final Statement base;
     private final Object target;
+    private ApplicationContext applicationContext;
 
     public ApiDeployerStatement(Statement base, Object target) {
         this.base = base;
         this.target = target;
+    }
+
+    public Supplier<ApplicationContext> getApplicationContext() {
+        return () -> applicationContext;
     }
 
     @Override
@@ -76,7 +83,7 @@ public class ApiDeployerStatement extends Statement {
         System.setProperty("gravitee.conf", graviteeHome + File.separator + "config" + File.separator + "gravitee.yml");
 
         GatewayTestContainer container = new GatewayTestContainer();
-        final ApplicationContext applicationContext = container.applicationContext();
+        applicationContext = container.applicationContext();
         final Environment environment = applicationContext.getBean(Environment.class);
 
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (

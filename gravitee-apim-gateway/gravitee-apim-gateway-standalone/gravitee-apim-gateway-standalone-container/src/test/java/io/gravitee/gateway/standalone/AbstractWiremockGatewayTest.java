@@ -35,6 +35,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,6 +46,8 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
     protected Executor executor;
     protected final WireMockRule wireMockRule = getWiremockRule();
 
+    private ApiDeployer apiDeployer = new ApiDeployer(this);
+
     @Before
     public void initExecutor() throws Exception {
         // Create a dedicated HttpClient for each test with no pooling to avoid side effects.
@@ -54,7 +57,7 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
     }
 
     @Rule
-    public final TestRule chain = RuleChain.outerRule(wireMockRule).around(new ApiDeployer(this));
+    public final TestRule chain = RuleChain.outerRule(wireMockRule).around(apiDeployer);
 
     protected WireMockRule getWiremockRule() {
         return new WireMockRule(wireMockConfig().dynamicPort().extensions(new ResponseTemplateTransformer(true)));
@@ -93,5 +96,13 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
 
     protected Response execute(Request request) throws Exception {
         return executor.execute(request);
+    }
+
+    protected boolean isJupiterModeEnabled() {
+        final Environment env = apiDeployer.getGatewayApplicationContext().get().getBean(Environment.class);
+        return (
+            Boolean.TRUE.equals(env.getProperty("api.jupiterMode.enabled", Boolean.class)) &&
+            "always".equalsIgnoreCase(env.getProperty("api.jupiterMode.default", String.class))
+        );
     }
 }
