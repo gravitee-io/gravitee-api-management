@@ -14,6 +14,9 @@
     "security" : "API_KEY",
     "securityDefinition" : "{\"propagateApiKey\":false}",
     "paths" : {},
+    "validation": "MANUAL",
+    "description": "Plan description",
+    "type": "API",
     "flows" : [ {
       "name" : "",
       "path-operator" : {

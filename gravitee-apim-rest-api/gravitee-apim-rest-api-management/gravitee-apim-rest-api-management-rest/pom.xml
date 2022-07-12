@@ -26,7 +26,7 @@
 	<parent>
         <groupId>io.gravitee.apim.rest.api.management</groupId>
         <artifactId>gravitee-apim-rest-api-management</artifactId>
-		<version>3.19.0-SNAPSHOT</version>
+		<version>${revision}${sha1}${changelist}</version>
     </parent>
 
 	<artifactId>gravitee-apim-rest-api-management-rest</artifactId>
@@ -175,7 +175,7 @@
                     </resourcePackages>
                     <useResourcePackagesChildren>true</useResourcePackagesChildren>
                     <outputDirectory>${basedir}/target/classes</outputDirectory>
-                    <outputFilename>openapi</outputFilename>
+                    <outputFilename>console-openapi</outputFilename>
                     <outputFormats>JSON,YAML</outputFormats>
                     <swaggerConfig>
                         <servers>

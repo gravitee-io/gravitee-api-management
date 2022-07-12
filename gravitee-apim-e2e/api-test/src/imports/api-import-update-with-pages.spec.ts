@@ -54,7 +54,7 @@ describe('Update API from import with pages', () => {
       });
       apiUpdate.pages = [pageUpdate];
 
-      let updatedApi = await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
+      let updatedApi = await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
       expect(updatedApi.id).toBe(expectedApiId);
     });
 
@@ -93,7 +93,7 @@ describe('Update API from import with pages', () => {
     });
 
     test('should update the API, using previous export', async () => {
-      await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
+      await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
     });
 
     test('should not have created additional API pages', async () => {
@@ -128,7 +128,7 @@ describe('Update API from import with pages', () => {
       const fakePage = PagesFaker.page({ name: pageName });
       expect(fakePage.id).toBeUndefined();
       apiUpdate.pages = [PagesFaker.page(fakePage)];
-      await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
+      await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
     });
 
     test('should have created the page', async () => {
@@ -162,7 +162,7 @@ describe('Update API from import with pages', () => {
 
     test('should update the API, omitting some pages', async () => {
       apiUpdate.pages = [];
-      await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
+      await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
     });
 
     test('should not have deleted pages', async () => {
@@ -249,7 +249,7 @@ describe('Update API from import with pages', () => {
       const pageToUpdate = apiUpdate.pages.find((page) => page.id === expectedPageId);
       pageToUpdate.name = 'updated-page';
       pageToUpdate.content = '# Documentation (updated)';
-      let updatedApi = await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
+      let updatedApi = await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
       expect(updatedApi.id).toBe(expectedApiId);
     });
 

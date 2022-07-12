@@ -239,12 +239,15 @@ export class ApiService {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/rollback', apiDescriptor);
   }
 
-  import(apiId: string, apiDefinition: any, definitionVersion?: string): IHttpPromise<any> {
+  import(apiId: string, apiDefinition: any, definitionVersion: string, isUrl: boolean): IHttpPromise<any> {
+    const headers = { 'Content-Type': isUrl ? 'text/plain' : 'application/json' };
+    const endpoint = isUrl ? 'import-url' : 'import';
+
     if (apiId) {
-      return this.$http.put(`${this.Constants.env.baseURL}/apis/${apiId}/import`, apiDefinition);
+      return this.$http.put(`${this.Constants.env.baseURL}/apis/${apiId}/${endpoint}`, apiDefinition, { headers });
     }
     const params = definitionVersion ? `?definitionVersion=${definitionVersion}` : '';
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/import${params}`, apiDefinition);
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${endpoint}${params}`, apiDefinition, { headers });
   }
 
   importSwagger(apiId: string, swaggerDescriptor: string, definitionVersion?: string, config?): IHttpPromise<any> {

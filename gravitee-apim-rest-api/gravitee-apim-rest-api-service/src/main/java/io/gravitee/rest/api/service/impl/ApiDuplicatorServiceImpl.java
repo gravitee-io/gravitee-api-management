@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import net.minidev.json.JSONObject;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,7 +123,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     @Override
-    public ApiEntity createWithImportedDefinition(final ExecutionContext executionContext, String apiDefinitionOrURL) {
+    public ApiEntity createWithImportedDefinition(final ExecutionContext executionContext, Object apiDefinitionOrURL) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
             // Read the whole input API definition, and recalculate its ID
@@ -152,7 +153,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     @Override
-    public ApiEntity updateWithImportedDefinition(final ExecutionContext executionContext, String urlApiId, String apiDefinitionOrURL) {
+    public ApiEntity updateWithImportedDefinition(final ExecutionContext executionContext, String urlApiId, Object apiDefinitionOrURL) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
 
         try {
@@ -345,17 +346,18 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private String fetchApiDefinitionContentFromURL(String apiDefinitionOrURL) {
-        if (apiDefinitionOrURL.toUpperCase().startsWith("HTTP")) {
+    private String fetchApiDefinitionContentFromURL(Object apiDefinitionOrURL) {
+        String definitionOrURL = stringifyApiDefinitionFromJackson(apiDefinitionOrURL);
+        if (definitionOrURL.toUpperCase().startsWith("HTTP")) {
             UrlSanitizerUtils.checkAllowed(
-                apiDefinitionOrURL,
+                definitionOrURL,
                 importConfiguration.getImportWhitelist(),
                 importConfiguration.isAllowImportFromPrivate()
             );
-            Buffer buffer = httpClientService.request(HttpMethod.GET, apiDefinitionOrURL, null, null, null);
+            Buffer buffer = httpClientService.request(HttpMethod.GET, definitionOrURL, null, null, null);
             return buffer.toString();
         }
-        return apiDefinitionOrURL;
+        return definitionOrURL;
     }
 
     private void createOrUpdateApiNestedEntities(
@@ -590,7 +592,13 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             Map<String, PlanEntity> existingPlans = readApiPlansById(executionContext, apiEntity.getId());
             Set<PlanEntity> plansToImport = readPlansToImportFromDefinition(apiJsonNode, existingPlans);
 
-            findRemovedPlansIds(existingPlans.values(), plansToImport).forEach(plan -> planService.delete(executionContext, plan));
+            findRemovedPlans(existingPlans.values(), plansToImport)
+                .forEach(
+                    plan -> {
+                        planService.delete(executionContext, plan.getId());
+                        apiEntity.getPlans().remove(plan);
+                    }
+                );
 
             plansToImport.forEach(
                 planEntity -> {
@@ -684,8 +692,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private Stream<String> findRemovedPlansIds(Collection<PlanEntity> existingPlans, Collection<PlanEntity> importedPlans) {
-        return existingPlans.stream().filter(existingPlan -> !importedPlans.contains(existingPlan)).map(PlanEntity::getId);
+    private Stream<PlanEntity> findRemovedPlans(Collection<PlanEntity> existingPlans, Collection<PlanEntity> importedPlans) {
+        return existingPlans.stream().filter(existingPlan -> !importedPlans.contains(existingPlan));
     }
 
     private Set<PlanEntity> readPlansToImportFromDefinition(ImportApiJsonNode apiJsonNode, Map<String, PlanEntity> existingPlans)
@@ -882,5 +890,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             .filter(node -> !node.hasId())
             .forEach(node -> node.setId(UuidString.generateRandom()));
         return apiJsonNode;
+    }
+
+    private static String stringifyApiDefinitionFromJackson(Object apiDefinitionOrUrl) {
+        return apiDefinitionOrUrl instanceof Map ? new JSONObject((Map) apiDefinitionOrUrl).toString() : apiDefinitionOrUrl.toString();
     }
 }

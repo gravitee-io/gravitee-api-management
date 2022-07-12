@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api-whattimeisit.json"
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "api-whattimeisit.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

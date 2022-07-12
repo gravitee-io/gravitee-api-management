@@ -17,7 +17,10 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.data.domain.Page;
@@ -196,9 +199,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         updatedApi.setId("my-api-id");
         updatedApi.setUpdatedAt(new Date());
 
-        doReturn(updatedApi)
-            .when(apiDuplicatorService)
-            .updateWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), eq(apiDefinition));
+        doReturn(updatedApi).when(apiDuplicatorService).updateWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = envTarget().path("import").request().put(Entity.json(apiDefinition));
 
@@ -231,6 +232,44 @@ public class ApisResourceTest extends AbstractResourceTest {
                 isNull(),
                 isNull()
             );
+    }
+
+    @Test
+    public void shouldImportApiFromURL() {
+        reset(apiDuplicatorService);
+
+        ApiEntity createdApi = new ApiEntity();
+        createdApi.setId("my-api-id");
+        createdApi.setUpdatedAt(new Date());
+        createdApi.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
+
+        final Response response = envTarget()
+            .path("import-url")
+            .queryParam("definitionVersion", "2.0.0")
+            .request()
+            .post(Entity.text("http://localhost:8080/api/my-api-id"));
+
+        assertEquals(OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldImportApiFromURLWithDeprecatedEndpoint() {
+        reset(apiDuplicatorService);
+
+        ApiEntity createdApi = new ApiEntity();
+        createdApi.setId("my-api-id");
+        createdApi.setUpdatedAt(new Date());
+        createdApi.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
+
+        final Response response = envTarget()
+            .path("import")
+            .queryParam("definitionVersion", "2.0.0")
+            .request()
+            .post(Entity.text("http://localhost:8080/api/my-api-id"));
+
+        assertEquals(OK_200, response.getStatus());
     }
 
     private ApiEntity mockApi(String apiId) {

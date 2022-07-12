@@ -3,7 +3,6 @@
 import { checkToken } from '../helpers/circleci-helper.mjs';
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
 import { isDryRun } from '../helpers/option-helper.mjs';
-const xml2json = require('xml2json');
 
 await checkToken();
 
@@ -37,30 +36,6 @@ const body = {
   },
 };
 
-// Get EE versions from distribution pom
-const allProperties = await propertiesFromDistributionPom();
-const ee_versions = {
-  ae_version: allProperties['gravitee-ae-connectors-ws.version'],
-  license_version: allProperties['gravitee-license-node.version'],
-  notifier_slack_version: allProperties['gravitee-notifier-slack.version'],
-  notifier_webhook_version: allProperties['gravitee-notifier-webhook.version'],
-  notifier_email_version: allProperties['gravitee-notifier-email.version'],
-};
-
-// Merge EE versions into body parameters
-body.parameters = {
-  ...body.parameters,
-  ...ee_versions,
-};
-
-console.log(`Here are the EE versions to package with APIM ${releasingVersion}: `, ee_versions);
-
-const eeResponse = await question(chalk.blue('Are EE good versions good? (y/n)\n'));
-if (eeResponse !== 'y') {
-  console.log(chalk.yellow(`Please update 'gravitee-apim-distribution/pom.xml' with the good versions`));
-  process.exit();
-}
-
 const response = await fetch('https://circleci.com/api/v2/project/gh/gravitee-io/gravitee-api-management/pipeline', {
   method: 'post',
   body: JSON.stringify(body),
@@ -78,26 +53,4 @@ if (response.status === 201) {
   console.log(chalk.greenBright(`When it's done, run 'npm run docker_rpms -- --version=${releasingVersion}'`));
 } else {
   console.log(chalk.yellow('Something went wrong'));
-}
-
-/**
- * Extract plugin properties from distribution pom
- * @returns {Promise<PropertyPreview[]>}
- */
-async function propertiesFromDistributionPom() {
-  // Read and parse pom as a json
-  const pomXml = await fs.readFile(`../gravitee-apim-distribution/pom.xml`, 'utf-8');
-  const jsonPom = JSON.parse(await xml2json.toJson(pomXml, {}));
-
-  // For versions before 3.18 and before merge of CE and EE bundles, ee properties where in a dedicated profile
-  const eeProperties = jsonPom.project.profiles.profile.find((p) => p.id === 'distribution-ee');
-  let props = jsonPom.project.properties;
-
-  if (eeProperties) {
-    props = {
-      ...props,
-      ...eeProperties.properties,
-    };
-  }
-  return props;
 }

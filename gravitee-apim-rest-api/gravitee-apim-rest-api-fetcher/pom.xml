@@ -26,7 +26,7 @@
     <parent>
         <groupId>io.gravitee.apim.rest.api</groupId>
         <artifactId>gravitee-apim-rest-api</artifactId>
-        <version>3.19.0-SNAPSHOT</version>
+        <version>${revision}${sha1}${changelist}</version>
     </parent>
 
     <artifactId>gravitee-apim-rest-api-fetcher</artifactId>

@@ -27,12 +27,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -457,5 +452,47 @@ public class ApiResourceTest extends AbstractResourceTest {
         final Response response = envTarget(API + "/reviews").queryParam("action", "Soo bad action").request().post(null);
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldImportApiFromURL() {
+        reset(apiDuplicatorService);
+
+        ApiEntity updatedApi = new ApiEntity();
+        updatedApi.setId("my-api-id");
+        updatedApi.setUpdatedAt(new Date());
+        updatedApi.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        doReturn(updatedApi)
+            .when(apiDuplicatorService)
+            .updateWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any(), any());
+
+        final Response response = envTarget()
+            .path(API + "/import-url")
+            .queryParam("definitionVersion", "2.0.0")
+            .request()
+            .put(Entity.text("http://localhost:8080/api/my-api-id"));
+
+        assertEquals(OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldImportApiFromURLWithDeprecatedEndpoint() {
+        reset(apiDuplicatorService);
+
+        ApiEntity updatedApi = new ApiEntity();
+        updatedApi.setId("my-api-id");
+        updatedApi.setUpdatedAt(new Date());
+        updatedApi.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        doReturn(updatedApi)
+            .when(apiDuplicatorService)
+            .updateWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any(), any());
+
+        final Response response = envTarget()
+            .path(API + "/import")
+            .queryParam("definitionVersion", "2.0.0")
+            .request()
+            .put(Entity.text("http://localhost:8080/api/my-api-id"));
+
+        assertEquals(OK_200, response.getStatus());
     }
 }

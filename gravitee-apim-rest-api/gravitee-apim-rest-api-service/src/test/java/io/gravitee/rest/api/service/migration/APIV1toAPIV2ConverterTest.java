@@ -27,7 +27,10 @@ import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
@@ -133,7 +136,10 @@ public class APIV1toAPIV2ConverterTest {
                     "api",
                     "selectionRule",
                     "status",
-                    "tags"
+                    "tags",
+                    "validation",
+                    "description",
+                    "type"
                 );
 
             assertThat(actualPlans.get(i).getPaths()).isEmpty();

@@ -30,13 +30,7 @@ import io.gravitee.rest.api.management.rest.resource.param.ReviewAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiLifecycleState;
-import io.gravitee.rest.api.model.api.DuplicateApiEntity;
-import io.gravitee.rest.api.model.api.RollbackApiEntity;
-import io.gravitee.rest.api.model.api.SwaggerApiEntity;
-import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -46,15 +40,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionRequestEntity;
 import io.gravitee.rest.api.security.utils.ImageUtils;
-import io.gravitee.rest.api.service.ApiDuplicatorService;
-import io.gravitee.rest.api.service.ApiExportService;
-import io.gravitee.rest.api.service.DebugApiService;
-import io.gravitee.rest.api.service.JsonPatchService;
-import io.gravitee.rest.api.service.MessageService;
-import io.gravitee.rest.api.service.NotifierService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.QualityMetricsService;
-import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
@@ -75,14 +61,8 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriBuilder;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
 import org.glassfish.jersey.message.internal.MatchingEntityTag;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -462,7 +442,7 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
     @Operation(
-        summary = "Update the API with an existing API definition",
+        summary = "Deprecated, Update the API with an existing API definition in JSON format either with json or via an URL",
         description = "User must have the MANAGE_API permission to use this service"
     )
     @ApiResponse(
@@ -472,8 +452,8 @@ public class ApiResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response updateApiWithDefinition(@Parameter(name = "definition", required = true) String apiDefinition) {
-        ApiEntity updatedApi = apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinition);
+    public Response deprecated_updateApiWithDefinition(@RequestBody @Valid @NotNull Object apiDefinitionOrUrl) {
+        ApiEntity updatedApi = apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinitionOrUrl);
         return Response
             .ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
@@ -482,10 +462,11 @@ public class ApiResource extends AbstractResource {
     }
 
     @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
     @Operation(
-        summary = "Update the API with an existing API definition",
+        summary = "Update the API with an existing API definition in JSON format either with json or via an URL",
         description = "User must have the MANAGE_API permission to use this service"
     )
     @ApiResponse(
@@ -495,15 +476,56 @@ public class ApiResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response updateWithDefinitionPUT(
-        @Parameter(schema = @Schema(implementation = JsonNode.class), name = "definition", required = true) String apiDefinition
-    ) {
+    public Response updateApiWithDefinition(@RequestBody @Valid @NotNull JsonNode apiDefinition) {
+        return updateApiWithDefinitionOrUrl(apiDefinition);
+    }
+
+    @PUT
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("import-url")
+    @Operation(
+        summary = "Update the API with an existing API definition in JSON format either with json or via an URL",
+        description = "User must have the MANAGE_API permission to use this service"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "API successfully updated from API definition",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response updateApiWithUrl(@RequestBody @Valid @NotNull String apiDefinitionOrUrl) {
+        return updateApiWithDefinitionOrUrl(apiDefinitionOrUrl);
+    }
+
+    @Deprecated(since = "3.18.0", forRemoval = true)
+    @PUT
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("import")
+    @Operation(
+        summary = "Update the API with an existing API definition in JSON format either with json or via an URL",
+        description = "User must have the MANAGE_API permission to use this service"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "API successfully updated from API definition",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response deprecatedUpdateApiWithUrl(@RequestBody @Valid @NotNull String apiDefinitionOrUrl) {
+        return updateApiWithDefinitionOrUrl(apiDefinitionOrUrl);
+    }
+
+    private Response updateApiWithDefinitionOrUrl(Object apiDefinitionOrUrl) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
 
         ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(
             GraviteeContext.getExecutionContext(),
             apiEntity.getId(),
-            apiDefinition
+            apiDefinitionOrUrl
         );
         return Response
             .ok(updatedApi)
@@ -528,7 +550,7 @@ public class ApiResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response updateApiWithSwagger(
+    public Response deprecated_updateApiWithSwagger(
         @Parameter(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();

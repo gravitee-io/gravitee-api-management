@@ -32,7 +32,7 @@ import { fail, succeed } from '@lib/jest-utils';
 import { CurrentUserApi } from '@management-apis/CurrentUserApi';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { GroupsFaker } from '@management-fakers/GroupsFaker';
-import { cloneDeep, find } from 'lodash';
+import { find } from 'lodash';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -154,22 +154,23 @@ describe('API - Quality', () => {
     });
 
     test('should add label to API', async () => {
-      let updatedApi = cloneDeep(apiEntity);
-      delete updatedApi.id;
-      delete updatedApi.state;
-      delete updatedApi.created_at;
-      delete updatedApi.updated_at;
-      delete updatedApi.owner;
-      delete updatedApi.context_path;
-      delete updatedApi.workflow_state;
-      updatedApi.labels = ['quality'];
+      const updateApiEntity = {
+        description: apiEntity.description,
+        version: apiEntity.version,
+        name: apiEntity.name,
+        paths: apiEntity.paths,
+        proxy: apiEntity.proxy,
+        response_templates: apiEntity.response_templates,
+        visibility: apiEntity.visibility,
+        labels: ['quality'],
+      };
 
       apiEntity = await succeed(
         apisResourceAsPublisher.updateApiRaw({
           envId,
           orgId,
           api: apiEntity.id,
-          updateApiEntity: updatedApi,
+          updateApiEntity,
         }),
       );
 
@@ -298,22 +299,22 @@ describe('API - Quality', () => {
     });
 
     test('should add a valid description to API', async () => {
-      let updatedApi = cloneDeep(apiEntity);
-      delete updatedApi.id;
-      delete updatedApi.state;
-      delete updatedApi.created_at;
-      delete updatedApi.updated_at;
-      delete updatedApi.owner;
-      delete updatedApi.context_path;
-      delete updatedApi.workflow_state;
-      updatedApi.description = 'This is a more than 25 characters description';
+      const updateApiEntity = {
+        description: 'This is a more than 25 characters description',
+        version: apiEntity.version,
+        name: apiEntity.name,
+        paths: apiEntity.paths,
+        proxy: apiEntity.proxy,
+        response_templates: apiEntity.response_templates,
+        visibility: apiEntity.visibility,
+      };
 
       apiEntity = await succeed(
         apisResourceAsPublisher.updateApiRaw({
           envId,
           orgId,
           api: apiEntity.id,
-          updateApiEntity: updatedApi,
+          updateApiEntity,
         }),
       );
 

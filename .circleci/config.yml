@@ -650,6 +650,11 @@ jobs:
             - artifactory-orb/install
             - artifactory-orb/configure
             - run:
+                name: Update Build version
+                command: |
+                  sed -i "s/-SNAPSHOT//" dist/build.json
+                working_directory: << parameters.apim-ui-project >>
+            - run:
                   name: Rename and zip dist folder
                   command: mv dist << parameters.apim-ui-project >>-${APIM_VERSION%-SNAPSHOT} && zip -r dist.zip << parameters.apim-ui-project >>-${APIM_VERSION%-SNAPSHOT}
                   working_directory: << parameters.apim-ui-project >>
@@ -689,6 +694,10 @@ jobs:
             - setup_remote_docker
             - webui-install:
                   apim-ui-project: << parameters.apim-ui-project >>
+            - run:
+                name: Update Build version
+                command: |
+                  sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${APIM_VERSION}\"/" << parameters.apim-ui-project >>/build.json
             - run:
                   name: Build
                   command: npm run build:prod
@@ -952,8 +961,6 @@ jobs:
         docker:
             - image: cimg/openjdk:11.0.13
         resource_class: large
-        environment:
-            DRY_RUN: << pipeline.parameters.dry_run >>
         steps:
             - checkout
             - restore-maven-job-cache:
@@ -968,23 +975,26 @@ jobs:
             - run:
                   name: Update maven dependencies versions from properties
                   command: |
-                      mvn versions:update-properties --batch-mode -Dmaven.version.rules.serverId=artifactory-gravitee -Dincludes="io.gravitee.*:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" --settings .gravitee.settings.xml --update-snapshots -T 2C
+                      # Update maven dependencies versions from properties
+                      mvn -s .gravitee.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -T 2C -no-transfer-progress
+
+                      # Remove `-SNAPSHOT` from version                    
+                      sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
+
             - prepare-gpg
             - prepare-env-var
             - run:
                   name: Maven deploy to Gravitee's private Artifactory
                   command: |
-                      mvn -Duser.home=${HOME} --settings .gravitee.settings.xml -B -U -P gio-artifactory-release,gio-release clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
+                      mvn --settings .gravitee.settings.xml -B -U -P gio-artifactory-release,gio-release clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
             - save-maven-job-cache:
                   jobName: backend-build-and-publish-artifactory
 
     release-commit-and-prepare-next-version:
         docker:
-            - image: cimg/openjdk:11.0.13
-        resource_class: large
+            - image: cimg/base:stable
+        resource_class: medium
 
-        environment:
-            DRY_RUN: << pipeline.parameters.dry_run >>
         steps:
             - checkout
             - attach_workspace:
@@ -1003,61 +1013,57 @@ jobs:
                   command: |
                       git config --global user.name "${GIT_USER_NAME}"
                       git config --global user.email "${GIT_USER_EMAIL}"
-
             - run:
-                  name: Git release
+                  name: Git release <<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
                   command: |
-                      export MVN_PRJ_VERSION=$(mvn exec:exec -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive --quiet --settings .gravitee.settings.xml)
+                      export MVN_PRJ_VERSION="<< pipeline.parameters.graviteeio_version >>"
                       export MVN_PRJ_VERSION_MAJOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $1}')
                       export MVN_PRJ_VERSION_MINOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $2}')
                       export MVN_PRJ_VERSION_PATCH=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $3}')
 
-                      export CURRENT_GIT_BRANCH=$(git branch --show-current)
-                      export MAINTENANCE_GIT_BRANCH="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.x"
-                      export GIT_BRANCH_FILTER=$(git branch -a | grep "${MAINTENANCE_GIT_BRANCH}")
+                      # Remove `-SNAPSHOT` from source
+                      # Backend
+                      sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
+                      
+                      # UI
+                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${MVN_PRJ_VERSION}\"/" gravitee-apim-console-webui/build.json
+                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${MVN_PRJ_VERSION}\"/" gravitee-apim-portal-webui/build.json
 
                       git add --update
                       git commit -m "${MVN_PRJ_VERSION}"
                       git tag ${MVN_PRJ_VERSION}
 
-                      # If support branch for this version does not exist, create it, update versions, commit and push
-                      if [ "x${GIT_BRANCH_FILTER}" == "x" ]; then
+                      # If we are on master branch, we need to create the support branch
+                      if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                        export MAINTENANCE_GIT_BRANCH="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.x"
+
                         git checkout -b ${MAINTENANCE_GIT_BRANCH}
-                        # Set the version to the next support version (bump patch version + '-SNAPSHOT')                        
-                        mvn versions:set --batch-mode -DnextSnapshot=true -DgenerateBackupPoms=false --settings .gravitee.settings.xml
+                        
+                        # Set the version to the next support version (bump patch version + '-SNAPSHOT')        
+                        sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.1</revision>#" pom.xml
+                        sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+
                         git add --update
                         git commit -m 'chore: prepare next version [skip ci]'
-                        if [ "${DRY_RUN}" == "false" ]; then
-                          echo "# --->>> NO IT IS NOT A DRY RUN : GIT PUSH"
-                          git push -u origin ${MAINTENANCE_GIT_BRANCH}
-                          git push --tags origin ${MAINTENANCE_GIT_BRANCH}
-                        else
-                          echo "# --->>> THIS IS A DRY RUN : SKIPPPING GIT PUSH"
-                        fi;
-                        git checkout ${CURRENT_GIT_BRANCH}
+
+                        git push -u <<# pipeline.parameters.dry_run >>--dry-run<</ pipeline.parameters.dry_run >> origin ${MAINTENANCE_GIT_BRANCH}
+
+                        git checkout ${CIRCLE_BRANCH}
+                      fi
+
+                      if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                        sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_VERSION_MAJOR}.$((${MVN_PRJ_VERSION_MINOR}+1)).0</revision>#" pom.xml
+                        sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+                      else
+                        sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.$((${MVN_PRJ_VERSION_PATCH}+1))</revision>#" pom.xml
+                        sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
                       fi;
 
-                      # If releasing a feature version (i.e. patch number == 0) then bump the minor version for the next 
-                      if [ "${MVN_PRJ_VERSION_PATCH}" == "0" ]; then
-                        export NEXT_MINOR_VERSION=$((${MVN_PRJ_VERSION_MINOR}+1))
-                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${NEXT_MINOR_VERSION}.0-SNAPSHOT"
-                        mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B versions:set -DnewVersion=${NEXT_SNAPSHOT_VERSION} -DgenerateBackupPoms=false
-                        mvn versions:set --batch-mode -DnewVersion=${NEXT_SNAPSHOT_VERSION} -DgenerateBackupPoms=false --settings .gravitee.settings.xml
-                      else
-                        # Else just set the version to the next support version (bump patch version + '-SNAPSHOT')                        
-                        mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B versions:set -DnextSnapshot=true -DgenerateBackupPoms=false
-                        mvn versions:set --batch-mode -DnextSnapshot=true -DgenerateBackupPoms=false --settings .gravitee.settings.xml
-                      fi;
                       git add --update
                       git commit -m 'chore: prepare next version [skip ci]'
-                      if [ "${DRY_RUN}" == "false" ]; then
-                        echo "# --->>> NO IT IS NOT A DRY RUN"
-                        echo " so that CURRENT_GIT_BRANCH=MAINTENANCE_GIT_BRANCH"
-                        git push -u origin ${CURRENT_GIT_BRANCH}
-                        git push --tags origin ${CURRENT_GIT_BRANCH}
-                      else
-                        echo "# --->>> THIS IS A DRY RUN"
-                      fi;
+
+                      git push -u <<# pipeline.parameters.dry_run >>--dry-run<</ pipeline.parameters.dry_run >> origin ${CIRCLE_BRANCH}
+                      git push --tags <<# pipeline.parameters.dry_run >>--dry-run<</ pipeline.parameters.dry_run >> origin ${CIRCLE_BRANCH}
 
     publish_prod_docker_images:
         parameters:
@@ -1760,6 +1766,7 @@ workflows:
                           only:
                               - master
                               - /.*-run-e2e.*/
+                              - /^\d+\.\d+\.x$/
             - e2e-report:
                 context: cicd-orchestrator
                 name: Generate E2E Test Reports
@@ -1770,6 +1777,7 @@ workflows:
                     only:
                       - master
                       - /.*-run-e2e.*/
+                      - /^\d+\.\d+\.x$/
             - e2e-cypress:
                   name: Run Cypress UI tests
                   requires:
@@ -1781,6 +1789,7 @@ workflows:
                           only:
                               - master
                               - /.*-run-e2e.*/
+                              - /^\d+\.\d+\.x$/
 
     build_rpm_&_docker_images:
         when:
@@ -1816,6 +1825,7 @@ workflows:
             - webui-build:
                   name: Build APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
+                  docker-image-name: apim-portal-ui
                   requires:
                       - setup
             - webui-publish-artifactory:
@@ -1835,6 +1845,7 @@ workflows:
             - webui-build:
                   name: Build APIM Console
                   apim-ui-project: gravitee-apim-console-webui
+                  docker-image-name: apim-management-ui
                   requires:
                       - setup
             - webui-publish-artifactory:
