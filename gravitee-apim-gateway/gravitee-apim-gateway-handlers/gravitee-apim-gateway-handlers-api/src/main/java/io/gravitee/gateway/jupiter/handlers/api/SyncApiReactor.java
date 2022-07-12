@@ -61,6 +61,7 @@ import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.reporter.api.http.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
+import io.reactivex.Observable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -81,7 +82,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final Api api;
     protected final List<ChainHook> processorChainHooks;
     protected final List<InvokerHook> invokerHooks;
-    protected final LoggingContext loggingContext;
+    protected LoggingContext loggingContext;
     protected final ComponentProvider componentProvider;
     protected final List<TemplateVariableProvider> templateVariableProviders;
     protected final Invoker defaultInvoker;
@@ -138,17 +139,6 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         this.processorChainHooks = new ArrayList<>();
         this.invokerHooks = new ArrayList<>();
-
-        if (tracingEnabled) {
-            processorChainHooks.add(new TracingHook("processor-chain"));
-            invokerHooks.add(new TracingHook("invoker"));
-        }
-
-        this.loggingContext = LoggingUtils.getLoggingContext(api);
-
-        if (loggingContext != null) {
-            invokerHooks.add(new LoggingHook());
-        }
     }
 
     @Override
@@ -353,14 +343,20 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         dumpVirtualHosts();
 
-        long endTime = System.currentTimeMillis(); // Get the end Time
-
         // Create securityChain once policy manager has been started.
         this.securityChain = new SecurityChain(api, policyManager);
         if (tracingEnabled) {
+            processorChainHooks.add(new TracingHook("processor-chain"));
+            invokerHooks.add(new TracingHook("invoker"));
             securityChain.addHooks(new TracingHook("security-plan"));
         }
 
+        this.loggingContext = LoggingUtils.getLoggingContext(api);
+        if (loggingContext != null) {
+            invokerHooks.add(new LoggingHook());
+        }
+
+        long endTime = System.currentTimeMillis(); // Get the end Time
         log.debug("API reactor started in {} ms", (endTime - startTime));
     }
 
@@ -372,7 +368,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         } else {
             log.debug("Current node is started, API handler will wait for pending requests before stopping");
             long timeout = System.currentTimeMillis() + pendingRequestsTimeout;
-            stopUntil(timeout);
+            stopUntil(timeout).subscribe();
         }
     }
 
@@ -386,12 +382,11 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         log.debug("API reactor is now stopped: {}", this);
     }
 
-    private void stopUntil(long timeout) {
-        interval(100, TimeUnit.MILLISECONDS)
+    protected Observable<Long> stopUntil(long timeout) {
+        return interval(100, TimeUnit.MILLISECONDS)
             .timeout(timeout, TimeUnit.MILLISECONDS)
             .takeWhile(t -> pendingRequests.get() > 0)
-            .doFinally(this::stopNow)
-            .subscribe();
+            .doFinally(this::stopNow);
     }
 
     @Override
