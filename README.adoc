@@ -54,6 +54,7 @@ Hereafter available configuration parameters:
 | *1000*
 
 | `retainDays`
-| The number of days to retain files before deleting one
+| The number of days to retain files before deletion.
+Any files with a last updated date older than this retention period are regularly deleted every day at midnight.
 | *0 (to retain forever)*
 |===
