@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM nginx:1.22-alpine as base
+FROM nginx:1.23-alpine as base
 ENV CONFD_VERSION="0.16.0"
 ENV CONFD_URL="https://github.com/kelseyhightower/confd/releases/download"
 
