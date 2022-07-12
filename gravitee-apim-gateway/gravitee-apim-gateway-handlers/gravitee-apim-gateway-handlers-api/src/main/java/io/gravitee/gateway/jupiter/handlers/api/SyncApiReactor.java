@@ -225,7 +225,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final ProcessorChain processorChain,
         final ExecutionPhase phase
     ) {
-        return HookHelper.hook(() -> processorChain.execute(ctx, phase), processorChain.getId(), processorChainHooks, ctx, phase);
+        return defer(
+            () -> HookHelper.hook(() -> processorChain.execute(ctx, phase), processorChain.getId(), processorChainHooks, ctx, phase)
+        );
     }
 
     /**
