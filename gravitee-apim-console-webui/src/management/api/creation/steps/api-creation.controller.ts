@@ -268,7 +268,7 @@ class ApiCreationController {
     if (deployAndStart) {
       this.api.lifecycle_state = 'PUBLISHED';
     }
-    this.ApiService.import(null, this.api)
+    this.ApiService.import(null, this.api, this.api.gravitee, false)
       .then((api) => {
         this.vm.showBusyText = false;
         return api;

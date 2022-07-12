@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.apim.gateway.standalone</groupId>
         <artifactId>gravitee-apim-gateway-standalone</artifactId>
-        <version>3.19.0-SNAPSHOT</version>
+        <version>${revision}${sha1}${changelist}</version>
     </parent>
 
     <artifactId>gravitee-apim-gateway-standalone-container</artifactId>
@@ -32,7 +32,7 @@
 
     <properties>
         <jetty94.wiremock.version>9.4.44.v20210927</jetty94.wiremock.version>
-        <gravitee-connector-http.version>1.1.5</gravitee-connector-http.version>
+        <gravitee-connector-http.version>1.1.9</gravitee-connector-http.version>
     </properties>
 
     <dependencyManagement>
@@ -420,7 +420,6 @@
             <extension>
                 <groupId>kr.motd.maven</groupId>
                 <artifactId>os-maven-plugin</artifactId>
-                <version>1.4.1.Final</version>
             </extension>
         </extensions>
 

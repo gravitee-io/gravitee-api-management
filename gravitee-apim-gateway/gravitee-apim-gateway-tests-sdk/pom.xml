@@ -22,7 +22,7 @@
     <parent>
         <artifactId>gravitee-apim-gateway</artifactId>
         <groupId>io.gravitee.apim.gateway</groupId>
-        <version>3.19.0-SNAPSHOT</version>
+        <version>${revision}${sha1}${changelist}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

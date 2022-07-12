@@ -26,29 +26,29 @@ import {
  */
 export interface TransferOwnership {
     /**
-     * 
+     * User's technical identifier.
      * @type {string}
      * @memberof TransferOwnership
      */
     id?: string;
     /**
-     * 
+     * User's reference for user providing from an identity provider.
      * @type {string}
      * @memberof TransferOwnership
      */
     reference?: string;
     /**
-     * 
+     * Role's name
      * @type {string}
      * @memberof TransferOwnership
      */
-    role?: string;
+    role: string;
     /**
      * 
      * @type {MembershipMemberType}
      * @memberof TransferOwnership
      */
-    type?: MembershipMemberType;
+    type: MembershipMemberType;
 }
 
 export function TransferOwnershipFromJSON(json: any): TransferOwnership {
@@ -63,8 +63,8 @@ export function TransferOwnershipFromJSONTyped(json: any, ignoreDiscriminator: b
         
         'id': !exists(json, 'id') ? undefined : json['id'],
         'reference': !exists(json, 'reference') ? undefined : json['reference'],
-        'role': !exists(json, 'role') ? undefined : json['role'],
-        'type': !exists(json, 'type') ? undefined : MembershipMemberTypeFromJSON(json['type']),
+        'role': json['role'],
+        'type': MembershipMemberTypeFromJSON(json['type']),
     };
 }
 

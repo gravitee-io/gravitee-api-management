@@ -33,6 +33,7 @@ services_path = "%s/services" % tmp_path
 reporters_path = "%s/reporters" % tmp_path
 repositories_path = "%s/repositories" % tmp_path
 connectors_path = "%s/connectors" % tmp_path
+notifiers_path = "%s/notifiers" % tmp_path
 
 
 def clean():
@@ -47,6 +48,7 @@ def clean():
     os.makedirs(reporters_path, exist_ok=True)
     os.makedirs(repositories_path, exist_ok=True)
     os.makedirs(connectors_path, exist_ok=True)
+    os.makedirs(notifiers_path, exist_ok=True)
 
 
 def get_policies(release_json):
@@ -181,6 +183,16 @@ def get_connectors(release_json):
     return connectors
 
 
+def get_notifiers(release_json):
+    components = release_json['components']
+    search_pattern = re.compile('gravitee-notifier-.*')
+    fetchers = []
+    for component in components:
+        if search_pattern.match(component['name']) and 'gravitee-notifier-api' != component['name']:
+            fetchers.append(component)
+    return fetchers
+
+
 def get_component_by_name(release_json, component_name):
     components = release_json['components']
     search_pattern = re.compile(component_name)
@@ -207,6 +219,8 @@ def get_suffix_path_by_name(name):
         if suffix == "repository":
             return "repositories"
         if suffix == "cockpit":
+            return "connectors"
+        if suffix == "alert":
             return "connectors"
         return suffix + "s"
     else:
@@ -358,10 +372,21 @@ def download_connectors(connectors):
     for connector in connectors:
         if connector['name'].startswith('gravitee-connector'):
             url = get_download_url("io.gravitee.connector", connector['name'], connector['version'], "zip")
+        elif connector['name'].startswith('gravitee-alert-engine'):
+            url = get_download_url("io.gravitee.ae", connector['name'], connector['version'], "zip")
         else:
             url = get_download_url("io.gravitee.cockpit", connector['name'], connector['version'], "zip")
         paths.append(
             download(connector['name'], '%s/%s-%s.zip' % (connectors_path, connector['name'], connector['version']), url))
+    return paths
+
+
+def download_notifiers(notifiers):
+    paths = []
+    for notifier in notifiers:
+        url = get_download_url("io.gravitee.notifier", notifier['name'], notifier['version'], "zip")
+        paths.append(
+            download(notifier['name'], '%s/%s-%s.zip' % (notifiers_path, notifier['name'], notifier['version']), url))
     return paths
 
 
@@ -437,6 +462,7 @@ def prepare_mgmt_bundle(mgmt):
                      ".*gravitee-apim-repository-redis.*"])
     copy_files_into(services_path, bundle_path + "plugins", [".*gravitee-gateway-services-ratelimit.*"])
     copy_files_into(connectors_path, bundle_path + "plugins", [".*gravitee-connector-kafka.*"])
+    copy_files_into(notifiers_path, bundle_path + "plugins")
     print("makedirs: %s" % (bundle_path + "plugins/ext/repository-jdbc"))
     os.makedirs(bundle_path + "plugins/ext/repository-jdbc", exist_ok=True)
 
@@ -557,6 +583,7 @@ def main():
     download_reporters(get_reporters(release_json))
     download_repositories(get_repositories(release_json))
     download_connectors(get_connectors(release_json))
+    download_notifiers(get_notifiers(release_json))
 
     prepare_ui_bundle(portal_ui)
     prepare_ui_bundle(ui)

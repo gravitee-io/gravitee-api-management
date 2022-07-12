@@ -39,7 +39,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -79,7 +78,10 @@ public class GroupService_UpdateTest {
         updatedGroupEntity.setRoles(Maps.<RoleScope, String>builder().put(RoleScope.API, "OWNER").build());
         updatedGroupEntity.setSystemInvitation(false);
 
-        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(Mockito.mock(Group.class)));
+        final Group group = new Group();
+        group.setApiPrimaryOwner("api-primary-owner");
+
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -98,15 +100,16 @@ public class GroupService_UpdateTest {
         verify(groupRepository)
             .update(
                 argThat(
-                    group ->
-                        group.isDisableMembershipNotifications() &&
-                        group.isEmailInvitation() &&
-                        group.getEventRules() == null &&
-                        group.isLockApiRole() &&
-                        group.isLockApplicationRole() &&
-                        group.getMaxInvitation() == 100 &&
-                        group.getName().equals("my-group-name") &&
-                        !group.isSystemInvitation()
+                    updatedGroup ->
+                        updatedGroup.isDisableMembershipNotifications() &&
+                        updatedGroup.isEmailInvitation() &&
+                        updatedGroup.getEventRules() == null &&
+                        updatedGroup.isLockApiRole() &&
+                        updatedGroup.isLockApplicationRole() &&
+                        updatedGroup.getMaxInvitation() == 100 &&
+                        updatedGroup.getName().equals("my-group-name") &&
+                        !updatedGroup.isSystemInvitation() &&
+                        updatedGroup.getApiPrimaryOwner().equals("api-primary-owner")
                 )
             );
 
@@ -134,7 +137,7 @@ public class GroupService_UpdateTest {
             Maps.<RoleScope, String>builder().put(RoleScope.API, "PRIMARY_OWNER").put(RoleScope.APPLICATION, "PRIMARY_OWNER").build()
         );
 
-        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(Mockito.mock(Group.class)));
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(new Group()));
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),

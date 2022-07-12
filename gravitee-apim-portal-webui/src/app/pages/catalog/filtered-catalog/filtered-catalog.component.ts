@@ -158,7 +158,12 @@ export class FilteredCatalogComponent implements OnInit {
 
   _load() {
     if (this.page === 1 && this.hasPromotedApiMode()) {
-      this.promotedApi = this._loadPromotedApi({ size: 1, filter: this.filterApiQuery, promoted: true });
+      this.promotedApi = this._loadPromotedApi({
+        size: 1,
+        filter: this.computeFilterApiQuery(),
+        promoted: true,
+        category: this.currentCategory,
+      });
     }
     return Promise.all([this._loadRandomList(), this._loadCards()]);
   }
@@ -214,7 +219,7 @@ export class FilteredCatalogComponent implements OnInit {
       .getApis({
         page: this.page,
         size: this.size,
-        filter: this.filterApiQuery,
+        filter: this.computeFilterApiQuery(),
         category: this.currentCategory,
         promoted: fetchPromoted,
       })
@@ -378,5 +383,9 @@ export class FilteredCatalogComponent implements OnInit {
     } else {
       this.empty = false;
     }
+  }
+
+  private computeFilterApiQuery(): FilterApiQuery {
+    return this.currentCategory ? null : this.filterApiQuery;
   }
 }

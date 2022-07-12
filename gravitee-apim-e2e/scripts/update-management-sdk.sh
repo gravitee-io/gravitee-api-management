@@ -27,7 +27,7 @@
 # limitations under the License.
 
 npx @openapitools/openapi-generator-cli@1.0.18-4.3.1 generate \
-  -i ../gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/openapi.json \
+  -i ../gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.json \
   -g typescript-fetch \
   -o lib/management-webclient-sdk/src/lib/ \
   -puseSingleRequestParameter=true \
@@ -38,7 +38,13 @@ npx @openapitools/openapi-generator-cli@1.0.18-4.3.1 generate \
   --type-mappings=DateTime=Date,object=any \
   --reserved-words-mappings=configuration=configuration
 
+
 find lib/management-webclient-sdk/src/lib/ -name "*.ts" -exec sed -i.bak "/* The version of the OpenAPI document/d" {} \;
+# Magic `sed` to properly handle `text/plain` in TS SDK, until we have a proper way to handle it in the OpenAPI generator
+export var1="const body = ((typeof FormData !== \"undefined\" \&\& context.body instanceof FormData) || context.body instanceof URLSearchParams || isBlob(context.body))"
+export var2="const body = ((typeof FormData !== \"undefined\" \&\& context.body instanceof FormData) || context.body instanceof URLSearchParams || isBlob(context.body)) || typeof context.body === 'string'"
+find lib/management-webclient-sdk/src/lib/ -name "*.ts" -exec sed -i.bak "s/$var1/$var2/g" {} \;
+
 # must delete .bak files
 find lib/management-webclient-sdk/src/lib/ -name "*.ts.bak" -exec rm -f {} \;
 rm -f lib/management-webclient-sdk/src/lib/index.ts

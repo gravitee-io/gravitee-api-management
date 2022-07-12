@@ -22,10 +22,10 @@ import { NewApiEntity } from '@management-models/NewApiEntity';
 import faker from '@faker-js/faker';
 import { NewRatingEntity } from '@management-models/NewRatingEntity';
 import { RatingInput } from '@portal-models/RatingInput';
-import { Plan } from '@management-models/Plan';
 import { PrimaryOwnerEntity } from '@management-models/PrimaryOwnerEntity';
 import { ResponseTemplate } from '@management-models/ResponseTemplate';
 import { Flow } from '@management-models/Flow';
+import { PlanEntity } from '@management-models/PlanEntity';
 
 export interface ApiImportEntity {
   id?: string;
@@ -43,7 +43,7 @@ export interface ApiImportEntity {
   path_mappings?: Array<string>;
   members?: Array<any>;
   pages?: Array<PageEntity>;
-  plans?: Array<Plan>;
+  plans?: Array<PlanEntity>;
   metadata?: any;
   primaryOwner?: PrimaryOwnerEntity;
   response_templates?: { [key: string]: { [key: string]: ResponseTemplate } };

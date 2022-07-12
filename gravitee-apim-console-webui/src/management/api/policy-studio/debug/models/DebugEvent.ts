@@ -53,7 +53,7 @@ interface DebugEventDebugStep {
   policyInstanceId: string;
   policyId: string;
   scope: 'ON_REQUEST' | 'ON_REQUEST_CONTENT' | 'ON_RESPONSE' | 'ON_RESPONSE_CONTENT';
-  status: 'COMPLETED' | 'ERROR' | 'SKIPPED';
+  status: 'COMPLETED' | 'ERROR' | 'SKIPPED' | 'NO_TRANSFORMATION';
   condition?: string;
   error?: {
     contentType?: string;

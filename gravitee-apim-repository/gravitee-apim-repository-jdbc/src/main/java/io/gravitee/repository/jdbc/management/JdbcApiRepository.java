@@ -240,12 +240,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
     @Override
     public Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
-        final JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-            getOrm().getRowMapper(),
-            CHILD_ADDER,
-            "id"
-        );
-
         final StringBuilder sbQuery = new StringBuilder("select a.id");
 
         if (apiFieldInclusionFilter.hasCategories()) {
@@ -259,6 +253,12 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
 
         addCriteriaClauses(sbQuery, apiCriteria);
+
+        final JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+            getOrm().getRowMapper(),
+            apiFieldInclusionFilter.hasCategories() ? CHILD_ADDER : (Api parent, ResultSet rs) -> {},
+            "id"
+        );
 
         List<Api> apis = executeQuery(sbQuery, apiCriteria, rowMapper);
 

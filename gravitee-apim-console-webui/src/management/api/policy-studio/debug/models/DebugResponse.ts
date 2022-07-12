@@ -60,13 +60,16 @@ export type DebugResponse = {
 };
 
 export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugResponse => {
+  // Filter out empty debug steps that are not relevant to display in the UI.
+  const filteredDebugSteps = event.payload.debugSteps.filter(filterEventDebugStep);
+
   // First, create the hydrated debug steps for the REQUEST with request initial data + attributes
   const requestPolicyDebugSteps =
-    event.payload.debugSteps && event.payload.debugSteps.length > 0
+    filteredDebugSteps && filteredDebugSteps.length > 0
       ? convertRequestDebugSteps(
           event.payload.request ?? {},
           event.payload.preprocessorStep ?? {},
-          event.payload.debugSteps.filter((event) => event.scope === 'ON_REQUEST' || event.scope === 'ON_REQUEST_CONTENT'),
+          filteredDebugSteps.filter((event) => event.scope === 'ON_REQUEST' || event.scope === 'ON_REQUEST_CONTENT'),
         )
       : [];
 
@@ -109,11 +112,11 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugRespon
 
   // Finally, create the hydrated debug steps for the RESPONSE with initial request data + attributes
   const responsePolicyDebugSteps =
-    event.payload.debugSteps && event.payload.debugSteps.length > 0
+    filteredDebugSteps && filteredDebugSteps.length > 0
       ? convertResponseDebugSteps(
           event.payload.backendResponse ?? {},
           responsePreprocessorStep ?? {},
-          event.payload.debugSteps.filter((event) => event.scope === 'ON_RESPONSE' || event.scope === 'ON_RESPONSE_CONTENT'),
+          filteredDebugSteps.filter((event) => event.scope === 'ON_RESPONSE' || event.scope === 'ON_RESPONSE_CONTENT'),
         )
       : [];
 
@@ -169,7 +172,7 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugRespon
 const convertRequestDebugSteps = (
   initialRequest: DebugEvent['payload']['request'],
   preprocessorStep: DebugEvent['payload']['preprocessorStep'],
-  debugSteps: DebugEvent['payload']['debugSteps'],
+  debugSteps: DebugEventDebugStepFiltered[],
 ): RequestPolicyDebugStep[] => {
   if (debugSteps.length === 0) {
     return [];
@@ -224,7 +227,7 @@ const convertRequestDebugSteps = (
 const convertResponseDebugSteps = (
   backendResponse: DebugEvent['payload']['backendResponse'],
   preprocessorStep: DebugEvent['payload']['preprocessorStep'],
-  debugSteps: DebugEvent['payload']['debugSteps'],
+  debugSteps: DebugEventDebugStepFiltered[],
 ): ResponsePolicyDebugStep[] => {
   if (debugSteps.length === 0) {
     return [];
@@ -275,3 +278,9 @@ const convertResponseDebugSteps = (
     [firstDebugStep],
   );
 };
+
+type DebugEventDebugStepFiltered = DebugEvent['payload']['debugSteps'][number] & {
+  status: 'COMPLETED' | 'ERROR' | 'SKIPPED';
+};
+const filterEventDebugStep = (step: DebugEvent['payload']['debugSteps'][number]): step is DebugEventDebugStepFiltered =>
+  step.status !== 'NO_TRANSFORMATION';

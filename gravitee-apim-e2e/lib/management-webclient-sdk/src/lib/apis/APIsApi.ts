@@ -453,6 +453,20 @@ export interface DeprecateApiPlanRequest {
     orgId: string;
 }
 
+export interface DeprecatedUpdateApiWithDefinitionRequest {
+    api: string;
+    envId: string;
+    orgId: string;
+    body: any;
+}
+
+export interface DeprecatedUpdateApiWithSwaggerRequest {
+    api: string;
+    envId: string;
+    orgId: string;
+    importSwaggerDescriptorEntity: ImportSwaggerDescriptorEntity;
+}
+
 export interface DepreciateApiPlanRequest {
     plan: string;
     api: string;
@@ -920,6 +934,13 @@ export interface ImportApiDefinitionRequest {
     body: any;
 }
 
+export interface ImportApiDefinitionUrlRequest {
+    definitionVersion?: string;
+    envId: string;
+    orgId: string;
+    body: string;
+}
+
 export interface ImportApiPageFilesRequest {
     api: string;
     envId: string;
@@ -1163,14 +1184,7 @@ export interface UpdateApiWithDefinitionRequest {
     api: string;
     envId: string;
     orgId: string;
-    body: string;
-}
-
-export interface UpdateApiWithSwaggerRequest {
-    api: string;
-    envId: string;
-    orgId: string;
-    importSwaggerDescriptorEntity: ImportSwaggerDescriptorEntity;
+    body: any;
 }
 
 export interface UpdateApiWithSwaggerPUTRequest {
@@ -1179,6 +1193,13 @@ export interface UpdateApiWithSwaggerPUTRequest {
     envId: string;
     orgId: string;
     importSwaggerDescriptorEntity: ImportSwaggerDescriptorEntity;
+}
+
+export interface UpdateApiWithUrlRequest {
+    api: string;
+    envId: string;
+    orgId: string;
+    body: string;
 }
 
 export interface UpdatePageContentRequest {
@@ -1190,13 +1211,6 @@ export interface UpdatePageContentRequest {
 }
 
 export interface UpdateWithDefinitionRequest {
-    envId: string;
-    orgId: string;
-    body: string;
-}
-
-export interface UpdateWithDefinitionPUTRequest {
-    api: string;
     envId: string;
     orgId: string;
     body: any;
@@ -2555,6 +2569,106 @@ export class APIsApi extends runtime.BaseAPI {
      */
     async deprecateApiPlan(requestParameters: DeprecateApiPlanRequest): Promise<PlanEntity> {
         const response = await this.deprecateApiPlanRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * User must have the MANAGE_API permission to use this service
+     * Deprecated, Update the API with an existing API definition in JSON format either with json or via an URL
+     */
+    async deprecatedUpdateApiWithDefinitionRaw(requestParameters: DeprecatedUpdateApiWithDefinitionRequest): Promise<runtime.ApiResponse<ApiEntity>> {
+        if (requestParameters.api === null || requestParameters.api === undefined) {
+            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling deprecatedUpdateApiWithDefinition.');
+        }
+
+        if (requestParameters.envId === null || requestParameters.envId === undefined) {
+            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling deprecatedUpdateApiWithDefinition.');
+        }
+
+        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
+            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deprecatedUpdateApiWithDefinition.');
+        }
+
+        if (requestParameters.body === null || requestParameters.body === undefined) {
+            throw new runtime.RequiredError('body','Required parameter requestParameters.body was null or undefined when calling deprecatedUpdateApiWithDefinition.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/organizations/{orgId}/environments/{envId}/apis/{api}/import`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters.body as any,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
+    }
+
+    /**
+     * User must have the MANAGE_API permission to use this service
+     * Deprecated, Update the API with an existing API definition in JSON format either with json or via an URL
+     */
+    async deprecatedUpdateApiWithDefinition(requestParameters: DeprecatedUpdateApiWithDefinitionRequest): Promise<ApiEntity> {
+        const response = await this.deprecatedUpdateApiWithDefinitionRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * User must have the MANAGE_API permission to use this service
+     * Deprecated, use PUT method instead. Update the API with an existing Swagger descriptor
+     */
+    async deprecatedUpdateApiWithSwaggerRaw(requestParameters: DeprecatedUpdateApiWithSwaggerRequest): Promise<runtime.ApiResponse<ApiEntity>> {
+        if (requestParameters.api === null || requestParameters.api === undefined) {
+            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling deprecatedUpdateApiWithSwagger.');
+        }
+
+        if (requestParameters.envId === null || requestParameters.envId === undefined) {
+            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling deprecatedUpdateApiWithSwagger.');
+        }
+
+        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
+            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deprecatedUpdateApiWithSwagger.');
+        }
+
+        if (requestParameters.importSwaggerDescriptorEntity === null || requestParameters.importSwaggerDescriptorEntity === undefined) {
+            throw new runtime.RequiredError('importSwaggerDescriptorEntity','Required parameter requestParameters.importSwaggerDescriptorEntity was null or undefined when calling deprecatedUpdateApiWithSwagger.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/organizations/{orgId}/environments/{envId}/apis/{api}/import/swagger`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ImportSwaggerDescriptorEntityToJSON(requestParameters.importSwaggerDescriptorEntity),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
+    }
+
+    /**
+     * User must have the MANAGE_API permission to use this service
+     * Deprecated, use PUT method instead. Update the API with an existing Swagger descriptor
+     */
+    async deprecatedUpdateApiWithSwagger(requestParameters: DeprecatedUpdateApiWithSwaggerRequest): Promise<ApiEntity> {
+        const response = await this.deprecatedUpdateApiWithSwaggerRaw(requestParameters);
         return await response.value();
     }
 
@@ -5441,7 +5555,7 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Create an API by importing an existing API definition in JSON format
+     * Create an API by importing an existing API definition in JSON format.
      * Create an API by importing an API definition
      */
     async importApiDefinitionRaw(requestParameters: ImportApiDefinitionRequest): Promise<runtime.ApiResponse<ApiEntity>> {
@@ -5482,11 +5596,61 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Create an API by importing an existing API definition in JSON format
+     * Create an API by importing an existing API definition in JSON format.
      * Create an API by importing an API definition
      */
     async importApiDefinition(requestParameters: ImportApiDefinitionRequest): Promise<ApiEntity> {
         const response = await this.importApiDefinitionRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Create an API by importing an existing API definition via a URL
+     * Create an API by importing a URL pointing to an API definition
+     */
+    async importApiDefinitionUrlRaw(requestParameters: ImportApiDefinitionUrlRequest): Promise<runtime.ApiResponse<ApiEntity>> {
+        if (requestParameters.envId === null || requestParameters.envId === undefined) {
+            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling importApiDefinitionUrl.');
+        }
+
+        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
+            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling importApiDefinitionUrl.');
+        }
+
+        if (requestParameters.body === null || requestParameters.body === undefined) {
+            throw new runtime.RequiredError('body','Required parameter requestParameters.body was null or undefined when calling importApiDefinitionUrl.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        if (requestParameters.definitionVersion !== undefined) {
+            queryParameters['definitionVersion'] = requestParameters.definitionVersion;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'text/plain';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/organizations/{orgId}/environments/{envId}/apis/import-url`.replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters.body as any,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
+    }
+
+    /**
+     * Create an API by importing an existing API definition via a URL
+     * Create an API by importing a URL pointing to an API definition
+     */
+    async importApiDefinitionUrl(requestParameters: ImportApiDefinitionUrlRequest): Promise<ApiEntity> {
+        const response = await this.importApiDefinitionUrlRaw(requestParameters);
         return await response.value();
     }
 
@@ -7087,7 +7251,7 @@ export class APIsApi extends runtime.BaseAPI {
 
     /**
      * User must have the MANAGE_API permission to use this service
-     * Update the API with an existing API definition
+     * Update the API with an existing API definition in JSON format either with json or via an URL
      */
     async updateApiWithDefinitionRaw(requestParameters: UpdateApiWithDefinitionRequest): Promise<runtime.ApiResponse<ApiEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
@@ -7117,7 +7281,7 @@ export class APIsApi extends runtime.BaseAPI {
         }
         const response = await this.request({
             path: `/organizations/{orgId}/environments/{envId}/apis/{api}/import`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'POST',
+            method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.body as any,
@@ -7128,60 +7292,10 @@ export class APIsApi extends runtime.BaseAPI {
 
     /**
      * User must have the MANAGE_API permission to use this service
-     * Update the API with an existing API definition
+     * Update the API with an existing API definition in JSON format either with json or via an URL
      */
     async updateApiWithDefinition(requestParameters: UpdateApiWithDefinitionRequest): Promise<ApiEntity> {
         const response = await this.updateApiWithDefinitionRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * User must have the MANAGE_API permission to use this service
-     * Deprecated, use PUT method instead. Update the API with an existing Swagger descriptor
-     */
-    async updateApiWithSwaggerRaw(requestParameters: UpdateApiWithSwaggerRequest): Promise<runtime.ApiResponse<ApiEntity>> {
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling updateApiWithSwagger.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateApiWithSwagger.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateApiWithSwagger.');
-        }
-
-        if (requestParameters.importSwaggerDescriptorEntity === null || requestParameters.importSwaggerDescriptorEntity === undefined) {
-            throw new runtime.RequiredError('importSwaggerDescriptorEntity','Required parameter requestParameters.importSwaggerDescriptorEntity was null or undefined when calling updateApiWithSwagger.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/apis/{api}/import/swagger`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: ImportSwaggerDescriptorEntityToJSON(requestParameters.importSwaggerDescriptorEntity),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
-    }
-
-    /**
-     * User must have the MANAGE_API permission to use this service
-     * Deprecated, use PUT method instead. Update the API with an existing Swagger descriptor
-     */
-    async updateApiWithSwagger(requestParameters: UpdateApiWithSwaggerRequest): Promise<ApiEntity> {
-        const response = await this.updateApiWithSwaggerRaw(requestParameters);
         return await response.value();
     }
 
@@ -7240,6 +7354,56 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
+     * User must have the MANAGE_API permission to use this service
+     * Update the API with an existing API definition in JSON format either with json or via an URL
+     */
+    async updateApiWithUrlRaw(requestParameters: UpdateApiWithUrlRequest): Promise<runtime.ApiResponse<ApiEntity>> {
+        if (requestParameters.api === null || requestParameters.api === undefined) {
+            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling updateApiWithUrl.');
+        }
+
+        if (requestParameters.envId === null || requestParameters.envId === undefined) {
+            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateApiWithUrl.');
+        }
+
+        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
+            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateApiWithUrl.');
+        }
+
+        if (requestParameters.body === null || requestParameters.body === undefined) {
+            throw new runtime.RequiredError('body','Required parameter requestParameters.body was null or undefined when calling updateApiWithUrl.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'text/plain';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/organizations/{orgId}/environments/{envId}/apis/{api}/import-url`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters.body as any,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
+    }
+
+    /**
+     * User must have the MANAGE_API permission to use this service
+     * Update the API with an existing API definition in JSON format either with json or via an URL
+     */
+    async updateApiWithUrl(requestParameters: UpdateApiWithUrlRequest): Promise<ApiEntity> {
+        const response = await this.updateApiWithUrlRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
      * User must have the MANAGE_PAGES permission to use this service
      * Put the page\'s content
      */
@@ -7293,6 +7457,7 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
+     * Update the API from the API definition in JSON format either with json or via an URL
      * Update the API from the API definition
      */
     async updateWithDefinitionRaw(requestParameters: UpdateWithDefinitionRequest): Promise<runtime.ApiResponse<ApiEntity>> {
@@ -7329,60 +7494,11 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
+     * Update the API from the API definition in JSON format either with json or via an URL
      * Update the API from the API definition
      */
     async updateWithDefinition(requestParameters: UpdateWithDefinitionRequest): Promise<ApiEntity> {
         const response = await this.updateWithDefinitionRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * User must have the MANAGE_API permission to use this service
-     * Update the API with an existing API definition
-     */
-    async updateWithDefinitionPUTRaw(requestParameters: UpdateWithDefinitionPUTRequest): Promise<runtime.ApiResponse<ApiEntity>> {
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling updateWithDefinitionPUT.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateWithDefinitionPUT.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateWithDefinitionPUT.');
-        }
-
-        if (requestParameters.body === null || requestParameters.body === undefined) {
-            throw new runtime.RequiredError('body','Required parameter requestParameters.body was null or undefined when calling updateWithDefinitionPUT.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/apis/{api}/import`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters.body as any,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
-    }
-
-    /**
-     * User must have the MANAGE_API permission to use this service
-     * Update the API with an existing API definition
-     */
-    async updateWithDefinitionPUT(requestParameters: UpdateWithDefinitionPUTRequest): Promise<ApiEntity> {
-        const response = await this.updateWithDefinitionPUTRaw(requestParameters);
         return await response.value();
     }
 

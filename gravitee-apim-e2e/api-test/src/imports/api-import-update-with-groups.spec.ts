@@ -58,7 +58,7 @@ describe('Update API from import with groups', () => {
     test('should update the API, associating it to the group "customers"', async () => {
       apiUpdate.groups = ['customers'];
 
-      let updatedApi = await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
+      let updatedApi = await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
       expect(updatedApi.id).toBeTruthy();
       expect(updatedApi.groups).toHaveLength(1);
       expect(updatedApi.groups[0]).toBe(groupId);
@@ -91,7 +91,7 @@ describe('Update API from import with groups', () => {
     test('should update the API, associating it to the group "sales"', async () => {
       apiUpdate.groups = [groupName];
 
-      let updatedApi = await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
+      let updatedApi = await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: apiUpdate }));
       expect(updatedApi.id).toBeTruthy();
       expect(updatedApi.groups).toHaveLength(1);
       groupId = updatedApi.groups[0];

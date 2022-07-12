@@ -32,7 +32,7 @@ describe('Update API by importing it', () => {
 
     test('should fail to update API, returning 404', async () => {
       await fail(
-        apisResource.updateWithDefinitionPUT({
+        apisResource.updateApiWithDefinition({
           envId,
           orgId,
           api: 'unknown-test-id',
@@ -70,7 +70,7 @@ describe('Update API by importing it', () => {
     });
 
     test('should update the API with the generated ID, even if no ID in body', async () => {
-      let updatedApi = await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId, body: fakeUpdateApi }));
+      let updatedApi = await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId, body: fakeUpdateApi }));
       expect(updatedApi.id).toBe(expectedApiId);
     });
 
@@ -114,7 +114,7 @@ describe('Update API by importing it', () => {
     });
 
     test('should update API 2, event if api1 id in body', async () => {
-      let updatedApi = await succeed(apisResource.updateWithDefinitionPUTRaw({ envId, orgId, api: expectedApiId2, body: fakeUpdateApi }));
+      let updatedApi = await succeed(apisResource.updateApiWithDefinitionRaw({ envId, orgId, api: expectedApiId2, body: fakeUpdateApi }));
       expect(updatedApi.id).toBe(expectedApiId2);
     });
 
@@ -182,7 +182,7 @@ describe('Update API by importing it', () => {
 
     test('should fail to update API 2 with same context path as API 1', async () => {
       await fail(
-        apisResource.updateWithDefinitionPUT({ envId, orgId, api: expectedApiId2, body: fakeUpdateApi }),
+        apisResource.updateApiWithDefinition({ envId, orgId, api: expectedApiId2, body: fakeUpdateApi }),
         400,
         'The path [/importTest1/] is already covered by an other API.',
       );

@@ -240,10 +240,11 @@ public class ApisResource extends AbstractResource {
 
     @POST
     @Path("import")
+    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
         summary = "Create an API by importing an API definition",
-        description = "Create an API by importing an existing API definition in JSON format"
+        description = "Create an API by importing an existing API definition in JSON format."
     )
     @ApiResponse(
         responseCode = "200",
@@ -258,11 +259,70 @@ public class ApisResource extends AbstractResource {
         }
     )
     public Response importApiDefinition(
-        @RequestBody(required = true) @Valid @NotNull JsonNode body,
+        @RequestBody(required = true) @Valid @NotNull JsonNode apiDefinition,
         @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
     ) {
+        return importApiDefinitionOrUrl(apiDefinition, definitionVersion);
+    }
+
+    @POST
+    @Path("import-url")
+    @Consumes({ MediaType.TEXT_PLAIN })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Create an API by importing a URL pointing to an API definition",
+        description = "Create an API by importing an existing API definition via a URL"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "API successfully created",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+        }
+    )
+    public Response importApiDefinitionUrl(
+        @RequestBody(required = true) @Valid @NotNull String apiDefinitionOrUrl,
+        @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
+    ) {
+        return importApiDefinitionOrUrl(apiDefinitionOrUrl, definitionVersion);
+    }
+
+    @Deprecated(since = "3.18.0", forRemoval = true)
+    @POST
+    @Path("import")
+    @Consumes({ MediaType.TEXT_PLAIN })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Deprecated - Create an API by importing an API definition",
+        description = "Old endpoint to create an API by importing an existing API definition via a URL - prefer `/apis/import-url`"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "API successfully created",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+        }
+    )
+    public Response deprecatedImportApiDefinitionUrl(
+        @RequestBody(required = true) @Valid @NotNull String apiDefinitionOrUrl,
+        @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
+    ) {
+        return importApiDefinitionOrUrl(apiDefinitionOrUrl, definitionVersion);
+    }
+
+    private Response importApiDefinitionOrUrl(Object apiDefinitionOrUrl, String definitionVersion) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(executionContext, body.toString());
+        ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(executionContext, apiDefinitionOrUrl);
 
         if (
             DefinitionVersion.valueOfLabel(definitionVersion).equals(DefinitionVersion.V2) &&
@@ -401,7 +461,10 @@ public class ApisResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
-    @Operation(summary = "Update the API from the API definition")
+    @Operation(
+        summary = "Update the API from the API definition",
+        description = "Update the API from the API definition in JSON format either with json or via an URL"
+    )
     @ApiResponse(
         responseCode = "200",
         description = "API successfully updated from API definition",
@@ -409,8 +472,8 @@ public class ApisResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Response updateWithDefinition(@Parameter(name = "definition", required = true) String apiDefinition) {
-        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinition);
+    public Response updateWithDefinition(@RequestBody(required = true) @Valid @NotNull Object apiDefinitionOrUrl) {
+        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinitionOrUrl);
         return Response
             .ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
