@@ -80,6 +80,9 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
                     try {
                         // Invoke to make the connection happen.
                         legacyInvoker.invoke(adaptedCtx, streamAdapter, connectionHandlerAdapter);
+                        if (!nextEmitter.isDisposed()) {
+                            nextEmitter.onComplete();
+                        }
                     } catch (Throwable t) {
                         nextEmitter.tryOnError(new Exception("An error occurred while trying to execute invoker " + id, t));
                     }
