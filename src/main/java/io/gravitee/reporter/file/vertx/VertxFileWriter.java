@@ -89,8 +89,13 @@ public class VertxFileWriter<T extends Reportable> {
 
     private final Pattern rolloverFiles;
 
-    public VertxFileWriter(Vertx vertx, MetricsType type, Formatter<T> formatter, String filename, FileReporterConfiguration configuration)
-        throws IOException {
+    public VertxFileWriter(
+        Vertx vertx,
+        MetricsType type,
+        Formatter<T> formatter,
+        String filename,
+        FileReporterConfiguration configuration
+    ) {
         this.vertx = vertx;
         this.type = type;
         this.formatter = formatter;
@@ -124,20 +129,17 @@ public class VertxFileWriter<T extends Reportable> {
         flushId =
             vertx.setPeriodic(
                 configuration.getFlushInterval(),
-                new Handler<Long>() {
-                    @Override
-                    public void handle(Long event) {
-                        LOGGER.debug("Flush the content to file");
+                event -> {
+                    LOGGER.debug("Flush the content to file");
 
-                        if (asyncFile != null) {
-                            asyncFile.flush(
-                                event1 -> {
-                                    if (event1.failed()) {
-                                        LOGGER.error("An error occurs while flushing the content of the file", event1.cause());
-                                    }
+                    if (asyncFile != null) {
+                        asyncFile.flush(
+                            event1 -> {
+                                if (event1.failed()) {
+                                    LOGGER.error("An error occurs while flushing the content of the file", event1.cause());
                                 }
-                            );
-                        }
+                            }
+                        );
                     }
                 }
             );
@@ -356,13 +358,24 @@ public class VertxFileWriter<T extends Reportable> {
                     String fn = logList[i];
                     if (rolloverFiles.matcher(fn).matches()) {
                         File f = new File(dir, fn);
-                        long date = f.lastModified();
-                        if (((now - date) / (1000 * 60 * 60 * 24)) > configuration.getRetainDays()) {
+                        if (shouldDeleteFile(f, now)) {
                             f.delete();
                         }
                     }
                 }
             }
         }
+    }
+
+    /**
+     * File should be deleted if its last modification date is older than configured retainDays.
+     *
+     * @param file file
+     * @param currentTimeInMs current time in milliseconds
+     * @return true if file should be deleted, false elsewhere
+     */
+    protected boolean shouldDeleteFile(File file, long currentTimeInMs) {
+        long retainDays = configuration.getRetainDays();
+        return retainDays > 0 && currentTimeInMs - file.lastModified() > retainDays * 1000 * 60 * 60 * 24;
     }
 }
