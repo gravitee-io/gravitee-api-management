@@ -346,7 +346,7 @@ jobs:
 
     build:
         docker:
-            - image: cimg/openjdk:11.0
+            - image: cimg/openjdk:11.0-node
         resource_class: large
         steps:
             - checkout
@@ -1448,10 +1448,11 @@ jobs:
 
     package-bundle:
         docker:
-            - image: cimg/python:3.10
+            - image: cimg/openjdk:11.0-node
         resource_class: medium
         environment:
             RELEASE_VERSION: << pipeline.parameters.graviteeio_version >>
+            ARTIFACTORY_REPO_URL: "https://odbxikk7vo-artifactory.services.clever-cloud.com/external-dependencies-n-gravitee-all"
         steps:
             - keeper/env-export:
                   secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login
@@ -1461,108 +1462,16 @@ jobs:
                   var-name: ARTIFACTORY_PASSWORD
             - checkout
             - run:
-                  name: "Install python libraries"
-                  command: |
-                      pip install requests
-
+                  name: Install dependencies
+                  command: printenv
+            - run:
+                  name: Install dependencies
+                  command: npm install
+                  working_directory: "./release"
             - run:
                   name: "Building package bundle"
-                  command: |
-                      python .circleci/package_bundles.py
-            - run:
-                  name: "Prepare bundles for uploading"
-                  command: |
-                      workingDir=$(pwd)
-
-                      ####################
-                      #Distribution - Full                                            
-                      ####################
-                      mkdir -p graviteeio-apim/distributions
-                      cp ./tmp/${RELEASE_VERSION}/dist/graviteeio-full-${RELEASE_VERSION}.zip graviteeio-apim/distributions/
-
-                      cd graviteeio-apim/distributions
-
-                      md5sum graviteeio-full-${RELEASE_VERSION}.zip > graviteeio-full-${RELEASE_VERSION}.zip.md5
-                      sha512sum graviteeio-full-${RELEASE_VERSION}.zip > graviteeio-full-${RELEASE_VERSION}.zip.sha512sum
-                      sha1sum graviteeio-full-${RELEASE_VERSION}.zip > graviteeio-full-${RELEASE_VERSION}.zip.sha1
-
-                      cd $workingDir
-
-                      #####################
-                      #Components - Gateway
-                      #####################
-                      mkdir -p graviteeio-apim/components/gravitee-gateway
-                      cp ./tmp/${RELEASE_VERSION}/gatewas/gravitee-apim-gateway-standalone-distribution-zip-${RELEASE_VERSION}.zip graviteeio-apim/components/gravitee-gateway/gravitee-apim-gateway-${RELEASE_VERSION}.zip
-
-                      cd graviteeio-apim/components/gravitee-gateway
-
-                      md5sum gravitee-apim-gateway-${RELEASE_VERSION}.zip > gravitee-apim-gateway-${RELEASE_VERSION}.zip.md5
-                      sha512sum gravitee-apim-gateway-${RELEASE_VERSION}.zip > gravitee-apim-gateway-${RELEASE_VERSION}.zip.sha512sum
-                      sha1sum gravitee-apim-gateway-${RELEASE_VERSION}.zip > gravitee-apim-gateway-${RELEASE_VERSION}.zip.sha1
-
-                      cd $workingDir
-
-                      ######################
-                      #Components - Rest API
-                      ######################
-                      mkdir -p graviteeio-apim/components/gravitee-management-rest-api
-                      cp ./tmp/${RELEASE_VERSION}/rests/gravitee-apim-rest-api-standalone-distribution-zip-${RELEASE_VERSION}.zip graviteeio-apim/components/gravitee-management-rest-api/gravitee-apim-rest-api-${RELEASE_VERSION}.zip
-
-                      cd graviteeio-apim/components/gravitee-management-rest-api
-
-                      md5sum gravitee-apim-rest-api-${RELEASE_VERSION}.zip > gravitee-apim-rest-api-${RELEASE_VERSION}.zip.md5
-                      sha512sum gravitee-apim-rest-api-${RELEASE_VERSION}.zip > gravitee-apim-rest-api-${RELEASE_VERSION}.zip.sha512sum
-                      sha1sum gravitee-apim-rest-api-${RELEASE_VERSION}.zip > gravitee-apim-rest-api-${RELEASE_VERSION}.zip.sha1
-
-                      cd $workingDir
-
-                      #####################
-                      #Components - Console
-                      #####################
-                      mkdir -p graviteeio-apim/components/gravitee-management-webui
-                      cp ./tmp/${RELEASE_VERSION}/consoles/gravitee-apim-console-webui-${RELEASE_VERSION}.zip graviteeio-apim/components/gravitee-management-webui/
-
-                      cd graviteeio-apim/components/gravitee-management-webui
-
-                      md5sum gravitee-apim-console-webui-${RELEASE_VERSION}.zip > gravitee-apim-console-webui-${RELEASE_VERSION}.zip.md5
-                      sha512sum gravitee-apim-console-webui-${RELEASE_VERSION}.zip > gravitee-apim-console-webui-${RELEASE_VERSION}.zip.sha512sum
-                      sha1sum gravitee-apim-console-webui-${RELEASE_VERSION}.zip > gravitee-apim-console-webui-${RELEASE_VERSION}.zip.sha1
-
-                      cd $workingDir
-
-                      ####################
-                      #Components - Portal
-                      ####################
-                      mkdir -p graviteeio-apim/components/gravitee-portal-webui
-                      cp ./tmp/${RELEASE_VERSION}/portals/gravitee-apim-portal-webui-${RELEASE_VERSION}.zip graviteeio-apim/components/gravitee-portal-webui/
-
-                      cd graviteeio-apim/components/gravitee-portal-webui
-
-                      md5sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.md5
-                      sha512sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.sha512sum
-                      sha1sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.sha1
-
-                      cd $workingDir
-
-                      #############
-                      #Repositories 
-                      #############
-                      for repositoryZipFile in $(find ./tmp/${RELEASE_VERSION}/repositories/ -name '*.zip' | sed "s#./tmp/${RELEASE_VERSION}/repositories/##"); do
-                        # compute the destination folder on S3 to publish the artefact
-                        # e.g. gravitee-my-project-1.14.0.zip => graviteeio-apim/plugins/repositories/gravitee-my-project
-                        artefactFolderToSync=graviteeio-apim/plugins/repositories/${repositoryZipFile%-*p}                                               
-
-                        mkdir -p $artefactFolderToSync
-                        cp ./tmp/${RELEASE_VERSION}/repositories/$repositoryZipFile $artefactFolderToSync/
-
-                        cd $artefactFolderToSync
-
-                        md5sum $repositoryZipFile > $repositoryZipFile.md5
-                        sha512sum $repositoryZipFile > $repositoryZipFile.sha512sum
-                        sha1sum $repositoryZipFile > $repositoryZipFile.sha1
-
-                        cd $workingDir
-                      done
+                  working_directory: "./release"
+                  command: npm run zx -- --experimental ci-steps/package-bundles.mjs --version=<< pipeline.parameters.graviteeio_version >>
             - keeper/env-export:
                   secret-url: keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password
                   var-name: AWS_ACCESS_KEY_ID
@@ -1573,7 +1482,7 @@ jobs:
                   arguments: |
                       --endpoint-url https://cellar-c2.services.clever-cloud.com \
                       --acl public-read
-                  from: graviteeio-apim
+                  from: ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
                   to: "s3://gravitee-releases-downloads/graviteeio-apim"
 
 workflows:
