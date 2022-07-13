@@ -5,7 +5,9 @@
   "author": "Gravitee Team",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "^16.0.1"
+    "dotenv": "^16.0.1",
+    "xml2json": "^0.12.0",
+    "zx": "^7.0.7"
   },
   "scripts": {
     "prettier": "prettier --check \"**/*.{js,mjs,json}\"",
@@ -14,7 +16,8 @@
     "package_zip": "zx steps/2-package_zip.mjs",
     "docker_rpms": "zx steps/3-docker_and_rpms.mjs",
     "changelog": "zx steps/4-generate_changelog.mjs",
-    "nexus_sync": "zx steps/5-nexus_sync.mjs"
+    "nexus_sync": "zx steps/5-nexus_sync.mjs",
+    "zx": "zx"
   },
   "devDependencies": {
     "prettier": "2.5.1"
