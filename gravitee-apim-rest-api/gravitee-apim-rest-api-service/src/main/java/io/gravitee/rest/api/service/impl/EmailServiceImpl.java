@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.rest.api.model.parameters.Key.*;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_FROM;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_SUBJECT;
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -42,7 +44,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
@@ -61,17 +62,22 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class);
 
-    @Autowired
-    private GraviteeJavaMailManager mailManager;
+    private final GraviteeJavaMailManager mailManager;
+    private final NotificationTemplateService notificationTemplateService;
+    private final ParameterService parameterService;
+    private final String templatesPath;
 
-    @Autowired
-    private NotificationTemplateService notificationTemplateService;
-
-    @Autowired
-    private ParameterService parameterService;
-
-    @Value("${templates.path:${gravitee.home}/templates}")
-    private String templatesPath;
+    public EmailServiceImpl(
+        GraviteeJavaMailManager mailManager,
+        NotificationTemplateService notificationTemplateService,
+        ParameterService parameterService,
+        @Value("${templates.path:${gravitee.home}/templates}") String templatesPath
+    ) {
+        this.mailManager = mailManager;
+        this.notificationTemplateService = notificationTemplateService;
+        this.parameterService = parameterService;
+        this.templatesPath = templatesPath;
+    }
 
     @Override
     public void sendEmailNotification(final EmailNotification emailNotification) {
@@ -199,11 +205,16 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         for (final String res : resources) {
             if (res.startsWith("data:image/")) {
                 final String value = res.replaceFirst("^data:image/[^;]*;base64,?", "");
-                byte[] bytes = Base64.getDecoder().decode(value.getBytes("UTF-8"));
+                byte[] bytes = Base64.getDecoder().decode(value.getBytes(StandardCharsets.UTF_8));
                 mailMessage.addInline(res, new ByteArrayResource(bytes), extractMimeType(res));
             } else {
-                final FileSystemResource templateResource = new FileSystemResource(new File(templatesPath, res));
-                mailMessage.addInline(res, templateResource, getContentTypeByFileName(res));
+                File file = new File(templatesPath, res);
+                if (file.getCanonicalPath().startsWith(templatesPath)) {
+                    final FileSystemResource templateResource = new FileSystemResource(file);
+                    mailMessage.addInline(res, templateResource, getContentTypeByFileName(res));
+                } else {
+                    LOGGER.warn("Resource path invalid : {}", file.getPath());
+                }
             }
         }
 

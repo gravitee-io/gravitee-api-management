@@ -88,6 +88,7 @@
         <commons-lang3.version>3.9</commons-lang3.version>
         <commons-pool2.version>2.9.0</commons-pool2.version>
         <commons-text.version>1.9</commons-text.version>
+        <commons-email.version>1.5</commons-email.version>
         <dozer.version>6.4.1</dozer.version>
         <flexmark.version>0.61.16</flexmark.version>
         <freemarker.version>2.3.30</freemarker.version>
@@ -559,6 +560,12 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-text</artifactId>
                 <version>${commons-text.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-email</artifactId>
+                <version>${commons-email.version}</version>
             </dependency>
 
             <dependency>
