@@ -346,7 +346,7 @@ jobs:
 
     build:
         docker:
-            - image: cimg/openjdk:11.0-node
+            - image: cimg/openjdk:11.0
         resource_class: large
         steps:
             - checkout
@@ -1481,7 +1481,7 @@ jobs:
             - aws-s3/sync:
                   arguments: |
                       --endpoint-url https://cellar-c2.services.clever-cloud.com \
-                      --acl public-read
+                      --acl public-read --dryrun
                   from: ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
                   to: "s3://gravitee-releases-downloads/graviteeio-apim"
 
