@@ -1,7 +1,8 @@
-import ReCaptchaService from '../../services/reCaptcha.service';
-import NotificationService from '../../services/notification.service';
-import UserService from '../../services/user.service';
+import { escape } from 'lodash';
 
+import NotificationService from '../../services/notification.service';
+import ReCaptchaService from '../../services/reCaptcha.service';
+import UserService from '../../services/user.service';
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -18,7 +19,7 @@ import UserService from '../../services/user.service';
  * limitations under the License.
  */
 class RegistrationController {
-  user: any = {};
+  user: { firstname?: string; lastname?: string; email?: string; customFields?: any } = {};
   fields: any[] = [];
 
   constructor(
@@ -43,8 +44,16 @@ class RegistrationController {
     const scope = this.$scope;
     const notificationService = this.NotificationService;
 
-    this.ReCaptchaService.execute('register').then(() =>
-      this.UserService.register(this.user).then(
+    this.ReCaptchaService.execute('register')
+      .then(() => {
+        const userToRegister = {
+          ...this.user,
+          firstname: escape(this.user.firstname),
+          lastname: escape(this.user.lastname),
+        };
+        return this.UserService.register(userToRegister);
+      })
+      .then(
         () => {
           scope.formRegistration.$setPristine();
           notificationService.show('Thank you for registering, you will receive an e-mail confirmation in few minutes');
@@ -52,8 +61,7 @@ class RegistrationController {
         (e) => {
           notificationService.showError(e);
         },
-      ),
-    );
+      );
   }
 }
 
