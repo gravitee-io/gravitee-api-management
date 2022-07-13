@@ -1,3 +1,10 @@
+## [2.5.4](https://github.com/gravitee-io/gravitee-reporter-file/compare/2.5.3...2.5.4) (2022-07-13)
+
+
+### Bug Fixes
+
+* improve accuracy of retainDays parameter ([b803a57](https://github.com/gravitee-io/gravitee-reporter-file/commit/b803a57226847626b665ff7688985274bec3f5f1))
+
 ## [2.5.3](https://github.com/gravitee-io/gravitee-reporter-file/compare/2.5.2...2.5.3) (2022-07-01)
 
 
