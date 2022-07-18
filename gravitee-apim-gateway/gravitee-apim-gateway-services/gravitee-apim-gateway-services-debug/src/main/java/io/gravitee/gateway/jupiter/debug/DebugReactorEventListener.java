@@ -17,13 +17,12 @@ package io.gravitee.gateway.jupiter.debug;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.Event;
-import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
+import io.gravitee.gateway.jupiter.reactor.ReactorEventListener;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.reactor.Reactable;
@@ -50,9 +49,7 @@ import org.slf4j.LoggerFactory;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DebugReactorEventListener
-    extends AbstractService<DebugReactorEventListener>
-    implements EventListener<ReactorEvent, Reactable> {
+public class DebugReactorEventListener extends ReactorEventListener {
 
     private final Logger logger = LoggerFactory.getLogger(DebugReactorEventListener.class);
     private final Vertx vertx;
@@ -72,6 +69,7 @@ public class DebugReactorEventListener
         final ReactorHandlerRegistry reactorHandlerRegistry,
         OrganizationManager organizationManager
     ) {
+        super(eventManager, reactorHandlerRegistry);
         this.vertx = vertx;
         this.eventManager = eventManager;
         this.eventRepository = eventRepository;

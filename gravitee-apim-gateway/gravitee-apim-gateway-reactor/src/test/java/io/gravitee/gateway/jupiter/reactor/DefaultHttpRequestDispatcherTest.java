@@ -20,8 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.common.event.Event;
-import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.api.ExecutionContext;
@@ -34,8 +32,6 @@ import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
-import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
@@ -59,7 +55,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 /**
@@ -72,9 +67,6 @@ class DefaultHttpRequestDispatcherTest {
     protected static final String HOST = "gravitee.io";
     protected static final String PATH = "/path";
     protected static final String MOCK_ERROR_MESSAGE = "Mock error";
-
-    @Mock
-    private EventManager eventManager;
 
     @Mock
     private GatewayConfiguration gatewayConfiguration;
@@ -159,7 +151,6 @@ class DefaultHttpRequestDispatcherTest {
 
         cut =
             new DefaultHttpRequestDispatcher(
-                eventManager,
                 gatewayConfiguration,
                 reactorHandlerRegistry,
                 entrypointResolver,
@@ -171,7 +162,8 @@ class DefaultHttpRequestDispatcherTest {
                 notFoundProcessorChainFactory,
                 false
             );
-        cut.setApplicationContext(mock(ApplicationContext.class));
+        //TODO: to check: is this needed ?
+        // cut.setApplicationContext(mock(ApplicationContext.class));
     }
 
     @Test
@@ -348,57 +340,6 @@ class DefaultHttpRequestDispatcherTest {
         final MutableRequestExecutionContext ctxCaptorValue = ctxCaptor.getValue();
         assertThat(ctxCaptorValue.request().metrics().getTenant()).isEqualTo("TENANT");
         assertThat(ctxCaptorValue.request().metrics().getZone()).isEqualTo("ZONE");
-    }
-
-    @Test
-    public void shouldCreateToHandlerRegistryWhenDeployApiEvent() {
-        final Event<ReactorEvent, Reactable> event = mock(Event.class);
-        final Reactable api = mock(Reactable.class);
-
-        when(event.type()).thenReturn(ReactorEvent.DEPLOY);
-        when(event.content()).thenReturn(api);
-        cut.onEvent(event);
-
-        verify(reactorHandlerRegistry).create(api);
-        verifyNoMoreInteractions(reactorHandlerRegistry);
-    }
-
-    @Test
-    public void shouldUpdateToHandlerRegistryWhenUpdateApiEvent() {
-        final Event<ReactorEvent, Reactable> event = mock(Event.class);
-        final Reactable api = mock(Reactable.class);
-
-        when(event.type()).thenReturn(ReactorEvent.UPDATE);
-        when(event.content()).thenReturn(api);
-        cut.onEvent(event);
-
-        verify(reactorHandlerRegistry).update(api);
-        verifyNoMoreInteractions(reactorHandlerRegistry);
-    }
-
-    @Test
-    public void shouldRemoveToHandlerRegistryWhenUpdateApiEvent() {
-        final Event<ReactorEvent, Reactable> event = mock(Event.class);
-        final Reactable api = mock(Reactable.class);
-
-        when(event.type()).thenReturn(ReactorEvent.UNDEPLOY);
-        when(event.content()).thenReturn(api);
-        cut.onEvent(event);
-
-        verify(reactorHandlerRegistry).remove(api);
-        verifyNoMoreInteractions(reactorHandlerRegistry);
-    }
-
-    @Test
-    public void shouldSubscribeToEventsWhenStarting() throws Exception {
-        cut.start();
-        verify(eventManager).subscribeForEvents(cut, ReactorEvent.class);
-    }
-
-    @Test
-    public void shouldClearHandlerRegistryWhenStopping() throws Exception {
-        cut.stop();
-        verify(reactorHandlerRegistry).clear();
     }
 
     private void prepareJupiterMock(HandlerEntrypoint handlerEntrypoint, ApiReactor apiReactor) {

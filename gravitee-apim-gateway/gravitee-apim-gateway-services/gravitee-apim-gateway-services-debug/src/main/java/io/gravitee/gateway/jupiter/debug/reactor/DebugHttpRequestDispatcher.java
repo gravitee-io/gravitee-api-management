@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.jupiter.debug.reactor;
 
-import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.debug.vertx.VertxHttpServerRequestDebugDecorator;
@@ -39,7 +38,6 @@ import io.vertx.reactivex.core.http.HttpServerRequest;
 public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
 
     public DebugHttpRequestDispatcher(
-        EventManager eventManager,
         GatewayConfiguration gatewayConfiguration,
         ReactorHandlerRegistry reactorHandlerRegistry,
         EntrypointResolver entrypointResolver,
@@ -52,7 +50,6 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
         boolean tracingEnabled
     ) {
         super(
-            eventManager,
             gatewayConfiguration,
             reactorHandlerRegistry,
             entrypointResolver,

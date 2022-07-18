@@ -89,11 +89,7 @@ import org.springframework.stereotype.Component;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-<<<<<<< HEAD
 @Component("PlanServiceImplImplV4")
-=======
-@Component
->>>>>>> 2a8318ccf0 (feat(definition): add api definition v4 classes)
 public class PlanServiceImpl extends TransactionalService implements PlanService {
 
     private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST = Collections.unmodifiableList(

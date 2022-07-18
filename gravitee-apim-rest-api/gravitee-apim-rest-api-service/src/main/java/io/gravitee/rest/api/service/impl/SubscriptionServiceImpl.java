@@ -355,6 +355,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setGeneralConditionsContentRevision(newSubscriptionEntity.getGeneralConditionsContentRevision().getRevision());
                 subscription.setGeneralConditionsContentPageId(newSubscriptionEntity.getGeneralConditionsContentRevision().getPageId());
             }
+            subscription.setFilter(newSubscriptionEntity.getFilter());
+            subscription.setConfiguration(newSubscriptionEntity.getConfiguration());
 
             subscription = subscriptionRepository.create(subscription);
 
@@ -1374,7 +1376,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setClientId(subscription.getClientId());
         entity.setPausedAt(subscription.getPausedAt());
         entity.setDaysToExpirationOnLastNotification(subscription.getDaysToExpirationOnLastNotification());
-
+        entity.setFilter(subscription.getFilter());
+        entity.setConfiguration(subscription.getConfiguration());
         return entity;
     }
 

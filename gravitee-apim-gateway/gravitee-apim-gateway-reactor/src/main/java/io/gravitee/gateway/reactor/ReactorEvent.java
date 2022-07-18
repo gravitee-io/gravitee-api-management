@@ -24,4 +24,5 @@ public enum ReactorEvent {
     UPDATE,
     UNDEPLOY,
     DEBUG,
+    SUBSCRIPTION,
 }

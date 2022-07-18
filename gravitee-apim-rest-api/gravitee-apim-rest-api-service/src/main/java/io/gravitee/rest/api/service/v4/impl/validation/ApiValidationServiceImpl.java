@@ -15,10 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
-<<<<<<< HEAD
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-=======
->>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.impl.TransactionalService;
@@ -58,7 +55,6 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     }
 
     @Override
-<<<<<<< HEAD
     public void validateAndSanitizeNewApi(
         final ExecutionContext executionContext,
         final NewApiEntity newApiEntity,
@@ -68,13 +64,6 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         newApiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, newApiEntity.getTags()));
         // Validate and clean groups
         newApiEntity.setGroups(groupValidationService.validateAndSanitize(executionContext, newApiEntity.getGroups(), primaryOwnerEntity));
-=======
-    public void validateAndSanitizeNewApi(final ExecutionContext executionContext, final NewApiEntity newApiEntity) {
-        // Validate and clean tags
-        newApiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, newApiEntity.getTags()));
-        // Validate and clean groups
-        newApiEntity.setGroups(groupValidationService.validateAndSanitize(executionContext, newApiEntity.getGroups()));
->>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
         // Validate and clean listeners
         newApiEntity.setListeners(listenerValidationService.validateAndSanitize(executionContext, null, newApiEntity.getListeners()));
         // Validate and clean endpoints

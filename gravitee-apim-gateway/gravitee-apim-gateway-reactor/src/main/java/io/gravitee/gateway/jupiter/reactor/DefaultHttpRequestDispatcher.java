@@ -15,12 +15,8 @@
  */
 package io.gravitee.gateway.jupiter.reactor;
 
-import io.gravitee.common.event.Event;
-import io.gravitee.common.event.EventListener;
-import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
@@ -42,8 +38,6 @@ import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
-import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
@@ -71,13 +65,10 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultHttpRequestDispatcher
-    extends AbstractService<HttpRequestDispatcher>
-    implements HttpRequestDispatcher, EventListener<ReactorEvent, Reactable> {
+public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
     public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
     private final Logger log = LoggerFactory.getLogger(DefaultHttpRequestDispatcher.class);
-    private final EventManager eventManager;
     private final GatewayConfiguration gatewayConfiguration;
     private final ReactorHandlerRegistry reactorHandlerRegistry;
     private final EntrypointResolver entrypointResolver;
@@ -90,7 +81,6 @@ public class DefaultHttpRequestDispatcher
     private final ComponentProvider globalComponentProvider;
 
     public DefaultHttpRequestDispatcher(
-        EventManager eventManager,
         GatewayConfiguration gatewayConfiguration,
         ReactorHandlerRegistry reactorHandlerRegistry,
         EntrypointResolver entrypointResolver,
@@ -102,7 +92,6 @@ public class DefaultHttpRequestDispatcher
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         boolean tracingEnabled
     ) {
-        this.eventManager = eventManager;
         this.gatewayConfiguration = gatewayConfiguration;
         this.reactorHandlerRegistry = reactorHandlerRegistry;
         this.entrypointResolver = entrypointResolver;
@@ -305,33 +294,5 @@ public class DefaultHttpRequestDispatcher
         Handler<io.gravitee.gateway.api.ExecutionContext> handler
     ) {
         responseProcessorChainFactory.create().handler(handler).handle(context);
-    }
-
-    @Override
-    public void onEvent(Event<ReactorEvent, Reactable> event) {
-        switch (event.type()) {
-            case DEPLOY:
-                reactorHandlerRegistry.create(event.content());
-                break;
-            case UPDATE:
-                reactorHandlerRegistry.update(event.content());
-                break;
-            case UNDEPLOY:
-                reactorHandlerRegistry.remove(event.content());
-                break;
-        }
-    }
-
-    @Override
-    protected void doStart() throws Exception {
-        super.doStart();
-        eventManager.subscribeForEvents(this, ReactorEvent.class);
-    }
-
-    @Override
-    protected void doStop() throws Exception {
-        super.doStop();
-
-        reactorHandlerRegistry.clear();
     }
 }

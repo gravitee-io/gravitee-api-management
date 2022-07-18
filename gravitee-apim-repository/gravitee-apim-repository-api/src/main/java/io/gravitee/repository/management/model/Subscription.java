@@ -17,6 +17,7 @@ package io.gravitee.repository.management.model;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -115,6 +116,16 @@ public class Subscription implements Serializable {
      */
     private Integer daysToExpirationOnLastNotification;
 
+    /**
+     * The configuration on the subscription is used to maintain and store the configuration needed for a subscription.
+     * For example, the way to configure a WebHook.
+     */
+    private String configuration;
+
+    private Map<String, String> metadata;
+
+    private String filter;
+
     public Subscription() {}
 
     public Subscription(Subscription cloned) {
@@ -137,6 +148,9 @@ public class Subscription implements Serializable {
         this.generalConditionsContentRevision = cloned.generalConditionsContentRevision;
         this.generalConditionsContentPageId = cloned.generalConditionsContentPageId;
         this.daysToExpirationOnLastNotification = cloned.daysToExpirationOnLastNotification;
+        this.configuration = cloned.configuration;
+        this.metadata = cloned.metadata;
+        this.filter = cloned.filter;
     }
 
     public String getId() {
@@ -307,6 +321,30 @@ public class Subscription implements Serializable {
         this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
     }
 
+    public String getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setFilter(String filter) {
+        this.filter = filter;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -320,6 +358,13 @@ public class Subscription implements Serializable {
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
+    }
+
+    // TODO: Validate if the type on the subscription is needed somewhere (gateway for the sync process ?)
+    public enum Type {
+        REQUEST,
+
+        PUSH,
     }
 
     public enum Status {

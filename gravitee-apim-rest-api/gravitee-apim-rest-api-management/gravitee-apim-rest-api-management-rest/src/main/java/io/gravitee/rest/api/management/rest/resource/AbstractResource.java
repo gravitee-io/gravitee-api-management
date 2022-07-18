@@ -148,10 +148,12 @@ public abstract class AbstractResource {
             .stream()
             .filter(membership -> membership.getReferenceId().equals(apiId))
             .filter(membership -> membership.getRoleId() != null)
-            .anyMatch(membership -> {
-                RoleEntity role = roleService.findById(membership.getRoleId());
-                return apiService.canManageApi(role);
-            });
+            .anyMatch(
+                membership -> {
+                    RoleEntity role = roleService.findById(membership.getRoleId());
+                    return apiService.canManageApi(role);
+                }
+            );
     }
 
     private boolean isMemberThroughGroup(Set<String> apiGroups) {
@@ -163,10 +165,12 @@ public abstract class AbstractResource {
             .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), GROUP)
             .stream()
             .filter(membership -> membership.getRoleId() != null)
-            .filter(membership -> {
-                RoleEntity role = roleService.findById(membership.getRoleId());
-                return apiService.canManageApi(role);
-            })
+            .filter(
+                membership -> {
+                    RoleEntity role = roleService.findById(membership.getRoleId());
+                    return apiService.canManageApi(role);
+                }
+            )
             .map(MembershipEntity::getReferenceId)
             .collect(Collectors.toSet());
 

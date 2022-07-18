@@ -28,6 +28,10 @@ public class NewSubscriptionEntity {
     private PageEntity.PageRevisionId generalConditionsContentRevision;
     private Boolean generalConditionsAccepted;
 
+    private String filter;
+
+    private String configuration;
+
     public NewSubscriptionEntity() {}
 
     public NewSubscriptionEntity(String plan, String application) {
@@ -73,5 +77,21 @@ public class NewSubscriptionEntity {
 
     public void setGeneralConditionsContentRevision(PageEntity.PageRevisionId generalConditionsContentRevision) {
         this.generalConditionsContentRevision = generalConditionsContentRevision;
+    }
+
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setFilter(String filter) {
+        this.filter = filter;
+    }
+
+    public String getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
     }
 }

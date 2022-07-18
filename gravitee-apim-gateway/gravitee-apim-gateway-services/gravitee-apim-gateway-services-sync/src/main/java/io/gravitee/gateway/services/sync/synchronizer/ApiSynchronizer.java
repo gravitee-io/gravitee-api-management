@@ -120,15 +120,17 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     private Flowable<String> processApiEvents(Flowable<Event> upstream) {
         return upstream
             .groupBy(Event::getType)
-            .flatMap(eventsByType -> {
-                if (eventsByType.getKey() == EventType.PUBLISH_API || eventsByType.getKey() == EventType.START_API) {
-                    return eventsByType.compose(this::processApiRegisterEvents);
-                } else if (eventsByType.getKey() == EventType.UNPUBLISH_API || eventsByType.getKey() == EventType.STOP_API) {
-                    return eventsByType.compose(this::processApiUnregisterEvents);
-                } else {
-                    return Flowable.empty();
+            .flatMap(
+                eventsByType -> {
+                    if (eventsByType.getKey() == EventType.PUBLISH_API || eventsByType.getKey() == EventType.START_API) {
+                        return eventsByType.compose(this::processApiRegisterEvents);
+                    } else if (eventsByType.getKey() == EventType.UNPUBLISH_API || eventsByType.getKey() == EventType.STOP_API) {
+                        return eventsByType.compose(this::processApiUnregisterEvents);
+                    } else {
+                        return Flowable.empty();
+                    }
                 }
-            });
+            );
     }
 
     /**
@@ -169,13 +171,15 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         return upstream
             .parallel(PARALLELISM)
             .runOn(Schedulers.from(executor))
-            .doOnNext(api -> {
-                try {
-                    apiManager.register(api);
-                } catch (Exception e) {
-                    logger.error("An error occurred when trying to synchronize api {} [{}].", api.getName(), api.getId(), e);
+            .doOnNext(
+                api -> {
+                    try {
+                        apiManager.register(api);
+                    } catch (Exception e) {
+                        logger.error("An error occurred when trying to synchronize api {} [{}].", api.getName(), api.getId(), e);
+                    }
                 }
-            })
+            )
             .sequential()
             .map(io.gravitee.definition.model.Api::getId);
     }
@@ -185,13 +189,15 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         return upstream
             .parallel(PARALLELISM)
             .runOn(Schedulers.from(executor))
-            .doOnNext(apiId -> {
-                try {
-                    apiManager.unregister(apiId);
-                } catch (Exception e) {
-                    logger.error("An error occurred when trying to unregister api [{}].", apiId, e);
+            .doOnNext(
+                apiId -> {
+                    try {
+                        apiManager.unregister(apiId);
+                    } catch (Exception e) {
+                        logger.error("An error occurred when trying to unregister api [{}].", apiId, e);
+                    }
                 }
-            })
+            )
             .sequential();
     }
 
@@ -290,10 +296,12 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     ) {
         return upstream
             .buffer(getBulkSize())
-            .doOnNext(apis -> {
-                apiKeysCacheService.register(apis);
-                subscriptionsCacheService.register(apis);
-            })
+            .doOnNext(
+                apis -> {
+                    apiKeysCacheService.register(apis);
+                    subscriptionsCacheService.register(apis);
+                }
+            )
             .flatMapIterable(apis -> apis);
     }
 
@@ -308,13 +316,15 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     ) {
         return upstream
             .groupBy(io.gravitee.definition.model.Api::getDefinitionVersion)
-            .flatMap(apisByDefinitionVersion -> {
-                if (apisByDefinitionVersion.getKey() == DefinitionVersion.V1) {
-                    return apisByDefinitionVersion.buffer(getBulkSize()).flatMap(this::fetchV1ApiPlans);
-                } else {
-                    return apisByDefinitionVersion.flatMapSingle(this::fetchV2ApiPlans);
+            .flatMap(
+                apisByDefinitionVersion -> {
+                    if (apisByDefinitionVersion.getKey() == DefinitionVersion.V1) {
+                        return apisByDefinitionVersion.buffer(getBulkSize()).flatMap(this::fetchV1ApiPlans);
+                    } else {
+                        return apisByDefinitionVersion.flatMapSingle(this::fetchV2ApiPlans);
+                    }
                 }
-            });
+            );
     }
 
     private Flowable<io.gravitee.gateway.handlers.api.definition.Api> fetchV1ApiPlans(
@@ -333,22 +343,25 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                 .stream()
                 .collect(Collectors.groupingBy(Plan::getApi));
 
-            plansByApi.forEach((key, value) -> {
-                final io.gravitee.gateway.handlers.api.definition.Api definition = apisById.get(key);
+            plansByApi.forEach(
+                (key, value) -> {
+                    final io.gravitee.gateway.handlers.api.definition.Api definition = apisById.get(key);
 
-                if (definition.getDefinitionVersion() == DefinitionVersion.V1) {
-                    // Deploy only published plan
-                    definition.setPlans(
-                        value
-                            .stream()
-                            .filter(plan ->
-                                Plan.Status.PUBLISHED.equals(plan.getStatus()) || Plan.Status.DEPRECATED.equals(plan.getStatus())
-                            )
-                            .map(this::convert)
-                            .collect(Collectors.toList())
-                    );
+                    if (definition.getDefinitionVersion() == DefinitionVersion.V1) {
+                        // Deploy only published plan
+                        definition.setPlans(
+                            value
+                                .stream()
+                                .filter(
+                                    plan ->
+                                        Plan.Status.PUBLISHED.equals(plan.getStatus()) || Plan.Status.DEPRECATED.equals(plan.getStatus())
+                                )
+                                .map(this::convert)
+                                .collect(Collectors.toList())
+                        );
+                    }
                 }
-            });
+            );
         } catch (TechnicalException te) {
             logger.error("Unexpected error while loading plans of APIs: [{}]", apiV1Ids, te);
         }

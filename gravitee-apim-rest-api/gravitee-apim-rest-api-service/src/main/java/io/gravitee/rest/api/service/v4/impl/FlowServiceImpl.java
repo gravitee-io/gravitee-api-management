@@ -53,11 +53,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Slf4j
-<<<<<<< HEAD
 @Component("FlowServiceImplV4")
-=======
-@Component
->>>>>>> 2a8318ccf0 (feat(definition): add api definition v4 classes)
 public class FlowServiceImpl extends TransactionalService implements FlowService {
 
     @Lazy

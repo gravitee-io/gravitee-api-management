@@ -38,11 +38,7 @@ import org.springframework.stereotype.Component;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-<<<<<<< HEAD
 @Component("FlowMapperV4")
-=======
-@Component
->>>>>>> 2a8318ccf0 (feat(definition): add api definition v4 classes)
 public class FlowMapper {
 
     public Flow toDefinition(io.gravitee.repository.management.model.flow.Flow repositoryFlow) {

@@ -230,21 +230,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Audit
             auditService.createApiAuditLog(
-                    executionContext,
-                    createdApi.getId(),
-                    Collections.emptyMap(),
-                    API_CREATED,
-                    createdApi.getCreatedAt(),
-                    null,
-                    createdApi
+                executionContext,
+                createdApi.getId(),
+                Collections.emptyMap(),
+                API_CREATED,
+                createdApi.getCreatedAt(),
+                null,
+                createdApi
             );
 
             // Add the primary owner of the newly created API
             membershipService.addRoleToMemberOnReference(
-                    executionContext,
-                    new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
-                    new MembershipService.MembershipMember(primaryOwner.getId(), null, MembershipMemberType.valueOf(primaryOwner.getType())),
-                    new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
+                executionContext,
+                new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
+                new MembershipService.MembershipMember(primaryOwner.getId(), null, MembershipMemberType.valueOf(primaryOwner.getType())),
+                new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
             );
 
             // create the default mail notification
@@ -291,10 +291,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public ApiEntity update(
-            final ExecutionContext executionContext,
-            final String apiId,
-            final UpdateApiEntity api,
-            final boolean checkPlans
+        final ExecutionContext executionContext,
+        final String apiId,
+        final UpdateApiEntity api,
+        final boolean checkPlans
     ) {
         return null;
     }
@@ -312,10 +312,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // Delete plans
                 Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
                 Set<String> plansNotClosed = plans
-                        .stream()
-                        .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
-                        .map(PlanEntity::getName)
-                        .collect(toSet());
+                    .stream()
+                    .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
+                    .map(PlanEntity::getName)
+                    .collect(toSet());
 
                 if (!plansNotClosed.isEmpty()) {
                     throw new ApiNotDeletableException(plansNotClosed);
@@ -343,11 +343,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
                 }
                 eventService.createApiEvent(
-                        executionContext,
-                        singleton(executionContext.getEnvironmentId()),
-                        EventType.UNPUBLISH_API,
-                        null,
-                        properties
+                    executionContext,
+                    singleton(executionContext.getEnvironmentId()),
+                    EventType.UNPUBLISH_API,
+                    null,
+                    properties
                 );
 
                 // Delete pages

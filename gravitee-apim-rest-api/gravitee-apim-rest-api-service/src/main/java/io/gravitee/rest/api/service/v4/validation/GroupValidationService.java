@@ -15,10 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.validation;
 
-<<<<<<< HEAD
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-=======
->>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
 
@@ -27,9 +24,5 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface GroupValidationService {
-<<<<<<< HEAD
     Set<String> validateAndSanitize(ExecutionContext executionContext, Set<String> groups, final PrimaryOwnerEntity primaryOwnerEntity);
-=======
-    Set<String> validateAndSanitize(ExecutionContext executionContext, Set<String> groups);
->>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
 }

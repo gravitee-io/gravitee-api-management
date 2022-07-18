@@ -63,6 +63,9 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
         subscription.setEndingAt(subscriptionModel.getEndingAt());
         subscription.setId(subscriptionModel.getId());
         subscription.setPlan(subscriptionModel.getPlan());
+        subscription.setFilter(subscriptionModel.getFilter());
+        subscription.setConfiguration(subscriptionModel.getConfiguration());
+        subscription.setMetadata(subscriptionModel.getMetadata());
         if (subscriptionModel.getStatus() != null) {
             subscription.setStatus(subscriptionModel.getStatus().name());
         }

@@ -15,10 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.validation;
 
-<<<<<<< HEAD
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-=======
->>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
@@ -27,13 +24,9 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface ApiValidationService {
-<<<<<<< HEAD
     void validateAndSanitizeNewApi(
         final ExecutionContext executionContext,
         final NewApiEntity newApiEntity,
         final PrimaryOwnerEntity primaryOwnerEntity
     );
-=======
-    void validateAndSanitizeNewApi(ExecutionContext executionContext, NewApiEntity newApiEntity);
->>>>>>> cea4485fb9 (feat(definition): add api definition v4 classes)
 }

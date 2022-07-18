@@ -26,6 +26,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.jupiter.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
+import io.gravitee.gateway.jupiter.reactor.ReactorEventListener;
 import io.gravitee.gateway.jupiter.reactor.handler.DefaultEntrypointResolver;
 import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
@@ -129,7 +130,6 @@ public class ReactorConfiguration {
 
     @Bean
     public HttpRequestDispatcher httpRequestDispatcher(
-        EventManager eventManager,
         GatewayConfiguration gatewayConfiguration,
         ReactorHandlerRegistry reactorHandlerRegistry,
         EntrypointResolver entrypointResolver,
@@ -142,7 +142,6 @@ public class ReactorConfiguration {
         @Value("${services.tracing.enabled:false}") boolean tracingEnabled
     ) {
         return new DefaultHttpRequestDispatcher(
-            eventManager,
             gatewayConfiguration,
             reactorHandlerRegistry,
             entrypointResolver,
@@ -159,6 +158,11 @@ public class ReactorConfiguration {
     @Bean
     public EntrypointResolver entrypointResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
         return new DefaultEntrypointResolver(reactorHandlerRegistry);
+    }
+
+    @Bean
+    public ReactorEventListener reactorEventListener(EventManager eventManager, ReactorHandlerRegistry reactorHandlerRegistry) {
+        return new ReactorEventListener(eventManager, reactorHandlerRegistry);
     }
 
     @Bean

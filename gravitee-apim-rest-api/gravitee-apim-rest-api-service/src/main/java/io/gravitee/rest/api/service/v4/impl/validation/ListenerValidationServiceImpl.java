@@ -57,22 +57,13 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     private static final String URI_PATH_SEPARATOR = "/";
     private static final char URI_PATH_SEPARATOR_CHAR = '/';
 
-<<<<<<< HEAD
-    private final ApiRepository apiRepository;
-=======
-    @Lazy
     private final ApiRepository apiRepository;
 
->>>>>>> 2a8318ccf0 (feat(definition): add api definition v4 classes)
     private final ObjectMapper objectMapper;
     private final EnvironmentService environmentService;
 
     public ListenerValidationServiceImpl(
-<<<<<<< HEAD
         @Lazy final ApiRepository apiRepository,
-=======
-        final ApiRepository apiRepository,
->>>>>>> 2a8318ccf0 (feat(definition): add api definition v4 classes)
         final ObjectMapper objectMapper,
         final EnvironmentService environmentService
     ) {

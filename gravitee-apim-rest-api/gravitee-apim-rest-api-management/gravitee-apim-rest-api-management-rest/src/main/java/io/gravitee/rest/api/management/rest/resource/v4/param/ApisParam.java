@@ -62,13 +62,8 @@ public class ApisParam {
     private String visibility;
 
     @Parameter(description = "filter by version")
-<<<<<<< HEAD
     @QueryParam("apiVersion")
     private String apiVersion;
-=======
-    @QueryParam("version")
-    private String version;
->>>>>>> 2a8318ccf0 (feat(definition): add api definition v4 classes)
 
     @Parameter(description = "filter by full API Name")
     @QueryParam("name")

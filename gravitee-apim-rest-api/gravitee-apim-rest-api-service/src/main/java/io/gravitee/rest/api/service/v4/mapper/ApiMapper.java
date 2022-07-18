@@ -71,12 +71,12 @@ public class ApiMapper {
     private final WorkflowService workflowService;
 
     public ApiMapper(
-            final ObjectMapper objectMapper,
-            final PlanService planService,
-            final FlowService flowService,
-            final CategoryService categoryService,
-            final ParameterService parameterService,
-            final WorkflowService workflowService
+        final ObjectMapper objectMapper,
+        final PlanService planService,
+        final FlowService flowService,
+        final CategoryService categoryService,
+        final ParameterService parameterService,
+        final WorkflowService workflowService
     ) {
         this.objectMapper = objectMapper;
         this.planService = planService;
@@ -177,12 +177,12 @@ public class ApiMapper {
         }
 
         if (
-                parameterService.findAsBoolean(
-                        executionContext,
-                        Key.API_REVIEW_ENABLED,
-                        api.getEnvironmentId(),
-                        ParameterReferenceType.ENVIRONMENT
-                )
+            parameterService.findAsBoolean(
+                executionContext,
+                Key.API_REVIEW_ENABLED,
+                api.getEnvironmentId(),
+                ParameterReferenceType.ENVIRONMENT
+            )
         ) {
             final List<Workflow> workflows = workflowService.findByReferenceAndType(API, api.getId(), REVIEW);
             if (workflows != null && !workflows.isEmpty()) {

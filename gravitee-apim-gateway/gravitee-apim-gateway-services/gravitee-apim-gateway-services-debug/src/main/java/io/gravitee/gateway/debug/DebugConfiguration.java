@@ -259,7 +259,6 @@ public class DebugConfiguration {
 
     @Bean
     public HttpRequestDispatcher debugHttpRequestDispatcher(
-        EventManager eventManager,
         GatewayConfiguration gatewayConfiguration,
         @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry,
         @Qualifier("debugEntrypointResolver") io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver entrypointResolver,
@@ -272,7 +271,6 @@ public class DebugConfiguration {
         @Value("${services.tracing.enabled:false}") boolean tracingEnabled
     ) {
         return new DebugHttpRequestDispatcher(
-            eventManager,
             gatewayConfiguration,
             reactorHandlerRegistry,
             entrypointResolver,
