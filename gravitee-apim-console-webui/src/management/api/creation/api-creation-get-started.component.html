@@ -23,7 +23,7 @@
 <div class="api-creation-get-started__row">
   <mat-card class="api-creation-get-started__row__api-creation-card">
     <div mat-card-image class="api-creation-get-started__row__api-creation-card__img">
-      <img src="/assets/api-create-wizard.png" alt="API Create wizard logo" />
+      <img [src]="'assets/api-create-wizard.png'" alt="API Create wizard logo" />
     </div>
 
     <div class="mat-h5">API Creation wizard</div>
@@ -39,7 +39,7 @@
 
   <mat-card *ngIf="!isLoading" class="api-creation-get-started__row__api-designer-card">
     <div mat-card-image class="api-creation-get-started__row__api-designer-card__img">
-      <img src="/assets/api-create-design-link.png" alt="Api Designer logo" />
+      <img [src]="'assets/api-create-design-link.png'" alt="Api Designer logo" />
     </div>
 
     <div class="mat-h5">API Designer <span class="gio-badge-accent">*New*</span></div>
