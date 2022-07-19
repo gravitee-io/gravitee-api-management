@@ -142,8 +142,12 @@ await spinner('Add plugins to Rest API...', () =>
       .map(({ fileName }) => $`cp ${fileName} ${restApiComponentDir}/gravitee-apim-rest-api-${releasingVersion}/plugins`),
   ),
 );
-await $`zip -q -r ${restApiComponentDir}/gravitee-apim-rest-api-${releasingVersion}.zip ${restApiComponentDir}/gravitee-apim-rest-api-${releasingVersion}/`;
-await createFileSum(`${restApiComponentDir}/gravitee-apim-rest-api-${releasingVersion}.zip`);
+
+await within(async () => {
+  cd(`${restApiComponentDir}`);
+  await $`zip -q -r gravitee-apim-rest-api-${releasingVersion}.zip gravitee-apim-rest-api-${releasingVersion}`;
+  await createFileSum(`gravitee-apim-rest-api-${releasingVersion}.zip`);
+});
 
 console.log(chalk.blue(`Step 4: Packaging - Components / Gateway`));
 const gatewayComponentDir = `./dist/components/gravitee-gateway`;
@@ -174,8 +178,11 @@ await spinner('Add plugins to Gateway...', () =>
   ),
 );
 
-await $`zip -q -r ${gatewayComponentDir}/gravitee-apim-gateway-${releasingVersion}.zip ${gatewayComponentDir}/gravitee-apim-gateway-${releasingVersion}/`;
-await createFileSum(`${gatewayComponentDir}/gravitee-apim-gateway-${releasingVersion}.zip`);
+await within(async () => {
+  cd(`${gatewayComponentDir}`);
+  await $`zip -q -r gravitee-apim-gateway-${releasingVersion}.zip gravitee-apim-gateway-${releasingVersion}`;
+  await createFileSum(`gravitee-apim-gateway-${releasingVersion}.zip`);
+});
 
 console.log(chalk.blue(`Step 5: Packaging - Components / Console`));
 const consoleComponentDir = `./dist/components/gravitee-management-webui`;
@@ -201,8 +208,18 @@ await $`unzip -q -o ${allDependenciesMap.get('gravitee-apim-portal-webui').fileN
 await $`mv -f ${restApiComponentDir}/gravitee-apim-rest-api-${releasingVersion} ./${fullDistributionDir}/`;
 await $`mv -f ${gatewayComponentDir}/gravitee-apim-gateway-${releasingVersion} ./${fullDistributionDir}/`;
 
-await $`zip -q -r ${fullDistributionDir}.zip ${fullDistributionDir}/`;
-await createFileSum(`${fullDistributionDir}.zip`);
+// TODO: Remove the following lines to align names of these components to match the naming convention `gravitee-*` and not `graviteeio-*`
+await $`mv ${fullDistributionDir}/gravitee-apim-console-webui-${releasingVersion} ${fullDistributionDir}/graviteeio-apim-console-webui-${releasingVersion}`;
+await $`mv ${fullDistributionDir}/gravitee-apim-portal-webui-${releasingVersion} ${fullDistributionDir}/graviteeio-apim-portal-webui-${releasingVersion}`;
+await $`mv ${fullDistributionDir}/gravitee-apim-gateway-${releasingVersion} ${fullDistributionDir}/graviteeio-apim-gateway-${releasingVersion}`;
+await $`mv ${fullDistributionDir}/gravitee-apim-rest-api-${releasingVersion} ${fullDistributionDir}/graviteeio-apim-rest-api-${releasingVersion}`;
+
+await within(async () => {
+  cd(`./dist/distributions`);
+  await $`zip -q -r graviteeio-full-${releasingVersion}.zip graviteeio-full-${releasingVersion}`;
+  await createFileSum(`graviteeio-full-${releasingVersion}.zip`);
+});
+
 await $`rm -rf ${fullDistributionDir}`;
 
 console.log(chalk.blue(`Step 8: Packaging - Plugins / All Repositories`));
