@@ -119,33 +119,11 @@ console.log(chalk.blue(`Step 3; Packaging - Components / Rest API`));
 const restApiComponentDir = `./dist/components/gravitee-management-rest-api`;
 await $`rm -rf ${restApiComponentDir} && mkdir -p ${restApiComponentDir}`;
 
-await $`unzip -q -o ${allDependenciesMap.get('gravitee-apim-rest-api-standalone-distribution-zip').fileName} -d ${restApiComponentDir}`;
-await $`mv ${restApiComponentDir}/gravitee-apim-rest-api-standalone-${releasingVersion} ${restApiComponentDir}/gravitee-apim-rest-api-${releasingVersion}`;
-
-const restApiDependenciesExclusion = [
-  // GroupIds to exclude
-  'io.gravitee.apim.ui',
-  'io.gravitee.apim.gateway.standalone.distribution',
-  'io.gravitee.apim.rest.api.standalone.distribution',
-  'io.gravitee.apim.repository.gateway.bridge.http',
-  'io.gravitee.reporter',
-  'io.gravitee.tracer',
-  // ArtifactIds to exclude
-  'gravitee-gateway-services-ratelimit',
-  'gravitee-apim-repository-hazelcast',
-  'gravitee-apim-repository-redis',
-];
-await spinner('Add plugins to Rest API...', () =>
-  Promise.all(
-    allDependencies
-      .filter((d) => !restApiDependenciesExclusion.includes(d.artifactId) && !restApiDependenciesExclusion.includes(d.groupId))
-      .map(({ fileName }) => $`cp ${fileName} ${restApiComponentDir}/gravitee-apim-rest-api-${releasingVersion}/plugins`),
-  ),
-);
+await $`cp ${allDependenciesMap.get('gravitee-apim-rest-api-standalone-distribution-zip').fileName} ${restApiComponentDir}`;
 
 await within(async () => {
   cd(`${restApiComponentDir}`);
-  await $`zip -q -r gravitee-apim-rest-api-${releasingVersion}.zip gravitee-apim-rest-api-${releasingVersion}`;
+  await $`mv ${allDependenciesMap.get('gravitee-apim-rest-api-standalone-distribution-zip').fileName} gravitee-apim-rest-api-${releasingVersion}.zip`;
   await createFileSum(`gravitee-apim-rest-api-${releasingVersion}.zip`);
 });
 
@@ -153,34 +131,11 @@ console.log(chalk.blue(`Step 4: Packaging - Components / Gateway`));
 const gatewayComponentDir = `./dist/components/gravitee-gateway`;
 await $`rm -rf ${gatewayComponentDir} && mkdir -p ${gatewayComponentDir}`;
 
-await $`unzip -q -o ${allDependenciesMap.get('gravitee-apim-gateway-standalone-distribution-zip').fileName} -d ${gatewayComponentDir}`;
-await $`mv ${gatewayComponentDir}/gravitee-apim-gateway-standalone-${releasingVersion} ${gatewayComponentDir}/gravitee-apim-gateway-${releasingVersion}`;
-
-const gatewayDependenciesExclusion = [
-  // GroupIds to exclude
-  'io.gravitee.apim.ui',
-  'io.gravitee.apim.gateway.standalone.distribution',
-  'io.gravitee.apim.rest.api.standalone.distribution',
-  'io.gravitee.cockpit',
-  'io.gravitee.fetcher',
-  'io.gravitee.notifier',
-  'io.gravitee.tracer',
-  // ArtifactIds to exclude
-  'gravitee-apim-repository-elasticsearch',
-  'gravitee-apim-repository-hazelcast',
-  'gravitee-apim-repository-redis',
-];
-await spinner('Add plugins to Gateway...', () =>
-  Promise.all(
-    allDependencies
-      .filter((d) => !gatewayDependenciesExclusion.includes(d.artifactId) && !gatewayDependenciesExclusion.includes(d.groupId))
-      .map(async ({ fileName }) => $`cp ${fileName} ${gatewayComponentDir}/gravitee-apim-gateway-${releasingVersion}/plugins`),
-  ),
-);
+await $`cp ${allDependenciesMap.get('gravitee-apim-gateway-standalone-distribution-zip').fileName} ${gatewayComponentDir}`;
 
 await within(async () => {
   cd(`${gatewayComponentDir}`);
-  await $`zip -q -r gravitee-apim-gateway-${releasingVersion}.zip gravitee-apim-gateway-${releasingVersion}`;
+  await $`mv ${allDependenciesMap.get('gravitee-apim-gateway-standalone-distribution-zip').fileName} gravitee-apim-gateway-${releasingVersion}.zip`;
   await createFileSum(`gravitee-apim-gateway-${releasingVersion}.zip`);
 });
 
@@ -202,11 +157,60 @@ console.log(chalk.blue(`Step 7: Packaging - Distribution / Full`));
 const fullDistributionDir = `./dist/distributions/graviteeio-full-${releasingVersion}`;
 await $`rm -rf ${fullDistributionDir} && mkdir -p ${fullDistributionDir}`;
 
+// Console
 await $`unzip -q -o ${allDependenciesMap.get('gravitee-apim-console-webui').fileName} -d ${fullDistributionDir}`;
+
+// Portal
 await $`unzip -q -o ${allDependenciesMap.get('gravitee-apim-portal-webui').fileName} -d ${fullDistributionDir}`;
 
-await $`mv -f ${restApiComponentDir}/gravitee-apim-rest-api-${releasingVersion} ./${fullDistributionDir}/`;
-await $`mv -f ${gatewayComponentDir}/gravitee-apim-gateway-${releasingVersion} ./${fullDistributionDir}/`;
+// Rest API
+await $`unzip -q -o ${restApiComponentDir}/gravitee-apim-rest-api-${releasingVersion}.zip -d ${fullDistributionDir}`;
+await $`mv ${fullDistributionDir}/gravitee-apim-rest-api-standalone-${releasingVersion} ${fullDistributionDir}/gravitee-apim-rest-api-${releasingVersion}`;
+const restApiDependenciesExclusion = [
+  // GroupIds to exclude
+  'io.gravitee.apim.ui',
+  'io.gravitee.apim.gateway.standalone.distribution',
+  'io.gravitee.apim.rest.api.standalone.distribution',
+  'io.gravitee.apim.repository.gateway.bridge.http',
+  'io.gravitee.reporter',
+  'io.gravitee.tracer',
+  // ArtifactIds to exclude
+  'gravitee-gateway-services-ratelimit',
+  'gravitee-apim-repository-hazelcast',
+  'gravitee-apim-repository-redis',
+];
+await spinner('Add plugins to Rest API...', () =>
+    Promise.all(
+        allDependencies
+            .filter((d) => !restApiDependenciesExclusion.includes(d.artifactId) && !restApiDependenciesExclusion.includes(d.groupId))
+            .map(({ fileName }) => $`cp ${fileName} ${fullDistributionDir}/gravitee-apim-rest-api-${releasingVersion}/plugins`),
+    ),
+);
+
+// Gateway
+await $`unzip -q -o ${gatewayComponentDir}/gravitee-apim-gateway-${releasingVersion}.zip -d ${fullDistributionDir}`;
+await $`mv ${fullDistributionDir}/gravitee-apim-gateway-standalone-${releasingVersion} ${fullDistributionDir}/gravitee-apim-gateway-${releasingVersion}`;
+const gatewayDependenciesExclusion = [
+  // GroupIds to exclude
+  'io.gravitee.apim.ui',
+  'io.gravitee.apim.gateway.standalone.distribution',
+  'io.gravitee.apim.rest.api.standalone.distribution',
+  'io.gravitee.cockpit',
+  'io.gravitee.fetcher',
+  'io.gravitee.notifier',
+  'io.gravitee.tracer',
+  // ArtifactIds to exclude
+  'gravitee-apim-repository-elasticsearch',
+  'gravitee-apim-repository-hazelcast',
+  'gravitee-apim-repository-redis',
+];
+await spinner('Add plugins to Gateway...', () =>
+    Promise.all(
+        allDependencies
+            .filter((d) => !gatewayDependenciesExclusion.includes(d.artifactId) && !gatewayDependenciesExclusion.includes(d.groupId))
+            .map(async ({ fileName }) => $`cp ${fileName} ${fullDistributionDir}/gravitee-apim-gateway-${releasingVersion}/plugins`),
+    ),
+);
 
 // TODO: Remove the following lines to align names of these components to match the naming convention `gravitee-*` and not `graviteeio-*`
 await $`mv ${fullDistributionDir}/gravitee-apim-console-webui-${releasingVersion} ${fullDistributionDir}/graviteeio-apim-console-webui-${releasingVersion}`;
