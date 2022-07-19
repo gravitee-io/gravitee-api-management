@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonRawValue;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import javax.validation.constraints.NotBlank;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,9 +39,11 @@ public class Endpoint implements Serializable {
 
     private static final int DEFAULT_WEIGHT = 1;
 
+    @NotBlank
     private String name;
 
     @JsonProperty(required = true)
+    @NotBlank
     private String type;
 
     private int weight = DEFAULT_WEIGHT;

@@ -28,6 +28,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
@@ -43,22 +45,24 @@ import lombok.ToString;
 @ToString
 public class NewApiEntity {
 
-    @NotNull
+    @NotBlank
     @NotEmpty(message = "Api's name must not be empty")
     @Schema(description = "Api's name. Duplicate names can exists.", example = "My Api")
     private String name;
 
-    @NotNull
+    @NotBlank
     @Schema(description = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
     private String apiVersion;
 
     @Schema(description = "API's gravitee definition version")
+    @NotNull
     private DefinitionVersion definitionVersion = DefinitionVersion.V4;
 
     @Schema(description = "API's type", example = "async")
+    @NotNull
     private ApiType type;
 
-    @NotNull
+    @NotBlank
     @Schema(
         description = "API's description. A short description of your API.",
         example = "I can use a hundred characters to describe this API."
@@ -66,17 +70,19 @@ public class NewApiEntity {
     private String description;
 
     @Schema(description = "The list of sharding tags associated with this API.", example = "public, private")
-    private Set<String> tags = new HashSet<>();
+    private Set<@NotBlank String> tags;
 
     @Schema(description = "API's groups. Used to add team in your API.", example = "['MY_GROUP1', 'MY_GROUP2']")
-    private Set<String> groups;
+    private Set<@NotBlank String> groups;
 
     @Schema(description = "A list of listeners used to describe our you api could be reached.")
     @NotNull
-    private List<Listener> listeners;
+    @Valid
+    private List<@NotNull Listener> listeners;
 
     @Schema(description = "A list of endpoint describing the endpoints to contact.")
     @NotNull
+    @Valid
     private List<EndpointGroup> endpointGroups;
 
     @Schema(description = "API's flow mode.", example = "BEST_MATCH")
@@ -84,5 +90,6 @@ public class NewApiEntity {
 
     @Schema(description = "A list of flows containing the policies configuration.")
     @DeploymentRequired
+    @Valid
     private List<Flow> flows;
 }

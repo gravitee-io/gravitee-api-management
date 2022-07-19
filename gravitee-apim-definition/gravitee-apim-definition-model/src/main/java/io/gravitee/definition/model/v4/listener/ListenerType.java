@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public enum ListenerType {
     HTTP(HTTP_LABEL),
-    WEBHOOK(SUBSCRIPTION_LABEL),
+    SUBSCRIPTION(SUBSCRIPTION_LABEL),
     TCP(TCP_LABEL);
 
     @JsonValue

@@ -22,6 +22,9 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServic
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.List;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,9 +41,11 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class EndpointGroup implements Serializable {
 
+    @NotBlank
     private String name;
 
     @JsonProperty(required = true)
+    @NotBlank
     private String type;
 
     private LoadBalancer loadBalancer;
@@ -49,6 +54,7 @@ public class EndpointGroup implements Serializable {
     @JsonRawValue
     private String sharedConfiguration;
 
+    @Valid
     private List<Endpoint> endpoints;
 
     private EndpointGroupServices services;

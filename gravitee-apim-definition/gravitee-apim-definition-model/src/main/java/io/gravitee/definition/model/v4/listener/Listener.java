@@ -26,6 +26,8 @@ import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.definition.model.v4.listener.subscription.ListenerSubscription;
 import io.gravitee.definition.model.v4.listener.tcp.ListenerTcp;
 import java.io.Serializable;
+import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,7 +39,7 @@ import lombok.experimental.FieldNameConstants;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -57,6 +59,7 @@ public abstract class Listener implements Serializable {
     public static final String SUBSCRIPTION_LABEL = "subscription";
     public static final String TCP_LABEL = "tcp";
 
-    @JsonProperty(value = "type", required = true)
+    @JsonProperty(required = true)
+    @NotNull
     private ListenerType type;
 }

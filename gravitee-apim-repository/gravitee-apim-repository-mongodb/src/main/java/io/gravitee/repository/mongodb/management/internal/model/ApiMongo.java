@@ -45,8 +45,6 @@ public class ApiMongo extends Auditable {
     @Field("name")
     private String name;
 
-    private String type;
-
     private String environmentId;
 
     private String version;
@@ -56,6 +54,8 @@ public class ApiMongo extends Auditable {
     private String definitionVersion;
 
     private String definition;
+
+    private String type;
 
     private String lifecycleState;
 

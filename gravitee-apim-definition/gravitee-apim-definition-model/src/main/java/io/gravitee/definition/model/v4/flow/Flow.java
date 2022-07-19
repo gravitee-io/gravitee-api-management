@@ -22,6 +22,8 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,19 +41,25 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class Flow implements Serializable {
 
+    @NotEmpty
     private String name;
 
     private boolean enabled = true;
 
+    @Valid
     private List<Selector> selectors;
 
+    @Valid
     private List<Step> request;
 
+    @Valid
     private List<Step> response;
 
+    @Valid
     private List<Step> subscribe;
 
+    @Valid
     private List<Step> publish;
 
-    private Set<String> tags;
+    private Set<@NotEmpty String> tags;
 }

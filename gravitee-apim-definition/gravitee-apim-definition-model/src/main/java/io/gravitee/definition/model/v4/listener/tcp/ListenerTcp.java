@@ -17,6 +17,10 @@ package io.gravitee.definition.model.v4.listener.tcp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import java.util.List;
+import javax.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,16 +31,17 @@ import lombok.ToString;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@NoArgsConstructor
 @Getter
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class ListenerTcp extends Listener {
 
-    @JsonProperty("host")
-    private String host;
+    @JsonProperty("entrypoints")
+    @NotEmpty
+    private List<Entrypoint> entrypoints;
 
-    @JsonProperty("port")
-    private String port;
+    public ListenerTcp() {
+        super(ListenerType.TCP);
+    }
 }

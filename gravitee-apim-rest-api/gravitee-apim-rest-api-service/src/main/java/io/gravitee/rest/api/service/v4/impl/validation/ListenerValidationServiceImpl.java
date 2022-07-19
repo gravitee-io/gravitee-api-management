@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsExcept
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
+import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
 import java.io.IOException;
 import java.util.Collection;
@@ -79,7 +80,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                         // TODO this need to be improved when entrypoint connector are implemented in order to check the configuration schema
                         validateAndSanitizeHttpListener(executionContext, apiId, (ListenerHttp) listener);
                     case TCP:
-                    case WEBHOOK:
+                    case SUBSCRIPTION:
                     default:
                         break;
                 }
@@ -150,7 +151,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         if (api.getDefinition() != null) {
             DefinitionVersion definitionVersion = null;
             if (api.getDefinitionVersion() != null) {
-                definitionVersion = DefinitionVersion.valueOf(api.getDefinitionVersion());
+                definitionVersion = DefinitionVersion.valueOfLabel(api.getDefinitionVersion());
             }
             if (definitionVersion == DefinitionVersion.V4) {
                 try {
@@ -257,7 +258,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
             registeredPaths.stream().anyMatch(registeredPath -> path.startsWith(registeredPath) || registeredPath.startsWith(path));
 
         if (match) {
-            throw new ApiContextPathAlreadyExistsException(path);
+            throw new PathAlreadyExistsException(path);
         }
     }
 

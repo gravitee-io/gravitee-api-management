@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4.property;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -35,9 +36,11 @@ import lombok.ToString;
 public class Property implements Serializable {
 
     @JsonProperty(required = true)
+    @NotBlank
     private final String key;
 
     @JsonProperty(required = true)
+    @NotBlank
     private final String value;
 
     private boolean encrypted;

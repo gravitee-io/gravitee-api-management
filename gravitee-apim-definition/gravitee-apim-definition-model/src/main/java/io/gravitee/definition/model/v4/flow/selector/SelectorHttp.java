@@ -19,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Operator;
 import java.util.Set;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,7 +31,6 @@ import lombok.ToString;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@NoArgsConstructor
 @Getter
 @Setter
 @ToString(callSuper = true)
@@ -37,10 +38,16 @@ import lombok.ToString;
 public class SelectorHttp extends Selector {
 
     @JsonProperty(required = true)
+    @NotEmpty
     private String path;
 
     @JsonProperty(required = true)
+    @NotNull
     private Operator pathOperator = Operator.STARTS_WITH;
 
     private Set<HttpMethod> methods;
+
+    public SelectorHttp() {
+        super(SelectorType.HTTP);
+    }
 }

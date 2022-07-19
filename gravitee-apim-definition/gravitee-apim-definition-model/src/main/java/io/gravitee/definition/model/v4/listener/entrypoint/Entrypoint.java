@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import javax.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,6 +38,7 @@ import lombok.ToString;
 public class Entrypoint implements Serializable {
 
     @JsonProperty(required = true)
+    @NotEmpty
     private String type;
 
     @Schema(implementation = Object.class)
