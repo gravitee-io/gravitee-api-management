@@ -30,7 +30,7 @@ const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
 const apisResourceAsPublisher = new APIsApi(forManagementAsApiUser());
 
-describe('Configure LB to round robin and use it', () => {
+describe('Configure random LB and use it', () => {
   let createdApi: ApiEntity;
 
   beforeAll(async () => {

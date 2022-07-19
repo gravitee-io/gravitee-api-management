@@ -82,7 +82,7 @@ describe('Configure LB to round robin weighted and use it', () => {
     });
   });
 
-  test('Should switch between three configured endpoints using round-robin', async () => {
+  test('Should switch between two configured endpoints using weighted round-robin', async () => {
     const contextPath = createdApi.context_path;
     let endpoint1 = 0;
     let endpoint2 = 0;
