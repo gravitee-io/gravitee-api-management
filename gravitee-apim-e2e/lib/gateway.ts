@@ -62,7 +62,7 @@ async function _fetchGatewayWithRetries(attributes: Partial<GatewayRequest>): Pr
     try {
       return await _fetchGateway(request);
     } catch (error) {
-      console.info(error);
+      // console.info(error);
       lastError = error;
       if (retries > 0) {
         console.info(`Retrying in ${request.timeBetweenRetries} ms with ${retries} attempts`);
