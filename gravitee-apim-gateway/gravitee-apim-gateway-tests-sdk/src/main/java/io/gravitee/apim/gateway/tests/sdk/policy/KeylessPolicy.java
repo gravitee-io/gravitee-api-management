@@ -17,17 +17,30 @@ package io.gravitee.apim.gateway.tests.sdk.policy;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
+import io.reactivex.Single;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class KeylessPolicy {
+public class KeylessPolicy implements SecurityPolicy {
 
     @OnRequest
     public void onRequest(Request request, Response response, PolicyChain policyChain) {
         policyChain.doNext(request, response);
+    }
+
+    @Override
+    public String id() {
+        return "keyless";
+    }
+
+    @Override
+    public Single<Boolean> support(RequestExecutionContext ctx) {
+        return Single.just(true);
     }
 }
