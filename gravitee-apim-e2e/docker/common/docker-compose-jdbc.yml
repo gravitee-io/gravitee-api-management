@@ -23,7 +23,7 @@ volumes:
 
 services:
   database:
-    container_name: gio_apim_postgresql
+    container_name: gio_apim_postgresql_e2e
     image: postgres:13
     restart: always
     environment:

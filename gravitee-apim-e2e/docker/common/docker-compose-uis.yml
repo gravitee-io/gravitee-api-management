@@ -20,7 +20,7 @@ services:
 
   nginx:
     image: nginx:latest
-    container_name: nginx
+    container_name: nginx_e2e
     restart: unless-stopped
     depends_on:
       management_ui:
@@ -41,7 +41,7 @@ services:
 
   management_ui:
     image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_TAG:-3}
-    container_name: gio_apim_management_ui
+    container_name: gio_apim_management_ui_e2e
     restart: always
     ports:
       - "8084:8080"
@@ -60,7 +60,7 @@ services:
 
   portal_ui:
     image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_TAG:-3}
-    container_name: gio_apim_portal_ui
+    container_name: gio_apim_portal_ui_e2e
     restart: always
     ports:
       - "8085:8080"
