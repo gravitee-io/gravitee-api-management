@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { afterAll, describe, expect, test } from '@jest/globals';
+import { describe, expect, test } from '@jest/globals';
 import { APIsApi } from '@management-apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
-import { fail, noContent, succeed } from '@lib/jest-utils';
+import { noContent, succeed } from '@lib/jest-utils';
 import { ApiEntity } from '@management-models/ApiEntity';
 
 const orgId = 'DEFAULT';
@@ -32,7 +32,7 @@ describe('API - Imports by url', () => {
       apisResourceAsPublisher.importApiDefinitionUrlRaw({
         envId,
         orgId,
-        body: `${process.env.WIREMOCK_BASE_PATH}/api-whattimeisit.json`,
+        body: `${process.env.WIREMOCK_BASE_URL}/api-whattimeisit.json`,
       }),
     );
     expect(createdApi).toBeTruthy();
@@ -45,7 +45,7 @@ describe('API - Imports by url', () => {
         envId,
         orgId,
         api: createdApi.id,
-        body: `${process.env.WIREMOCK_BASE_PATH}/api-whattimeisit.json`,
+        body: `${process.env.WIREMOCK_BASE_URL}/api-whattimeisit.json`,
       }),
     );
     expect(updatedApi).toBeTruthy();
