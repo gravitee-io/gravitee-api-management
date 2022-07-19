@@ -1766,6 +1766,7 @@ workflows:
                           only:
                               - master
                               - /.*-run-e2e.*/
+                              - /.*merge.*/
                               - /^\d+\.\d+\.x$/
             - e2e-report:
                 context: cicd-orchestrator
