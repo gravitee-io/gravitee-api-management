@@ -19,7 +19,7 @@ version: '3.8'
 services:
   management_api:
     image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_TAG:-3}
-    container_name: gio_apim_management_api
+    container_name: gio_e2_apim_management_api_e2e
     restart: always
     links:
       - database
@@ -54,7 +54,7 @@ services:
 
   gateway:
     image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_TAG:-3}
-    container_name: gio_apim_gateway
+    container_name: gio_apim_gateway_e2e
     restart: always
     links:
       - database
