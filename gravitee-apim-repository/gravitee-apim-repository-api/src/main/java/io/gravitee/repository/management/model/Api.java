@@ -93,13 +93,13 @@ public class Api {
      */
     private String definitionVersion;
     /**
-     * The api type.
-     */
-    private String type;
-    /**
      * The api JSON definition
      */
     private String definition;
+    /**
+     * The api type.
+     */
+    private String type;
     /**
      * The api deployment date
      */

@@ -17,8 +17,11 @@ package io.gravitee.definition.model.v4.listener.subscription;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import java.util.ArrayList;
 import java.util.List;
+import javax.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,7 +32,6 @@ import lombok.ToString;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@NoArgsConstructor
 @Getter
 @Setter
 @ToString(callSuper = true)
@@ -37,5 +39,10 @@ import lombok.ToString;
 public class ListenerSubscription extends Listener {
 
     @JsonProperty("entrypoints")
+    @NotEmpty
     private List<Entrypoint> entrypoints;
+
+    public ListenerSubscription() {
+        super(ListenerType.SUBSCRIPTION);
+    }
 }

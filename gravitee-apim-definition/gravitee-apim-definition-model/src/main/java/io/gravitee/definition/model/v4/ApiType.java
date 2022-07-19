@@ -15,11 +15,8 @@
  */
 package io.gravitee.definition.model.v4;
 
-import static io.gravitee.definition.model.v4.listener.Listener.HTTP_LABEL;
-import static io.gravitee.definition.model.v4.listener.Listener.SUBSCRIPTION_LABEL;
-import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
-
 import com.fasterxml.jackson.annotation.JsonValue;
+import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +30,12 @@ public enum ApiType {
     SYNC("sync"),
     ASYNC("async");
 
+    private static final Map<String, ApiType> labels = Map.of(SYNC.label, SYNC, ASYNC.label, ASYNC);
+
     @JsonValue
     private final String label;
+
+    public static ApiType fromLabel(final String label) {
+        return labels.get(label);
+    }
 }

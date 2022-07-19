@@ -21,6 +21,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,19 +41,24 @@ import lombok.ToString;
 public class Plan implements Serializable {
 
     @JsonProperty(required = true)
+    @NotBlank
     private String id;
 
     @JsonProperty(required = true)
+    @NotBlank
     private String name;
 
     @JsonProperty(required = true)
+    @NotNull
     private PlanSecurity security;
 
     private String selectionRule;
 
-    private List<Flow> flows = new ArrayList<>();
+    private List<Flow> flows;
 
     private Set<String> tags;
 
+    @JsonProperty(required = true)
+    @NotNull
     private PlanStatus status;
 }

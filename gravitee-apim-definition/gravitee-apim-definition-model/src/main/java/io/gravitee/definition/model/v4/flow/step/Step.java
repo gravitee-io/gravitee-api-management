@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import javax.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,13 +36,16 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class Step implements Serializable {
 
+    @NotEmpty
     private String name;
 
+    @NotEmpty
     private String description;
 
     private boolean enabled = true;
 
     @JsonProperty(required = true)
+    @NotEmpty
     private String policy;
 
     @Schema(implementation = Object.class)

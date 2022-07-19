@@ -18,6 +18,8 @@ package io.gravitee.definition.model.v4.listener.http;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -43,6 +45,7 @@ public class Path implements Serializable {
     private String host;
 
     @JsonProperty("path")
+    @NotBlank
     private String path = DEFAULT_PATH;
 
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)

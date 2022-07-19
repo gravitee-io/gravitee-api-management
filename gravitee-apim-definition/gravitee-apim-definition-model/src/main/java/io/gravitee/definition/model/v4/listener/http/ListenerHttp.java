@@ -18,12 +18,18 @@ package io.gravitee.definition.model.v4.listener.http;
 import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,13 +40,13 @@ import lombok.ToString;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@NoArgsConstructor
 @Getter
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class ListenerHttp extends Listener {
 
+    @NotEmpty
     private List<Path> paths;
 
     private Set<String> pathMappings;
@@ -48,7 +54,12 @@ public class ListenerHttp extends Listener {
     @JsonIgnore
     private Map<String, Pattern> pathMappingsPattern;
 
+    @NotEmpty
     private List<Entrypoint> entrypoints;
+
+    public ListenerHttp() {
+        super(ListenerType.HTTP);
+    }
 
     public void setPathMappings(final Set<String> pathMappings) {
         if (pathMappings != null) {

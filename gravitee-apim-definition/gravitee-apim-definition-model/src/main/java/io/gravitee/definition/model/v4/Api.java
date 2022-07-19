@@ -26,7 +26,6 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.responsetemplate.ResponseTemplate;
 import io.gravitee.definition.model.v4.service.ApiServices;
-import java.awt.print.Book;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,9 +36,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -55,40 +58,48 @@ import lombok.ToString;
 public class Api implements Serializable {
 
     @JsonProperty(required = true)
+    @NotBlank
     private String id;
 
     @JsonProperty(required = true)
+    @NotBlank
     private String name;
 
     @JsonProperty(required = true)
+    @NotBlank
     private ApiType type;
 
     @JsonProperty(required = true)
+    @NotBlank
     private String apiVersion;
 
     @JsonProperty(required = true)
-    private DefinitionVersion definitionVersion;
+    @NotNull
+    private DefinitionVersion definitionVersion = DefinitionVersion.V4;
 
-    private Set<String> tags = new HashSet<>();
-
-    @JsonProperty(required = true)
-    private List<Listener> listeners;
+    private Set<@NotBlank String> tags;
 
     @JsonProperty(required = true)
+    @NotEmpty
+    private List<@NotNull Listener> listeners;
+
+    @JsonProperty(required = true)
+    @NotEmpty
     private List<EndpointGroup> endpointGroups;
 
-    private List<Property> properties = new ArrayList<>();
+    private List<Property> properties;
 
-    private List<Resource> resources = new ArrayList<>();
+    private List<Resource> resources;
 
     @JsonProperty(required = true)
-    private Map<String, Plan> plans = new HashMap<>();
+    @NotNull
+    private Map<@NotEmpty String, @NotNull Plan> plans;
 
-    private FlowMode flowMode;
+    private FlowMode flowMode = FlowMode.DEFAULT;
 
     private List<Flow> flows;
 
-    private Map<String, Map<String, ResponseTemplate>> responseTemplates = new LinkedHashMap<>();
+    private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
     private ApiServices services;
 
