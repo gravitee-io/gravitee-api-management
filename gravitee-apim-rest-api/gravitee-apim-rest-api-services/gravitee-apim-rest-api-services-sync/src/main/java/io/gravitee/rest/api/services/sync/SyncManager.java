@@ -30,6 +30,7 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.HashSet;
@@ -48,10 +49,10 @@ import org.springframework.context.annotation.Lazy;
  */
 public class SyncManager {
 
-    private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
-
     private static final int TIMEFRAME_BEFORE_DELAY = 10 * 60 * 1000;
     private static final int TIMEFRAME_AFTER_DELAY = 1 * 60 * 1000;
+    private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
+    private final AtomicLong counter = new AtomicLong(0);
 
     @Autowired
     private DictionaryManager dictionaryManager;
@@ -67,21 +68,10 @@ public class SyncManager {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private EventManager eventManager;
-
-    @Autowired
-    private MembershipService membershipService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
     private EnvironmentService environmentService;
 
     @Autowired
-    private ApiService apiService;
-
-    private final AtomicLong counter = new AtomicLong(0);
+    private PrimaryOwnerService primaryOwnerService;
 
     private long lastRefreshAt = -1;
 
@@ -265,7 +255,7 @@ public class SyncManager {
         EnvironmentEntity environmentEntity = this.environmentService.findById(api.getEnvironmentId());
         GraviteeContext.setCurrentOrganization(environmentEntity.getOrganizationId());
 
-        apiEntity.setPrimaryOwner(apiService.getPrimaryOwner(GraviteeContext.getExecutionContext(), api.getId()));
+        apiEntity.setPrimaryOwner(primaryOwnerService.getPrimaryOwner(GraviteeContext.getExecutionContext(), api.getId()));
 
         return apiEntity;
     }

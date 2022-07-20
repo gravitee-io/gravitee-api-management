@@ -31,7 +31,6 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.imports.ImportJsonNodeWithIds;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
@@ -50,7 +49,9 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ApiDuplicatorService_RecalculateApiDefinitionIdsTest {
+public class ApiDuplicatorService_RecalculateApiDefinitionIdsTestEntity {
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @InjectMocks
     protected ApiDuplicatorServiceImpl apiDuplicatorService;
@@ -63,8 +64,6 @@ public class ApiDuplicatorService_RecalculateApiDefinitionIdsTest {
 
     @Mock
     private PlanService planService;
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     @BeforeClass
     public static void beforeClass() {

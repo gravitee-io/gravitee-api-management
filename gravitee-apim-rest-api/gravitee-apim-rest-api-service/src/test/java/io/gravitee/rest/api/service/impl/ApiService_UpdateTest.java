@@ -60,6 +60,7 @@ import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.io.Reader;
 import java.util.*;
 import org.junit.After;
@@ -81,10 +82,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_UpdateTest {
 
-    private static final String API_ID = "id-api";
-    private static final String DEFAULT_ENVIRONMENT_ID = "DEFAULT";
-    private static final String API_NAME = "myAPI";
-    private static final String USER_NAME = "myUser";
     public static final String API_DEFINITION =
         "{\n" +
         "  \"id\" : \"id-api\",\n" +
@@ -143,6 +140,10 @@ public class ApiService_UpdateTest {
         "    ]\n" +
         "  }\n" +
         "}\n";
+    private static final String API_ID = "id-api";
+    private static final String DEFAULT_ENVIRONMENT_ID = "DEFAULT";
+    private static final String API_NAME = "myAPI";
+    private static final String USER_NAME = "myUser";
 
     @InjectMocks
     private ApiServiceImpl apiService = new ApiServiceImpl();
@@ -218,8 +219,27 @@ public class ApiService_UpdateTest {
     @Mock
     private FlowService flowService;
 
+    @Mock
+    private PrimaryOwnerService primaryOwnerService;
+
     @InjectMocks
     private ApiConverter apiConverter;
+
+    @AfterClass
+    public static void cleanSecurityContextHolder() {
+        // reset authentication to avoid side effect during test executions.
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(Authentication authentication) {}
+            }
+        );
+    }
 
     @Before
     public void setUp() {
@@ -253,12 +273,7 @@ public class ApiService_UpdateTest {
         updatedApi.setName(API_NAME);
         updatedApi.setEnvironmentId(DEFAULT_ENVIRONMENT_ID);
 
-        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any()))
-            .thenReturn("toDecode=decoded-value");
-        MembershipEntity primaryOwner = new MembershipEntity();
-        primaryOwner.setMemberType(MembershipMemberType.USER);
-        when(membershipService.getPrimaryOwner(eq(GraviteeContext.getCurrentOrganization()), eq(MembershipReferenceType.API), any()))
-            .thenReturn(primaryOwner);
+        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
         reset(searchEngineService);
         when(virtualHostService.sanitizeAndValidate(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
     }
@@ -266,22 +281,6 @@ public class ApiService_UpdateTest {
     @After
     public void tearDown() {
         GraviteeContext.cleanContext();
-    }
-
-    @AfterClass
-    public static void cleanSecurityContextHolder() {
-        // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
-            }
-        );
     }
 
     @Test
@@ -898,9 +897,6 @@ public class ApiService_UpdateTest {
 
         final MembershipEntity membership = new MembershipEntity();
         membership.setMemberId(USER_NAME);
-        when(membershipService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), MembershipReferenceType.API, API_ID))
-            .thenReturn(membership);
-
         when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(mock(UserEntity.class));
 
         final Workflow workflow = new Workflow();

@@ -69,6 +69,9 @@ public abstract class AbstractResource {
     protected ApiService apiService;
 
     @Inject
+    protected io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
+
+    @Inject
     protected PermissionService permissionService;
 
     protected UserDetails getAuthenticatedUserDetails() {

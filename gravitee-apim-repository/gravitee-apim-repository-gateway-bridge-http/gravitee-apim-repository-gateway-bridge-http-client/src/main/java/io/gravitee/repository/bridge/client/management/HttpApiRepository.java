@@ -122,4 +122,15 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    @ExcludeMethodFromGeneratedCoverage
+    public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean existById(final String appId) throws TechnicalException {
+        return findById(appId).isPresent();
+    }
 }

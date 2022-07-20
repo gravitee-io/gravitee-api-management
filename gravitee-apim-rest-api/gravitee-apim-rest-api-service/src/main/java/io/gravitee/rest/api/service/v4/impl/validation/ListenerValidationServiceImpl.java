@@ -74,17 +74,19 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     @Override
     public List<Listener> validateAndSanitize(final ExecutionContext executionContext, final String apiId, final List<Listener> listeners) {
         if (listeners != null && !listeners.isEmpty()) {
-            listeners.forEach(listener -> {
-                switch (listener.getType()) {
-                    case HTTP:
-                        // TODO this need to be improved when entrypoint connector are implemented in order to check the configuration schema
-                        validateAndSanitizeHttpListener(executionContext, apiId, (ListenerHttp) listener);
-                    case TCP:
-                    case SUBSCRIPTION:
-                    default:
-                        break;
+            listeners.forEach(
+                listener -> {
+                    switch (listener.getType()) {
+                        case HTTP:
+                            // TODO this need to be improved when entrypoint connector are implemented in order to check the configuration schema
+                            validateAndSanitizeHttpListener(executionContext, apiId, (ListenerHttp) listener);
+                        case TCP:
+                        case SUBSCRIPTION:
+                        default:
+                            break;
+                    }
                 }
-            });
+            );
         }
         return listeners;
     }
@@ -164,11 +166,12 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                         .stream()
                         .filter(listener -> listener instanceof ListenerHttp)
                         .map(listener -> (ListenerHttp) listener)
-                        .flatMap(listenerHttp ->
-                            listenerHttp
-                                .getPaths()
-                                .stream()
-                                .map(virtualHost -> new Path(virtualHost.getHost(), sanitizePath(virtualHost.getPath())))
+                        .flatMap(
+                            listenerHttp ->
+                                listenerHttp
+                                    .getPaths()
+                                    .stream()
+                                    .map(virtualHost -> new Path(virtualHost.getHost(), sanitizePath(virtualHost.getPath())))
                         )
                         .collect(Collectors.toList());
                 } catch (IOException ioe) {
@@ -265,15 +268,17 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     private void validatePathMappings(final Set<String> pathMappings) {
         // validate regex on pathMappings
         if (pathMappings != null) {
-            pathMappings.forEach(pathMapping -> {
-                try {
-                    Pattern.compile(pathMapping);
-                } catch (java.util.regex.PatternSyntaxException pse) {
-                    String errorMsg = String.format("An error occurs while trying to parse the path mapping '%s'", pathMapping);
-                    log.error(errorMsg, pse);
-                    throw new TechnicalManagementException(errorMsg, pse);
+            pathMappings.forEach(
+                pathMapping -> {
+                    try {
+                        Pattern.compile(pathMapping);
+                    } catch (java.util.regex.PatternSyntaxException pse) {
+                        String errorMsg = String.format("An error occurs while trying to parse the path mapping '%s'", pathMapping);
+                        log.error(errorMsg, pse);
+                        throw new TechnicalManagementException(errorMsg, pse);
+                    }
                 }
-            });
+            );
         }
     }
 }

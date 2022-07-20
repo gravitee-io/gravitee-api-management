@@ -13,43 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model.flow.selector;
+package io.gravitee.rest.api.service.v4;
 
-import io.gravitee.common.http.HttpMethod;
+import io.gravitee.rest.api.model.CategoryEntity;
+import java.util.Collection;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class FlowHttpSelector extends FlowSelector {
-
-    /**
-     * Path
-     */
-    private String path;
-
-    /**
-     * Path operator
-     */
-    private FlowOperator pathOperator;
-
-    /**
-     * Http methods
-     */
-    private Set<HttpMethod> methods;
-
-    public FlowHttpSelector() {
-        super(FlowSelectorType.HTTP);
-    }
+public interface ApiCategoryService {
+    Set<CategoryEntity> listCategories(Collection<String> apis, String environment);
 }

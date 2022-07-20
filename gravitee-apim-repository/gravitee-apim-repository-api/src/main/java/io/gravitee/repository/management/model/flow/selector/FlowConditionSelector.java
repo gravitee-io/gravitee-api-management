@@ -15,11 +15,8 @@
  */
 package io.gravitee.repository.management.model.flow.selector;
 
-import io.gravitee.common.http.HttpMethod;
-import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -27,7 +24,6 @@ import lombok.ToString;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@NoArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
@@ -38,4 +34,8 @@ public class FlowConditionSelector extends FlowSelector {
      * Condition
      */
     private String condition;
+
+    public FlowConditionSelector() {
+        super(FlowSelectorType.CONDITION);
+    }
 }

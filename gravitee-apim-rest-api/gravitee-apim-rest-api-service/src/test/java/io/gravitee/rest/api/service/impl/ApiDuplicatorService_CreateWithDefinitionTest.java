@@ -15,10 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
@@ -26,19 +22,31 @@ import com.google.common.io.Resources;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.HttpClientService;
+import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,6 +59,25 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Azize Elamrani (azize.elamrani at graviteesource.com)

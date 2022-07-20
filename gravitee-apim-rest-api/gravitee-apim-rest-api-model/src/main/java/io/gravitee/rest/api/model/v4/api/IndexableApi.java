@@ -13,43 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model.flow.selector;
+package io.gravitee.rest.api.model.v4.api;
 
-import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.model.search.Indexable;
+import java.util.Map;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class FlowHttpSelector extends FlowSelector {
+public interface IndexableApi extends Indexable {
+    String getId();
 
-    /**
-     * Path
-     */
-    private String path;
+    String getName();
 
-    /**
-     * Path operator
-     */
-    private FlowOperator pathOperator;
+    String getDescription();
 
-    /**
-     * Http methods
-     */
-    private Set<HttpMethod> methods;
+    String getApiVersion();
 
-    public FlowHttpSelector() {
-        super(FlowSelectorType.HTTP);
-    }
+    DefinitionVersion getDefinitionVersion();
+
+    boolean isDisableMembershipNotifications();
+
+    Map<String, Object> getMetadata();
+
+    void setMetadata(Map<String, Object> metadata);
+
+    Set<String> getGroups();
 }

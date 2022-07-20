@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Component("PrimaryOwnerServiceImplV4")
+@Component
 @Slf4j
 public class PrimaryOwnerServiceImpl extends TransactionalService implements PrimaryOwnerService {
 

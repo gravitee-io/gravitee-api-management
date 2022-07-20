@@ -13,43 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model.flow.selector;
+package io.gravitee.rest.api.service.v4;
 
-import io.gravitee.common.http.HttpMethod;
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import io.gravitee.rest.api.model.GroupMemberEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class FlowHttpSelector extends FlowSelector {
+public interface ApiGroupService {
+    void addGroup(ExecutionContext executionContext, String apiId, String group);
 
-    /**
-     * Path
-     */
-    private String path;
+    void removeGroup(ExecutionContext executionContext, String apiId, String group);
 
-    /**
-     * Path operator
-     */
-    private FlowOperator pathOperator;
-
-    /**
-     * Http methods
-     */
-    private Set<HttpMethod> methods;
-
-    public FlowHttpSelector() {
-        super(FlowSelectorType.HTTP);
-    }
+    Map<String, List<GroupMemberEntity>> getGroupsWithMembers(ExecutionContext executionContext, String apiId)
+        throws TechnicalManagementException;
 }

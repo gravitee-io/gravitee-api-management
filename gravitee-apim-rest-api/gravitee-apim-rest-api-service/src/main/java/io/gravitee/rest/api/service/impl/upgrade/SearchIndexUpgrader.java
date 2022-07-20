@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,6 +92,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     private final UserConverter userConverter;
 
     private final Map<String, String> organizationIdByEnvironmentIdMap = new ConcurrentHashMap<>();
+    private final PrimaryOwnerService primaryOwnerService;
 
     @Autowired
     public SearchIndexUpgrader(
@@ -102,7 +104,8 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         @Lazy EnvironmentRepository environmentRepository,
         final ApiMapper apiMapper,
         ApiConverter apiConverter,
-        UserConverter userConverter
+        UserConverter userConverter,
+        final PrimaryOwnerService primaryOwnerService
     ) {
         this.apiRepository = apiRepository;
         this.apiService = apiService;
@@ -113,6 +116,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         this.apiMapper = apiMapper;
         this.apiConverter = apiConverter;
         this.userConverter = userConverter;
+        this.primaryOwnerService = primaryOwnerService;
     }
 
     @Override
@@ -178,11 +182,11 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         );
 
         ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
-        PrimaryOwnerEntity primaryOwner = apiService.getPrimaryOwner(executionContext, api.getId());
         DefinitionVersion apiDefinitionVersion = DefinitionVersion.valueOfLabel(api.getDefinitionVersion());
         Indexable indexable;
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
         if (apiDefinitionVersion == DefinitionVersion.V4) {
-            indexable = apiMapper.toEntity(executionContext, api, primaryOwner, null, false);
+            indexable = apiMapper.toEntityWithPlan(executionContext, api, primaryOwner, null, false);
         } else {
             indexable = apiConverter.toApiEntity(api, primaryOwner);
         }
@@ -207,19 +211,21 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
                         new PageQuery.Builder().api(apiId).published(true).build(),
                         true
                     );
-                    apiPages.forEach(page -> {
-                        try {
-                            if (
-                                !PageType.FOLDER.name().equals(page.getType()) &&
-                                !PageType.ROOT.name().equals(page.getType()) &&
-                                !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
-                                !PageType.LINK.name().equals(page.getType())
-                            ) {
-                                pageService.transformSwagger(executionContext, page, apiId);
-                                searchEngineService.index(executionContext, page, true, false);
-                            }
-                        } catch (Exception ignored) {}
-                    });
+                    apiPages.forEach(
+                        page -> {
+                            try {
+                                if (
+                                    !PageType.FOLDER.name().equals(page.getType()) &&
+                                    !PageType.ROOT.name().equals(page.getType()) &&
+                                    !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
+                                    !PageType.LINK.name().equals(page.getType())
+                                ) {
+                                    pageService.transformSwagger(executionContext, page, apiId);
+                                    searchEngineService.index(executionContext, page, true, false);
+                                }
+                            } catch (Exception ignored) {}
+                        }
+                    );
                 } finally {
                     GraviteeContext.cleanContext();
                 }

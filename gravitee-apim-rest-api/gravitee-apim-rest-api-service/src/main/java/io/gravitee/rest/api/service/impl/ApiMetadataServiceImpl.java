@@ -20,14 +20,24 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.repository.management.model.MetadataReferenceType;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.ApiMetadataEntity;
+import io.gravitee.rest.api.model.MetadataFormat;
+import io.gravitee.rest.api.model.NewApiMetadataEntity;
+import io.gravitee.rest.api.model.ReferenceMetadataEntity;
+import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
+import io.gravitee.rest.api.model.v4.api.IndexableApi;
 import io.gravitee.rest.api.service.ApiMetadataService;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.ApiService;
+import java.io.StringReader;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +53,9 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
 
     @Autowired
     private SearchEngineService searchEngineService;
+
+    @Autowired
+    private NotificationTemplateService notificationTemplateService;
 
     @Override
     public List<ApiMetadataEntity> findAllByApi(final String apiId) {
@@ -63,7 +76,7 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
     @Override
     public void deleteAllByApi(final ExecutionContext executionContext, String apiId) {
         final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, false);
-        allMetadata.stream().forEach(referenceMetadataEntity -> delete(executionContext, referenceMetadataEntity.getKey(), API, apiId));
+        allMetadata.forEach(referenceMetadataEntity -> delete(executionContext, referenceMetadataEntity.getKey(), API, apiId));
     }
 
     @Override
@@ -99,11 +112,9 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
             update(executionContext, metadataEntity, API, metadataEntity.getApiId(), true),
             metadataEntity.getApiId()
         );
-        ApiEntity apiEntity = apiService.fetchMetadataForApi(
-            executionContext,
-            apiService.findById(executionContext, apiMetadataEntity.getApiId())
-        );
-        searchEngineService.index(executionContext, apiEntity, false);
+        IndexableApi indexableApi = apiService.findIndexableApiById(executionContext, apiMetadataEntity.getApiId());
+        IndexableApi indexableApiWithMetadata = fetchMetadataForApi(executionContext, indexableApi);
+        searchEngineService.index(executionContext, indexableApiWithMetadata, false);
         return apiMetadataEntity;
     }
 
@@ -115,8 +126,37 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
         MetadataReferenceType referenceType,
         String referenceId
     ) {
-        final ApiEntity apiEntity = apiService.findById(executionContext, referenceId);
-        metadataService.checkMetadataFormat(executionContext, format, value, referenceType, apiEntity);
+        final IndexableApi indexableApi = apiService.findIndexableApiById(executionContext, referenceId);
+        metadataService.checkMetadataFormat(executionContext, format, value, referenceType, indexableApi);
+    }
+
+    @Override
+    public IndexableApi fetchMetadataForApi(final ExecutionContext executionContext, final IndexableApi indexableApi) {
+        List<ApiMetadataEntity> metadataList = findAllByApi(indexableApi.getId());
+        final Map<String, Object> mapMetadata = new HashMap<>(metadataList.size());
+
+        metadataList.forEach(
+            metadata -> mapMetadata.put(metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue())
+        );
+
+        String decodedValue =
+            this.notificationTemplateService.resolveInlineTemplateWithParam(
+                    executionContext.getOrganizationId(),
+                    indexableApi.getId(),
+                    new StringReader(mapMetadata.toString()),
+                    Collections.singletonMap("api", indexableApi)
+                );
+        Map<String, Object> metadataDecoded = null;
+        if (decodedValue != null) {
+            metadataDecoded =
+                Arrays
+                    .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+                    .map(entry -> entry.split("="))
+                    .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
+        }
+        indexableApi.setMetadata(metadataDecoded);
+
+        return indexableApi;
     }
 
     private ApiMetadataEntity convert(ReferenceMetadataEntity m, String apiId) {

@@ -17,6 +17,7 @@ package io.gravitee.repository.management.model.flow.selector;
 
 import io.gravitee.common.http.HttpMethod;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,7 +28,6 @@ import lombok.ToString;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@NoArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
@@ -48,6 +48,10 @@ public class FlowChannelSelector extends FlowSelector {
      * Channel operator
      */
     private FlowOperator channelOperator;
+
+    public FlowChannelSelector() {
+        super(FlowSelectorType.CHANNEL);
+    }
 
     public enum Operation {
         SUB,
