@@ -934,7 +934,7 @@ jobs:
     ## Release Jobs
     announce-release:
         docker:
-          - image: cimg/base
+          - image: cimg/base:stable
         resource_class: small
         steps:
           - slack/notify:
