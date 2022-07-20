@@ -157,11 +157,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
      * @return An Api Key
      */
     private ApiKey generateForSubscription(String subscription, String customApiKey) {
-        if (StringUtils.isNotEmpty(customApiKey) && exists(customApiKey)) {
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
+
+        if (StringUtils.isNotEmpty(customApiKey) && !canCreate(customApiKey, subscriptionEntity.getApi(), subscriptionEntity.getApplication())) {
             throw new ApiKeyAlreadyExistingException();
         }
-
-        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
 
         if (customApiKey != null && !canCreate(customApiKey, subscriptionEntity.getApi(), subscriptionEntity.getApplication())) {
             throw new ApiKeyAlreadyExistingException();
