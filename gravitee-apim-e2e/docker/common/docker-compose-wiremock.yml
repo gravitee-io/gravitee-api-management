@@ -24,5 +24,3 @@ services:
       - ./api-test/resources/wiremock:/home/wiremock
     ports:
       - "8080:8080"
-    networks:
-      - apim
