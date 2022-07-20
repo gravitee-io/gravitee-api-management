@@ -57,9 +57,9 @@
 
     <properties>
         <!-- Version properties -->
-        <revision>3.18.3</revision>
+        <revision>3.18.4</revision>
         <sha1/>
-        <changelist></changelist>
+        <changelist>-SNAPSHOT</changelist>
 
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-apim-gateway-standalone-container -->
         <vertx.version>4.2.7</vertx.version>
