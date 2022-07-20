@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,7 +62,7 @@ public class PlansDataFixUpgraderTest {
     private PlanRepository planRepository;
 
     @Mock
-    private ApiService apiService;
+    private PrimaryOwnerService primaryOwnerService;
 
     @Mock
     private EmailService emailService;
@@ -290,11 +291,11 @@ public class PlansDataFixUpgraderTest {
         Api api = new Api();
         api.setId("my-api-id");
 
-        when(apiService.getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api-id")).thenReturn(new PrimaryOwnerEntity());
+        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api-id")).thenReturn(new PrimaryOwnerEntity());
 
         upgrader.sendEmailToApiOwner(GraviteeContext.getExecutionContext(), api, Collections.emptyList(), Collections.emptyList());
 
-        verify(apiService, times(1)).getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api-id");
+        verify(primaryOwnerService, times(1)).getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api-id");
     }
 
     @Test
@@ -304,7 +305,7 @@ public class PlansDataFixUpgraderTest {
 
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity();
         primaryOwner.setEmail("primary-owner-email");
-        when(apiService.getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api-id")).thenReturn(primaryOwner);
+        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api-id")).thenReturn(primaryOwner);
 
         List<Plan> createdPlans = new ArrayList<>();
         List<Plan> closedPlans = new ArrayList<>();

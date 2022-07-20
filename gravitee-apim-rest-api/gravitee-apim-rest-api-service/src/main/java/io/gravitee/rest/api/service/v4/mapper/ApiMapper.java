@@ -86,13 +86,7 @@ public class ApiMapper {
         this.workflowService = workflowService;
     }
 
-    public ApiEntity toEntity(
-        final ExecutionContext executionContext,
-        final Api api,
-        final PrimaryOwnerEntity primaryOwner,
-        List<CategoryEntity> categories,
-        final boolean readDatabaseFlows
-    ) {
+    public ApiEntity toEntityWithPlan(final Api api, final PrimaryOwnerEntity primaryOwner) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setId(api.getId());
@@ -148,6 +142,17 @@ public class ApiMapper {
         }
 
         apiEntity.setPrimaryOwner(primaryOwner);
+        return apiEntity;
+    }
+
+    public ApiEntity toEntityWithPlan(
+        final ExecutionContext executionContext,
+        final Api api,
+        final PrimaryOwnerEntity primaryOwner,
+        List<CategoryEntity> categories,
+        final boolean readDatabaseFlows
+    ) {
+        ApiEntity apiEntity = toEntityWithPlan(api, primaryOwner);
 
         Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
         apiEntity.setPlans(plans);
@@ -185,7 +190,7 @@ public class ApiMapper {
             }
         }
 
-        return null;
+        return apiEntity;
     }
 
     public Api toRepository(final ExecutionContext executionContext, final NewApiEntity newApiEntity) {

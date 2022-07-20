@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -60,7 +61,7 @@ public class SearchIndexUpgraderTest {
     private PageService pageService;
 
     @Mock
-    private ApiService apiService;
+    private PrimaryOwnerService primaryOwnerService;
 
     @Mock
     private UserRepository userRepository;
@@ -77,14 +78,14 @@ public class SearchIndexUpgraderTest {
     @Mock
     private UserConverter userConverter;
 
-    private PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
+    private final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
 
     @Before
     public void setup() throws Exception {
         mockEnvironment("env1", "org1");
         mockEnvironment("env2", "org2");
         mockEnvironment("env3", "org1");
-        when(apiService.getPrimaryOwner(any(), any())).thenReturn(primaryOwnerEntity);
+        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(primaryOwnerEntity);
     }
 
     @Test

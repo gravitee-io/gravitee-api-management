@@ -21,9 +21,9 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.NewApiMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.api.IndexableApi;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -51,7 +51,7 @@ import javax.ws.rs.core.Response;
 public class ApiMetadataResource extends AbstractResource {
 
     @Inject
-    private ApiMetadataService metadataService;
+    private ApiMetadataService apiMetadataService;
 
     @Inject
     private SearchEngineService searchEngineService;
@@ -78,7 +78,7 @@ public class ApiMetadataResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.READ) })
     public List<ApiMetadataEntity> getApiMetadatas() {
-        return metadataService.findAllByApi(api);
+        return apiMetadataService.findAllByApi(api);
     }
 
     @GET
@@ -97,7 +97,7 @@ public class ApiMetadataResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.READ) })
     public ApiMetadataEntity getApiMetadata(@PathParam("metadata") String metadata) {
-        return metadataService.findByIdAndApi(metadata, api);
+        return apiMetadataService.findByIdAndApi(metadata, api);
     }
 
     @POST
@@ -116,9 +116,9 @@ public class ApiMetadataResource extends AbstractResource {
         metadata.setApiId(api);
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final ApiMetadataEntity apiMetadataEntity = metadataService.create(executionContext, metadata);
-        ApiEntity apiEntity = apiService.fetchMetadataForApi(executionContext, apiService.findById(executionContext, api));
-        searchEngineService.index(executionContext, apiEntity, false);
+        final ApiMetadataEntity apiMetadataEntity = apiMetadataService.create(executionContext, metadata);
+        IndexableApi indexableApi = apiMetadataService.fetchMetadataForApi(executionContext, apiService.findById(executionContext, api));
+        searchEngineService.index(executionContext, indexableApi, false);
         return Response.created(this.getLocationHeader(apiMetadataEntity.getKey())).entity(apiMetadataEntity).build();
     }
 
@@ -141,7 +141,7 @@ public class ApiMetadataResource extends AbstractResource {
         // prevent update of a metadata on an another API
         metadata.setApiId(api);
 
-        return Response.ok(metadataService.update(GraviteeContext.getExecutionContext(), metadata)).build();
+        return Response.ok(apiMetadataService.update(GraviteeContext.getExecutionContext(), metadata)).build();
     }
 
     @DELETE
@@ -151,12 +151,12 @@ public class ApiMetadataResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.DELETE) })
     public Response deleteApiMetadata(@PathParam("metadata") String metadata) {
-        metadataService.delete(GraviteeContext.getExecutionContext(), metadata, api);
-        ApiEntity apiEntity = apiService.fetchMetadataForApi(
+        apiMetadataService.delete(GraviteeContext.getExecutionContext(), metadata, api);
+        IndexableApi indexableApi = apiMetadataService.fetchMetadataForApi(
             GraviteeContext.getExecutionContext(),
-            apiService.findById(GraviteeContext.getExecutionContext(), api)
+            apiServiceV4.findIndexableApiById(GraviteeContext.getExecutionContext(), api)
         );
-        searchEngineService.index(GraviteeContext.getExecutionContext(), apiEntity, false);
+        searchEngineService.index(GraviteeContext.getExecutionContext(), indexableApi, false);
         return Response.noContent().build();
     }
 }

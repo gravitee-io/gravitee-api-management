@@ -27,6 +27,7 @@ import io.gravitee.definition.model.v4.listener.subscription.ListenerSubscriptio
 import io.gravitee.definition.model.v4.listener.tcp.ListenerTcp;
 import java.io.Serializable;
 import javax.validation.constraints.NotNull;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -39,7 +40,8 @@ import lombok.experimental.FieldNameConstants;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Getter
 @Setter
 @ToString

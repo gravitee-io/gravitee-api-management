@@ -15,12 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource.v4.api;
 
-import static java.util.Collections.list;
-import static java.util.Collections.singletonList;
-
 import io.gravitee.common.http.MediaType;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
@@ -63,9 +58,6 @@ public class ApiResource extends AbstractResource {
     @Inject
     protected JsonPatchService jsonPatchService;
 
-    @Inject
-    protected ApiService apiService;
-
     @Context
     private ResourceContext resourceContext;
 
@@ -87,7 +79,7 @@ public class ApiResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getApi() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApiEntity apiEntity = apiService.findById(executionContext, api);
+        ApiEntity apiEntity = apiServiceV4.findById(executionContext, api);
 
         if (!canManageV4Api(apiEntity)) {
             throw new ForbiddenAccessException();

@@ -51,6 +51,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.IndexableApi;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -79,10 +80,10 @@ import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.FlowService;
-import io.gravitee.rest.api.service.v4.MetadataService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.util.Arrays;
 import java.util.Collection;
@@ -108,6 +109,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private final ApiRepository apiRepository;
     private final ApiMapper apiMapper;
+    private final GenericApiMapper genericApiMapper;
     private final PrimaryOwnerService primaryOwnerService;
     private final ApiValidationService apiValidationService;
     private final ParameterService parameterService;
@@ -117,7 +119,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final GenericNotificationConfigService genericNotificationConfigService;
     private final ApiMetadataService apiMetadataService;
     private final FlowService flowService;
-    private final MetadataService metadataService;
     private final SearchEngineService searchEngineService;
     private final PlanService planService;
     private final SubscriptionService subscriptionService;
@@ -133,6 +134,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public ApiServiceImpl(
         @Lazy final ApiRepository apiRepository,
         final ApiMapper apiMapper,
+        final GenericApiMapper genericApiMapper,
         final PrimaryOwnerService primaryOwnerService,
         final ApiValidationService apiValidationService,
         final ParameterService parameterService,
@@ -142,7 +144,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final GenericNotificationConfigService genericNotificationConfigService,
         final ApiMetadataService apiMetadataService,
         final FlowService flowService,
-        final MetadataService metadataService,
         final SearchEngineService searchEngineService,
         final PlanService planService,
         final SubscriptionService subscriptionService,
@@ -156,6 +157,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
+        this.genericApiMapper = genericApiMapper;
         this.primaryOwnerService = primaryOwnerService;
         this.apiValidationService = apiValidationService;
         this.parameterService = parameterService;
@@ -165,7 +167,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.genericNotificationConfigService = genericNotificationConfigService;
         this.apiMetadataService = apiMetadataService;
         this.flowService = flowService;
-        this.metadataService = metadataService;
         this.searchEngineService = searchEngineService;
         this.planService = planService;
         this.subscriptionService = subscriptionService;
@@ -181,13 +182,35 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity findById(final ExecutionContext executionContext, final String apiId) {
         final Api api = this.findApiById(executionContext, apiId);
-        if (DefinitionVersion.V4.getLabel().equals(api.getDefinitionVersion())) {
-            throw new IllegalArgumentException("Api found doesn't support v4 definition model.");
+        DefinitionVersion definitionVersion = DefinitionVersion.valueOfLabel(api.getDefinitionVersion());
+        if (definitionVersion != DefinitionVersion.V4) {
+            throw new IllegalArgumentException(
+                String.format("Api found doesn't support v%s definition model.", DefinitionVersion.V4.getLabel())
+            );
         }
 
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
 
-        return apiMapper.toEntity(executionContext, api, primaryOwner, null, true);
+        return apiMapper.toEntityWithPlan(executionContext, api, primaryOwner, null, true);
+    }
+
+    @Override
+    public IndexableApi findIndexableApiById(final ExecutionContext executionContext, final String apiId) {
+        final Api api = this.findApiById(executionContext, apiId);
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
+        return genericApiMapper.toGenericApi(api, primaryOwner);
+    }
+
+    @Override
+    public Optional<String> findApiIdByEnvironmentIdAndCrossId(final String environment, final String crossId) {
+        try {
+            return apiRepository.findIdByEnvironmentIdAndCrossId(environment, crossId);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error occurred while finding API by environment " + environment + " and crossId " + crossId,
+                e
+            );
+        }
     }
 
     @Override
@@ -249,11 +272,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             flowService.save(FlowReferenceType.API, createdApi.getId(), newApiEntity.getFlows());
 
             //TODO add membership log
-            ApiEntity apiEntity = apiMapper.toEntity(executionContext, createdApi, primaryOwner, null, true);
-            Map<String, Object> apiMetadata = metadataService.getMetadataForApi(executionContext, apiEntity);
-            apiEntity.setMetadata(apiMetadata);
+            ApiEntity apiEntity = apiMapper.toEntityWithPlan(executionContext, createdApi, primaryOwner, null, true);
+            IndexableApi apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
-            searchEngineService.index(executionContext, apiEntity, false);
+            searchEngineService.index(executionContext, apiWithMetadata, false);
             return apiEntity;
         } catch (TechnicalException | IllegalStateException ex) {
             String errorMsg = String.format("An error occurs while trying to create '%s' for user '%s'", newApiEntity, userId);
@@ -348,7 +370,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // Audit
                 auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
                 // remove from search engine
-                searchEngineService.delete(executionContext, apiMapper.toEntity(executionContext, api, null, null, false));
+                searchEngineService.delete(executionContext, apiMapper.toEntityWithPlan(executionContext, api, null, null, false));
 
                 mediaService.deleteAllByApi(apiId);
 
@@ -358,6 +380,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             String errorMsg = String.format("An error occurs while trying to delete API '%s'", apiId);
             log.error(errorMsg, apiId, ex);
             throw new TechnicalManagementException(errorMsg, ex);
+        }
+    }
+
+    @Override
+    public boolean exists(final String apiId) {
+        try {
+            return apiRepository.existById(apiId);
+        } catch (final TechnicalException te) {
+            final String msg = "An error occurs while checking if the API exists: " + apiId;
+            log.error(msg, te);
+            throw new TechnicalManagementException(msg, te);
         }
     }
 

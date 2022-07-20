@@ -15,12 +15,12 @@
  */
 package io.gravitee.rest.api.service.v4;
 
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.IndexableApi;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Optional;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -29,6 +29,10 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 public interface ApiService {
     ApiEntity findById(final ExecutionContext executionContext, final String apiId);
 
+    IndexableApi findIndexableApiById(final ExecutionContext executionContext, final String apiId);
+
+    Optional<String> findApiIdByEnvironmentIdAndCrossId(final String environment, final String crossId);
+
     ApiEntity create(final ExecutionContext executionContext, final NewApiEntity api, final String userId);
 
     ApiEntity update(final ExecutionContext executionContext, final String apiId, final UpdateApiEntity api);
@@ -36,4 +40,6 @@ public interface ApiService {
     ApiEntity update(final ExecutionContext executionContext, final String apiId, final UpdateApiEntity api, final boolean checkPlans);
 
     void delete(final ExecutionContext executionContext, final String apiId);
+
+    boolean exists(final String apiId);
 }

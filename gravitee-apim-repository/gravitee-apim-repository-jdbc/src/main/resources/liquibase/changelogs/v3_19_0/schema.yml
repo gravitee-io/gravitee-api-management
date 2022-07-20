@@ -6,11 +6,51 @@ databaseChangeLog:
         # ################
         # Apis v4 Changes
         # ################
+        - dropNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: path
+            tableName: ${gravitee_prefix}flows
+        - dropNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: operator
+            tableName: ${gravitee_prefix}flows
+        - createTable:
+            tableName: ${gravitee_prefix}flow_selectors
+            columns:
+              - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: path, type: nvarchar(256), constraints: { nullable: true } }
+              - column: { name: path_operator, type: nvarchar(64), constraints: { nullable: true } }
+              - column: { name: condition, type: nvarchar(64), constraints: { nullable: true } }
+              - column: { name: channel, type: nvarchar(64), constraints: { nullable: true } }
+              - column: { name: channel_operator, type: nvarchar(64), constraints: { nullable: true } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}flow_selectors
+            columnNames: flow_id, type
+            tableName: ${gravitee_prefix}flow_selectors
+        - createTable:
+            tableName: ${gravitee_prefix}flow_channel_operation
+            columns:
+              - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: channel_operation, type: nvarchar(32), constraints: { nullable: false } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}flow_channel_operation
+            columnNames: flow_id, channel_operation
+            tableName: ${gravitee_prefix}flow_channel_operation
+        - createTable:
+            tableName: ${gravitee_prefix}flow_tags
+            columns:
+              - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: tag, type: nvarchar(32), constraints: { nullable: false } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}flow_tags
+            columnNames: flow_id, tag
+            tableName: ${gravitee_prefix}flow_tags
         - addColumn:
             tableName: ${gravitee_prefix}apis
             columns:
               - column:
-                  name: version_definition
+                  name: definition_version
                   type: nvarchar(64)
                   beforeColumn: definition
                   constraints:

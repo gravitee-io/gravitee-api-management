@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -92,7 +93,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("version", Types.NVARCHAR, String.class)
-            .addColumn("version_definition", Types.NVARCHAR, String.class)
+            .addColumn("definition_version", Types.NVARCHAR, String.class)
             .addColumn("definition", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, String.class)
             .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
@@ -573,5 +574,38 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
         LOGGER.debug("JdbcApiRepository.findByEnvironmentIdAndCrossId({}, {}) = {}", environmentId, crossId, result);
         return result;
+    }
+
+    @Override
+    public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException {
+        LOGGER.debug("JdbcApiRepository.findIdByEnvironmentIdAndCrossId({}, {})", environmentId, crossId);
+        List<String> rows = jdbcTemplate.queryForList(
+            getOrm().getSelectAllSql() + " a.id where a.environment_id = ? and a.cross_id = ?",
+            String.class,
+            environmentId,
+            crossId
+        );
+
+        if (rows.size() > 1) {
+            throw new TechnicalException("More than one API was found for environmentId " + environmentId + " and crossId " + crossId);
+        }
+
+        Optional<String> result = rows.stream().findFirst();
+
+        LOGGER.debug("JdbcApiRepository.findIdByEnvironmentIdAndCrossId({}, {}) = {}", environmentId, crossId, result);
+        return result;
+    }
+
+    @Override
+    public boolean existById(final String appId) throws TechnicalException {
+        LOGGER.debug("JdbcApiRepository.existById({})", appId);
+        try {
+            String idFound = jdbcTemplate.queryForObject(getOrm().getSelectAllSql() + " a.id where a.id = ?", String.class, appId);
+
+            LOGGER.debug("JdbcApiRepository.existById({}) = {}", appId, idFound);
+            return true;
+        } catch (EmptyResultDataAccessException e) {
+            return false;
+        }
     }
 }

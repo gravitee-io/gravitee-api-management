@@ -15,17 +15,39 @@
  */
 package io.gravitee.rest.api.model.api;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.Property;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.DeploymentRequired;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.search.Indexable;
+import io.gravitee.rest.api.model.v4.api.IndexableApi;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -50,7 +72,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class ApiEntity implements Indexable {
+public class ApiEntity implements Indexable, IndexableApi {
 
     @Schema(description = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     @EqualsAndHashCode.Include
@@ -222,17 +244,29 @@ public class ApiEntity implements Indexable {
         this.properties = properties;
     }
 
-    @JsonSetter("properties")
-    public void setPropertyList(List<Property> properties) {
-        this.properties = new Properties();
-        this.properties.setProperties(properties);
-    }
-
     @JsonGetter("properties")
     public List<Property> getPropertyList() {
         if (properties != null) {
             return properties.getProperties();
         }
         return Collections.emptyList();
+    }
+
+    @JsonSetter("properties")
+    public void setPropertyList(List<Property> properties) {
+        this.properties = new Properties();
+        this.properties.setProperties(properties);
+    }
+
+    @Override
+    @JsonIgnore
+    public String getApiVersion() {
+        return version;
+    }
+
+    @Override
+    @JsonIgnore
+    public DefinitionVersion getDefinitionVersion() {
+        return DefinitionVersion.valueOfLabel(graviteeDefinitionVersion);
     }
 }

@@ -15,14 +15,16 @@
  */
 package io.gravitee.rest.api.service.v4;
 
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.v4.api.IndexableApi;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Map;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MetadataService {
-    Map<String, Object> getMetadataForApi(ExecutionContext executionContext, ApiEntity apiEntity);
+public interface ApiNotificationService {
+    void triggerUpdateNotification(ExecutionContext executionContext, Api api);
+
+    void triggerApiDeprecatedNotification(ExecutionContext executionContext, IndexableApi indexableApi);
 }

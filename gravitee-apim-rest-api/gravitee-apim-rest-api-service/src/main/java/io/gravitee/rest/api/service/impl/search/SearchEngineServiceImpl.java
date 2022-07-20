@@ -27,7 +27,8 @@ import io.gravitee.rest.api.model.command.CommandSearchIndexerEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.model.command.NewCommandEntity;
 import io.gravitee.rest.api.model.search.Indexable;
-import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.UserService;
@@ -40,6 +41,7 @@ import io.gravitee.rest.api.service.impl.search.lucene.SearchEngineIndexer;
 import io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
+import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
@@ -59,10 +61,13 @@ import org.springframework.util.Assert;
 @Component
 public class SearchEngineServiceImpl implements SearchEngineService {
 
+    private static final String ACTION_INDEX = "I";
+    private static final String ACTION_DELETE = "D";
     /**
      * Logger.
      */
     private final Logger logger = LoggerFactory.getLogger(SearchEngineServiceImpl.class);
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private SearchEngineIndexer indexer;
@@ -79,6 +84,10 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
     @Autowired
     @Lazy
+    private ApiMetadataService apiMetadataService;
+
+    @Autowired
+    @Lazy
     private ApiService apiService;
 
     @Autowired
@@ -88,11 +97,6 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     @Autowired
     @Lazy
     private UserService userService;
-
-    private ObjectMapper mapper = new ObjectMapper();
-
-    private static final String ACTION_INDEX = "I";
-    private static final String ACTION_DELETE = "D";
 
     @Async("indexerThreadPoolTaskExecutor")
     @Override
@@ -166,8 +170,8 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     private Indexable getSource(final ExecutionContext executionContext, String clazz, String id) {
         try {
             if (ApiEntity.class.getName().equals(clazz)) {
-                ApiEntity apiEntity = apiService.findById(executionContext, id);
-                return apiService.fetchMetadataForApi(executionContext, apiEntity);
+                IndexableApi indexableApi = apiService.findIndexableApiById(executionContext, id);
+                return apiMetadataService.fetchMetadataForApi(executionContext, indexableApi);
             } else if (PageEntity.class.getName().equals(clazz) || ApiPageEntity.class.getName().equals(clazz)) {
                 return pageService.findById(id);
             } else if (UserEntity.class.getName().equals(clazz)) {

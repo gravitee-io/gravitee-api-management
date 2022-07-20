@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import java.util.*;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -118,6 +119,7 @@ public class Flow {
     /**
      * Flow order
      */
+    @Getter(AccessLevel.NONE)
     private Integer order;
 
     /**
@@ -159,5 +161,14 @@ public class Flow {
 
         this.condition = other.condition;
         this.selectors = other.selectors;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public Flow setOrder(final int order) {
+        this.order = order;
+        return this;
     }
 }

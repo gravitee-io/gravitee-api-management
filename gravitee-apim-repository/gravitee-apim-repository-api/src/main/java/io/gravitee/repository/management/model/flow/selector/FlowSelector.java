@@ -15,22 +15,37 @@
  */
 package io.gravitee.repository.management.model.flow.selector;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Setter
-@EqualsAndHashCode
 @ToString
-public class FlowSelector {
+@EqualsAndHashCode
+@FieldNameConstants
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = FlowSelector.Fields.type)
+@JsonSubTypes(
+    {
+        @JsonSubTypes.Type(value = FlowHttpSelector.class, name = "HTTP"),
+        @JsonSubTypes.Type(value = FlowConditionSelector.class, name = "CONDITION"),
+        @JsonSubTypes.Type(value = FlowChannelSelector.class, name = "CHANNEL"),
+    }
+)
+public abstract class FlowSelector {
 
     private FlowSelectorType type;
 }
