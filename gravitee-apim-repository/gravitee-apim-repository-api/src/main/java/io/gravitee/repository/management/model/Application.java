@@ -28,6 +28,10 @@ import java.util.Set;
  */
 public class Application {
 
+    public static final String METADATA_CLIENT_ID = "client_id";
+    public static final String METADATA_TYPE = "type";
+    public static final String METADATA_REGISTRATION_PAYLOAD = "registration_payload";
+
     public enum AuditEvent implements Audit.AuditEvent {
         APPLICATION_CREATED,
         APPLICATION_UPDATED,

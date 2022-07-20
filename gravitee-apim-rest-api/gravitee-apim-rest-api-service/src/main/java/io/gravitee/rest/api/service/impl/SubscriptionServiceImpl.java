@@ -506,6 +506,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setClosedAt(new Date());
             }
 
+            if (planEntity.getSecurity() == PlanSecurityType.API_KEY && subscription.getStatus() == Subscription.Status.ACCEPTED) {
+                apiKeyService.generate(subscription.getId(), processSubscription.getCustomApiKey());
+            }
+
             subscription = subscriptionRepository.update(subscription);
 
             final ApplicationEntity application = applicationService.findById(
@@ -570,14 +574,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                             }
                         }
                     );
-            }
-
-            if (plan.getSecurity() == PlanSecurityType.API_KEY && subscription.getStatus() == Subscription.Status.ACCEPTED) {
-                if (StringUtils.isNotEmpty(processSubscription.getCustomApiKey())) {
-                    apiKeyService.generate(subscription.getId(), processSubscription.getCustomApiKey());
-                } else {
-                    apiKeyService.generate(subscription.getId());
-                }
             }
 
             return subscriptionEntity;
