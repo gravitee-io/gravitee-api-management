@@ -20,6 +20,6 @@ function unsetUndefined(doc) {
 db.getCollection(`${prefix}keys`).find({}).forEach(doc => {
     const changed = unsetUndefined(doc);
     if (changed) {
-        db.getCollection(`${prefix}keys`).replaceOne(doc);
+        db.getCollection(`${prefix}keys`).replaceOne({ _id: doc._id }, doc);
     }
 });
