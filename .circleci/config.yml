@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-    slack: circleci/slack@4.4.4
+    slack: circleci/slack@4.10.1
     keeper: gravitee-io/keeper@0.6.2
     gh: circleci/github-cli@1.0.5
     aws-cli: circleci/aws-cli@2.0.6
@@ -932,6 +932,27 @@ jobs:
             - notify-on-failure
 
     ## Release Jobs
+    announce-release:
+        docker:
+          - image: cimg/base
+        resource_class: small
+        steps:
+          - slack/notify:
+              channel: 'C02JENTV2AX'
+              event: always
+              custom: |
+                {
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "🚀 Starting << pipeline.parameters.graviteeio_version >> release"
+                      }
+                    }
+                  ]
+                }
+
     backend-build-and-publish-artifactory:
         docker:
             - image: cimg/openjdk:11.0.13
@@ -1587,7 +1608,8 @@ workflows:
             # Prepare
             - setup:
                   context: cicd-orchestrator
-
+            - announce-release:
+                  context: cicd-orchestrator
             # APIM Portal
             - webui-lint-test:
                   name: Lint & Test APIM Portal
