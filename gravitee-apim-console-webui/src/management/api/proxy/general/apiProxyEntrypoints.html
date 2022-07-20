@@ -84,7 +84,9 @@
                 >Add virtual-host</ng-md-icon
               >
             </h5>
-            <div class="ipsum" style="color: grey; margin-bottom: 30px">Use sharding tags to control where the API must be deployed.</div>
+            <div class="ipsum" style="color: grey; margin-bottom: 30px">
+              Use virtual-host to define on which entrypoint your API can be reached depending on host.
+            </div>
 
             <div layout="row" layout-align="center center" layout-sm="column" ng-repeat="vHost in apiProxyCtrl.api.proxy.virtual_hosts">
               <ng-md-icon
@@ -114,7 +116,8 @@
                   ng-blur="apiProxyCtrl.onBlur(vHost, 'vhost'+$index+'-host')"
                   ng-click="apiProxyCtrl.onFocus('vhost'+$index+'-host')"
                   ng-pattern="apiProxyCtrl.hostPattern"
-                  ng-required="apiProxyCtrl.domainRestrictions.length > 0"
+                  ng-minlength="1"
+                  required
                   placeholder="Listening host"
                 >
                   <span>{{computedHost}}</span>

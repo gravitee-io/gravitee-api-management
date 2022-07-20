@@ -480,7 +480,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return roleIdsToImport;
     }
 
-    private void addOrUpdateMembers(
+    protected void addOrUpdateMembers(
         String apiId,
         String organizationId,
         String environmentId,

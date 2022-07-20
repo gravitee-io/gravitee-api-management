@@ -35,6 +35,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,11 +79,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     private NotifierService notifierService;
 
     @Override
-    public ApiKeyEntity generate(String subscription) {
-        return generate(subscription, null);
-    }
-
-    @Override
     public ApiKeyEntity generate(String subscription, String customApiKey) {
         try {
             LOGGER.debug("Generate an API Key for subscription {}", subscription);
@@ -112,6 +108,12 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     @Override
     public ApiKeyEntity renew(String subscription, String customApiKey) {
+        final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
+        final PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
+        if (!PlanSecurityType.API_KEY.equals(plan.getSecurity())) {
+            throw new TechnicalManagementException("Invalid plan security.");
+        }
+
         try {
             LOGGER.debug("Renew API Key for subscription {}", subscription);
 
@@ -147,16 +149,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     /**
-     * Generate an {@link ApiKey} from a subscription
-     *
-     * @param subscription
-     * @return An Api Key
-     */
-    private ApiKey generateForSubscription(String subscription) {
-        return generateForSubscription(subscription, null);
-    }
-
-    /**
      * Generate an {@link ApiKey} from a subscription. If no custom API key, then generate a new one.
      *
      * @param subscription
@@ -165,6 +157,13 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
      */
     private ApiKey generateForSubscription(String subscription, String customApiKey) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
+
+        if (
+            StringUtils.isNotEmpty(customApiKey) &&
+            !canCreate(customApiKey, subscriptionEntity.getApi(), subscriptionEntity.getApplication())
+        ) {
+            throw new ApiKeyAlreadyExistingException();
+        }
 
         if (customApiKey != null && !canCreate(customApiKey, subscriptionEntity.getApi(), subscriptionEntity.getApplication())) {
             throw new ApiKeyAlreadyExistingException();

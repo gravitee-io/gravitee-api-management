@@ -306,7 +306,7 @@ public class SubscriptionServiceTest {
         // Verify
         verify(subscriptionRepository, times(1)).create(any(Subscription.class));
         verify(subscriptionRepository, never()).update(any(Subscription.class));
-        verify(apiKeyService, never()).generate(any());
+        verify(apiKeyService, never()).generate(any(), isNull());
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
         assertNotNull(subscriptionEntity.getCreatedAt());
@@ -339,7 +339,7 @@ public class SubscriptionServiceTest {
         ArgumentCaptor<Subscription> subscriptionCapture = ArgumentCaptor.forClass(Subscription.class);
         verify(subscriptionRepository, times(1)).create(subscriptionCapture.capture());
         verify(subscriptionRepository, never()).update(any(Subscription.class));
-        verify(apiKeyService, never()).generate(any());
+        verify(apiKeyService, never()).generate(any(), isNull());
 
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
@@ -468,7 +468,7 @@ public class SubscriptionServiceTest {
         // Verify
         verify(subscriptionRepository, times(1)).create(any(Subscription.class));
         verify(subscriptionRepository, times(1)).update(any(Subscription.class));
-        verify(apiKeyService, times(1)).generate(any());
+        verify(apiKeyService, times(1)).generate(any(), isNull());
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
         assertNotNull(subscriptionEntity.getCreatedAt());
@@ -535,7 +535,7 @@ public class SubscriptionServiceTest {
         // Verify
         verify(subscriptionRepository, times(1)).create(any(Subscription.class));
         verify(subscriptionRepository, times(1)).update(any(Subscription.class));
-        verify(apiKeyService, never()).generate(any());
+        verify(apiKeyService, never()).generate(any(), isNull());
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
         assertNotNull(subscriptionEntity.getCreatedAt());
@@ -872,7 +872,7 @@ public class SubscriptionServiceTest {
         final SubscriptionEntity subscriptionEntity = subscriptionService.process(processSubscription, USER_ID);
 
         // Verify
-        verify(apiKeyService, never()).generate(any());
+        verify(apiKeyService, never()).generate(any(), isNull());
         verify(userService).findById(SUBSCRIBER_ID);
         verify(notifierService).triggerEmail(any(), anyString(), anyMap(), anyString());
 
@@ -910,7 +910,7 @@ public class SubscriptionServiceTest {
         final SubscriptionEntity subscriptionEntity = subscriptionService.process(processSubscription, USER_ID);
 
         // Verify
-        verify(apiKeyService, never()).generate(any());
+        verify(apiKeyService, never()).generate(any(), isNull());
         verify(userService).findById(SUBSCRIBER_ID);
         verify(notifierService, never()).triggerEmail(any(), anyString(), anyMap(), anyString());
 
@@ -955,6 +955,42 @@ public class SubscriptionServiceTest {
         assertEquals(SubscriptionStatus.ACCEPTED, subscriptionEntity.getStatus());
         assertEquals(USER_ID, subscriptionEntity.getProcessedBy());
         assertNotNull(subscriptionEntity.getProcessedAt());
+    }
+
+    @Test
+    public void shouldNotProcessBecauseCustomApiKeyAlreadyExists() throws Exception {
+        // Prepare data
+        final String customApiKey = "customApiKey";
+
+        ProcessSubscriptionEntity processSubscription = new ProcessSubscriptionEntity();
+        processSubscription.setId(SUBSCRIPTION_ID);
+        processSubscription.setAccepted(true);
+        processSubscription.setCustomApiKey(customApiKey);
+
+        Subscription subscription = new Subscription();
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setApplication(APPLICATION_ID);
+        subscription.setPlan(PLAN_ID);
+        subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(apiKeyService.generate(SUBSCRIPTION_ID, customApiKey)).thenThrow(new ApiKeyAlreadyExistingException());
+
+        // Run
+        final ApiKeyAlreadyExistingException exception = assertThrows(
+            ApiKeyAlreadyExistingException.class,
+            () -> subscriptionService.process(processSubscription, USER_ID)
+        );
+
+        verify(subscriptionRepository, times(0)).update(any());
+        verifyNoInteractions(applicationService);
+        verify(planService).findById(PLAN_ID);
+        assertEquals("API key already exists", exception.getMessage());
     }
 
     @Test(expected = PlanAlreadyClosedException.class)
