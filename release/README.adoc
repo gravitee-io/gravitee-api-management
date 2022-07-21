@@ -47,8 +47,6 @@ Here are the steps to run to fully release APIM (Releasing 3.15.11, in the follo
 
 1. `npm run release -- --version=3.15.11`
 2. `npm run package_zip -- --version=3.15.11`:
- - ⚠️ ☣️  As the release process is under stabilization, it is needed to manually update the `gravitee-api-management` version, commit and create a tag on the `release` repo. Otherwise the package bundle step will fail. This will not be needed anymore as soon as the magic python script replaced by the use of the maven distribution pom.
- - The pipeline needs versions of EE packages as parameters. There are read from link:../gravitee-apim-distribution/pom.xml[gravitee-apim-distribution/pom.xml]
 3. `npm run docker_rpms -- --version=3.15.11`: You can also provide the `--latest` parameter to flag the image as `latest`.
 4. `npm run changelog -- --version=3.15.11`
 5. `npm run nexus_sync -- --version=3.15.11`
