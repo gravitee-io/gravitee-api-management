@@ -101,8 +101,7 @@ class ApplicationsController {
         locals: {
           title: 'Would you like to restore the application "' + applicationName + '"?',
           confirmButton: 'Restore',
-          msg:
-            'Every subscription belonging to this application will be restored in PENDING status. Subscriptions can be reactivated as per requirements.',
+          msg: 'Every subscription belonging to this application will be restored in PENDING status. Subscriptions can be reactivated as per requirements.',
         },
       })
       .then((response) => {
