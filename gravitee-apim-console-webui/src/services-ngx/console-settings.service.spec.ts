@@ -61,7 +61,7 @@ describe('ConsoleSettingsService', () => {
           css: 'hello.css',
         },
       };
-      const constants = TestBed.inject('Constants' as unknown as ProviderToken<Constants>);
+      const constants = TestBed.inject(('Constants' as unknown) as ProviderToken<Constants>);
 
       consoleSettingsService.save(consoleSettingsPayload).subscribe(() => {
         expect(constants.org.settings).toEqual(newConsoleSettings());

@@ -460,7 +460,13 @@ public class ApiKeyServiceTest {
         existingKey.setApplication("another Application");
         existingKey.setApi("another Api");
 
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+
+        PlanEntity plan = new PlanEntity();
+        plan.setSecurity(PlanSecurityType.API_KEY);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+
         when(apiKeyRepository.findByKey("alreadyExistingApiKey")).thenReturn(List.of(existingKey));
 
         apiKeyService.renew(SUBSCRIPTION_ID, "alreadyExistingApiKey");
@@ -500,22 +506,6 @@ public class ApiKeyServiceTest {
         apiKeyService.renew(SUBSCRIPTION_ID, CUSTOM_API_KEY);
 
         verify(apiKeyRepository, times(1)).create(any());
-    }
-
-    @Test(expected = ApiKeyAlreadyExistingException.class)
-    public void shouldNotRenewSubscriptionWithExistingApiKey() throws TechnicalException {
-        when(apiKeyRepository.findById(CUSTOM_API_KEY)).thenReturn(Optional.of(new ApiKey()));
-
-        SubscriptionEntity subscription = new SubscriptionEntity();
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(SubscriptionStatus.ACCEPTED);
-        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
-
-        PlanEntity plan = new PlanEntity();
-        plan.setSecurity(PlanSecurityType.API_KEY);
-        when(planService.findById(PLAN_ID)).thenReturn(plan);
-
-        apiKeyService.renew(SUBSCRIPTION_ID, CUSTOM_API_KEY);
     }
 
     @Test(expected = TechnicalManagementException.class)

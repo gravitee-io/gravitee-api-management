@@ -168,7 +168,7 @@ describe('GioConfirmDialogComponent', () => {
     gioTableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
     fixture.detectChanges();
 
-    component.onClick({ stopPropagation: jest.fn() } as unknown as PointerEvent, '1');
+    component.onClick(({ stopPropagation: jest.fn() } as unknown) as PointerEvent, '1');
 
     expect(locationStrategy.path()).toBe('#1');
   });

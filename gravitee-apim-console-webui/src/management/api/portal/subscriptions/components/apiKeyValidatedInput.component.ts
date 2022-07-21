@@ -47,7 +47,8 @@ const ApiKeyValidatedInput: ng.IComponentOptions = {
 
     this.checkApiKeyUnicity = (apiKey: string) => {
       if (apiKey?.length > 0 && this.apiId && this.applicationId) {
-        ApiService.verifyApiKey(this.apiId, this.applicationId, apiKey).then(
+        ApiService.verifyApiKey(this.apiId, this.applicationId, apiKey)
+          .then(
             (response) => {
               if (response && response.data) {
                 this.state = CustomApiKeyInputState.VALID;
