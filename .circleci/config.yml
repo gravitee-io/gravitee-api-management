@@ -772,8 +772,8 @@ jobs:
         steps:
             - checkout
             - keeper/env-export:
-                secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
-                var-name: SLACK_ACCESS_TOKEN
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
             - when:
                   condition:
                       not: << pipeline.parameters.dry_run>>
@@ -1007,8 +1007,8 @@ jobs:
             - save-maven-job-cache:
                   jobName: nexus-staging
             - keeper/env-export:
-                secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
-                var-name: SLACK_ACCESS_TOKEN
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
             - when:
                   condition:
                       not: << pipeline.parameters.dry_run>>
