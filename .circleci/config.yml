@@ -771,6 +771,28 @@ jobs:
             DRY_RUN: << pipeline.parameters.dry_run >>
         steps:
             - checkout
+            - keeper/env-export:
+                secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                var-name: SLACK_ACCESS_TOKEN
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - slack/notify:
+                            channel: C02JENTV2AX
+                            event: always
+                            custom: |
+                                {
+                                  "blocks": [
+                                    {
+                                      "type": "section",
+                                      "text": {
+                                        "type": "mrkdwn",
+                                        "text": "🚀 Starting << pipeline.parameters.graviteeio_version >> release"
+                                      }
+                                    }
+                                  ]
+                                }
             - restore-maven-job-cache:
                   jobName: release
             - attach_workspace:
@@ -984,6 +1006,28 @@ jobs:
                       mvn clean deploy --activate-profiles gravitee-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
             - save-maven-job-cache:
                   jobName: nexus-staging
+            - keeper/env-export:
+                secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                var-name: SLACK_ACCESS_TOKEN
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - slack/notify:
+                            channel: C02JENTV2AX
+                            event: always
+                            custom: |
+                                {
+                                  "blocks": [
+                                    {
+                                      "type": "section",
+                                      "text": {
+                                        "type": "mrkdwn",
+                                        "text": "🎆 APIM - << pipeline.parameters.graviteeio_version >> released!"
+                                      }
+                                    }
+                                  ]
+                                }
 
     publish_rpm_packages:
         parameters:
