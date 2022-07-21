@@ -76,7 +76,11 @@ commands:
 
     notify-on-failure:
         steps:
+            - keeper/env-export:
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
             - slack/notify:
+                  channel: C02JENTV2AX
                   branch_pattern: master,[0-9]+\.[0-9]+\.x
                   event: fail
                   template: basic_fail_1
@@ -1148,14 +1152,15 @@ workflows:
             - setup:
                   context: cicd-orchestrator
             - validate:
-                  context: gravitee-qa
+                  context: cicd-orchestrator
                   requires:
                       - setup
             - build:
-                  context: gravitee-qa
+                  context: cicd-orchestrator
                   requires:
                       - validate
             - test:
+                  context: cicd-orchestrator
                   requires:
                       - build
             - sonarcloud-analysis:
@@ -1170,6 +1175,7 @@ workflows:
                   requires:
                       - test
             - test-repository:
+                  context: cicd-orchestrator
                   requires:
                       - build
             - sonarcloud-analysis:
@@ -1179,6 +1185,7 @@ workflows:
                   requires:
                       - test-repository
             - publish-on-artifactory:
+                  context: cicd-orchestrator
                   filters:
                       branches:
                           only:
@@ -1188,6 +1195,7 @@ workflows:
                       - test
                       - test-repository
             - publish-on-nexus:
+                  context: cicd-orchestrator
                   filters:
                       branches:
                           only:
@@ -1223,10 +1231,12 @@ workflows:
             - webui-install:
                   name: Install APIM Console
                   apim-ui-project: gravitee-apim-console-webui
+                  context: cicd-orchestrator
                   requires:
                       - setup
             - webui-lint-test:
                   name: Lint & test APIM Console
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
                       - Install APIM Console
@@ -1241,6 +1251,7 @@ workflows:
                       - Lint & test APIM Console
             - webui-build:
                   name: Build APIM Console
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
                       - Install APIM Console
@@ -1267,11 +1278,13 @@ workflows:
                               - /^\d+\.\d+\.x$/
             - webui-install:
                   name: Install APIM Portal
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
                       - setup
             - webui-lint-test:
                   name: Lint & test APIM Portal
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   resource-class: large
                   requires:
@@ -1287,6 +1300,7 @@ workflows:
                       - Lint & test APIM Portal
             - webui-build:
                   name: Build APIM Portal
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
                       - Install APIM Portal
