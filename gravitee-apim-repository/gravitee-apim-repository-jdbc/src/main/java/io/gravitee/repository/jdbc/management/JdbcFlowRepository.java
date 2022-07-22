@@ -59,7 +59,8 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     private final String FLOW_METHODS;
     private final String FLOW_CONSUMERS;
     private final String FLOW_SELECTORS;
-    private final String FLOW_CHANNEL_OPERATION;
+    private final String FLOW_SELECTOR_HTTP_METHODS;
+    private final String FLOW_SELECTOR_CHANNEL_OPERATIONS;
     private final String FLOW_TAGS;
     private final JdbcObjectMapper<FlowStep> stepsOrm;
 
@@ -67,10 +68,11 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         super(tablePrefix, "flows");
         FLOW_METHODS = getTableNameFor("flow_methods");
         FLOW_STEPS = getTableNameFor("flow_steps");
-        FLOW_CONSUMERS = getTableNameFor("flow_consumers");
-        FLOW_CHANNEL_OPERATION = getTableNameFor("flow_channel_operation");
         FLOW_SELECTORS = getTableNameFor("flow_selectors");
+        FLOW_SELECTOR_HTTP_METHODS = getTableNameFor("flow_selector_http_methods");
+        FLOW_SELECTOR_CHANNEL_OPERATIONS = getTableNameFor("flow_selector_channel_operations");
         FLOW_TAGS = getTableNameFor("flow_tags");
+        FLOW_CONSUMERS = getTableNameFor("flow_consumers");
         this.stepsOrm =
             JdbcObjectMapper
                 .builder(FlowStep.class, FLOW_STEPS)
@@ -156,10 +158,11 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     public void delete(String id) throws TechnicalException {
         jdbcTemplate.update("delete from " + FLOW_STEPS + " where flow_id = ?", id);
         jdbcTemplate.update("delete from " + FLOW_SELECTORS + " where flow_id = ?", id);
-        jdbcTemplate.update("delete from " + FLOW_METHODS + " where flow_id = ?", id);
-        jdbcTemplate.update("delete from " + FLOW_CHANNEL_OPERATION + " where flow_id = ?", id);
+        jdbcTemplate.update("delete from " + FLOW_SELECTOR_HTTP_METHODS + " where flow_id = ?", id);
+        jdbcTemplate.update("delete from " + FLOW_SELECTOR_CHANNEL_OPERATIONS + " where flow_id = ?", id);
         jdbcTemplate.update("delete from " + FLOW_TAGS + " where flow_id = ?", id);
         // deprecated data
+        jdbcTemplate.update("delete from " + FLOW_METHODS + " where flow_id = ?", id);
         jdbcTemplate.update("delete from " + FLOW_CONSUMERS + " where flow_id = ?", id);
         super.delete(id);
     }
@@ -224,10 +227,11 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 jdbcTemplate.update("delete from " + tableName + " where id in (" + buildInClause + ")", ids);
                 jdbcTemplate.update("delete from " + FLOW_STEPS + " where flow_id in (" + buildInClause + ")", ids);
                 jdbcTemplate.update("delete from " + FLOW_SELECTORS + " where flow_id in (" + buildInClause + ")", ids);
-                jdbcTemplate.update("delete from " + FLOW_METHODS + " where flow_id in (" + buildInClause + ")", ids);
-                jdbcTemplate.update("delete from " + FLOW_CHANNEL_OPERATION + " where flow_id in (" + buildInClause + ")", ids);
+                jdbcTemplate.update("delete from " + FLOW_SELECTOR_HTTP_METHODS + " where flow_id in (" + buildInClause + ")", ids);
+                jdbcTemplate.update("delete from " + FLOW_SELECTOR_CHANNEL_OPERATIONS + " where flow_id in (" + buildInClause + ")", ids);
                 jdbcTemplate.update("delete from " + FLOW_TAGS + " where flow_id in (" + buildInClause + ")", ids);
                 // deprecated data
+                jdbcTemplate.update("delete from " + FLOW_METHODS + " where flow_id in (" + buildInClause + ")", ids);
                 jdbcTemplate.update("delete from " + FLOW_CONSUMERS + " where flow_id in (" + buildInClause + ")", ids);
             }
         } catch (final Exception ex) {
@@ -274,7 +278,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 flowSelector -> {
                     if (flowSelector.getType() == FlowSelectorType.HTTP) {
                         FlowHttpSelector flowHttpSelector = (FlowHttpSelector) flowSelector;
-                        Set<HttpMethod> methods = getMethods(flowId);
+                        Set<HttpMethod> methods = getSelectorHttpMethods(flowId);
                         flowHttpSelector.setMethods(methods);
                     } else if (flowSelector.getType() == FlowSelectorType.CHANNEL) {
                         FlowChannelSelector flowChannelSelector = (FlowChannelSelector) flowSelector;
@@ -287,7 +291,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
 
     private Set<FlowChannelSelector.Operation> getChannelOperation(final String flowId) {
         return jdbcTemplate
-            .queryForList("select channel_operation from " + FLOW_CHANNEL_OPERATION + " where flow_id = ?", String.class, flowId)
+            .queryForList("select channel_operation from " + FLOW_SELECTOR_CHANNEL_OPERATIONS + " where flow_id = ?", String.class, flowId)
             .stream()
             .map(FlowChannelSelector.Operation::valueOf)
             .collect(Collectors.toSet());
@@ -320,15 +324,19 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     }
 
     private void addMethods(Flow flow) {
-        Set<HttpMethod> methods = getMethods(flow.getId());
+        Set<HttpMethod> methods = getMethods(FLOW_METHODS, flow.getId());
         flow.setMethods(methods);
     }
 
-    private Set<HttpMethod> getMethods(final String flowId) {
+    private Set<HttpMethod> getSelectorHttpMethods(final String flowId) {
+        return getMethods(FLOW_SELECTOR_HTTP_METHODS, flowId);
+    }
+
+    private Set<HttpMethod> getMethods(final String methodTableName, final String flowId) {
         return jdbcTemplate
-            .queryForList("select method from " + FLOW_METHODS + " where flow_id = ?", String.class, flowId)
+            .queryForList("select method from " + methodTableName + " where flow_id = ?", String.class, flowId)
             .stream()
-            .map(method -> HttpMethod.valueOf(method))
+            .map(HttpMethod::valueOf)
             .collect(Collectors.toSet());
     }
 
@@ -510,32 +518,38 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                     }
                 }
             );
-            Optional<FlowHttpSelector> optFlowHttpSelector = selectors
+            selectors
                 .stream()
                 .filter(flowSelector -> flowSelector instanceof FlowHttpSelector)
                 .map(flowSelector -> (FlowHttpSelector) flowSelector)
-                .findFirst();
-            optFlowHttpSelector.ifPresent(flowHttpSelector -> storeMethods(flowId, flowHttpSelector.getMethods(), deleteFirst));
+                .findFirst()
+                .ifPresent(flowHttpSelector -> storeSelectorHttpMethods(flowId, flowHttpSelector.getMethods(), deleteFirst));
 
-            Optional<FlowChannelSelector> optFlowChannelSelector = selectors
+            selectors
                 .stream()
                 .filter(flowSelector -> flowSelector instanceof FlowChannelSelector)
                 .map(flowSelector -> (FlowChannelSelector) flowSelector)
-                .findFirst();
-            optFlowChannelSelector.ifPresent(
-                flowChannelSelector -> storeChannelOperation(flowId, flowChannelSelector.getOperations(), deleteFirst)
-            );
+                .findFirst()
+                .ifPresent(flowChannelSelector -> storeSelectorChannelOperation(flowId, flowChannelSelector.getOperations(), deleteFirst));
         }
     }
 
+    private void storeSelectorHttpMethods(final String flowId, Set<HttpMethod> httpMethods, boolean deleteFirst) {
+        storeMethods(FLOW_SELECTOR_HTTP_METHODS, flowId, httpMethods, deleteFirst);
+    }
+
     private void storeMethods(final String flowId, Set<HttpMethod> httpMethods, boolean deleteFirst) {
+        storeMethods(FLOW_METHODS, flowId, httpMethods, deleteFirst);
+    }
+
+    private void storeMethods(final String methodTableName, final String flowId, Set<HttpMethod> httpMethods, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from " + FLOW_METHODS + " where flow_id = ?", flowId);
+            jdbcTemplate.update("delete from " + methodTableName + " where flow_id = ?", flowId);
         }
         if (httpMethods != null && !httpMethods.isEmpty()) {
             Iterator<HttpMethod> methods = httpMethods.iterator();
             jdbcTemplate.batchUpdate(
-                "insert into " + FLOW_METHODS + " ( flow_id, method ) values ( ?, ? )",
+                "insert into " + methodTableName + " ( flow_id, method ) values ( ?, ? )",
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -553,14 +567,14 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         }
     }
 
-    private void storeChannelOperation(final String flowId, Set<FlowChannelSelector.Operation> operations, boolean deleteFirst) {
+    private void storeSelectorChannelOperation(final String flowId, Set<FlowChannelSelector.Operation> operations, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from " + FLOW_CHANNEL_OPERATION + " where flow_id = ?", flowId);
+            jdbcTemplate.update("delete from " + FLOW_SELECTOR_CHANNEL_OPERATIONS + " where flow_id = ?", flowId);
         }
         if (operations != null && !operations.isEmpty()) {
             Iterator<FlowChannelSelector.Operation> operationIterator = operations.iterator();
             jdbcTemplate.batchUpdate(
-                "insert into " + FLOW_CHANNEL_OPERATION + " ( flow_id, channel_operation ) values ( ?, ? )",
+                "insert into " + FLOW_SELECTOR_CHANNEL_OPERATIONS + " ( flow_id, channel_operation ) values ( ?, ? )",
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {

@@ -37,6 +37,7 @@ import lombok.experimental.FieldNameConstants;
 @ToString
 @EqualsAndHashCode
 @FieldNameConstants
+// Require only for tests
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = FlowSelector.Fields.type)
 @JsonSubTypes(
     {

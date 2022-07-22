@@ -141,10 +141,10 @@ public class FlowRepositoryMock extends AbstractRepositoryMock<FlowRepository> {
         updatedFlowConditionSelector.setCondition("my-condition");
         lenient().when(updated.getSelectors()).thenReturn(List.of(updatedFlowHttpSelector, updatedFlowConditionSelector));
 
-        lenient().when(updated.getPre()).thenReturn(Arrays.asList(tag1PreStep1, tag1PreStep2));
-        lenient().when(updated.getPost()).thenReturn(Arrays.asList(tag1PostStep1, tag1PostStep2, tag1PostStep3));
-        lenient().when(updated.getRequest()).thenReturn(Arrays.asList(tag1PreStep1, tag1PreStep2));
-        lenient().when(updated.getResponse()).thenReturn(Arrays.asList(tag1PostStep1, tag1PostStep2, tag1PostStep3));
+        lenient().when(updated.getPre()).thenReturn(Arrays.asList(tag1PreStep1));
+        lenient().when(updated.getPost()).thenReturn(Arrays.asList(tag1PostStep1));
+        lenient().when(updated.getRequest()).thenReturn(Arrays.asList(tag1PreStep1));
+        lenient().when(updated.getResponse()).thenReturn(Arrays.asList(tag1PostStep1));
 
         lenient().when(updated.getConsumers()).thenReturn(consumers);
         lenient().when(updated.getTags()).thenReturn(Set.of("tag-1"));

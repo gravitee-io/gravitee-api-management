@@ -129,7 +129,8 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "flow_methods",
         "flow_consumers",
         "flow_selectors",
-        "flow_channel_operation",
+        "flow_selector_http_methods",
+        "flow_selector_channel_operations",
         "flow_tags"
     );
     private static final List<String> tablesToDrop = concatenate(

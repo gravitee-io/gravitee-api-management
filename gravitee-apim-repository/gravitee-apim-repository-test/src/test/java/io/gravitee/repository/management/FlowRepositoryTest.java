@@ -161,9 +161,9 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(flowUpdated.getUpdatedAt(), flow.getUpdatedAt());
         assertEquals(flowUpdated.getConsumers().size(), flow.getConsumers().size());
         assertEquals(flowUpdated.getConsumers().get(0), flow.getConsumers().get(0));
-        assertEquals(1, flow.getPre().size());
-        assertEquals(1, flow.getPost().size());
-        assertEquals(5, flow.getOrder());
+        assertEquals(1, flowUpdated.getPre().size());
+        assertEquals(1, flowUpdated.getPost().size());
+        assertEquals(5, flowUpdated.getOrder());
     }
 
     @Test
