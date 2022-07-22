@@ -1,0 +1,66 @@
+{
+  "ignore": [
+    "*",
+    "node/**",
+    "node_modules/**",
+    "**/*.svg",
+    "docs/**",
+    "docker/**",
+    "index.js",
+    "src/index.js",
+    "**/*.generated.*",
+    "coverage/**",
+    "dist/**",
+    "dist-tsc/**",
+    "**/.*/**",
+    "**/*.mdx",
+    "**/.DS_Store",
+    "**/Thumbs.db",
+    "**/*.adoc",
+    "LICENSE.txt",
+    "**/*.scss",
+    "**/.*",
+    "**/*.woff",
+    "**/*.ttf",
+    "**/*.woff2",
+    "**/*.eot",
+    ".*",
+    ".*/**",
+    "package-json.lock",
+    ".tmp/**",
+    ".vscode/**"
+  ],
+  "license": "LICENSE_TEMPLATE.txt",
+  "licenseFormats": {
+    "js|ts|scss|less|php|as|c|java|cpp|go|cto|acl": {
+      "prepend": "/*",
+      "append": " */",
+      "eachLine": {
+        "prepend": " * "
+      }
+    },
+    "css": {
+      "prepend": "/**",
+      "append": " */",
+      "eachLine": {
+        "prepend": " * "
+      }
+    },
+    "html": {
+      "prepend": "<!--\n",
+      "append": "\n-->",
+      "eachLine": {
+        "prepend": "    "
+      }
+    },
+    "txt": {}
+  },
+  "defaultFormat": {
+    "prepend": "/*",
+    "append": " */",
+    "eachLine": {
+      "prepend": " * "
+    }
+  },
+  "regexIdentifier": "###"
+}
