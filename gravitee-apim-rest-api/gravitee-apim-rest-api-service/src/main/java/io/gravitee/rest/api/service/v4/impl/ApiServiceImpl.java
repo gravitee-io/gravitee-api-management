@@ -83,7 +83,7 @@ import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
-import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
+import io.gravitee.rest.api.service.v4.mapper.IndexableApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.util.Arrays;
 import java.util.Collection;
@@ -109,7 +109,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private final ApiRepository apiRepository;
     private final ApiMapper apiMapper;
-    private final GenericApiMapper genericApiMapper;
+    private final IndexableApiMapper indexableApiMapper;
     private final PrimaryOwnerService primaryOwnerService;
     private final ApiValidationService apiValidationService;
     private final ParameterService parameterService;
@@ -134,7 +134,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public ApiServiceImpl(
         @Lazy final ApiRepository apiRepository,
         final ApiMapper apiMapper,
-        final GenericApiMapper genericApiMapper,
+        final IndexableApiMapper indexableApiMapper,
         final PrimaryOwnerService primaryOwnerService,
         final ApiValidationService apiValidationService,
         final ParameterService parameterService,
@@ -157,7 +157,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
-        this.genericApiMapper = genericApiMapper;
+        this.indexableApiMapper = indexableApiMapper;
         this.primaryOwnerService = primaryOwnerService;
         this.apiValidationService = apiValidationService;
         this.parameterService = parameterService;
@@ -191,14 +191,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
 
-        return apiMapper.toEntityWithPlan(executionContext, api, primaryOwner, null, true);
+        return apiMapper.toEntity(executionContext, api, primaryOwner, null, true);
     }
 
     @Override
     public IndexableApi findIndexableApiById(final ExecutionContext executionContext, final String apiId) {
         final Api api = this.findApiById(executionContext, apiId);
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
-        return genericApiMapper.toGenericApi(api, primaryOwner);
+        return indexableApiMapper.toGenericApi(api, primaryOwner);
     }
 
     @Override
@@ -272,7 +272,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             flowService.save(FlowReferenceType.API, createdApi.getId(), newApiEntity.getFlows());
 
             //TODO add membership log
-            ApiEntity apiEntity = apiMapper.toEntityWithPlan(executionContext, createdApi, primaryOwner, null, true);
+            ApiEntity apiEntity = apiMapper.toEntity(executionContext, createdApi, primaryOwner, null, true);
             IndexableApi apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
             searchEngineService.index(executionContext, apiWithMetadata, false);
@@ -370,7 +370,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // Audit
                 auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
                 // remove from search engine
-                searchEngineService.delete(executionContext, apiMapper.toEntityWithPlan(executionContext, api, null, null, false));
+                searchEngineService.delete(executionContext, apiMapper.toEntity(executionContext, api, null, null, false));
 
                 mediaService.deleteAllByApi(apiId);
 

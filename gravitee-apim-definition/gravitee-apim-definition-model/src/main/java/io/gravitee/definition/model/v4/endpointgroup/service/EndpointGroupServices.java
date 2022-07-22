@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4.endpointgroup.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.service.Service;
+import java.io.Serializable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,7 +33,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
-public class EndpointGroupServices {
+public class EndpointGroupServices implements Serializable {
 
     @JsonProperty("discovery")
     private Service discovery;

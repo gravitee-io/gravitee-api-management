@@ -21,6 +21,7 @@ import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -28,6 +29,7 @@ import lombok.ToString;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
@@ -37,11 +39,11 @@ public class Property implements Serializable {
 
     @JsonProperty(required = true)
     @NotBlank
-    private final String key;
+    private String key;
 
     @JsonProperty(required = true)
     @NotBlank
-    private final String value;
+    private String value;
 
     private boolean encrypted;
 

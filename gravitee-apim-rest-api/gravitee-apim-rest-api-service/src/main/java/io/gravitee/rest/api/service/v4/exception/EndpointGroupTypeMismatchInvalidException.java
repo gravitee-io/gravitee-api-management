@@ -15,25 +15,22 @@
  */
 package io.gravitee.rest.api.service.v4.exception;
 
+import static java.util.Collections.singletonMap;
+
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.util.Maps;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
-import java.util.List;
 import java.util.Map;
 
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class InvalidHostException extends AbstractManagementException {
+public class EndpointGroupTypeMismatchInvalidException extends AbstractManagementException {
 
-    private final String host;
-    private final List<String> restrictions;
+    private final String type;
 
-    public InvalidHostException(String host, List<String> restrictions) {
-        this.host = host;
-        this.restrictions = restrictions;
+    public EndpointGroupTypeMismatchInvalidException(String type) {
+        this.type = type;
     }
 
     @Override
@@ -42,17 +39,17 @@ public class InvalidHostException extends AbstractManagementException {
     }
 
     @Override
+    public String getMessage() {
+        return "The endpoint group's type [" + type + "] doesn't match every endpoint types declared.";
+    }
+
+    @Override
     public String getTechnicalCode() {
-        return "path.host.invalid";
+        return "api.endpointsGroup.type.invalid";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return Maps.<String, String>builder().put("host", host).put("restrictions", String.join(",", restrictions)).build();
-    }
-
-    @Override
-    public String getMessage() {
-        return "Host [" + host + "] must be a subdomain of " + restrictions;
+        return singletonMap("api.endpointsGroup[].type", type);
     }
 }

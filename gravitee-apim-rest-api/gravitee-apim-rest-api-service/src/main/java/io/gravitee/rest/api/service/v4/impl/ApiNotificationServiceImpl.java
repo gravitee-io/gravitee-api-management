@@ -25,7 +25,7 @@ import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
-import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
+import io.gravitee.rest.api.service.v4.mapper.IndexableApiMapper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,28 +35,33 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiNotificationServiceImpl extends AbstractService implements ApiNotificationService {
 
-    private final GenericApiMapper genericApiMapper;
+    private final IndexableApiMapper indexableApiMapper;
     private final NotifierService notifierService;
     private final UserService userService;
 
     public ApiNotificationServiceImpl(
-        final GenericApiMapper genericApiMapper,
+        final IndexableApiMapper indexableApiMapper,
         final NotifierService notifierService,
         final UserService userService
     ) {
-        this.genericApiMapper = genericApiMapper;
+        this.indexableApiMapper = indexableApiMapper;
         this.notifierService = notifierService;
         this.userService = userService;
     }
 
     @Override
     public void triggerUpdateNotification(final ExecutionContext executionContext, final Api api) {
-        IndexableApi indexableApi = genericApiMapper.toGenericApi(api, null);
+        IndexableApi indexableApi = indexableApiMapper.toGenericApi(api, null);
+        triggerUpdateNotification(executionContext, indexableApi);
+    }
+
+    @Override
+    public void triggerUpdateNotification(final ExecutionContext executionContext, final IndexableApi indexableApi) {
         triggerNotification(executionContext, ApiHook.API_UPDATED, indexableApi);
     }
 
     @Override
-    public void triggerApiDeprecatedNotification(final ExecutionContext executionContext, final IndexableApi indexableApi) {
+    public void triggerDeprecatedNotification(final ExecutionContext executionContext, final IndexableApi indexableApi) {
         triggerNotification(executionContext, ApiHook.API_DEPRECATED, indexableApi);
     }
 

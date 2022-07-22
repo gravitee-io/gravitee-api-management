@@ -86,7 +86,7 @@ public class ApiMapper {
         this.workflowService = workflowService;
     }
 
-    public ApiEntity toEntityWithPlan(final Api api, final PrimaryOwnerEntity primaryOwner) {
+    public ApiEntity toEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setId(api.getId());
@@ -145,14 +145,14 @@ public class ApiMapper {
         return apiEntity;
     }
 
-    public ApiEntity toEntityWithPlan(
+    public ApiEntity toEntity(
         final ExecutionContext executionContext,
         final Api api,
         final PrimaryOwnerEntity primaryOwner,
         List<CategoryEntity> categories,
         final boolean readDatabaseFlows
     ) {
-        ApiEntity apiEntity = toEntityWithPlan(api, primaryOwner);
+        ApiEntity apiEntity = toEntity(api, primaryOwner);
 
         Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
         apiEntity.setPlans(plans);
@@ -220,10 +220,11 @@ public class ApiMapper {
     private String toApiDefinition(final String apiId, final NewApiEntity newApiEntity) {
         try {
             io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
-            apiDefinition.setDefinitionVersion(newApiEntity.getDefinitionVersion());
 
             apiDefinition.setId(apiId);
             apiDefinition.setName(newApiEntity.getName());
+            apiDefinition.setType(newApiEntity.getType());
+            apiDefinition.setDefinitionVersion(newApiEntity.getDefinitionVersion());
             apiDefinition.setApiVersion(newApiEntity.getApiVersion());
             apiDefinition.setTags(newApiEntity.getTags());
             apiDefinition.setListeners(newApiEntity.getListeners());

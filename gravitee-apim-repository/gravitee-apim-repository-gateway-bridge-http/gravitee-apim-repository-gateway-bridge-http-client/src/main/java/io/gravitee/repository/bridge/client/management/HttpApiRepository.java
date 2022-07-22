@@ -62,6 +62,7 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Page<Api> search(
         ApiCriteria apiCriteria,
         Sortable sortable,
@@ -130,7 +131,8 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public boolean existById(final String appId) throws TechnicalException {
-        return findById(appId).isPresent();
+        throw new IllegalStateException();
     }
 }

@@ -108,7 +108,10 @@ public class Api implements Serializable {
     }
 
     public void setPlans(List<Plan> plans) {
-        this.plans.clear();
-        this.plans = plans.stream().collect(Collectors.toMap(Plan::getId, Function.identity()));
+        if (plans != null) {
+            this.plans = plans.stream().collect(Collectors.toMap(Plan::getId, Function.identity()));
+        } else {
+            this.plans = null;
+        }
     }
 }

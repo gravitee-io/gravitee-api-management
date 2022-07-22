@@ -178,15 +178,6 @@ public class Api {
         return Objects.hash(id);
     }
 
-    public String getDefinitionVersion() {
-        return definitionVersion;
-    }
-
-    public Api setDefinitionVersion(final String definitionVersion) {
-        this.definitionVersion = definitionVersion;
-        return this;
-    }
-
     public enum AuditEvent implements Audit.ApiAuditEvent {
         API_CREATED,
         API_UPDATED,

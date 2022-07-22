@@ -49,7 +49,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ApiDuplicatorService_RecalculateApiDefinitionIdsTestEntity {
+public class ApiDuplicatorService_RecalculateApiDefinitionIdsTest {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 

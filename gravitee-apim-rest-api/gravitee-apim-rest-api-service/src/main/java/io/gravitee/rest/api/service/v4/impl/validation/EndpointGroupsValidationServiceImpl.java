@@ -20,7 +20,11 @@ import io.gravitee.rest.api.service.ConnectorService;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.EndpointGroupsValidationService;
+import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeInvalidException;
+import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeMismatchInvalidException;
+import io.gravitee.rest.api.service.v4.exception.EndpointTypeInvalidException;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,12 +46,14 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
             endpointGroups.forEach(
                 endpointGroup -> {
                     validateName(endpointGroup.getName());
+                    validateEndpointGroupType(endpointGroup.getType());
                     if (endpointGroup.getEndpoints() != null && !endpointGroups.isEmpty()) {
                         endpointGroup
                             .getEndpoints()
                             .forEach(
                                 endpoint -> {
                                     validateName(endpoint.getName());
+                                    validateEndpointType(endpoint.getType());
                                     endpoint.setConfiguration(
                                         // TODO this need to be improved when endpoint connector are implemented in order to check the configuration schema
                                         connectorService.validateConnectorConfiguration(endpoint.getType(), endpoint.getConfiguration())
@@ -55,10 +61,33 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                                 }
                             );
                     }
+                    validateEndpointsMatchType(endpointGroup);
                 }
             );
         }
         return endpointGroups;
+    }
+
+    private void validateEndpointType(final String type) {
+        if (StringUtils.isBlank(type)) {
+            throw new EndpointTypeInvalidException(type);
+        }
+    }
+
+    private void validateEndpointGroupType(final String type) {
+        if (StringUtils.isBlank(type)) {
+            throw new EndpointGroupTypeInvalidException(type);
+        }
+    }
+
+    private void validateEndpointsMatchType(final EndpointGroup endpointGroup) {
+        boolean allMatchGroupType = endpointGroup
+            .getEndpoints()
+            .stream()
+            .allMatch(endpoint -> endpointGroup.getType().equals(endpoint.getType()));
+        if (!allMatchGroupType) {
+            throw new EndpointGroupTypeMismatchInvalidException(endpointGroup.getType());
+        }
     }
 
     private void validateName(final String name) {

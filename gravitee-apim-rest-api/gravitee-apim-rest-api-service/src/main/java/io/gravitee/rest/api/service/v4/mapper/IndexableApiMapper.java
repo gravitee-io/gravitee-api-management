@@ -27,12 +27,12 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class GenericApiMapper {
+public class IndexableApiMapper {
 
     private final ApiMapper apiMapper;
     private final ApiConverter apiConverter;
 
-    public GenericApiMapper(final ApiMapper apiMapper, final ApiConverter apiConverter) {
+    public IndexableApiMapper(final ApiMapper apiMapper, final ApiConverter apiConverter) {
         this.apiMapper = apiMapper;
         this.apiConverter = apiConverter;
     }
@@ -40,7 +40,7 @@ public class GenericApiMapper {
     public IndexableApi toGenericApi(final Api api, final PrimaryOwnerEntity primaryOwner) {
         DefinitionVersion definitionVersion = DefinitionVersion.valueOfLabel(api.getDefinitionVersion());
         if (definitionVersion == DefinitionVersion.V4) {
-            return apiMapper.toEntityWithPlan(api, primaryOwner);
+            return apiMapper.toEntity(api, primaryOwner);
         } else {
             return apiConverter.toApiEntity(api, primaryOwner);
         }

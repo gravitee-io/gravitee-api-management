@@ -186,7 +186,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         Indexable indexable;
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
         if (apiDefinitionVersion == DefinitionVersion.V4) {
-            indexable = apiMapper.toEntityWithPlan(executionContext, api, primaryOwner, null, false);
+            indexable = apiMapper.toEntity(executionContext, api, primaryOwner, null, false);
         } else {
             indexable = apiConverter.toApiEntity(api, primaryOwner);
         }

@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4;
+package io.gravitee.rest.api.service.v4.impl;
 
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
-import io.gravitee.rest.api.service.common.ExecutionContext;
+import static org.junit.Assert.*;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiNotificationService {
-    void triggerUpdateNotification(ExecutionContext executionContext, Api api);
-    void triggerUpdateNotification(ExecutionContext executionContext, IndexableApi api);
-
-    void triggerDeprecatedNotification(ExecutionContext executionContext, IndexableApi indexableApi);
-}
+public class ApiServiceImplTest {}

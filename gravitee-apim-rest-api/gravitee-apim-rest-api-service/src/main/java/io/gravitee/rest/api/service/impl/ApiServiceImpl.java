@@ -117,6 +117,7 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -309,6 +310,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private PrimaryOwnerService primaryOwnerService;
+
+    @Autowired
+    private ApiNotificationService apiNotificationService;
 
     @Override
     public ApiEntity createFromSwagger(
@@ -1621,7 +1625,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
-                triggerApiDeprecatedNotification(executionContext, apiId, apiToCheck);
+                apiNotificationService.triggerDeprecatedNotification(executionContext, apiToCheck);
             }
 
             Api updatedApi = apiRepository.update(api);
@@ -1658,7 +1662,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             ApiEntity apiEntity = convert(executionContext, singletonList(updatedApi)).iterator().next();
             IndexableApi apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
-            triggerNotification(executionContext, apiId, ApiHook.API_UPDATED, apiEntity);
+            apiNotificationService.triggerUpdateNotification(executionContext, apiEntity);
 
             searchEngineService.index(executionContext, apiWithMetadata, false);
 
@@ -2363,7 +2367,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api.getCategories().remove(categoryId);
             api.setUpdatedAt(new Date());
             apiRepository.update(api);
-            triggerUpdateNotification(executionContext, api);
+            apiNotificationService.triggerUpdateNotification(executionContext, api);
             auditService.createApiAuditLog(
                 executionContext,
                 api.getId(),
@@ -2917,7 +2921,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (apiDefinition.getTags().remove(tagId)) {
                 api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
                 Api updated = apiRepository.update(api);
-                triggerUpdateNotification(executionContext, api);
+                apiNotificationService.triggerUpdateNotification(executionContext, api);
                 auditService.createApiAuditLog(
                     executionContext,
                     api.getId(),
@@ -3308,28 +3312,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     LOGGER.error("Error encrypting property value", e);
                 }
             }
-        }
-    }
-
-    private void triggerUpdateNotification(ExecutionContext executionContext, Api api) {
-        ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
-        triggerNotification(executionContext, apiEntity.getId(), ApiHook.API_UPDATED, apiEntity);
-    }
-
-    private void triggerApiDeprecatedNotification(ExecutionContext executionContext, String apiId, ApiEntity apiEntity) {
-        triggerNotification(executionContext, apiId, ApiHook.API_DEPRECATED, apiEntity);
-    }
-
-    private void triggerNotification(ExecutionContext executionContext, String apiId, ApiHook hook, ApiEntity apiEntity) {
-        String userId = getAuthenticatedUsername();
-
-        if (userId != null && !getAuthenticatedUser().isSystem()) {
-            notifierService.trigger(
-                executionContext,
-                hook,
-                apiId,
-                new NotificationParamsBuilder().api(apiEntity).user(userService.findById(executionContext, userId)).build()
-            );
         }
     }
 

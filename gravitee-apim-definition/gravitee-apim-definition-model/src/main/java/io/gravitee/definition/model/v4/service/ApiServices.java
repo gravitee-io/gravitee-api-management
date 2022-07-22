@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.v4.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,7 +32,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
-public class ApiServices {
+public class ApiServices implements Serializable {
 
     private Service dynamicProperty;
 }

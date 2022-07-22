@@ -36,6 +36,9 @@ public enum ApiType {
     private final String label;
 
     public static ApiType fromLabel(final String label) {
-        return labels.get(label);
+        if (label != null) {
+            return labels.get(label);
+        }
+        return null;
     }
 }
