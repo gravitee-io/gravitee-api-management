@@ -29,14 +29,23 @@ databaseChangeLog:
             columnNames: flow_id, type
             tableName: ${gravitee_prefix}flow_selectors
         - createTable:
-            tableName: ${gravitee_prefix}flow_channel_operation
+            tableName: ${gravitee_prefix}flow_selector_http_methods
+            columns:
+              - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: method, type: nvarchar(32), constraints: { nullable: false } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}flow_selector_http_methods
+            columnNames: flow_id, method
+            tableName: ${gravitee_prefix}flow_selector_http_methods
+        - createTable:
+            tableName: ${gravitee_prefix}flow_selector_channel_operations
             columns:
               - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: channel_operation, type: nvarchar(32), constraints: { nullable: false } }
         - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}flow_channel_operation
+            constraintName: pk_${gravitee_prefix}flow_selector_channel_operations
             columnNames: flow_id, channel_operation
-            tableName: ${gravitee_prefix}flow_channel_operation
+            tableName: ${gravitee_prefix}flow_selector_channel_operations
         - createTable:
             tableName: ${gravitee_prefix}flow_tags
             columns:

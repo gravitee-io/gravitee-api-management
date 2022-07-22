@@ -176,12 +176,11 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(flowUpdated.getName(), flow.getName());
 
         assertTrue(
-            flow
+            flowUpdated
                 .getSelectors()
                 .stream()
                 .allMatch(
-                    flowSelector ->
-                        flowUpdated.getSelectors().stream().anyMatch(flowSelectorUpdated -> flowSelectorUpdated.equals(flowSelector))
+                    flowSelectorUpdated -> flow.getSelectors().stream().anyMatch(flowSelector -> flowSelector.equals(flowSelectorUpdated))
                 )
         );
 
@@ -190,8 +189,9 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(flowUpdated.getReferenceId(), flow.getReferenceId());
         assertEquals(flowUpdated.getUpdatedAt(), flow.getUpdatedAt());
         assertEquals(flowUpdated.getTags(), flow.getTags());
-        assertEquals(2, flowUpdated.getRequest().size());
-        assertEquals(3, flowUpdated.getResponse().size());
+
+        assertEquals(1, flowUpdated.getRequest().size());
+        assertEquals(1, flowUpdated.getResponse().size());
         assertEquals(5, flowUpdated.getOrder());
     }
 
