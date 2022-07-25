@@ -120,7 +120,7 @@ public class VertxHttpServerResponse extends AbstractHttpChunks implements Mutab
 
                 if (chunks != null) {
                     return nativeResponse.rxSend(
-                        chunks
+                        chunks()
                             .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
                             .doOnNext(
                                 buffer ->

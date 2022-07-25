@@ -88,6 +88,7 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
             .doFinally(adaptedCtx::restore)
             .onErrorResumeNext(
                 throwable -> {
+                    log.error("An error occurred when invoking the backend.", throwable);
                     // In case of any error, make sure to reset the response content.
                     ctx.response().chunks(Flowable.empty());
                     return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502));

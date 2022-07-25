@@ -22,7 +22,7 @@ import io.reactivex.FlowableTransformer;
 import io.reactivex.Maybe;
 import io.reactivex.MaybeTransformer;
 import io.reactivex.Single;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -30,49 +30,110 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class AbstractHttpChunks {
 
-    private final AtomicBoolean requiredBodyCache = new AtomicBoolean(true);
     protected Flowable<Buffer> chunks;
+    protected Maybe<Buffer> cachedBuffer;
 
     public Maybe<Buffer> body() {
-        if (requiredBodyCache.compareAndSet(true, false)) {
-            // Reduce all the chunks to create a unique buffer containing all the content.
-            this.chunks = reduceBody().toFlowable().cache();
-        }
-        return chunks().firstElement();
+        this.chunks = chunksFromCache(() -> chunksOrEmpty().compose(chunksToCache()));
+
+        return chunks.firstElement();
     }
 
     public Single<Buffer> bodyOrEmpty() {
-        return body().switchIfEmpty(Single.just(Buffer.buffer()));
+        return body()
+            .switchIfEmpty(
+                Single.fromCallable(
+                    () -> {
+                        final Buffer emptyBuffer = Buffer.buffer();
+                        cachedBuffer = Maybe.empty();
+                        return emptyBuffer;
+                    }
+                )
+            );
     }
 
     public void body(Buffer buffer) {
-        this.requiredBodyCache.set(true);
-        this.chunks = chunks().compose(upstream -> upstream.ignoreElements().andThen(Flowable.just(buffer)));
+        cachedBuffer = Maybe.just(buffer);
+        this.chunks = cachedBuffer.toFlowable();
     }
 
     public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
-        this.chunks = reduceBody().compose(onBody).toFlowable().cache();
+        this.chunks = bodyFromCache(this::reduceBody).compose(onBody).compose(bodyToCache()).toFlowable();
         return this.chunks.ignoreElements();
     }
 
     public Flowable<Buffer> chunks() {
-        if (this.chunks == null) {
-            this.chunks = Flowable.empty();
-        }
+        chunks = chunksFromCache(this::chunksOrEmpty);
         return chunks;
     }
 
     public void chunks(final Flowable<Buffer> chunks) {
-        this.requiredBodyCache.set(true);
+        cachedBuffer = null;
         this.chunks = chunks;
     }
 
-    public Completable onChunk(final FlowableTransformer<Buffer, Buffer> chunkTransformer) {
-        this.chunks = chunks().compose(chunkTransformer).cache();
+    public Completable onChunks(final FlowableTransformer<Buffer, Buffer> onChunks) {
+        this.chunks = this.chunksFromCache(this::chunks).compose(onChunks).compose(chunksToCache());
+
         return this.chunks.ignoreElements();
     }
 
+    private Flowable<Buffer> chunksOrEmpty() {
+        if (this.chunks == null) {
+            return Flowable.empty();
+        }
+
+        return chunks;
+    }
+
     private Maybe<Buffer> reduceBody() {
-        return chunks().reduce(Buffer::appendBuffer);
+        return chunksOrEmpty().reduce(Buffer::appendBuffer);
+    }
+
+    private MaybeTransformer<Buffer, Buffer> bodyToCache() {
+        return upstream ->
+            upstream
+                .doOnComplete(() -> cachedBuffer = Maybe.empty())
+                .doOnError(t -> cachedBuffer = Maybe.just(Buffer.buffer(t.getMessage())))
+                .doOnSuccess(buffer -> cachedBuffer = Maybe.just(buffer));
+    }
+
+    /**
+     * Tries to return the current body from the cached buffer if it has already been evaluated to avoid multiple subscriptions to the source observable.
+     * Multiple subscriptions can occur during the request / response execution (EL expression accessing the body, track body for logging, track body for debug mode, ...).
+     *
+     * If no cache body exists yet, the <code>orElse</code> supplier will be used to retrieve the alternative body observable to use.
+     *
+     * @param orElse the {@link Supplier} with the body to return in case there is no cached body yet.
+     * @return the current body.
+     */
+    private Maybe<Buffer> bodyFromCache(Supplier<Maybe<Buffer>> orElse) {
+        Maybe<Buffer> body;
+
+        if (cachedBuffer != null) {
+            body = cachedBuffer;
+            cachedBuffer = null;
+        } else {
+            body = orElse.get();
+        }
+
+        return body;
+    }
+
+    private Flowable<Buffer> chunksFromCache(Supplier<Flowable<Buffer>> orElse) {
+        Flowable<Buffer> chunks;
+
+        if (cachedBuffer != null) {
+            chunks = cachedBuffer.toFlowable();
+            cachedBuffer = null;
+        } else {
+            chunks = orElse.get();
+        }
+
+        return chunks;
+    }
+
+    private FlowableTransformer<Buffer, Buffer> chunksToCache() {
+        return upstream -> upstream.reduce(Buffer::appendBuffer).compose(bodyToCache()).toFlowable();
     }
 }
