@@ -15,10 +15,10 @@
 #
 
 version: '3.8'
-
 services:
   wiremock:
     image: wiremock/wiremock:2.33.2
+    container_name: gravitee-apim-e2e-wiremock
     command: "--global-response-templating"
     volumes:
       - ./api-test/resources/wiremock:/home/wiremock
