@@ -23,7 +23,7 @@ volumes:
 
 services:
   database:
-    container_name: gio_apim_postgresql_e2e
+    container_name: gravitee-apim-e2e-postgres
     image: postgres:13
     restart: always
     environment:

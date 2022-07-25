@@ -28,7 +28,7 @@ volumes:
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-7.7.0}
-    container_name: gio_apim_elasticsearch_e2e
+    container_name: gravitee-apim-e2e-elasticsearch
     restart: always
     volumes:
       - data-elasticsearch:/usr/share/elasticsearch/data

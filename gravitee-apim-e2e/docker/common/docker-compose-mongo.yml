@@ -22,7 +22,7 @@ volumes:
 services:
   database:
     image: circleci/mongo:${MONGODB_VERSION:-5}
-    container_name: gio_apim_mongodb_e2e
+    container_name: gravitee-apim-e2e-mongodb
     restart: always
     ports:
       - "30017:27017"
