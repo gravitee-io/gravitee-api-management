@@ -24,7 +24,6 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.AbstractFailureProcessor;
 import io.reactivex.Completable;
 import io.reactivex.Single;
@@ -77,9 +76,8 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
             }
         } else {
             // No error key, process the error message as usual
-            super.processFailure(ctx, executionFailure);
+            return super.processFailure(ctx, executionFailure);
         }
-        return Completable.complete();
     }
 
     private Completable handleAcceptHeader(
