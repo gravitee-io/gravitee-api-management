@@ -18,7 +18,7 @@ package io.gravitee.gateway.jupiter.handlers.api;
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
 import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INVOKER;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.when;
@@ -33,6 +33,7 @@ import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.invoker.EndpointInvoker;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
+import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
@@ -56,8 +57,9 @@ import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.reporter.api.http.Metrics;
-import io.gravitee.repository.log.model.Log;
-import io.reactivex.*;
+import io.reactivex.Completable;
+import io.reactivex.CompletableObserver;
+import io.reactivex.Observable;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.schedulers.TestScheduler;
@@ -69,12 +71,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-public class SyncApiReactorTest {
+class SyncApiReactorTest {
+
+    public static final Long REQUEST_TIMEOUT = 200L;
+    public static final Long REQUEST_TIMEOUT_GRACE_DELAY = 30L;
 
     @Mock
     Api api;
@@ -169,6 +178,8 @@ public class SyncApiReactorTest {
     @Spy
     Completable spyInterruptionFailureException = Completable.error(new InterruptionFailureException(mock(ExecutionFailure.class)));
 
+    Completable spyTimeout;
+
     @Spy
     Completable spyInterruptionException = Completable.error(new InterruptionException());
 
@@ -189,6 +200,7 @@ public class SyncApiReactorTest {
     SyncApiReactor cut;
 
     TestScheduler testScheduler;
+    HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration;
 
     @BeforeEach
     void init() {
@@ -205,6 +217,8 @@ public class SyncApiReactorTest {
         when(configuration.getProperty("services.tracing.enabled", Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
 
+        httpRequestTimeoutConfiguration = new HttpRequestTimeoutConfiguration(REQUEST_TIMEOUT, REQUEST_TIMEOUT_GRACE_DELAY);
+
         cut =
             new SyncApiReactor(
                 api,
@@ -217,12 +231,28 @@ public class SyncApiReactorTest {
                 flowChainFactory,
                 groupLifecycleManager,
                 configuration,
-                node
+                node,
+                httpRequestTimeoutConfiguration
             );
 
         lenient().when(requestExecutionContext.getAttribute(ATTR_INVOKER)).thenReturn(invokerAdapter);
+        lenient()
+            .when(
+                requestExecutionContext.interruptWith(
+                    argThat(
+                        argument ->
+                            argument != null &&
+                            argument.statusCode() == 504 &&
+                            argument.message().equals("Request timeout") &&
+                            argument.key().equals("REQUEST_TIMEOUT")
+                    )
+                )
+            )
+            .thenReturn(Completable.error(new InterruptionFailureException(new ExecutionFailure(504))));
         testScheduler = new TestScheduler();
         RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+
+        spyTimeout = spy(Completable.timer(REQUEST_TIMEOUT + 30L, TimeUnit.MILLISECONDS, testScheduler));
     }
 
     @AfterEach
@@ -235,13 +265,13 @@ public class SyncApiReactorTest {
     void shouldStartWithoutTracing() throws Exception {
         cut.doStart();
 
-        assertEquals(cut.executionMode(), ExecutionMode.JUPITER);
+        assertThat(cut.executionMode()).isEqualTo(ExecutionMode.JUPITER);
         verify(resourceLifecycleManager).start();
         verify(policyManager).start();
         verify(groupLifecycleManager).start();
-        assertNotNull(cut.securityChain);
-        assertTrue(cut.processorChainHooks.isEmpty());
-        assertTrue(cut.invokerHooks.isEmpty());
+        assertThat(cut.securityChain).isNotNull();
+        assertThat(cut.processorChainHooks).isEmpty();
+        assertThat(cut.invokerHooks).isEmpty();
     }
 
     @Test
@@ -253,11 +283,11 @@ public class SyncApiReactorTest {
         verify(resourceLifecycleManager).start();
         verify(policyManager).start();
         verify(groupLifecycleManager).start();
-        assertNotNull(cut.securityChain);
-        assertEquals(1, cut.processorChainHooks.size());
-        assertTrue(cut.processorChainHooks.get(0) instanceof TracingHook);
-        assertEquals(1, cut.invokerHooks.size());
-        assertTrue(cut.invokerHooks.get(0) instanceof TracingHook);
+        assertThat(cut.securityChain).isNotNull();
+        assertThat(cut.processorChainHooks).hasSize(1);
+        assertThat(cut.processorChainHooks.get(0)).isInstanceOf(TracingHook.class);
+        assertThat(cut.invokerHooks).hasSize(1);
+        assertThat(cut.invokerHooks.get(0)).isInstanceOf(TracingHook.class);
     }
 
     @Test
@@ -269,9 +299,9 @@ public class SyncApiReactorTest {
         verify(resourceLifecycleManager).start();
         verify(policyManager).start();
         verify(groupLifecycleManager).start();
-        assertNotNull(cut.securityChain);
-        assertEquals(1, cut.invokerHooks.size());
-        assertTrue(cut.invokerHooks.get(0) instanceof LoggingHook);
+        assertThat(cut.securityChain).isNotNull();
+        assertThat(cut.invokerHooks).hasSize(1);
+        assertThat(cut.invokerHooks.get(0)).isInstanceOf(LoggingHook.class);
     }
 
     @Test
@@ -305,7 +335,7 @@ public class SyncApiReactorTest {
         TestObserver<Long> testObserver = stopUntil.test();
 
         testScheduler.advanceTimeBy(300L, TimeUnit.MILLISECONDS);
-        assertEquals(3, testObserver.valueCount());
+        assertThat(testObserver.valueCount()).isEqualTo(3);
 
         verify(resourceLifecycleManager, times(0)).stop();
         verify(policyManager, times(0)).stop();
@@ -383,8 +413,7 @@ public class SyncApiReactorTest {
 
         handleRequestObserver.assertSubscribed();
         verify(endpointInvoker).invoke(any(), any(), handlerArgumentCaptor.capture());
-        assertNotNull(handlerArgumentCaptor.getValue());
-        assertTrue(handlerArgumentCaptor.getValue() instanceof ConnectionHandlerAdapter);
+        assertThat(handlerArgumentCaptor.getValue()).isNotNull().isInstanceOf(ConnectionHandlerAdapter.class);
     }
 
     @Test
@@ -420,7 +449,7 @@ public class SyncApiReactorTest {
         orderedChain.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
     }
 
-    InOrder testFlowChainWithInvokeBackendError(Completable spyInvokerAdapterError, Class clasz) throws Exception {
+    InOrder testFlowChainWithInvokeBackendError(Completable spyInvokerAdapterError, Class<? extends Throwable> clazz) throws Exception {
         when(api.getDeployedAt()).thenReturn(new Date());
         when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
         when(apiPreProcessorChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
@@ -459,10 +488,164 @@ public class SyncApiReactorTest {
         orderedChain.verify(spyRequestApiPreProcessorChain).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spyRequestApiPlanFlowChain).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spyRequestApiFlowChain).subscribe(any(CompletableObserver.class));
-        spyInvokerAdapterError.test().assertError(clasz);
+        spyInvokerAdapterError.test().assertError(clazz);
         orderedChain.verify(spyResponseApiPlanFlowChain, times(0)).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spyResponseApiFlowChain, times(0)).subscribe(any(CompletableObserver.class));
         return orderedChain;
+    }
+
+    @Test
+    void shouldInterruptChainBecauseOfTimeoutOnBackend() throws Exception {
+        when(apiErrorProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE))
+            .thenReturn(spyResponseApiErrorProcessorChain);
+
+        when(api.getDeployedAt()).thenReturn(new Date());
+        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
+        when(apiPreProcessorChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
+        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
+        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
+        when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
+        fillRequestExecutionContext();
+
+        when(invokerAdapter.invoke(any())).thenReturn(spyTimeout);
+
+        cut.doStart();
+        when(securityChain.execute(any())).thenReturn(spySecurityChain);
+        ReflectionTestUtils.setField(cut, "securityChain", securityChain);
+
+        TestObserver<Void> handleRequestObserver = cut.handle(requestExecutionContext).test();
+        testScheduler.advanceTimeBy(REQUEST_TIMEOUT + 30L, TimeUnit.MILLISECONDS);
+
+        InOrder orderedChain = inOrder(
+            spyRequestPlatformFlowChain,
+            spySecurityChain,
+            spyRequestApiPreProcessorChain,
+            spyRequestApiPlanFlowChain,
+            spyRequestApiFlowChain,
+            spyTimeout,
+            spyResponseApiFlowChain,
+            spyResponseApiPlanFlowChain,
+            spyResponseApiPostProcessorChain,
+            spyResponseApiErrorProcessorChain,
+            spyResponsePlatformFlowChain
+        );
+
+        handleRequestObserver.assertSubscribed();
+
+        orderedChain.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyRequestApiPreProcessorChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyRequestApiPlanFlowChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyRequestApiFlowChain).subscribe(any(CompletableObserver.class));
+        spyTimeout.test().assertNotComplete();
+        orderedChain.verify(spyResponseApiFlowChain, times(0)).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponseApiPlanFlowChain, times(0)).subscribe(any(CompletableObserver.class));
+
+        orderedChain.verify(spyResponseApiPostProcessorChain, times(0)).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponseApiErrorProcessorChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
+    }
+
+    @Test
+    void shouldInterruptChainBecauseOfTimeoutOnRequest() throws Exception {
+        when(apiErrorProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE))
+            .thenReturn(spyResponseApiErrorProcessorChain);
+
+        when(api.getDeployedAt()).thenReturn(new Date());
+        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
+        when(apiPreProcessorChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
+        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
+        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyTimeout);
+        when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
+        fillRequestExecutionContext();
+
+        cut.doStart();
+        when(securityChain.execute(any())).thenReturn(spySecurityChain);
+        ReflectionTestUtils.setField(cut, "securityChain", securityChain);
+
+        TestObserver<Void> handleRequestObserver = cut.handle(requestExecutionContext).test();
+        testScheduler.advanceTimeBy(REQUEST_TIMEOUT + 30L, TimeUnit.MILLISECONDS);
+
+        InOrder orderedChain = inOrder(
+            spyRequestPlatformFlowChain,
+            spySecurityChain,
+            spyRequestApiPreProcessorChain,
+            spyRequestApiPlanFlowChain,
+            spyTimeout,
+            spyInvokerAdapterChain,
+            spyResponseApiFlowChain,
+            spyResponseApiPlanFlowChain,
+            spyResponseApiPostProcessorChain,
+            spyResponseApiErrorProcessorChain,
+            spyResponsePlatformFlowChain
+        );
+
+        handleRequestObserver.assertSubscribed();
+
+        orderedChain.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyRequestApiPreProcessorChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyRequestApiPlanFlowChain).subscribe(any(CompletableObserver.class));
+        spyTimeout.test().assertNotComplete();
+        orderedChain.verify(spyInvokerAdapterChain, times(0)).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponseApiFlowChain, times(0)).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponseApiPlanFlowChain, times(0)).subscribe(any(CompletableObserver.class));
+
+        orderedChain.verify(spyResponseApiPostProcessorChain, times(0)).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponseApiErrorProcessorChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
+    }
+
+    @Test
+    void shouldInterruptChainBecauseOfTimeoutOnResponsePlatformPolicies() throws Exception {
+        when(apiErrorProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE))
+            .thenReturn(spyResponseApiErrorProcessorChain);
+
+        when(api.getDeployedAt()).thenReturn(new Date());
+        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
+        when(apiPreProcessorChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
+        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
+        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
+        when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
+        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyTimeout);
+        fillRequestExecutionContext();
+
+        cut.doStart();
+        when(securityChain.execute(any())).thenReturn(spySecurityChain);
+        ReflectionTestUtils.setField(cut, "securityChain", securityChain);
+
+        TestObserver<Void> handleRequestObserver = cut.handle(requestExecutionContext).test();
+        testScheduler.advanceTimeBy(REQUEST_TIMEOUT + 30L, TimeUnit.MILLISECONDS);
+
+        InOrder orderedChain = inOrder(
+            spyRequestPlatformFlowChain,
+            spySecurityChain,
+            spyRequestApiPreProcessorChain,
+            spyRequestApiPlanFlowChain,
+            spyRequestApiFlowChain,
+            spyInvokerAdapterChain,
+            spyResponseApiFlowChain,
+            spyResponseApiPlanFlowChain,
+            spyResponseApiPostProcessorChain,
+            spyResponseApiErrorProcessorChain,
+            spyTimeout
+        );
+
+        handleRequestObserver.assertSubscribed();
+
+        orderedChain.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyRequestApiPreProcessorChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyRequestApiPlanFlowChain).subscribe(any(CompletableObserver.class));
+        spyTimeout.test().assertNotComplete();
+        orderedChain.verify(spyInvokerAdapterChain, times(0)).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponseApiFlowChain, times(0)).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponseApiPlanFlowChain, times(0)).subscribe(any(CompletableObserver.class));
+
+        orderedChain.verify(spyResponseApiPostProcessorChain, times(0)).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponseApiErrorProcessorChain).subscribe(any(CompletableObserver.class));
     }
 
     @Test

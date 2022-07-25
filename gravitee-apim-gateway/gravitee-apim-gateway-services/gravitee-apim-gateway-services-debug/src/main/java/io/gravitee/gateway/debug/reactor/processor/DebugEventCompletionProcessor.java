@@ -22,6 +22,7 @@ import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.definition.model.debug.DebugMetrics;
 import io.gravitee.definition.model.debug.PreprocessorStep;
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
@@ -29,6 +30,7 @@ import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContext;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 import io.gravitee.gateway.debug.vertx.VertxHttpServerResponseDebugDecorator;
+import io.gravitee.gateway.jupiter.debug.vertx.TimeoutServerResponseDebugDecorator;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
@@ -90,7 +92,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         HttpResponse response = createResponse(
             debugContext.response().headers(),
             debugContext.response().status(),
-            ((VertxHttpServerResponseDebugDecorator) debugContext.response()).getBuffer()
+            getResponseBuffer(debugContext)
         );
         debugApi.setResponse(response);
 
@@ -104,6 +106,14 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         debugApi.setMetrics(createMetrics(debugContext.request().metrics()));
 
         return debugApi;
+    }
+
+    private Buffer getResponseBuffer(DebugExecutionContext debugContext) {
+        Response response = debugContext.response();
+        if (response instanceof TimeoutServerResponseDebugDecorator) {
+            response = ((TimeoutServerResponseDebugDecorator) response).response();
+        }
+        return ((VertxHttpServerResponseDebugDecorator) response).getBuffer();
     }
 
     private DebugMetrics createMetrics(io.gravitee.reporter.api.http.Metrics requestMetrics) {

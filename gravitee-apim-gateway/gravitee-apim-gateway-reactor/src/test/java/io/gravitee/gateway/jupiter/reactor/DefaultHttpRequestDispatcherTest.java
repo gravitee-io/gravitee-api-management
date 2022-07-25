@@ -29,6 +29,7 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
@@ -45,6 +46,7 @@ import io.gravitee.gateway.report.ReporterService;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.observers.TestObserver;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.reactivex.core.MultiMap;
@@ -124,6 +126,8 @@ class DefaultHttpRequestDispatcherTest {
     @Mock
     private ComponentProvider globalComponentProvider;
 
+    private final Vertx vertx = Vertx.vertx();
+
     private DefaultHttpRequestDispatcher cut;
 
     @BeforeEach
@@ -169,13 +173,15 @@ class DefaultHttpRequestDispatcherTest {
                 responseProcessorChainFactory,
                 platformProcessorChainFactory,
                 notFoundProcessorChainFactory,
-                false
+                false,
+                new HttpRequestTimeoutConfiguration(500L, 10L),
+                vertx
             );
         cut.setApplicationContext(mock(ApplicationContext.class));
     }
 
     @Test
-    public void shouldHandleJupiterRequest() {
+    void shouldHandleJupiterRequest() {
         final ApiReactor apiReactor = mock(ApiReactor.class, withSettings().extraInterfaces(ReactorHandler.class));
 
         this.prepareJupiterMock(handlerEntrypoint, apiReactor);
@@ -188,7 +194,7 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    public void shouldSetMetricsWhenHandlingJupiterRequest() {
+    void shouldSetMetricsWhenHandlingJupiterRequest() {
         final ApiReactor apiReactor = mock(ApiReactor.class, withSettings().extraInterfaces(ReactorHandler.class));
         final ArgumentCaptor<MutableRequestExecutionContext> ctxCaptor = ArgumentCaptor.forClass(MutableRequestExecutionContext.class);
 
@@ -205,7 +211,7 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    public void shouldPropagateErrorWhenErrorWithJupiterRequest() {
+    void shouldPropagateErrorWhenErrorWithJupiterRequest() {
         final ApiReactor apiReactor = mock(ApiReactor.class, withSettings().extraInterfaces(ReactorHandler.class));
 
         this.prepareJupiterMock(handlerEntrypoint, apiReactor);
@@ -219,7 +225,7 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    public void shouldHandleV3Request() {
+    void shouldHandleV3Request() {
         final ReactorHandler apiReactor = mock(ReactorHandler.class);
 
         this.prepareV3Mock(handlerEntrypoint, apiReactor);
@@ -240,7 +246,7 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    public void shouldSetMetricsWhenHandlingV3Request() {
+    void shouldSetMetricsWhenHandlingV3Request() {
         final ReactorHandler apiReactor = mock(ReactorHandler.class);
 
         this.prepareV3Mock(handlerEntrypoint, apiReactor);
@@ -267,7 +273,7 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    public void shouldEndResponseWhenNotAlreadyEndedByV3Handler() {
+    void shouldEndResponseWhenNotAlreadyEndedByV3Handler() {
         final ReactorHandler apiReactor = mock(ReactorHandler.class);
 
         this.prepareV3Mock(handlerEntrypoint, apiReactor);
@@ -295,7 +301,7 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    public void shouldPropagateErrorWhenExceptionWithV3Request() {
+    void shouldPropagateErrorWhenExceptionWithV3Request() {
         final ReactorHandler apiReactor = mock(ReactorHandler.class);
 
         this.prepareV3Mock(handlerEntrypoint, apiReactor);
@@ -308,7 +314,7 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    public void shouldHandleNotFoundWhenNoHandlerResolved() {
+    void shouldHandleNotFoundWhenNoHandlerResolved() {
         ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
         when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
         when(entrypointResolver.resolve(HOST, PATH)).thenReturn(null);
@@ -320,7 +326,7 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    public void shouldHandleNotFoundWhenNoTargetOnResolvedHandler() {
+    void shouldHandleNotFoundWhenNoTargetOnResolvedHandler() {
         this.prepareV3Mock(handlerEntrypoint, null);
 
         ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
@@ -333,7 +339,7 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    public void shouldSetMetricsWhenHandlingNotFoundRequest() {
+    void shouldSetMetricsWhenHandlingNotFoundRequest() {
         ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
         when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
         when(entrypointResolver.resolve(HOST, PATH)).thenReturn(null);
@@ -351,7 +357,7 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    public void shouldCreateToHandlerRegistryWhenDeployApiEvent() {
+    void shouldCreateToHandlerRegistryWhenDeployApiEvent() {
         final Event<ReactorEvent, Reactable> event = mock(Event.class);
         final Reactable api = mock(Reactable.class);
 
@@ -364,7 +370,7 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    public void shouldUpdateToHandlerRegistryWhenUpdateApiEvent() {
+    void shouldUpdateToHandlerRegistryWhenUpdateApiEvent() {
         final Event<ReactorEvent, Reactable> event = mock(Event.class);
         final Reactable api = mock(Reactable.class);
 
@@ -377,7 +383,7 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    public void shouldRemoveToHandlerRegistryWhenUpdateApiEvent() {
+    void shouldRemoveToHandlerRegistryWhenUpdateApiEvent() {
         final Event<ReactorEvent, Reactable> event = mock(Event.class);
         final Reactable api = mock(Reactable.class);
 
@@ -390,13 +396,13 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    public void shouldSubscribeToEventsWhenStarting() throws Exception {
+    void shouldSubscribeToEventsWhenStarting() throws Exception {
         cut.start();
         verify(eventManager).subscribeForEvents(cut, ReactorEvent.class);
     }
 
     @Test
-    public void shouldClearHandlerRegistryWhenStopping() throws Exception {
+    void shouldClearHandlerRegistryWhenStopping() throws Exception {
         cut.stop();
         verify(reactorHandlerRegistry).clear();
     }

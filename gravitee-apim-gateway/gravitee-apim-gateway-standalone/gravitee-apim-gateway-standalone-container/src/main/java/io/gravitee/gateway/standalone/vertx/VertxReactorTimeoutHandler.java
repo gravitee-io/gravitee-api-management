@@ -19,6 +19,7 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.http.vertx.TimeoutServerResponse;
 import io.gravitee.gateway.reactor.Reactor;
 import io.vertx.core.Vertx;
 

@@ -24,6 +24,7 @@ import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.gateway.connector.spring.ConnectorConfiguration;
 import io.gravitee.gateway.dictionary.spring.DictionaryConfiguration;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.env.TimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
 import io.gravitee.gateway.platform.spring.PlatformConfiguration;
 import io.gravitee.gateway.policy.spring.PolicyConfiguration;
@@ -73,6 +74,7 @@ import org.springframework.context.annotation.Import;
         PlatformConfiguration.class,
         ConnectorConfiguration.class,
         ClusterConfiguration.class,
+        TimeoutConfiguration.class,
     }
 )
 public class StandaloneConfiguration {

@@ -29,6 +29,7 @@ import io.gravitee.gateway.debug.reactor.processor.DebugResponseProcessorChainFa
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.FlowResolver;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
@@ -72,6 +73,7 @@ import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.repository.management.api.EventRepository;
+import io.vertx.core.Vertx;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -269,7 +271,9 @@ public class DebugConfiguration {
         @Qualifier("debugV3ResponseProcessorChainFactory") ResponseProcessorChainFactory v3ResponseProcessorChainFactory,
         @Qualifier("debugPlatformProcessorChainFactory") PlatformProcessorChainFactory debugPlatformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
-        @Value("${services.tracing.enabled:false}") boolean tracingEnabled
+        @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
+        HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration,
+        Vertx vertx
     ) {
         return new DebugHttpRequestDispatcher(
             eventManager,
@@ -282,7 +286,9 @@ public class DebugConfiguration {
             v3ResponseProcessorChainFactory,
             debugPlatformProcessorChainFactory,
             notFoundProcessorChainFactory,
-            tracingEnabled
+            tracingEnabled,
+            httpRequestTimeoutConfiguration,
+            vertx
         );
     }
 
@@ -335,7 +341,8 @@ public class DebugConfiguration {
         OrganizationManager organizationManager,
         @Qualifier("debugV3PolicyChainProviderLoader") PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
-        FlowResolverFactory flowResolverFactory
+        FlowResolverFactory flowResolverFactory,
+        HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
     ) {
         return new DebugApiReactorHandlerFactory(
             applicationContext.getParent(),
@@ -347,7 +354,8 @@ public class DebugConfiguration {
             organizationManager,
             policyChainProviderLoader,
             apiProcessorChainFactory,
-            flowResolverFactory
+            flowResolverFactory,
+            httpRequestTimeoutConfiguration
         );
     }
 

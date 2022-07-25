@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.reactor.spring;
 
+import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_BY_DEFAULT;
+import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_KEY;
 import static io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_REQUEST_ID_HEADER;
 import static io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_TRANSACTION_ID_HEADER;
 
@@ -24,6 +26,7 @@ import io.gravitee.common.utils.Hex;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
 import io.gravitee.gateway.jupiter.reactor.handler.DefaultEntrypointResolver;
@@ -44,6 +47,9 @@ import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFac
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
+import io.vertx.core.Vertx;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -56,6 +62,8 @@ import org.springframework.core.env.Environment;
  */
 @Configuration
 public class ReactorConfiguration {
+
+    public static final Logger log = LoggerFactory.getLogger(ReactorConfiguration.class);
 
     private static final String HEX_FORMAT = "hex";
 
@@ -139,7 +147,9 @@ public class ReactorConfiguration {
         ResponseProcessorChainFactory v3ResponseProcessorChainFactory,
         PlatformProcessorChainFactory platformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
-        @Value("${services.tracing.enabled:false}") boolean tracingEnabled
+        @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
+        HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration,
+        Vertx vertx
     ) {
         return new DefaultHttpRequestDispatcher(
             eventManager,
@@ -152,7 +162,9 @@ public class ReactorConfiguration {
             v3ResponseProcessorChainFactory,
             platformProcessorChainFactory,
             notFoundProcessorChainFactory,
-            tracingEnabled
+            tracingEnabled,
+            httpRequestTimeoutConfiguration,
+            vertx
         );
     }
 

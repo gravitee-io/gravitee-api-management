@@ -23,6 +23,7 @@ import static io.reactivex.Observable.interval;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.handler.Handler;
@@ -30,7 +31,9 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
+import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Request;
@@ -88,6 +91,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final ResourceLifecycleManager resourceLifecycleManager;
     protected final PolicyManager policyManager;
     protected final GroupLifecycleManager groupLifecycleManager;
+    private final HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration;
     protected final FlowChain platformFlowChain;
     protected final FlowChain apiPlanFlowChain;
     protected final FlowChain apiFlowChain;
@@ -113,7 +117,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final FlowChainFactory flowChainFactory,
         final GroupLifecycleManager groupLifecycleManager,
         final Configuration configuration,
-        final Node node
+        final Node node,
+        final HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
     ) {
         this.api = api;
         this.componentProvider = componentProvider;
@@ -122,6 +127,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.resourceLifecycleManager = resourceLifecycleManager;
         this.policyManager = policyManager;
         this.groupLifecycleManager = groupLifecycleManager;
+        this.httpRequestTimeoutConfiguration = httpRequestTimeoutConfiguration;
 
         this.apiPreProcessorChain = apiProcessorChainFactory.preProcessorChain(api);
         this.apiPostProcessorChain = apiProcessorChainFactory.postProcessorChain(api);
@@ -175,6 +181,12 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         metrics.setPath(request.pathInfo());
     }
 
+    private void setApiResponseTimeMetric(RequestExecutionContext ctx) {
+        if (ctx.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
+            ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
+        }
+    }
+
     private Completable handleRequest(final RequestExecutionContext ctx) {
         // Execute platform flow chain.
         return platformFlowChain
@@ -192,13 +204,32 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             .andThen(executeFlowChain(ctx, apiFlowChain, RESPONSE))
             // Execute post api processor chain
             .andThen(executeProcessorsChain(ctx, apiPostProcessorChain, RESPONSE))
-            .onErrorResumeNext(error -> processThrowable(ctx, error))
+            .compose(upstream -> timeoutAndError(upstream, ctx))
             // Platform post flows must always be executed
-            .andThen(executeFlowChain(ctx, platformFlowChain, RESPONSE))
+            .andThen(executeFlowChain(ctx, platformFlowChain, RESPONSE).compose(upstream -> timeoutAndError(upstream, ctx)))
             // Catch all possible unexpected errors.
             .onErrorResumeNext(t -> handleUnexpectedError(ctx, t))
             // Finally, end the response.
             .andThen(endResponse(ctx));
+    }
+
+    private Completable timeoutAndError(Completable upstream, RequestExecutionContext ctx) {
+        return Completable.defer(
+            () ->
+                upstream
+                    .timeout(
+                        Math.max(
+                            httpRequestTimeoutConfiguration.getHttpRequestTimeoutGraceDelay(),
+                            httpRequestTimeoutConfiguration.getHttpRequestTimeout() -
+                            (System.currentTimeMillis() - ctx.request().timestamp())
+                        ),
+                        TimeUnit.MILLISECONDS,
+                        ctx.interruptWith(
+                            new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key("REQUEST_TIMEOUT").message("Request timeout")
+                        )
+                    )
+                    .onErrorResumeNext(error -> processThrowable(ctx, error))
+        );
     }
 
     /**
@@ -253,13 +284,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
                 }
             )
             .doOnSubscribe(disposable -> ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis()))
-            .doOnTerminate(
-                () ->
-                    ctx
-                        .request()
-                        .metrics()
-                        .setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs())
-            );
+            .doOnDispose(() -> setApiResponseTimeMetric(ctx))
+            .doOnTerminate(() -> setApiResponseTimeMetric(ctx));
     }
 
     /**
@@ -312,12 +338,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         return Completable.fromRunnable(
             () -> {
                 log.error("Unexpected error while handling request", throwable);
-                if (ctx.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
-                    ctx
-                        .request()
-                        .metrics()
-                        .setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
-                }
+                setApiResponseTimeMetric(ctx);
 
                 ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
                 ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());

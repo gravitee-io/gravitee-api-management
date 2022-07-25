@@ -25,9 +25,11 @@ import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
 import io.gravitee.reporter.api.http.Metrics;
+import io.reactivex.Flowable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -47,7 +49,7 @@ public class AbstractProcessorTest {
 
     protected HttpHeaders spyRequestHeaders;
 
-    @Mock
+    @Spy
     protected MutableResponse mockResponse;
 
     protected HttpHeaders spyResponseHeaders;
@@ -67,5 +69,7 @@ public class AbstractProcessorTest {
         componentProvider.add(io.gravitee.definition.model.Api.class, api);
         ctx = new DefaultRequestExecutionContext(mockRequest, mockResponse);
         ctx.componentProvider(componentProvider);
+
+        lenient().when(mockResponse.chunks()).thenReturn(Flowable.empty());
     }
 }

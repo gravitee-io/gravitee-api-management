@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.node.api.configuration.Configuration;
@@ -47,7 +48,20 @@ public class ApiReactorHandlerFactoryTest {
         MockitoAnnotations.openMocks(this);
         when(mockConfiguration.getProperty(eq(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY), eq(Boolean.class), eq(false)))
             .thenReturn(false);
-        apiContextHandlerFactory = new ApiReactorHandlerFactory(null, mockConfiguration, null, null, null, null, null, null, null, null);
+        apiContextHandlerFactory =
+            new ApiReactorHandlerFactory(
+                null,
+                mockConfiguration,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                new HttpRequestTimeoutConfiguration(2000L, 10L)
+            );
     }
 
     @Test

@@ -25,7 +25,8 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Properties;
-import org.junit.platform.commons.PreconditionViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Load {@link PluginManifest} from file "plugin.properties"
@@ -33,6 +34,8 @@ import org.junit.platform.commons.PreconditionViolationException;
  * @author GraviteeSource Team
  */
 public class PluginManifestLoader {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(PluginManifestLoader.class);
 
     private PluginManifestLoader() {
         throw new IllegalStateException("Utility class");
@@ -54,7 +57,7 @@ public class PluginManifestLoader {
                 }
             }
         } catch (IOException e) {
-            throw new PreconditionViolationException("Unable to find a 'plugin.properties' file in src/main/resources folder", e);
+            LOGGER.warn("Unable to find a 'plugin.properties' file in src/main/resources folder", e);
         }
 
         return null;

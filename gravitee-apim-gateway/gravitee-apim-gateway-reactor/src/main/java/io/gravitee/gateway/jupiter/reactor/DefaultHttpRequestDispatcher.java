@@ -22,11 +22,14 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.http.utils.WebSocketUtils;
+import io.gravitee.gateway.http.vertx.TimeoutServerResponse;
 import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
 import io.gravitee.gateway.http.vertx.grpc.VertxGrpcServerRequest;
 import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
@@ -52,6 +55,7 @@ import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.Completable;
 import io.reactivex.CompletableEmitter;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.reactivex.core.http.HttpHeaders;
 import io.vertx.reactivex.core.http.HttpServerRequest;
@@ -86,6 +90,8 @@ public class DefaultHttpRequestDispatcher
     private final ResponseProcessorChainFactory responseProcessorChainFactory;
     private final PlatformProcessorChainFactory platformProcessorChainFactory;
     private final NotFoundProcessorChainFactory notFoundProcessorChainFactory;
+    private final HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration;
+    private final Vertx vertx;
     private final List<ChainHook> processorChainHooks;
     private final ComponentProvider globalComponentProvider;
 
@@ -100,7 +106,9 @@ public class DefaultHttpRequestDispatcher
         ResponseProcessorChainFactory responseProcessorChainFactory,
         PlatformProcessorChainFactory platformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
-        boolean tracingEnabled
+        boolean tracingEnabled,
+        HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration,
+        Vertx vertx
     ) {
         this.eventManager = eventManager;
         this.gatewayConfiguration = gatewayConfiguration;
@@ -112,6 +120,8 @@ public class DefaultHttpRequestDispatcher
         this.responseProcessorChainFactory = responseProcessorChainFactory;
         this.platformProcessorChainFactory = platformProcessorChainFactory;
         this.notFoundProcessorChainFactory = notFoundProcessorChainFactory;
+        this.httpRequestTimeoutConfiguration = httpRequestTimeoutConfiguration;
+        this.vertx = vertx;
 
         this.processorChainHooks = new ArrayList<>();
 
@@ -210,7 +220,7 @@ public class DefaultHttpRequestDispatcher
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request = createV3Request(httpServerRequest, idGenerator);
 
         // Prepare invocation execution context.
-        SimpleExecutionContext simpleExecutionContext = new SimpleExecutionContext(request, request.create());
+        SimpleExecutionContext simpleExecutionContext = createV3ExecutionContext(httpServerRequest, request);
 
         // Required by the v3 execution mode.
         simpleExecutionContext.setAttribute(ATTR_ENTRYPOINT, handlerEntrypoint);
@@ -282,6 +292,32 @@ public class DefaultHttpRequestDispatcher
         }
 
         return request;
+    }
+
+    private SimpleExecutionContext createV3ExecutionContext(
+        HttpServerRequest httpServerRequest,
+        io.gravitee.gateway.http.vertx.VertxHttpServerRequest request
+    ) {
+        SimpleExecutionContext simpleExecutionContext;
+        if (!isV3WebSocket(httpServerRequest)) {
+            final long timeoutId = vertx.setTimer(
+                httpRequestTimeoutConfiguration.getHttpRequestTimeout(),
+                event -> {
+                    if (!httpServerRequest.response().ended()) {
+                        final Handler<Long> handler = request.timeoutHandler();
+                        handler.handle(event);
+                    }
+                }
+            );
+            simpleExecutionContext = new SimpleExecutionContext(request, createV3TimeoutResponse(vertx, request, timeoutId));
+        } else {
+            simpleExecutionContext = new SimpleExecutionContext(request, request.create());
+        }
+        return simpleExecutionContext;
+    }
+
+    protected Response createV3TimeoutResponse(Vertx vertx, io.gravitee.gateway.http.vertx.VertxHttpServerRequest request, long timeoutId) {
+        return new TimeoutServerResponse(vertx, request.create(), timeoutId);
     }
 
     /**

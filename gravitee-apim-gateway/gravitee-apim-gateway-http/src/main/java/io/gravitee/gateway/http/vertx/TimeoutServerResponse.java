@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.vertx;
+package io.gravitee.gateway.http.vertx;
 
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -31,7 +31,7 @@ public class TimeoutServerResponse implements Response {
 
     private final Vertx vertx;
 
-    private final Response response;
+    protected final Response response;
 
     private final long timerId;
 
