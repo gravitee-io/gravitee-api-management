@@ -20,6 +20,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
+import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
@@ -152,7 +153,8 @@ public class ApiHandlerConfiguration {
         OrganizationManager organizationManager,
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
-        FlowResolverFactory flowResolverFactory
+        FlowResolverFactory flowResolverFactory,
+        HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
     ) {
         return new ApiReactorHandlerFactory(
             applicationContext,
@@ -164,7 +166,8 @@ public class ApiHandlerConfiguration {
             organizationManager,
             policyChainProviderLoader,
             apiProcessorChainFactory,
-            flowResolverFactory
+            flowResolverFactory,
+            httpRequestTimeoutConfiguration
         );
     }
 

@@ -22,7 +22,10 @@
 #  maxChunkSize: 8192
 #  maxInitialLineLength: 4096
 #  instances: 0
-#  requestTimeout: 0
+#  requestTimeout: 0 (in Jupiter mode, default is 30_000 ms)
+#  The following is only used in Jupiter mode. It represents the maximum delay to let the response's platform flows execute properly in case of error during the previous phases.
+#  It's configures a timeout from the max between (requestTimeout - api elapsed time) and requestTimeoutGraceDelay.
+#  requestTimeoutGraceDelay: 30
 #  secured: false
 #  alpn: false
 #  ssl:

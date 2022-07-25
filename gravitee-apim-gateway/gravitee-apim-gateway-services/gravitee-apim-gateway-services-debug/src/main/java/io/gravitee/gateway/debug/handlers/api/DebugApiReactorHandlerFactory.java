@@ -23,6 +23,7 @@ import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContextFactory;
 import io.gravitee.gateway.debug.security.core.DebugSecurityPolicyResolver;
+import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.ApiReactorHandler;
@@ -40,6 +41,7 @@ import io.gravitee.gateway.jupiter.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
+import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -60,13 +62,14 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         ApplicationContext applicationContext,
         Configuration configuration,
         Node node,
-        io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
+        PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactory policyFactory,
         io.gravitee.gateway.jupiter.policy.PolicyChainFactory platformPolicyChainFactory,
         OrganizationManager organizationManager,
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
-        FlowResolverFactory flowResolverFactory
+        FlowResolverFactory flowResolverFactory,
+        HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
     ) {
         super(
             applicationContext,
@@ -78,7 +81,8 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             organizationManager,
             policyChainProviderLoader,
             apiProcessorChainFactory,
-            flowResolverFactory
+            flowResolverFactory,
+            httpRequestTimeoutConfiguration
         );
     }
 
@@ -140,7 +144,8 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         final FlowChainFactory flowChainFactory,
         final GroupLifecycleManager groupLifecycleManager,
         final Configuration configuration,
-        final Node node
+        final Node node,
+        final HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
     ) {
         return new DebugSyncApiReactor(
             api,
@@ -153,7 +158,8 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             flowChainFactory,
             groupLifecycleManager,
             configuration,
-            node
+            node,
+            httpRequestTimeoutConfiguration
         );
     }
 }

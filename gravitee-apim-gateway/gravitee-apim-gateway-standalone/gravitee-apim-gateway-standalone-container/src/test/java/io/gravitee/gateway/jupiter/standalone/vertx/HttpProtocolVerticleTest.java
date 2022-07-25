@@ -31,6 +31,7 @@ import io.vertx.reactivex.core.http.HttpServerRequest;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +39,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
-public class HttpProtocolVerticleTest {
+class HttpProtocolVerticleTest {
 
     private HttpRequestDispatcher mockRequestDispatcher;
     private HttpServer httpServer;

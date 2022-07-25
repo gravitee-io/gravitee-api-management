@@ -35,6 +35,7 @@ import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.core.endpoint.resolver.ProxyEndpointResolver;
 import io.gravitee.gateway.core.invoker.InvokerFactory;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.context.ApiTemplateVariableProvider;
@@ -54,6 +55,7 @@ import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
+import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
@@ -107,19 +109,21 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     private final ApiProcessorChainFactory apiProcessorChainFactory;
     private final OrganizationManager organizationManager;
     private final FlowResolverFactory flowResolverFactory;
+    private final HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration;
     private ApplicationContext applicationContext;
 
     public ApiReactorHandlerFactory(
         ApplicationContext applicationContext,
         Configuration configuration,
         Node node,
-        io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
+        PolicyFactoryCreator v3PolicyFactoryCreator,
         io.gravitee.gateway.jupiter.policy.PolicyFactory policyFactory,
         io.gravitee.gateway.jupiter.policy.PolicyChainFactory platformPolicyChainFactory,
         OrganizationManager organizationManager,
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
-        FlowResolverFactory flowResolverFactory
+        FlowResolverFactory flowResolverFactory,
+        HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
@@ -131,6 +135,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         this.policyChainProviderLoader = policyChainProviderLoader;
         this.apiProcessorChainFactory = apiProcessorChainFactory;
         this.flowResolverFactory = flowResolverFactory;
+        this.httpRequestTimeoutConfiguration = httpRequestTimeoutConfiguration;
         this.contentTemplateVariableProvider = new ContentTemplateVariableProvider();
     }
 
@@ -254,7 +259,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                         flowChainFactory,
                         groupLifecycleManager,
                         configuration,
-                        node
+                        node,
+                        httpRequestTimeoutConfiguration
                     );
                 }
             } else {
@@ -278,7 +284,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         final FlowChainFactory flowChainFactory,
         final GroupLifecycleManager groupLifecycleManager,
         final Configuration configuration,
-        final Node node
+        final Node node,
+        final HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
     ) {
         return new SyncApiReactor(
             api,
@@ -291,7 +298,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
             flowChainFactory,
             groupLifecycleManager,
             configuration,
-            node
+            node,
+            httpRequestTimeoutConfiguration
         );
     }
 
