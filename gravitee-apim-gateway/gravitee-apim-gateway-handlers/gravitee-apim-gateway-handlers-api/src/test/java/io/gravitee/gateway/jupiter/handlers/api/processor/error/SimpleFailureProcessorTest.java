@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeadersValues;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
@@ -30,9 +31,13 @@ import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.handlers.api.processor.AbstractProcessorTest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpStatusClass;
 import java.util.List;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 
@@ -55,7 +60,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
-    public void shouldCompleteWith500StatusWithoutExecutionFailure() {
+    void shouldCompleteWith500StatusWithoutExecutionFailure() {
         simpleFailureProcessor.execute(ctx).test().assertResult();
         verify(mockMetrics).setApplication(eq("1"));
         verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
@@ -64,7 +69,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
-    public void shouldCompleteWithChangingResponseBodyWithoutProcessorFailureMessage() {
+    void shouldCompleteWithChangingResponseBodyWithoutProcessorFailureMessage() {
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         simpleFailureProcessor.execute(ctx).test().assertResult();
@@ -75,7 +80,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
-    public void shouldCompleteWithJsonErrorAndAcceptHeaderJson() throws JsonProcessingException {
+    void shouldCompleteWithJsonErrorAndAcceptHeaderJson() throws JsonProcessingException {
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
         String contentAsJson = mapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
@@ -93,7 +98,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
-    public void shouldCompleteWithJsonErrorAndAcceptHeaderWildCard() throws JsonProcessingException {
+    void shouldCompleteWithJsonErrorAndAcceptHeaderWildCard() throws JsonProcessingException {
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
         String contentAsJson = mapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
@@ -130,9 +135,9 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
-    public void shouldCompleteWithTxtErrorAndNoAcceptHeader() {
-        String contentAsTxt = "error";
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message(contentAsTxt);
+    void shouldCompleteWithTxtErrorAndNoAcceptHeader() {
+        String contentAsText = "error";
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message(contentAsText);
         ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         simpleFailureProcessor.execute(ctx).test().assertResult();
         verify(mockMetrics).setApplication(eq("1"));
@@ -142,7 +147,37 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("text/plain");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
         verify(mockResponse).body(bufferCaptor.capture());
+    }
 
-        assertThat(bufferCaptor.getValue().toString()).isEqualTo(contentAsTxt);
+    @ParameterizedTest(name = "''Connection: close'' header should be added only if status is not in CLIENT_ERROR family ")
+    @ValueSource(
+        ints = {
+            0,
+            HttpStatusCode.CONTINUE_100,
+            HttpStatusCode.NO_CONTENT_204,
+            HttpStatusCode.NOT_MODIFIED_304,
+            HttpStatusCode.CONFLICT_409,
+            HttpStatusCode.BAD_GATEWAY_502,
+        }
+    )
+    void shouldAddConnectionCloseHeaderWhenNotAClientError(Integer responseStatus) {
+        ExecutionFailure executionFailure = new ExecutionFailure(responseStatus);
+
+        lenient().when(mockResponse.status()).thenReturn(responseStatus);
+
+        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+        simpleFailureProcessor.execute(ctx).test().assertResult();
+
+        verify(mockResponse, times(1)).status(responseStatus);
+
+        if (HttpStatusClass.CLIENT_ERROR.contains(responseStatus)) {
+            Assertions.assertThat(mockResponse.headers().contains(HttpHeaderNames.CONNECTION)).isFalse();
+        } else {
+            Assertions
+                .assertThat(mockResponse.headers().getAll(HttpHeaderNames.CONNECTION))
+                .hasSize(1)
+                .containsExactly(HttpHeadersValues.CONNECTION_CLOSE);
+        }
     }
 }
