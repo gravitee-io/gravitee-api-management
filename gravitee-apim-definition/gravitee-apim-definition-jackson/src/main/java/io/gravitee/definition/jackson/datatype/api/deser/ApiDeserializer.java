@@ -248,6 +248,12 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
             api.setResponseTemplates(responseTemplates);
         }
 
+        JsonNode definitionContextNode = node.get("definitionContext");
+        if (definitionContextNode != null) {
+            DefinitionContext definitionContext = definitionContextNode.traverse(jp.getCodec()).readValueAs(DefinitionContext.class);
+            api.setDefinitionContext(definitionContext);
+        }
+
         return api;
     }
 }

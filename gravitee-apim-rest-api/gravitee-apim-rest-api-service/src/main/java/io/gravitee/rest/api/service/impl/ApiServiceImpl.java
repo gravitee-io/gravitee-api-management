@@ -506,7 +506,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 repoApi.getGroups().add(primaryOwner.getId());
             }
 
-            repoApi.setApiLifecycleState(ApiLifecycleState.CREATED);
             if (parameterService.findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
                 workflowService.create(WorkflowReferenceType.API, id, REVIEW, userId, DRAFT, "");
             }
