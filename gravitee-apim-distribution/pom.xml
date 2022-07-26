@@ -46,7 +46,7 @@
     <properties>
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
-        <gravitee-connector-http.version>1.1.9</gravitee-connector-http.version>
+        <gravitee-connector-http.version>1.1.10</gravitee-connector-http.version>
         <gravitee-policy-apikey.version>2.4.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>1.7.0</gravitee-policy-assign-content.version>
