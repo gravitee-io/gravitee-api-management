@@ -22,7 +22,7 @@ import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.impl.AbstractService;
-import io.gravitee.rest.api.service.v4.TagsValidationService;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;

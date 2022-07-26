@@ -19,12 +19,7 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.impl.TransactionalService;
-import io.gravitee.rest.api.service.v4.EndpointGroupsValidationService;
-import io.gravitee.rest.api.service.v4.FlowValidationService;
-import io.gravitee.rest.api.service.v4.TagsValidationService;
-import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
-import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
-import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
+import io.gravitee.rest.api.service.v4.validation.*;
 import org.springframework.stereotype.Component;
 
 /**

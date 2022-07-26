@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4;
+package io.gravitee.rest.api.service.v4.validation;
 
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;

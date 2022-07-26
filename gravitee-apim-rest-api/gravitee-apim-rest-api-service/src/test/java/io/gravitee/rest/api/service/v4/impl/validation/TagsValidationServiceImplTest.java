@@ -20,11 +20,10 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
-import io.gravitee.rest.api.service.v4.TagsValidationService;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
