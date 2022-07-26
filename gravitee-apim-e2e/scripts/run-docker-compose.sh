@@ -37,7 +37,7 @@ if [ -n "$1" ] && [ -n "$2" ]; then
   fi
 
   if [ "$mode" = "only-apim" ]; then
-    DB_PROVIDER=$databaseType docker-compose -f ./docker/common/docker-compose-base.yml -f ./docker/common/docker-compose-$databaseType.yml -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-wiremock.yml -f ./docker/common/docker-compose-uis.yml --project-directory $PWD up
+    DB_PROVIDER=$databaseType docker-compose -f ./docker/common/docker-compose-base.yml -f ./docker/common/docker-compose-$databaseType.yml -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-wiremock.yml -f ./docker/common/docker-compose-uis.yml --project-directory $PWD up $3
   elif [ "$mode" = "api-test" ]; then
     DB_PROVIDER=$databaseType docker-compose -f ./docker/common/docker-compose-base.yml -f ./docker/common/docker-compose-$databaseType.yml -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-wiremock.yml -f ./docker/api-tests/docker-compose-api-tests.yml --project-directory $PWD up --abort-on-container-exit --exit-code-from jest-e2e
   elif [ "$mode" = "ui-test" ]; then
