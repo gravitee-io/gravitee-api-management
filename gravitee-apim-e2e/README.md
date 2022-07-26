@@ -20,7 +20,9 @@ Then, the following NPM scripts are available:
  - `npm run test:api:mongo`: Run the APIM stack with mongo and the jest API tests in docker ([more details](./docker/api-tests/README.md))
  - `npm run test:api:jdbc`: Run the APIM stack with jdbc and the jest API tests in docker ([more details](./docker/api-tests/README.md))
  - `npm run test:api:dev`: Run the jest API tests against a locally running APIM
- - `npm run apim:serve`: Run the APIM stack in docker with last apim release by default in order to run tests locally from your IDE.  
+ - `npm run apim:serve`: Run the APIM stack in docker with last apim release by default in order to run tests locally from your IDE.
+    > We have to adapt wiremock according to the gateway location. With this command the gateway is executed in docker, so we have to change the variable to `WIREMOCK_BASE_URL=http://wiremock:8080` in .env
+ - `npm run apim:serve -- wiremock`: To run only wiremock on docker  
    To run with latest master use this env-var `APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-latest npm run apim:serve`
  - `npm run apim:clean`: Stop and remove the containers & volumes.
  - `npm run bulk`: Run jest bulk scripts to create data to local environment
