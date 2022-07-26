@@ -182,6 +182,7 @@ import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
+import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -262,13 +263,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
     // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
     private static final String URI_PATH_SEPARATOR = "/";
-    private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile(
-        "(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)"
-    );
-    private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
-    private static final String LOGGING_DELIMITER_BASE = "\\s+(\\|\\||\\&\\&)\\s+";
     private static final String ENDPOINTS_DELIMITER = "\n";
-    private static final Duration REGEX_TIMEOUT = Duration.ofSeconds(2);
 
     @Lazy
     @Autowired
@@ -408,6 +403,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private ApiNotificationService apiNotificationService;
 
     @Autowired
+    private LoggingValidationService loggingValidationService;
+
+    @Autowired
     private CorsValidationService corsValidationService;
 
     @Override
@@ -543,7 +541,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check HC inheritance
             checkHealthcheckInheritance(api);
 
-            addLoggingMaxDuration(executionContext, api.getProxy().getLogging());
+            api.getProxy().setLogging(loggingValidationService.validateAndSanitize(executionContext, api.getProxy().getLogging()));
 
             // check if there is regex errors in plaintext fields
             validateRegexfields(api);
@@ -788,71 +786,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (name != null && name.contains(":")) {
             throw new EndpointNameInvalidException(name);
         }
-    }
-
-    private void addLoggingMaxDuration(ExecutionContext executionContext, Logging logging) {
-        if (logging != null && !LoggingMode.NONE.equals(logging.getMode())) {
-            Optional<Long> optionalMaxDuration = parameterService
-                .findAll(executionContext, Key.LOGGING_DEFAULT_MAX_DURATION, Long::valueOf, ParameterReferenceType.ORGANIZATION)
-                .stream()
-                .findFirst();
-            if (optionalMaxDuration.isPresent() && optionalMaxDuration.get() > 0) {
-                long maxEndDate = Instant.now().toEpochMilli() + optionalMaxDuration.get();
-
-                // if no condition set, add one
-                if (logging.getCondition() == null || logging.getCondition().isEmpty()) {
-                    logging.setCondition("{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + "}");
-                } else {
-                    String conditionWithoutBraces = logging.getCondition().trim().replaceAll("\\{", "").replaceAll("\\}", "");
-                    Matcher matcher = LOGGING_MAX_DURATION_PATTERN.matcher(
-                        new TimeBoundedCharSequence(conditionWithoutBraces, REGEX_TIMEOUT)
-                    );
-                    if (matcher.matches()) {
-                        String currentDurationAsStr = matcher.group("timestamp");
-                        String before = formatExpression(matcher, "before");
-                        String after = formatExpression(matcher, "after");
-                        try {
-                            final long currentDuration = Long.parseLong(currentDurationAsStr);
-                            if (currentDuration > maxEndDate || (!before.isEmpty() || !after.isEmpty())) {
-                                logging.setCondition(
-                                    "{" + before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after + "}"
-                                );
-                            }
-                        } catch (NumberFormatException nfe) {
-                            LOGGER.error("Wrong format of the logging condition. Add the default one", nfe);
-                            logging.setCondition("{" + before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after + "}");
-                        }
-                    } else {
-                        logging.setCondition(
-                            "{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + " && (" + conditionWithoutBraces + ")}"
-                        );
-                    }
-                }
-            }
-        }
-    }
-
-    @SuppressWarnings("java:S5852") // do not warn about catastrophic backtracking as the matcher is bounded by a timeout
-    private String formatExpression(final Matcher matcher, final String group) {
-        String matchedExpression = Optional.ofNullable(matcher.group(group)).orElse("");
-        final boolean expressionBlank = "".equals(matchedExpression);
-        final boolean after = "after".equals(group);
-
-        String expression;
-        if (after) {
-            if (matchedExpression.startsWith(" && (") && matchedExpression.endsWith(")")) {
-                matchedExpression = matchedExpression.substring(5, matchedExpression.length() - 1);
-            }
-            expression = expressionBlank ? "" : " && (" + matchedExpression + ")";
-            expression = expression.replaceAll("\\(" + LOGGING_DELIMITER_BASE, "\\(");
-        } else {
-            if (matchedExpression.startsWith("(") && matchedExpression.endsWith(") && ")) {
-                matchedExpression = matchedExpression.substring(1, matchedExpression.length() - 5);
-            }
-            expression = expressionBlank ? "" : "(" + matchedExpression + ") && ";
-            expression = expression.replaceAll(LOGGING_DELIMITER_BASE + "\\)", "\\)");
-        }
-        return expression;
     }
 
     @Override
@@ -1580,7 +1513,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check CORS Allow-origin format
             updateApiEntity.getProxy().setCors(corsValidationService.validateAndSanitize(updateApiEntity.getProxy().getCors()));
 
-            addLoggingMaxDuration(executionContext, updateApiEntity.getProxy().getLogging());
+            updateApiEntity
+                .getProxy()
+                .setLogging(loggingValidationService.validateAndSanitize(executionContext, updateApiEntity.getProxy().getLogging()));
 
             // check if there is regex errors in plaintext fields
             validateRegexfields(updateApiEntity);

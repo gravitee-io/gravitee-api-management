@@ -63,6 +63,7 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
+import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.io.Reader;
 import java.util.*;
 import org.junit.After;
@@ -232,6 +233,9 @@ public class ApiService_UpdateTest {
 
     @Mock
     private CorsValidationService corsValidationService;
+
+    @Mock
+    private LoggingValidationService loggingValidationService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
