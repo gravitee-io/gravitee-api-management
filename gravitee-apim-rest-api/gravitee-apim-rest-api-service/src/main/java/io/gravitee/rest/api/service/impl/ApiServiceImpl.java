@@ -181,6 +181,7 @@ import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -260,8 +261,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
     // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
-    private static final Pattern CORS_REGEX_PATTERN = Pattern.compile("^((\\*)|(null)|(^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?))$");
-    private static final String[] CORS_REGEX_CHARS = new String[] { "{", "[", "(", "*" };
     private static final String URI_PATH_SEPARATOR = "/";
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile(
         "(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)"
@@ -407,6 +406,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private ApiNotificationService apiNotificationService;
+
+    @Autowired
+    private CorsValidationService corsValidationService;
 
     @Override
     public ApiEntity createFromSwagger(
@@ -1576,7 +1578,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             validateHealtcheckSchedule(updateApiEntity);
 
             // check CORS Allow-origin format
-            checkAllowOriginFormat(updateApiEntity);
+            updateApiEntity.getProxy().setCors(corsValidationService.validateAndSanitize(updateApiEntity.getProxy().getCors()));
 
             addLoggingMaxDuration(executionContext, updateApiEntity.getProxy().getLogging());
 
@@ -1822,28 +1824,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         } catch (JsonProcessingException jse) {
             LOGGER.error("Unexpected error while generating API definition", jse);
             throw new TechnicalManagementException("An error occurs while trying to parse API definition " + jse);
-        }
-    }
-
-    private void checkAllowOriginFormat(UpdateApiEntity updateApiEntity) {
-        if (updateApiEntity.getProxy() != null && updateApiEntity.getProxy().getCors() != null) {
-            final Set<String> accessControlAllowOrigin = updateApiEntity.getProxy().getCors().getAccessControlAllowOrigin();
-            if (accessControlAllowOrigin != null && !accessControlAllowOrigin.isEmpty()) {
-                for (String allowOriginItem : accessControlAllowOrigin) {
-                    if (!CORS_REGEX_PATTERN.matcher(allowOriginItem).matches()) {
-                        if (StringUtils.indexOfAny(allowOriginItem, CORS_REGEX_CHARS) >= 0) {
-                            try {
-                                //the origin could be a regex
-                                Pattern.compile(allowOriginItem);
-                            } catch (PatternSyntaxException e) {
-                                throw new AllowOriginNotAllowedException(allowOriginItem);
-                            }
-                        } else {
-                            throw new AllowOriginNotAllowedException(allowOriginItem);
-                        }
-                    }
-                }
-            }
         }
     }
 

@@ -62,6 +62,7 @@ import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import java.io.Reader;
 import java.util.*;
 import org.junit.After;
@@ -228,6 +229,9 @@ public class ApiService_UpdateTest {
 
     @Mock
     private ApiNotificationService apiNotificationService;
+
+    @Mock
+    private CorsValidationService corsValidationService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -450,9 +454,6 @@ public class ApiService_UpdateTest {
         Endpoint endpoint = new Endpoint("endpointName", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
-        Cors cors = new Cors();
-        cors.setEnabled(false);
-        proxy.setCors(cors);
         updateApiEntity.setProxy(proxy);
         updateApiEntity.setLifecycleState(CREATED);
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
@@ -940,45 +941,6 @@ public class ApiService_UpdateTest {
         assertUpdate(ApiLifecycleState.CREATED, UNPUBLISHED, true);
         assertUpdate(ApiLifecycleState.CREATED, DEPRECATED, true);
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), any(ApiEntity.class));
-    }
-
-    @Test(expected = AllowOriginNotAllowedException.class)
-    public void shouldHaveAllowOriginNotAllowed() throws TechnicalException {
-        prepareUpdate();
-        updateApiEntity.getProxy().getCors().setEnabled(true);
-        updateApiEntity
-            .getProxy()
-            .getCors()
-            .setAccessControlAllowOrigin(
-                Sets.newSet(
-                    "http://example.com",
-                    "localhost",
-                    "https://10.140.238.25:8080",
-                    "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}",
-                    ".*.company.com",
-                    "/test^"
-                )
-            );
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
-    }
-
-    @Test
-    public void shouldHaveAllowOriginWildcardAllowed() throws TechnicalException {
-        prepareUpdate();
-        updateApiEntity.getProxy().getCors().setEnabled(true);
-        updateApiEntity.getProxy().getCors().setAccessControlAllowOrigin(Collections.singleton("*"));
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
-    }
-
-    @Test
-    public void shouldHaveAllowOriginNullAllowed() throws TechnicalException {
-        prepareUpdate();
-        updateApiEntity.getProxy().getCors().setEnabled(true);
-        updateApiEntity.getProxy().getCors().setAccessControlAllowOrigin(Collections.singleton("null"));
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test(expected = DefinitionVersionException.class)
