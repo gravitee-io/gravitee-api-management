@@ -644,6 +644,12 @@
     <profiles>
         <profile>
             <id>distribution-dev</id>
+            <activation>
+                <property>
+                    <name>distribution-dev</name>
+                    <value>true</value>
+                </property>
+            </activation>
             <properties>
                 <!-- Versions of the plugins for the full distribution on dev environment-->
                 <!-- Management API & Gateway -->
@@ -793,6 +799,12 @@
         </profile>
         <profile>
             <id>gio-release</id>
+            <activation>
+                <property>
+                    <name>gio-release</name>
+                    <value>true</value>
+                </property>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -810,6 +822,12 @@
         </profile>
         <profile>
             <id>gravitee-release</id>
+            <activation>
+                <property>
+                    <name>gravitee-release</name>
+                    <value>true</value>
+                </property>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
