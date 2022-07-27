@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.rest.api.service.v4.validation;
 
-import io.gravitee.definition.model.plugins.resources.Resource;
-import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
+import io.gravitee.definition.model.v4.resource.Resource;
+import java.util.List;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ResourceService extends PluginService<PlatformPluginEntity> {
-    void validateResourceConfiguration(Resource resource);
-    void validateResourceConfiguration(io.gravitee.definition.model.v4.resource.Resource resource);
+public interface ResourcesValidationService {
+    List<Resource> validateAndSanitize(List<Resource> resources);
 }
