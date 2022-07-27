@@ -16,9 +16,7 @@
 package io.gravitee.definition.jackson.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,6 +31,7 @@ import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.FlowStage;
 import io.gravitee.definition.model.flow.Step;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.Assert;
@@ -655,5 +654,14 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-executionmode-jupiter.json", Api.class);
 
         assertEquals(ExecutionMode.JUPITER, api.getExecutionMode());
+    }
+
+    @Test
+    public void shouldHaveADefinitionContext() throws IOException {
+        Api api = load("/io/gravitee/definition/jackson/api-with-definition-context.json", Api.class);
+        DefinitionContext definitionContext = api.getDefinitionContext();
+        assertNotNull(definitionContext);
+        assertEquals(DefinitionContext.ORIGIN_KUBERNETES, definitionContext.getOrigin());
+        assertEquals(DefinitionContext.MODE_FULLY_MANAGED, definitionContext.getMode());
     }
 }
