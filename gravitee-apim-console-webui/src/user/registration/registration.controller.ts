@@ -45,14 +45,7 @@ class RegistrationController {
     const notificationService = this.NotificationService;
 
     this.ReCaptchaService.execute('register')
-      .then(() => {
-        const userToRegister = {
-          ...this.user,
-          firstname: escape(this.user.firstname),
-          lastname: escape(this.user.lastname),
-        };
-        return this.UserService.register(userToRegister);
-      })
+      .then(() => this.UserService.register(this.user))
       .then(
         () => {
           scope.formRegistration.$setPristine();
