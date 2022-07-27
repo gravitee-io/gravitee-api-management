@@ -64,10 +64,10 @@ import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedPlanSecurityTypeException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
-import io.gravitee.rest.api.service.v4.processor.PlanSynchronizationProcessor;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -122,7 +122,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     private ParameterService parameterService;
 
     @Autowired
-    private PlanSynchronizationProcessor planSynchronizationProcessor;
+    private SynchronizationService synchronizationService;
 
     @Lazy
     @Autowired
@@ -183,7 +183,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                         filtered = query.getName().equals(p.getName());
                     }
                     if (filtered && query.getSecurityType() != null) {
-                        PlanSecurityType planSecurityType = PlanSecurityType.fromLabel(p.getSecurity().getType());
+                        PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getSecurity().getType());
                         filtered = planSecurityType.equals(query.getSecurityType());
                     }
                     return filtered;
@@ -205,9 +205,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 throw new ApiDeprecatedException(api.getName());
             }
 
-            String id = newPlan.getApiId() != null && UUID.fromString(newPlan.getApiId()) != null
-                ? newPlan.getApiId()
-                : UuidString.generateRandom();
+            String id = newPlan.getId() != null && UUID.fromString(newPlan.getId()) != null ? newPlan.getId() : UuidString.generateRandom();
             newPlan.setId(id);
 
             Plan plan = planMapper.toRepository(newPlan);
@@ -218,7 +216,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             auditService.createApiAuditLog(
                 executionContext,
                 newPlan.getApiId(),
-                Map.of(Audit.AuditProperties.PLAN, plan.getId()),
+                Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()),
                 PLAN_CREATED,
                 plan.getCreatedAt(),
                 null,
@@ -287,7 +285,11 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             newPlan.setCrossId(updatePlan.getCrossId() != null ? updatePlan.getCrossId() : oldPlan.getCrossId());
             newPlan.setDescription(updatePlan.getDescription());
             newPlan.setUpdatedAt(new Date());
-            newPlan.setSecurityDefinition(updatePlan.getSecurity().getConfig());
+            if (updatePlan.getSecurity() != null) {
+                newPlan.setSecurityDefinition(updatePlan.getSecurity().getConfiguration());
+            } else {
+                newPlan.setSecurityDefinition(null);
+            }
             newPlan.setCommentRequired(updatePlan.isCommentRequired());
             newPlan.setCommentMessage(updatePlan.getCommentMessage());
             newPlan.setTags(updatePlan.getTags());
@@ -320,7 +322,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 flowService.save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
                 PlanEntity newPlanEntity = mapToEntity(newPlan);
 
-                if (!planSynchronizationProcessor.processCheckSynchronization(oldPlanEntity, newPlanEntity)) {
+                if (!synchronizationService.checkSynchronization(PlanEntity.class, oldPlanEntity, newPlanEntity)) {
                     newPlan.setNeedRedeployAt(newPlan.getUpdatedAt());
                 }
                 newPlan = planRepository.update(newPlan);
@@ -632,7 +634,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     private void assertPlanSecurityIsAllowed(final ExecutionContext executionContext, String securityType) {
         Key securityKey;
-        PlanSecurityType planSecurityType = PlanSecurityType.valueOf(securityType);
+        PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(securityType);
         switch (planSecurityType) {
             case API_KEY:
                 securityKey = Key.PLAN_SECURITY_APIKEY_ENABLED;

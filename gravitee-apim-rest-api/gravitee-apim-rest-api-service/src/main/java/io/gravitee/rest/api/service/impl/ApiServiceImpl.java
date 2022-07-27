@@ -15,31 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
-import static io.gravitee.repository.management.model.Api.AuditEvent.API_DELETED;
-import static io.gravitee.repository.management.model.Api.AuditEvent.API_ROLLBACKED;
-import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
-import static io.gravitee.repository.management.model.Visibility.PUBLIC;
-import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ACCEPTED;
-import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ASKED;
-import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_REJECTED;
-import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
-import static io.gravitee.rest.api.model.PageType.SWAGGER;
-import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
-import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
-import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
-import static java.util.Comparator.comparing;
-import static java.util.Optional.of;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -48,7 +23,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.util.DataEncryptor;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.Logging;
+import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
@@ -70,7 +53,38 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiMetadataEntity;
+import io.gravitee.rest.api.model.ApiModelEntity;
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.EntrypointEntity;
+import io.gravitee.rest.api.model.EventEntity;
+import io.gravitee.rest.api.model.EventQuery;
+import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.MetadataFormat;
+import io.gravitee.rest.api.model.NewApiMetadataEntity;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.PolicyEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.PropertiesEntity;
+import io.gravitee.rest.api.model.PropertyEntity;
+import io.gravitee.rest.api.model.ProxyModelEntity;
+import io.gravitee.rest.api.model.ReviewEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.TagReferenceType;
+import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.WorkflowReferenceType;
+import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
@@ -96,14 +110,63 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.IndexableApi;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AlertService;
+import io.gravitee.rest.api.service.ApiDuplicatorService;
+import io.gravitee.rest.api.service.ApiHeaderService;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.ConnectorService;
+import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.EntrypointService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.GenericNotificationConfigService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.JupiterModeService;
+import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.ResourceService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.VirtualHostService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.TimeBoundedCharSequence;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.AllowOriginNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.ApiMetadataNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
+import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
+import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
+import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
+import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
+import io.gravitee.rest.api.service.exceptions.GroupsNotFoundException;
+import io.gravitee.rest.api.service.exceptions.HealthcheckInheritanceException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
+import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
@@ -112,30 +175,12 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
-import io.gravitee.rest.api.service.processor.ApiSynchronizationProcessor;
+import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
-import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.security.GeneralSecurityException;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -146,6 +191,61 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Component;
+
+import javax.xml.bind.DatatypeConverter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.GeneralSecurityException;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_DELETED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_ROLLBACKED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
+import static io.gravitee.repository.management.model.Visibility.PUBLIC;
+import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ACCEPTED;
+import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ASKED;
+import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_REJECTED;
+import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
+import static io.gravitee.rest.api.model.PageType.SWAGGER;
+import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
+import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
+import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static java.util.Comparator.comparing;
+import static java.util.Optional.of;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -201,7 +301,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private PlanService planService;
 
     @Autowired
-    private ApiSynchronizationProcessor apiSynchronizationProcessor;
+    private SynchronizationService synchronizationService;
 
     @Autowired
     private ApiMetadataService apiMetadataService;
@@ -489,10 +589,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Add Default groups
             Set<String> defaultGroups = groupService
-                .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
-                .stream()
-                .map(GroupEntity::getId)
-                .collect(toSet());
+                    .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
+                    .stream()
+                    .map(GroupEntity::getId)
+                    .collect(toSet());
             if (repoApi.getGroups() == null) {
                 repoApi.setGroups(defaultGroups.isEmpty() ? null : defaultGroups);
             } else {
@@ -2070,7 +2170,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     removeDescriptionFromPolicies(api);
                     removeDescriptionFromPolicies(deployedApi);
 
-                    sync = apiSynchronizationProcessor.processCheckSynchronization(deployedApi, api);
+                    sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApi, api);
 
                     // 2_ If API definition is synchronized, check if there is any modification for API's plans
                     // but only for published or closed plan

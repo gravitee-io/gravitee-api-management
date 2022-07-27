@@ -31,6 +31,7 @@ import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Date;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +43,9 @@ import org.springframework.stereotype.Component;
 public class FlowMapper {
 
     public Flow toDefinition(io.gravitee.repository.management.model.flow.Flow repositoryFlow) {
+        if (repositoryFlow == null) {
+            throw new IllegalArgumentException("Flow to map cannot be null");
+        }
         Flow definitionFlow = new Flow();
         definitionFlow.setName(repositoryFlow.getName());
         definitionFlow.setEnabled(repositoryFlow.isEnabled());
@@ -60,6 +64,9 @@ public class FlowMapper {
         final String referenceId,
         final int order
     ) {
+        if (definitionFlow == null) {
+            throw new IllegalArgumentException("Flow to map cannot be null");
+        }
         io.gravitee.repository.management.model.flow.Flow repositoryFlow = new io.gravitee.repository.management.model.flow.Flow();
         repositoryFlow.setId(UuidString.generateRandom());
         repositoryFlow.setName(definitionFlow.getName());
@@ -70,12 +77,22 @@ public class FlowMapper {
         repositoryFlow.setReferenceType(referenceType);
         repositoryFlow.setReferenceId(referenceId);
 
-        repositoryFlow.setRequest(definitionFlow.getRequest().stream().map(this::toRepository).collect(Collectors.toList()));
-        repositoryFlow.setResponse(definitionFlow.getResponse().stream().map(this::toRepository).collect(Collectors.toList()));
-        repositoryFlow.setPublish(definitionFlow.getPublish().stream().map(this::toRepository).collect(Collectors.toList()));
-        repositoryFlow.setSubscribe(definitionFlow.getSubscribe().stream().map(this::toRepository).collect(Collectors.toList()));
-        repositoryFlow.setSelectors(definitionFlow.getSelectors().stream().map(this::toRepository).collect(Collectors.toList()));
-        definitionFlow.setTags(repositoryFlow.getTags());
+        if (definitionFlow.getRequest() != null) {
+            repositoryFlow.setRequest(definitionFlow.getRequest().stream().map(this::toRepository).collect(Collectors.toList()));
+        }
+        if (definitionFlow.getResponse() != null) {
+            repositoryFlow.setResponse(definitionFlow.getResponse().stream().map(this::toRepository).collect(Collectors.toList()));
+        }
+        if (definitionFlow.getPublish() != null) {
+            repositoryFlow.setPublish(definitionFlow.getPublish().stream().map(this::toRepository).collect(Collectors.toList()));
+        }
+        if (definitionFlow.getSubscribe() != null) {
+            repositoryFlow.setSubscribe(definitionFlow.getSubscribe().stream().map(this::toRepository).collect(Collectors.toList()));
+        }
+        if (definitionFlow.getSelectors() != null) {
+            repositoryFlow.setSelectors(definitionFlow.getSelectors().stream().map(this::toRepository).collect(Collectors.toList()));
+        }
+        repositoryFlow.setTags(definitionFlow.getTags() != null ? definitionFlow.getTags() : Set.of());
 
         return repositoryFlow;
     }

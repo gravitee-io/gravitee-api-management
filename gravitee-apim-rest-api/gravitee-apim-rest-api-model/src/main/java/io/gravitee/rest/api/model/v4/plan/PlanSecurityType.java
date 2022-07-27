@@ -63,7 +63,10 @@ public enum PlanSecurityType {
     @JsonValue
     private final String label;
 
-    public static PlanSecurityType fromLabel(final String label) {
-        return maps.get(label);
+    public static PlanSecurityType valueOfLabel(final String label) {
+        if (label != null) {
+            return maps.get(label);
+        }
+        return null;
     }
 }

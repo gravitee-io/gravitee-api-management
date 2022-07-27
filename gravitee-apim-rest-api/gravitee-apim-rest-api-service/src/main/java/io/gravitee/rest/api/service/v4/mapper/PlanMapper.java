@@ -45,7 +45,7 @@ public class PlanMapper {
         entity.setCrossId(plan.getCrossId());
         entity.setName(plan.getName());
         entity.setDescription(plan.getDescription());
-        entity.setApi(plan.getApi());
+        entity.setApiId(plan.getApi());
         entity.setCreatedAt(plan.getCreatedAt());
         entity.setUpdatedAt(plan.getUpdatedAt());
         entity.setClosedAt(plan.getClosedAt());
@@ -69,7 +69,8 @@ public class PlanMapper {
         } else {
             security.setType(PlanSecurityType.API_KEY.getLabel());
         }
-        security.setConfig(plan.getSecurityDefinition());
+        security.setConfiguration(plan.getSecurityDefinition());
+        entity.setSecurity(security);
 
         entity.setValidation(PlanValidationType.valueOf(plan.getValidation().name()));
         entity.setCharacteristics(plan.getCharacteristics());
@@ -92,7 +93,7 @@ public class PlanMapper {
         plan.setUpdatedAt(plan.getCreatedAt());
         plan.setNeedRedeployAt(plan.getCreatedAt());
         plan.setType(Plan.PlanType.valueOf(newPlanEntity.getType().name()));
-        PlanSecurityType planSecurityType = PlanSecurityType.fromLabel(newPlanEntity.getSecurity().getType());
+        PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(newPlanEntity.getSecurity().getType());
         plan.setSecurity(Plan.PlanSecurityType.valueOf(planSecurityType.name()));
         plan.setStatus(Plan.Status.valueOf(newPlanEntity.getStatus().name()));
         plan.setExcludedGroups(newPlanEntity.getExcludedGroups());
@@ -147,7 +148,7 @@ public class PlanMapper {
         NewPlanEntity newPlanEntity = new NewPlanEntity();
         newPlanEntity.setId(planEntity.getId());
         newPlanEntity.setCrossId(resetCrossId ? null : planEntity.getCrossId());
-        newPlanEntity.setApiId(planEntity.getApi());
+        newPlanEntity.setApiId(planEntity.getApiId());
         newPlanEntity.setName(planEntity.getName());
         newPlanEntity.setDescription(planEntity.getDescription());
         newPlanEntity.setOrder(planEntity.getOrder());

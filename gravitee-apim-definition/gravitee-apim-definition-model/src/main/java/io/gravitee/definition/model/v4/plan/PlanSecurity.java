@@ -40,5 +40,5 @@ public class PlanSecurity {
 
     @Schema(implementation = Object.class)
     @JsonRawValue
-    private String config;
+    private String configuration;
 }

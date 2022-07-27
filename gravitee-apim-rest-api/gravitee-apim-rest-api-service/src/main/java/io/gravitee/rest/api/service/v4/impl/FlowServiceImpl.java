@@ -31,12 +31,12 @@ import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.mapper.FlowMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -56,15 +55,15 @@ import org.springframework.stereotype.Component;
 @Component("FlowServiceImplV4")
 public class FlowServiceImpl extends TransactionalService implements FlowService {
 
-    @Lazy
-    @Autowired
-    private FlowRepository flowRepository;
+    private final FlowRepository flowRepository;
+    private final TagService tagService;
+    private final FlowMapper flowMapper;
 
-    @Autowired
-    private TagService tagService;
-
-    @Autowired
-    private FlowMapper flowMapper;
+    public FlowServiceImpl(@Lazy final FlowRepository flowRepository, final TagService tagService, final FlowMapper flowMapper) {
+        this.flowRepository = flowRepository;
+        this.tagService = tagService;
+        this.flowMapper = flowMapper;
+    }
 
     private String getFileContent(final String path) {
         try (InputStream resourceAsStream = this.getClass().getResourceAsStream(path)) {
@@ -144,10 +143,14 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
             if (flows == null) {
                 return List.of();
             } else {
+                List<Flow> createdFlows = new ArrayList<>();
                 for (int order = 0; order < flows.size(); ++order) {
-                    flowRepository.create(flowMapper.toRepository(flows.get(order), flowReferenceType, referenceId, order));
+                    io.gravitee.repository.management.model.flow.Flow createdFlow = flowRepository.create(
+                        flowMapper.toRepository(flows.get(order), flowReferenceType, referenceId, order)
+                    );
+                    createdFlows.add(flowMapper.toDefinition(createdFlow));
                 }
-                return flows;
+                return createdFlows;
             }
         } catch (TechnicalException ex) {
             final String error = "An error occurs while save flows";

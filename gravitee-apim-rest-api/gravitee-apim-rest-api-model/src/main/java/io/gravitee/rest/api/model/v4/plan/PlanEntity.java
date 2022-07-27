@@ -80,7 +80,7 @@ public class PlanEntity {
     private PlanStatus status;
 
     @DeploymentRequired
-    private String api;
+    private String apiId;
 
     private int order;
     private List<String> characteristics;
