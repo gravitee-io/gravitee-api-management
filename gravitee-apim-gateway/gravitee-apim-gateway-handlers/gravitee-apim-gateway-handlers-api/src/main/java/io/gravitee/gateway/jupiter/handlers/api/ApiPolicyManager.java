@@ -15,13 +15,13 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api;
 
-import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.policy.AbstractPolicyManager;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
+import io.gravitee.gateway.policy.PolicyDefinition;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -49,7 +49,7 @@ public class ApiPolicyManager extends AbstractPolicyManager {
     }
 
     @Override
-    protected Set<Policy> dependencies() {
-        return api.dependencies(Policy.class);
+    protected Set<PolicyDefinition> dependencies() {
+        return api.dependencies(PolicyDefinition.class);
     }
 }

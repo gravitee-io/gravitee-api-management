@@ -149,7 +149,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                 );
 
                 customComponentProvider.add(ResourceManager.class, resourceLifecycleManager);
-                customComponentProvider.add(io.gravitee.definition.model.Api.class, api);
+                customComponentProvider.add(io.gravitee.definition.model.Api.class, api.getDefinition());
 
                 final CompositeComponentProvider apiComponentProvider = new CompositeComponentProvider(
                     customComponentProvider,
@@ -322,8 +322,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     private boolean isV3ExecutionMode(Api api) {
         return (
             !configuration.getProperty(API_JUPITER_MODE_ENABLED_PROPERTY, Boolean.class, false) ||
-            api.getExecutionMode() == null ||
-            api.getExecutionMode() == ExecutionMode.V3
+            api.getDefinition().getExecutionMode() == null ||
+            api.getDefinition().getExecutionMode() == ExecutionMode.V3
         );
     }
 
@@ -474,7 +474,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
     }
 
     public InvokerFactory invokerFactory(Api api, Vertx vertx, EndpointResolver endpointResolver) {
-        return new InvokerFactory(api, vertx, endpointResolver);
+        return new InvokerFactory(api.getDefinition(), vertx, endpointResolver);
     }
 
     public DefaultReferenceRegister referenceRegister() {
@@ -491,7 +491,7 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         ObjectMapper mapper
     ) {
         return new DefaultGroupLifecycleManager(
-            api,
+            api.getDefinition(),
             referenceRegister,
             endpointFactory,
             connectorRegistry,

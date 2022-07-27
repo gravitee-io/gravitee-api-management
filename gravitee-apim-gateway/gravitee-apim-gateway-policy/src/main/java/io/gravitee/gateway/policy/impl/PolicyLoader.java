@@ -15,9 +15,9 @@
  */
 package io.gravitee.gateway.policy.impl;
 
-import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.policy.PolicyDefinition;
 import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
@@ -62,7 +62,7 @@ public class PolicyLoader {
         this.componentProvider = componentProvider;
     }
 
-    public Map<String, PolicyManifest> load(final Set<Policy> dependencies) {
+    public Map<String, PolicyManifest> load(final Set<PolicyDefinition> dependencies) {
         return dependencies
             .stream()
             .map(

@@ -1,4 +1,4 @@
-package io.gravitee.gateway.jupiter.reactor;
+package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
@@ -6,7 +6,6 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

@@ -22,6 +22,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
+import io.gravitee.gateway.policy.PolicyDefinition;
 import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.impl.PolicyLoader;
@@ -93,5 +94,5 @@ public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<P
         return null;
     }
 
-    protected abstract Set<io.gravitee.definition.model.Policy> dependencies();
+    protected abstract Set<PolicyDefinition> dependencies();
 }

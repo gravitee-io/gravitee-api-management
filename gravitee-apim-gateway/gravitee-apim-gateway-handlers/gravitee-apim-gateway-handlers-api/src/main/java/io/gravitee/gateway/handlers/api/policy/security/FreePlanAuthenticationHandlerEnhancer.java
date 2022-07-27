@@ -37,7 +37,7 @@ public class FreePlanAuthenticationHandlerEnhancer extends PlanBasedAuthenticati
 
     @Override
     public List<AuthenticationHandler> filter(List<AuthenticationHandler> authenticationHandlers) {
-        if (!getApi().getPlans().isEmpty()) {
+        if (!getApi().getDefinition().getPlans().isEmpty()) {
             // plan are not required but there are some definition.
             // plans have highest priority
             return super.filter(authenticationHandlers);

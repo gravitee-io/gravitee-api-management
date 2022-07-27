@@ -30,7 +30,6 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
-import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
@@ -49,7 +48,8 @@ import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.hook.logging.LoggingHook;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.jupiter.handlers.api.security.SecurityChain;
+import io.gravitee.gateway.jupiter.handlers.api.security.AbstractSecurityChain;
+import io.gravitee.gateway.jupiter.handlers.api.security.DefaultSecurityChain;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.Reactable;
@@ -97,7 +97,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final Node node;
 
     private final boolean tracingEnabled;
-    protected SecurityChain securityChain;
+    protected AbstractSecurityChain abstractSecurityChain;
     private final AtomicInteger pendingRequests = new AtomicInteger(0);
 
     private final long pendingRequestsTimeout;
@@ -191,7 +191,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         return platformFlowChain
             .execute(ctx, REQUEST)
             // Execute security chain.
-            .andThen(securityChain.execute(ctx))
+            .andThen(abstractSecurityChain.execute(ctx))
             // Execute pre api processor chain
             .andThen(executeProcessorsChain(ctx, apiPreProcessorChain, REQUEST))
             .andThen(executeFlowChain(ctx, apiPlanFlowChain, REQUEST))
@@ -356,9 +356,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         long endTime = System.currentTimeMillis(); // Get the end Time
 
         // Create securityChain once policy manager has been started.
-        this.securityChain = new SecurityChain(api, policyManager);
+        this.abstractSecurityChain = new DefaultSecurityChain(api, policyManager);
         if (tracingEnabled) {
-            securityChain.addHooks(new TracingHook("security-plan"));
+            abstractSecurityChain.addHooks(new TracingHook("security-plan"));
         }
 
         log.debug("API reactor started in {} ms", (endTime - startTime));
@@ -396,7 +396,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     @Override
     public String toString() {
-        return "SyncApiReactor API id[" + api.getId() + "] name[" + api.getName() + "] version[" + api.getVersion() + ']';
+        return "SyncApiReactor API id[" + api.getId() + "] name[" + api.getName() + "] version[" + api.getApiVersion() + ']';
     }
 
     @Override
@@ -415,6 +415,6 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     @Override
     public void handle(io.gravitee.gateway.api.ExecutionContext ctx, Handler<io.gravitee.gateway.api.ExecutionContext> endHandler) {
-        throw new RuntimeException(new IllegalAccessException("Handle method can be called on SyncApiReactor"));
+        throw new RuntimeException(new IllegalAccessException("Handle method can't be called on SyncApiReactor"));
     }
 }

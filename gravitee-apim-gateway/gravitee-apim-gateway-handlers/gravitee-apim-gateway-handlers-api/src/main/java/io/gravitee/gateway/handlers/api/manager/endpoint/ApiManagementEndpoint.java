@@ -22,7 +22,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.node.management.http.endpoint.ManagementEndpoint;
 import io.vertx.core.Handler;
@@ -60,7 +60,7 @@ public class ApiManagementEndpoint implements Handler<RoutingContext>, Managemen
 
         try {
             String sApi = ctx.request().getParam("apiId");
-            Api api = apiManager.get(sApi);
+            ReactableApi api = apiManager.get(sApi);
 
             if (api == null) {
                 response.setStatusCode(HttpStatusCode.NOT_FOUND_404);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.reactor;
+package io.gravitee.gateway.reactor.handler;
 
 import static org.mockito.Mockito.*;
 
@@ -21,7 +21,6 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

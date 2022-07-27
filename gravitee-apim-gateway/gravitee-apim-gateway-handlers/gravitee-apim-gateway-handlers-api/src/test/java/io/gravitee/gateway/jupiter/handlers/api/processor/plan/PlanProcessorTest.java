@@ -16,17 +16,14 @@
 package io.gravitee.gateway.jupiter.handlers.api.processor.plan;
 
 import static io.gravitee.gateway.api.ExecutionContext.*;
-import static io.gravitee.gateway.jupiter.handlers.api.security.SecurityChain.SKIP_SECURITY_CHAIN;
+import static io.gravitee.gateway.jupiter.handlers.api.security.AbstractSecurityChain.SKIP_SECURITY_CHAIN;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.handlers.api.processor.AbstractProcessorTest;
-import io.gravitee.gateway.jupiter.handlers.api.security.SecurityChain;
 import io.reactivex.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)

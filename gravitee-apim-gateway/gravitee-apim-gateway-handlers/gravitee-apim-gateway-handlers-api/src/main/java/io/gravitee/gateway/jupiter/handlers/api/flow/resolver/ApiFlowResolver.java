@@ -45,10 +45,10 @@ class ApiFlowResolver extends AbstractFlowResolver {
     }
 
     private Flowable<Flow> provideFlows(Api api) {
-        if (api.getFlows() == null || api.getFlows().isEmpty()) {
+        if (api.getDefinition().getFlows() == null || api.getDefinition().getFlows().isEmpty()) {
             return Flowable.empty();
         }
 
-        return Flowable.fromIterable(api.getFlows().stream().filter(Flow::isEnabled).collect(Collectors.toList()));
+        return Flowable.fromIterable(api.getDefinition().getFlows().stream().filter(Flow::isEnabled).collect(Collectors.toList()));
     }
 }

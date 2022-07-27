@@ -50,7 +50,7 @@ public class PlanPolicyResolver extends RuleBasedPolicyResolver {
 
     @Override
     public List<PolicyMetadata> resolve(StreamType streamType, ExecutionContext context) {
-        Plan apiPlan = api.getPlan(context.request().metrics().getPlan());
+        Plan apiPlan = api.getDefinition().getPlan(context.request().metrics().getPlan());
 
         // No plan is matching the plan associated to the secured request
         // The call is probably not relative to the same API.

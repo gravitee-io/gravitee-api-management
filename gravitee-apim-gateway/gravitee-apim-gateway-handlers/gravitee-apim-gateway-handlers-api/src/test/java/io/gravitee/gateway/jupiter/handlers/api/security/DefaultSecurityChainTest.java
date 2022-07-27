@@ -27,7 +27,6 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
-import io.gravitee.gateway.jupiter.handlers.api.security.plan.SecurityPlanFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.reactivex.Completable;
 import io.reactivex.Single;
@@ -44,7 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class SecurityChainTest {
+class DefaultSecurityChainTest {
 
     protected static final String MOCK_POLICY = "mock-policy";
     protected static final String MOCK_POLICY_CONFIG = "mock-policy-configuration";
@@ -70,13 +69,13 @@ class SecurityChainTest {
         plans.add(plan1);
         plans.add(plan2);
 
-        when(api.getPlans()).thenReturn(plans);
+        when(api.getDefinition().getPlans()).thenReturn(plans);
         when(policy1.order()).thenReturn(0);
         when(policy2.order()).thenReturn(1);
 
         when(policy2.onRequest(ctx)).thenReturn(Completable.complete());
 
-        final SecurityChain cut = new SecurityChain(api, policyManager);
+        final DefaultSecurityChain cut = new DefaultSecurityChain(api, policyManager);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertResult();
@@ -93,13 +92,13 @@ class SecurityChainTest {
         plans.add(plan1);
         plans.add(plan2);
 
-        when(api.getPlans()).thenReturn(plans);
+        when(api.getDefinition().getPlans()).thenReturn(plans);
         when(policy1.order()).thenReturn(0);
         when(policy2.order()).thenReturn(1);
 
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
 
-        final SecurityChain cut = new SecurityChain(api, policyManager);
+        final DefaultSecurityChain cut = new DefaultSecurityChain(api, policyManager);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertResult();
@@ -118,13 +117,13 @@ class SecurityChainTest {
         plans.add(plan1);
         plans.add(plan2);
 
-        when(api.getPlans()).thenReturn(plans);
+        when(api.getDefinition().getPlans()).thenReturn(plans);
         when(policy1.order()).thenReturn(0);
         when(policy2.order()).thenReturn(1);
 
-        when(ctx.getAttribute(SecurityChain.SKIP_SECURITY_CHAIN)).thenReturn(true);
+        when(ctx.getAttribute(AbstractSecurityChain.SKIP_SECURITY_CHAIN)).thenReturn(true);
 
-        final SecurityChain cut = new SecurityChain(api, policyManager);
+        final DefaultSecurityChain cut = new DefaultSecurityChain(api, policyManager);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertResult();
@@ -135,10 +134,10 @@ class SecurityChainTest {
 
     @Test
     void shouldInterrupt401WhenNoPlan() {
-        when(api.getPlans()).thenReturn(new ArrayList<>());
+        when(api.getDefinition().getPlans()).thenReturn(new ArrayList<>());
         when(ctx.interruptWith(any())).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
-        final SecurityChain cut = new SecurityChain(api, policyManager);
+        final DefaultSecurityChain cut = new DefaultSecurityChain(api, policyManager);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertError(Throwable.class);
@@ -156,13 +155,13 @@ class SecurityChainTest {
         plans.add(plan1);
         plans.add(plan2);
 
-        when(api.getPlans()).thenReturn(plans);
+        when(api.getDefinition().getPlans()).thenReturn(plans);
         when(policy1.order()).thenReturn(0);
         when(policy2.order()).thenReturn(1);
 
         when(ctx.interruptWith(any())).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
-        final SecurityChain cut = new SecurityChain(api, policyManager);
+        final DefaultSecurityChain cut = new DefaultSecurityChain(api, policyManager);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertError(Throwable.class);
@@ -175,8 +174,8 @@ class SecurityChainTest {
                 argThat(
                     failure -> {
                         assertEquals(HttpStatusCode.UNAUTHORIZED_401, failure.statusCode());
-                        Assertions.assertEquals(SecurityChain.UNAUTHORIZED_MESSAGE, failure.message());
-                        Assertions.assertEquals(SecurityChain.PLAN_UNRESOLVABLE, failure.key());
+                        Assertions.assertEquals(AbstractSecurityChain.UNAUTHORIZED_MESSAGE, failure.message());
+                        Assertions.assertEquals(AbstractSecurityChain.PLAN_UNRESOLVABLE, failure.key());
                         assertNull(failure.parameters());
                         assertNull(failure.contentType());
 

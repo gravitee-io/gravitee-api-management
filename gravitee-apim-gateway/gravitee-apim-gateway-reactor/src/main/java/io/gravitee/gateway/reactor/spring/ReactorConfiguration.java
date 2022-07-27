@@ -26,7 +26,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.jupiter.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
-import io.gravitee.gateway.jupiter.reactor.ReactorEventListener;
+import io.gravitee.gateway.reactor.handler.ReactorEventListener;
 import io.gravitee.gateway.jupiter.reactor.handler.DefaultEntrypointResolver;
 import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;

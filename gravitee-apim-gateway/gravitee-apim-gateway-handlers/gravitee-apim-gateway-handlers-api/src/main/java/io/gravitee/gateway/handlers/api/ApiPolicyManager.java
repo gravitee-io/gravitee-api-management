@@ -15,10 +15,10 @@
  */
 package io.gravitee.gateway.handlers.api;
 
-import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
+import io.gravitee.gateway.policy.PolicyDefinition;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.impl.DefaultPolicyManager;
 import io.gravitee.gateway.reactor.Reactable;
@@ -61,7 +61,7 @@ public class ApiPolicyManager extends DefaultPolicyManager {
     }
 
     @Override
-    protected Set<Policy> dependencies() {
-        return reactable.dependencies(Policy.class);
+    protected Set<PolicyDefinition> dependencies() {
+        return reactable.dependencies(PolicyDefinition.class);
     }
 }

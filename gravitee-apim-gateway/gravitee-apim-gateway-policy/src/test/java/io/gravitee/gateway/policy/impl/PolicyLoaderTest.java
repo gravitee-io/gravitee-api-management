@@ -20,9 +20,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
+import io.gravitee.gateway.policy.PolicyDefinition;
 import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.dummy.*;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -70,12 +70,8 @@ class PolicyLoaderTest {
 
     @Test
     public void shouldReturnLoadedPolicies() {
-        Policy dummyPolicy = new Policy();
-        dummyPolicy.setName("dummy-policy");
-        dummyPolicy.setConfiguration("{}");
-        Policy dummyReactivePolicy = new Policy();
-        dummyReactivePolicy.setName("dummy-reactive");
-        dummyReactivePolicy.setConfiguration("{}");
+        PolicyDefinition dummyPolicy = new PolicyDefinition("dummy-policy", "{}");
+        PolicyDefinition dummyReactivePolicy = new PolicyDefinition("dummy-reactive", "{}");
         Map<String, PolicyManifest> load = policyLoader.load(Set.of(dummyPolicy, dummyReactivePolicy));
         assertThat(load.size()).isEqualTo(2);
         assertThat(load.containsKey("dummy-policy")).isTrue();

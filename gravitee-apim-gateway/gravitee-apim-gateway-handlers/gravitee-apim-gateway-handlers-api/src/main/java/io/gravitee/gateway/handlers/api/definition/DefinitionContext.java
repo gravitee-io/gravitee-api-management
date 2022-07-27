@@ -37,7 +37,7 @@ public class DefinitionContext implements Serializable {
         this.origin = origin;
     }
 
-    public static boolean planRequired(Api api) {
+    public static boolean planRequired(ReactableApi<?> api) {
         return (
             api.getDefinitionContext() == null ||
             Strings.isNullOrEmpty(api.getDefinitionContext().origin) ||

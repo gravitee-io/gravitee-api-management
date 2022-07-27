@@ -18,11 +18,12 @@ package io.gravitee.gateway.handlers.api.definition;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.Plan;
-import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import java.util.List;
 import java.util.Set;
+
+import io.gravitee.gateway.policy.PolicyDefinition;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -31,74 +32,80 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ApiTest {
 
     @Test
-    public void shoudFilterDisabledFlowPreStep() {
-        Api api = new Api();
+    public void shouldFilterDisabledFlowPreStep() {
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        Api api = new Api(definition);
         Flow flow = new Flow();
         flow.setPre(aStepList());
-        api.setFlows(List.of(flow));
+        definition.setFlows(List.of(flow));
 
-        Set<Policy> result = api.dependencies(Policy.class);
+        Set<PolicyDefinition> result = api.dependencies(PolicyDefinition.class);
 
-        assertThat(result).hasSize(1).extracting(Policy::getName).containsExactly("enabledPolicy");
+        assertThat(result).hasSize(1).extracting(PolicyDefinition::getName).containsExactly("enabledPolicy");
     }
 
     @Test
-    public void shoudFilterDisabledFlowPostStep() {
-        Api api = new Api();
+    public void shouldFilterDisabledFlowPostStep() {
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        Api api = new Api(definition);
         Flow flow = new Flow();
         flow.setPost(aStepList());
-        api.setFlows(List.of(flow));
+        definition.setFlows(List.of(flow));
 
-        Set<Policy> result = api.dependencies(Policy.class);
+        Set<PolicyDefinition> result = api.dependencies(PolicyDefinition.class);
 
-        assertThat(result).hasSize(1).extracting(Policy::getName).containsExactly("enabledPolicy");
+        assertThat(result).hasSize(1).extracting(PolicyDefinition::getName).containsExactly("enabledPolicy");
     }
 
     @Test
-    public void shoudFilterDisabledPlanFlowPreStep() {
-        Api api = new Api();
+    public void shouldFilterDisabledPlanFlowPreStep() {
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        Api api = new Api(definition);
         Flow flow = new Flow();
         flow.setPre(aStepList());
         Plan plan = aPlan(List.of(flow));
-        api.setPlans(List.of(plan));
+        definition.setPlans(List.of(plan));
 
-        Set<Policy> result = api.dependencies(Policy.class);
+        Set<PolicyDefinition> result = api.dependencies(PolicyDefinition.class);
 
-        assertThat(result).hasSize(2).extracting(Policy::getName).containsExactlyInAnyOrder("enabledPolicy", "key-less");
+        assertThat(result).hasSize(2).extracting(PolicyDefinition::getName).containsExactlyInAnyOrder("enabledPolicy", "key-less");
     }
 
     @Test
-    public void shoudFilterDisabledPlanFlowPostStep() {
-        Api api = new Api();
+    public void shouldFilterDisabledPlanFlowPostStep() {
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        Api api = new Api(definition);
         Flow flow = new Flow();
         flow.setPost(aStepList());
         Plan plan = aPlan(List.of(flow));
-        api.setPlans(List.of(plan));
+        definition.setPlans(List.of(plan));
 
-        Set<Policy> result = api.dependencies(Policy.class);
+        Set<PolicyDefinition> result = api.dependencies(PolicyDefinition.class);
 
-        assertThat(result).hasSize(2).extracting(Policy::getName).containsExactlyInAnyOrder("enabledPolicy", "key-less");
+        assertThat(result).hasSize(2).extracting(PolicyDefinition::getName).containsExactlyInAnyOrder("enabledPolicy", "key-less");
     }
 
     @Test
     public void shouldFilterDisabledFlows() {
-        Api api = new Api();
-        api.setFlows(aFlowList());
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        Api api = new Api(definition);
+        definition.setFlows(aFlowList());
 
-        Set<Policy> result = api.dependencies(Policy.class);
+        Set<PolicyDefinition> result = api.dependencies(PolicyDefinition.class);
 
         assertThat(result).hasSize(0);
     }
 
     @Test
     public void shouldFilterDisabledPlanFlows() {
-        Api api = new Api();
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        Api api = new Api(definition);
         Plan plan = aPlan(aFlowList());
-        api.setPlans(List.of(plan));
+        definition.setPlans(List.of(plan));
 
-        Set<Policy> result = api.dependencies(Policy.class);
+        Set<PolicyDefinition> result = api.dependencies(PolicyDefinition.class);
 
-        assertThat(result).hasSize(1).extracting(Policy::getName).containsExactlyInAnyOrder("key-less");
+        assertThat(result).hasSize(1).extracting(PolicyDefinition::getName).containsExactlyInAnyOrder("key-less");
     }
 
     private List<Step> aStepList() {

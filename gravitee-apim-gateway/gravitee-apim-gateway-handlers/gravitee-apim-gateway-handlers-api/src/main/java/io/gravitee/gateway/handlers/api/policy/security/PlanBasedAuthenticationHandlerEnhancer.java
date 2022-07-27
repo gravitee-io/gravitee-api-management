@@ -48,6 +48,7 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
 
         // Look into all plans for required authentication providers.
         api
+                .getDefinition()
             .getPlans()
             .forEach(
                 plan -> {

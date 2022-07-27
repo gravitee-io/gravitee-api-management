@@ -34,16 +34,16 @@ public class OnErrorProcessorChainFactory extends ApiProcessorChainFactory {
     }
 
     private void initialize() {
-        if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
-            add(() -> new CorsSimpleRequestProcessor(api.getProxy().getCors()));
+        if (api.getDefinition().getProxy().getCors() != null && api.getDefinition().getProxy().getCors().isEnabled()) {
+            add(() -> new CorsSimpleRequestProcessor(api.getDefinition().getProxy().getCors()));
         }
 
-        if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
-            add(() -> new PathMappingProcessor(api.getPathMappings()));
+        if (api.getDefinition().getPathMappings() != null && !api.getDefinition().getPathMappings().isEmpty()) {
+            add(() -> new PathMappingProcessor(api.getDefinition().getPathMappings()));
         }
 
-        if (api.getResponseTemplates() != null && !api.getResponseTemplates().isEmpty()) {
-            add(() -> new ResponseTemplateBasedFailureProcessor(api.getResponseTemplates()));
+        if (api.getDefinition().getResponseTemplates() != null && !api.getDefinition().getResponseTemplates().isEmpty()) {
+            add(() -> new ResponseTemplateBasedFailureProcessor(api.getDefinition().getResponseTemplates()));
         } else {
             add(SimpleFailureProcessor::new);
         }

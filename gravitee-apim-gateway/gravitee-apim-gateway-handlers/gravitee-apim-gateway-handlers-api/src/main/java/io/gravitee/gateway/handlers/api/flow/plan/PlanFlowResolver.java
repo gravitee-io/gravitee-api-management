@@ -38,7 +38,7 @@ public class PlanFlowResolver extends ConditionalFlowResolver {
 
     @Override
     public List<Flow> resolve0(ExecutionContext context) {
-        Plan plan = api.getPlan(context.request().metrics().getPlan());
+        Plan plan = api.getDefinition().getPlan(context.request().metrics().getPlan());
 
         return (plan != null) ? plan.getFlows() : null;
     }

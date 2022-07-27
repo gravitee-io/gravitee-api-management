@@ -16,7 +16,6 @@
 package io.gravitee.gateway.jupiter.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.definition.model.flow.FlowStage;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;

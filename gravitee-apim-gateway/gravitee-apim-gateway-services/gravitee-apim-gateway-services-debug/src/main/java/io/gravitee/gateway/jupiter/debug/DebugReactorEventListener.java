@@ -22,7 +22,7 @@ import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
-import io.gravitee.gateway.jupiter.reactor.ReactorEventListener;
+import io.gravitee.gateway.reactor.handler.ReactorEventListener;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.reactor.Reactable;

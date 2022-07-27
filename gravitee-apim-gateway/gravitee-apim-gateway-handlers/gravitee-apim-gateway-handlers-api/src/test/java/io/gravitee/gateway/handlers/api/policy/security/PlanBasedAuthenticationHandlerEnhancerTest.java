@@ -47,7 +47,7 @@ public class PlanBasedAuthenticationHandlerEnhancerTest {
         authenticationHandlerEnhancer = new PlanBasedAuthenticationHandlerEnhancer(api);
 
         when(api.getName()).thenReturn("My API");
-        when(api.getVersion()).thenReturn("v1");
+        when(api.getApiVersion()).thenReturn("v1");
     }
 
     @Test
@@ -70,7 +70,7 @@ public class PlanBasedAuthenticationHandlerEnhancerTest {
 
         Plan plan1 = new Plan();
         plan1.setSecurity("apikey");
-        when(api.getPlans()).thenReturn(Collections.singletonList(plan1));
+        when(api.getDefinition().getPlans()).thenReturn(Collections.singletonList(plan1));
 
         List<AuthenticationHandler> SecurityProviders = authenticationHandlerEnhancer.filter(
             Collections.singletonList(authenticationHandler)
@@ -87,7 +87,7 @@ public class PlanBasedAuthenticationHandlerEnhancerTest {
 
         Plan plan1 = new Plan();
         plan1.setSecurity("keyless");
-        when(api.getPlans()).thenReturn(Collections.singletonList(plan1));
+        when(api.getDefinition().getPlans()).thenReturn(Collections.singletonList(plan1));
 
         List<AuthenticationHandler> SecurityProviders = authenticationHandlerEnhancer.filter(
             Collections.singletonList(authenticationHandler)

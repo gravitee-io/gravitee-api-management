@@ -15,26 +15,23 @@
  */
 package io.gravitee.gateway.resource.internal;
 
-import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
-import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.gateway.resource.ResourceDefinition;
 import io.gravitee.gateway.resource.internal.legacy.LegacyResourceManagerImpl;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
-import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.resource.api.ResourceConfiguration;
-import io.gravitee.resource.api.ResourceManager;
-import java.io.IOException;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.ClassUtils;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -63,7 +60,7 @@ public class ResourceManagerImpl extends LegacyResourceManagerImpl {
         if (legacyMode) {
             super.initialize();
         } else {
-            Set<Resource> resourceDeps = reactable.dependencies(Resource.class);
+            Set<ResourceDefinition> resourceDeps = reactable.dependencies(ResourceDefinition.class);
 
             resourceDeps.forEach(
                 resource -> {

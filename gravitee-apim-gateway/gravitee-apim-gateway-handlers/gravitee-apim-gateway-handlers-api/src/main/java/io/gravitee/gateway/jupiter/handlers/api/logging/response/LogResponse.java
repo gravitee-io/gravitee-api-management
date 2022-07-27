@@ -24,7 +24,6 @@ import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.handlers.api.logging.LogHeadersCaptor;
-import io.reactivex.Flowable;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)

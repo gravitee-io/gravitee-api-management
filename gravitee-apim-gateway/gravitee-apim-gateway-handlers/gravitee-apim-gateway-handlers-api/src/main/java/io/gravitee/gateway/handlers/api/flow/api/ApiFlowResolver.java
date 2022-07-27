@@ -38,6 +38,6 @@ public class ApiFlowResolver extends ConditionalFlowResolver {
 
     @Override
     public List<Flow> resolve0(ExecutionContext context) {
-        return api.getFlows() != null ? api.getFlows() : Collections.emptyList();
+        return api.getDefinition().getFlows() != null ? api.getDefinition().getFlows() : Collections.emptyList();
     }
 }

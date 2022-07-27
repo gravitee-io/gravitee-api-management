@@ -16,9 +16,9 @@
 package io.gravitee.gateway.resource.internal.legacy;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
+import io.gravitee.gateway.resource.ResourceDefinition;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -125,7 +125,7 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
     }
 
     protected void initialize() {
-        Set<Resource> resourceDeps = reactable.dependencies(Resource.class);
+        Set<ResourceDefinition> resourceDeps = reactable.dependencies(ResourceDefinition.class);
 
         resourceDeps.forEach(
             resource -> {

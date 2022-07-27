@@ -41,7 +41,7 @@ public class FlowResolverFactory {
     public FlowResolver forApi(Api api) {
         ApiFlowResolver flowResolver = new ApiFlowResolver(api, flowFilter);
 
-        if (isBestMatchFlowMode(api.getFlowMode())) {
+        if (isBestMatchFlowMode(api.getDefinition().getFlowMode())) {
             return new BestMatchFlowResolver(flowResolver);
         }
 
@@ -51,7 +51,7 @@ public class FlowResolverFactory {
     public FlowResolver forApiPlan(Api api) {
         ApiPlanFlowResolver flowResolver = new ApiPlanFlowResolver(api, flowFilter);
 
-        if (isBestMatchFlowMode(api.getFlowMode())) {
+        if (isBestMatchFlowMode(api.getDefinition().getFlowMode())) {
             return new BestMatchFlowResolver(flowResolver);
         }
 

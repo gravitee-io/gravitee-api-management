@@ -15,15 +15,14 @@
  */
 package io.gravitee.gateway.services.sync.cache;
 
-import static io.gravitee.repository.management.model.Plan.PlanSecurityType.*;
-
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.handlers.api.definition.Plan;
+import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
@@ -221,17 +220,17 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
         }
     }
 
-    private void register(Api api) {
+    private void register(ReactableApi<?> api) {
         register(Collections.singletonList(api));
     }
 
-    public void register(List<Api> apis) {
-        final Map<String, Api> apisById = apis.stream().collect(Collectors.toMap(io.gravitee.definition.model.Api::getId, api -> api));
+    public void register(List<ReactableApi<?>> apis) {
+        final Map<String, ReactableApi<?>> apisById = apis.stream().collect(Collectors.toMap(ReactableApi::getId, api -> api));
 
-        // Filters plans to update api_keys only for them
+        // Filter plans to update subscriptions only for them
         final Map<String, Set<String>> plansByApi = apis
             .stream()
-            .filter(Api::isEnabled)
+            .filter(ReactableApi::isEnabled)
             .map(
                 api ->
                     new AbstractMap.SimpleEntry<>(
@@ -239,12 +238,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
                         api
                             .getPlans()
                             .stream()
-                            .filter(
-                                plan ->
-                                    OAUTH2.name().equalsIgnoreCase(plan.getSecurity()) ||
-                                    JWT.name().equalsIgnoreCase(plan.getSecurity()) ||
-                                    API_KEY.name().equalsIgnoreCase(plan.getSecurity())
-                            )
+                            .filter(Plan::isRequiresSubscription)
                             .map(Plan::getId)
                             .collect(Collectors.toSet())
                     )

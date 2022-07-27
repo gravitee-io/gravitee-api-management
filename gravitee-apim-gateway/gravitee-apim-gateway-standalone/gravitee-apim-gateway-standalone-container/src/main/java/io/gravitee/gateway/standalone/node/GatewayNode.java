@@ -16,7 +16,7 @@
 package io.gravitee.gateway.standalone.node;
 
 import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.jupiter.reactor.ReactorEventListener;
+import io.gravitee.gateway.reactor.handler.ReactorEventListener;
 import io.gravitee.gateway.report.impl.NodeMonitoringReporterService;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
 import io.gravitee.node.api.NodeMetadataResolver;

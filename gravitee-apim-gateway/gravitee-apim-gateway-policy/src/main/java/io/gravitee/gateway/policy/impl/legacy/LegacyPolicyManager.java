@@ -17,7 +17,6 @@ package io.gravitee.gateway.policy.impl.legacy;
 
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.classloader.LegacyClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
@@ -100,7 +99,7 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
         TypeFactory.defaultInstance().clearCache();
     }
 
-    protected abstract Set<Policy> dependencies();
+    protected abstract Set<PolicyDefinition> dependencies();
 
     protected void initialize() {
         ClassLoader globalClassLoader = getClassLoader();

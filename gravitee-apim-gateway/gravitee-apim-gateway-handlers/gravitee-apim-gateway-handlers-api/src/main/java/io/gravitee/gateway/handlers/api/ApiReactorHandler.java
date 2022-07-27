@@ -355,7 +355,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
     @Override
     public String toString() {
-        return "Handler API id[" + reactable.getId() + "] name[" + reactable.getName() + "] version[" + reactable.getVersion() + ']';
+        return "Handler API id[" + reactable.getId() + "] name[" + reactable.getName() + "] version[" + reactable.getApiVersion() + ']';
     }
 
     @Override

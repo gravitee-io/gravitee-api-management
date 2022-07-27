@@ -15,11 +15,6 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.security;
 
-import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
-import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_FLOW_STAGE;
-import static io.reactivex.Completable.defer;
-
-import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
@@ -27,21 +22,22 @@ import io.gravitee.gateway.jupiter.api.hook.Hookable;
 import io.gravitee.gateway.jupiter.api.hook.SecurityPlanHook;
 import io.gravitee.gateway.jupiter.core.hook.HookHelper;
 import io.gravitee.gateway.jupiter.handlers.api.security.plan.SecurityPlan;
-import io.gravitee.gateway.jupiter.handlers.api.security.plan.SecurityPlanFactory;
-import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
+import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_FLOW_STAGE;
+import static io.reactivex.Completable.defer;
+
 /**
- * {@link SecurityChain} is a special chain dedicated to execute policy associated with plans.
+ * {@link AbstractSecurityChain} is a special chain dedicated to execute policy associated with plans.
  * The security chain is responsible to create {@link SecurityPlan} for each plan of the api and executed them in order.
  * Only the first {@link SecurityPlan} that can handle the current request is executed.
  * The result of the security chain execution depends on this {@link SecurityPlan} execution.
@@ -49,27 +45,18 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SecurityChain implements Hookable<SecurityPlanHook> {
+public abstract class AbstractSecurityChain implements Hookable<SecurityPlanHook> {
 
     public static final String SKIP_SECURITY_CHAIN = "skip-security-chain";
     protected static final String PLAN_UNRESOLVABLE = "GATEWAY_PLAN_UNRESOLVABLE";
     protected static final String UNAUTHORIZED_MESSAGE = "Unauthorized";
     protected static final Single<Boolean> TRUE = Single.just(true), FALSE = Single.just(false);
-    private static final Logger log = LoggerFactory.getLogger(SecurityChain.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractSecurityChain.class);
     private final Flowable<SecurityPlan> chain;
     private List<SecurityPlanHook> securityPlanHooks;
 
-    public SecurityChain(Api api, PolicyManager policyManager) {
-        chain =
-            Flowable.fromIterable(
-                api
-                    .getPlans()
-                    .stream()
-                    .map(plan -> SecurityPlanFactory.forPlan(plan, policyManager))
-                    .filter(Objects::nonNull)
-                    .sorted(Comparator.comparingInt(SecurityPlan::order))
-                    .collect(Collectors.toList())
-            );
+    public AbstractSecurityChain(Flowable<SecurityPlan> chain) {
+        this.chain = chain;
     }
 
     /**

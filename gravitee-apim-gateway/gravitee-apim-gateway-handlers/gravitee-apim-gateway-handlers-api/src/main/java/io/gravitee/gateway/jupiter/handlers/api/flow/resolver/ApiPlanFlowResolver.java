@@ -42,7 +42,7 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
 
     @Override
     public Flowable<Flow> provideFlows(RequestExecutionContext ctx) {
-        if (api.getPlans() == null || api.getPlans().isEmpty()) {
+        if (api.getDefinition().getPlans() == null || api.getDefinition().getPlans().isEmpty()) {
             return Flowable.empty();
         }
 
@@ -50,6 +50,7 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
 
         return Flowable.fromIterable(
             api
+                    .getDefinition()
                 .getPlans()
                 .stream()
                 .filter(plan -> Objects.equals(plan.getId(), planId))

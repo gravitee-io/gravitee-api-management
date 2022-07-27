@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.manager;
 
+import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import java.util.Collection;
 
@@ -34,7 +35,7 @@ public interface ApiManager {
      * @param api
      * @return
      */
-    boolean register(Api api);
+    boolean register(ReactableApi<?> api);
 
     void unregister(String apiId);
 
@@ -44,12 +45,12 @@ public interface ApiManager {
      * Returns a collection of deployed {@link Api}s.
      * @return A collection of deployed  {@link Api}s.
      */
-    Collection<Api> apis();
+    Collection<ReactableApi<?>> apis();
 
     /**
      * Retrieve a deployed {@link Api} using its ID.
      * @param apiId The ID of the deployed API.
      * @return A deployed {@link Api}
      */
-    Api get(String apiId);
+    ReactableApi<?> get(String apiId);
 }
