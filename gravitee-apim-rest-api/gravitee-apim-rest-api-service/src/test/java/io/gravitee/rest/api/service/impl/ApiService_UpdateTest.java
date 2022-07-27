@@ -87,6 +87,8 @@ public class ApiService_UpdateTest {
     private static final String USER_NAME = "myUser";
     public static final String API_DEFINITION =
         "{\n" +
+        "  \"id\" : \"id-api\",\n" +
+        "  \"name\" : \"myAPI\",\n" +
         "  \"description\" : \"Gravitee.io\",\n" +
         "  \"paths\" : { },\n" +
         "  \"path_mappings\":[],\n" +
@@ -904,6 +906,16 @@ public class ApiService_UpdateTest {
         final Workflow workflow = new Workflow();
         workflow.setState(WorkflowState.REQUEST_FOR_CHANGES.name());
         when(workflowService.create(any(), any(), any(), any(), any(), any())).thenReturn(workflow);
+
+        when(
+            parameterService.find(
+                GraviteeContext.getExecutionContext(),
+                Key.PORTAL_ENTRYPOINT,
+                GraviteeContext.getExecutionContext().getEnvironmentId(),
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(Key.PORTAL_ENTRYPOINT.defaultValue());
     }
 
     @Test
