@@ -325,9 +325,10 @@ public class ApiService_CreateTest {
         verify(apiMetadataService, times(1))
             .create(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(newApiMetadataEntity ->
-                    newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
-                    newApiMetadataEntity.getName().equals(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY)
+                argThat(
+                    newApiMetadataEntity ->
+                        newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
+                        newApiMetadataEntity.getName().equals(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY)
                 )
             );
     }

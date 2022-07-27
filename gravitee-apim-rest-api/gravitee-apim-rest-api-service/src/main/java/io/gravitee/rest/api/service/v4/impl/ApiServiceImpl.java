@@ -64,6 +64,7 @@ import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.WorkflowService;
@@ -125,7 +126,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final EventService eventService;
     private final PageService pageService;
     private final TopApiService topApiService;
-    private final GenericNotificationConfigService portalNotificationConfigService;
+    private final PortalNotificationConfigService portalNotificationConfigService;
     private final AlertService alertService;
     private final ApiQualityRuleRepository apiQualityRuleRepository;
     private final MediaService mediaService;
@@ -150,7 +151,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final EventService eventService,
         final PageService pageService,
         final TopApiService topApiService,
-        final GenericNotificationConfigService portalNotificationConfigService,
+        final PortalNotificationConfigService portalNotificationConfigService,
         final AlertService alertService,
         @Lazy final ApiQualityRuleRepository apiQualityRuleRepository,
         final MediaService mediaService
