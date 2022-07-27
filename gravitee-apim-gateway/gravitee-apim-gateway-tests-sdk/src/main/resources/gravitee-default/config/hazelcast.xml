@@ -18,11 +18,6 @@
         <!-- Eviction is managed programmatically-->
         <eviction eviction-policy="NONE" size="0"></eviction>
     </map>
-    <queue name="heartbeats">
-        <!-- By default, gateway emits one event every 5 seconds-->
-        <!-- Keep 1 hour of events -->
-        <max-size>720</max-size>
-    </queue>
     <map name="apis">
         <!-- Eviction is managed programmatically-->
         <eviction eviction-policy="NONE" size="0"></eviction>
