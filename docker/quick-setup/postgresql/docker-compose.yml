@@ -75,7 +75,7 @@ services:
       - storage
 
   gateway:
-    image: graviteeio/apim-gateway:${APIM_VERSION:-nightly}
+    image: graviteeio/apim-gateway:${APIM_VERSION:-latest}
     container_name: apim-qs-psql-gateway
     restart: always
     ports:
@@ -101,7 +101,7 @@ services:
       - frontend
 
   management_api:
-    image: graviteeio/apim-management-api:${APIM_VERSION:-nightly}
+    image: graviteeio/apim-management-api:${APIM_VERSION:-latest}
     container_name: apim-qs-psql-management_api
     restart: always
     ports:
@@ -126,7 +126,7 @@ services:
       - frontend
 
   management_ui:
-    image: graviteeio/apim-management-ui:${APIM_VERSION:-nightly}
+    image: graviteeio/apim-management-ui:${APIM_VERSION:-latest}
     container_name: apim-qs-psql-console_ui
     restart: always
     ports:
@@ -141,7 +141,7 @@ services:
       - frontend
 
   portal_ui:
-    image: graviteeio/apim-portal-ui:${APIM_VERSION:-nightly}
+    image: graviteeio/apim-portal-ui:${APIM_VERSION:-latest}
     container_name: apim-qs-psql-portal_ui
     restart: always
     ports:
