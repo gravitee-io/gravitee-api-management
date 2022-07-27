@@ -1,5 +1,3 @@
-import { escape } from 'lodash';
-
 import NotificationService from '../../services/notification.service';
 import ReCaptchaService from '../../services/reCaptcha.service';
 import UserService from '../../services/user.service';

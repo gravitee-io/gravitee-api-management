@@ -1362,16 +1362,13 @@ workflows:
                   requires:
                       - Lint & test APIM Console
             - console-webui-build-storybook:
+                  context: cicd-orchestrator
                   requires:
                       - Install APIM Console
-            - trigger-chromatic:
-                  type: approval
-                  requires:
-                      - console-webui-build-storybook
             - console-webui-chromatic-deployment:
                   context: cicd-orchestrator
                   requires:
-                      - trigger-chromatic
+                      - console-webui-build-storybook
             - webui-build:
                   name: Build APIM Console
                   context: cicd-orchestrator
@@ -1454,9 +1451,11 @@ workflows:
                               - /^\d+\.\d+\.x$/
                   # To be modified when testing strategy will be defined
             - cypress-install:
+                  context: cicd-orchestrator
                   requires:
                       - build
             - cypress-lint-test:
+                  context: cicd-orchestrator
                   requires:
                       - cypress-install
 
