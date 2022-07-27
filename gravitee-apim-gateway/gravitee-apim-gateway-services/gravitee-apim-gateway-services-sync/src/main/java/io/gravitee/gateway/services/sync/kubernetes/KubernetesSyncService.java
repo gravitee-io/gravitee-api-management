@@ -124,7 +124,6 @@ public class KubernetesSyncService extends AbstractService<KubernetesSyncService
                 api.setEnvironmentId(configMap.getData().get(DATA_ENVIRONMENT_ID));
                 api.setDefinition(definition);
                 api.setDeployedAt(apiDefinition.getDeployedAt());
-                api.setEnvironmentId(apiDefinition.getEnvironmentId());
                 api.setId(apiDefinition.getId());
 
                 switch (kubEvent.getType()) {
