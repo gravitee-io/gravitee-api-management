@@ -895,7 +895,7 @@ jobs:
                       not: << pipeline.parameters.dry_run>>
                   steps:
                       - slack/notify:
-                            channel: C02JENTV2AX
+                            channel: C02NGT20S4W
                             event: always
                             custom: |
                                 {
@@ -1002,25 +1002,6 @@ jobs:
                       else
                         echo "# --->>> THIS IS A DRY RUN"
                       fi;
-            - when:
-                  condition:
-                      not: << pipeline.parameters.dry_run>>
-                  steps:
-                      - slack/notify:
-                            channel: C02JENTV2AX
-                            event: pass
-                            custom: |
-                                {
-                                  "blocks": [
-                                    {
-                                      "type": "section",
-                                      "text": {
-                                        "type": "mrkdwn",
-                                        "text": "✅ APIM repository has been tagged.\nYou can continue the release by running: `npm run package_zip -- --version=<< pipeline.parameters.graviteeio_version >>`"
-                                      }
-                                    }
-                                  ]
-                                }
             - notify-on-failure
 
     publish_prod_docker_images:
@@ -1150,7 +1131,7 @@ jobs:
                       not: << pipeline.parameters.dry_run>>
                   steps:
                       - slack/notify:
-                            channel: C02JENTV2AX
+                            channel: C02NGT20S4W
                             event: always
                             custom: |
                                 {
