@@ -72,7 +72,7 @@ services:
       - ./.license:/opt/graviteeio-alert-engine/license
 
   gateway:
-    image: graviteeio/apim-gateway:${APIM_VERSION:-nightly}
+    image: graviteeio/apim-gateway:${APIM_VERSION:-latest}
     container_name: gio_apim_gateway
     restart: always
     ports:
@@ -95,7 +95,7 @@ services:
       - frontend
 
   management_api:
-    image: graviteeio/apim-management-api:${APIM_VERSION:-nightly}
+    image: graviteeio/apim-management-api:${APIM_VERSION:-latest}
     container_name: gio_apim_management_api
     restart: always
     ports:
@@ -125,7 +125,7 @@ services:
       - frontend
 
   management_ui:
-    image: graviteeio/apim-management-ui:${APIM_VERSION:-nightly}
+    image: graviteeio/apim-management-ui:${APIM_VERSION:-latest}
     container_name: gio_apim_management_ui
     restart: always
     ports:
@@ -140,7 +140,7 @@ services:
       - frontend
 
   portal_ui:
-    image: graviteeio/apim-portal-ui:${APIM_VERSION:-nightly}
+    image: graviteeio/apim-portal-ui:${APIM_VERSION:-latest}
     container_name: gio_apim_portal_ui
     restart: always
     ports:
