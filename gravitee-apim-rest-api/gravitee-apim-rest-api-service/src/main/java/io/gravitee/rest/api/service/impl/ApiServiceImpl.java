@@ -249,9 +249,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private WorkflowService workflowService;
 
     @Autowired
-    private HttpClientService httpClientService;
-
-    @Autowired
     private VirtualHostService virtualHostService;
 
     @Autowired
@@ -265,9 +262,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private ApplicationService applicationService;
-
-    @Autowired
-    private ImportConfiguration importConfiguration;
 
     @Autowired
     private PolicyService policyService;

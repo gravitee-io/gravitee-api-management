@@ -58,12 +58,14 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     public void validateAndSanitizeNewApi(
         final ExecutionContext executionContext,
         final NewApiEntity newApiEntity,
-        final PrimaryOwnerEntity primaryOwnerEntity
+        final PrimaryOwnerEntity currentPrimaryOwnerEntity
     ) {
         // Validate and clean tags
         newApiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, newApiEntity.getTags()));
         // Validate and clean groups
-        newApiEntity.setGroups(groupValidationService.validateAndSanitize(executionContext, newApiEntity.getGroups(), primaryOwnerEntity));
+        newApiEntity.setGroups(
+            groupValidationService.validateAndSanitize(executionContext, null, newApiEntity.getGroups(), currentPrimaryOwnerEntity)
+        );
         // Validate and clean listeners
         newApiEntity.setListeners(listenerValidationService.validateAndSanitize(executionContext, null, newApiEntity.getListeners()));
         // Validate and clean endpoints

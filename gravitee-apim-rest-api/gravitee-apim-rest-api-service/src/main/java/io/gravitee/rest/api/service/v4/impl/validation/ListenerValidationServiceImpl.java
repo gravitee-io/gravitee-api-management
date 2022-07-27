@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.net.InternetDomainName;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.definition.model.v4.listener.http.Path;
@@ -27,14 +29,16 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.v4.exception.FlowSelectorsDuplicatedException;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
+import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,6 +78,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     @Override
     public List<Listener> validateAndSanitize(final ExecutionContext executionContext, final String apiId, final List<Listener> listeners) {
         if (listeners != null && !listeners.isEmpty()) {
+            checkDuplicatedListeners(listeners);
             listeners.forEach(
                 listener -> {
                     switch (listener.getType()) {
@@ -89,6 +94,18 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
             );
         }
         return listeners;
+    }
+
+    private void checkDuplicatedListeners(final List<Listener> listeners) {
+        Set<Listener> seenListeners = new HashSet<>();
+        Set<String> duplicatedListeners = listeners
+            .stream()
+            .filter(e -> !seenListeners.add(e))
+            .map(selector -> selector.getType().getLabel())
+            .collect(Collectors.toSet());
+        if (!duplicatedListeners.isEmpty()) {
+            throw new ListenersDuplicatedException(duplicatedListeners);
+        }
     }
 
     private void validateAndSanitizeHttpListener(
@@ -121,7 +138,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
             .filter(path -> !Strings.isNullOrEmpty(path.getHost()))
             .collect(Collectors.groupingBy(Path::getHost, Collectors.mapping(Path::getPath, Collectors.toList())));
 
-        // Check only virtual hosts with a host and compare to registered virtual hosts
+        // Check only paths with a host and compare to registered virtual hosts
         if (!registeredPathWithHosts.isEmpty()) {
             sanitizedPaths
                 .stream()
@@ -151,11 +168,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
 
     private List<Path> extractPaths(final Api api) {
         if (api.getDefinition() != null) {
-            DefinitionVersion definitionVersion = null;
-            if (api.getDefinitionVersion() != null) {
-                definitionVersion = DefinitionVersion.valueOfLabel(api.getDefinitionVersion());
-            }
-            if (definitionVersion == DefinitionVersion.V4) {
+            if (api.getDefinitionVersion() == DefinitionVersion.V4) {
                 try {
                     io.gravitee.definition.model.v4.Api apiDefinition = objectMapper.readValue(
                         api.getDefinition(),

@@ -24,5 +24,10 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface GroupValidationService {
-    Set<String> validateAndSanitize(ExecutionContext executionContext, Set<String> groups, final PrimaryOwnerEntity primaryOwnerEntity);
+    Set<String> validateAndSanitize(
+        final ExecutionContext executionContext,
+        final String apiId,
+        final Set<String> groups,
+        final PrimaryOwnerEntity primaryOwnerEntity
+    );
 }

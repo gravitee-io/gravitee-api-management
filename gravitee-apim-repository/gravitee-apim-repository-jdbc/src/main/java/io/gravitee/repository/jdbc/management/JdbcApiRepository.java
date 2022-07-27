@@ -20,6 +20,8 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
@@ -95,9 +97,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("version", Types.NVARCHAR, String.class)
-            .addColumn("definition_version", Types.NVARCHAR, String.class)
+            .addColumn("definition_version", Types.NVARCHAR, DefinitionVersion.class)
             .addColumn("definition", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
+            .addColumn("type", Types.NVARCHAR, ApiType.class)
             .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)

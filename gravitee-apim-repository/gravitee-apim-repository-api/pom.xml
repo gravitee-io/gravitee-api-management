@@ -43,6 +43,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.apim.definition</groupId>
+            <artifactId>gravitee-apim-definition-model</artifactId>
+            <version>${revision}${sha1}${changelist}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.reactivex.rxjava2</groupId>
             <artifactId>rxjava</artifactId>
         </dependency>
@@ -55,6 +61,5 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
         </dependency>
-
     </dependencies>
 </project>

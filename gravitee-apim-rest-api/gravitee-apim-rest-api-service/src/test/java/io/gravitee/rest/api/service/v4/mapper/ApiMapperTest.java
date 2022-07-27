@@ -106,7 +106,7 @@ public class ApiMapperTest {
         Api api = new Api();
         api.setId("id");
         api.setCrossId("crossId");
-        api.setType("async");
+        api.setType(ApiType.SYNC);
         api.setName("name");
         api.setVersion("version");
         api.setUpdatedAt(new Date());
@@ -129,7 +129,7 @@ public class ApiMapperTest {
 
         assertThat(apiEntity.getId()).isEqualTo("id");
         assertThat(apiEntity.getCrossId()).isEqualTo("crossId");
-        assertThat(apiEntity.getType()).isEqualTo(ApiType.ASYNC);
+        assertThat(apiEntity.getType()).isEqualTo(ApiType.SYNC);
         assertThat(apiEntity.getName()).isEqualTo("name");
         assertThat(apiEntity.getApiVersion()).isEqualTo("version");
         assertThat(apiEntity.getUpdatedAt()).isNotNull();
@@ -171,7 +171,7 @@ public class ApiMapperTest {
         Api api = new Api();
         api.setId("id");
         api.setCrossId("crossId");
-        api.setType("async");
+        api.setType(ApiType.SYNC);
         api.setName("name");
         api.setVersion("version");
         api.setUpdatedAt(new Date());
@@ -193,7 +193,7 @@ public class ApiMapperTest {
 
         assertThat(apiEntity.getId()).isEqualTo("id");
         assertThat(apiEntity.getCrossId()).isEqualTo("crossId");
-        assertThat(apiEntity.getType()).isEqualTo(ApiType.ASYNC);
+        assertThat(apiEntity.getType()).isEqualTo(ApiType.SYNC);
         assertThat(apiEntity.getName()).isEqualTo("name");
         assertThat(apiEntity.getApiVersion()).isEqualTo("version");
         assertThat(apiEntity.getUpdatedAt()).isNotNull();
@@ -239,7 +239,7 @@ public class ApiMapperTest {
         Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), newApiEntity);
 
         assertThat(api.getId()).isNotNull();
-        assertThat(api.getType()).isEqualTo(ApiType.ASYNC.getLabel());
+        assertThat(api.getType()).isEqualTo(ApiType.ASYNC);
         assertThat(api.getName()).isEqualTo("name");
         assertThat(api.getVersion()).isEqualTo("version");
         assertThat(api.getCreatedAt()).isNotNull();
@@ -251,7 +251,7 @@ public class ApiMapperTest {
         assertThat(api.getApiLifecycleState()).isEqualTo(ApiLifecycleState.CREATED);
         assertThat(api.getLifecycleState()).isEqualTo(LifecycleState.STOPPED);
         assertThat(api.getVisibility()).isEqualTo(Visibility.PRIVATE);
-        assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4.getLabel());
+        assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
 
         io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
         apiDefinition.setId(api.getId());

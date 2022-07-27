@@ -67,7 +67,7 @@ public class ApiNotificationServiceImpl extends AbstractService implements ApiNo
 
     private void triggerNotification(final ExecutionContext executionContext, final ApiHook hook, final IndexableApi indexableApi) {
         String userId = getAuthenticatedUsername();
-
+        System.out.println(userId);
         if (userId != null && !getAuthenticatedUser().isSystem()) {
             UserEntity userEntity = userService.findById(executionContext, userId);
             notifierService.trigger(

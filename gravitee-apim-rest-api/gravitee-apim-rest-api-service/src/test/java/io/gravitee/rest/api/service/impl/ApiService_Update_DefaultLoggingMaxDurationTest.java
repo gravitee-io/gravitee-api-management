@@ -33,6 +33,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -46,6 +47,7 @@ import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import java.io.IOException;
 import java.io.Reader;
 import java.time.Clock;
@@ -129,9 +131,6 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     private ConnectorService connectorService;
 
     @Mock
-    private NotifierService notifierService;
-
-    @Mock
     private PlanService planService;
 
     @Mock
@@ -139,6 +138,9 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
     @Spy
     private ApiConverter apiConverter;
+
+    @Mock
+    private ApiNotificationService apiNotificationService;
 
     MockedStatic<Instant> mockedStaticInstant;
 
@@ -220,7 +222,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
     @Test
     public void shouldNotAddDefaultConditionIfNoLogging() throws TechnicalException {
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -240,7 +242,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -250,7 +252,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         logging.setCondition("wrong");
         existingApi.getProxy().setLogging(logging);
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -272,7 +274,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -291,7 +293,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(0L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -313,7 +315,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -332,7 +334,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(1L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -356,7 +358,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -375,7 +377,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(1L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -397,7 +399,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -416,7 +418,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(1L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -438,7 +440,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -457,7 +459,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(1L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -484,7 +486,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -503,7 +505,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(1L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -530,7 +532,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -551,7 +553,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(1L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -578,7 +580,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -599,7 +601,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(1L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -626,7 +628,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -647,7 +649,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(1L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -674,7 +676,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -695,7 +697,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(1L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -722,7 +724,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -741,7 +743,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(3L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -763,7 +765,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -782,7 +784,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(1L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -807,7 +809,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -826,7 +828,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(1L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -851,7 +853,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -870,7 +872,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         )
             .thenReturn(singletonList(1L));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 
         verify(apiRepository, times(1))
             .update(
@@ -895,7 +897,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_UPDATED), any(), any());
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test

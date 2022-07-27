@@ -38,8 +38,7 @@ public class IndexableApiMapper {
     }
 
     public IndexableApi toGenericApi(final Api api, final PrimaryOwnerEntity primaryOwner) {
-        DefinitionVersion definitionVersion = DefinitionVersion.valueOfLabel(api.getDefinitionVersion());
-        if (definitionVersion == DefinitionVersion.V4) {
+        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
             return apiMapper.toEntity(api, primaryOwner);
         } else {
             return apiConverter.toApiEntity(api, primaryOwner);

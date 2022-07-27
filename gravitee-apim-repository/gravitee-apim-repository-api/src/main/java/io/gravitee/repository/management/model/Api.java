@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.management.model;
 
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -91,7 +93,7 @@ public class Api {
     /**
      * The api definition version.
      */
-    private String definitionVersion;
+    private DefinitionVersion definitionVersion;
     /**
      * The api JSON definition
      */
@@ -99,7 +101,7 @@ public class Api {
     /**
      * The api type.
      */
-    private String type;
+    private ApiType type;
     /**
      * The api deployment date
      */

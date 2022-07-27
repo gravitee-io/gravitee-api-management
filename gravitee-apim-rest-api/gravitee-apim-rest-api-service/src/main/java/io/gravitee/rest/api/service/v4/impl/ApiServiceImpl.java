@@ -182,8 +182,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity findById(final ExecutionContext executionContext, final String apiId) {
         final Api api = this.findApiById(executionContext, apiId);
-        DefinitionVersion definitionVersion = DefinitionVersion.valueOfLabel(api.getDefinitionVersion());
-        if (definitionVersion != DefinitionVersion.V4) {
+        if (api.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new IllegalArgumentException(
                 String.format("Api found doesn't support v%s definition model.", DefinitionVersion.V4.getLabel())
             );

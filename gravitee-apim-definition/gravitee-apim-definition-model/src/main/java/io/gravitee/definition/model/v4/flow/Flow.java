@@ -41,7 +41,6 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class Flow implements Serializable {
 
-    @NotEmpty
     private String name;
 
     private boolean enabled = true;

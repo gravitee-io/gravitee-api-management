@@ -30,14 +30,14 @@ public enum ApiType {
     SYNC("sync"),
     ASYNC("async");
 
-    private static final Map<String, ApiType> labels = Map.of(SYNC.label, SYNC, ASYNC.label, ASYNC);
+    private static final Map<String, ApiType> LABELS_MAP = Map.of(SYNC.label, SYNC, ASYNC.label, ASYNC);
 
     @JsonValue
     private final String label;
 
     public static ApiType fromLabel(final String label) {
         if (label != null) {
-            return labels.get(label);
+            return LABELS_MAP.get(label);
         }
         return null;
     }

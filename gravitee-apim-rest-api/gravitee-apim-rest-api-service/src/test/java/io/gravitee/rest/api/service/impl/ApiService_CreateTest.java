@@ -236,6 +236,8 @@ public class ApiService_CreateTest {
 
     @Test(expected = ApiAlreadyExistsException.class)
     public void shouldNotCreateForUserBecauseExists() throws TechnicalException {
+        // FIXME Should be remove. This test doesn't make any sense because there is no id given when creating an api
+        // this is because we mock every id when calling findById that an error is thrown...
         when(apiRepository.findById(anyString())).thenReturn(Optional.of(api));
         when(newApi.getName()).thenReturn(API_NAME);
 
@@ -323,10 +325,9 @@ public class ApiService_CreateTest {
         verify(apiMetadataService, times(1))
             .create(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    newApiMetadataEntity ->
-                        newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
-                        newApiMetadataEntity.getName().equals(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY)
+                argThat(newApiMetadataEntity ->
+                    newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
+                    newApiMetadataEntity.getName().equals(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY)
                 )
             );
     }

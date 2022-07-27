@@ -28,9 +28,6 @@ import io.gravitee.definition.model.v4.responsetemplate.ResponseTemplate;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +39,6 @@ import javax.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -105,6 +101,13 @@ public class Api implements Serializable {
 
     public Plan getPlan(final String plan) {
         return plans.get(plan);
+    }
+
+    public List<Plan> getPlans() {
+        if (plans != null) {
+            return new ArrayList<>(this.plans.values());
+        }
+        return null;
     }
 
     public void setPlans(List<Plan> plans) {

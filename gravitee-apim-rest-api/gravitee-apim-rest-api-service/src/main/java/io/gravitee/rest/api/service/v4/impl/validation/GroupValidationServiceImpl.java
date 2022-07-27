@@ -56,13 +56,18 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
     @Override
     public Set<String> validateAndSanitize(
         final ExecutionContext executionContext,
+        final String apiId,
         final Set<String> groups,
         final PrimaryOwnerEntity primaryOwnerEntity
     ) {
         Set<String> sanitizedGroups = new HashSet<>();
         if (groups != null && !groups.isEmpty()) {
-            checkGroupExistence(groups);
-            sanitizedGroups = removePrimaryOwnerGroups(executionContext, groups, null);
+            try {
+                Set<GroupEntity> groundGroupEntities = groupService.findByIds(groups);
+                sanitizedGroups = removePrimaryOwnerGroups(executionContext, groundGroupEntities, apiId);
+            } catch (GroupsNotFoundException e) {
+                throw new InvalidDataException("These groups [" + e.getParameters().get("groups") + "] do not exist");
+            }
         }
 
         // Add default group
@@ -74,26 +79,19 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
         sanitizedGroups.addAll(defaultGroups);
 
         // if primary owner is a group, add it as a member of the API
-        if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerEntity.getType())) {
+        if (primaryOwnerEntity != null && ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerEntity.getType())) {
             sanitizedGroups.add(primaryOwnerEntity.getId());
         }
 
         return sanitizedGroups;
     }
 
-    private void checkGroupExistence(final Set<String> groups) {
-        // check the existence of groups
-        if (groups != null && !groups.isEmpty()) {
-            try {
-                groupService.findByIds(groups);
-            } catch (GroupsNotFoundException gnfe) {
-                throw new InvalidDataException("These groups [" + gnfe.getParameters().get("groups") + "] do not exist");
-            }
-        }
-    }
-
-    private Set<String> removePrimaryOwnerGroups(final ExecutionContext executionContext, final Set<String> groups, String apiId) {
-        Stream<GroupEntity> groupEntityStream = groupService.findByIds(groups).stream();
+    private Set<String> removePrimaryOwnerGroups(
+        final ExecutionContext executionContext,
+        final Set<GroupEntity> groundGroupEntities,
+        final String apiId
+    ) {
+        Stream<GroupEntity> groupEntityStream = groundGroupEntities.stream();
         if (apiId != null) {
             final MembershipEntity primaryOwner = membershipService.getPrimaryOwner(
                 executionContext.getOrganizationId(),

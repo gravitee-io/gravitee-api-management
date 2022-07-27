@@ -182,10 +182,9 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         );
 
         ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
-        DefinitionVersion apiDefinitionVersion = DefinitionVersion.valueOfLabel(api.getDefinitionVersion());
         Indexable indexable;
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
-        if (apiDefinitionVersion == DefinitionVersion.V4) {
+        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
             indexable = apiMapper.toEntity(executionContext, api, primaryOwner, null, false);
         } else {
             indexable = apiConverter.toApiEntity(api, primaryOwner);

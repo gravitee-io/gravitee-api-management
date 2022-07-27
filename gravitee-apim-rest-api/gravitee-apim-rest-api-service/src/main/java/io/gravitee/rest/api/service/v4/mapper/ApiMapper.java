@@ -118,7 +118,9 @@ public class ApiMapper {
             }
         }
 
-        apiEntity.setType(ApiType.fromLabel(api.getType()));
+        if (api.getType() != null) {
+            apiEntity.setType(ApiType.fromLabel(api.getType().getLabel()));
+        }
         apiEntity.setGroups(api.getGroups());
         apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
         apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
@@ -206,13 +208,13 @@ public class ApiMapper {
         repoApi.setLifecycleState(LifecycleState.STOPPED);
         repoApi.setVisibility(Visibility.PRIVATE);
 
-        repoApi.setVersion(newApiEntity.getApiVersion().trim());
         repoApi.setName(newApiEntity.getName().trim());
+        repoApi.setVersion(newApiEntity.getApiVersion().trim());
         repoApi.setDescription(newApiEntity.getDescription().trim());
 
-        repoApi.setDefinitionVersion(newApiEntity.getDefinitionVersion().getLabel());
+        repoApi.setDefinitionVersion(newApiEntity.getDefinitionVersion());
         repoApi.setDefinition(toApiDefinition(generatedApiId, newApiEntity));
-        repoApi.setType(newApiEntity.getType().getLabel());
+        repoApi.setType(newApiEntity.getType());
         repoApi.setGroups(newApiEntity.getGroups());
         return repoApi;
     }

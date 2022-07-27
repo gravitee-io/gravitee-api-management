@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.rest.api.service.common.SecurityContextHelper.authenticateAs;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -38,6 +39,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -64,17 +67,23 @@ public class ApiNotificationServiceImplTest {
 
         when(indexableApiMapper.toGenericApi(any(), any())).thenReturn(new ApiEntity());
         when(userService.findById(any(), any())).thenReturn(new UserEntity());
-
-        SecurityContextHolder
-            .getContext()
-            .setAuthentication(new TestingAuthenticationToken(new UserDetails("username", "password", Collections.emptyList()), null));
     }
 
     @Test
     public void shouldNotNotifyUpdateWhenUserNotAuthenticated() {
         Api api = new Api();
 
-        SecurityContextHolder.getContext().setAuthentication(null);
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(final Authentication authentication) {}
+            }
+        );
         apiNotificationService.triggerUpdateNotification(GraviteeContext.getExecutionContext(), api);
         verifyNoInteractions(notifierService);
     }
@@ -82,27 +91,55 @@ public class ApiNotificationServiceImplTest {
     @Test
     public void shouldNotNotifyDeprecatedWhenUserNotAuthenticated() {
         Api api = new Api();
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
 
-        SecurityContextHolder.getContext().setAuthentication(null);
+                @Override
+                public void setAuthentication(final Authentication authentication) {}
+            }
+        );
+
         apiNotificationService.triggerUpdateNotification(GraviteeContext.getExecutionContext(), api);
         verifyNoInteractions(notifierService);
     }
 
     @Test
     public void shouldNotifyUpdateEvent() {
-        apiNotificationService.triggerUpdateNotification(GraviteeContext.getExecutionContext(), new Api());
+        UserEntity user = new UserEntity();
+        user.setId("username");
+        authenticateAs(user);
+
+        Api api = new Api();
+        api.setId("id");
+        apiNotificationService.triggerUpdateNotification(GraviteeContext.getExecutionContext(), api);
         verify(notifierService).trigger(any(), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
     public void shouldNotifyUpdateEventWithIndexableApi() {
-        apiNotificationService.triggerUpdateNotification(GraviteeContext.getExecutionContext(), new ApiEntity());
+        UserEntity user = new UserEntity();
+        user.setId("username");
+        authenticateAs(user);
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("id");
+        apiNotificationService.triggerUpdateNotification(GraviteeContext.getExecutionContext(), apiEntity);
         verify(notifierService).trigger(any(), eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
     public void shouldNotifyDeprecatedEvent() {
-        apiNotificationService.triggerDeprecatedNotification(GraviteeContext.getExecutionContext(), new ApiEntity());
+        UserEntity user = new UserEntity();
+        user.setId("username");
+        authenticateAs(user);
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("id");
+        apiNotificationService.triggerDeprecatedNotification(GraviteeContext.getExecutionContext(), apiEntity);
         verify(notifierService).trigger(any(), eq(ApiHook.API_DEPRECATED), any(), any());
     }
 }
