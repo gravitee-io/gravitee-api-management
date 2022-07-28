@@ -16,9 +16,9 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.ApiKeyMode.SHARED;
-import static io.gravitee.rest.api.model.ApiKeyMode.UNSPECIFIED;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static io.gravitee.repository.management.model.Application.METADATA_REGISTRATION_PAYLOAD;
+import static io.gravitee.rest.api.model.ApiKeyMode.UNSPECIFIED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,28 +35,26 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.converter.ApplicationConverter;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
+import java.util.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
-import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -291,13 +289,13 @@ public class ApplicationService_UpdateTest {
 
         // client registration is disabled
         when(parameterService.findAsBoolean(eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
-                .thenReturn(false);
+            .thenReturn(false);
 
         applicationService.update(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                APPLICATION_ID,
-                updateApplication
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            APPLICATION_ID,
+            updateApplication
         );
     }
 
@@ -358,13 +356,13 @@ public class ApplicationService_UpdateTest {
 
         // client registration is enabled
         when(parameterService.findAsBoolean(eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
-                .thenReturn(true);
+            .thenReturn(true);
 
         applicationService.update(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment(),
-                APPLICATION_ID,
-                updateApplication
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            APPLICATION_ID,
+            updateApplication
         );
     }
 
@@ -413,6 +411,7 @@ public class ApplicationService_UpdateTest {
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
         clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
         when(clientRegistrationService.update(any(), same(updateApplication))).thenReturn(clientRegistrationResponse);
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
         applicationService.update(
             GraviteeContext.getCurrentOrganization(),
@@ -469,6 +468,7 @@ public class ApplicationService_UpdateTest {
 
         // DCR throws exception
         when(clientRegistrationService.update(any(), same(updateApplication))).thenThrow(RuntimeException.class);
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
         applicationService.update(
             GraviteeContext.getCurrentOrganization(),

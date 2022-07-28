@@ -477,7 +477,6 @@ public class ApiKeyServiceTest {
 
         PlanEntity plan = new PlanEntity();
         plan.setSecurity(PlanSecurityType.API_KEY);
-        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
 
         // Stub
         when(apiKeyGenerator.generate()).thenReturn(API_KEY);
@@ -591,7 +590,6 @@ public class ApiKeyServiceTest {
 
         PlanEntity plan = new PlanEntity();
         plan.setSecurity(PlanSecurityType.API_KEY);
-        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
 
         // Stub
         when(apiKeyGenerator.generate()).thenReturn(API_KEY);
@@ -676,20 +674,17 @@ public class ApiKeyServiceTest {
         subscription.setStatus(SubscriptionStatus.PAUSED);
         subscription.setEndingAt(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
         subscription.setApplication(APPLICATION_ID);
-        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
 
         PlanEntity plan = new PlanEntity();
         plan.setSecurity(PlanSecurityType.API_KEY);
         plan.setApi(API_ID);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
 
-        when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
         when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
         when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
         when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), subscription.getApplication())).thenReturn(application);
 
         final ApiModelEntity api = mock(ApiModelEntity.class);
-        when(apiService.findByIdForTemplates(any())).thenReturn(api);
 
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setPlan(PLAN_ID);

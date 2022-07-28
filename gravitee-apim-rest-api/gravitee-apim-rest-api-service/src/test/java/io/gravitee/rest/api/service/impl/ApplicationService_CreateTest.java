@@ -40,8 +40,8 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
-import io.gravitee.rest.api.service.converter.ApplicationConverter;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
+import io.gravitee.rest.api.service.converter.ApplicationConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import java.util.*;
@@ -296,6 +296,7 @@ public class ApplicationService_CreateTest {
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
         clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
         when(clientRegistrationService.register(any())).thenReturn(clientRegistrationResponse);
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
 
         applicationService.create(GraviteeContext.getCurrentEnvironment(), newApplication, USER_NAME);
 

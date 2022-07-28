@@ -889,12 +889,16 @@ public class SubscriptionServiceTest {
         subscription.setStatus(Subscription.Status.PENDING);
         subscription.setSubscribedBy(SUBSCRIBER_ID);
 
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setId(APPLICATION_ID);
+        when(applicationService.findById(ENVIRONMENT_ID, APPLICATION_ID)).thenReturn(applicationEntity);
+
         when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
 
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(apiKeyService.generate(SUBSCRIPTION_ID, customApiKey)).thenThrow(new ApiKeyAlreadyExistingException());
+        when(apiKeyService.generate(any(), any(), anyString())).thenThrow(new ApiKeyAlreadyExistingException());
 
         // Run
         final ApiKeyAlreadyExistingException exception = assertThrows(
@@ -903,7 +907,7 @@ public class SubscriptionServiceTest {
         );
 
         verify(subscriptionRepository, times(0)).update(any());
-        verifyNoInteractions(applicationService);
+        verify(applicationService).findById(ENVIRONMENT_ID, APPLICATION_ID);
         verify(planService).findById(PLAN_ID);
         assertEquals("API key already exists", exception.getMessage());
     }
