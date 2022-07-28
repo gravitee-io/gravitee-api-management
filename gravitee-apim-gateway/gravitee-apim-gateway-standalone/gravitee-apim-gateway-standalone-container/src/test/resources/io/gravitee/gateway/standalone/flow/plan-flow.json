@@ -20,6 +20,7 @@
       "id": "plan-1",
       "name": "Plan 1",
       "security": "key_less",
+      "status": "published",
       "flows": [
         {
           "name": "ALL",

@@ -70,6 +70,7 @@ public class ApiManagerTest {
     public void setUp() {
         apiManager = spy(new ApiManagerImpl());
         MockitoAnnotations.initMocks(this);
+        apiManager.afterPropertiesSet();
 
         apiManager.setApis(new StandaloneCache<>("api_manager_test", new CacheConfiguration()));
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
@@ -99,9 +100,9 @@ public class ApiManagerTest {
     @Test
     public void shouldDeployApiWithPlan() throws Exception {
         final Api api = buildTestApi();
-        final Plan mockedPlan = mock(Plan.class);
+        final Plan mockedPlan = buildMockPlan();
 
-        api.setPlans(singletonList(mockedPlan));
+        api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
 
@@ -117,10 +118,10 @@ public class ApiManagerTest {
     @Test
     public void shouldDeployApiWithTagOnGatewayWithoutTag() throws Exception {
         final Api api = buildTestApi();
-        final Plan mockedPlan = mock(Plan.class);
+        final Plan mockedPlan = buildMockPlan();
 
-        api.setPlans(singletonList(mockedPlan));
-        api.setTags(new HashSet<>(singletonList("test")));
+        api.getDefinition().setPlans(singletonList(mockedPlan));
+        api.getDefinition().setTags(new HashSet<>(singletonList("test")));
 
         apiManager.register(api);
 
@@ -132,8 +133,8 @@ public class ApiManagerTest {
         final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
-        api.setPlans(singletonList(mockedPlan));
-        api.setTags(new HashSet<>(Arrays.asList("product", "international")));
+        api.getDefinition().setPlans(singletonList(mockedPlan));
+        api.getDefinition().setTags(new HashSet<>(Arrays.asList("product", "international")));
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("product", "!international")));
 
@@ -147,7 +148,7 @@ public class ApiManagerTest {
         final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
-        api.setPlans(singletonList(mockedPlan));
+        api.getDefinition().setPlans(singletonList(mockedPlan));
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("product")));
 
@@ -158,10 +159,10 @@ public class ApiManagerTest {
 
     private void shouldDeployApiWithTags(final String tags, final String[] apiTags) throws Exception {
         final Api api = buildTestApi();
-        final Plan mockedPlan = mock(Plan.class);
+        final Plan mockedPlan = buildMockPlan();
 
-        api.setPlans(singletonList(mockedPlan));
-        api.setTags(new HashSet<>(Arrays.asList(apiTags)));
+        api.getDefinition().setPlans(singletonList(mockedPlan));
+        api.getDefinition().setTags(new HashSet<>(Arrays.asList(apiTags)));
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList(tags.split(","))));
 
@@ -173,11 +174,11 @@ public class ApiManagerTest {
     @Test
     public void shouldDeployApiWithPlanMatchingTag() throws Exception {
         final Api api = buildTestApi();
-        api.setTags(new HashSet<>(singletonList("test")));
+        api.getDefinition().setTags(new HashSet<>(singletonList("test")));
 
-        final Plan mockedPlan = mock(Plan.class);
+        final Plan mockedPlan = buildMockPlan();
         when(mockedPlan.getTags()).thenReturn(new HashSet<>(singletonList("test")));
-        api.setPlans(singletonList(mockedPlan));
+        api.getDefinition().setPlans(singletonList(mockedPlan));
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
 
@@ -189,11 +190,11 @@ public class ApiManagerTest {
     @Test
     public void shouldNotDeployApiWithoutPlanMatchingTag() throws Exception {
         final Api api = buildTestApi();
-        api.setTags(new HashSet<>(singletonList("test")));
+        api.getDefinition().setTags(new HashSet<>(singletonList("test")));
 
         final Plan mockedPlan = mock(Plan.class);
         when(mockedPlan.getTags()).thenReturn(new HashSet<>(singletonList("test2")));
-        api.setPlans(singletonList(mockedPlan));
+        api.getDefinition().setPlans(singletonList(mockedPlan));
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
 
@@ -250,9 +251,9 @@ public class ApiManagerTest {
     @Test
     public void shouldUpdateApi() throws Exception {
         final Api api = buildTestApi();
-        final Plan mockedPlan = mock(Plan.class);
+        final Plan mockedPlan = buildMockPlan();
 
-        api.setPlans(singletonList(mockedPlan));
+        api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
 
@@ -261,19 +262,19 @@ public class ApiManagerTest {
         final Api api2 = buildTestApi();
         Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
         api2.setDeployedAt(Date.from(deployDateInst));
-        api2.setPlans(singletonList(mockedPlan));
+        api2.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api2);
 
-        verify(eventManager).publishEvent(ReactorEvent.UPDATE, api);
+        verify(eventManager).publishEvent(ReactorEvent.UPDATE, api2);
     }
 
     @Test
     public void shouldNotUpdateApi() throws Exception {
         final Api api = buildTestApi();
-        final Plan mockedPlan = mock(Plan.class);
+        final Plan mockedPlan = buildMockPlan();
 
-        api.setPlans(singletonList(mockedPlan));
+        api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
 
@@ -291,18 +292,20 @@ public class ApiManagerTest {
     @Test
     public void shouldUndeployApi_noMoreMatchingTag() throws Exception {
         final Api api = buildTestApi();
-        final Plan mockedPlan = mock(Plan.class);
+        final Plan mockedPlan = buildMockPlan();
 
-        api.setPlans(singletonList(mockedPlan));
-        api.setTags(new HashSet<>(singletonList("test")));
+        api.getDefinition().setPlans(singletonList(mockedPlan));
+        api.getDefinition().setTags(new HashSet<>(singletonList("test")));
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
 
         apiManager.register(api);
 
+        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+
         final Api api2 = buildTestApi();
         api2.setDeployedAt(new Date());
-        api2.setTags(new HashSet<>(singletonList("other-tag")));
+        api2.getDefinition().setTags(new HashSet<>(singletonList("other-tag")));
 
         apiManager.register(api2);
 
@@ -310,12 +313,19 @@ public class ApiManagerTest {
         verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
     }
 
+    private Plan buildMockPlan() {
+        Plan plan = mock(Plan.class);
+        when(plan.getStatus()).thenReturn("published");
+
+        return plan;
+    }
+
     @Test
     public void shouldUndeployApi() throws Exception {
         final Api api = buildTestApi();
-        final Plan mockedPlan = mock(Plan.class);
+        final Plan mockedPlan = buildMockPlan();
 
-        api.setPlans(singletonList(mockedPlan));
+        api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
 
@@ -329,9 +339,9 @@ public class ApiManagerTest {
     @Test
     public void shouldNotUndeployUnknownApi() throws Exception {
         final Api api = buildTestApi();
-        final Plan mockedPlan = mock(Plan.class);
+        final Plan mockedPlan = buildMockPlan();
 
-        api.setPlans(singletonList(mockedPlan));
+        api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
 
@@ -345,9 +355,9 @@ public class ApiManagerTest {
     @Test
     public void shouldUndeployApi_noMorePlan() throws Exception {
         final Api api = buildTestApi();
-        final Plan mockedPlan = mock(Plan.class);
+        final Plan mockedPlan = buildMockPlan();
 
-        api.setPlans(singletonList(mockedPlan));
+        api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
 
@@ -355,7 +365,7 @@ public class ApiManagerTest {
 
         final Api api2 = buildTestApi();
         api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
-        api2.setPlans(Collections.<Plan>emptyList());
+        api2.getDefinition().setPlans(Collections.<Plan>emptyList());
 
         apiManager.register(api2);
 
@@ -375,7 +385,7 @@ public class ApiManagerTest {
                 new Property("key3", "value3Base64encrypted", true)
             )
         );
-        api.setProperties(properties);
+        api.getDefinition().setProperties(properties);
 
         when(dataEncryptor.decrypt("value2Base64encrypted")).thenReturn("plain value 2");
         when(dataEncryptor.decrypt("value3Base64encrypted")).thenReturn("plain value 3");
@@ -383,13 +393,16 @@ public class ApiManagerTest {
         apiManager.register(api);
 
         verify(dataEncryptor, times(2)).decrypt(any());
-        assertEquals(Map.of("key1", "plain value 1", "key2", "plain value 2", "key3", "plain value 3"), api.getProperties().getValues());
+        assertEquals(
+            Map.of("key1", "plain value 1", "key2", "plain value 2", "key3", "plain value 3"),
+            api.getDefinition().getProperties().getValues()
+        );
     }
 
     @Test
     public void shouldPublishEventWhenADDEDEventIsSent() {
         final Api api = buildTestApi();
-        api.setPlans(List.of(new Plan()));
+        api.getDefinition().setPlans(Collections.singletonList(buildMockPlan()));
         when(clusterManager.isMasterNode()).thenReturn(false);
 
         apiManager.onEvent(new EntryEvent<>(new Object(), EntryEventType.ADDED, api.getId(), null, api));
@@ -400,7 +413,7 @@ public class ApiManagerTest {
     @Test
     public void shouldPublishEventWhenUPDATEDEventIsSent() {
         final Api api = buildTestApi();
-        api.setPlans(List.of(new Plan()));
+        api.getDefinition().setPlans(List.of(buildMockPlan()));
         when(clusterManager.isMasterNode()).thenReturn(false);
 
         apiManager.onEvent(new EntryEvent<>(new Object(), EntryEventType.UPDATED, api.getId(), null, api));
@@ -411,7 +424,7 @@ public class ApiManagerTest {
     @Test
     public void shouldPublishEventWhenEXPIREDEventIsSent() {
         final Api api = buildTestApi();
-        api.setPlans(List.of(new Plan()));
+        api.getDefinition().setPlans(List.of(buildMockPlan()));
         when(clusterManager.isMasterNode()).thenReturn(false);
 
         apiManager.onEvent(new EntryEvent<>(new Object(), EntryEventType.ADDED, api.getId(), null, api));
@@ -426,12 +439,13 @@ public class ApiManagerTest {
     }
 
     private Api mockApi(final io.gravitee.repository.management.model.Api api, final String[] tags) throws Exception {
-        final Api mockApi = new Api();
-        mockApi.setId(api.getId());
-        mockApi.setName(api.getName());
-        mockApi.setTags(new HashSet<>(Arrays.asList(tags)));
-        when(objectMapper.readValue(api.getDefinition(), Api.class)).thenReturn(mockApi);
-        return mockApi;
+        final io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        final Api api2 = new Api(definition);
+        definition.setId(api.getId());
+        definition.setName(api.getName());
+        definition.setTags(new HashSet<>(Arrays.asList(tags)));
+        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(definition);
+        return api2;
     }
 
     private Api buildTestApi() {
@@ -442,20 +456,21 @@ public class ApiManagerTest {
 
     class ApiBuilder {
 
-        private final Api api = new Api();
+        private final io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        private final Api api = new Api(definition);
 
         public ApiBuilder id(String id) {
-            this.api.setId(id);
+            this.definition.setId(id);
             return this;
         }
 
         public ApiBuilder name(String name) {
-            this.api.setName(name);
+            this.definition.setName(name);
             return this;
         }
 
         public ApiBuilder proxy(Proxy proxy) {
-            this.api.setProxy(proxy);
+            this.definition.setProxy(proxy);
             return this;
         }
 

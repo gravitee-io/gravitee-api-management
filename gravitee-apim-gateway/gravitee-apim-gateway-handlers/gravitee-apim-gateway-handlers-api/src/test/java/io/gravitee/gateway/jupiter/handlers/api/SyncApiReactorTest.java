@@ -19,8 +19,15 @@ import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
 import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INVOKER;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.component.Lifecycle;
@@ -209,8 +216,9 @@ class SyncApiReactorTest {
     @BeforeEach
     void init() {
         LoggingUtilsMockedStatic = mockStatic(LoggingUtils.class);
-        LoggingUtilsMockedStatic.when(() -> LoggingUtils.getLoggingContext(api)).thenReturn(null);
+        LoggingUtilsMockedStatic.when(() -> LoggingUtils.getLoggingContext(api.getDefinition())).thenReturn(null);
 
+        lenient().when(api.getDefinition()).thenReturn(mock(io.gravitee.definition.model.Api.class));
         when(flowChainFactory.createPlatformFlow(api)).thenReturn(platformFlowChain);
         when(flowChainFactory.createPlanFlow(api)).thenReturn(apiPlanFlowChain);
         when(flowChainFactory.createApiFlow(api)).thenReturn(apiFlowChain);
@@ -297,7 +305,7 @@ class SyncApiReactorTest {
 
     @Test
     void shouldStartWithLoggingContext() throws Exception {
-        LoggingUtilsMockedStatic.when(() -> LoggingUtils.getLoggingContext(api)).thenReturn(loggingContext);
+        LoggingUtilsMockedStatic.when(() -> LoggingUtils.getLoggingContext(api.getDefinition())).thenReturn(loggingContext);
 
         cut.doStart();
 

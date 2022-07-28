@@ -109,7 +109,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
 
     private Api loadDefinition(File apiDefinitionFile) throws IOException {
         Api api = new GraviteeMapper().readValue(apiDefinitionFile, Api.class);
-        api.setId(IdGenerator.generate(api.getName()));
+        api.getDefinition().setId(IdGenerator.generate(api.getName()));
 
         return api;
     }

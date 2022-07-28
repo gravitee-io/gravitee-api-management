@@ -106,7 +106,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
                                 .setMethod(HttpMethod.valueOf(debugApiRequest.getMethod()))
                                 .setHeaders(buildHeaders(debugApi, debugApiRequest))
                                 // TODO: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
-                                .setURI(debugApi.getProxy().getVirtualHosts().get(0).getPath() + debugApiRequest.getPath())
+                                .setURI(debugApi.getDefinition().getProxy().getVirtualHosts().get(0).getPath() + debugApiRequest.getPath())
                                 .setTimeout(debugHttpClientConfiguration.getRequestTimeout())
                         )
                         .map(
@@ -199,8 +199,8 @@ public class DebugReactorEventListener extends ReactorEventListener {
     private MultiMap buildHeaders(DebugApi debugApi, HttpRequest req) {
         final HeadersMultiMap headers = new HeadersMultiMap();
         // If API is configured in virtual hosts mode, we force the Host header
-        if (debugApi.getProxy().getVirtualHosts().size() > 1) {
-            String host = debugApi.getProxy().getVirtualHosts().get(0).getHost();
+        if (debugApi.getDefinition().getProxy().getVirtualHosts().size() > 1) {
+            String host = debugApi.getDefinition().getProxy().getVirtualHosts().get(0).getHost();
             if (host != null) {
                 // TODO: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
                 headers.add(HttpHeaderNames.HOST, host);

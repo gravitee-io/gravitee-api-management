@@ -26,11 +26,9 @@ import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderCh
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorSupplier;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.policy.PolicyManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
-import org.springframework.beans.factory.InitializingBean;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

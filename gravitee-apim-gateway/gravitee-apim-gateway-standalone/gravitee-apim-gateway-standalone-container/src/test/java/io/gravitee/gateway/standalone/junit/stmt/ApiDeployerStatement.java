@@ -17,10 +17,7 @@ package io.gravitee.gateway.standalone.junit.stmt;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.*;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.standalone.ApiLoaderInterceptor;
@@ -137,6 +134,14 @@ public class ApiDeployerStatement extends Statement {
         ApiManager apiManager = applicationContext.getBean(ApiManager.class);
         Api api = loadApi(target.getClass().getAnnotation(ApiDescriptor.class).value());
 
+        if (api.getPlans() == null || api.getPlans().isEmpty()) {
+            Plan defaultPlan = new Plan();
+            defaultPlan.setSecurity("key_less");
+            defaultPlan.setStatus("published");
+
+            api.setPlans(Collections.singletonList(defaultPlan));
+        }
+
         try {
             final io.gravitee.gateway.handlers.api.definition.Api apiToRegister = new io.gravitee.gateway.handlers.api.definition.Api(api);
 
@@ -152,16 +157,16 @@ public class ApiDeployerStatement extends Statement {
                 if (jupiterDefault != null) {
                     if (jupiterDefault.equalsIgnoreCase("always")) {
                         // Force the execution mode to JUPITER as required by the environment variable.
-                        apiToRegister.setExecutionMode(ExecutionMode.JUPITER);
+                        apiToRegister.getDefinition().setExecutionMode(ExecutionMode.JUPITER);
                     } else if (jupiterDefault.equalsIgnoreCase("never")) {
                         // Switch back the execution mode to V3 as required by the environment variable.
-                        apiToRegister.setExecutionMode(ExecutionMode.V3);
+                        apiToRegister.getDefinition().setExecutionMode(ExecutionMode.V3);
                     }
                 }
             }
             apiToRegister.setDeployedAt(new Date());
             apiManager.register(apiToRegister);
-            api.setExecutionMode(apiToRegister.getExecutionMode());
+            api.setExecutionMode(apiToRegister.getDefinition().getExecutionMode());
             base.evaluate();
         } catch (Exception e) {
             logger.error("An error occurred", e);

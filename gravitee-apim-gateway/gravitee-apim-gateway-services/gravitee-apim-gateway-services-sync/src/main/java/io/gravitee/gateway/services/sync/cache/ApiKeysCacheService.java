@@ -20,9 +20,8 @@ import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.service.ApiKeyService;
-import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.services.sync.cache.handler.ApiKeysServiceHandler;
@@ -208,14 +207,14 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     public void onEvent(Event<ReactorEvent, Reactable> event) {
         switch (event.type()) {
             case DEPLOY:
-                register((Api) event.content());
+                register((ReactableApi<?>) event.content());
                 break;
             case UNDEPLOY:
-                unregister((Api) event.content());
+                unregister((ReactableApi<?>) event.content());
                 break;
             case UPDATE:
-                unregister((Api) event.content());
-                register((Api) event.content());
+                unregister((ReactableApi<?>) event.content());
+                register((ReactableApi<?>) event.content());
                 break;
             default:
                 // Nothing to do with unknown event type
@@ -223,34 +222,18 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
         }
     }
 
-    public void register(Api api) {
+    public void register(ReactableApi<?> api) {
         register(Collections.singletonList(api));
     }
 
-    public void register(List<Api> apis) {
-        final Map<String, Api> apisById = apis.stream().collect(Collectors.toMap(io.gravitee.definition.model.Api::getId, api -> api));
+    public void register(List<ReactableApi<?>> apis) {
+        final Map<String, ReactableApi<?>> apisById = apis.stream().collect(Collectors.toMap(ReactableApi::getId, api -> api));
 
         // Filters plans to update api_keys only for them
         final Map<String, Set<String>> plansByApi = apis
             .stream()
-            .filter(Api::isEnabled)
-            .map(
-                api ->
-                    new AbstractMap.SimpleEntry<>(
-                        api.getId(),
-                        api
-                            .getPlans()
-                            .stream()
-                            .filter(
-                                plan ->
-                                    io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY
-                                        .name()
-                                        .equalsIgnoreCase(plan.getSecurity())
-                            )
-                            .map(Plan::getId)
-                            .collect(Collectors.toSet())
-                    )
-            )
+            .filter(ReactableApi::isEnabled)
+            .map(api -> new AbstractMap.SimpleEntry<>(api.getId(), api.getApiKeyPlans()))
             // Remove if no plan.
             .filter(e -> !e.getValue().isEmpty())
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -297,7 +280,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
         }
     }
 
-    private void unregister(Api api) {
+    private void unregister(ReactableApi<?> api) {
         plansPerApi.remove(api.getId());
     }
 }

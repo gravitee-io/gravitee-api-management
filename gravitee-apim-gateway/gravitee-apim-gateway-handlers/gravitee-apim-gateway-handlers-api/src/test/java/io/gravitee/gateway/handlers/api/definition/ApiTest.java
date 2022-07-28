@@ -31,11 +31,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ApiTest {
 
     @Test
-    public void shoudFilterDisabledFlowPreStep() {
-        Api api = new Api();
+    public void shouldFilterDisabledFlowPreStep() {
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        Api api = new Api(definition);
         Flow flow = new Flow();
         flow.setPre(aStepList());
-        api.setFlows(List.of(flow));
+        definition.setFlows(List.of(flow));
 
         Set<Policy> result = api.dependencies(Policy.class);
 
@@ -43,11 +44,12 @@ public class ApiTest {
     }
 
     @Test
-    public void shoudFilterDisabledFlowPostStep() {
-        Api api = new Api();
+    public void shouldFilterDisabledFlowPostStep() {
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        Api api = new Api(definition);
         Flow flow = new Flow();
         flow.setPost(aStepList());
-        api.setFlows(List.of(flow));
+        definition.setFlows(List.of(flow));
 
         Set<Policy> result = api.dependencies(Policy.class);
 
@@ -55,12 +57,13 @@ public class ApiTest {
     }
 
     @Test
-    public void shoudFilterDisabledPlanFlowPreStep() {
-        Api api = new Api();
+    public void shouldFilterDisabledPlanFlowPreStep() {
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        Api api = new Api(definition);
         Flow flow = new Flow();
         flow.setPre(aStepList());
         Plan plan = aPlan(List.of(flow));
-        api.setPlans(List.of(plan));
+        definition.setPlans(List.of(plan));
 
         Set<Policy> result = api.dependencies(Policy.class);
 
@@ -68,12 +71,13 @@ public class ApiTest {
     }
 
     @Test
-    public void shoudFilterDisabledPlanFlowPostStep() {
-        Api api = new Api();
+    public void shouldFilterDisabledPlanFlowPostStep() {
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        Api api = new Api(definition);
         Flow flow = new Flow();
         flow.setPost(aStepList());
         Plan plan = aPlan(List.of(flow));
-        api.setPlans(List.of(plan));
+        definition.setPlans(List.of(plan));
 
         Set<Policy> result = api.dependencies(Policy.class);
 
@@ -82,8 +86,9 @@ public class ApiTest {
 
     @Test
     public void shouldFilterDisabledFlows() {
-        Api api = new Api();
-        api.setFlows(aFlowList());
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        Api api = new Api(definition);
+        definition.setFlows(aFlowList());
 
         Set<Policy> result = api.dependencies(Policy.class);
 
@@ -92,9 +97,10 @@ public class ApiTest {
 
     @Test
     public void shouldFilterDisabledPlanFlows() {
-        Api api = new Api();
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        Api api = new Api(definition);
         Plan plan = aPlan(aFlowList());
-        api.setPlans(List.of(plan));
+        definition.setPlans(List.of(plan));
 
         Set<Policy> result = api.dependencies(Policy.class);
 

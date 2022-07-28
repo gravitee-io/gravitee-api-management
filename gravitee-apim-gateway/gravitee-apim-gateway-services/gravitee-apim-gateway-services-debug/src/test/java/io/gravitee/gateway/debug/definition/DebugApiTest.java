@@ -34,8 +34,8 @@ public class DebugApiTest {
 
         final DebugApi result = new DebugApi(EVENT_ID, debugApi);
 
-        assertThat(result.getProxy().getVirtualHosts()).hasSize(3);
-        assertThat(result.getProxy().getVirtualHosts())
+        assertThat(result.getDefinition().getProxy().getVirtualHosts()).hasSize(3);
+        assertThat(result.getDefinition().getProxy().getVirtualHosts())
             .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path1"))
             .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path2"))
             .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path3"));

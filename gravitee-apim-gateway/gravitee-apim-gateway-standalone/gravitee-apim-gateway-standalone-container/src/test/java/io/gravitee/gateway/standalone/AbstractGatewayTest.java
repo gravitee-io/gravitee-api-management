@@ -82,6 +82,7 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiLoaderIn
         plan.setId("default_plan");
         plan.setName("Default plan");
         plan.setSecurity("key_less");
+        plan.setStatus("published");
 
         api.setPlans(Collections.singletonList(plan));
     }

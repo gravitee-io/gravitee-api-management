@@ -19,7 +19,7 @@ import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_FLOW_STAGE;
 import static io.reactivex.Completable.defer;
 
-import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;

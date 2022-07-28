@@ -92,11 +92,15 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         addAll(policyChainProviderLoader.get(PolicyChainOrder.BEFORE_API, StreamType.ON_REQUEST));
 
         StreamableProcessorSupplier<ExecutionContext, Buffer> loggingDecoratorSupplier = null;
-        if (api.getProxy().getLogging() != null && api.getProxy().getLogging().getMode() != LoggingMode.NONE) {
+        if (
+            api.getDefinition().getProxy().getLogging() != null && api.getDefinition().getProxy().getLogging().getMode() != LoggingMode.NONE
+        ) {
             loggingDecoratorSupplier =
                 new StreamableProcessorSupplier<>(
                     () -> {
-                        ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getProxy().getLogging());
+                        ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(
+                            api.getDefinition().getProxy().getLogging()
+                        );
                         processor.setMaxSizeLogMessage(requestProcessorChainFactoryOptions.getMaxSizeLogMessage());
                         processor.setExcludedResponseTypes(requestProcessorChainFactoryOptions.getExcludedResponseTypes());
 
@@ -107,8 +111,8 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             add(loggingDecoratorSupplier);
         }
 
-        if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
-            add(() -> new CorsPreflightRequestProcessor(api.getProxy().getCors()));
+        if (api.getDefinition().getProxy().getCors() != null && api.getDefinition().getProxy().getCors().isEnabled()) {
+            add(() -> new CorsPreflightRequestProcessor(api.getDefinition().getProxy().getCors()));
         }
 
         // Prepare security policy chain
@@ -129,15 +133,15 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         }
 
         if (api.getDefinitionVersion() == DefinitionVersion.V1) {
-            add(() -> new PathParametersIndexProcessor(new ApiPathResolverImpl(api)));
+            add(() -> new PathParametersIndexProcessor(new ApiPathResolverImpl(api.getDefinition())));
             add(new PlanPolicyChainProvider(StreamType.ON_REQUEST, new PlanPolicyResolver(api), policyChainFactory));
             add(new ApiPolicyChainProvider(StreamType.ON_REQUEST, new ApiPolicyResolver(), policyChainFactory));
         } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
-            if (api.getFlowMode() == null || api.getFlowMode() == FlowMode.DEFAULT) {
+            if (api.getDefinition().getFlowMode() == null || api.getDefinition().getFlowMode() == FlowMode.DEFAULT) {
                 add(
                     new PlanFlowPolicyChainProvider(
                         StreamType.ON_REQUEST,
-                        new PlanFlowResolver(api, evaluator),
+                        new PlanFlowResolver(api.getDefinition(), evaluator),
                         policyChainFactory,
                         flowPolicyResolverFactory
                     )
@@ -145,7 +149,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                 add(
                     new SimpleFlowPolicyChainProvider(
                         StreamType.ON_REQUEST,
-                        new ApiFlowResolver(api, evaluator),
+                        new ApiFlowResolver(api.getDefinition(), evaluator),
                         policyChainFactory,
                         flowPolicyResolverFactory
                     )
@@ -154,7 +158,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                 add(
                     new PlanFlowPolicyChainProvider(
                         StreamType.ON_REQUEST,
-                        new BestMatchFlowResolver(new PlanFlowResolver(api, evaluator)),
+                        new BestMatchFlowResolver(new PlanFlowResolver(api.getDefinition(), evaluator)),
                         policyChainFactory,
                         flowPolicyResolverFactory
                     )
@@ -162,7 +166,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                 add(
                     new SimpleFlowPolicyChainProvider(
                         StreamType.ON_REQUEST,
-                        new BestMatchFlowResolver(new ApiFlowResolver(api, evaluator)),
+                        new BestMatchFlowResolver(new ApiFlowResolver(api.getDefinition(), evaluator)),
                         policyChainFactory,
                         flowPolicyResolverFactory
                     )

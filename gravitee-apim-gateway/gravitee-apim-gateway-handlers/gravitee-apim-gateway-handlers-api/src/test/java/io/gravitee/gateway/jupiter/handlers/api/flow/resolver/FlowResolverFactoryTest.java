@@ -55,8 +55,9 @@ class FlowResolverFactoryTest {
 
     @Test
     void shouldCreateApiFlowResolver() {
-        final Api api = new Api();
-        api.setFlowMode(FlowMode.DEFAULT);
+        final io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        final Api api = new Api(definition);
+        definition.setFlowMode(FlowMode.DEFAULT);
 
         final FlowResolver flowResolver = cut.forApi(api);
 
@@ -66,8 +67,9 @@ class FlowResolverFactoryTest {
 
     @Test
     void shouldCreateBestMatchApiFlowResolver() {
-        final Api api = new Api();
-        api.setFlowMode(FlowMode.BEST_MATCH);
+        final io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        final Api api = new Api(definition);
+        definition.setFlowMode(FlowMode.BEST_MATCH);
 
         final FlowResolver flowResolver = cut.forApi(api);
 
@@ -77,8 +79,9 @@ class FlowResolverFactoryTest {
 
     @Test
     void shouldCreateApiPlanFlowResolver() {
-        final Api api = new Api();
-        api.setFlowMode(FlowMode.DEFAULT);
+        final io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        final Api api = new Api(definition);
+        definition.setFlowMode(FlowMode.DEFAULT);
 
         final FlowResolver flowResolver = cut.forApiPlan(api);
 
@@ -88,8 +91,9 @@ class FlowResolverFactoryTest {
 
     @Test
     void shouldCreateBestMatchApiPlanFlowResolver() {
-        final Api api = new Api();
-        api.setFlowMode(FlowMode.BEST_MATCH);
+        final io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        final Api api = new Api(definition);
+        definition.setFlowMode(FlowMode.BEST_MATCH);
 
         final FlowResolver flowResolver = cut.forApiPlan(api);
 

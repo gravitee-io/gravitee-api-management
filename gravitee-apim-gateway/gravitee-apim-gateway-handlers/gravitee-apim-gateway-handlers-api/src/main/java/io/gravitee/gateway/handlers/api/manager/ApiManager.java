@@ -15,11 +15,11 @@
  */
 package io.gravitee.gateway.handlers.api.manager;
 
-import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import java.util.Collection;
 
 /**
- * This manager interface acts as a bridge between the source of {@link Api} (*.json files in case of
+ * This manager interface acts as a bridge between the source of {@link ReactableApi} (*.json files in case of
  * local registry and sync scheduler when using the sync mode) and the {@link io.gravitee.gateway.reactor.Reactor}.
  * This means that all actions handled by the reactor must be done by using this manager and not directly by emitting
  * internal event.
@@ -34,22 +34,22 @@ public interface ApiManager {
      * @param api
      * @return
      */
-    boolean register(Api api);
+    boolean register(ReactableApi<?> api);
 
     void unregister(String apiId);
 
     void refresh();
 
     /**
-     * Returns a collection of deployed {@link Api}s.
-     * @return A collection of deployed  {@link Api}s.
+     * Returns a collection of deployed {@link ReactableApi}s.
+     * @return A collection of deployed  {@link ReactableApi}s.
      */
-    Collection<Api> apis();
+    Collection<ReactableApi<?>> apis();
 
     /**
-     * Retrieve a deployed {@link Api} using its ID.
+     * Retrieve a deployed {@link ReactableApi} using its ID.
      * @param apiId The ID of the deployed API.
-     * @return A deployed {@link Api}
+     * @return A deployed {@link ReactableApi}
      */
-    Api get(String apiId);
+    ReactableApi<?> get(String apiId);
 }

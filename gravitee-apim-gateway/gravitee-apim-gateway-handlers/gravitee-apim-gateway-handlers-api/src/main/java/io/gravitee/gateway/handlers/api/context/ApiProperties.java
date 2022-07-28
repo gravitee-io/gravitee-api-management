@@ -38,10 +38,10 @@ class ApiProperties {
     }
 
     public String getVersion() {
-        return this.api.getVersion();
+        return this.api.getApiVersion();
     }
 
     public io.gravitee.definition.model.Properties getProperties() {
-        return this.api.getProperties();
+        return this.api.getDefinition().getProperties();
     }
 }

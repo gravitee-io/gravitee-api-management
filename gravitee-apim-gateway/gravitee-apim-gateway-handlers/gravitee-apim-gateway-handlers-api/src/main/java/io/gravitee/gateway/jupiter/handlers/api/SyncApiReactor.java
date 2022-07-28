@@ -368,14 +368,14 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         dumpVirtualHosts();
 
         // Create securityChain once policy manager has been started.
-        this.securityChain = new SecurityChain(api, policyManager);
+        this.securityChain = new SecurityChain(api.getDefinition(), policyManager);
         if (tracingEnabled) {
             processorChainHooks.add(new TracingHook("processor-chain"));
             invokerHooks.add(new TracingHook("invoker"));
             securityChain.addHooks(new TracingHook("security-plan"));
         }
 
-        this.loggingContext = LoggingUtils.getLoggingContext(api);
+        this.loggingContext = LoggingUtils.getLoggingContext(api.getDefinition());
         if (loggingContext != null) {
             invokerHooks.add(new LoggingHook());
         }
@@ -415,7 +415,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     @Override
     public String toString() {
-        return "SyncApiReactor API id[" + api.getId() + "] name[" + api.getName() + "] version[" + api.getVersion() + ']';
+        return "SyncApiReactor API id[" + api.getId() + "] name[" + api.getName() + "] version[" + api.getApiVersion() + ']';
     }
 
     @Override

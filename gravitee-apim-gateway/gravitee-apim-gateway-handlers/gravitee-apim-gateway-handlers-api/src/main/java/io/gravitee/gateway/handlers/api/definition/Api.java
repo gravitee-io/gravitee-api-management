@@ -15,99 +15,33 @@
  */
 package io.gravitee.gateway.handlers.api.definition;
 
+import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.ORIGIN_KUBERNETES;
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.*;
+
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
-import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.Entrypoint;
 import io.gravitee.gateway.reactor.handler.VirtualHost;
-import java.io.Serializable;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Api extends io.gravitee.definition.model.Api implements Reactable, Serializable {
+public class Api extends ReactableApi<io.gravitee.definition.model.Api> {
 
-    private boolean enabled = true;
-    private Date deployedAt;
-
-    private String environmentId;
-    private String environmentHrid;
-    private String organizationId;
-    private String organizationHrid;
-
-    public Api() {}
-
-    public Api(final io.gravitee.definition.model.Api definition) {
-        this.setId(definition.getId());
-        this.setName(definition.getName());
-        this.setPathMappings(definition.getPathMappings());
-        this.setPaths(definition.getPaths());
-        this.setProperties(definition.getProperties());
-        this.setProxy(definition.getProxy());
-        this.setPathMappings(definition.getPathMappings());
-        this.setResponseTemplates(definition.getResponseTemplates());
-        this.setResources(definition.getResources());
-        this.setServices(definition.getServices());
-        this.setTags(definition.getTags());
-        this.setVersion(definition.getVersion());
-        this.setPlans(definition.getPlans());
-        this.setDefinitionVersion(definition.getDefinitionVersion());
-        this.setFlows(definition.getFlows());
-        this.setFlowMode(definition.getFlowMode());
-        this.setExecutionMode(definition.getExecutionMode());
-    }
-
-    public Api(final Api definition) {
-        this.setId(definition.getId());
-        this.setName(definition.getName());
-        this.setPathMappings(definition.getPathMappings());
-        this.setPaths(definition.getPaths());
-        this.setProperties(definition.getProperties());
-        this.setProxy(definition.getProxy());
-        this.setPathMappings(definition.getPathMappings());
-        this.setResponseTemplates(definition.getResponseTemplates());
-        this.setResources(definition.getResources());
-        this.setServices(definition.getServices());
-        this.setTags(definition.getTags());
-        this.setVersion(definition.getVersion());
-        this.setPlans(definition.getPlans());
-        this.setDefinitionVersion(definition.getDefinitionVersion());
-        this.setFlows(definition.getFlows());
-        this.setFlowMode(definition.getFlowMode());
-        this.setEnvironmentId(definition.getEnvironmentId());
-        this.setEnvironmentHrid(definition.getEnvironmentHrid());
-        this.setOrganizationId(definition.getOrganizationId());
-        this.setOrganizationHrid(definition.getOrganizationHrid());
-        this.setExecutionMode(definition.getExecutionMode());
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public Date getDeployedAt() {
-        return deployedAt;
-    }
-
-    public void setDeployedAt(Date deployedAt) {
-        this.deployedAt = deployedAt;
-    }
-
-    @Override
-    public boolean enabled() {
-        return isEnabled();
+    public Api(io.gravitee.definition.model.Api api) {
+        super(api);
     }
 
     @Override
@@ -115,23 +49,35 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
         if (Policy.class.equals(type)) {
             return (Set<D>) policies();
         } else if (Resource.class.equals(type)) {
-            return (Set<D>) new HashSet<>(getResources());
+            return (Set<D>) new HashSet<>(definition.getResources());
         }
 
         return Collections.emptySet();
     }
 
+    @Override
+    public String getApiVersion() {
+        return definition.getVersion();
+    }
+
+    @Override
+    public DefinitionVersion getDefinitionVersion() {
+        return definition.getDefinitionVersion();
+    }
+
     private Set<Policy> policies() {
         Set<io.gravitee.definition.model.Policy> policies = new HashSet<>();
         // Load policies from the API
-        if (getPaths() != null) {
-            getPaths()
+        if (definition.getPaths() != null) {
+            definition
+                .getPaths()
                 .values()
                 .forEach(rules -> policies.addAll(rules.stream().filter(Rule::isEnabled).map(Rule::getPolicy).collect(Collectors.toSet())));
         }
 
         // Load policies from Plans
-        getPlans()
+        definition
+            .getPlans()
             .forEach(
                 plan -> {
                     String security = plan.getSecurity();
@@ -167,8 +113,9 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
             );
 
         // Load policies from flows
-        if (getFlows() != null) {
-            getFlows()
+        if (definition.getFlows() != null) {
+            definition
+                .getFlows()
                 .stream()
                 .filter(Flow::isEnabled)
                 .forEach(
@@ -203,6 +150,46 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
         return secPolicy;
     }
 
+    @Override
+    public Set<String> getTags() {
+        return definition.getTags();
+    }
+
+    @Override
+    public String getId() {
+        return definition.getId();
+    }
+
+    @Override
+    public String getName() {
+        return definition.getName();
+    }
+
+    @Override
+    public Set<String> getSubscribablePlans() {
+        return definition
+            .getPlans()
+            .stream()
+            .filter(
+                plan ->
+                    OAUTH2.name().equalsIgnoreCase(plan.getSecurity()) ||
+                    JWT.name().equalsIgnoreCase(plan.getSecurity()) ||
+                    API_KEY.name().equalsIgnoreCase(plan.getSecurity())
+            )
+            .map(Plan::getId)
+            .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<String> getApiKeyPlans() {
+        return definition
+            .getPlans()
+            .stream()
+            .filter(plan -> API_KEY.name().equalsIgnoreCase(plan.getSecurity()))
+            .map(Plan::getId)
+            .collect(Collectors.toSet());
+    }
+
     private Collection<Policy> getPolicies(List<Step> flowStep) {
         if (flowStep == null || flowStep.isEmpty()) {
             return Collections.emptyList();
@@ -224,47 +211,11 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
 
     @Override
     public List<Entrypoint> entrypoints() {
-        return getProxy()
+        return definition
+            .getProxy()
             .getVirtualHosts()
             .stream()
             .map(virtualHost -> new VirtualHost(virtualHost.getHost(), virtualHost.getPath()))
             .collect(Collectors.toList());
-    }
-
-    public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
-    }
-
-    public String getEnvironmentHrid() {
-        return environmentHrid;
-    }
-
-    public void setEnvironmentHrid(String environmentHrid) {
-        this.environmentHrid = environmentHrid;
-    }
-
-    public String getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(String organizationId) {
-        this.organizationId = organizationId;
-    }
-
-    public String getOrganizationHrid() {
-        return organizationHrid;
-    }
-
-    public void setOrganizationHrid(String organizationHrid) {
-        this.organizationHrid = organizationHrid;
-    }
-
-    @Override
-    public String toString() {
-        return "API " + "id[" + this.getId() + "] name[" + this.getName() + "] version[" + this.getVersion() + ']';
     }
 }

@@ -17,7 +17,6 @@ package io.gravitee.gateway.debug.reactor.processor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.definition.model.debug.DebugMetrics;
 import io.gravitee.definition.model.debug.PreprocessorStep;
@@ -30,6 +29,7 @@ import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContext;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 import io.gravitee.gateway.debug.vertx.VertxHttpServerResponseDebugDecorator;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.debug.vertx.TimeoutServerResponseDebugDecorator;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -175,17 +175,17 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         debugAPI.setDefinitionVersion(content.getDefinitionVersion());
         debugAPI.setResponse(content.getResponse());
         debugAPI.setRequest(content.getRequest());
-        debugAPI.setFlowMode(content.getFlowMode());
-        debugAPI.setFlows(content.getFlows());
-        debugAPI.setPathMappings(content.getPathMappings());
-        debugAPI.setPlans(content.getPlans());
-        debugAPI.setPaths(content.getPaths());
-        debugAPI.setServices(content.getServices());
-        debugAPI.setProxy(content.getProxy());
-        debugAPI.setProperties(content.getProperties());
-        debugAPI.setResources(content.getResources());
-        debugAPI.setServices(content.getServices());
-        debugAPI.setResponseTemplates(content.getResponseTemplates());
+        debugAPI.setFlowMode(content.getDefinition().getFlowMode());
+        debugAPI.setFlows(content.getDefinition().getFlows());
+        debugAPI.setPathMappings(content.getDefinition().getPathMappings());
+        debugAPI.setPlans(content.getDefinition().getPlans());
+        debugAPI.setPaths(content.getDefinition().getPaths());
+        debugAPI.setServices(content.getDefinition().getServices());
+        debugAPI.setProxy(content.getDefinition().getProxy());
+        debugAPI.setProperties(content.getDefinition().getProperties());
+        debugAPI.setResources(content.getDefinition().getResources());
+        debugAPI.setServices(content.getDefinition().getServices());
+        debugAPI.setResponseTemplates(content.getDefinition().getResponseTemplates());
         return debugAPI;
     }
 
