@@ -20,9 +20,9 @@ import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.reactivex.Maybe;

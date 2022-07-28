@@ -15,15 +15,13 @@
  */
 package io.gravitee.gateway.handlers.api.policy.security;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
-import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**

@@ -85,13 +85,15 @@ class DebugEventCompletionProcessorTest {
     public void setUp() {
         cut = new DebugEventCompletionProcessor(eventRepository, objectMapper);
         cut.handler(__ -> {});
+
+        when(debugApi.getDefinition()).thenReturn(new io.gravitee.definition.model.debug.DebugApi());
     }
 
     @ParameterizedTest
     @EnumSource(ResponseType.class)
     void shouldUpdateEventWithData(ResponseType responseType) throws TechnicalException, JsonProcessingException {
         when(debugApi.getEventId()).thenReturn("event-id");
-        when(debugExecutionContext.getComponent(Api.class)).thenReturn(debugApi);
+        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class)).thenReturn(debugApi);
         when(debugExecutionContext.request()).thenReturn(request);
 
         DebugRequestStep step1 = new DebugRequestStep(
@@ -143,7 +145,7 @@ class DebugEventCompletionProcessorTest {
     @EnumSource(ResponseType.class)
     void shouldSetEventInErrorWhenEventUpdateThrows(ResponseType responseType) throws TechnicalException, JsonProcessingException {
         when(debugApi.getEventId()).thenReturn("event-id");
-        when(debugExecutionContext.getComponent(Api.class)).thenReturn(debugApi);
+        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class)).thenReturn(debugApi);
         when(debugExecutionContext.request()).thenReturn(request);
         if (ResponseType.REGULAR_RESPONSE.equals(responseType)) {
             VertxHttpServerResponse debugResponse = getDebugResponse();
@@ -177,7 +179,7 @@ class DebugEventCompletionProcessorTest {
     @EnumSource(ResponseType.class)
     void shouldSetEventInErrorWhenWriteValueAsStringThrows(ResponseType responseType) throws TechnicalException, JsonProcessingException {
         when(debugApi.getEventId()).thenReturn("event-id");
-        when(debugExecutionContext.getComponent(Api.class)).thenReturn(debugApi);
+        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class)).thenReturn(debugApi);
         when(debugExecutionContext.request()).thenReturn(request);
         if (ResponseType.REGULAR_RESPONSE.equals(responseType)) {
             VertxHttpServerResponse debugResponse = getDebugResponse();
@@ -208,7 +210,7 @@ class DebugEventCompletionProcessorTest {
     @Test
     void shouldHandleDebugEventWithoutEventInDatabase() throws TechnicalException {
         when(debugApi.getEventId()).thenReturn("event-id");
-        when(debugExecutionContext.getComponent(Api.class)).thenReturn(debugApi);
+        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class)).thenReturn(debugApi);
 
         when(eventRepository.findById("event-id")).thenReturn(Optional.empty());
 

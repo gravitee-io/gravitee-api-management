@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.policy.security;
 
-import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.handlers.api.policy.security.apikey.ApiKeyPlanBasedAuthenticationHandler;
 import io.gravitee.gateway.handlers.api.policy.security.rule.SelectionRulePlanBasedAuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationHandler;

@@ -40,8 +40,8 @@ public class ApiTemplateVariableProvider implements TemplateVariableProvider {
     @Override
     public void provide(TemplateContext templateContext) {
         // Keep this variable for backward compatibility
-        if (api.getProperties() != null) {
-            templateContext.setVariable("properties", api.getProperties().getValues());
+        if (api.getDefinition().getProperties() != null) {
+            templateContext.setVariable("properties", api.getDefinition().getProperties().getValues());
         }
 
         templateContext.setVariable("api", apiProperties);

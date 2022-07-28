@@ -16,9 +16,14 @@
 package io.gravitee.gateway.jupiter.debug.reactor.processor;
 
 import static io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS;
+import static io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -26,6 +31,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.debug.core.invoker.InvokerResponse;
 import io.gravitee.gateway.debug.definition.DebugApi;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
@@ -85,7 +91,7 @@ class DebugCompletionProcessorTest {
         debugApi.setVersion("version");
         this.debugApi = new DebugApi("event-id", debugApi);
         componentProvider = new CustomComponentProvider();
-        componentProvider.add(io.gravitee.definition.model.Api.class, this.debugApi);
+        componentProvider.add(Api.class, this.debugApi);
         debugCtx = new DebugRequestExecutionContext(mockRequest, mockResponse);
         debugCtx.componentProvider(componentProvider);
 

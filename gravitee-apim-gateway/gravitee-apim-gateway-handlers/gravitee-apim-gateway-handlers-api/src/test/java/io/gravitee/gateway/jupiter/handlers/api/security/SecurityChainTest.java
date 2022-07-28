@@ -22,8 +22,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
-import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;

@@ -36,8 +36,8 @@ public class ApiTemplateVariableProvider implements TemplateVariableProvider {
 
     @Override
     public void provide(TemplateContext templateContext) {
-        if (api.getProperties() != null) {
-            templateContext.setVariable("properties", api.getProperties().getValues());
+        if (api.getDefinition().getProperties() != null) {
+            templateContext.setVariable("properties", api.getDefinition().getProperties().getValues());
         }
     }
 }

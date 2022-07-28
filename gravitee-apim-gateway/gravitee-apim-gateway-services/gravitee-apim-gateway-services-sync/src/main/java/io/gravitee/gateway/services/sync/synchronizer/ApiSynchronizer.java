@@ -21,6 +21,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
@@ -31,7 +32,6 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.*;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
-import io.reactivex.Single;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
@@ -168,7 +168,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     }
 
     @NonNull
-    private Flowable<String> registerApi(Flowable<io.gravitee.gateway.handlers.api.definition.Api> upstream) {
+    private Flowable<String> registerApi(Flowable<ReactableApi<?>> upstream) {
         return upstream
             .parallel(PARALLELISM)
             .runOn(Schedulers.from(executor))
@@ -182,7 +182,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                 }
             )
             .sequential()
-            .map(io.gravitee.definition.model.Api::getId);
+            .map(ReactableApi::getId);
     }
 
     @NonNull
@@ -202,7 +202,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
             .sequential();
     }
 
-    private Maybe<io.gravitee.gateway.handlers.api.definition.Api> toApiDefinition(Event apiEvent) {
+    private Maybe<ReactableApi<?>> toApiDefinition(Event apiEvent) {
         try {
             // Read API definition from event
             io.gravitee.repository.management.model.Api eventPayload = objectMapper.readValue(
@@ -210,21 +210,35 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                 io.gravitee.repository.management.model.Api.class
             );
 
-            io.gravitee.definition.model.Api eventApiDefinition = objectMapper.readValue(
-                eventPayload.getDefinition(),
-                io.gravitee.definition.model.Api.class
-            );
+            ReactableApi<?> api;
 
-            // Update definition with required information for deployment phase
-            final io.gravitee.gateway.handlers.api.definition.Api apiDefinition = new io.gravitee.gateway.handlers.api.definition.Api(
-                eventApiDefinition
-            );
-            apiDefinition.setEnabled(eventPayload.getLifecycleState() == LifecycleState.STARTED);
-            apiDefinition.setDeployedAt(apiEvent.getCreatedAt());
+            // Check the version of the API definition to read the right model entity
+            if (
+                eventPayload.getDefinitionVersion() == null || !eventPayload.getDefinitionVersion().equals(DefinitionVersion.V4.getLabel())
+            ) {
+                io.gravitee.definition.model.Api eventApiDefinition = objectMapper.readValue(
+                    eventPayload.getDefinition(),
+                    io.gravitee.definition.model.Api.class
+                );
 
-            enhanceWithOrgAndEnv(eventPayload.getEnvironmentId(), apiDefinition);
+                // Update definition with required information for deployment phase
+                api = new io.gravitee.gateway.handlers.api.definition.Api(eventApiDefinition);
+            } else {
+                io.gravitee.definition.model.v4.Api eventApiDefinition = objectMapper.readValue(
+                    eventPayload.getDefinition(),
+                    io.gravitee.definition.model.v4.Api.class
+                );
 
-            return Maybe.just(apiDefinition);
+                // Update definition with required information for deployment phase
+                api = new io.gravitee.gateway.jupiter.handlers.api.v4.Api(eventApiDefinition);
+            }
+
+            api.setEnabled(eventPayload.getLifecycleState() == LifecycleState.STARTED);
+            api.setDeployedAt(apiEvent.getCreatedAt());
+
+            enhanceWithOrgAndEnv(eventPayload.getEnvironmentId(), api);
+
+            return Maybe.just(api);
         } catch (Exception e) {
             // Log the error and ignore this event.
             logger.error("Unable to extract api definition from event [{}].", apiEvent.getId(), e);
@@ -232,7 +246,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         }
     }
 
-    private void enhanceWithOrgAndEnv(String environmentId, io.gravitee.gateway.handlers.api.definition.Api definition) {
+    private void enhanceWithOrgAndEnv(String environmentId, ReactableApi<?> definition) {
         Environment apiEnv = null;
 
         if (environmentId != null) {
@@ -292,9 +306,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
      * @return the same flow of apis.
      */
     @NonNull
-    private Flowable<io.gravitee.gateway.handlers.api.definition.Api> fetchKeysAndSubscriptions(
-        Flowable<io.gravitee.gateway.handlers.api.definition.Api> upstream
-    ) {
+    private Flowable<ReactableApi<?>> fetchKeysAndSubscriptions(Flowable<ReactableApi<?>> upstream) {
         return upstream
             .buffer(getBulkSize())
             .doOnNext(
@@ -312,28 +324,25 @@ public class ApiSynchronizer extends AbstractSynchronizer {
      * @return he same flow of apis.
      */
     @NonNull
-    private Flowable<io.gravitee.gateway.handlers.api.definition.Api> fetchApiPlans(
-        Flowable<io.gravitee.gateway.handlers.api.definition.Api> upstream
-    ) {
+    private Flowable<ReactableApi<?>> fetchApiPlans(Flowable<ReactableApi<?>> upstream) {
         return upstream
-            .groupBy(io.gravitee.definition.model.Api::getDefinitionVersion)
+            .groupBy(ReactableApi::getDefinitionVersion)
             .flatMap(
                 apisByDefinitionVersion -> {
                     if (apisByDefinitionVersion.getKey() == DefinitionVersion.V1) {
                         return apisByDefinitionVersion.buffer(getBulkSize()).flatMap(this::fetchV1ApiPlans);
                     } else {
-                        return apisByDefinitionVersion.flatMapSingle(this::fetchV2ApiPlans);
+                        return apisByDefinitionVersion;
                     }
                 }
             );
     }
 
-    private Flowable<io.gravitee.gateway.handlers.api.definition.Api> fetchV1ApiPlans(
-        List<io.gravitee.gateway.handlers.api.definition.Api> apiDefinitions
-    ) {
+    private Flowable<ReactableApi<?>> fetchV1ApiPlans(List<ReactableApi<?>> apiDefinitions) {
         final Map<String, io.gravitee.gateway.handlers.api.definition.Api> apisById = apiDefinitions
             .stream()
-            .collect(Collectors.toMap(io.gravitee.definition.model.Api::getId, api -> api));
+            .map(reactableApi -> (io.gravitee.gateway.handlers.api.definition.Api) reactableApi)
+            .collect(Collectors.toMap(io.gravitee.gateway.handlers.api.definition.Api::getId, api -> api));
 
         // Get the api id to load plan only for V1 api definition.
         final List<String> apiV1Ids = new ArrayList<>(apisById.keySet());
@@ -346,20 +355,23 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
             plansByApi.forEach(
                 (key, value) -> {
-                    final io.gravitee.gateway.handlers.api.definition.Api definition = apisById.get(key);
+                    final io.gravitee.gateway.handlers.api.definition.Api api = apisById.get(key);
 
-                    if (definition.getDefinitionVersion() == DefinitionVersion.V1) {
+                    if (api.getDefinitionVersion() == DefinitionVersion.V1) {
                         // Deploy only published plan
-                        definition.setPlans(
-                            value
-                                .stream()
-                                .filter(
-                                    plan ->
-                                        Plan.Status.PUBLISHED.equals(plan.getStatus()) || Plan.Status.DEPRECATED.equals(plan.getStatus())
-                                )
-                                .map(this::convert)
-                                .collect(Collectors.toList())
-                        );
+                        api
+                            .getDefinition()
+                            .setPlans(
+                                value
+                                    .stream()
+                                    .filter(
+                                        plan ->
+                                            Plan.Status.PUBLISHED.equals(plan.getStatus()) ||
+                                            Plan.Status.DEPRECATED.equals(plan.getStatus())
+                                    )
+                                    .map(this::convert)
+                                    .collect(Collectors.toList())
+                            );
                     }
                 }
             );
@@ -368,20 +380,6 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         }
 
         return Flowable.fromIterable(apiDefinitions);
-    }
-
-    private Single<io.gravitee.gateway.handlers.api.definition.Api> fetchV2ApiPlans(
-        io.gravitee.gateway.handlers.api.definition.Api apiDefinition
-    ) {
-        apiDefinition.setPlans(
-            apiDefinition
-                .getPlans()
-                .stream()
-                .filter(plan -> "published".equalsIgnoreCase(plan.getStatus()) || "deprecated".equalsIgnoreCase(plan.getStatus()))
-                .collect(Collectors.toList())
-        );
-
-        return Single.just(apiDefinition);
     }
 
     private io.gravitee.definition.model.Plan convert(Plan repoPlan) {

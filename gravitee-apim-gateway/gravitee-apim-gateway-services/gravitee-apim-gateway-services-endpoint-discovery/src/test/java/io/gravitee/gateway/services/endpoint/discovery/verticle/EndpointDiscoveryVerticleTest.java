@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -132,9 +131,10 @@ public class EndpointDiscoveryVerticleTest {
         Proxy proxy = new Proxy();
         proxy.setGroups(Collections.singleton(defaultEndpointGroup));
 
-        Api deployedApi = new Api();
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        Api deployedApi = new Api(definition);
         deployedApi.setEnabled(true);
-        deployedApi.setProxy(proxy);
+        definition.setProxy(proxy);
 
         ServiceDiscovery serviceDiscovery = initServiceDiscovery(serviceId, serviceHost, servicePort, serviceScheme);
 

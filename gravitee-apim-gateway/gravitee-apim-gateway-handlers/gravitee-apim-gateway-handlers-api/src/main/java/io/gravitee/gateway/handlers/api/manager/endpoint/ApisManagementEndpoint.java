@@ -72,7 +72,7 @@ public class ApisManagementEndpoint implements Handler<RoutingContext>, Manageme
                         ListApiEntity entity = new ListApiEntity();
                         entity.setId(api.getId());
                         entity.setName(api.getName());
-                        entity.setVersion(api.getVersion());
+                        entity.setVersion(api.getApiVersion());
                         return entity;
                     }
                 )

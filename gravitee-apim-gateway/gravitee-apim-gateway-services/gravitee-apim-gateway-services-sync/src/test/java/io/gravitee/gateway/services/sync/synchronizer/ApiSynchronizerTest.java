@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
@@ -39,6 +40,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -179,8 +181,28 @@ public class ApiSynchronizerTest extends TestCase {
 
         verify(apiManager, never()).unregister(any(String.class));
         verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
+        verify(apiKeysCacheService)
+            .register(
+                argThat(
+                    new ArgumentMatcher<List<ReactableApi<?>>>() {
+                        @Override
+                        public boolean matches(List<ReactableApi<?>> reactableApis) {
+                            return reactableApis.size() == 1 && reactableApis.get(0).equals(new Api(mockApi));
+                        }
+                    }
+                )
+            );
+        verify(subscriptionsCacheService)
+            .register(
+                argThat(
+                    new ArgumentMatcher<List<ReactableApi<?>>>() {
+                        @Override
+                        public boolean matches(List<ReactableApi<?>> reactableApis) {
+                            return reactableApis.size() == 1 && reactableApis.get(0).equals(new Api(mockApi));
+                        }
+                    }
+                )
+            );
     }
 
     @Test
