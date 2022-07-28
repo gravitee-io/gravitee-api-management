@@ -69,7 +69,7 @@ public class CheckSubscriptionPolicy implements Policy {
         executionContext.request().metrics().setSecurityType(OAUTH2);
         executionContext.request().metrics().setSecurityToken(clientId);
 
-        Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndClientId(api, clientId);
+        Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndClientIdAndPlan(api, clientId, plan);
 
         if (subscriptionOpt.isPresent()) {
             Subscription subscription = subscriptionOpt.get();

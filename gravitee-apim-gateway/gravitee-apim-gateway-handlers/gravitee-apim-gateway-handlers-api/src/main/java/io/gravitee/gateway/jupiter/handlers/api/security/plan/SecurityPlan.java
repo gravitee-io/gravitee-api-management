@@ -141,7 +141,7 @@ public class SecurityPlan {
                     if (subscriptionId != null) {
                         subscriptionOpt = subscriptionService.getById(subscriptionId);
                     } else if (api != null && clientId != null) {
-                        subscriptionOpt = subscriptionService.getByApiAndClientId(api, clientId);
+                        subscriptionOpt = subscriptionService.getByApiAndClientIdAndPlan(api, clientId, plan.getId());
                     }
 
                     if (subscriptionOpt.isPresent()) {

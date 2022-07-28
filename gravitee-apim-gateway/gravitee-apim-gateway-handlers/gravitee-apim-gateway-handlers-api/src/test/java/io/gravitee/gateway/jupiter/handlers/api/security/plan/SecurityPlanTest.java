@@ -167,7 +167,7 @@ class SecurityPlanTest {
         when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(ctx.getAttribute(SecurityPlan.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
         when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-        when(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
 
         final SecurityPlan cut = new SecurityPlan(plan, policy);
         final TestObserver<Void> obs = cut.execute(ctx).test();
@@ -213,7 +213,7 @@ class SecurityPlanTest {
         when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(ctx.getAttribute(SecurityPlan.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
         when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-        when(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
         when(policy.onInvalidSubscription(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
         final SecurityPlan cut = new SecurityPlan(plan, policy);
@@ -238,7 +238,7 @@ class SecurityPlanTest {
         when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(ctx.getAttribute(SecurityPlan.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
         when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-        when(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
         when(policy.onInvalidSubscription(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
         final SecurityPlan cut = new SecurityPlan(plan, policy);
@@ -255,7 +255,7 @@ class SecurityPlanTest {
         when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(ctx.getAttribute(SecurityPlan.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
         when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-        when(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).thenReturn(Optional.empty());
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.empty());
         when(policy.onInvalidSubscription(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
         final SecurityPlan cut = new SecurityPlan(plan, policy);
@@ -272,7 +272,8 @@ class SecurityPlanTest {
         when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(ctx.getAttribute(SecurityPlan.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
         when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-        when(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).thenThrow(new RuntimeException("Mock TechnicalException"));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID))
+            .thenThrow(new RuntimeException("Mock TechnicalException"));
         when(policy.onInvalidSubscription(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
         final SecurityPlan cut = new SecurityPlan(plan, policy);

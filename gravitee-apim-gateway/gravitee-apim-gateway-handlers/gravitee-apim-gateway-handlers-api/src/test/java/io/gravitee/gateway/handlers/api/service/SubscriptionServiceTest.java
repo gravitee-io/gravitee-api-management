@@ -28,7 +28,7 @@ public class SubscriptionServiceTest {
 
     @Test
     public void should_add_and_getById_accepted_subscription_in_cache() {
-        Subscription subscription = buildAcceptedSubscription("sub1", "my-api", "my-client-id");
+        Subscription subscription = buildAcceptedSubscription("sub1", "my-api", "my-client-id", "plan-id");
 
         subscriptionService.save(subscription);
 
@@ -43,22 +43,22 @@ public class SubscriptionServiceTest {
 
     @Test
     public void should_add_and_getByApiAndClientId_accepted_subscription_in_cache() {
-        Subscription subscription = buildAcceptedSubscription("sub1", "my-api", "my-client-id");
+        Subscription subscription = buildAcceptedSubscription("sub1", "my-api", "my-client-id", "plan-id");
 
         subscriptionService.save(subscription);
 
         // should find subscription in cache with relevant id
-        assertTrue(subscriptionService.getByApiAndClientId("my-api", "my-client-id").isPresent());
-        assertSame(subscription, subscriptionService.getByApiAndClientId("my-api", "my-client-id").get());
+        assertTrue(subscriptionService.getByApiAndClientIdAndPlan("my-api", "my-client-id", "plan-id").isPresent());
+        assertSame(subscription, subscriptionService.getByApiAndClientIdAndPlan("my-api", "my-client-id", "plan-id").get());
 
         // should not find with other keys
-        assertFalse(subscriptionService.getByApiAndClientId("another-api", "my-client-id").isPresent());
-        assertFalse(subscriptionService.getByApiAndClientId("my-api", "another-client-id").isPresent());
+        assertFalse(subscriptionService.getByApiAndClientIdAndPlan("another-api", "my-client-id", "plan-id").isPresent());
+        assertFalse(subscriptionService.getByApiAndClientIdAndPlan("my-api", "another-client-id", "plan-id").isPresent());
     }
 
     @Test
     public void should_remove_rejected_subscription_from_cache() {
-        Subscription subscription = buildAcceptedSubscription("sub1", "my-api", "my-client-id");
+        Subscription subscription = buildAcceptedSubscription("sub1", "my-api", "my-client-id", "plan-id");
 
         subscriptionService.save(subscription);
 
@@ -72,26 +72,27 @@ public class SubscriptionServiceTest {
 
     @Test
     public void should_update_subscription_clientId_in_cache() {
-        Subscription oldSubscription = buildAcceptedSubscription("sub1", "my-api", "old-client-id");
+        Subscription oldSubscription = buildAcceptedSubscription("sub1", "my-api", "old-client-id", "plan-id");
 
         subscriptionService.save(oldSubscription);
 
-        Subscription newSubscription = buildAcceptedSubscription("sub1", "my-api", "new-client-id");
+        Subscription newSubscription = buildAcceptedSubscription("sub1", "my-api", "new-client-id", "plan-id");
 
         subscriptionService.save(newSubscription);
 
         // should find subscription in cache with its new client id
-        assertTrue(subscriptionService.getByApiAndClientId("my-api", "new-client-id").isPresent());
-        assertSame(newSubscription, subscriptionService.getByApiAndClientId("my-api", "new-client-id").get());
+        assertTrue(subscriptionService.getByApiAndClientIdAndPlan("my-api", "new-client-id", "plan-id").isPresent());
+        assertSame(newSubscription, subscriptionService.getByApiAndClientIdAndPlan("my-api", "new-client-id", "plan-id").get());
 
         // should not find it with its old client id
-        assertFalse(subscriptionService.getByApiAndClientId("my-api", "old-client-id").isPresent());
+        assertFalse(subscriptionService.getByApiAndClientIdAndPlan("my-api", "old-client-id", "plan-id").isPresent());
     }
 
-    private Subscription buildAcceptedSubscription(String id, String api, String clientId) {
+    private Subscription buildAcceptedSubscription(String id, String api, String clientId, String plan) {
         Subscription subscription = new Subscription();
         subscription.setId(id);
         subscription.setApi(api);
+        subscription.setPlan(plan);
         subscription.setClientId(clientId);
         subscription.setStatus("ACCEPTED");
         return subscription;

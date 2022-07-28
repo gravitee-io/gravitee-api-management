@@ -38,8 +38,8 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
     }
 
     @Override
-    public Optional<Subscription> getByApiAndClientId(String api, String clientId) {
-        return Optional.ofNullable(cacheByApiClientId.get(buildClientIdCacheKey(api, clientId)));
+    public Optional<Subscription> getByApiAndClientIdAndPlan(String api, String clientId, String plan) {
+        return Optional.ofNullable(cacheByApiClientId.get(buildClientIdCacheKey(api, clientId, plan)));
     }
 
     @Override
@@ -68,7 +68,11 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
         String key = buildClientIdCacheKey(subscription);
 
         // remove subscription from cache if its client_id changed
-        if (cachedSubscription != null && !cachedSubscription.getClientId().equals(subscription.getClientId())) {
+        if (
+            cachedSubscription != null &&
+            cachedSubscription.getClientId() != null &&
+            !cachedSubscription.getClientId().equals(subscription.getClientId())
+        ) {
             cacheByApiClientId.evict(buildClientIdCacheKey(cachedSubscription));
         }
 
@@ -81,10 +85,10 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
     }
 
     private String buildClientIdCacheKey(Subscription subscription) {
-        return buildClientIdCacheKey(subscription.getApi(), subscription.getClientId());
+        return buildClientIdCacheKey(subscription.getApi(), subscription.getClientId(), subscription.getPlan());
     }
 
-    private String buildClientIdCacheKey(String api, String clientId) {
-        return String.format("%s.%s", api, clientId);
+    private String buildClientIdCacheKey(String api, String clientId, String plan) {
+        return String.format("%s.%s.%s", api, clientId, plan);
     }
 }

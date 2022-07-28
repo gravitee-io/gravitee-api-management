@@ -65,7 +65,7 @@ public class CheckSubscriptionPolicyTest {
         when(executionContext.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
 
         // no subscription found in cache for this API / clientID
-        when(subscriptionService.getByApiAndClientId("api-id", "my-client-id")).thenReturn(Optional.empty());
+        when(subscriptionService.getByApiAndClientIdAndPlan("api-id", "my-client-id", "plan-id")).thenReturn(Optional.empty());
 
         policy.execute(policyChain, executionContext);
 
@@ -97,7 +97,7 @@ public class CheckSubscriptionPolicyTest {
         // subscription found in cache, with invalid time
         Subscription subscription = mock(Subscription.class);
         when(subscription.isTimeValid(anyLong())).thenReturn(false);
-        when(subscriptionService.getByApiAndClientId("api-id", "my-client-id")).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan("api-id", "my-client-id", "plan-id")).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
@@ -132,7 +132,7 @@ public class CheckSubscriptionPolicyTest {
         Subscription subscription = mock(Subscription.class);
         when(subscription.isTimeValid(anyLong())).thenReturn(true);
         when(subscription.getPlan()).thenReturn("plan-id");
-        when(subscriptionService.getByApiAndClientId("api-id", "my-client-id")).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan("api-id", "my-client-id", "plan-id")).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
@@ -158,7 +158,7 @@ public class CheckSubscriptionPolicyTest {
         // subscription found in cache, with an invalid plan
         Subscription subscription = mock(Subscription.class);
         when(subscription.getPlan()).thenReturn("plan2-id");
-        when(subscriptionService.getByApiAndClientId("api-id", "my-client-id")).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan("api-id", "my-client-id", "plan-id")).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
