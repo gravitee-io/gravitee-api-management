@@ -153,7 +153,7 @@ describe('Subscribe to API Key & JWT plans and use them', () => {
     });
   });
 
-  describeIfV3('Gateway call with JWT token in HTTP header', () => {
+  describe('Gateway call with JWT token in HTTP header', () => {
     describe('Gateway call with correct `Authorization` header using portal subscription', () => {
       test('Should return 200 OK', async () => {
         const token = jwt.sign({ foo: 'bar', client_id: createdPortalApplication.settings.app.client_id }, JWT_SECURE_GIVEN_KEY, {
