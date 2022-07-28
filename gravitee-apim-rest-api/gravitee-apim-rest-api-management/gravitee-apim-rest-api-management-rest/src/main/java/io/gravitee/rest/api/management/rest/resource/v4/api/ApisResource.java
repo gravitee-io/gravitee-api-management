@@ -40,12 +40,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Tag(name = "APIs")
+@Slf4j
 public class ApisResource extends AbstractResource {
 
     @Context
@@ -68,6 +70,7 @@ public class ApisResource extends AbstractResource {
             ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
             return Response.created(this.getLocationHeader(newApi.getId())).entity(newApi).build();
         } catch (Exception e) {
+            log.error("Unexpected error occured", e);
             return Response.serverError().build();
         }
     }

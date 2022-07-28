@@ -150,7 +150,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final SubscriptionService subscriptionService,
         final EventService eventService,
         final PageService pageService,
-        final TopApiService topApiService,
+        @Lazy final TopApiService topApiService,
         final PortalNotificationConfigService portalNotificationConfigService,
         final AlertService alertService,
         @Lazy final ApiQualityRuleRepository apiQualityRuleRepository,

@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -64,7 +65,7 @@ public class ApiGroupServiceImpl implements ApiGroupService {
     private final RoleService roleService;
 
     public ApiGroupServiceImpl(
-        final ApiRepository apiRepository,
+        @Lazy final ApiRepository apiRepository,
         final ApiNotificationService apiNotificationService,
         final GroupService groupService,
         final MembershipService membershipService,

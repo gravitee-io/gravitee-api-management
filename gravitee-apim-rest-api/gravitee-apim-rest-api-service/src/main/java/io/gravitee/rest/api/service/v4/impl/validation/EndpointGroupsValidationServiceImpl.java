@@ -81,12 +81,14 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     }
 
     private void validateEndpointsMatchType(final EndpointGroup endpointGroup) {
-        boolean allMatchGroupType = endpointGroup
-            .getEndpoints()
-            .stream()
-            .allMatch(endpoint -> endpointGroup.getType().equals(endpoint.getType()));
-        if (!allMatchGroupType) {
-            throw new EndpointGroupTypeMismatchInvalidException(endpointGroup.getType());
+        if (endpointGroup.getEndpoints() != null && endpointGroup.getEndpoints().isEmpty()) {
+            boolean allMatchGroupType = endpointGroup
+                .getEndpoints()
+                .stream()
+                .allMatch(endpoint -> endpointGroup.getType().equals(endpoint.getType()));
+            if (!allMatchGroupType) {
+                throw new EndpointGroupTypeMismatchInvalidException(endpointGroup.getType());
+            }
         }
     }
 

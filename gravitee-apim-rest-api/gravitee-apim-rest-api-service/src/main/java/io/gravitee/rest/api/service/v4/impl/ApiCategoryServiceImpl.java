@@ -25,6 +25,7 @@ import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import java.util.Collection;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -38,7 +39,7 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
     private final ApiRepository apiRepository;
     private final CategoryService categoryService;
 
-    public ApiCategoryServiceImpl(final ApiRepository apiRepository, final CategoryService categoryService) {
+    public ApiCategoryServiceImpl(@Lazy final ApiRepository apiRepository, final CategoryService categoryService) {
         this.apiRepository = apiRepository;
         this.categoryService = categoryService;
     }
@@ -46,7 +47,7 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
     @Override
     public Set<CategoryEntity> listCategories(Collection<String> apis, String environment) {
         try {
-            ApiCriteria criteria = new ApiCriteria.Builder().ids(apis.toArray(new String[apis.size()])).build();
+            ApiCriteria criteria = new ApiCriteria.Builder().ids(apis.toArray(new String[0])).build();
             Set<String> categoryIds = apiRepository.listCategories(criteria);
             return categoryService.findByIdIn(environment, categoryIds);
         } catch (TechnicalException ex) {
