@@ -106,7 +106,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     }
 
     private void validateEndpointsMatchType(final EndpointGroup endpointGroup) {
-        if (endpointGroup.getEndpoints() != null && endpointGroup.getEndpoints().isEmpty()) {
+        if (endpointGroup.getEndpoints() != null && !endpointGroup.getEndpoints().isEmpty()) {
             boolean allMatchGroupType = endpointGroup
                 .getEndpoints()
                 .stream()
