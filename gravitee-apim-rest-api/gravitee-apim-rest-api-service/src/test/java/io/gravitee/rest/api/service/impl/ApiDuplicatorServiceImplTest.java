@@ -49,6 +49,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ApiDuplicatorServiceImplTest {
 
     private static final String API_ID = "id-api";
+    public static final String ORGANIZATION_ID = "DEFAULT";
     public static final String ENVIRONMENT_ID = "DEFAULT";
 
     @InjectMocks
@@ -304,6 +305,35 @@ public class ApiDuplicatorServiceImplTest {
         when(apiMetadataService.update(any())).thenThrow(new RuntimeException("fake exception"));
 
         apiDuplicatorService.createOrUpdateMetadata(API_ID, metadataNode);
+    }
+
+    @Test
+    public void addOrUpdateMembers_shouldAddRolesUsingMembershipService_butNotFailIfItThrowsException() {
+        var currentPo = new ApiDuplicatorServiceImpl.MemberToImport();
+        currentPo.setSource("source");
+        currentPo.setSourceId("currentPo-sourceId");
+
+        var memberToImport = new ApiDuplicatorServiceImpl.MemberToImport();
+        memberToImport.setRoles(List.of("member-role"));
+        memberToImport.setSource("source");
+        memberToImport.setSourceId("memberToImport-sourceId");
+
+        when(userService.findBySource(any(), any(), eq(false))).thenReturn(new UserEntity());
+        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any(), any(), any()))
+            .thenThrow(RuntimeException.class);
+
+        apiDuplicatorService.addOrUpdateMembers(
+            API_ID,
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            "po-role-id",
+            currentPo,
+            memberToImport,
+            List.of("new-role"),
+            false
+        );
+
+        verify(membershipService).addRoleToMemberOnReference(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any(), any(), any(), any(), any());
     }
 
     /*

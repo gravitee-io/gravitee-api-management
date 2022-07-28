@@ -872,6 +872,42 @@ public class SubscriptionServiceTest {
         assertNotNull(subscriptionEntity.getProcessedAt());
     }
 
+    @Test
+    public void shouldNotProcessBecauseCustomApiKeyAlreadyExists() throws Exception {
+        // Prepare data
+        final String customApiKey = "customApiKey";
+
+        ProcessSubscriptionEntity processSubscription = new ProcessSubscriptionEntity();
+        processSubscription.setId(SUBSCRIPTION_ID);
+        processSubscription.setAccepted(true);
+        processSubscription.setCustomApiKey(customApiKey);
+
+        Subscription subscription = new Subscription();
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setApplication(APPLICATION_ID);
+        subscription.setPlan(PLAN_ID);
+        subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(apiKeyService.generate(SUBSCRIPTION_ID, customApiKey)).thenThrow(new ApiKeyAlreadyExistingException());
+
+        // Run
+        final ApiKeyAlreadyExistingException exception = assertThrows(
+            ApiKeyAlreadyExistingException.class,
+            () -> subscriptionService.process(processSubscription, USER_ID)
+        );
+
+        verify(subscriptionRepository, times(0)).update(any());
+        verifyNoInteractions(applicationService);
+        verify(planService).findById(PLAN_ID);
+        assertEquals("API key already exists", exception.getMessage());
+    }
+
     @Test(expected = PlanAlreadyClosedException.class)
     public void shouldNotProcessBecauseClosedPlan() throws Exception {
         // Prepare data

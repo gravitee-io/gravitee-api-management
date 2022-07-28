@@ -119,8 +119,8 @@ public class VertxHttpHeadersTest {
     @Test
     public void shouldGet() {
         Object key = new Object();
-        assertThat(cut.get(key)).isEmpty();
-        assertThat(defaultHttpHeaders.get(key)).isEmpty();
+        assertThat(cut.get(key)).isNull();
+        assertThat(defaultHttpHeaders.get(key)).isNull();
 
         key = FIRST_HEADER;
         assertThat(cut.get(key)).hasSize(2);
@@ -131,8 +131,8 @@ public class VertxHttpHeadersTest {
         assertThat(defaultHttpHeaders.get(key)).hasSize(1);
 
         key = ACCEPT_LANGUAGE;
-        assertThat(cut.get(key)).isEmpty();
-        assertThat(defaultHttpHeaders.get(key)).isEmpty();
+        assertThat(cut.get(key)).isNull();
+        assertThat(defaultHttpHeaders.get(key)).isNull();
     }
 
     @Test

@@ -2,6 +2,7 @@
 
 import { checkToken } from '../helpers/circleci-helper.mjs';
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
+import { isDryRun } from "../helpers/option-helper.mjs";
 
 await checkToken();
 
@@ -15,6 +16,7 @@ const body = {
   branch: versions.branch,
   parameters: {
     gio_action: 'nexus_staging',
+    dry_run: isDryRun(),
     graviteeio_version: releasingVersion,
   },
 };

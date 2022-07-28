@@ -158,8 +158,6 @@ public class ApiKeyServiceTest {
 
     @Test
     public void shouldGenerateWithCustomApiKey() throws TechnicalException {
-        final String customApiKey = "customApiKey";
-
         // Prepare subscription
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
@@ -171,7 +169,7 @@ public class ApiKeyServiceTest {
         when(applicationService.findById(anyString(), anyString())).thenReturn(application);
 
         // Run
-        final ApiKeyEntity apiKey = apiKeyService.generate(application, subscription, customApiKey);
+        final ApiKeyEntity apiKey = apiKeyService.generate(application, subscription, CUSTOM_API_KEY);
 
         // Verify
         verify(apiKeyRepository, times(1)).create(any());
@@ -188,7 +186,7 @@ public class ApiKeyServiceTest {
         assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
 
         verify(apiKeyGenerator, times(0)).generate();
-        assertEquals(customApiKey, apiKey.getKey());
+        assertEquals(CUSTOM_API_KEY, apiKey.getKey());
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -479,6 +477,7 @@ public class ApiKeyServiceTest {
 
         PlanEntity plan = new PlanEntity();
         plan.setSecurity(PlanSecurityType.API_KEY);
+        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
 
         // Stub
         when(apiKeyGenerator.generate()).thenReturn(API_KEY);
@@ -592,6 +591,7 @@ public class ApiKeyServiceTest {
 
         PlanEntity plan = new PlanEntity();
         plan.setSecurity(PlanSecurityType.API_KEY);
+        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
 
         // Stub
         when(apiKeyGenerator.generate()).thenReturn(API_KEY);
@@ -658,6 +658,46 @@ public class ApiKeyServiceTest {
         when(planService.findById(PLAN_ID)).thenReturn(plan);
 
         apiKeyService.renew(subscriptionEntity, CUSTOM_API_KEY);
+    }
+
+    @Test
+    public void shouldRenewForCustomApiKeyAssociatedToClosedSubscription() throws TechnicalException {
+        apiKey = new ApiKey();
+        apiKey.setKey("123-456-789");
+        apiKey.setSubscription(SUBSCRIPTION_ID);
+        apiKey.setCreatedAt(new Date());
+        apiKey.setPlan(PLAN_ID);
+        apiKey.setApplication(APPLICATION_ID);
+        apiKey.setExpireAt(Date.from(new Date().toInstant().minus(1, ChronoUnit.DAYS)));
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setPlan(PLAN_ID);
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setStatus(SubscriptionStatus.PAUSED);
+        subscription.setEndingAt(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
+        subscription.setApplication(APPLICATION_ID);
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+
+        PlanEntity plan = new PlanEntity();
+        plan.setSecurity(PlanSecurityType.API_KEY);
+        plan.setApi(API_ID);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+
+        when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
+        when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
+        when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
+        when(applicationService.findById(GraviteeContext.getCurrentEnvironment(), subscription.getApplication())).thenReturn(application);
+
+        final ApiModelEntity api = mock(ApiModelEntity.class);
+        when(apiService.findByIdForTemplates(any())).thenReturn(api);
+
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setPlan(PLAN_ID);
+        subscriptionEntity.setId(SUBSCRIPTION_ID);
+
+        apiKeyService.renew(subscriptionEntity, CUSTOM_API_KEY);
+
+        verify(apiKeyRepository, times(1)).create(any());
     }
 
     @Test(expected = ApiKeyNotFoundException.class)

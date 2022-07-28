@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Application.*;
 import static io.gravitee.repository.management.model.Application.AuditEvent.*;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
@@ -370,26 +371,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             String clientId = newApplicationEntity.getSettings().getApp().getClientId();
 
             if (clientId != null && !clientId.trim().isEmpty()) {
-                LOGGER.debug("Check that client_id is unique among all applications");
-                try {
-                    final Set<Application> applications = applicationRepository.findAllByEnvironment(
-                        environmentId,
-                        ApplicationStatus.ACTIVE
-                    );
-                    final boolean alreadyExistingApp = applications
-                        .stream()
-                        .anyMatch(app -> app.getMetadata() != null && clientId.equals(app.getMetadata().get("client_id")));
-                    if (alreadyExistingApp) {
-                        LOGGER.error("An application already exists with the same client_id");
-                        throw new ClientIdAlreadyExistsException(clientId);
-                    }
-                } catch (TechnicalException ex) {
-                    LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, userId, ex);
-                    throw new TechnicalManagementException(
-                        "An error occurs while trying create " + newApplicationEntity + " for user " + userId,
-                        ex
-                    );
-                }
+                checkClientIdIsUniqueForEnv(environmentId, clientId);
             }
         } else {
             // Check that client registration is enabled
@@ -405,8 +387,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Create an OAuth client
             ClientRegistrationResponse registrationResponse = clientRegistrationService.register(newApplicationEntity);
             try {
-                metadata.put("client_id", registrationResponse.getClientId());
-                metadata.put("registration_payload", mapper.writeValueAsString(registrationResponse));
+                metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
+                metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
@@ -574,7 +556,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     );
                     final Optional<Application> byClientId = applications
                         .stream()
-                        .filter(app -> app.getMetadata() != null && clientId.equals(app.getMetadata().get("client_id")))
+                        .filter(app -> app.getMetadata() != null && clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID)))
                         .findAny();
                     if (byClientId.isPresent() && !byClientId.get().getId().equals(applicationToUpdate.getId())) {
                         LOGGER.error("An application already exists with the same client_id");
@@ -587,19 +569,19 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 checkClientSettings(updateApplicationEntity.getSettings().getoAuthClient());
 
                 // Update an OAuth client
-                final String registrationPayload = applicationToUpdate.getMetadata().get("registration_payload");
+                final String registrationPayload = applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD);
                 if (registrationPayload != null) {
-                    ClientRegistrationResponse registrationResponse = clientRegistrationService.update(
-                        registrationPayload,
-                        updateApplicationEntity
-                    );
-                    if (registrationResponse != null) {
-                        try {
-                            metadata.put("client_id", registrationResponse.getClientId());
-                            metadata.put("registration_payload", mapper.writeValueAsString(registrationResponse));
-                        } catch (JsonProcessingException e) {
-                            e.printStackTrace();
-                        }
+                    try {
+                        ClientRegistrationResponse registrationResponse = clientRegistrationService.update(
+                            registrationPayload,
+                            updateApplicationEntity
+                        );
+                        metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
+                        metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));
+                    } catch (Exception e) {
+                        LOGGER.error("Failed to update OAuth client data from client registration. Keeping old OAuth client data.", e);
+                        metadata.put(METADATA_CLIENT_ID, applicationToUpdate.getMetadata().get(METADATA_CLIENT_ID));
+                        metadata.put(METADATA_REGISTRATION_PAYLOAD, applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD));
                     }
                 }
             }
@@ -639,7 +621,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
                         updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
 
-                        subscriptionService.update(updateSubscriptionEntity, application.getMetadata().get("client_id"));
+                        subscriptionService.update(updateSubscriptionEntity, application.getMetadata().get("METADATA_CLIENT_ID"));
                     }
                 );
             return convert(Collections.singleton(updatedApplication), organizationId).iterator().next();
@@ -668,7 +650,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Check that client registration is enabled
             checkClientRegistrationEnabled(environmentId);
 
-            Application application = applicationToUpdate;
             ApplicationEntity applicationEntity = findById(environmentId, applicationId);
 
             // Check that the application can be updated with a new client secret
@@ -677,24 +658,24 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 applicationEntity.getSettings().getoAuthClient().isRenewClientSecretSupported()
             ) {
                 ClientRegistrationResponse registrationResponse = clientRegistrationService.renewClientSecret(
-                    application.getMetadata().get("registration_payload")
+                    applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD)
                 );
 
                 // Update application metadata
                 Map<String, String> metadata = new HashMap<>();
 
                 try {
-                    metadata.put("client_id", registrationResponse.getClientId());
-                    metadata.put("registration_payload", mapper.writeValueAsString(registrationResponse));
+                    metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
+                    metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
 
-                application.setUpdatedAt(new Date());
+                applicationToUpdate.setUpdatedAt(new Date());
 
-                metadata.forEach((key, value) -> application.getMetadata().put(key, value));
+                metadata.forEach((key, value) -> applicationToUpdate.getMetadata().put(key, value));
 
-                Application updatedApplication = applicationRepository.update(application);
+                Application updatedApplication = applicationRepository.update(applicationToUpdate);
 
                 // Audit
                 auditService.createApplicationAuditLog(
@@ -709,7 +690,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 return convert(Collections.singleton(updatedApplication), organizationId).iterator().next();
             }
 
-            throw new ApplicationRenewClientSecretException(application.getName());
+            throw new ApplicationRenewClientSecretException(applicationToUpdate.getName());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to renew client secret {}", applicationId, ex);
             throw new TechnicalManagementException(
@@ -730,6 +711,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             if (!ApplicationStatus.ARCHIVED.equals(application.getStatus())) {
                 throw new ApplicationActiveException(application.getName());
+            }
+
+            if (application.getMetadata() != null && application.getMetadata().containsKey(METADATA_CLIENT_ID)) {
+                checkClientIdIsUniqueForEnv(application.getEnvironmentId(), application.getMetadata().get(METADATA_CLIENT_ID));
             }
 
             application.setStatus(ApplicationStatus.ACTIVE);
@@ -1012,11 +997,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         if (application.getType() == ApplicationType.SIMPLE) {
             SimpleApplicationSettings simpleSettings = new SimpleApplicationSettings();
             if (application.getMetadata() != null) {
-                if (application.getMetadata().get("client_id") != null) {
-                    simpleSettings.setClientId(application.getMetadata().get("client_id"));
+                if (application.getMetadata().get(METADATA_CLIENT_ID) != null) {
+                    simpleSettings.setClientId(application.getMetadata().get(METADATA_CLIENT_ID));
                 }
-                if (application.getMetadata().get("type") != null) {
-                    simpleSettings.setType(application.getMetadata().get("type"));
+                if (application.getMetadata().get(METADATA_TYPE) != null) {
+                    simpleSettings.setType(application.getMetadata().get(METADATA_TYPE));
                 }
             }
             settings.setApp(simpleSettings);
@@ -1024,7 +1009,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             OAuthClientSettings clientSettings = new OAuthClientSettings();
             if (application.getMetadata() != null) {
                 try {
-                    final String registrationPayload = application.getMetadata().get("registration_payload");
+                    final String registrationPayload = application.getMetadata().get(METADATA_REGISTRATION_PAYLOAD);
                     if (registrationPayload != null) {
                         final ClientRegistrationResponse registrationResponse = mapper.readValue(
                             registrationPayload,
@@ -1121,6 +1106,25 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             String errorMessage = String.format("An error occurs while trying to find applications by name %s and id %s", name, ids);
             LOGGER.error(errorMessage, ex);
             throw new TechnicalManagementException(errorMessage, ex);
+        }
+    }
+
+    private void checkClientIdIsUniqueForEnv(String environmentId, String clientId) {
+        final boolean alreadyExistingApp;
+        try {
+            alreadyExistingApp =
+                applicationRepository
+                    .findAllByEnvironment(environmentId, ApplicationStatus.ACTIVE)
+                    .stream()
+                    .anyMatch(app -> app.getMetadata() != null && clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID)));
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to fetch applications for environment [" + environmentId + "]",
+                ex
+            );
+        }
+        if (alreadyExistingApp) {
+            throw new ClientIdAlreadyExistsException(clientId);
         }
     }
 
