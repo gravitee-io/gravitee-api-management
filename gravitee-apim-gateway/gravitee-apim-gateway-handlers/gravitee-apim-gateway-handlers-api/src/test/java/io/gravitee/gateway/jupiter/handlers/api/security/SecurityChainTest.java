@@ -32,8 +32,10 @@ import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
+import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.reactivex.Completable;
+import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
 import java.util.ArrayList;
@@ -64,7 +66,7 @@ class SecurityChainTest {
     private RequestExecutionContext ctx;
 
     @Test
-    void shouldExecuteSecurityPolicyWhenCanHandle() {
+    void shouldExecuteSecurityPolicyWhenHasRelevantSecurityToken() {
         final Plan plan1 = mockPlan("plan1");
         final Plan plan2 = mockPlan("plan2");
         final SecurityPolicy policy1 = mockSecurityPolicy("plan1", false, false);
@@ -150,7 +152,7 @@ class SecurityChainTest {
     }
 
     @Test
-    void shouldInterrupt401WhenNoPolicyCanHandle() {
+    void shouldInterrupt401WhenNoPolicyHasRelevantSecurityToken() {
         final Plan plan1 = mockPlan("plan1");
         final Plan plan2 = mockPlan("plan2");
         final SecurityPolicy policy1 = mockSecurityPolicy("plan1", false, false);
@@ -199,7 +201,7 @@ class SecurityChainTest {
         return plan;
     }
 
-    private SecurityPolicy mockSecurityPolicy(String name, boolean canHandle, boolean validateSubscription) {
+    private SecurityPolicy mockSecurityPolicy(String name, boolean hasSecurityToken, boolean validateSubscription) {
         final SecurityPolicy policy = mock(SecurityPolicy.class);
 
         when(
@@ -213,9 +215,10 @@ class SecurityChainTest {
         )
             .thenReturn(policy);
 
-        lenient().when(policy.support(ctx)).thenReturn(Single.just(canHandle));
+        Maybe<SecurityToken> securityTokenMaybe = hasSecurityToken ? Maybe.just(SecurityToken.forApiKey("testApiKey")) : Maybe.empty();
+        lenient().when(policy.extractSecurityToken(ctx)).thenReturn(securityTokenMaybe);
 
-        if (canHandle) {
+        if (hasSecurityToken) {
             lenient().when(policy.requireSubscription()).thenReturn(validateSubscription);
         }
 

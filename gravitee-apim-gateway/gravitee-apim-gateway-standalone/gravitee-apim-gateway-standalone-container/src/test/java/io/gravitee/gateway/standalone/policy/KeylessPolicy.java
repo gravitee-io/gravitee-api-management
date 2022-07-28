@@ -18,11 +18,11 @@ package io.gravitee.gateway.standalone.policy;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
+import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
-import io.reactivex.Single;
+import io.reactivex.Maybe;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,7 +41,7 @@ public class KeylessPolicy implements SecurityPolicy {
     }
 
     @Override
-    public Single<Boolean> support(HttpExecutionContext ctx) {
-        return Single.just(true);
+    public Maybe<SecurityToken> extractSecurityToken(HttpExecutionContext ctx) {
+        return Maybe.just(SecurityToken.empty());
     }
 }
