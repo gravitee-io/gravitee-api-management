@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
@@ -100,6 +101,8 @@ public class Api implements Serializable {
     private List<Flow> flows;
 
     private Map<String, Map<String, ResponseTemplate>> responseTemplates;
+
+    private Logging logging;
 
     private ApiServices services;
 

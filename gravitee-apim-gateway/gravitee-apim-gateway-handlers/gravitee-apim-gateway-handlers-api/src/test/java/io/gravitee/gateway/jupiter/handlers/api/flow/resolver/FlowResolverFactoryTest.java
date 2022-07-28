@@ -20,12 +20,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.flow.FlowMode;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.jupiter.flow.FlowResolver;
+import io.gravitee.gateway.model.Flow;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,9 +55,10 @@ class FlowResolverFactoryTest {
 
     @Test
     void shouldCreateApiFlowResolver() {
-        final Api api = new Api();
-        api.setFlowMode(FlowMode.DEFAULT);
+        final Api definition = new Api();
+        definition.setFlowMode(FlowMode.DEFAULT);
 
+        final io.gravitee.gateway.jupiter.handlers.api.definition.Api api = new io.gravitee.gateway.jupiter.handlers.api.definition.Api(definition);
         final FlowResolver flowResolver = cut.forApi(api);
 
         assertNotNull(flowResolver);
@@ -66,9 +67,10 @@ class FlowResolverFactoryTest {
 
     @Test
     void shouldCreateBestMatchApiFlowResolver() {
-        final Api api = new Api();
-        api.setFlowMode(FlowMode.BEST_MATCH);
+        final Api definition = new Api();
+        definition.setFlowMode(FlowMode.BEST_MATCH);
 
+        final io.gravitee.gateway.jupiter.handlers.api.definition.Api api = new io.gravitee.gateway.jupiter.handlers.api.definition.Api(definition);
         final FlowResolver flowResolver = cut.forApi(api);
 
         assertNotNull(flowResolver);
@@ -77,9 +79,10 @@ class FlowResolverFactoryTest {
 
     @Test
     void shouldCreateApiPlanFlowResolver() {
-        final Api api = new Api();
-        api.setFlowMode(FlowMode.DEFAULT);
+        final Api definition = new Api();
+        definition.setFlowMode(FlowMode.DEFAULT);
 
+        final io.gravitee.gateway.jupiter.handlers.api.definition.Api api = new io.gravitee.gateway.jupiter.handlers.api.definition.Api(definition);
         final FlowResolver flowResolver = cut.forApiPlan(api);
 
         assertNotNull(flowResolver);
@@ -88,9 +91,10 @@ class FlowResolverFactoryTest {
 
     @Test
     void shouldCreateBestMatchApiPlanFlowResolver() {
-        final Api api = new Api();
-        api.setFlowMode(FlowMode.BEST_MATCH);
+        final Api definition = new Api();
+        definition.setFlowMode(FlowMode.BEST_MATCH);
 
+        final io.gravitee.gateway.jupiter.handlers.api.definition.Api api = new io.gravitee.gateway.jupiter.handlers.api.definition.Api(definition);
         final FlowResolver flowResolver = cut.forApiPlan(api);
 
         assertNotNull(flowResolver);
@@ -101,10 +105,12 @@ class FlowResolverFactoryTest {
     void shouldCreatePlatformFlowResolver() {
         final OrganizationManager organizationManager = mock(OrganizationManager.class);
         final Organization organization = mock(Organization.class);
-        final Api api = mock(Api.class);
+        final io.gravitee.gateway.jupiter.handlers.api.definition.Api api = new io.gravitee.gateway.jupiter.handlers.api.definition.Api(
+                new Api()
+        );
 
         when(organizationManager.getCurrentOrganization()).thenReturn(organization);
-        when(organization.getFlowMode()).thenReturn(FlowMode.DEFAULT);
+        when(organization.getFlowMode()).thenReturn(io.gravitee.definition.model.FlowMode.DEFAULT);
         when(organization.getId()).thenReturn(ORGANIZATION_ID);
         when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
 
@@ -117,7 +123,9 @@ class FlowResolverFactoryTest {
     @Test
     void shouldCreatePlatformFlowResolverWhenNoOrganization() {
         final OrganizationManager organizationManager = mock(OrganizationManager.class);
-        final Api api = mock(Api.class);
+        final io.gravitee.gateway.jupiter.handlers.api.definition.Api api = new io.gravitee.gateway.jupiter.handlers.api.definition.Api(
+                new Api()
+        );
 
         when(organizationManager.getCurrentOrganization()).thenReturn(null);
 
@@ -131,13 +139,15 @@ class FlowResolverFactoryTest {
     void shouldCreateBestMatchPlatformFlowResolver() {
         final OrganizationManager organizationManager = mock(OrganizationManager.class);
         final Organization organization = mock(Organization.class);
-        final Api api = mock(Api.class);
+        final io.gravitee.gateway.jupiter.handlers.api.definition.Api api = new io.gravitee.gateway.jupiter.handlers.api.definition.Api(
+                new Api()
+        );
 
         when(organizationManager.getCurrentOrganization()).thenReturn(organization);
-        when(organization.getFlowMode()).thenReturn(FlowMode.BEST_MATCH);
+        when(organization.getFlowMode()).thenReturn(io.gravitee.definition.model.FlowMode.BEST_MATCH);
         when(organization.getId()).thenReturn(ORGANIZATION_ID);
 
-        final FlowResolver flowResolver = cut.forPlatform(mock(Api.class), organizationManager);
+        final FlowResolver flowResolver = cut.forPlatform(api, organizationManager);
 
         assertNotNull(flowResolver);
         assertTrue(flowResolver instanceof BestMatchFlowResolver);

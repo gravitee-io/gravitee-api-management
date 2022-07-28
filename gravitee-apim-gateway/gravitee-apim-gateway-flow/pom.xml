@@ -33,6 +33,12 @@
     <dependencies>
         <dependency>
             <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.apim.gateway</groupId>
             <artifactId>gravitee-apim-gateway-policy</artifactId>
             <version>${project.version}</version>
         </dependency>

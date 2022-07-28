@@ -16,9 +16,11 @@
 package io.gravitee.gateway.flow.condition.evaluation;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.SelectorHttp;
+import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
+import io.gravitee.gateway.model.Flow;
 
 /**
  * This {@link ConditionEvaluator} evaluates to true if the method of the request is matching the
@@ -35,6 +37,15 @@ public class HttpMethodConditionEvaluator implements ConditionEvaluator<Flow> {
     }
 
     protected boolean evaluate(HttpMethod method, Flow flow) {
-        return flow.getMethods() == null || flow.getMethods().isEmpty() || flow.getMethods().contains(method);
+        return flow.getSelectors()
+                .stream()
+                .filter(selector -> selector.getType() == SelectorType.HTTP)
+                .findFirst()
+                .map(selector -> {
+                    SelectorHttp selectorHttp = (SelectorHttp) selector;;
+
+                    return selectorHttp.getMethods() == null || selectorHttp.getMethods().isEmpty() || selectorHttp.getMethods().contains(method);
+                })
+                .orElse(false);
     }
 }

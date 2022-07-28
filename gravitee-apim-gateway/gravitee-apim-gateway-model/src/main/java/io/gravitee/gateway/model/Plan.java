@@ -1,4 +1,6 @@
-package io.gravitee.gateway.handlers.api.definition;
+package io.gravitee.gateway.model;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -13,6 +15,8 @@ public class Plan {
     private final String type;
 
     private boolean requiresSubscription;
+
+    private List<Flow> flows;
 
     public Plan(String id, String name, String type) {
         this.id = id;
@@ -38,5 +42,13 @@ public class Plan {
 
     public void setRequiresSubscription(boolean requiresSubscription) {
         this.requiresSubscription = requiresSubscription;
+    }
+
+    public List<Flow> getFlows() {
+        return flows;
+    }
+
+    public void setFlows(List<Flow> flows) {
+        this.flows = flows;
     }
 }

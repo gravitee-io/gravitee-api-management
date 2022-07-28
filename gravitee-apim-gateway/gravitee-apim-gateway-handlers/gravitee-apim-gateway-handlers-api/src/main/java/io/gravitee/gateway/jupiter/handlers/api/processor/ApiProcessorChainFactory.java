@@ -16,15 +16,13 @@
 package io.gravitee.gateway.jupiter.handlers.api.processor;
 
 import io.gravitee.definition.model.Cors;
-import io.gravitee.definition.model.Logging;
-import io.gravitee.definition.model.LoggingMode;
-import io.gravitee.gateway.core.logging.LoggingContext;
+import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
-import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
+import io.gravitee.gateway.jupiter.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.handlers.api.processor.cors.CorsPreflightRequestProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.SimpleFailureProcessor;
@@ -37,7 +35,7 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.plan.PlanProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
-import io.reactivex.Completable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -63,10 +61,13 @@ public class ApiProcessorChainFactory {
         }
     }
 
-    public ProcessorChain preProcessorChain(final Api api) {
+    public ProcessorChain preProcessorChain(final io.gravitee.gateway.jupiter.handlers.api.definition.Api api) {
         List<Processor> preProcessorList = new ArrayList<>();
 
-        Cors cors = api.getProxy().getCors();
+        // In the context of Sync API, we are assuming a single HTTP listener
+        ListenerHttp httpListener = (ListenerHttp) api.getDefinition().getListeners().get(0);
+
+        Cors cors = httpListener.getCors();
         if (cors != null && cors.isEnabled()) {
             preProcessorList.add(CorsPreflightRequestProcessor.instance());
         }
@@ -76,7 +77,7 @@ public class ApiProcessorChainFactory {
 
         preProcessorList.add(PlanProcessor.instance());
 
-        if (LoggingUtils.getLoggingContext(api) != null) {
+        if (LoggingUtils.getLoggingContext(api.getDefinition().getLogging()) != null) {
             preProcessorList.add(LogRequestProcessor.instance());
         }
 
@@ -87,18 +88,21 @@ public class ApiProcessorChainFactory {
 
     public ProcessorChain postProcessorChain(final Api api) {
         List<Processor> postProcessorList = new ArrayList<>();
+        // In the context of Sync API, we are assuming a single HTTP listener
+        ListenerHttp httpListener = (ListenerHttp) api.getDefinition().getListeners().get(0);
+
         postProcessorList.add(new ShutdownProcessor(node));
 
-        Cors cors = api.getProxy().getCors();
+        Cors cors = httpListener.getCors();
         if (cors != null && cors.isEnabled()) {
             postProcessorList.add(CorsSimpleRequestProcessor.instance());
         }
-        Map<String, Pattern> pathMappings = api.getPathMappings();
+        Map<String, Pattern> pathMappings = httpListener.getPathMappingsPattern();
         if (pathMappings != null && !pathMappings.isEmpty()) {
             postProcessorList.add(PathMappingProcessor.instance());
         }
 
-        if (LoggingUtils.getLoggingContext(api) != null) {
+        if (LoggingUtils.getLoggingContext(api.getDefinition().getLogging()) != null) {
             postProcessorList.add(LogResponseProcessor.instance());
         }
 
@@ -109,22 +113,25 @@ public class ApiProcessorChainFactory {
 
     public ProcessorChain errorProcessorChain(final Api api) {
         List<Processor> errorProcessorList = new ArrayList<>();
-        Cors cors = api.getProxy().getCors();
+        // In the context of Sync API, we are assuming a single HTTP listener
+        ListenerHttp httpListener = (ListenerHttp) api.getDefinition().getListeners().get(0);
+
+        Cors cors = httpListener.getCors();
         if (cors != null && cors.isEnabled()) {
             errorProcessorList.add(CorsSimpleRequestProcessor.instance());
         }
-        Map<String, Pattern> pathMappings = api.getPathMappings();
+        Map<String, Pattern> pathMappings = httpListener.getPathMappingsPattern();
         if (pathMappings != null && !pathMappings.isEmpty()) {
             errorProcessorList.add(PathMappingProcessor.instance());
         }
 
-        if (api.getResponseTemplates() != null && !api.getResponseTemplates().isEmpty()) {
+        if (api.getDefinition().getResponseTemplates() != null && !api.getDefinition().getResponseTemplates().isEmpty()) {
             errorProcessorList.add(ResponseTemplateBasedFailureProcessor.instance());
         } else {
             errorProcessorList.add(SimpleFailureProcessor.instance());
         }
 
-        if (LoggingUtils.getLoggingContext(api) != null) {
+        if (LoggingUtils.getLoggingContext(api.getDefinition().getLogging()) != null) {
             errorProcessorList.add(LogResponseProcessor.instance());
         }
 

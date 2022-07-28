@@ -21,6 +21,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.jupiter.policy.AbstractPolicyManager;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
+import io.gravitee.gateway.policy.PolicyDefinition;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
@@ -37,7 +38,7 @@ public class PlatformPolicyManager extends AbstractPolicyManager {
 
     private final Logger logger = LoggerFactory.getLogger(PlatformPolicyManager.class);
 
-    private Set<Policy> dependencies;
+    private Set<PolicyDefinition> dependencies;
 
     public PlatformPolicyManager(
         final DefaultClassLoader classLoader,
@@ -50,7 +51,7 @@ public class PlatformPolicyManager extends AbstractPolicyManager {
         super(classLoader, policyFactory, policyConfigurationFactory, policyPluginManager, policyClassLoaderFactory, componentProvider);
     }
 
-    public void setDependencies(Set<Policy> dependencies) {
+    public void setDependencies(Set<PolicyDefinition> dependencies) {
         this.dependencies = dependencies;
         this.restart();
     }
@@ -76,7 +77,7 @@ public class PlatformPolicyManager extends AbstractPolicyManager {
     }
 
     @Override
-    protected Set<Policy> dependencies() {
+    protected Set<PolicyDefinition> dependencies() {
         return dependencies;
     }
 }

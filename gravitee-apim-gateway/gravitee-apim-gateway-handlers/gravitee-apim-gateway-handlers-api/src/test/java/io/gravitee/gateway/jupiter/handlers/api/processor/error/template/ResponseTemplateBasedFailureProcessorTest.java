@@ -56,7 +56,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("POLICY_ERROR_KEY", mapTemplates);
-        api.setResponseTemplates(templates);
+        api.getDefinition().setResponseTemplates(templates);
 
         // Set failure
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
@@ -77,7 +77,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("POLICY_ERROR_KEY", mapTemplates);
-        api.setResponseTemplates(templates);
+        api.getDefinition().setResponseTemplates(templates);
 
         // Set failure
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY");
@@ -98,7 +98,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("DEFAULT", mapTemplates);
-        api.setResponseTemplates(templates);
+        api.getDefinition().setResponseTemplates(templates);
 
         // Set failure
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
@@ -120,7 +120,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("POLICY_ERROR_KEY", mapTemplates);
-        api.setResponseTemplates(templates);
+        api.getDefinition().setResponseTemplates(templates);
 
         // Set failure
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
@@ -147,7 +147,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("POLICY_ERROR_KEY", mapTemplates);
-        api.setResponseTemplates(templates);
+        api.getDefinition().setResponseTemplates(templates);
 
         // Set failure
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
@@ -170,7 +170,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("POLICY_ERROR_KEY", mapTemplates);
-        api.setResponseTemplates(templates);
+        api.getDefinition().setResponseTemplates(templates);
 
         // Set failure
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
@@ -193,7 +193,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
         templates.put("POLICY_ERROR_KEY", mapTemplates);
-        api.setResponseTemplates(templates);
+        api.getDefinition().setResponseTemplates(templates);
 
         // Set failure
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");

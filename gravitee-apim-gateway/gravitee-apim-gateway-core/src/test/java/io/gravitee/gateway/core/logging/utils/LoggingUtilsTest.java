@@ -18,10 +18,8 @@ package io.gravitee.gateway.core.logging.utils;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
-import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.logging.LoggingContext;
@@ -129,14 +127,10 @@ class LoggingUtilsTest {
 
     @Test
     void shouldGetLoggingContextFromApi() {
-        final Api api = new Api();
-        final Proxy proxy = new Proxy();
         final Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
-        proxy.setLogging(logging);
-        api.setProxy(proxy);
 
-        final LoggingContext loggingContext = LoggingUtils.getLoggingContext(api);
+        final LoggingContext loggingContext = LoggingUtils.getLoggingContext(logging);
         assertNotNull(loggingContext);
         assertTrue(loggingContext.clientMode());
         assertTrue(loggingContext.proxyMode());
@@ -144,25 +138,16 @@ class LoggingUtilsTest {
 
     @Test
     void shouldGetNullLoggingContextFromApiWhenNullLoggingConfiguration() {
-        final Api api = new Api();
-        final Proxy proxy = new Proxy();
-        proxy.setLogging(null);
-        api.setProxy(proxy);
-
-        final LoggingContext loggingContext = LoggingUtils.getLoggingContext(api);
+        final LoggingContext loggingContext = LoggingUtils.getLoggingContext(null);
         assertNull(loggingContext);
     }
 
     @Test
     void shouldGetNullLoggingContextFromApiWhenNoneLoggingConfiguration() {
-        final Api api = new Api();
-        final Proxy proxy = new Proxy();
         final Logging logging = new Logging();
         logging.setMode(LoggingMode.NONE);
-        proxy.setLogging(logging);
-        api.setProxy(proxy);
 
-        final LoggingContext loggingContext = LoggingUtils.getLoggingContext(api);
+        final LoggingContext loggingContext = LoggingUtils.getLoggingContext(logging);
         assertNull(loggingContext);
     }
 

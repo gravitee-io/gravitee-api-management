@@ -1,6 +1,6 @@
 package io.gravitee.gateway.jupiter.handlers.api.security;
 
-import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.jupiter.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.handlers.api.security.plan.SecurityPlan;
 import io.gravitee.gateway.jupiter.handlers.api.security.plan.SecurityPlanFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;

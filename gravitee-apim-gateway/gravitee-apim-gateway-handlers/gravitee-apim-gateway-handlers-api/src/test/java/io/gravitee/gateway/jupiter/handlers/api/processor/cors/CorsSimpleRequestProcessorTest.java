@@ -46,7 +46,7 @@ class CorsSimpleRequestProcessorTest extends AbstractProcessorTest {
         cors.setAccessControlAllowOrigin(Set.of("*"));
         cors.setAccessControlAllowMethods(Set.of("GET"));
         proxy.setCors(cors);
-        api.setProxy(proxy);
+        api.getDefinition().setProxy(proxy);
     }
 
     @Test
@@ -60,7 +60,7 @@ class CorsSimpleRequestProcessorTest extends AbstractProcessorTest {
 
     @Test
     public void shouldCompleteWithClientCredentialsHeaderWhenCorsEnabledAndValidRequest() {
-        api.getProxy().getCors().setAccessControlAllowCredentials(true);
+        api.getDefinition().getProxy().getCors().setAccessControlAllowCredentials(true);
         spyRequestHeaders.set(ORIGIN, "origin");
         corsSimpleRequestProcessor.execute(ctx).test().assertResult();
         verify(mockResponse, times(2)).headers();
@@ -82,7 +82,7 @@ class CorsSimpleRequestProcessorTest extends AbstractProcessorTest {
 
     @Test
     public void shouldCompleteAndRemoveCorsHeadersWhenCorsEnableButOriginNotAllowed() {
-        api.getProxy().getCors().setAccessControlAllowOrigin(Set.of("origin_allowed"));
+        api.getDefinition().getProxy().getCors().setAccessControlAllowOrigin(Set.of("origin_allowed"));
         spyRequestHeaders.set(ORIGIN, "origin_not_allowed");
         corsSimpleRequestProcessor.execute(ctx).test().assertResult();
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS)).isFalse();

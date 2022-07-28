@@ -20,6 +20,9 @@ import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
+import io.gravitee.gateway.model.DefinitionContext;
+import io.gravitee.gateway.model.Plan;
+import io.gravitee.gateway.model.ReactableApi;
 import io.gravitee.gateway.policy.PolicyDefinition;
 import io.gravitee.gateway.reactor.handler.Entrypoint;
 import io.gravitee.gateway.reactor.handler.VirtualHost;
@@ -27,8 +30,6 @@ import io.gravitee.gateway.resource.ResourceDefinition;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.ORIGIN_KUBERNETES;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -65,7 +66,7 @@ public class Api extends ReactableApi<io.gravitee.definition.model.Api> {
     public Set<PolicyDefinition> policies() {
         Set<PolicyDefinition> policies = new HashSet<>();
 
-        if (ORIGIN_KUBERNETES.equals(this.getDefinitionContext().getOrigin())) {
+        if (DefinitionContext.ORIGIN_KUBERNETES.equals(this.getDefinitionContext().getOrigin())) {
             Policy secPolicy = buildSecurityPolicy("KEY_LESS");
 
             if (secPolicy.getName() != null) {

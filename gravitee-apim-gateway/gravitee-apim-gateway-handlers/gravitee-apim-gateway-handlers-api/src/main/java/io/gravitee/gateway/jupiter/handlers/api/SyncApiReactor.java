@@ -30,7 +30,6 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
-import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Request;
@@ -44,6 +43,7 @@ import io.gravitee.gateway.jupiter.core.hook.HookHelper;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
+import io.gravitee.gateway.jupiter.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.hook.logging.LoggingHook;
@@ -144,7 +144,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             invokerHooks.add(new TracingHook("invoker"));
         }
 
-        this.loggingContext = LoggingUtils.getLoggingContext(api);
+        this.loggingContext = LoggingUtils.getLoggingContext(api.getDefinition());
 
         if (loggingContext != null) {
             invokerHooks.add(new LoggingHook());

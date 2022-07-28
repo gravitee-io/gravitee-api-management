@@ -1,7 +1,8 @@
 package io.gravitee.gateway.jupiter.handlers.api.definition;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.gateway.handlers.api.definition.ReactableApi;
+import io.gravitee.gateway.model.Plan;
+import io.gravitee.gateway.model.ReactableApi;
 import io.gravitee.gateway.policy.PolicyDefinition;
 import io.gravitee.gateway.reactor.handler.Entrypoint;
 import io.gravitee.gateway.resource.ResourceDefinition;
@@ -43,6 +44,11 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
     @Override
     public String getName() {
         return definition.getName();
+    }
+
+    @Override
+    public List<Plan> getPlans() {
+        return null;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package io.gravitee.gateway.handlers.api.definition;
+package io.gravitee.gateway.model;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gateway.reactor.Reactable;

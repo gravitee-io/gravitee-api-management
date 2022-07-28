@@ -15,10 +15,14 @@
  */
 package io.gravitee.gateway.jupiter.flow.condition.evaluation;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.Selector;
+import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
+import io.gravitee.gateway.model.Flow;
 import io.reactivex.Maybe;
+
+import java.util.function.Function;
 
 /**
  * This {@link ConditionFilter} evaluates to true if the method of the request is matching the
@@ -33,6 +37,11 @@ public class HttpMethodConditionFilter
 
     @Override
     public Maybe<Flow> filter(RequestExecutionContext ctx, Flow flow) {
-        return evaluate(ctx.request().method(), flow) ? Maybe.just(flow) : Maybe.empty();
+        return flow.getSelectors()
+                .stream()
+                .filter(selector -> selector.getType() == SelectorType.HTTP)
+                .findFirst()
+                .map((Function<Selector, Maybe<Flow>>) selector -> evaluate(ctx.request().method(), flow) ? Maybe.just(flow) : Maybe.empty())
+                .orElse(Maybe.just(flow));
     }
 }

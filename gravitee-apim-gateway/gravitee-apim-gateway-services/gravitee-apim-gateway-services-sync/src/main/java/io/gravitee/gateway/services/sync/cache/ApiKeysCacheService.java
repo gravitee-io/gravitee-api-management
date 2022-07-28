@@ -21,9 +21,9 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.service.ApiKeyService;
-import io.gravitee.gateway.handlers.api.definition.Plan;
-import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.model.Plan;
+import io.gravitee.gateway.model.ReactableApi;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.services.sync.cache.handler.ApiKeysServiceHandler;
@@ -34,17 +34,18 @@ import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.vertx.ext.web.Router;
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -209,13 +210,13 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     public void onEvent(Event<ReactorEvent, Reactable> event) {
         switch (event.type()) {
             case DEPLOY:
-                register((Api) event.content());
+                register((ReactableApi<?>) event.content());
                 break;
             case UNDEPLOY:
-                unregister((Api) event.content());
+                unregister((ReactableApi<?>) event.content());
                 break;
             case UPDATE:
-                unregister((Api) event.content());
+                unregister((ReactableApi<?>) event.content());
                 register((Api) event.content());
                 break;
             default:
@@ -298,7 +299,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
         }
     }
 
-    private void unregister(Api api) {
+    private void unregister(ReactableApi<?> api) {
         plansPerApi.remove(api.getId());
     }
 }

@@ -18,11 +18,12 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.Deployer;
 import io.gravitee.gateway.handlers.api.manager.deployer.ApiDeployer;
+import io.gravitee.gateway.model.DefinitionContext;
+import io.gravitee.gateway.model.ReactableApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.cache.*;
 import io.gravitee.node.api.cluster.ClusterManager;
@@ -37,8 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
-
-import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.planRequired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -183,7 +182,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
             List<String> plans = deployer.getPlans(api);
 
             // Deploy the API only if there is at least one plan
-            if (!plans.isEmpty() || !planRequired(api)) {
+            if (!plans.isEmpty() || !DefinitionContext.planRequired(api)) {
                 logger.debug("Deploying {} plan(s) for {}:", plans.size(), api);
                 for (String plan : plans) {
                     logger.debug("\t- {}", plan);
@@ -223,7 +222,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
         Deployer deployer = deployers.get(api.getClass());
         List<String> plans = deployer.getPlans(api);
 
-        if (!plans.isEmpty() || !planRequired(api)) {
+        if (!plans.isEmpty() || !DefinitionContext.planRequired(api)) {
             logger.debug("Deploying {} plan(s) for {}:", plans.size(), api);
             for (String plan : plans) {
                 logger.info("\t- {}", plan);

@@ -15,12 +15,13 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.flow.resolver;
 
-import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.flow.AbstractFlowResolver;
+import io.gravitee.gateway.model.Flow;
+import io.gravitee.gateway.model.ReactableApi;
 import io.reactivex.Flowable;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -33,16 +34,16 @@ import java.util.stream.Collectors;
  */
 class ApiPlanFlowResolver extends AbstractFlowResolver {
 
-    private final Api api;
+    private final ReactableApi<?> api;
 
-    public ApiPlanFlowResolver(Api api, ConditionFilter<Flow> filter) {
+    public ApiPlanFlowResolver(ReactableApi<?> api, ConditionFilter<Flow> filter) {
         super(filter);
         this.api = api;
     }
 
     @Override
     public Flowable<Flow> provideFlows(RequestExecutionContext ctx) {
-        if (api.getDefinition().getPlans() == null || api.getDefinition().getPlans().isEmpty()) {
+        if (api.getPlans() == null || api.getPlans().isEmpty()) {
             return Flowable.empty();
         }
 
@@ -50,7 +51,6 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
 
         return Flowable.fromIterable(
             api
-                    .getDefinition()
                 .getPlans()
                 .stream()
                 .filter(plan -> Objects.equals(plan.getId(), planId))

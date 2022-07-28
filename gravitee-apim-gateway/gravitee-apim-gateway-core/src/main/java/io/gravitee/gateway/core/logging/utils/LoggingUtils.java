@@ -15,15 +15,14 @@
  */
 package io.gravitee.gateway.core.logging.utils;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.logging.LoggingContext;
-import java.util.regex.Pattern;
+
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.regex.Pattern;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -38,10 +37,7 @@ public final class LoggingUtils {
 
     private static Pattern EXCLUDED_CONTENT_TYPES_PATTERN;
 
-    @Nullable
-    public static LoggingContext getLoggingContext(@Nonnull final Api api) {
-        final Logging logging = api.getProxy().getLogging();
-
+    public static LoggingContext getLoggingContext(@Nonnull final Logging logging) {
         if (logging != null) {
             final LoggingMode loggingMode = logging.getMode();
 

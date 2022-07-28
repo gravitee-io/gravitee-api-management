@@ -62,9 +62,9 @@ public class AbstractProcessorTest {
         lenient().when(mockRequest.metrics()).thenReturn(mockMetrics);
         lenient().when(mockRequest.headers()).thenReturn(spyRequestHeaders);
         lenient().when(mockResponse.headers()).thenReturn(spyResponseHeaders);
-        api = new Api();
+        api = new Api(new io.gravitee.definition.model.Api());
         componentProvider = new CustomComponentProvider();
-        componentProvider.add(io.gravitee.definition.model.Api.class, api);
+        componentProvider.add(Api.class, api);
         ctx = new DefaultRequestExecutionContext(mockRequest, mockResponse);
         ctx.componentProvider(componentProvider);
     }

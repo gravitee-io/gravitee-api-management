@@ -20,15 +20,17 @@ import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.definition.model.Plan;
-import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
+import io.gravitee.gateway.model.Flow;
+import io.gravitee.gateway.model.Plan;
 import io.reactivex.Maybe;
 import io.reactivex.subscribers.TestSubscriber;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -45,10 +47,18 @@ class ApiPlanFlowResolverTest {
     private Api api;
 
     @Mock
+    private io.gravitee.definition.model.Api definition;
+
+    @Mock
     private ConditionFilter<Flow> filter;
 
     @Mock
     private RequestExecutionContext ctx;
+
+    @BeforeEach
+    public void beforeEach() {
+        when(api.getDefinition()).thenReturn(definition);
+    }
 
     @Test
     public void shouldProvideApiPlanFlowsOrdered() {
@@ -76,8 +86,8 @@ class ApiPlanFlowResolverTest {
         when(flow4.isEnabled()).thenReturn(true);
 
         when(api.getPlans()).thenReturn(plans);
-        when(plan1.getFlows()).thenReturn(planFlows1);
-        when(plan2.getFlows()).thenReturn(planFlows2);
+        when(definition.getFlows()).thenReturn(planFlows1);
+        when(definition.getFlows()).thenReturn(planFlows2);
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
@@ -111,8 +121,8 @@ class ApiPlanFlowResolverTest {
         when(flow4.isEnabled()).thenReturn(true);
 
         when(api.getPlans()).thenReturn(plans);
-        when(plan1.getFlows()).thenReturn(planFlows1);
-        when(plan2.getFlows()).thenReturn(planFlows2);
+        when(definition.getFlows()).thenReturn(planFlows1);
+        when(definition.getFlows()).thenReturn(planFlows2);
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();

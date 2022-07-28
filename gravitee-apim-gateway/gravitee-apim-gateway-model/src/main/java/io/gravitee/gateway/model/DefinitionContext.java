@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.definition;
+package io.gravitee.gateway.model;
 
 import com.google.common.base.Strings;
 import java.io.Serializable;

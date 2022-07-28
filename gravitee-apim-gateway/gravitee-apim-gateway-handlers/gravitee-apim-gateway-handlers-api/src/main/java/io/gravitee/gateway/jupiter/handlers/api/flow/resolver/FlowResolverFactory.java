@@ -15,12 +15,11 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.flow.resolver;
 
-import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.definition.model.v4.flow.FlowMode;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.jupiter.flow.FlowResolver;
+import io.gravitee.gateway.model.Flow;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 
@@ -38,7 +37,7 @@ public class FlowResolverFactory {
         this.flowFilter = flowFilter;
     }
 
-    public FlowResolver forApi(Api api) {
+    public FlowResolver forApi(io.gravitee.gateway.jupiter.handlers.api.definition.Api api) {
         ApiFlowResolver flowResolver = new ApiFlowResolver(api, flowFilter);
 
         if (isBestMatchFlowMode(api.getDefinition().getFlowMode())) {
@@ -48,7 +47,7 @@ public class FlowResolverFactory {
         return flowResolver;
     }
 
-    public FlowResolver forApiPlan(Api api) {
+    public FlowResolver forApiPlan(io.gravitee.gateway.jupiter.handlers.api.definition.Api api) {
         ApiPlanFlowResolver flowResolver = new ApiPlanFlowResolver(api, flowFilter);
 
         if (isBestMatchFlowMode(api.getDefinition().getFlowMode())) {
@@ -58,12 +57,12 @@ public class FlowResolverFactory {
         return flowResolver;
     }
 
-    public FlowResolver forPlatform(Api api, OrganizationManager organizationManager) {
+    public FlowResolver forPlatform(io.gravitee.gateway.jupiter.handlers.api.definition.Api api, OrganizationManager organizationManager) {
         PlatformFlowResolver flowResolver = new PlatformFlowResolver(api, organizationManager, flowFilter);
 
         final Organization organization = organizationManager.getCurrentOrganization();
         if (organization != null) {
-            if (isBestMatchFlowMode(organization.getFlowMode())) {
+            if (organization.getFlowMode() == io.gravitee.definition.model.FlowMode.BEST_MATCH) {
                 return new BestMatchFlowResolver(flowResolver);
             }
         }

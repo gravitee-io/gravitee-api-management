@@ -15,9 +15,9 @@
  */
 package io.gravitee.gateway.jupiter.flow;
 
-import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
+import io.gravitee.gateway.model.Flow;
 import io.reactivex.Flowable;
 
 /**

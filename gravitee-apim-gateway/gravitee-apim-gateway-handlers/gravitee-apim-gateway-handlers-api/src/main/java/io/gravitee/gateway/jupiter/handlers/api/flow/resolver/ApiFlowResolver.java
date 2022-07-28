@@ -15,16 +15,16 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.flow.resolver;
 
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.flow.AbstractFlowResolver;
+import io.gravitee.gateway.jupiter.handlers.api.definition.Api;
+import io.gravitee.gateway.model.Flow;
 import io.reactivex.Flowable;
 import java.util.stream.Collectors;
 
 /**
- * Allows resolving {@link Flow}s to execute for a given {@link Api}.
+ * Allows resolving {@link Flow}s to execute for a given {@link Apî}.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team

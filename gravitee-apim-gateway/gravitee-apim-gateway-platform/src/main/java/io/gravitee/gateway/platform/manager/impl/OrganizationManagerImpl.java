@@ -22,6 +22,7 @@ import io.gravitee.gateway.jupiter.platform.PlatformPolicyManager;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationEvent;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.policy.PolicyDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,8 +69,8 @@ public class OrganizationManagerImpl implements OrganizationManager {
                 logger.info("Register organization {}", organization);
                 currentOrganization = organization;
                 eventManager.publishEvent(OrganizationEvent.REGISTER, organization);
-                policyManager.setDependencies(currentOrganization.dependencies(Policy.class));
-                v3policyManager.setDependencies(currentOrganization.dependencies(Policy.class));
+                policyManager.setDependencies(currentOrganization.dependencies(PolicyDefinition.class));
+                v3policyManager.setDependencies(currentOrganization.dependencies(PolicyDefinition.class));
                 return true;
             }
         }

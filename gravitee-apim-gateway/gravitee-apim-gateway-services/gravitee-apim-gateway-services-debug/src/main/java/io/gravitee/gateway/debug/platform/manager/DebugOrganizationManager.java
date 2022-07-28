@@ -23,6 +23,7 @@ import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.PlatformPolicyManager;
 import io.gravitee.gateway.platform.manager.OrganizationEvent;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.policy.PolicyDefinition;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -41,7 +42,7 @@ public class DebugOrganizationManager implements OrganizationManager, EventListe
     @Override
     public boolean register(Organization organization) {
         currentOrganization = organization;
-        policyManager.setDependencies(currentOrganization.dependencies(Policy.class));
+        policyManager.setDependencies(currentOrganization.dependencies(PolicyDefinition.class));
         return true;
     }
 

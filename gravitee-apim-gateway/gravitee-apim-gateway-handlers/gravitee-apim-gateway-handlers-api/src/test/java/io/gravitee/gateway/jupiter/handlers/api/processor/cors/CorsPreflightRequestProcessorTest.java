@@ -50,7 +50,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         cors.setAccessControlAllowOrigin(Set.of("*"));
         cors.setAccessControlAllowMethods(Set.of("GET"));
         proxy.setCors(cors);
-        api.setProxy(proxy);
+        api.getDefinition().setProxy(proxy);
     }
 
     @Test
@@ -71,7 +71,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
 
     @Test
     public void shouldInterruptWithCredentialsWhenCorsEnabledAndValidRequest() {
-        api.getProxy().getCors().setAccessControlAllowCredentials(true);
+        api.getDefinition().getProxy().getCors().setAccessControlAllowCredentials(true);
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(ctx).test().assertError(InterruptionException.class);
@@ -88,7 +88,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
 
     @Test
     public void shouldInterruptWithControlMaxAgeHeaderWhenCorsEnabledAndValidRequest() {
-        api.getProxy().getCors().setAccessControlMaxAge(10);
+        api.getDefinition().getProxy().getCors().setAccessControlMaxAge(10);
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(ctx).test().assertError(InterruptionException.class);
@@ -106,7 +106,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
     @Test
     public void shouldInterruptWithAccessControlAllowHeadersWhenCorsEnabledAndValidRequest() {
         Set<String> accessControlAllowHeaders = Set.of("X-Test", "X-Test-2");
-        api.getProxy().getCors().setAccessControlAllowHeaders(accessControlAllowHeaders);
+        api.getDefinition().getProxy().getCors().setAccessControlAllowHeaders(accessControlAllowHeaders);
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(ctx).test().assertError(InterruptionException.class);
@@ -124,7 +124,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
 
     @Test
     public void shouldCompleteWithoutChangingResponseWhenCorsDisabled() {
-        api.getProxy().getCors().setEnabled(false);
+        api.getDefinition().getProxy().getCors().setEnabled(false);
         corsPreflightRequestProcessor.execute(ctx).test().assertResult();
         verifyNoInteractions(mockMetrics);
         verifyNoInteractions(mockResponse);

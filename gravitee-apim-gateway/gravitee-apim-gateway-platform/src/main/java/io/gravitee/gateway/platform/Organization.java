@@ -18,6 +18,8 @@ package io.gravitee.gateway.platform;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
+import io.gravitee.gateway.policy.PolicyDefinition;
+
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Consumer;
@@ -41,14 +43,14 @@ public class Organization extends io.gravitee.definition.model.Organization impl
     }
 
     public <D> Set<D> dependencies(Class<D> type) {
-        if (Policy.class.equals(type)) {
+        if (PolicyDefinition.class.equals(type)) {
             return (Set<D>) policies();
         }
         return Collections.emptySet();
     }
 
-    private Set<Policy> policies() {
-        Set<Policy> policies = new HashSet<>();
+    private Set<PolicyDefinition> policies() {
+        Set<PolicyDefinition> policies = new HashSet<>();
 
         // Load policies from flows
         if (getFlows() != null) {
@@ -67,7 +69,7 @@ public class Organization extends io.gravitee.definition.model.Organization impl
         return policies;
     }
 
-    private Collection<Policy> getPolicies(List<Step> flowStep) {
+    private Collection<PolicyDefinition> getPolicies(List<Step> flowStep) {
         if (flowStep == null || flowStep.isEmpty()) {
             return Collections.emptyList();
         }
@@ -82,6 +84,7 @@ public class Organization extends io.gravitee.definition.model.Organization impl
                     return policy;
                 }
             )
+                .map(policy -> new PolicyDefinition(policy.getName(), policy.getConfiguration()))
             .collect(Collectors.toList());
     }
 }

@@ -15,14 +15,11 @@
  */
 package io.gravitee.gateway.services.sync.synchronizer;
 
-import static io.gravitee.gateway.services.sync.spring.SyncConfiguration.PARALLELISM;
-import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.model.ReactableApi;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -35,14 +32,20 @@ import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.schedulers.Schedulers;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import static io.gravitee.gateway.services.sync.spring.SyncConfiguration.PARALLELISM;
+import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -167,7 +170,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     }
 
     @NonNull
-    private Flowable<String> registerApi(Flowable<ReactableApi> upstream) {
+    private Flowable<String> registerApi(Flowable<ReactableApi<?>> upstream) {
         return upstream
             .parallel(PARALLELISM)
             .runOn(Schedulers.from(executor))
@@ -181,7 +184,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                 }
             )
             .sequential()
-            .map(api -> api.getId());
+            .map(ReactableApi::getId);
     }
 
     @NonNull
@@ -201,7 +204,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
             .sequential();
     }
 
-    private Maybe<ReactableApi> toApiDefinition(Event apiEvent) {
+    private Maybe<ReactableApi<?>> toApiDefinition(Event apiEvent) {
         try {
             // Read API definition from event
             io.gravitee.repository.management.model.Api eventPayload = objectMapper.readValue(
@@ -209,7 +212,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                 io.gravitee.repository.management.model.Api.class
             );
 
-            ReactableApi api;
+            ReactableApi<?> api;
 
             // Check the version of the API definition to read the right model entity
             if (eventPayload.getDefinitionVersion() == null || !eventPayload.getDefinitionVersion().equals(DefinitionVersion.V4.getLabel())) {

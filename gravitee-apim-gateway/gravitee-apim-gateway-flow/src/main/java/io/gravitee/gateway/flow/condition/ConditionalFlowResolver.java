@@ -15,10 +15,11 @@
  */
 package io.gravitee.gateway.flow.condition;
 
-import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.AbstractFlowResolver;
+import io.gravitee.gateway.model.Flow;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
