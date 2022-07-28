@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -48,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Tag(name = "APIs")
 @Slf4j
+@Hidden
 public class ApisResource extends AbstractResource {
 
     @Context
