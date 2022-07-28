@@ -76,7 +76,11 @@ commands:
 
     notify-on-failure:
         steps:
+            - keeper/env-export:
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
             - slack/notify:
+                  channel: C02JENTV2AX
                   branch_pattern: master,[0-9]+\.[0-9]+\.x
                   event: fail
                   template: basic_fail_1
@@ -111,6 +115,28 @@ commands:
                       ksm secret notation keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_private_key > private.key
                       # Need --batch to be able to import private key
                       gpg --import --batch private.key
+
+    add-docker-image-in-snyk:
+        parameters:
+            docker-image-name:
+                type: string
+            version:
+                type: string
+        steps:
+            - run:
+                  name: Add << parameters.docker-image-name >> << parameters.version >> to Snyk
+                  command: |
+                      curl --fail \
+                           --include \
+                           --request POST \
+                           --header "Content-Type: application/json; charset=utf-8" \
+                           --header "Authorization: token ${SNYK_API_KEY}" \
+                           --data-binary "{
+                        \"target\": {
+                          \"name\": \"graviteeio/<< parameters.docker-image-name >>:<< parameters.version >>\"
+                        }
+                      }" \
+                      "https://api.snyk.io/api/v1/org/${SNYK_ORG_ID}/integrations/${SNYK_INTEGRATION_ID}/import"
 
 parameters:
     gio_action:
@@ -230,6 +256,36 @@ jobs:
                   jobName: validate
             - notify-on-failure
 
+    add-docker-images-in-snyk:
+        parameters:
+            enterprise_edition:
+                default: false
+                type: boolean
+        docker:
+            - image: cimg/base:stable
+        resource_class: small
+        steps:
+            - keeper/env-export:
+                  secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/field/password
+                  var-name: SNYK_API_KEY
+            - keeper/env-export:
+                  secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/graviteeio_org_id
+                  var-name: SNYK_ORG_ID
+            - keeper/env-export:
+                  secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/dockerhub_integration_id
+                  var-name: SNYK_INTEGRATION_ID
+            - add-docker-image-in-snyk:
+                  docker-image-name: apim-gateway
+                  version: << pipeline.parameters.graviteeio_version >><<# parameters.enterprise_edition >>-ee<</ parameters.enterprise_edition >>
+            - add-docker-image-in-snyk:
+                  docker-image-name: apim-management-api
+                  version: << pipeline.parameters.graviteeio_version >><<# parameters.enterprise_edition >>-ee<</ parameters.enterprise_edition >>
+            - add-docker-image-in-snyk:
+                  docker-image-name: apim-management-ui
+                  version: << pipeline.parameters.graviteeio_version >><<# parameters.enterprise_edition >>-ee<</ parameters.enterprise_edition >>
+            - add-docker-image-in-snyk:
+                  docker-image-name: apim-portal-ui
+                  version: << pipeline.parameters.graviteeio_version >><<# parameters.enterprise_edition >>-ee<</ parameters.enterprise_edition >>
     build:
         docker:
             - image: cimg/openjdk:11.0
@@ -831,6 +887,28 @@ jobs:
             DRY_RUN: << pipeline.parameters.dry_run >>
         steps:
             - checkout
+            - keeper/env-export:
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - slack/notify:
+                            channel: C02NGT20S4W
+                            event: always
+                            custom: |
+                                {
+                                  "blocks": [
+                                    {
+                                      "type": "section",
+                                      "text": {
+                                        "type": "mrkdwn",
+                                        "text": "🚀 Starting << pipeline.parameters.graviteeio_version >> release"
+                                      }
+                                    }
+                                  ]
+                                }
             - restore-maven-job-cache:
                   jobName: release
             - attach_workspace:
@@ -848,7 +926,8 @@ jobs:
                       mvn -Duser.home=${HOME} -s /tmp/.gravitee.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -T 2C -no-transfer-progress
 
                       # Remove `-SNAPSHOT` from version                    
-                      mvn versions:set-property -Dproperty=changelist -DnewVersion=
+                      sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
+
             - prepare-gpg
             - prepare-env-var
             - run:
@@ -870,29 +949,28 @@ jobs:
             - run:
                   name: Git release
                   command: |
-                      export MVN_PRJ_VERSION=$(mvn -s /tmp/.gravitee.settings.xml -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec -q)
+                      export MVN_PRJ_VERSION="<< pipeline.parameters.graviteeio_version >>"
                       export MVN_PRJ_VERSION_MAJOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $1}')
                       export MVN_PRJ_VERSION_MINOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $2}')
                       export MVN_PRJ_VERSION_PATCH=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $3}')
-
-                      export CURRENT_GIT_BRANCH=$(git branch --show-current)
-                      export MAINTENANCE_GIT_BRANCH="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.x"
-                      export GIT_BRANCH_FILTER=$(git branch -a | grep "${MAINTENANCE_GIT_BRANCH}")
 
                       git add --update
                       git commit -m "${MVN_PRJ_VERSION}"
                       git tag ${MVN_PRJ_VERSION}
 
-                      # If support branch for this version does not exist, create it, update versions, commit and push
-                      if [ "x${GIT_BRANCH_FILTER}" == "x" ]; then
+                      # If we are on master branch, we need to create the support branch
+                      if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                        export MAINTENANCE_GIT_BRANCH="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.x"
+
                         git checkout -b ${MAINTENANCE_GIT_BRANCH}
+                        
                         # Set the version to the next support version (bump patch version + '-SNAPSHOT')        
-                        export NEXT_PATCH_VERSION=$((${MVN_PRJ_VERSION_PATCH}+1))
-                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.${NEXT_PATCH_VERSION}"     
-                        mvn versions:set-property -Dproperty=revision -DnewVersion=${NEXT_SNAPSHOT_VERSION}                    
-                        mvn versions:set-property -Dproperty=changelist -DnewVersion=-SNAPSHOT
+                        sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.1</revision>#" pom.xml
+                        sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+
                         git add --update
                         git commit -m 'chore: prepare next version [skip ci]'
+                        
                         if [ "${DRY_RUN}" == "false" ]; then
                           echo "# --->>> NO IT IS NOT A DRY RUN : GIT PUSH"
                           git push -u origin ${MAINTENANCE_GIT_BRANCH}
@@ -900,33 +978,31 @@ jobs:
                         else
                           echo "# --->>> THIS IS A DRY RUN : SKIPPPING GIT PUSH"
                         fi;
-                        git checkout ${CURRENT_GIT_BRANCH}
+                        
+                        git checkout ${CIRCLE_BRANCH}
                       fi;
 
                       # If releasing a feature version (i.e. patch number == 0) then bump the minor version for the next 
                       if [ "${MVN_PRJ_VERSION_PATCH}" == "0" ]; then
-                        export NEXT_MINOR_VERSION=$((${MVN_PRJ_VERSION_MINOR}+1))
-                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${NEXT_MINOR_VERSION}.0"
-                        mvn versions:set-property -Dproperty=revision -DnewVersion=${NEXT_SNAPSHOT_VERSION}                    
-                        mvn versions:set-property -Dproperty=changelist -DnewVersion=-SNAPSHOT                    
+                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.$((${MVN_PRJ_VERSION_MINOR}+1)).0"
                       else
                         # Else just set the version to the next support version (bump patch version + '-SNAPSHOT')                        
-                        export NEXT_PATCH_VERSION=$((${MVN_PRJ_VERSION_PATCH}+1))
-                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.${NEXT_PATCH_VERSION}"     
-                        mvn versions:set-property -Dproperty=revision -DnewVersion=${NEXT_SNAPSHOT_VERSION}                    
-                        mvn versions:set-property -Dproperty=changelist -DnewVersion=-SNAPSHOT
+                        export NEXT_SNAPSHOT_VERSION="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.$((${MVN_PRJ_VERSION_PATCH}+1))"     
                       fi;
-                    
+                      sed -i "s#<revision>.*</revision>#<revision>${NEXT_SNAPSHOT_VERSION}</revision>#" pom.xml
+                      sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+
                       git add --update
                       git commit -m 'chore: prepare next version [skip ci]'
+
                       if [ "${DRY_RUN}" == "false" ]; then
                         echo "# --->>> NO IT IS NOT A DRY RUN"
-                        echo " so that CURRENT_GIT_BRANCH=MAINTENANCE_GIT_BRANCH"
-                        git push -u origin ${CURRENT_GIT_BRANCH}
-                        git push --tags origin ${CURRENT_GIT_BRANCH}
+                        git push -u origin ${CIRCLE_BRANCH}
+                        git push --tags origin ${CIRCLE_BRANCH}
                       else
                         echo "# --->>> THIS IS A DRY RUN"
                       fi;
+            - notify-on-failure
 
     publish_prod_docker_images:
         parameters:
@@ -1047,6 +1123,28 @@ jobs:
                       mvn clean deploy --activate-profiles gravitee-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
             - save-maven-job-cache:
                   jobName: nexus-staging
+            - keeper/env-export:
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - slack/notify:
+                            channel: C02NGT20S4W
+                            event: always
+                            custom: |
+                                {
+                                  "blocks": [
+                                    {
+                                      "type": "section",
+                                      "text": {
+                                        "type": "mrkdwn",
+                                        "text": "🎆 APIM - << pipeline.parameters.graviteeio_version >> released!"
+                                      }
+                                    }
+                                  ]
+                                }
 
     publish_rpm_packages:
         parameters:
@@ -1147,14 +1245,15 @@ workflows:
             - setup:
                   context: cicd-orchestrator
             - validate:
-                  context: gravitee-qa
+                  context: cicd-orchestrator
                   requires:
                       - setup
             - build:
-                  context: gravitee-qa
+                  context: cicd-orchestrator
                   requires:
                       - validate
             - test:
+                  context: cicd-orchestrator
                   requires:
                       - build
             - sonarcloud-analysis:
@@ -1169,6 +1268,7 @@ workflows:
                   requires:
                       - test
             - test-repository:
+                  context: cicd-orchestrator
                   requires:
                       - build
             - sonarcloud-analysis:
@@ -1178,6 +1278,7 @@ workflows:
                   requires:
                       - test-repository
             - publish-on-artifactory:
+                  context: cicd-orchestrator
                   filters:
                       branches:
                           only:
@@ -1187,6 +1288,7 @@ workflows:
                       - test
                       - test-repository
             - publish-on-nexus:
+                  context: cicd-orchestrator
                   filters:
                       branches:
                           only:
@@ -1222,10 +1324,12 @@ workflows:
             - webui-install:
                   name: Install APIM Console
                   apim-ui-project: gravitee-apim-console-webui
+                  context: cicd-orchestrator
                   requires:
                       - setup
             - webui-lint-test:
                   name: Lint & test APIM Console
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
                       - Install APIM Console
@@ -1239,18 +1343,16 @@ workflows:
                   requires:
                       - Lint & test APIM Console
             - console-webui-build-storybook:
+                  context: cicd-orchestrator
                   requires:
                       - Install APIM Console
-            - trigger-chromatic:
-                  type: approval
-                  requires:
-                      - console-webui-build-storybook
             - console-webui-chromatic-deployment:
                   context: cicd-orchestrator
                   requires:
-                      - trigger-chromatic
+                      - console-webui-build-storybook
             - webui-build:
                   name: Build APIM Console
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
                       - Install APIM Console
@@ -1277,11 +1379,13 @@ workflows:
                               - /^\d+\.\d+\.x$/
             - webui-install:
                   name: Install APIM Portal
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
                       - setup
             - webui-lint-test:
                   name: Lint & test APIM Portal
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   resource-class: large
                   requires:
@@ -1297,6 +1401,7 @@ workflows:
                       - Lint & test APIM Portal
             - webui-build:
                   name: Build APIM Portal
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
                       - Install APIM Portal
@@ -1327,9 +1432,11 @@ workflows:
                               - /^\d+\.\d+\.x$/
                   # To be modified when testing strategy will be defined
             - cypress-install:
+                  context: cicd-orchestrator
                   requires:
                       - build
             - cypress-lint-test:
+                  context: cicd-orchestrator
                   requires:
                       - cypress-install
 
@@ -1344,6 +1451,11 @@ workflows:
                   enterprise_edition: false
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM CE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
+            - add-docker-images-in-snyk:
+                  enterprise_edition: false
+                  context: cicd-orchestrator
+                  requires:
+                      - Build and push docker images for APIM CE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
             - publish_prod_docker_images:
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>
                   docker_tag_as_latest: << pipeline.parameters.docker_tag_as_latest >>
@@ -1351,6 +1463,11 @@ workflows:
                   enterprise_edition: true
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM EE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
+            - add-docker-images-in-snyk:
+                  enterprise_edition: true
+                  context: cicd-orchestrator
+                  requires:
+                      - Build and push docker images for APIM EE << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
             - publish_rpm_packages:
                   context: cicd-orchestrator
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>
@@ -1374,8 +1491,7 @@ workflows:
         jobs:
             - package-bundle:
                   context: cicd-orchestrator
-    # ---
-    # Workflow For APIM Orchestrated Nexus Staging
+
     nexus_staging:
         when:
             equal: [nexus_staging, << pipeline.parameters.gio_action >>]

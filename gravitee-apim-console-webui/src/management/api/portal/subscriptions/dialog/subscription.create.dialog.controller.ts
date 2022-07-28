@@ -34,6 +34,7 @@ function DialogSubscriptionCreateController(
   this.selectedPlan = null;
   this.selectedPlanCustomApiKey = null;
   this.plansWithSubscriptions = [];
+  this.customApiKeyInputState = null;
 
   this.$onInit = () => {
     this.canUseCustomApiKey = Constants.env.settings.plan.security.customApiKey.enabled;

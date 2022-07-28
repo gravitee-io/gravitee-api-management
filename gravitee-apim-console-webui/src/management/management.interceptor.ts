@@ -107,9 +107,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
           interceptorFuture.push(() => notificationService.showError(error, errorMessage));
           if (error.status === 403) {
             // if the user try to access a forbidden resource (after redirection for example), do not stay on login form
-            $timeout(() => {
-              $state.go('management');
-            });
+            interceptorFuture.push(() => $state.go('management'));
           }
         }
       }
