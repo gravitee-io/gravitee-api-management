@@ -24,6 +24,7 @@ function DialogSubscriptionAcceptController($scope, $mdDialog, locals) {
   $scope.applicationId = locals.applicationId;
 
   this.customApiKey = null;
+  this.customApiKeyInputState = null;
 
   this.hide = function () {
     $mdDialog.cancel();
@@ -38,8 +39,9 @@ function DialogSubscriptionAcceptController($scope, $mdDialog, locals) {
     });
   };
 
-  this.onApiKeyValueChange = (customApiKey) => {
-    this.customApiKey = customApiKey;
+  this.onApiKeyValueChange = (apiKeyValidatedInput) => {
+    this.customApiKey = apiKeyValidatedInput.customApiKey;
+    this.customApiKeyInputState = apiKeyValidatedInput.customApiKeyInputState;
   };
 }
 

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
+import static io.gravitee.repository.management.model.Application.METADATA_REGISTRATION_PAYLOAD;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
@@ -30,18 +32,20 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
+import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
-import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
+import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -78,7 +82,7 @@ public class ApplicationService_UpdateTest {
     private UserService userService;
 
     @Mock
-    private UpdateApplicationEntity existingApplication;
+    private UpdateApplicationEntity applicationToUpdate;
 
     @Mock
     private Application application;
@@ -95,18 +99,21 @@ public class ApplicationService_UpdateTest {
     @Mock
     private ClientRegistrationService clientRegistrationService;
 
+    @Mock
+    private ApplicationTypeService applicationTypeService;
+
     @Test
     public void shouldUpdate() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
-        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
-        when(existingApplication.getDescription()).thenReturn("My description");
+        when(applicationToUpdate.getName()).thenReturn(APPLICATION_NAME);
+        when(applicationToUpdate.getDescription()).thenReturn("My description");
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(applicationRepository.update(any())).thenReturn(application);
 
@@ -124,7 +131,7 @@ public class ApplicationService_UpdateTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
 
         verify(applicationRepository)
@@ -142,7 +149,7 @@ public class ApplicationService_UpdateTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
     }
 
@@ -152,19 +159,19 @@ public class ApplicationService_UpdateTest {
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(applicationRepository.update(any())).thenThrow(TechnicalException.class);
 
-        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
-        when(existingApplication.getDescription()).thenReturn("My description");
+        when(applicationToUpdate.getName()).thenReturn(APPLICATION_NAME);
+        when(applicationToUpdate.getDescription()).thenReturn("My description");
 
         applicationService.update(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
     }
 
@@ -174,20 +181,20 @@ public class ApplicationService_UpdateTest {
         when(application.getId()).thenReturn(APPLICATION_ID);
 
         Map<String, String> metadata = new HashMap<>();
-        metadata.put("client_id", CLIENT_ID);
+        metadata.put(METADATA_CLIENT_ID, CLIENT_ID);
         when(application.getMetadata()).thenReturn(metadata);
 
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
 
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
-        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
-        when(existingApplication.getDescription()).thenReturn("My description");
+        when(applicationToUpdate.getName()).thenReturn(APPLICATION_NAME);
+        when(applicationToUpdate.getDescription()).thenReturn("My description");
         when(applicationRepository.update(any())).thenReturn(application);
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
@@ -204,7 +211,7 @@ public class ApplicationService_UpdateTest {
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
 
         verify(applicationRepository)
@@ -220,7 +227,7 @@ public class ApplicationService_UpdateTest {
         when(other.getId()).thenReturn("other-app");
 
         Map<String, String> metadata = new HashMap<>();
-        metadata.put("client_id", CLIENT_ID);
+        metadata.put(METADATA_CLIENT_ID, CLIENT_ID);
         when(other.getMetadata()).thenReturn(metadata);
 
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
@@ -234,13 +241,174 @@ public class ApplicationService_UpdateTest {
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
 
-        when(existingApplication.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
 
         applicationService.update(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             APPLICATION_ID,
-            existingApplication
+            applicationToUpdate
         );
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void should_throw_exception_cause_client_registration_is_disabled() throws TechnicalException {
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(application.getType()).thenReturn(ApplicationType.BROWSER);
+
+        // oauth app settings
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setoAuthClient(new OAuthClientSettings());
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
+
+        // client registration is disabled
+        when(parameterService.findAsBoolean(eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn(false);
+
+        applicationService.update(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            APPLICATION_ID,
+            applicationToUpdate
+        );
+    }
+
+    @Test(expected = ApplicationGrantTypesNotFoundException.class)
+    public void should_throw_exception_cause_oAuth_client_settings_has_no_grant_types() throws TechnicalException {
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(application.getType()).thenReturn(ApplicationType.BROWSER);
+
+        // oauth app settings doesn't contain grant types
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setoAuthClient(new OAuthClientSettings());
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
+
+        // client registration is enabled
+        when(parameterService.findAsBoolean(eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn(true);
+
+        applicationService.update(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            APPLICATION_ID,
+            applicationToUpdate
+        );
+    }
+
+    @Test
+    public void should_update_with_oauth2_clientId_from_client_registration_service() throws TechnicalException {
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(application.getName()).thenReturn(APPLICATION_NAME);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(applicationToUpdate.getName()).thenReturn(APPLICATION_NAME);
+        when(applicationToUpdate.getDescription()).thenReturn("My description");
+        when(application.getType()).thenReturn(ApplicationType.BROWSER);
+        when(application.getMetadata()).thenReturn(Map.of(METADATA_CLIENT_ID, "my-previous-client-id"));
+        when(application.getMetadata()).thenReturn(Map.of(METADATA_REGISTRATION_PAYLOAD, "{}"));
+        when(applicationRepository.update(any())).thenReturn(application);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+
+        // client registration is enabled
+        when(parameterService.findAsBoolean(eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn(true);
+
+        // oauth app settings contains everything required
+        ApplicationSettings settings = new ApplicationSettings();
+        OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
+        oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
+        oAuthClientSettings.setApplicationType("application-type");
+        settings.setoAuthClient(oAuthClientSettings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
+
+        ApplicationTypeEntity applicationTypeEntity = new ApplicationTypeEntity();
+        ApplicationGrantTypeEntity applicationGrantTypeEntity = new ApplicationGrantTypeEntity();
+        applicationGrantTypeEntity.setType("application-grant-type");
+        applicationGrantTypeEntity.setResponse_types(List.of("response-type"));
+        applicationTypeEntity.setAllowed_grant_types(List.of(applicationGrantTypeEntity));
+        applicationTypeEntity.setRequires_redirect_uris(false);
+        when(applicationTypeService.getApplicationType("application-type")).thenReturn(applicationTypeEntity);
+
+        // mock response from DCR with a new client ID
+        ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
+        clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
+        when(clientRegistrationService.update(any(), same(applicationToUpdate))).thenReturn(clientRegistrationResponse);
+
+        applicationService.update(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            APPLICATION_ID,
+            applicationToUpdate
+        );
+
+        // ensure application has been updated with the new client_id from DCR
+        verify(applicationRepository)
+            .update(argThat(application -> application.getMetadata().get(METADATA_CLIENT_ID).equals("client-id-from-clientRegistration")));
+    }
+
+    @Test
+    public void should_update_with_previous_oAuth2_clientId_when_registration_service_fails() throws TechnicalException {
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(application.getName()).thenReturn(APPLICATION_NAME);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(applicationToUpdate.getName()).thenReturn(APPLICATION_NAME);
+        when(applicationToUpdate.getDescription()).thenReturn("My description");
+        when(application.getType()).thenReturn(ApplicationType.BROWSER);
+        when(application.getMetadata())
+            .thenReturn(Map.of(METADATA_REGISTRATION_PAYLOAD, "{}", METADATA_CLIENT_ID, "my-previous-client-id"));
+        when(applicationRepository.update(any())).thenReturn(application);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+
+        // client registration is enabled
+        when(parameterService.findAsBoolean(eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn(true);
+
+        // oauth app settings contains everything required
+        ApplicationSettings settings = new ApplicationSettings();
+        OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
+        oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
+        oAuthClientSettings.setApplicationType("application-type");
+        settings.setoAuthClient(oAuthClientSettings);
+        when(applicationToUpdate.getSettings()).thenReturn(settings);
+
+        ApplicationTypeEntity applicationTypeEntity = new ApplicationTypeEntity();
+        ApplicationGrantTypeEntity applicationGrantTypeEntity = new ApplicationGrantTypeEntity();
+        applicationGrantTypeEntity.setType("application-grant-type");
+        applicationGrantTypeEntity.setResponse_types(List.of("response-type"));
+        applicationTypeEntity.setAllowed_grant_types(List.of(applicationGrantTypeEntity));
+        applicationTypeEntity.setRequires_redirect_uris(false);
+        when(applicationTypeService.getApplicationType("application-type")).thenReturn(applicationTypeEntity);
+
+        // DCR throws exception
+        when(clientRegistrationService.update(any(), same(applicationToUpdate))).thenThrow(RuntimeException.class);
+
+        applicationService.update(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment(),
+            APPLICATION_ID,
+            applicationToUpdate
+        );
+
+        // ensure application has been updated, but kept the previous client_id
+        verify(applicationRepository)
+            .update(argThat(application -> application.getMetadata().get(METADATA_CLIENT_ID).equals("my-previous-client-id")));
     }
 }

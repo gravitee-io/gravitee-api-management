@@ -30,10 +30,12 @@ import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
+import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostNullHostException;
 import io.gravitee.rest.api.service.impl.VirtualHostServiceImpl;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -207,6 +209,15 @@ public class VirtualHostServiceTest {
         when(environmentService.findById(any())).thenReturn(environmentEntity);
 
         virtualHostService.sanitizeAndValidate(Collections.singletonList(vhost));
+    }
+
+    @Test(expected = InvalidVirtualHostNullHostException.class)
+    public void validate_notMultipleVirtualHostWithMissingHost() {
+        final VirtualHost vhost1 = new VirtualHost("host1", "/path_1");
+        final VirtualHost vhost2 = new VirtualHost(null, "/path_2");
+        final VirtualHost vhost3 = new VirtualHost("host3", "/path_3");
+
+        virtualHostService.sanitizeAndValidate(List.of(vhost1, vhost2, vhost3));
     }
 
     @Test

@@ -27,6 +27,7 @@ import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
+import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostNullHostException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -71,8 +72,29 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         // Sanitize virtual hosts
         Collection<VirtualHost> sanitizedVirtualHosts = virtualHosts.stream().map(this::sanitize).collect(Collectors.toList());
 
+        final EnvironmentEntity currentEnv = environmentService.findById(GraviteeContext.getCurrentEnvironment());
+
         // validate domain restrictions
-        validateDomainRestrictions(sanitizedVirtualHosts);
+        validateDomainRestrictions(sanitizedVirtualHosts, currentEnv.getDomainRestrictions());
+
+        // In virtual host mode, every vhost should have a host set
+        final boolean virtualHostModeEnabled =
+            sanitizedVirtualHosts.size() > 1 ||
+            sanitizedVirtualHosts.iterator().next().getHost() != null ||
+            currentEnv.getDomainRestrictions() != null &&
+            !currentEnv.getDomainRestrictions().isEmpty();
+        if (virtualHostModeEnabled) {
+            final List<VirtualHost> nullHostVirtualHosts = sanitizedVirtualHosts
+                .stream()
+                .filter(virtualHost -> virtualHost.getHost() == null)
+                .collect(Collectors.toList());
+            if (!nullHostVirtualHosts.isEmpty()) {
+                throw new InvalidVirtualHostNullHostException(
+                    "In Virtual Host mode, all listening host have to be configured",
+                    nullHostVirtualHosts
+                );
+            }
+        }
 
         // Get all the API of the currentEnvironment, except the one to update
         Set<ApiEntity> apis = apiRepository
@@ -124,9 +146,7 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         return sanitizedVirtualHosts;
     }
 
-    private void validateDomainRestrictions(Collection<VirtualHost> virtualHosts) {
-        final EnvironmentEntity currentEnv = environmentService.findById(GraviteeContext.getCurrentEnvironment());
-        final List<String> domainRestrictions = currentEnv.getDomainRestrictions();
+    private void validateDomainRestrictions(Collection<VirtualHost> virtualHosts, List<String> domainRestrictions) {
         if (domainRestrictions != null && !domainRestrictions.isEmpty()) {
             for (VirtualHost vHost : virtualHosts) {
                 String host = vHost.getHost();
