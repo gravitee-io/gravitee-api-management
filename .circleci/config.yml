@@ -936,7 +936,7 @@ jobs:
                       mv ./kubectl /usr/local/bin/kubectl
                       kubectl version --client=true
             - run:
-                  name: Restart APIM cluster pods
+                  name: Rollout pods on "gravitee-devs-preprod-aks-cluster"
                   command: |
                       export K8S_NAME=apim-${CIRCLE_BRANCH//\./-}
                       export K8S_NAMESPACE=apim-apim-${CIRCLE_BRANCH//\./-}
@@ -954,7 +954,17 @@ jobs:
                       kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-portal -n ${K8S_NAMESPACE}-jdbc
                       kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-ui -n ${K8S_NAMESPACE}-jdbc
                       kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-gateway -n ${K8S_NAMESPACE}-jdbc
-
+            - keeper/env-export:
+                secret-url: keeper://G4hBnFUDBYb9Sw3TxhvjHg/custom_field/token
+                var-name: CIRCLE_TOKEN
+            - run:
+                name: Rollout pods on "gravitee-apim-preprod-aks-cluster"
+                command: |
+                  curl --request POST \
+                  --url https://circleci.com/api/v2/project/gh/gravitee-io/cloud-apim/pipeline \
+                  --header "Circle-Token: ${CIRCLE_TOKEN}" \
+                  --header "content-type: application/json" \
+                  --data '{"branch":"hprod-geckos","parameters":{"command-name":"k8s-rollout-all"}}'
             - notify-on-failure
 
     ## Release Jobs
