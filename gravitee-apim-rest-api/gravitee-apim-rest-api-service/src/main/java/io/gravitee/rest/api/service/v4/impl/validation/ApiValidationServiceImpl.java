@@ -15,9 +15,18 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.*;
+
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
+import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.validation.*;
 import org.springframework.stereotype.Component;
@@ -34,19 +43,28 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final ListenerValidationService listenerValidationService;
     private final EndpointGroupsValidationService endpointGroupsValidationService;
     private final FlowValidationService flowValidationService;
+    private final CorsValidationService corsValidationService;
+    private final LoggingValidationService loggingValidationService;
+    private final ResourcesValidationService resourcesValidationService;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
         final GroupValidationService groupValidationService,
         final ListenerValidationService listenerValidationService,
         final EndpointGroupsValidationService endpointGroupsValidationService,
-        final FlowValidationService flowValidationService
+        final FlowValidationService flowValidationService,
+        final CorsValidationService corsValidationService,
+        final LoggingValidationService loggingValidationService,
+        final ResourcesValidationService resourcesValidationService
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
         this.listenerValidationService = listenerValidationService;
         this.endpointGroupsValidationService = endpointGroupsValidationService;
         this.flowValidationService = flowValidationService;
+        this.corsValidationService = corsValidationService;
+        this.loggingValidationService = loggingValidationService;
+        this.resourcesValidationService = resourcesValidationService;
     }
 
     @Override
@@ -67,5 +85,78 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         newApiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitize(newApiEntity.getEndpointGroups()));
         // Validate and clean flow
         newApiEntity.setFlows(flowValidationService.validateAndSanitize(newApiEntity.getFlows()));
+    }
+
+    @Override
+    public void validateAndSanitizeUpdateApi(
+        final ExecutionContext executionContext,
+        final UpdateApiEntity updateApiEntity,
+        final PrimaryOwnerEntity primaryOwnerEntity,
+        final ApiEntity existingApiEntity
+    ) {
+        // Validate version
+        this.validateDefinitionVersion(updateApiEntity, existingApiEntity);
+        // Validate and clean lifecycle state
+        updateApiEntity.setLifecycleState(this.validateAndSanitizeLifecycleState(updateApiEntity, existingApiEntity));
+
+        // Validate and clean tags
+        updateApiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, updateApiEntity.getTags()));
+        // Validate and clean groups
+        updateApiEntity.setGroups(
+            groupValidationService.validateAndSanitize(
+                executionContext,
+                updateApiEntity.getId(),
+                updateApiEntity.getGroups(),
+                primaryOwnerEntity
+            )
+        );
+        // Validate and clean listeners
+        updateApiEntity.setListeners(listenerValidationService.validateAndSanitize(executionContext, null, updateApiEntity.getListeners()));
+        // Validate and clean endpoints
+        updateApiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitize(updateApiEntity.getEndpointGroups()));
+        // Validate and clean flow
+        updateApiEntity.setFlows(flowValidationService.validateAndSanitize(updateApiEntity.getFlows()));
+        // Validate and clean cors configuration
+        updateApiEntity.setCors(corsValidationService.validateAndSanitize(updateApiEntity.getCors()));
+        // Validate and clean logging configuration
+        updateApiEntity.setLogging(loggingValidationService.validateAndSanitize(executionContext, updateApiEntity.getLogging()));
+        // Validate and clean resources
+        updateApiEntity.setResources(resourcesValidationService.validateAndSanitize(updateApiEntity.getResources()));
+    }
+
+    private void validateDefinitionVersion(final UpdateApiEntity updateApiEntity, final ApiEntity existingApiEntity) {
+        if (updateApiEntity.getDefinitionVersion() == null) {
+            throw new InvalidDataException("Invalid definition version for api '" + updateApiEntity.getId() + "'");
+        }
+        if (updateApiEntity.getDefinitionVersion().asInteger() < existingApiEntity.getDefinitionVersion().asInteger()) {
+            // not allowed to downgrade definition version
+            throw new DefinitionVersionException();
+        }
+    }
+
+    private ApiLifecycleState validateAndSanitizeLifecycleState(final UpdateApiEntity updateApiEntity, final ApiEntity existingApiEntity) {
+        // if lifecycle state not provided, return the existing one
+        if (updateApiEntity.getLifecycleState() == null) {
+            return existingApiEntity.getLifecycleState();
+        }
+        // TODO FCY: because of this, you can't update a deprecated API but the reason is not clear.
+        //  if we don't want a deprecated API to be updated, then we should have a specific check
+        //  Otherwise, we should first check that existingAPI and updateApi have the same lifecycleState and THEN check for deprecation status of the exiting API
+        if (DEPRECATED.equals(existingApiEntity.getLifecycleState())) {
+            throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
+        }
+        if (existingApiEntity.getLifecycleState() == updateApiEntity.getLifecycleState()) {
+            return existingApiEntity.getLifecycleState();
+        }
+        if (ARCHIVED.equals(existingApiEntity.getLifecycleState()) && !ARCHIVED.equals(updateApiEntity.getLifecycleState())) {
+            throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
+        } else if (UNPUBLISHED.equals(existingApiEntity.getLifecycleState()) && CREATED.equals(updateApiEntity.getLifecycleState())) {
+            throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
+        } else if (
+            CREATED.equals(existingApiEntity.getLifecycleState()) && WorkflowState.IN_REVIEW.equals(existingApiEntity.getWorkflowState())
+        ) {
+            throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
+        }
+        return updateApiEntity.getLifecycleState();
     }
 }

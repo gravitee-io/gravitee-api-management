@@ -22,7 +22,10 @@ import static org.mockito.Mockito.lenient;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.service.ConnectorService;
+import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeInvalidException;
 import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeMismatchInvalidException;
@@ -53,19 +56,47 @@ public class EndpointGroupsValidationServiceImplTest {
         endpointGroupsValidationService = new EndpointGroupsValidationServiceImpl(connectorService);
     }
 
-    @Test
-    public void shouldReturnValidatedEndpointGroupsWithoutEndpoints() {
+    @Test(expected = EndpointMissingException.class)
+    public void shouldReturnValidatedEndpointGroupsWithoutEndpointsAndWithoutDiscoveryService() {
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("my name");
         endpointGroup.setType("http");
         endpointGroup.setEndpoints(List.of());
+        endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
+    }
+
+    @Test(expected = EndpointMissingException.class)
+    public void shouldReturnValidatedEndpointGroupsWithoutEndpointsAndWithDisabledDiscoveryService() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        endpointGroup.setEndpoints(List.of());
+        Service discovery = new Service();
+        discovery.setEnabled(false);
+        EndpointGroupServices services = new EndpointGroupServices();
+        services.setDiscovery(discovery);
+        endpointGroup.setServices(services);
+        endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
+    }
+
+    @Test
+    public void shouldReturnValidatedEndpointGroupsWithoutEndpointsAndWithEnabledDiscoveryService() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        endpointGroup.setEndpoints(List.of());
+        Service discovery = new Service();
+        discovery.setEnabled(true);
+        EndpointGroupServices services = new EndpointGroupServices();
+        services.setDiscovery(discovery);
+        endpointGroup.setServices(services);
         List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
         assertThat(endpointGroups.size()).isEqualTo(1);
         EndpointGroup validatedEndpointGroup = endpointGroups.get(0);
         assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
         assertThat(validatedEndpointGroup.getType()).isEqualTo(endpointGroup.getType());
         assertThat(validatedEndpointGroup.getEndpoints()).isEmpty();
-        assertThat(validatedEndpointGroup.getServices()).isNull();
+        assertThat(validatedEndpointGroup.getServices()).isEqualTo(services);
         assertThat(validatedEndpointGroup.getSharedConfiguration()).isNull();
         assertThat(validatedEndpointGroup.getLoadBalancer()).isNull();
     }
@@ -148,8 +179,8 @@ public class EndpointGroupsValidationServiceImplTest {
             .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup)));
     }
 
-    @Test
-    public void shouldReturnNullListWithNullParameter() {
+    @Test(expected = EndpointMissingException.class)
+    public void shouldThrowExceptionWithNullParameter() {
         assertThat(endpointGroupsValidationService.validateAndSanitize(null)).isNull();
     }
 }

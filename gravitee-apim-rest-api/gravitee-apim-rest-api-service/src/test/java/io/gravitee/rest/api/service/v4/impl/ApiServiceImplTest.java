@@ -80,10 +80,7 @@ import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.ApiService;
-import io.gravitee.rest.api.service.v4.FlowService;
-import io.gravitee.rest.api.service.v4.PlanService;
-import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.*;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.IndexableApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
@@ -201,6 +198,12 @@ public class ApiServiceImplTest {
     @Mock
     private MediaService mediaService;
 
+    @Mock
+    private PropertiesService propertiesService;
+
+    @Mock
+    private ApiNotificationService apiNotificationService;
+
     private ApiService apiService;
 
     @AfterClass
@@ -252,7 +255,9 @@ public class ApiServiceImplTest {
                 portalNotificationConfigService,
                 alertService,
                 apiQualityRuleRepository,
-                mediaService
+                mediaService,
+                propertiesService,
+                apiNotificationService
             );
         //        when(virtualHostService.sanitizeAndValidate(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         reset(searchEngineService);

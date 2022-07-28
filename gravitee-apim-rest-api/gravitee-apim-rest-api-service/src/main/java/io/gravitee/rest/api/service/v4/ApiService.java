@@ -35,9 +35,15 @@ public interface ApiService {
 
     ApiEntity create(final ExecutionContext executionContext, final NewApiEntity api, final String userId);
 
-    ApiEntity update(final ExecutionContext executionContext, final String apiId, final UpdateApiEntity api);
+    ApiEntity update(final ExecutionContext executionContext, final String apiId, final UpdateApiEntity api, final String userId);
 
-    ApiEntity update(final ExecutionContext executionContext, final String apiId, final UpdateApiEntity api, final boolean checkPlans);
+    ApiEntity update(
+        final ExecutionContext executionContext,
+        final String apiId,
+        final UpdateApiEntity api,
+        final boolean checkPlans,
+        final String userId
+    );
 
     void delete(final ExecutionContext executionContext, final String apiId);
 

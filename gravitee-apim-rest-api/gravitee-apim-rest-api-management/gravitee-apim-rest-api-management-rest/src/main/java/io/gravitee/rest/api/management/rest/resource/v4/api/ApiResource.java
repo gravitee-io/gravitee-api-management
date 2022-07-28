@@ -20,15 +20,19 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.gravitee.rest.api.service.v4.ApiService;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -37,13 +41,20 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
@@ -93,6 +104,70 @@ public class ApiResource extends AbstractResource {
             filterSensitiveData(apiEntity);
         }
         return Response.ok(apiEntity).tag(Long.toString(apiEntity.getUpdatedAt().getTime())).lastModified(apiEntity.getUpdatedAt()).build();
+    }
+
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Update the API", description = "User must have the MANAGE_API permission to use this service")
+    @ApiResponse(
+        responseCode = "200",
+        description = "API successfully updated",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = io.gravitee.rest.api.model.api.ApiEntity.class)
+        )
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions(
+        {
+            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
+            @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
+        }
+    )
+    public Response updateApi(@Context HttpHeaders headers, @Valid @NotNull final UpdateApiEntity apiToUpdate) {
+        if (!api.equals(apiToUpdate.getId())) {
+            throw new BadRequestException("'apiId' is not the same that the API in payload");
+        }
+
+        final Response responseApi = getApi();
+        Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());
+
+        if (builder != null) {
+            return builder.build();
+        }
+
+        try {
+            ImageUtils.verify(apiToUpdate.getPicture());
+            ImageUtils.verify(apiToUpdate.getBackground());
+        } catch (InvalidImageException e) {
+            throw new BadRequestException("Invalid image format");
+        }
+
+        final ApiEntity currentApi = (ApiEntity) responseApi.getEntity();
+
+        // Force listeners if user is not the primary_owner or an administrator
+        if (
+            !hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_GATEWAY_DEFINITION,
+                api,
+                RolePermissionAction.UPDATE
+            ) &&
+            !Objects.equals(currentApi.getPrimaryOwner().getId(), getAuthenticatedUser()) &&
+            !isAdmin()
+        ) {
+            apiToUpdate.setListeners(currentApi.getListeners());
+        }
+
+        final ApiEntity updatedApi = apiServiceV4.update(GraviteeContext.getExecutionContext(), api, apiToUpdate, getAuthenticatedUser());
+        setPictures(updatedApi);
+
+        return Response
+            .ok(updatedApi)
+            .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
+            .lastModified(updatedApi.getUpdatedAt())
+            .build();
     }
 
     private void setPictures(final ApiEntity apiEntity) {

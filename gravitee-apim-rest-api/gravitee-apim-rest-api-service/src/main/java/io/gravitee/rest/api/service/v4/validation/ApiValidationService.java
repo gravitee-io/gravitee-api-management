@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.service.v4.validation;
 
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
+import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
@@ -28,5 +30,12 @@ public interface ApiValidationService {
         final ExecutionContext executionContext,
         final NewApiEntity newApiEntity,
         final PrimaryOwnerEntity primaryOwnerEntity
+    );
+
+    void validateAndSanitizeUpdateApi(
+        final ExecutionContext executionContext,
+        final UpdateApiEntity updateApiEntity,
+        final PrimaryOwnerEntity primaryOwnerEntity,
+        final ApiEntity existingApiEntity
     );
 }

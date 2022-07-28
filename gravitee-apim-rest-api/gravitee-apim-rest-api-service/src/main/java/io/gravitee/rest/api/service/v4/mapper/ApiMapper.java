@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
+import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
@@ -47,11 +48,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -239,5 +236,78 @@ public class ApiMapper {
             log.error("Unexpected error while generating API definition", jse);
             throw new TechnicalManagementException("An error occurs while trying to parse API definition " + jse);
         }
+    }
+
+    private String toApiDefinition(final UpdateApiEntity updateApiEntity, final ApiEntity existingApiEntity) {
+        try {
+            io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
+
+            // Must not update Type
+            apiDefinition.setType(existingApiEntity.getType());
+
+            apiDefinition.setId(updateApiEntity.getId());
+            apiDefinition.setName(updateApiEntity.getName());
+            apiDefinition.setDefinitionVersion(updateApiEntity.getDefinitionVersion());
+            apiDefinition.setApiVersion(updateApiEntity.getApiVersion());
+            apiDefinition.setTags(updateApiEntity.getTags());
+            apiDefinition.setListeners(updateApiEntity.getListeners());
+            apiDefinition.setEndpointGroups(updateApiEntity.getEndpointGroups());
+            apiDefinition.setFlowMode(updateApiEntity.getFlowMode());
+            apiDefinition.setFlows(updateApiEntity.getFlows());
+
+            return objectMapper.writeValueAsString(apiDefinition);
+        } catch (JsonProcessingException jse) {
+            log.error("Unexpected error while generating API definition", jse);
+            throw new TechnicalManagementException("An error occurs while trying to parse API definition " + jse);
+        }
+    }
+
+    public Api toRepository(
+        final ExecutionContext executionContext,
+        final UpdateApiEntity updateApiEntity,
+        final ApiEntity existingApiEntity
+    ) {
+        Api repoApi = new Api();
+        String apiId = updateApiEntity.getId();
+        repoApi.setId(apiId.trim());
+        repoApi.setCrossId(updateApiEntity.getCrossId());
+        if (updateApiEntity.getLifecycleState() != null) {
+            repoApi.setApiLifecycleState(ApiLifecycleState.valueOf(updateApiEntity.getLifecycleState().name()));
+        }
+        if (updateApiEntity.getVisibility() != null) {
+            repoApi.setVisibility(Visibility.valueOf(updateApiEntity.getVisibility().toString()));
+        }
+
+        repoApi.setName(updateApiEntity.getName().trim());
+        repoApi.setVersion(updateApiEntity.getApiVersion().trim());
+        repoApi.setDescription(updateApiEntity.getDescription().trim());
+        repoApi.setPicture(updateApiEntity.getPicture());
+        repoApi.setBackground(updateApiEntity.getBackground());
+
+        repoApi.setDefinitionVersion(updateApiEntity.getDefinitionVersion());
+        repoApi.setDefinition(toApiDefinition(updateApiEntity, existingApiEntity));
+
+        final Set<String> apiCategories = updateApiEntity.getCategories();
+        if (apiCategories != null) {
+            final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
+            final Set<String> newApiCategories = new HashSet<>(apiCategories.size());
+            for (final String apiCategory : apiCategories) {
+                final Optional<CategoryEntity> optionalCategory = categories
+                    .stream()
+                    .filter(c -> apiCategory.equals(c.getKey()) || apiCategory.equals(c.getId()))
+                    .findAny();
+                optionalCategory.ifPresent(category -> newApiCategories.add(category.getId()));
+            }
+            repoApi.setCategories(newApiCategories);
+        }
+
+        if (updateApiEntity.getLabels() != null) {
+            repoApi.setLabels(new ArrayList<>(new HashSet<>(updateApiEntity.getLabels())));
+        }
+
+        repoApi.setGroups(updateApiEntity.getGroups());
+        repoApi.setDisableMembershipNotifications(updateApiEntity.isDisableMembershipNotifications());
+
+        return repoApi;
     }
 }

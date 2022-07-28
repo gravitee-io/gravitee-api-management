@@ -75,6 +75,8 @@ import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
+import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.io.Reader;
 import java.util.Collections;
 import java.util.List;
@@ -180,6 +182,12 @@ public class ApiService_CreateTest {
 
     @Mock
     private PrimaryOwnerService primaryOwnerService;
+
+    @Mock
+    private CorsValidationService corsValidationService;
+
+    @Mock
+    private LoggingValidationService loggingValidationService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {

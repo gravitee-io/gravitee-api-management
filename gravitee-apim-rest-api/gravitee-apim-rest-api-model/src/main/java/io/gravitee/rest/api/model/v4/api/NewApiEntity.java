@@ -15,9 +15,7 @@
  */
 package io.gravitee.rest.api.model.v4.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -25,7 +23,6 @@ import io.gravitee.definition.model.v4.flow.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.validation.Valid;

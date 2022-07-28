@@ -19,7 +19,9 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -29,12 +31,8 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.responsetemplate.ResponseTemplate;
 import io.gravitee.definition.model.v4.service.ApiServices;
-import io.gravitee.rest.api.model.DeploymentRequired;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.Visibility;
-import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
-import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
@@ -188,4 +186,10 @@ public class ApiEntity implements IndexableApi {
 
     @JsonIgnore
     private String referenceId;
+
+    @Schema(description = "The CORS configuration of the API")
+    private Cors cors;
+
+    @Schema(description = "The logging configuration if the API")
+    private Logging logging;
 }

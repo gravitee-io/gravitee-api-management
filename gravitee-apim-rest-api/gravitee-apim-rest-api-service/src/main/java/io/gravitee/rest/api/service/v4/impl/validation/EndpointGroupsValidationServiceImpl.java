@@ -16,7 +16,11 @@
 package io.gravitee.rest.api.service.v4.impl.validation;
 
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
+import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.service.ConnectorService;
+import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeInvalidException;
@@ -42,30 +46,51 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
 
     @Override
     public List<EndpointGroup> validateAndSanitize(List<EndpointGroup> endpointGroups) {
-        if (endpointGroups != null && !endpointGroups.isEmpty()) {
-            endpointGroups.forEach(
-                endpointGroup -> {
-                    validateName(endpointGroup.getName());
-                    validateEndpointGroupType(endpointGroup.getType());
-                    if (endpointGroup.getEndpoints() != null && !endpointGroups.isEmpty()) {
-                        endpointGroup
-                            .getEndpoints()
-                            .forEach(
-                                endpoint -> {
-                                    validateName(endpoint.getName());
-                                    validateEndpointType(endpoint.getType());
-                                    endpoint.setConfiguration(
-                                        // TODO this need to be improved when endpoint connector are implemented in order to check the configuration schema
-                                        connectorService.validateConnectorConfiguration(endpoint.getType(), endpoint.getConfiguration())
-                                    );
-                                }
-                            );
-                    }
-                    validateEndpointsMatchType(endpointGroup);
-                }
-            );
+        if (endpointGroups == null || endpointGroups.isEmpty()) {
+            throw new EndpointMissingException();
         }
+
+        endpointGroups.forEach(
+            endpointGroup -> {
+                validateName(endpointGroup.getName());
+                validateEndpointGroupType(endpointGroup.getType());
+                validateServices(endpointGroup.getServices());
+                validateEndpointsExistence(endpointGroup);
+                if (endpointGroup.getEndpoints() != null && !endpointGroups.isEmpty()) {
+                    endpointGroup
+                        .getEndpoints()
+                        .forEach(
+                            endpoint -> {
+                                validateName(endpoint.getName());
+                                validateEndpointType(endpoint.getType());
+                                validateServices(endpoint.getServices());
+                                endpoint.setConfiguration(
+                                    // TODO this need to be improved when endpoint connector are implemented in order to check the configuration schema
+                                    connectorService.validateConnectorConfiguration(endpoint.getType(), endpoint.getConfiguration())
+                                );
+                            }
+                        );
+                }
+                validateEndpointsMatchType(endpointGroup);
+            }
+        );
+
         return endpointGroups;
+    }
+
+    private void validateEndpointsExistence(EndpointGroup endpointGroup) {
+        //Is service discovery enabled ?
+        Service endpointDiscoveryService = endpointGroup.getServices() == null ? null : endpointGroup.getServices().getDiscovery();
+        if (
+            (endpointDiscoveryService == null || !endpointDiscoveryService.isEnabled()) &&
+            (endpointGroup.getEndpoints() == null || endpointGroup.getEndpoints().isEmpty())
+        ) {
+            throw new EndpointMissingException();
+        }
+    }
+
+    private void validateDiscovery(Service discovery) {
+        // TODO FCY: Nothing is done today to validate discovery validation. Could be handled by the connector (with a JSON Schema for instance).
     }
 
     private void validateEndpointType(final String type) {
@@ -92,9 +117,33 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
+    private void validateHealthCheck(Service healthCheck) {
+        // TODO FCY: As the health-check validation configuration is just a String in V4 definition, it's not possible to validate it here.
+        //  Will have to be implemented in the connector service (with a JSON Schema for instance).
+    }
+
     private void validateName(final String name) {
         if (name != null && name.contains(":")) {
             throw new EndpointNameInvalidException(name);
+        }
+    }
+
+    private void validateServices(EndpointGroupServices services) {
+        if (services != null) {
+            if (services.getDiscovery() != null) {
+                validateDiscovery(services.getDiscovery());
+            }
+            if (services.getHealthCheck() != null) {
+                validateHealthCheck(services.getHealthCheck());
+            }
+        }
+    }
+
+    private void validateServices(EndpointServices services) {
+        if (services != null) {
+            if (services.getHealthCheck() != null) {
+                validateHealthCheck(services.getHealthCheck());
+            }
         }
     }
 }
