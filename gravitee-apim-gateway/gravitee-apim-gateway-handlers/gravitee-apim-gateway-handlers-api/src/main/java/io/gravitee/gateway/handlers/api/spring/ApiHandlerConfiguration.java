@@ -177,7 +177,7 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public SubscriptionService subscriptionService(CacheManager cacheManager) {
-        return new SubscriptionService(cacheManager);
+    public SubscriptionService subscriptionService(CacheManager cacheManager, ApiKeyService apiKeyService) {
+        return new SubscriptionService(cacheManager, apiKeyService);
     }
 }

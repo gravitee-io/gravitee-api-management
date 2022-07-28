@@ -26,7 +26,9 @@ import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
+import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
 import io.reactivex.Completable;
+import io.reactivex.Maybe;
 import io.reactivex.Single;
 import java.util.Optional;
 import javax.annotation.Nonnull;
@@ -48,9 +50,8 @@ import org.slf4j.LoggerFactory;
  */
 public class SecurityPlan {
 
-    protected static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
-    protected static final Single<Boolean> TRUE = Single.just(true);
-    protected static final Single<Boolean> FALSE = Single.just(false);
+    protected static final Maybe<Boolean> TRUE = Maybe.just(true);
+    protected static final Maybe<Boolean> FALSE = Maybe.just(false);
     private static final Logger log = LoggerFactory.getLogger(SecurityPlan.class);
     private final Plan plan;
     private final SecurityPolicy policy;
@@ -74,30 +75,31 @@ public class SecurityPlan {
      */
     public Single<Boolean> canExecute(RequestExecutionContext ctx) {
         return policy
-            .support(ctx)
+            .extractSecurityToken(ctx)
             .flatMap(
-                support -> {
-                    if (support) {
-                        return matchSelectionRule(ctx);
-                    }
-
-                    return FALSE;
-                }
-            );
+                securityToken ->
+                    matchSelectionRule(ctx)
+                        .flatMap(
+                            matches -> {
+                                if (!matches) {
+                                    return FALSE;
+                                }
+                                return validateSubscription(ctx, securityToken);
+                            }
+                        )
+            )
+            .defaultIfEmpty(false)
+            .toSingle();
     }
 
     /**
-     * Invokes the policy's <code>onRequest</code> method and eventually validates the associate subscription.
-     * It's up to the policy to implement the behavior to adapt when the subscription is not valid (usually, interrupts the execution with a 401).
+     * Invokes the policy's <code>onRequest</code> method.
      *
      * @param ctx the current execution context.
      * @return a {@link Completable} that completes when the security policy has been successfully executed or returns an error otherwise.
      */
     public Completable execute(RequestExecutionContext ctx) {
-        return policy
-            .onRequest(ctx)
-            .andThen(validateSubscription(ctx))
-            .doOnSubscribe(disposable -> ctx.setAttribute(ATTR_PLAN, plan.getId()));
+        return policy.onRequest(ctx).doOnSubscribe(disposable -> ctx.setAttribute(ATTR_PLAN, plan.getId()));
     }
 
     public int order() {
@@ -116,48 +118,40 @@ public class SecurityPlan {
         return selectionRule;
     }
 
-    private Single<Boolean> matchSelectionRule(RequestExecutionContext ctx) {
+    private Maybe<Boolean> matchSelectionRule(RequestExecutionContext ctx) {
         if (selectionRule == null || selectionRule.isEmpty()) {
             return TRUE;
         }
 
-        return ctx.getTemplateEngine().eval(selectionRule, Boolean.class).toSingle();
+        return ctx.getTemplateEngine().eval(selectionRule, Boolean.class);
     }
 
-    private Completable validateSubscription(RequestExecutionContext ctx) {
+    private Maybe<Boolean> validateSubscription(RequestExecutionContext ctx, SecurityToken securityToken) {
         if (!policy.requireSubscription()) {
-            return Completable.complete();
+            return TRUE;
         }
 
-        return Completable.defer(
+        return Maybe.defer(
             () -> {
                 try {
                     SubscriptionService subscriptionService = ctx.getComponent(SubscriptionService.class);
-
-                    Optional<Subscription> subscriptionOpt = Optional.empty();
-                    String subscriptionId = ctx.getAttribute(ATTR_SUBSCRIPTION_ID);
                     String api = ctx.getAttribute(ATTR_API);
-                    String clientId = ctx.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
-                    if (subscriptionId != null) {
-                        subscriptionOpt = subscriptionService.getById(subscriptionId);
-                    } else if (api != null && clientId != null) {
-                        subscriptionOpt = subscriptionService.getByApiAndClientIdAndPlan(api, clientId, plan.getId());
-                    }
+
+                    Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(api, securityToken, plan.getId());
 
                     if (subscriptionOpt.isPresent()) {
                         Subscription subscription = subscriptionOpt.get();
 
-                        if (subscription.getPlan().equals(plan.getId()) && subscription.isTimeValid(ctx.request().timestamp())) {
+                        if (plan.getId().equals(subscription.getPlan()) && subscription.isTimeValid(ctx.request().timestamp())) {
                             ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
                             ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
-                            return Completable.complete();
+                            return TRUE;
                         }
                     }
-
-                    return policy.onInvalidSubscription(ctx);
+                    return FALSE;
                 } catch (Throwable t) {
                     log.warn("An error occurred during subscription validation", t);
-                    return policy.onInvalidSubscription(ctx);
+                    return FALSE;
                 }
             }
         );

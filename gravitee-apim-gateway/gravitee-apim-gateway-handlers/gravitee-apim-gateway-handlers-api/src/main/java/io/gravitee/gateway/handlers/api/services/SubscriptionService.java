@@ -17,7 +17,9 @@ package io.gravitee.gateway.handlers.api.services;
 
 import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 
+import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheManager;
 import java.util.Optional;
@@ -32,9 +34,25 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
     private static final String CACHE_NAME_BY_SUBSCRIPTION_ID = "SUBSCRIPTIONS_BY_ID";
     private final Cache<String, Subscription> cacheBySubscriptionId;
 
-    public SubscriptionService(CacheManager cacheManager) {
+    private ApiKeyService apiKeyService;
+
+    public SubscriptionService(CacheManager cacheManager, ApiKeyService apiKeyService) {
         cacheByApiClientId = cacheManager.getOrCreateCache(CACHE_NAME_BY_API_AND_CLIENT_ID);
         cacheBySubscriptionId = cacheManager.getOrCreateCache(CACHE_NAME_BY_SUBSCRIPTION_ID);
+        this.apiKeyService = apiKeyService;
+    }
+
+    @Override
+    public Optional<Subscription> getByApiAndSecurityToken(String api, SecurityToken securityToken, String plan) {
+        switch (securityToken.getTokenType()) {
+            case API_KEY:
+                return apiKeyService
+                    .getByApiAndKey(api, securityToken.getTokenValue())
+                    .flatMap(apiKey -> getById(apiKey.getSubscription()));
+            case CLIENT_ID:
+                return getByApiAndClientIdAndPlan(api, securityToken.getTokenValue(), plan);
+        }
+        return Optional.empty();
     }
 
     @Override

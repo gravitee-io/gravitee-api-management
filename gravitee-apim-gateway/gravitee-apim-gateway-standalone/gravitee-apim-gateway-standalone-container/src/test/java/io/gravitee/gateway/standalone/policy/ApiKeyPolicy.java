@@ -19,8 +19,10 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
+import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
+import io.reactivex.Maybe;
 import io.reactivex.Single;
 
 /**
@@ -40,7 +42,7 @@ public class ApiKeyPolicy implements SecurityPolicy {
     }
 
     @Override
-    public Single<Boolean> support(RequestExecutionContext ctx) {
-        return Single.just(true);
+    public Maybe<SecurityToken> extractSecurityToken(RequestExecutionContext ctx) {
+        return Maybe.just(SecurityToken.forApiKey("my-api-key"));
     }
 }
