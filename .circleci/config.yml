@@ -1603,6 +1603,13 @@ workflows:
             - build-images:
                   requires:
                       - build
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /.*-run-e2e.*/
+                              - /.*merge.*/
+                              - /^\d+\.\d+\.x$/
             - test:
                   requires:
                       - build
