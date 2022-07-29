@@ -41,7 +41,7 @@ import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
-import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
@@ -132,7 +132,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     public Completable dispatch(HttpServerRequest httpServerRequest) {
         log.debug("Dispatching request on host {} and path {}", httpServerRequest.host(), httpServerRequest.path());
 
-        final HandlerEntrypoint handlerEntrypoint = entrypointResolver.resolve(httpServerRequest.host(), httpServerRequest.path());
+        final HttpAcceptorHandler handlerEntrypoint = entrypointResolver.resolve(httpServerRequest.host(), httpServerRequest.path());
 
         if (handlerEntrypoint == null || handlerEntrypoint.target() == null || handlerEntrypoint.executionMode() == ExecutionMode.JUPITER) {
             // For now, supports only sync requests.
@@ -197,13 +197,13 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         );
     }
 
-    private Completable handleJupiterRequest(final MutableRequestExecutionContext ctx, final HandlerEntrypoint handlerEntrypoint) {
+    private Completable handleJupiterRequest(final MutableRequestExecutionContext ctx, final HttpAcceptorHandler handlerEntrypoint) {
         ctx.request().contextPath(handlerEntrypoint.path());
         final ApiReactor apiReactor = handlerEntrypoint.target();
         return apiReactor.handle(ctx);
     }
 
-    private Completable handleV3Request(final HttpServerRequest httpServerRequest, final HandlerEntrypoint handlerEntrypoint) {
+    private Completable handleV3Request(final HttpServerRequest httpServerRequest, final HttpAcceptorHandler handlerEntrypoint) {
         final ReactorHandler reactorHandler = handlerEntrypoint.target();
 
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request = createV3Request(httpServerRequest, idGenerator);

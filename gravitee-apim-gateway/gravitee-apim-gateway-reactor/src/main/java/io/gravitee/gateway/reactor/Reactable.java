@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactor;
 
-import io.gravitee.gateway.reactor.handler.Entrypoint;
+import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import java.util.List;
 import java.util.Set;
 
@@ -30,5 +30,5 @@ public interface Reactable {
 
     <D> Set<D> dependencies(Class<D> type);
 
-    List<Entrypoint> entrypoints();
+    List<HttpAcceptor> entrypoints();
 }

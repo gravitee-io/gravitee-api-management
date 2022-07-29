@@ -46,7 +46,7 @@ public class DummyReactorHandler extends AbstractReactorHandler<Reactable> {
                     return null;
                 }
 
-                public List<Entrypoint> entrypoints() {
+                public List<HttpAcceptor> entrypoints() {
                     return null;
                 }
             }

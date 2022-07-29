@@ -23,7 +23,7 @@ import io.gravitee.definition.model.ExecutionMode;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface HandlerEntrypoint extends Entrypoint {
+public interface HttpAcceptorHandler extends HttpAcceptor {
     <T extends ReactorHandler> T target();
 
     ExecutionMode executionMode();

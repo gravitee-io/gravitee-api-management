@@ -23,7 +23,7 @@ import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver;
+import io.gravitee.gateway.reactor.handler.impl.DefaultAcceptorResolver;
 import io.gravitee.gateway.reactor.handler.impl.HandlerEntryPointComparator;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,15 +43,15 @@ import org.slf4j.LoggerFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EntrypointResolverTest {
+public class HttpAcceptorResolverTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(EntrypointResolverTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(HttpAcceptorResolverTest.class);
 
     @Mock
     private ReactorHandlerRegistry reactorHandlerRegistry;
 
     @InjectMocks
-    private DefaultEntrypointResolver handlerResolver;
+    private DefaultAcceptorResolver handlerResolver;
 
     @Mock
     private ExecutionContext context;
@@ -77,139 +77,145 @@ public class EntrypointResolverTest {
 
     @Test
     public void test_uniqContextPath() {
-        DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
+        DummyReactorandlerHttpAcceptorHandler entrypoint1 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
 
-        final ConcurrentSkipListSet<HandlerEntrypoint> handlerEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
+        final ConcurrentSkipListSet<HttpAcceptorHandler> handlerEntrypoints = new ConcurrentSkipListSet<>(
+            new HandlerEntryPointComparator()
+        );
         handlerEntrypoints.addAll(Collections.singletonList(entrypoint1));
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
         when(request.path()).thenReturn("/teams");
 
         assertEquals(entrypoint1, handlerResolver.resolve(context));
-        verify(context, times(1)).setAttribute(eq(DefaultEntrypointResolver.ATTR_ENTRYPOINT), eq(entrypoint1));
+        verify(context, times(1)).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), eq(entrypoint1));
     }
 
     @Test
     public void test_uniqContextPath_unknownRequestPath() {
-        DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
+        DummyReactorandlerHttpAcceptorHandler entrypoint1 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
 
-        final ConcurrentSkipListSet<HandlerEntrypoint> handlerEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
+        final ConcurrentSkipListSet<HttpAcceptorHandler> handlerEntrypoints = new ConcurrentSkipListSet<>(
+            new HandlerEntryPointComparator()
+        );
         handlerEntrypoints.addAll(Collections.singletonList(entrypoint1));
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
         when(request.path()).thenReturn("/team");
 
         assertNull(handlerResolver.resolve(context));
-        verify(context, never()).setAttribute(eq(DefaultEntrypointResolver.ATTR_ENTRYPOINT), any());
+        verify(context, never()).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), any());
     }
 
     @Test
     public void test_multipleContextPath_validRequestPath() {
-        DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
-        DummyReactorandlerEntrypoint entrypoint2 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams2"));
+        DummyReactorandlerHttpAcceptorHandler entrypoint1 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
+        DummyReactorandlerHttpAcceptorHandler entrypoint2 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams2"));
 
-        final List<HandlerEntrypoint> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
+        final List<HttpAcceptorHandler> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
         handlerEntrypoints.sort(new HandlerEntryPointComparator());
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
         when(request.path()).thenReturn("/teams");
 
         assertEquals(entrypoint1, handlerResolver.resolve(context));
-        verify(context, times(1)).setAttribute(eq(DefaultEntrypointResolver.ATTR_ENTRYPOINT), eq(entrypoint1));
+        verify(context, times(1)).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), eq(entrypoint1));
     }
 
     @Test
     public void test_multipleContextPath_unknownRequestPath() {
-        DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
-        DummyReactorandlerEntrypoint entrypoint2 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams2"));
+        DummyReactorandlerHttpAcceptorHandler entrypoint1 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
+        DummyReactorandlerHttpAcceptorHandler entrypoint2 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams2"));
 
-        final List<HandlerEntrypoint> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
+        final List<HttpAcceptorHandler> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
         handlerEntrypoints.sort(new HandlerEntryPointComparator());
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
 
         when(request.path()).thenReturn("/team");
 
         assertNull(handlerResolver.resolve(context));
-        verify(context, never()).setAttribute(eq(DefaultEntrypointResolver.ATTR_ENTRYPOINT), any());
+        verify(context, never()).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), any());
     }
 
     @Test
     public void test_multipleContextPath_unknownRequestPath2() {
-        DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
-        DummyReactorandlerEntrypoint entrypoint2 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams2"));
+        DummyReactorandlerHttpAcceptorHandler entrypoint1 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
+        DummyReactorandlerHttpAcceptorHandler entrypoint2 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams2"));
 
-        final ConcurrentSkipListSet<HandlerEntrypoint> handlerEntrypoints = new ConcurrentSkipListSet<>(new HandlerEntryPointComparator());
+        final ConcurrentSkipListSet<HttpAcceptorHandler> handlerEntrypoints = new ConcurrentSkipListSet<>(
+            new HandlerEntryPointComparator()
+        );
         handlerEntrypoints.addAll(Arrays.asList(entrypoint1, entrypoint2));
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
 
         when(request.path()).thenReturn("/teamss");
 
         assertNull(handlerResolver.resolve(context));
-        verify(context, never()).setAttribute(eq(DefaultEntrypointResolver.ATTR_ENTRYPOINT), any());
+        verify(context, never()).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), any());
     }
 
     @Test
     public void test_multipleContextPath_extraSeparatorRequestPath() {
-        DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
-        DummyReactorandlerEntrypoint entrypoint2 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams2"));
+        DummyReactorandlerHttpAcceptorHandler entrypoint1 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
+        DummyReactorandlerHttpAcceptorHandler entrypoint2 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams2"));
 
-        final List<HandlerEntrypoint> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
+        final List<HttpAcceptorHandler> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
         handlerEntrypoints.sort(new HandlerEntryPointComparator());
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
 
         when(request.path()).thenReturn("/teams/");
 
         assertEquals(entrypoint1, handlerResolver.resolve(context));
-        verify(context, times(1)).setAttribute(eq(DefaultEntrypointResolver.ATTR_ENTRYPOINT), eq(entrypoint1));
+        verify(context, times(1)).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), eq(entrypoint1));
     }
 
     @Test
     public void test_multipleContextPath_extraSeparatorUnknownRequestPath() {
-        DummyReactorandlerEntrypoint entrypoint1 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams"));
-        DummyReactorandlerEntrypoint entrypoint2 = new DummyReactorandlerEntrypoint(new VirtualHost("/teams2"));
+        DummyReactorandlerHttpAcceptorHandler entrypoint1 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
+        DummyReactorandlerHttpAcceptorHandler entrypoint2 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams2"));
 
-        final List<HandlerEntrypoint> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
+        final List<HttpAcceptorHandler> handlerEntrypoints = Arrays.asList(entrypoint1, entrypoint2);
         handlerEntrypoints.sort(new HandlerEntryPointComparator());
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
 
         when(request.path()).thenReturn("/teamss/");
 
         assertNull(handlerResolver.resolve(context));
-        verify(context, never()).setAttribute(eq(DefaultEntrypointResolver.ATTR_ENTRYPOINT), any());
+        verify(context, never()).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), any());
     }
 
     @Test
     public void test_multipleVhosts() {
-        final List<HandlerEntrypoint> noHosts = new ArrayList<>();
-        final List<HandlerEntrypoint> withHostAndPathABC = new ArrayList<>();
-        final List<HandlerEntrypoint> withHostAndNotPathABC = new ArrayList<>();
+        final List<HttpAcceptorHandler> noHosts = new ArrayList<>();
+        final List<HttpAcceptorHandler> withHostAndPathABC = new ArrayList<>();
+        final List<HttpAcceptorHandler> withHostAndNotPathABC = new ArrayList<>();
 
-        noHosts.add(new DummyReactorandlerEntrypoint(new VirtualHost(null, "/b/a")));
-        noHosts.add(new DummyReactorandlerEntrypoint(new VirtualHost(null, "/b/b")));
-        noHosts.add(new DummyReactorandlerEntrypoint(new VirtualHost(null, "/b/d")));
-        noHosts.add(new DummyReactorandlerEntrypoint(new VirtualHost(null, "/b/e")));
-        noHosts.add(new DummyReactorandlerEntrypoint(new VirtualHost(null, "/b/f")));
-        noHosts.add(new DummyReactorandlerEntrypoint(new VirtualHost(null, "/b/c1/sub")));
-        noHosts.add(new DummyReactorandlerEntrypoint(new VirtualHost(null, "/b/c1/sub2")));
-        noHosts.add(new DummyReactorandlerEntrypoint(new VirtualHost(null, "/b/c1/sub3")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/a")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/b")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/d")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/e")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/f")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/c1/sub")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/c1/sub2")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/c1/sub3")));
 
-        withHostAndPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api1.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api2.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api3.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api4.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("apiX.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api10.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api11.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api1.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api2.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api3.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api4.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("apiX.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api10.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api11.gravitee.io", "/a/b/c")));
 
-        withHostAndNotPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api.gravitee.io", "/a/b/a")));
-        withHostAndNotPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api1.gravitee.io", "/a/b/b")));
-        withHostAndNotPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api2.gravitee.io", "/a/b/d")));
-        withHostAndNotPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api3.gravitee.io", "/a/b/e")));
-        withHostAndNotPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api4.gravitee.io", "/a/b/f")));
-        withHostAndNotPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("apiX.gravitee.io", "/a/b/c1/sub")));
-        withHostAndNotPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api10.gravitee.io", "/a/b/c1/sub")));
-        withHostAndNotPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("api11.gravitee.io", "/a/b/c1/sub")));
-        withHostAndNotPathABC.add(new DummyReactorandlerEntrypoint(new VirtualHost("apispecial.gravitee.io", "/a/b/special")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api.gravitee.io", "/a/b/a")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api1.gravitee.io", "/a/b/b")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api2.gravitee.io", "/a/b/d")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api3.gravitee.io", "/a/b/e")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api4.gravitee.io", "/a/b/f")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("apiX.gravitee.io", "/a/b/c1/sub")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api10.gravitee.io", "/a/b/c1/sub")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api11.gravitee.io", "/a/b/c1/sub")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("apispecial.gravitee.io", "/a/b/special")));
 
-        final List<HandlerEntrypoint> handlerEntrypoints = new ArrayList<>();
+        final List<HttpAcceptorHandler> handlerEntrypoints = new ArrayList<>();
         handlerEntrypoints.addAll(noHosts);
         handlerEntrypoints.addAll(withHostAndPathABC);
         handlerEntrypoints.addAll(withHostAndNotPathABC);
@@ -217,7 +223,7 @@ public class EntrypointResolverTest {
         when(reactorHandlerRegistry.getEntrypoints()).thenReturn(handlerEntrypoints);
 
         // Cases without host.
-        for (final HandlerEntrypoint expected : noHosts) {
+        for (final HttpAcceptorHandler expected : noHosts) {
             logger.info("Test case: resolve for host [{}] with unknown path.", expected.host());
             final List<String> pathsShouldNotMatch = Arrays.asList("/unknown", "/A/b/C", "/a/b/c", "/a/b/c/");
 
@@ -254,7 +260,7 @@ public class EntrypointResolverTest {
         }
 
         // Cases with host and path "/a/b/c"
-        for (final HandlerEntrypoint expected : withHostAndPathABC) {
+        for (final HttpAcceptorHandler expected : withHostAndPathABC) {
             // Test some path that should be resolved to null.
             // "unknown" -> path not declared at all
             // "/A/b/C"  -> path with this specific case not declared
@@ -292,7 +298,7 @@ public class EntrypointResolverTest {
         }
 
         // Cases with host and path NOT "/a/b/c"
-        for (final HandlerEntrypoint expected : withHostAndNotPathABC) {
+        for (final HttpAcceptorHandler expected : withHostAndNotPathABC) {
             // Test some path that should be resolved to null.
             // "unknown" -> path not declared at all
             // All other paths are either on all host ('*') either for an host which is also exposing the paths we are testing (ex: "api1.gravitee.io" exposes multiples paths).
@@ -327,12 +333,12 @@ public class EntrypointResolverTest {
         }
     }
 
-    private class DummyReactorandlerEntrypoint implements HandlerEntrypoint {
+    private class DummyReactorandlerHttpAcceptorHandler implements HttpAcceptorHandler {
 
-        private final Entrypoint entrypoint;
+        private final HttpAcceptor httpAcceptor;
 
-        public DummyReactorandlerEntrypoint(Entrypoint entrypoint) {
-            this.entrypoint = entrypoint;
+        public DummyReactorandlerHttpAcceptorHandler(HttpAcceptor httpAcceptor) {
+            this.httpAcceptor = httpAcceptor;
         }
 
         @Override
@@ -347,27 +353,27 @@ public class EntrypointResolverTest {
 
         @Override
         public String path() {
-            return entrypoint.path();
+            return httpAcceptor.path();
         }
 
         @Override
         public String host() {
-            return entrypoint.host();
+            return httpAcceptor.host();
         }
 
         @Override
         public int priority() {
-            return entrypoint.priority();
+            return httpAcceptor.priority();
         }
 
         @Override
         public boolean accept(Request request) {
-            return entrypoint.accept(request);
+            return httpAcceptor.accept(request);
         }
 
         @Override
         public boolean accept(String host, String path) {
-            return entrypoint.accept(host, path);
+            return httpAcceptor.accept(host, path);
         }
     }
 }

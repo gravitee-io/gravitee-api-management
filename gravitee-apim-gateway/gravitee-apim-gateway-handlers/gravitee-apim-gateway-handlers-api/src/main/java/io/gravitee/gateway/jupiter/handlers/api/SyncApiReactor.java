@@ -55,7 +55,7 @@ import io.gravitee.gateway.jupiter.handlers.api.security.SecurityChain;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.handler.Entrypoint;
+import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
@@ -427,13 +427,13 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     protected void dumpVirtualHosts() {
-        List<Entrypoint> entrypoints = api.entrypoints();
+        List<HttpAcceptor> httpAcceptors = api.entrypoints();
         log.debug("{} ready to accept requests on:", this);
-        entrypoints.forEach(entrypoint -> log.debug("\t{}", entrypoint));
+        httpAcceptors.forEach(entrypoint -> log.debug("\t{}", entrypoint));
     }
 
     @Override
     public void handle(io.gravitee.gateway.api.ExecutionContext ctx, Handler<io.gravitee.gateway.api.ExecutionContext> endHandler) {
-        throw new RuntimeException(new IllegalAccessException("Handle method can be called on SyncApiReactor"));
+        throw new RuntimeException(new IllegalAccessException("Handle method can't be called on SyncApiReactor"));
     }
 }

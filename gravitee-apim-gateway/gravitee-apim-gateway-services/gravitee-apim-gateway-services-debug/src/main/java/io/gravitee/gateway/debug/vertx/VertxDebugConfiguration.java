@@ -20,7 +20,6 @@ import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_
 
 import io.gravitee.gateway.jupiter.debug.vertx.DebugHttpProtocolVerticle;
 import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
-import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.vertx.VertxHttpServerFactory;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;

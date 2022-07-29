@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.handlers.api.definition;
 
-import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.ORIGIN_KUBERNETES;
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.*;
 
 import io.gravitee.definition.model.DefinitionVersion;
@@ -25,7 +24,7 @@ import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
-import io.gravitee.gateway.reactor.handler.Entrypoint;
+import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.VirtualHost;
 import java.util.Collection;
 import java.util.Collections;
@@ -210,7 +209,7 @@ public class Api extends ReactableApi<io.gravitee.definition.model.Api> {
     }
 
     @Override
-    public List<Entrypoint> entrypoints() {
+    public List<HttpAcceptor> entrypoints() {
         return definition
             .getProxy()
             .getVirtualHosts()

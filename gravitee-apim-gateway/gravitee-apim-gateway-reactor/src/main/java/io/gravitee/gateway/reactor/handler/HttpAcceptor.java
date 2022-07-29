@@ -23,7 +23,7 @@ import io.gravitee.gateway.api.Request;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Entrypoint {
+public interface HttpAcceptor {
     /**
      * @return the listening path of this entrypoint.
      */

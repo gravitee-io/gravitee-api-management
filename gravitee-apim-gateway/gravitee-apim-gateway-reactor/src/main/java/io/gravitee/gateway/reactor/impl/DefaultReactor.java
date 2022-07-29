@@ -23,8 +23,8 @@ import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactor.Reactor;
-import io.gravitee.gateway.reactor.handler.EntrypointResolver;
-import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
+import io.gravitee.gateway.reactor.handler.AcceptorResolver;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
@@ -47,11 +47,11 @@ public class DefaultReactor implements Reactor {
     private final RequestProcessorChainFactory requestProcessorChainFactory;
     private final ResponseProcessorChainFactory responseProcessorChainFactory;
     private final NotFoundProcessorChainFactory notFoundProcessorChainFactory;
-    private final EntrypointResolver entrypointResolver;
+    private final AcceptorResolver acceptorResolver;
 
     public DefaultReactor(
         final EventManager eventManager,
-        final @Qualifier("v3EntrypointResolver") EntrypointResolver entrypointResolver,
+        final @Qualifier("v3EntrypointResolver") AcceptorResolver acceptorResolver,
         final @Qualifier("reactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry,
         final GatewayConfiguration gatewayConfiguration,
         final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
@@ -59,7 +59,7 @@ public class DefaultReactor implements Reactor {
         final @Qualifier("v3NotFoundProcessorChainFactory") NotFoundProcessorChainFactory notFoundProcessorChainFactory
     ) {
         this.eventManager = eventManager;
-        this.entrypointResolver = entrypointResolver;
+        this.acceptorResolver = acceptorResolver;
         this.reactorHandlerRegistry = reactorHandlerRegistry;
         this.gatewayConfiguration = gatewayConfiguration;
         this.requestProcessorChainFactory = requestProcessorChainFactory;
@@ -85,7 +85,7 @@ public class DefaultReactor implements Reactor {
             .create()
             .handler(
                 ctx -> {
-                    HandlerEntrypoint entrypoint = entrypointResolver.resolve(ctx);
+                    HttpAcceptorHandler entrypoint = acceptorResolver.resolve(ctx);
 
                     if (entrypoint != null) {
                         entrypoint

@@ -15,21 +15,21 @@
  */
 package io.gravitee.gateway.reactor.handler.impl;
 
-import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
- * Comparator used to sort {@link HandlerEntrypoint} in a centralized entrypoints collection.
+ * Comparator used to sort {@link HttpAcceptorHandler} in a centralized entrypoints collection.
  * The final entrypoint collection is a {@link ConcurrentSkipListSet} which rely on this comparator to add / remove entry keeping entries ordered.
  *
  * Entrypoint are first sorted by host (lower-cased), then in case of equality, by path and, in case of equality in path, the entrypoint priority is used (higher priority first).
  */
-public class HandlerEntryPointComparator implements Comparator<HandlerEntrypoint> {
+public class HandlerEntryPointComparator implements Comparator<HttpAcceptorHandler> {
 
     @Override
-    public int compare(HandlerEntrypoint o1, HandlerEntrypoint o2) {
+    public int compare(HttpAcceptorHandler o1, HttpAcceptorHandler o2) {
         if (o1.equals(o2)) {
             return 0;
         }

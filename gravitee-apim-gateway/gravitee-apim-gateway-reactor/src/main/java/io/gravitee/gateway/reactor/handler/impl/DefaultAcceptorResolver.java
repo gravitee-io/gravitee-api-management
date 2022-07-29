@@ -16,28 +16,27 @@
 package io.gravitee.gateway.reactor.handler.impl;
 
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.reactor.handler.EntrypointResolver;
-import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
+import io.gravitee.gateway.reactor.handler.AcceptorResolver;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultEntrypointResolver implements EntrypointResolver {
+public class DefaultAcceptorResolver implements AcceptorResolver {
 
     public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
 
     private final ReactorHandlerRegistry handlerRegistry;
 
-    public DefaultEntrypointResolver(ReactorHandlerRegistry handlerRegistry) {
+    public DefaultAcceptorResolver(ReactorHandlerRegistry handlerRegistry) {
         this.handlerRegistry = handlerRegistry;
     }
 
     @Override
-    public HandlerEntrypoint resolve(ExecutionContext context) {
-        for (HandlerEntrypoint entrypoint : handlerRegistry.getEntrypoints()) {
+    public HttpAcceptorHandler resolve(ExecutionContext context) {
+        for (HttpAcceptorHandler entrypoint : handlerRegistry.getEntrypoints()) {
             if (entrypoint.accept(context.request())) {
                 context.setAttribute(ATTR_ENTRYPOINT, entrypoint);
 

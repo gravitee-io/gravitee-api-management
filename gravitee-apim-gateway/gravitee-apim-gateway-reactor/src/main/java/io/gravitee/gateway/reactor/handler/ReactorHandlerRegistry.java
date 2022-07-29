@@ -17,7 +17,6 @@ package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.gateway.reactor.Reactable;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,5 +38,5 @@ public interface ReactorHandlerRegistry {
      *
      * @return
      */
-    Collection<HandlerEntrypoint> getEntrypoints();
+    Collection<HttpAcceptorHandler> getEntrypoints();
 }

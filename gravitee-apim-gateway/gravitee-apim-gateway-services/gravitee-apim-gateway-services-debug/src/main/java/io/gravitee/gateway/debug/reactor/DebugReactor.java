@@ -17,7 +17,7 @@ package io.gravitee.gateway.debug.reactor;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactor.handler.AcceptorResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
 import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
@@ -28,7 +28,7 @@ public class DebugReactor extends DefaultReactor {
 
     public DebugReactor(
         EventManager eventManager,
-        EntrypointResolver entrypointResolver,
+        AcceptorResolver acceptorResolver,
         ReactorHandlerRegistry reactorHandlerRegistry,
         GatewayConfiguration gatewayConfiguration,
         RequestProcessorChainFactory requestProcessorChainFactory,
@@ -37,7 +37,7 @@ public class DebugReactor extends DefaultReactor {
     ) {
         super(
             eventManager,
-            entrypointResolver,
+            acceptorResolver,
             reactorHandlerRegistry,
             gatewayConfiguration,
             requestProcessorChainFactory,

@@ -21,6 +21,6 @@ import io.gravitee.gateway.api.ExecutionContext;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EntrypointResolver {
-    HandlerEntrypoint resolve(ExecutionContext context);
+public interface AcceptorResolver {
+    HttpAcceptorHandler resolve(ExecutionContext context);
 }

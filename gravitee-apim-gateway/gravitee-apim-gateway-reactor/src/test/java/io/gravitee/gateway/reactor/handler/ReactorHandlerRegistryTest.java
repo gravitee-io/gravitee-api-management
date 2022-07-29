@@ -19,14 +19,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
-import java.util.*;
 import java.util.*;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -64,8 +60,8 @@ public class ReactorHandlerRegistryTest {
 
         reactorHandlerRegistry.create(reactable);
 
-        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        final Collection<HttpAcceptorHandler> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        final Iterator<HttpAcceptorHandler> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(1, entrypoints.size());
         assertEntryPoint(null, "/", entrypointIterator.next());
     }
@@ -79,8 +75,8 @@ public class ReactorHandlerRegistryTest {
 
         reactorHandlerRegistry.create(reactable);
 
-        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        final Collection<HttpAcceptorHandler> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        final Iterator<HttpAcceptorHandler> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(2, entrypoints.size());
         assertEntryPoint(null, "/products/v1/", entrypointIterator.next());
         assertEntryPoint(null, "/products/v2/", entrypointIterator.next());
@@ -99,8 +95,8 @@ public class ReactorHandlerRegistryTest {
 
         reactorHandlerRegistry.create(reactable);
 
-        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        final Collection<HttpAcceptorHandler> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        final Iterator<HttpAcceptorHandler> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(2, entrypoints.size());
         assertEntryPoint("api.gravitee.io", "/products/v2/", entrypointIterator.next());
         assertEntryPoint(null, "/products/v1/", entrypointIterator.next());
@@ -120,8 +116,8 @@ public class ReactorHandlerRegistryTest {
         reactorHandlerRegistry.create(reactable2);
 
         Assert.assertEquals(2, reactorHandlerRegistry.getEntrypoints().size());
-        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        final Collection<HttpAcceptorHandler> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        final Iterator<HttpAcceptorHandler> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(2, entrypoints.size());
         assertEntryPoint(null, "/", entrypointIterator.next());
         assertEntryPoint(null, "/", entrypointIterator.next());
@@ -142,8 +138,8 @@ public class ReactorHandlerRegistryTest {
         Assert.assertEquals(2, reactorHandlerRegistry.getEntrypoints().size());
 
         // Paths are sorted in natural order so "/" takes priority over "/products".
-        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        final Collection<HttpAcceptorHandler> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        final Iterator<HttpAcceptorHandler> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(2, entrypoints.size());
         assertEntryPoint(null, "/", entrypointIterator.next());
         assertEntryPoint(null, "/products/", entrypointIterator.next());
@@ -162,10 +158,10 @@ public class ReactorHandlerRegistryTest {
         reactorHandlerRegistry.create(reactable2);
 
         // Paths "/" are equivalent but virtualhost takes priority over simple path.
-        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        final Collection<HttpAcceptorHandler> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        final Iterator<HttpAcceptorHandler> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(2, entrypoints.size());
-        final HandlerEntrypoint first = entrypointIterator.next();
+        final HttpAcceptorHandler first = entrypointIterator.next();
         assertEntryPoint("api.gravitee.io", "/", first);
         Assert.assertEquals(1001, first.priority());
         assertEntryPoint(null, "/", entrypointIterator.next());
@@ -183,8 +179,8 @@ public class ReactorHandlerRegistryTest {
         when(reactorHandlerFactoryManager.create(updateReactable)).thenReturn(handler2);
         reactorHandlerRegistry.update(updateReactable);
 
-        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        final Collection<HttpAcceptorHandler> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        final Iterator<HttpAcceptorHandler> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(2, entrypoints.size());
         assertEntryPoint("api.gravitee.io", "/", entrypointIterator.next());
         assertEntryPoint(null, "/", entrypointIterator.next());
@@ -227,8 +223,8 @@ public class ReactorHandlerRegistryTest {
         when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(handler3);
         reactorHandlerRegistry.create(reactable3);
 
-        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        final Collection<HttpAcceptorHandler> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        final Iterator<HttpAcceptorHandler> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(17, entrypoints.size());
         assertEntryPoint("api.gravitee.io", "/a-v1/", entrypointIterator.next());
         assertEntryPoint("api.gravitee.io", "/a/", entrypointIterator.next());
@@ -286,8 +282,8 @@ public class ReactorHandlerRegistryTest {
         when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(handler3);
         reactorHandlerRegistry.create(reactable3);
 
-        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        final Collection<HttpAcceptorHandler> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        final Iterator<HttpAcceptorHandler> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(17, entrypoints.size());
         assertEntryPoint("api.gravitee.io", "/a/b/a/", entrypointIterator.next());
         assertEntryPoint("api.gravitee.io", "/a/b/c/", entrypointIterator.next());
@@ -361,8 +357,8 @@ public class ReactorHandlerRegistryTest {
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
         reactorHandlerRegistry.update(reactable2);
 
-        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        final Collection<HttpAcceptorHandler> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        final Iterator<HttpAcceptorHandler> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(17, entrypoints.size());
         assertEntryPoint("api.gravitee.io", "/a-v1/", entrypointIterator.next());
         assertEntryPoint("api.gravitee.io", "/b/", entrypointIterator.next());
@@ -400,8 +396,8 @@ public class ReactorHandlerRegistryTest {
             Assert.assertEquals("Size of entrypoints list should be 1 (i=" + i + ")", 1, reactorHandlerRegistry.getEntrypoints().size());
         }
 
-        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        final Collection<HttpAcceptorHandler> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        final Iterator<HttpAcceptorHandler> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(1, entrypoints.size());
         assertEntryPoint("api.gravitee.io", "/new-path/", entrypointIterator.next());
     }
@@ -423,8 +419,8 @@ public class ReactorHandlerRegistryTest {
             Assert.assertEquals("Size of entrypoints list should be 1 (i=" + i + ")", 1, reactorHandlerRegistry.getEntrypoints().size());
         }
 
-        final Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        final Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        final Collection<HttpAcceptorHandler> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        final Iterator<HttpAcceptorHandler> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(1, entrypoints.size());
         assertEntryPoint(null, "/c/", entrypointIterator.next());
     }
@@ -539,8 +535,8 @@ public class ReactorHandlerRegistryTest {
         when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(handler3);
         reactorHandlerRegistry.create(reactable3);
 
-        Collection<HandlerEntrypoint> entrypoints = reactorHandlerRegistry.getEntrypoints();
-        Iterator<HandlerEntrypoint> entrypointIterator = entrypoints.iterator();
+        Collection<HttpAcceptorHandler> entrypoints = reactorHandlerRegistry.getEntrypoints();
+        Iterator<HttpAcceptorHandler> entrypointIterator = entrypoints.iterator();
         Assert.assertEquals(17, entrypoints.size());
         assertEntryPoint("api.gravitee.io", "/a/", entrypointIterator.next());
         assertEntryPoint("api.gravitee.io", "/b/", entrypointIterator.next());
@@ -598,9 +594,9 @@ public class ReactorHandlerRegistryTest {
         Assert.assertEquals(0, reactorHandlerRegistry.getEntrypoints().size());
     }
 
-    private void assertEntryPoint(String host, String path, Entrypoint entrypoint) {
-        Assert.assertEquals(host, entrypoint.host());
-        Assert.assertEquals(path, entrypoint.path());
+    private void assertEntryPoint(String host, String path, HttpAcceptor httpAcceptor) {
+        Assert.assertEquals(host, httpAcceptor.host());
+        Assert.assertEquals(path, httpAcceptor.path());
     }
 
     private DummyReactable createReactable(String id, VirtualHost... virtualHosts) {
@@ -624,11 +620,11 @@ public class ReactorHandlerRegistryTest {
     private class DummyReactable implements Reactable {
 
         private final String id;
-        private final List<Entrypoint> entrypoints;
+        private final List<HttpAcceptor> httpAcceptors;
 
-        public DummyReactable(String id, List<Entrypoint> entrypoints) {
+        public DummyReactable(String id, List<HttpAcceptor> httpAcceptors) {
             this.id = id;
-            this.entrypoints = entrypoints;
+            this.httpAcceptors = httpAcceptors;
         }
 
         @Override
@@ -655,8 +651,8 @@ public class ReactorHandlerRegistryTest {
         }
 
         @Override
-        public List<Entrypoint> entrypoints() {
-            return entrypoints;
+        public List<HttpAcceptor> entrypoints() {
+            return httpAcceptors;
         }
     }
 }

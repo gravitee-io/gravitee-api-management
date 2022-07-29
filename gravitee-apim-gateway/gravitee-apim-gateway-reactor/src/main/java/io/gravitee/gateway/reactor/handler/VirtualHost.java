@@ -16,14 +16,13 @@
 package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.gateway.api.Request;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VirtualHost implements Entrypoint {
+public class VirtualHost implements HttpAcceptor {
 
     private static final int HOST_MASK = 1000;
 
