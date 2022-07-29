@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
 import io.gravitee.rest.api.service.v4.validation.*;
 import org.springframework.stereotype.Component;
 
@@ -90,6 +91,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     ) {
         // Validate version
         this.validateDefinitionVersion(updateApiEntity, existingApiEntity);
+        // Validate API Type
+        this.validateApiType(updateApiEntity, existingApiEntity);
         // Validate and clean lifecycle state
         updateApiEntity.setLifecycleState(this.validateAndSanitizeLifecycleState(updateApiEntity, existingApiEntity));
 
@@ -121,6 +124,16 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         if (updateApiEntity.getDefinitionVersion().asInteger() < existingApiEntity.getDefinitionVersion().asInteger()) {
             // not allowed to downgrade definition version
             throw new DefinitionVersionException();
+        }
+    }
+
+    private void validateApiType(final UpdateApiEntity updateApiEntity, final ApiEntity existingApiEntity) {
+        if (updateApiEntity.getType() == null) {
+            throw new InvalidDataException("Invalid definition type for api '" + updateApiEntity.getId() + "'");
+        }
+        if (updateApiEntity.getType() != existingApiEntity.getType()) {
+            // not allowed to change API Type
+            throw new ApiTypeException();
         }
     }
 

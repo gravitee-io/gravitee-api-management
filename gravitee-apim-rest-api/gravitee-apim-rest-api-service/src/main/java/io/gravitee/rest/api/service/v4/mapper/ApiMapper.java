@@ -292,12 +292,10 @@ public class ApiMapper {
         try {
             io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
 
-            // Must not update Type
-            apiDefinition.setType(existingApiEntity.getType());
-
             apiDefinition.setId(updateApiEntity.getId());
             apiDefinition.setName(updateApiEntity.getName());
             apiDefinition.setDefinitionVersion(updateApiEntity.getDefinitionVersion());
+            apiDefinition.setType(updateApiEntity.getType());
             apiDefinition.setApiVersion(updateApiEntity.getApiVersion());
             apiDefinition.setTags(updateApiEntity.getTags());
             apiDefinition.setListeners(updateApiEntity.getListeners());

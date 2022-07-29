@@ -15,6 +15,30 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_DELETED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_ROLLBACKED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
+import static io.gravitee.repository.management.model.Visibility.PUBLIC;
+import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ACCEPTED;
+import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ASKED;
+import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_REJECTED;
+import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
+import static io.gravitee.rest.api.model.PageType.SWAGGER;
+import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
+import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
+import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static java.util.Comparator.comparing;
+import static java.util.Optional.of;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -183,18 +207,6 @@ import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.support.CronTrigger;
-import org.springframework.stereotype.Component;
-
-import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
@@ -224,30 +236,17 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
-import static io.gravitee.repository.management.model.Api.AuditEvent.API_DELETED;
-import static io.gravitee.repository.management.model.Api.AuditEvent.API_ROLLBACKED;
-import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
-import static io.gravitee.repository.management.model.Visibility.PUBLIC;
-import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ACCEPTED;
-import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ASKED;
-import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_REJECTED;
-import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
-import static io.gravitee.rest.api.model.PageType.SWAGGER;
-import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
-import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
-import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
-import static java.util.Comparator.comparing;
-import static java.util.Optional.of;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import javax.xml.bind.DatatypeConverter;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -589,10 +588,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Add Default groups
             Set<String> defaultGroups = groupService
-                    .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
-                    .stream()
-                    .map(GroupEntity::getId)
-                    .collect(toSet());
+                .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
+                .stream()
+                .map(GroupEntity::getId)
+                .collect(toSet());
             if (repoApi.getGroups() == null) {
                 repoApi.setGroups(defaultGroups.isEmpty() ? null : defaultGroups);
             } else {

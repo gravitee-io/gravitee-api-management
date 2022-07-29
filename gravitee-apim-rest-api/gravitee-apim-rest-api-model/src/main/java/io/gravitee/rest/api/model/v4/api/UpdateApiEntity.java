@@ -20,6 +20,7 @@ import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
@@ -74,17 +75,15 @@ public class UpdateApiEntity {
     @Schema(description = "API's gravitee definition version")
     private DefinitionVersion definitionVersion;
 
+    @Schema(description = "API's type", example = "async")
+    private ApiType type;
+
     @NotNull
     @Schema(
         description = "API's description. A short description of your API.",
         example = "I can use a hundred characters to describe this API."
     )
     private String description;
-
-    @JsonProperty("descriptor")
-    @NotNull
-    @DeploymentRequired
-    private Api descriptor;
 
     @NotNull
     @Schema(description = "The visibility of the API regarding the portal.", example = "PUBLIC")
