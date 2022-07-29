@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import java.util.Map;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -27,7 +28,9 @@ import java.util.Objects;
  */
 public class RoleEntity {
 
+    @NotNull
     private String id;
+
     private String name;
     private String description;
     private RoleScope scope;
