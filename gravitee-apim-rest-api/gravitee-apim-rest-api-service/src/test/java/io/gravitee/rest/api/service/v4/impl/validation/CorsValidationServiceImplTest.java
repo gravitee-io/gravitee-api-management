@@ -42,18 +42,25 @@ public class CorsValidationServiceImplTest {
     }
 
     @Test(expected = AllowOriginNotAllowedException.class)
-    public void shouldHaveAllowOriginNotAllowed() throws TechnicalException {
+    public void shouldNotValidateAllowOriginWithNotAllowedPattern() throws TechnicalException {
         Cors cors = new Cors();
         cors.setAccessControlAllowOrigin(
             Sets.newSet(
                 "http://example.com",
-                "localhost",
+                "localhost", // Not allowed
                 "https://10.140.238.25:8080",
                 "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}",
-                ".*.company.com",
-                "/test^"
+                ".*.company.com"
             )
         );
+        corsValidationService.validateAndSanitize(cors);
+    }
+
+    @Test(expected = AllowOriginNotAllowedException.class)
+    public void shouldNotValidateAllowOriginWithWrongPattern() throws TechnicalException {
+        Cors cors = new Cors();
+        cors.setAccessControlAllowOrigin(Collections.singleton("a{"));
+
         corsValidationService.validateAndSanitize(cors);
     }
 

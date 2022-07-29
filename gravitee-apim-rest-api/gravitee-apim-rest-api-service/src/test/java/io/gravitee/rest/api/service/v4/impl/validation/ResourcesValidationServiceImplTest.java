@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -23,6 +24,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import java.util.Collections;
 import java.util.List;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,6 +48,16 @@ public class ResourcesValidationServiceImplTest {
     public void setUp() throws Exception {
         resourceService = Mockito.mock(ResourceService.class);
         resourcesValidationService = new ResourcesValidationServiceImpl(resourceService);
+    }
+
+    @Test
+    public void shouldValidateResources() {
+        Resource resource = new Resource();
+        List<Resource> resources = Collections.singletonList(resource);
+
+        doNothing().when(resourceService).validateResourceConfiguration(resource);
+        List<Resource> sanitizedResources = resourcesValidationService.validateAndSanitize(resources);
+        assertSame(resources, sanitizedResources);
     }
 
     @Test(expected = InvalidDataException.class)

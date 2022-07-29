@@ -29,6 +29,7 @@ import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -67,7 +68,7 @@ public class LoggingValidationServiceImpl extends TransactionalService implement
                 .stream()
                 .findFirst();
             if (optionalMaxDuration.isPresent() && optionalMaxDuration.get() > 0) {
-                long maxEndDate = System.currentTimeMillis() + optionalMaxDuration.get();
+                long maxEndDate = Instant.now().toEpochMilli() + optionalMaxDuration.get();
 
                 // if no condition set, add one
                 if (logging.getCondition() == null || logging.getCondition().isEmpty()) {

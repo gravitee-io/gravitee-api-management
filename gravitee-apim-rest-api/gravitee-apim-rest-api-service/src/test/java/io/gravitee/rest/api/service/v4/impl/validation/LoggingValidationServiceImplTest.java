@@ -20,7 +20,6 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
@@ -29,23 +28,25 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.function.Function;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(LoggingValidationServiceImpl.class)
-@PowerMockIgnore({ "javax.security.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*" })
+@RunWith(MockitoJUnitRunner.class)
 public class LoggingValidationServiceImplTest {
 
     @Mock
@@ -53,9 +54,13 @@ public class LoggingValidationServiceImplTest {
 
     private LoggingValidationService loggingValidationService;
 
+    MockedStatic<Instant> mockedStaticInstant;
+
     @Before
     public void setUp() throws Exception {
-        MockitoAnnotations.openMocks(this);
+        Instant instant = Instant.now(Clock.fixed(Instant.ofEpochMilli(0), ZoneOffset.UTC));
+        mockedStaticInstant = mockStatic(Instant.class);
+        mockedStaticInstant.when(Instant::now).thenReturn(instant);
 
         when(
             parameterService.findAll(
@@ -67,10 +72,12 @@ public class LoggingValidationServiceImplTest {
         )
             .thenReturn(singletonList(1L));
 
-        mockStatic(System.class);
-        when(System.currentTimeMillis()).thenReturn(0L);
-
         loggingValidationService = new LoggingValidationServiceImpl(parameterService);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        mockedStaticInstant.close();
     }
 
     @Test
