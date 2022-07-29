@@ -20,6 +20,7 @@ import { PlanStatus } from '@management-models/PlanStatus';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { LifecycleAction } from '@management-models/LifecycleAction';
 import { GatewayTestData, loadTestDataForSetup } from '../lib/test-api';
+import { UpdateApiEntityFromJSON } from "@management-models/UpdateApiEntity";
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -32,11 +33,21 @@ export async function init(): Promise<GatewayTestData> {
     orgId,
     envId,
     newApiEntity: ApisFaker.newApi({
-      endpoint: 'https://api.gravitee.io/echo',
+      endpoint: 'https://load-tests-echo-api.cloud.gravitee.io/echo',
     }),
   });
   if (api && api.id) {
     const plan = await apiManagementApiAsApiUser.createApiPlan({ orgId, envId, api: api.id, newPlanEntity });
+    api.proxy.groups[0].ssl = {trustAll: true};
+    api.proxy.groups[0].endpoints[0].inherit = true;
+
+    await apiManagementApiAsApiUser.updateApi({
+      orgId,
+      envId,
+      updateApiEntity: UpdateApiEntityFromJSON({ ...api }),
+      api: api.id
+    });
+
     await apiManagementApiAsApiUser.doApiLifecycleActionRaw({
       orgId,
       envId,
