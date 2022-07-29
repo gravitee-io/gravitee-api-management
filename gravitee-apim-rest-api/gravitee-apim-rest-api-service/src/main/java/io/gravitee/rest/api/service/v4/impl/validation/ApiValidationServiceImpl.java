@@ -43,8 +43,6 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final ListenerValidationService listenerValidationService;
     private final EndpointGroupsValidationService endpointGroupsValidationService;
     private final FlowValidationService flowValidationService;
-    private final CorsValidationService corsValidationService;
-    private final LoggingValidationService loggingValidationService;
     private final ResourcesValidationService resourcesValidationService;
 
     public ApiValidationServiceImpl(
@@ -53,8 +51,6 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final ListenerValidationService listenerValidationService,
         final EndpointGroupsValidationService endpointGroupsValidationService,
         final FlowValidationService flowValidationService,
-        final CorsValidationService corsValidationService,
-        final LoggingValidationService loggingValidationService,
         final ResourcesValidationService resourcesValidationService
     ) {
         this.tagsValidationService = tagsValidationService;
@@ -62,8 +58,6 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.listenerValidationService = listenerValidationService;
         this.endpointGroupsValidationService = endpointGroupsValidationService;
         this.flowValidationService = flowValidationService;
-        this.corsValidationService = corsValidationService;
-        this.loggingValidationService = loggingValidationService;
         this.resourcesValidationService = resourcesValidationService;
     }
 
@@ -116,10 +110,6 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         updateApiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitize(updateApiEntity.getEndpointGroups()));
         // Validate and clean flow
         updateApiEntity.setFlows(flowValidationService.validateAndSanitize(updateApiEntity.getFlows()));
-        // Validate and clean cors configuration
-        updateApiEntity.setCors(corsValidationService.validateAndSanitize(updateApiEntity.getCors()));
-        // Validate and clean logging configuration
-        updateApiEntity.setLogging(loggingValidationService.validateAndSanitize(executionContext, updateApiEntity.getLogging()));
         // Validate and clean resources
         updateApiEntity.setResources(resourcesValidationService.validateAndSanitize(updateApiEntity.getResources()));
     }

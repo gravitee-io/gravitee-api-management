@@ -35,7 +35,9 @@ import io.gravitee.rest.api.service.v4.exception.FlowSelectorsDuplicatedExceptio
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
 import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
+import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
+import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -64,15 +66,21 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     private final ApiRepository apiRepository;
     private final ObjectMapper objectMapper;
     private final EnvironmentService environmentService;
+    private final CorsValidationService corsValidationService;
+    private final LoggingValidationService loggingValidationService;
 
     public ListenerValidationServiceImpl(
         @Lazy final ApiRepository apiRepository,
         final ObjectMapper objectMapper,
-        final EnvironmentService environmentService
+        final EnvironmentService environmentService,
+        final CorsValidationService corsValidationService,
+        final LoggingValidationService loggingValidationService
     ) {
         this.apiRepository = apiRepository;
         this.objectMapper = objectMapper;
         this.environmentService = environmentService;
+        this.corsValidationService = corsValidationService;
+        this.loggingValidationService = loggingValidationService;
     }
 
     @Override
@@ -164,6 +172,11 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         listenerHttp.setPaths(sanitizedPaths);
 
         validatePathMappings(listenerHttp.getPathMappings());
+
+        // Validate and clean cors configuration
+        listenerHttp.setCors(corsValidationService.validateAndSanitize(listenerHttp.getCors()));
+        // Validate and clean logging configuration
+        listenerHttp.setLogging(loggingValidationService.validateAndSanitize(executionContext, listenerHttp.getLogging()));
     }
 
     private List<Path> extractPaths(final Api api) {

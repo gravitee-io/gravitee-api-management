@@ -186,10 +186,4 @@ public class ApiEntity implements IndexableApi {
 
     @JsonIgnore
     private String referenceId;
-
-    @Schema(description = "The CORS configuration of the API")
-    private Cors cors;
-
-    @Schema(description = "The logging configuration if the API")
-    private Logging logging;
 }

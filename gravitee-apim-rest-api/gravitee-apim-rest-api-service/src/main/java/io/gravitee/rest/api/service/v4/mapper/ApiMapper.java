@@ -312,8 +312,6 @@ public class ApiMapper {
             apiDefinition.setResources(updateApiEntity.getResources());
             apiDefinition.setFlowMode(updateApiEntity.getFlowMode());
             apiDefinition.setFlows(updateApiEntity.getFlows());
-            apiDefinition.setCors(updateApiEntity.getCors());
-            apiDefinition.setLogging(updateApiEntity.getLogging());
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {

@@ -16,9 +16,7 @@
 package io.gravitee.definition.model.v4;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
@@ -100,10 +98,6 @@ public class Api implements Serializable {
     private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
     private ApiServices services;
-
-    private Cors cors;
-
-    private Logging logging;
 
     public Plan getPlan(final String plan) {
         return plans.get(plan);

@@ -24,6 +24,9 @@ import static java.util.stream.Collectors.*;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
@@ -420,8 +423,27 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
 
             if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
-                // Audit API logging if option is enabled
-                auditApiLogging(executionContext, updateApiEntity.getId(), updateApiEntity.getLogging(), existingApiEntity.getLogging());
+                Optional<Listener> firstUpdateHttpListener = updateApiEntity
+                    .getListeners()
+                    .stream()
+                    .filter(listener -> ListenerType.HTTP == listener.getType())
+                    .findFirst();
+                Optional<Listener> firstExistingHttpListener = existingApiEntity
+                    .getListeners()
+                    .stream()
+                    .filter(listener -> ListenerType.HTTP == listener.getType())
+                    .findFirst();
+                if (firstUpdateHttpListener.isPresent() && firstExistingHttpListener.isPresent()) {
+                    ListenerHttp updateHttpListener = (ListenerHttp) firstUpdateHttpListener.get();
+                    ListenerHttp existingHttpListener = (ListenerHttp) firstUpdateHttpListener.get();
+                    // Audit API logging if option is enabled
+                    auditApiLogging(
+                        executionContext,
+                        updateApiEntity.getId(),
+                        updateHttpListener.getLogging(),
+                        existingHttpListener.getLogging()
+                    );
+                }
             }
 
             ApiEntity apiEntity = apiMapper.toEntity(executionContext, updatedApi, primaryOwner, null, true);

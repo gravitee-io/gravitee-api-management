@@ -19,6 +19,8 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Cors;
+import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -56,6 +58,10 @@ public class ListenerHttp extends Listener {
 
     @NotEmpty
     private List<Entrypoint> entrypoints;
+
+    private Cors cors;
+
+    private Logging logging;
 
     public ListenerHttp() {
         super(ListenerType.HTTP);

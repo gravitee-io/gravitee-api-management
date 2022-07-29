@@ -33,6 +33,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupsNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
+import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
+import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
@@ -57,12 +59,25 @@ public class ListenerValidationServiceImplTest {
     @Mock
     private EnvironmentService environmentService;
 
+    @Mock
+    private CorsValidationService corsValidationService;
+
+    @Mock
+    private LoggingValidationService loggingValidationService;
+
     private ListenerValidationServiceImpl listenerValidationService;
 
     @Before
     public void setUp() throws Exception {
         when(environmentService.findById(any())).thenReturn(new EnvironmentEntity());
-        listenerValidationService = new ListenerValidationServiceImpl(apiRepository, objectMapper, environmentService);
+        listenerValidationService =
+            new ListenerValidationServiceImpl(
+                apiRepository,
+                objectMapper,
+                environmentService,
+                corsValidationService,
+                loggingValidationService
+            );
     }
 
     @Test

@@ -150,12 +150,6 @@ public class UpdateApiEntity {
     @DeploymentRequired
     private List<Resource> resources = new ArrayList<>();
 
-    @Schema(description = "The CORS configuration of the API")
-    private Cors cors;
-
-    @Schema(description = "The logging configuration if the API")
-    private Logging logging;
-
     @Schema(description = "A list of plans to apply on the API")
     @DeploymentRequired
     private Set<PlanEntity> plans = new HashSet<>();
