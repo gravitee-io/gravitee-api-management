@@ -163,11 +163,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         }
         RoleScope scope = roleEntity.getScope();
         try {
-            Optional<Role> optRole = roleRepository.findById(roleEntity.getId());
-            if (!optRole.isPresent()) {
-                throw new RoleNotFoundException(roleEntity.getId());
-            }
-            Role role = optRole.get();
+            Role role = roleRepository.findById(roleEntity.getId()).orElseThrow(() -> new RoleNotFoundException(roleEntity.getId()));
             Role updatedRole = convert(roleEntity);
             updatedRole.setCreatedAt(role.getCreatedAt());
             updatedRole.setReferenceId(role.getReferenceId());
@@ -181,7 +177,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 role,
                 updatedRole
             );
-            if (entity.isDefaultRole()) {
+            if (entity != null && entity.isDefaultRole()) {
                 toggleDefaultRole(scope, entity.getName());
             }
             return entity;
