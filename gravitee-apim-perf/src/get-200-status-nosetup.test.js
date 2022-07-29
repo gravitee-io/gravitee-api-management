@@ -18,11 +18,11 @@ import http from 'k6/http';
 
 export const options = {
   vus: 1,
-  iterations: 1,
+  duration: '10s',
 };
 
 export default () => {
-  const res = http.get('https://api.gravitee.io/echo');
+  const res = http.get('https://load-tests-echo-api.cloud.gravitee.io/echo');
   check(res, {
     'status is 200': () => res.status === 200,
   });

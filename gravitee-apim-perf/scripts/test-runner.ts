@@ -32,10 +32,12 @@ interface ScriptArgs {
 }
 
 const K6_COMMAND = [
-  'k6',
+  `K6_PROMETHEUS_REMOTE_URL=${process.env.K6_PROMETHEUS_REMOTE_URL}`,
+  './bin/k6',
   'run',
   `-e GATEWAY_BASE_URL=${process.env.GATEWAY_BASE_URL}`,
   `-e SKIP_TLS_VERIFY=${process.env.SKIP_TLS_VERIFY}`,
+  '-o output-prometheus-remote'
 ];
 
 let TEARDOWN_ENV_VAR = '';

@@ -18,16 +18,16 @@ import http from 'k6/http';
 
 export const options = {
   vus: 1,
-  iterations: 1,
+  duration: '10s',
   insecureSkipTLSVerify: __ENV.SKIP_TLS_VERIFY === 'true',
 };
 
 const data = JSON.parse(open(__ENV.TEST_DATA_PATH));
+const url = `${__ENV.GATEWAY_BASE_URL}${data.api.context_path}`;
 
 export default () => {
-  const api = data.api;
-  const res = http.get(`${__ENV.GATEWAY_BASE_URL}${api.context_path}`);
-  check(res, {
+ const res = http.get(url);
+ check(res, {
     'status is 200': () => res.status === 200,
   });
 };
