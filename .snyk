@@ -9,5 +9,6 @@ exclude:
     - "**/gravitee-apim-portal-webui/scripts/**/*.*"
     - "**/gravitee-apim-console-webui/scripts/**/*.*"
     - "**/gravitee-apim-e2e/**/*.*"
+    - "**/gravitee-apim-perf/**/*.*"
     - ".circleci/package_bundles.py"
 

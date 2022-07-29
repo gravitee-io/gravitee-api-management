@@ -17,5 +17,6 @@ node
 .idea
 .tmp
 .circleci
+lib/management-webclient-sdk
 
 !.eslintrc.js
