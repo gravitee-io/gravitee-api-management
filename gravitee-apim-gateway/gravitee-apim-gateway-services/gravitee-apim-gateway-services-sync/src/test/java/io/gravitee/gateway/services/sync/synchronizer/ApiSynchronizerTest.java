@@ -18,12 +18,20 @@ package io.gravitee.gateway.services.sync.synchronizer;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
@@ -32,8 +40,19 @@ import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.*;
-import java.util.*;
+import io.gravitee.repository.management.model.Environment;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
+import io.gravitee.repository.management.model.Organization;
+import io.gravitee.repository.management.model.Plan;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import junit.framework.TestCase;
 import org.junit.Before;
@@ -52,6 +71,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class ApiSynchronizerTest extends TestCase {
 
+    static final List<String> ENVIRONMENTS = Arrays.asList("DEFAULT", "OTHER_ENV");
     private static final String ENVIRONMENT_ID = "env#1";
     private static final String ORGANIZATION_ID = "orga#1";
     private static final String ENVIRONMENT_HRID = "default-env";
@@ -84,8 +104,6 @@ public class ApiSynchronizerTest extends TestCase {
 
     @Mock
     private ObjectMapper objectMapper;
-
-    static final List<String> ENVIRONMENTS = Arrays.asList("DEFAULT", "OTHER_ENV");
 
     @Before
     public void setUp() {

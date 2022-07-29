@@ -17,20 +17,28 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.definition.DefinitionContext;
 import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.Deployer;
 import io.gravitee.gateway.handlers.api.manager.deployer.ApiDeployer;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.gravitee.node.api.cache.*;
+import io.gravitee.node.api.cache.Cache;
+import io.gravitee.node.api.cache.CacheListener;
+import io.gravitee.node.api.cache.CacheManager;
+import io.gravitee.node.api.cache.EntryEvent;
+import io.gravitee.node.api.cache.EntryEventType;
 import io.gravitee.node.api.cluster.ClusterManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +52,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListener<String, ReactableApi<?>> {
 
-    private final Logger logger = LoggerFactory.getLogger(ApiManagerImpl.class);
     private static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
+    private final Logger logger = LoggerFactory.getLogger(ApiManagerImpl.class);
 
     @Autowired
     private EventManager eventManager;
@@ -64,7 +72,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
 
     private Cache<String, ReactableApi<?>> apis;
 
-    private Map<Class<? extends ReactableApi>, ? extends Deployer> deployers;
+    private Map<Class<? extends ReactableApi<?>>, ? extends Deployer<?>> deployers;
 
     @Override
     public void afterPropertiesSet() {
@@ -188,7 +196,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
             List<String> plans = deployer.getPlans(api);
 
             // Deploy the API only if there is at least one plan
-            if (!plans.isEmpty() || !DefinitionContext.planRequired(api)) {
+            if (!plans.isEmpty()) {
                 logger.debug("Deploying {} plan(s) for {}:", plans.size(), api);
                 for (String plan : plans) {
                     logger.debug("\t- {}", plan);
@@ -228,7 +236,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
         Deployer deployer = deployers.get(api.getClass());
         List<String> plans = deployer.getPlans(api);
 
-        if (!plans.isEmpty() || !DefinitionContext.planRequired(api)) {
+        if (!plans.isEmpty()) {
             logger.debug("Deploying {} plan(s) for {}:", plans.size(), api);
             for (String plan : plans) {
                 logger.info("\t- {}", plan);

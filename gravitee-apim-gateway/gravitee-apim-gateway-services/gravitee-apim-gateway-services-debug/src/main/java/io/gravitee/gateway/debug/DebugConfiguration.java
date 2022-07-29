@@ -121,9 +121,7 @@ public class DebugConfiguration {
 
     @Bean
     public Reactor debugReactor(
-        final EventManager eventManager,
         final @Qualifier("debugV3EntrypointResolver") AcceptorResolver acceptorResolver,
-        final @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry,
         final GatewayConfiguration gatewayConfiguration,
         final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
         final @Qualifier("debugV3ResponseProcessorChainFactory") ResponseProcessorChainFactory responseProcessorChainFactory,
@@ -132,9 +130,7 @@ public class DebugConfiguration {
         ) io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory notFoundProcessorChainFactory
     ) {
         return new DebugReactor(
-            eventManager,
             acceptorResolver,
-            reactorHandlerRegistry,
             gatewayConfiguration,
             requestProcessorChainFactory,
             responseProcessorChainFactory,
@@ -262,7 +258,6 @@ public class DebugConfiguration {
     @Bean
     public HttpRequestDispatcher debugHttpRequestDispatcher(
         GatewayConfiguration gatewayConfiguration,
-        @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry,
         @Qualifier("debugEntrypointResolver") io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver entrypointResolver,
         IdGenerator idGenerator,
         ComponentProvider globalComponentProvider,
@@ -276,7 +271,6 @@ public class DebugConfiguration {
     ) {
         return new DebugHttpRequestDispatcher(
             gatewayConfiguration,
-            reactorHandlerRegistry,
             entrypointResolver,
             idGenerator,
             globalComponentProvider,

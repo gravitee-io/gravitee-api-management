@@ -16,9 +16,27 @@
 package io.gravitee.gateway.jupiter.reactor;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
+import static org.mockito.Mockito.withSettings;
 
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.definition.model.ExecutionMode;
@@ -36,7 +54,6 @@ import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFacto
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.report.ReporterService;
@@ -73,9 +90,6 @@ class DefaultHttpRequestDispatcherTest {
 
     @Mock
     private GatewayConfiguration gatewayConfiguration;
-
-    @Mock
-    private ReactorHandlerRegistry reactorHandlerRegistry;
 
     @Mock
     private EntrypointResolver entrypointResolver;
@@ -162,7 +176,6 @@ class DefaultHttpRequestDispatcherTest {
         cut =
             new DefaultHttpRequestDispatcher(
                 gatewayConfiguration,
-                reactorHandlerRegistry,
                 entrypointResolver,
                 idGenerator,
                 globalComponentProvider,
@@ -173,7 +186,8 @@ class DefaultHttpRequestDispatcherTest {
                 false,
                 httpRequestTimeoutConfiguration,
                 vertx
-            ); //TODO: to check: is this needed ?
+            );
+        //TODO: to check: is this needed ?
         // cut.setApplicationContext(mock(ApplicationContext.class));
     }
 

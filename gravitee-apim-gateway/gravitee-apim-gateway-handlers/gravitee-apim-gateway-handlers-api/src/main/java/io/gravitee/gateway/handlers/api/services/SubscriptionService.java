@@ -27,9 +27,8 @@ import org.springframework.stereotype.Component;
 public class SubscriptionService implements io.gravitee.gateway.api.service.SubscriptionService {
 
     private static final String CACHE_NAME_BY_API_AND_CLIENT_ID = "SUBSCRIPTIONS_BY_API_AND_CLIENT_ID";
-    private final Cache<String, Subscription> cacheByApiClientId;
-
     private static final String CACHE_NAME_BY_SUBSCRIPTION_ID = "SUBSCRIPTIONS_BY_ID";
+    private final Cache<String, Subscription> cacheByApiClientId;
     private final Cache<String, Subscription> cacheBySubscriptionId;
 
     public SubscriptionService(CacheManager cacheManager) {

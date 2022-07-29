@@ -44,7 +44,6 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
 
     public DebugHttpRequestDispatcher(
         GatewayConfiguration gatewayConfiguration,
-        ReactorHandlerRegistry reactorHandlerRegistry,
         EntrypointResolver entrypointResolver,
         IdGenerator idGenerator,
         ComponentProvider globalComponentProvider,
@@ -58,7 +57,6 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
     ) {
         super(
             gatewayConfiguration,
-            reactorHandlerRegistry,
             entrypointResolver,
             idGenerator,
             globalComponentProvider,

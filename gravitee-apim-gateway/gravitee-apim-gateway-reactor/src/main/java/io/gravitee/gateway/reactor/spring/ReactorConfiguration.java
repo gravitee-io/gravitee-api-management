@@ -68,9 +68,7 @@ public class ReactorConfiguration {
 
     @Bean
     public Reactor v3Reactor(
-        final EventManager eventManager,
         final @Qualifier("v3EntrypointResolver") AcceptorResolver acceptorResolver,
-        final @Qualifier("reactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry,
         final GatewayConfiguration gatewayConfiguration,
         final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
         final @Qualifier("v3ResponseProcessorChainFactory") ResponseProcessorChainFactory responseProcessorChainFactory,
@@ -80,9 +78,7 @@ public class ReactorConfiguration {
     ) {
         // DefaultReactor bean must be kept while we are still supporting v3 execution mode.
         return new DefaultReactor(
-            eventManager,
             acceptorResolver,
-            reactorHandlerRegistry,
             gatewayConfiguration,
             requestProcessorChainFactory,
             responseProcessorChainFactory,
@@ -137,7 +133,6 @@ public class ReactorConfiguration {
     @Bean
     public HttpRequestDispatcher httpRequestDispatcher(
         GatewayConfiguration gatewayConfiguration,
-        ReactorHandlerRegistry reactorHandlerRegistry,
         EntrypointResolver entrypointResolver,
         IdGenerator idGenerator,
         ComponentProvider globalComponentProvider,
@@ -151,7 +146,6 @@ public class ReactorConfiguration {
     ) {
         return new DefaultHttpRequestDispatcher(
             gatewayConfiguration,
-            reactorHandlerRegistry,
             entrypointResolver,
             idGenerator,
             globalComponentProvider,

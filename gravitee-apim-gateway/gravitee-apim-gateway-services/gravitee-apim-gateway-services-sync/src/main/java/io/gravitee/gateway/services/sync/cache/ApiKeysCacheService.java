@@ -51,14 +51,15 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public class ApiKeysCacheService extends AbstractService implements EventListener<ReactorEvent, Reactable> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiKeysCacheService.class);
+    private static final String PATH = "/apikeys";
+    private final ThreadPoolTaskScheduler scheduler;
+    private final Map<String, Set<String>> plansPerApi = new ConcurrentHashMap<>();
 
     @Value("${services.sync.bulk_items:100}")
     private int bulkItems;
 
     @Value("${services.sync.distributed:false}")
     private boolean distributed;
-
-    private static final String PATH = "/apikeys";
 
     @Autowired
     private EventManager eventManager;
@@ -83,10 +84,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     @Autowired
     private ClusterManager clusterManager;
 
-    private final ThreadPoolTaskScheduler scheduler;
     private ScheduledFuture<?> scheduledFuture;
-
-    private final Map<String, Set<String>> plansPerApi = new ConcurrentHashMap<>();
 
     public ApiKeysCacheService() {
         scheduler = new ThreadPoolTaskScheduler();
@@ -110,79 +108,6 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     public void startScheduler(int delay, TimeUnit unit) {
         scheduledFuture = scheduler.scheduleAtFixedRate(new ApiKeysTask(), Duration.ofMillis(unit.toMillis(delay)));
         eventManager.subscribeForEvents(this, ReactorEvent.class);
-    }
-
-    class ApiKeysTask extends TimerTask {
-
-        private long lastRefreshAt = -1;
-
-        @Override
-        public void run() {
-            if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
-                long nextLastRefreshAt = System.currentTimeMillis();
-
-                // Merge all plans and split them into buckets
-                final Set<String> plans = plansPerApi.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
-
-                final AtomicInteger counter = new AtomicInteger();
-
-                final Collection<List<String>> chunks = plans
-                    .stream()
-                    .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / bulkItems))
-                    .values();
-
-                // Run refreshers
-                if (!chunks.isEmpty()) {
-                    // Prepare tasks
-                    final List<Callable<Result<Boolean>>> callables = chunks
-                        .stream()
-                        .map(
-                            chunk -> {
-                                IncrementalApiKeyRefresher refresher = new IncrementalApiKeyRefresher(
-                                    lastRefreshAt,
-                                    nextLastRefreshAt,
-                                    chunk
-                                );
-                                refresher.setApiKeyRepository(apiKeyRepository);
-                                refresher.setSubscriptionRepository(subscriptionRepository);
-                                refresher.setApiKeyService(apiKeyService);
-
-                                return refresher;
-                            }
-                        )
-                        .collect(Collectors.toList());
-
-                    // And run...
-                    try {
-                        List<Future<Result<Boolean>>> futures = executorService.invokeAll(callables);
-
-                        boolean failure = futures
-                            .stream()
-                            .anyMatch(
-                                resultFuture -> {
-                                    try {
-                                        return resultFuture.get().failed();
-                                    } catch (Exception e) {
-                                        LOGGER.error("Unexpected error while running the api-keys refresher", e);
-                                    }
-
-                                    return false;
-                                }
-                            );
-
-                        // If there is no failure, move to the next period of time
-                        if (!failure) {
-                            lastRefreshAt = nextLastRefreshAt;
-                        }
-                    } catch (InterruptedException e) {
-                        LOGGER.error("Unexpected error while running the api-keys refresher");
-                        Thread.currentThread().interrupt();
-                    }
-                } else {
-                    lastRefreshAt = nextLastRefreshAt;
-                }
-            }
-        }
     }
 
     @Override
@@ -282,5 +207,78 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
     private void unregister(ReactableApi<?> api) {
         plansPerApi.remove(api.getId());
+    }
+
+    class ApiKeysTask extends TimerTask {
+
+        private long lastRefreshAt = -1;
+
+        @Override
+        public void run() {
+            if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
+                long nextLastRefreshAt = System.currentTimeMillis();
+
+                // Merge all plans and split them into buckets
+                final Set<String> plans = plansPerApi.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
+
+                final AtomicInteger counter = new AtomicInteger();
+
+                final Collection<List<String>> chunks = plans
+                    .stream()
+                    .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / bulkItems))
+                    .values();
+
+                // Run refreshers
+                if (!chunks.isEmpty()) {
+                    // Prepare tasks
+                    final List<Callable<Result<Boolean>>> callables = chunks
+                        .stream()
+                        .map(
+                            chunk -> {
+                                IncrementalApiKeyRefresher refresher = new IncrementalApiKeyRefresher(
+                                    lastRefreshAt,
+                                    nextLastRefreshAt,
+                                    chunk
+                                );
+                                refresher.setApiKeyRepository(apiKeyRepository);
+                                refresher.setSubscriptionRepository(subscriptionRepository);
+                                refresher.setApiKeyService(apiKeyService);
+
+                                return refresher;
+                            }
+                        )
+                        .collect(Collectors.toList());
+
+                    // And run...
+                    try {
+                        List<Future<Result<Boolean>>> futures = executorService.invokeAll(callables);
+
+                        boolean failure = futures
+                            .stream()
+                            .anyMatch(
+                                resultFuture -> {
+                                    try {
+                                        return resultFuture.get().failed();
+                                    } catch (Exception e) {
+                                        LOGGER.error("Unexpected error while running the api-keys refresher", e);
+                                    }
+
+                                    return false;
+                                }
+                            );
+
+                        // If there is no failure, move to the next period of time
+                        if (!failure) {
+                            lastRefreshAt = nextLastRefreshAt;
+                        }
+                    } catch (InterruptedException e) {
+                        LOGGER.error("Unexpected error while running the api-keys refresher");
+                        Thread.currentThread().interrupt();
+                    }
+                } else {
+                    lastRefreshAt = nextLastRefreshAt;
+                }
+            }
+        }
     }
 }
