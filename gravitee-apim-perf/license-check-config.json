@@ -26,6 +26,7 @@
     "**/*.eot",
     ".*",
     ".*/**",
+    "lib/management-webclient-sdk",
     "package-json.lock",
     ".tmp/**",
     ".vscode/**"
