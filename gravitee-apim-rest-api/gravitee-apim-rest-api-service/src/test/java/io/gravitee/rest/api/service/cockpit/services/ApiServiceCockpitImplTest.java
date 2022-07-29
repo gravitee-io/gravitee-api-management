@@ -47,13 +47,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 
 /**
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-@PrepareForTest(GraviteeContext.class)
 public class ApiServiceCockpitImplTest {
 
     private static final String API_ID = "api#id";

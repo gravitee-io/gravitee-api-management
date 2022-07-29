@@ -17,8 +17,6 @@ package io.gravitee.gateway.security.core;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 import com.nimbusds.jose.Header;
 import com.nimbusds.jwt.JWT;
@@ -27,23 +25,42 @@ import com.nimbusds.jwt.JWTParser;
 import java.text.ParseException;
 import java.util.Map;
 import net.minidev.json.JSONObject;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(JWTParser.class)
+@RunWith(MockitoJUnitRunner.class)
 public class LazyJwtTokenTest {
+
+    public static final String MY_JWT_TOKEN = "myJwtToken";
+
+    @Mock
+    JWT jwt;
+
+    MockedStatic<JWTParser> mockedStaticJwtParser;
+
+    @Before
+    public void setUp() throws ParseException {
+        mockedStaticJwtParser = mockStatic(JWTParser.class);
+        mockedStaticJwtParser.when(() -> JWTParser.parse(MY_JWT_TOKEN)).thenReturn(jwt);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        mockedStaticJwtParser.close();
+    }
 
     @Test
     public void getClaims_should_return_null_when_jwtToken_claimsSet_is_null() throws ParseException {
-        LazyJwtToken token = new LazyJwtToken("myJwtToken");
-        JWT jwt = mockJwtTokenParsing("myJwtToken");
+        LazyJwtToken token = new LazyJwtToken(MY_JWT_TOKEN);
 
         when(jwt.getJWTClaimsSet()).thenReturn(null);
 
@@ -52,8 +69,7 @@ public class LazyJwtTokenTest {
 
     @Test
     public void getClaims_should_return_claims_from_jwtToken_claimSet() throws ParseException {
-        LazyJwtToken token = new LazyJwtToken("myJwtToken");
-        JWT jwt = mockJwtTokenParsing("myJwtToken");
+        LazyJwtToken token = new LazyJwtToken(MY_JWT_TOKEN);
 
         when(jwt.getJWTClaimsSet()).thenReturn(new JWTClaimsSet.Builder().claim("claim1", "value1").claim("claim2", "value3").build());
 
@@ -63,21 +79,19 @@ public class LazyJwtTokenTest {
 
     @Test
     public void getClaims_twice_should_parse_token_only_once() throws ParseException {
-        LazyJwtToken token = new LazyJwtToken("myJwtToken");
-        JWT jwt = mockJwtTokenParsing("myJwtToken");
+        LazyJwtToken token = new LazyJwtToken(MY_JWT_TOKEN);
 
         Map<String, Object> resultClaims1 = token.getClaims();
         Map<String, Object> resultClaims2 = token.getClaims();
 
         assertSame(resultClaims2, resultClaims1);
-        verifyStatic(JWTParser.class, times(1));
+        mockedStaticJwtParser.verify(() -> JWTParser.parse(MY_JWT_TOKEN), times(1));
         JWTParser.parse(any());
     }
 
     @Test
     public void getHeaders_should_return_null_when_jwtToken_header_is_null() throws ParseException {
-        LazyJwtToken token = new LazyJwtToken("myJwtToken");
-        JWT jwt = mockJwtTokenParsing("myJwtToken");
+        LazyJwtToken token = new LazyJwtToken(MY_JWT_TOKEN);
 
         when(jwt.getHeader()).thenReturn(null);
 
@@ -86,8 +100,7 @@ public class LazyJwtTokenTest {
 
     @Test
     public void getHeaders_should_return_headers_from_jwtToken_header() throws ParseException {
-        LazyJwtToken token = new LazyJwtToken("myJwtToken");
-        JWT jwt = mockJwtTokenParsing("myJwtToken");
+        LazyJwtToken token = new LazyJwtToken(MY_JWT_TOKEN);
 
         JSONObject jsonObject = Mockito.mock(JSONObject.class);
         Header header = Mockito.mock(Header.class);
@@ -95,12 +108,5 @@ public class LazyJwtTokenTest {
         when(jwt.getHeader()).thenReturn(header);
 
         assertSame(token.getHeaders(), jsonObject);
-    }
-
-    private JWT mockJwtTokenParsing(String tokenValue) throws ParseException {
-        mockStatic(JWTParser.class);
-        JWT jwt = Mockito.mock(JWT.class);
-        when(JWTParser.parse(tokenValue)).thenReturn(jwt);
-        return jwt;
     }
 }
