@@ -46,16 +46,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Metrics.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ApiKeyAuthenticationHandlerTest {
 
     @InjectMocks
@@ -98,7 +96,6 @@ public class ApiKeyAuthenticationHandlerTest {
     public void shouldNotHandleRequest() {
         when(authenticationContext.request()).thenReturn(request);
         when(request.headers()).thenReturn(HttpHeaders.create());
-        when(api.getId()).thenReturn("api-id");
 
         MultiValueMap<String, String> parameters = mock(MultiValueMap.class);
         when(request.parameters()).thenReturn(parameters);

@@ -20,7 +20,6 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,20 +48,22 @@ import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.io.IOException;
 import java.io.Reader;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Function;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -70,9 +71,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ApiServiceImpl.class)
-@PowerMockIgnore({ "javax.security.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*" })
+@RunWith(MockitoJUnitRunner.class)
 public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
     private static final String API_ID = "id-api";
@@ -138,8 +137,10 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     @Mock
     private FlowService flowService;
 
-    @InjectMocks
+    @Spy
     private ApiConverter apiConverter;
+
+    MockedStatic<Instant> mockedStaticInstant;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -161,7 +162,6 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     public void setUp() throws TechnicalException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         apiConverter = spy(new ApiConverter());
-        MockitoAnnotations.openMocks(this);
         objectMapper.setFilterProvider(
             new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
         );
@@ -197,8 +197,9 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         when(membershipService.getMembersByReferencesAndRole(eq(GraviteeContext.getExecutionContext()), any(), any(), any()))
             .thenReturn(singleton(po));
 
-        mockStatic(System.class);
-        when(System.currentTimeMillis()).thenReturn(0L);
+        Instant instant = Instant.now(Clock.fixed(Instant.ofEpochMilli(0), ZoneOffset.UTC));
+        mockedStaticInstant = mockStatic(Instant.class);
+        mockedStaticInstant.when(Instant::now).thenReturn(instant);
 
         final SecurityContext securityContext = mock(SecurityContext.class);
         final Authentication authentication = mock(Authentication.class);
@@ -209,13 +210,12 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
         when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any()))
             .thenReturn("toDecode=decoded-value");
-        when(parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
-            .thenReturn("USER");
-        MembershipEntity primaryOwner = new MembershipEntity();
-        primaryOwner.setMemberType(MembershipMemberType.USER);
-        when(membershipService.getPrimaryOwner(eq(GraviteeContext.getCurrentOrganization()), eq(MembershipReferenceType.API), any()))
-            .thenReturn(primaryOwner);
         reset(searchEngineService);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        mockedStaticInstant.close();
     }
 
     @Test
@@ -249,15 +249,6 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         logging.setMode(LoggingMode.NONE);
         logging.setCondition("wrong");
         existingApi.getProxy().setLogging(logging);
-        when(
-            parameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.LOGGING_DEFAULT_MAX_DURATION),
-                any(Function.class),
-                eq(ParameterReferenceType.ORGANIZATION)
-            )
-        )
-            .thenReturn(singletonList(1L));
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, existingApi);
 

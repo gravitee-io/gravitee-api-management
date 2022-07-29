@@ -18,6 +18,9 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.cockpit.api.command.Command;
@@ -37,25 +40,23 @@ import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
 import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.observers.TestObserver;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Julien GIOVARESCO (julien.giovaresco at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(GraviteeContext.class)
-@PowerMockIgnore({ "javax.security.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*" })
+@RunWith(MockitoJUnitRunner.class)
 public class DeployModelCommandHandlerTest {
 
     public static final String ENVIRONMENT_ID = "environment#id";
@@ -78,10 +79,17 @@ public class DeployModelCommandHandlerTest {
 
     private DeployModelCommandHandler cut;
 
+    MockedStatic<GraviteeContext> mockedStaticGraviteeContext;
+
     @Before
     public void setUp() throws Exception {
         cut = new DeployModelCommandHandler(apiService, cockpitApiService, permissionChecker, userService, environmentService);
-        PowerMockito.spy(GraviteeContext.class);
+        mockedStaticGraviteeContext = mockStatic(GraviteeContext.class);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        mockedStaticGraviteeContext.close();
     }
 
     @Test
@@ -99,8 +107,6 @@ public class DeployModelCommandHandlerTest {
         payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
-
-        when(apiService.exists(payload.getModelId())).thenReturn(false);
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
@@ -146,8 +152,7 @@ public class DeployModelCommandHandlerTest {
         obs.awaitTerminalEvent();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
-        PowerMockito.verifyStatic(GraviteeContext.class);
-        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
+        mockedStaticGraviteeContext.verify(() -> GraviteeContext.getExecutionContext(), times(4));
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
     }
 
@@ -161,8 +166,6 @@ public class DeployModelCommandHandlerTest {
         payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
-
-        when(apiService.exists(payload.getModelId())).thenReturn(false);
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
@@ -218,8 +221,6 @@ public class DeployModelCommandHandlerTest {
         payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
-
-        when(apiService.exists(payload.getModelId())).thenReturn(false);
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
@@ -459,8 +460,6 @@ public class DeployModelCommandHandlerTest {
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        when(apiService.exists(payload.getModelId())).thenReturn(false);
-
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
@@ -516,8 +515,6 @@ public class DeployModelCommandHandlerTest {
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        when(apiService.exists(payload.getModelId())).thenReturn(false);
-
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
@@ -567,8 +564,6 @@ public class DeployModelCommandHandlerTest {
         payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
-
-        when(apiService.exists(payload.getModelId())).thenReturn(false);
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
@@ -659,8 +654,6 @@ public class DeployModelCommandHandlerTest {
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        when(apiService.exists(payload.getModelId())).thenReturn(false);
-
         UserEntity user = new UserEntity();
         user.setId("user#id");
         user.setSourceId(payload.getUserId());
@@ -703,7 +696,7 @@ public class DeployModelCommandHandlerTest {
         obs.awaitTerminalEvent();
         obs.assertNoErrors();
 
-        PowerMockito.verifyStatic(GraviteeContext.class);
+        mockedStaticGraviteeContext.verify(() -> GraviteeContext.getExecutionContext(), times(5));
         GraviteeContext.cleanContext();
     }
 
@@ -717,8 +710,6 @@ public class DeployModelCommandHandlerTest {
         payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
-
-        when(apiService.exists(payload.getModelId())).thenReturn(false);
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
@@ -744,7 +735,7 @@ public class DeployModelCommandHandlerTest {
         obs.awaitTerminalEvent();
         obs.assertNoErrors();
 
-        PowerMockito.verifyStatic(GraviteeContext.class);
+        mockedStaticGraviteeContext.verify(() -> GraviteeContext.getExecutionContext(), times(3));
         GraviteeContext.cleanContext();
     }
 
@@ -758,8 +749,6 @@ public class DeployModelCommandHandlerTest {
         payload.setLabels(List.of("label1", "label2"));
 
         DeployModelCommand command = new DeployModelCommand(payload);
-
-        when(apiService.exists(payload.getModelId())).thenReturn(false);
 
         UserEntity user = new UserEntity();
         user.setId("user#id");

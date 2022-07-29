@@ -125,6 +125,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -778,7 +779,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 .stream()
                 .findFirst();
             if (optionalMaxDuration.isPresent() && optionalMaxDuration.get() > 0) {
-                long maxEndDate = System.currentTimeMillis() + optionalMaxDuration.get();
+                long maxEndDate = Instant.now().toEpochMilli() + optionalMaxDuration.get();
 
                 // if no condition set, add one
                 if (logging.getCondition() == null || logging.getCondition().isEmpty()) {

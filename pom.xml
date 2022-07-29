@@ -120,11 +120,13 @@
         <json-smart.version>2.4.7</json-smart.version>
         <jsoup.version>1.14.3</jsoup.version>
         <lucene.version>7.7.3</lucene.version>
+        <!-- mockito version to remove when https://github.com/gravitee-io/issues/issues/8257 will be completed -->
+        <mockito-inline.version>3.11.2</mockito-inline.version>
+        <!-- -->
         <netty-tcnative-boringssl-static.version>2.0.48.Final</netty-tcnative-boringssl-static.version>
         <nimbus-jose-jwt.version>9.15.2</nimbus-jose-jwt.version>
         <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
         <protobuf-java.version>3.19.3</protobuf-java.version>
-        <powermock.version>2.0.9</powermock.version>
         <reactor-adapter.version>3.4.6</reactor-adapter.version>
         <snakeyaml.version>1.30</snakeyaml.version>
         <swagger-jaxrs2.version>2.1.13</swagger-jaxrs2.version>
@@ -734,6 +736,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-inline</artifactId>
+                <version>${mockito-inline.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.openjdk.jmh</groupId>
                 <artifactId>jmh-core</artifactId>
                 <version>${jmh.version}</version>
@@ -749,18 +757,6 @@
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
                 <version>${asm.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-junit4</artifactId>
-                <version>${powermock.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito2</artifactId>
-                <version>${powermock.version}</version>
             </dependency>
 
             <dependency>
