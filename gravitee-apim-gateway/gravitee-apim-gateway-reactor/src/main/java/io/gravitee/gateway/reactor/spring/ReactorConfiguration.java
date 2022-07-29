@@ -34,11 +34,9 @@ import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactor;
-import io.gravitee.gateway.reactor.handler.ReactorEventListener;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
+import io.gravitee.gateway.reactor.handler.*;
 import io.gravitee.gateway.reactor.handler.context.provider.NodeTemplateVariableProvider;
+import io.gravitee.gateway.reactor.handler.impl.DefaultAcceptorResolver;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
@@ -71,7 +69,7 @@ public class ReactorConfiguration {
     @Bean
     public Reactor v3Reactor(
         final EventManager eventManager,
-        final @Qualifier("v3EntrypointResolver") io.gravitee.gateway.reactor.handler.EntrypointResolver entrypointResolver,
+        final @Qualifier("v3EntrypointResolver") AcceptorResolver acceptorResolver,
         final @Qualifier("reactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry,
         final GatewayConfiguration gatewayConfiguration,
         final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
@@ -83,7 +81,7 @@ public class ReactorConfiguration {
         // DefaultReactor bean must be kept while we are still supporting v3 execution mode.
         return new DefaultReactor(
             eventManager,
-            entrypointResolver,
+            acceptorResolver,
             reactorHandlerRegistry,
             gatewayConfiguration,
             requestProcessorChainFactory,
@@ -93,9 +91,9 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public io.gravitee.gateway.reactor.handler.EntrypointResolver v3EntrypointResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
+    public AcceptorResolver v3EntrypointResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
         // V3 EntrypointResolver bean must be kept while we are still supporting v3 execution mode.
-        return new io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver(reactorHandlerRegistry);
+        return new DefaultAcceptorResolver(reactorHandlerRegistry);
     }
 
     @Bean

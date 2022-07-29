@@ -87,14 +87,14 @@ public abstract class AbstractReactorHandler<T extends Reactable>
 
     protected void contextualizeRequest(ExecutionContext context) {
         ((MutableExecutionContext) context).request(
-                new ContextualizedHttpServerRequest(((Entrypoint) context.getAttribute(ATTR_ENTRYPOINT)).path(), context.request())
+                new ContextualizedHttpServerRequest(((HttpAcceptor) context.getAttribute(ATTR_ENTRYPOINT)).path(), context.request())
             );
     }
 
     protected void dumpVirtualHosts() {
-        List<Entrypoint> entrypoints = reactable.entrypoints();
+        List<HttpAcceptor> httpAcceptors = reactable.entrypoints();
         logger.debug("{} ready to accept requests on:", this);
-        entrypoints.forEach(
+        httpAcceptors.forEach(
             entrypoint -> {
                 logger.debug("\t{}", entrypoint);
             }

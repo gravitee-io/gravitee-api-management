@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler;
 
-import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 
 /**
@@ -31,8 +31,8 @@ public class DefaultEntrypointResolver implements EntrypointResolver {
     }
 
     @Override
-    public HandlerEntrypoint resolve(String host, String path) {
-        for (HandlerEntrypoint entrypoint : handlerRegistry.getEntrypoints()) {
+    public HttpAcceptorHandler resolve(String host, String path) {
+        for (HttpAcceptorHandler entrypoint : handlerRegistry.getEntrypoints()) {
             if (entrypoint.accept(host, path)) {
                 return entrypoint;
             }

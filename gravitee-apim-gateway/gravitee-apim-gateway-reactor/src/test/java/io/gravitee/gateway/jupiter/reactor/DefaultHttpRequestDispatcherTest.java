@@ -34,7 +34,7 @@ import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
-import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
@@ -108,7 +108,7 @@ class DefaultHttpRequestDispatcherTest {
     private io.vertx.core.http.HttpServerResponse response;
 
     @Mock
-    private HandlerEntrypoint handlerEntrypoint;
+    private HttpAcceptorHandler handlerEntrypoint;
 
     @Mock
     private Environment environment;
@@ -380,14 +380,14 @@ class DefaultHttpRequestDispatcherTest {
         assertThat(ctxCaptorValue.request().metrics().getZone()).isEqualTo("ZONE");
     }
 
-    private void prepareJupiterMock(HandlerEntrypoint handlerEntrypoint, ApiReactor apiReactor) {
+    private void prepareJupiterMock(HttpAcceptorHandler handlerEntrypoint, ApiReactor apiReactor) {
         when(entrypointResolver.resolve(HOST, PATH)).thenReturn(handlerEntrypoint);
         when(handlerEntrypoint.executionMode()).thenReturn(ExecutionMode.JUPITER);
         when(handlerEntrypoint.path()).thenReturn(PATH);
         when(handlerEntrypoint.target()).thenReturn(apiReactor);
     }
 
-    private void prepareV3Mock(HandlerEntrypoint handlerEntrypoint, ReactorHandler apiReactor) {
+    private void prepareV3Mock(HttpAcceptorHandler handlerEntrypoint, ReactorHandler apiReactor) {
         when(entrypointResolver.resolve(HOST, PATH)).thenReturn(handlerEntrypoint);
 
         if (apiReactor != null) {

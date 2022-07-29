@@ -57,11 +57,11 @@ import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.reactor.Reactor;
-import io.gravitee.gateway.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactor.handler.AcceptorResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
-import io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver;
+import io.gravitee.gateway.reactor.handler.impl.DefaultAcceptorResolver;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
@@ -113,16 +113,16 @@ public class DebugConfiguration {
     }
 
     @Bean
-    public EntrypointResolver debugV3EntrypointResolver(
+    public AcceptorResolver debugV3EntrypointResolver(
         @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry
     ) {
-        return new DefaultEntrypointResolver(reactorHandlerRegistry);
+        return new DefaultAcceptorResolver(reactorHandlerRegistry);
     }
 
     @Bean
     public Reactor debugReactor(
         final EventManager eventManager,
-        final @Qualifier("debugV3EntrypointResolver") io.gravitee.gateway.reactor.handler.EntrypointResolver entrypointResolver,
+        final @Qualifier("debugV3EntrypointResolver") AcceptorResolver acceptorResolver,
         final @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry,
         final GatewayConfiguration gatewayConfiguration,
         final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
@@ -133,7 +133,7 @@ public class DebugConfiguration {
     ) {
         return new DebugReactor(
             eventManager,
-            entrypointResolver,
+            acceptorResolver,
             reactorHandlerRegistry,
             gatewayConfiguration,
             requestProcessorChainFactory,

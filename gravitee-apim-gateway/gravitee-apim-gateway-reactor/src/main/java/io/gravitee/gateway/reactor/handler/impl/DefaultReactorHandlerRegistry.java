@@ -38,7 +38,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     private final Map<Reactable, ReactableEntrypoints> handlers = new ConcurrentHashMap<>();
 
-    private List<HandlerEntrypoint> registeredEntrypoints = new ArrayList<>();
+    private List<HttpAcceptorHandler> registeredEntrypoints = new ArrayList<>();
     private final HandlerEntryPointComparator entryPointComparator = new HandlerEntryPointComparator();
 
     public DefaultReactorHandlerRegistry(ReactorHandlerFactoryManager handlerFactoryManager) {
@@ -59,11 +59,11 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         logger.debug("Registering a new handler: {}", handler);
 
         // Associate the handler to the entrypoints
-        List<HandlerEntrypoint> reactableEntrypoints = handler
+        List<HttpAcceptorHandler> reactableEntrypoints = handler
             .reactable()
             .entrypoints()
             .stream()
-            .map((Function<Entrypoint, HandlerEntrypoint>) entrypoint -> new DefaultHandlerEntrypoint(handler, entrypoint))
+            .map((Function<HttpAcceptor, HttpAcceptorHandler>) entrypoint -> new DefaultHttpAcceptorHandler(handler, entrypoint))
             .collect(Collectors.toList());
 
         handlers.put(handler.reactable(), new ReactableEntrypoints(handler, reactableEntrypoints));
@@ -156,7 +156,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     }
 
     @Override
-    public Collection<HandlerEntrypoint> getEntrypoints() {
+    public Collection<HttpAcceptorHandler> getEntrypoints() {
         return registeredEntrypoints;
     }
 
@@ -164,22 +164,22 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
         private final ReactorHandler handler;
 
-        private final List<HandlerEntrypoint> entrypoints;
+        private final List<HttpAcceptorHandler> entrypoints;
 
-        public ReactableEntrypoints(ReactorHandler handler, List<HandlerEntrypoint> entrypoints) {
+        public ReactableEntrypoints(ReactorHandler handler, List<HttpAcceptorHandler> entrypoints) {
             this.handler = handler;
             this.entrypoints = entrypoints;
         }
     }
 
-    private static class DefaultHandlerEntrypoint implements HandlerEntrypoint {
+    private static class DefaultHttpAcceptorHandler implements HttpAcceptorHandler {
 
         private final ReactorHandler handler;
-        private final Entrypoint entrypoint;
+        private final HttpAcceptor httpAcceptor;
 
-        public DefaultHandlerEntrypoint(ReactorHandler handler, Entrypoint entrypoint) {
+        public DefaultHttpAcceptorHandler(ReactorHandler handler, HttpAcceptor httpAcceptor) {
             this.handler = handler;
-            this.entrypoint = entrypoint;
+            this.httpAcceptor = httpAcceptor;
         }
 
         @Override
@@ -194,38 +194,38 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
         @Override
         public String path() {
-            return entrypoint.path();
+            return httpAcceptor.path();
         }
 
         @Override
         public String host() {
-            return entrypoint.host();
+            return httpAcceptor.host();
         }
 
         @Override
         public int priority() {
-            return entrypoint.priority();
+            return httpAcceptor.priority();
         }
 
         @Override
         public boolean accept(Request request) {
-            return entrypoint.accept(request);
+            return httpAcceptor.accept(request);
         }
 
         @Override
         public boolean accept(String host, String path) {
-            return entrypoint.accept(host, path);
+            return httpAcceptor.accept(host, path);
         }
 
         @Override
         public String toString() {
-            return entrypoint.toString();
+            return httpAcceptor.toString();
         }
     }
 
-    private void addEntrypoints(List<HandlerEntrypoint> reactableEntrypoints) {
+    private void addEntrypoints(List<HttpAcceptorHandler> reactableEntrypoints) {
         synchronized (this) {
-            final ArrayList<HandlerEntrypoint> handlerEntrypoints = new ArrayList<>(registeredEntrypoints);
+            final ArrayList<HttpAcceptorHandler> handlerEntrypoints = new ArrayList<>(registeredEntrypoints);
             handlerEntrypoints.addAll(reactableEntrypoints);
             handlerEntrypoints.sort(entryPointComparator);
 
@@ -233,9 +233,9 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         }
     }
 
-    private void removeEntrypoints(List<HandlerEntrypoint> previousEntrypoints) {
+    private void removeEntrypoints(List<HttpAcceptorHandler> previousEntrypoints) {
         synchronized (this) {
-            final ArrayList<HandlerEntrypoint> handlerEntrypoints = new ArrayList<>(registeredEntrypoints);
+            final ArrayList<HttpAcceptorHandler> handlerEntrypoints = new ArrayList<>(registeredEntrypoints);
             handlerEntrypoints.removeAll(previousEntrypoints);
             handlerEntrypoints.sort(entryPointComparator);
 

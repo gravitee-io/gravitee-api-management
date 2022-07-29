@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class DefaultEntrypointResolverTest {
+class DefaultHttpAcceptorResolverTest {
 
     protected static final String HOST = "gravitee.io";
     protected static final String PATH = "/path";
@@ -50,9 +50,9 @@ class DefaultEntrypointResolverTest {
 
     @Test
     public void shouldIteratorOverEntrypointToResolveHandler() {
-        final HandlerEntrypoint handler1 = mock(HandlerEntrypoint.class);
-        final HandlerEntrypoint handler2 = mock(HandlerEntrypoint.class);
-        final HandlerEntrypoint handler3 = mock(HandlerEntrypoint.class);
+        final HttpAcceptorHandler handler1 = mock(HttpAcceptorHandler.class);
+        final HttpAcceptorHandler handler2 = mock(HttpAcceptorHandler.class);
+        final HttpAcceptorHandler handler3 = mock(HttpAcceptorHandler.class);
 
         when(handler1.accept(HOST, PATH)).thenReturn(false);
         when(handler2.accept(HOST, PATH)).thenReturn(false);
@@ -60,16 +60,16 @@ class DefaultEntrypointResolverTest {
 
         when(handlerRegistry.getEntrypoints()).thenReturn(List.of(handler1, handler2, handler3));
 
-        final HandlerEntrypoint resolvedHandler = cut.resolve(HOST, PATH);
+        final HttpAcceptorHandler resolvedHandler = cut.resolve(HOST, PATH);
 
         assertEquals(handler3, resolvedHandler);
     }
 
     @Test
     public void shouldReturnNullHanlderWhenNoHandlerCanHandleTheRequest() {
-        final HandlerEntrypoint handler1 = mock(HandlerEntrypoint.class);
-        final HandlerEntrypoint handler2 = mock(HandlerEntrypoint.class);
-        final HandlerEntrypoint handler3 = mock(HandlerEntrypoint.class);
+        final HttpAcceptorHandler handler1 = mock(HttpAcceptorHandler.class);
+        final HttpAcceptorHandler handler2 = mock(HttpAcceptorHandler.class);
+        final HttpAcceptorHandler handler3 = mock(HttpAcceptorHandler.class);
 
         when(handler1.accept(HOST, PATH)).thenReturn(false);
         when(handler2.accept(HOST, PATH)).thenReturn(false);
@@ -77,7 +77,7 @@ class DefaultEntrypointResolverTest {
 
         when(handlerRegistry.getEntrypoints()).thenReturn(List.of(handler1, handler2, handler3));
 
-        final HandlerEntrypoint resolvedHandler = cut.resolve(HOST, PATH);
+        final HttpAcceptorHandler resolvedHandler = cut.resolve(HOST, PATH);
 
         assertNull(resolvedHandler);
     }
