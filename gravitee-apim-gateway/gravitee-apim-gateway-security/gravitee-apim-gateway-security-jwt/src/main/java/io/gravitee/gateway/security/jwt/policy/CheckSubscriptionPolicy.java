@@ -36,10 +36,8 @@ public class CheckSubscriptionPolicy implements Policy {
     static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
         ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
-
-    private static final String OAUTH2_ERROR_ACCESS_DENIED = "access_denied";
-
     static final String GATEWAY_OAUTH2_ACCESS_DENIED_KEY = "GATEWAY_OAUTH2_ACCESS_DENIED";
+    private static final String OAUTH2_ERROR_ACCESS_DENIED = "access_denied";
 
     @Override
     public void execute(PolicyChain policyChain, ExecutionContext executionContext) throws PolicyException {

@@ -16,18 +16,14 @@
 package io.gravitee.gateway.jupiter.debug.reactor.processor;
 
 import static io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS;
-import static io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -36,7 +32,6 @@ import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.debug.core.invoker.InvokerResponse;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyRequestStep;

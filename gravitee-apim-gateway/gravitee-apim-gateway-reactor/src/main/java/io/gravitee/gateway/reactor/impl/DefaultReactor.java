@@ -22,6 +22,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
@@ -41,8 +42,6 @@ public class DefaultReactor implements Reactor {
 
     private final Logger LOGGER = LoggerFactory.getLogger(DefaultReactor.class);
 
-    private final EventManager eventManager;
-    private final ReactorHandlerRegistry reactorHandlerRegistry;
     private final GatewayConfiguration gatewayConfiguration;
     private final RequestProcessorChainFactory requestProcessorChainFactory;
     private final ResponseProcessorChainFactory responseProcessorChainFactory;
@@ -50,17 +49,13 @@ public class DefaultReactor implements Reactor {
     private final AcceptorResolver acceptorResolver;
 
     public DefaultReactor(
-        final EventManager eventManager,
         final @Qualifier("v3EntrypointResolver") AcceptorResolver acceptorResolver,
-        final @Qualifier("reactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry,
         final GatewayConfiguration gatewayConfiguration,
         final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
         final @Qualifier("v3ResponseProcessorChainFactory") ResponseProcessorChainFactory responseProcessorChainFactory,
         final @Qualifier("v3NotFoundProcessorChainFactory") NotFoundProcessorChainFactory notFoundProcessorChainFactory
     ) {
-        this.eventManager = eventManager;
         this.acceptorResolver = acceptorResolver;
-        this.reactorHandlerRegistry = reactorHandlerRegistry;
         this.gatewayConfiguration = gatewayConfiguration;
         this.requestProcessorChainFactory = requestProcessorChainFactory;
         this.responseProcessorChainFactory = responseProcessorChainFactory;

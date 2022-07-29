@@ -43,7 +43,6 @@ import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFacto
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.reporter.api.http.Metrics;
@@ -74,7 +73,6 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
     private final Logger log = LoggerFactory.getLogger(DefaultHttpRequestDispatcher.class);
     private final GatewayConfiguration gatewayConfiguration;
-    private final ReactorHandlerRegistry reactorHandlerRegistry;
     private final EntrypointResolver entrypointResolver;
     private final IdGenerator idGenerator;
     private final RequestProcessorChainFactory requestProcessorChainFactory;
@@ -88,7 +86,6 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
     public DefaultHttpRequestDispatcher(
         GatewayConfiguration gatewayConfiguration,
-        ReactorHandlerRegistry reactorHandlerRegistry,
         EntrypointResolver entrypointResolver,
         IdGenerator idGenerator,
         ComponentProvider globalComponentProvider,
@@ -101,7 +98,6 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         Vertx vertx
     ) {
         this.gatewayConfiguration = gatewayConfiguration;
-        this.reactorHandlerRegistry = reactorHandlerRegistry;
         this.entrypointResolver = entrypointResolver;
         this.idGenerator = idGenerator;
         this.globalComponentProvider = globalComponentProvider;

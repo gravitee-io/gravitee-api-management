@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.definition;
 
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gateway.reactor.Reactable;
 import java.io.Serializable;

@@ -19,18 +19,14 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.common.util.Maps;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.jackson.ApiDefinitionModule;
-import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.services.sync.synchronizer.ApiSynchronizer;
 import io.gravitee.kubernetes.client.KubernetesClient;
 import io.gravitee.kubernetes.client.api.LabelSelector;
 import io.gravitee.kubernetes.client.api.WatchQuery;
 import io.gravitee.kubernetes.client.model.v1.ConfigMap;
 import io.gravitee.kubernetes.client.model.v1.Event;
-import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.reactivex.Completable;
@@ -38,10 +34,10 @@ import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import java.util.Collections;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -55,10 +51,8 @@ public class KubernetesSyncService extends AbstractService<KubernetesSyncService
     protected static final String APIDEFINITIONS_TYPE = "apidefinitions.gravitee.io";
     protected static final String DATA_ENVIRONMENT_ID = "environmentId";
     protected static final String DATA_DEFINITION = "definition";
-    private final Logger logger = LoggerFactory.getLogger(KubernetesSyncService.class);
-
     private static final int RETRY_DELAY_MILLIS = 10000;
-
+    private final Logger logger = LoggerFactory.getLogger(KubernetesSyncService.class);
     private final KubernetesClient client;
     private final ApiSynchronizer apiSynchronizer;
     private final ObjectMapper mapper;
@@ -68,7 +62,6 @@ public class KubernetesSyncService extends AbstractService<KubernetesSyncService
         this.client = client;
         this.apiSynchronizer = apiSynchronizer;
         this.mapper = new GraviteeMapper();
-        this.mapper.registerModule(new ApiDefinitionModule());
     }
 
     @Override
@@ -123,7 +116,7 @@ public class KubernetesSyncService extends AbstractService<KubernetesSyncService
                 final io.gravitee.repository.management.model.Api api = new io.gravitee.repository.management.model.Api();
                 api.setEnvironmentId(configMap.getData().get(DATA_ENVIRONMENT_ID));
                 api.setDefinition(definition);
-                api.setDeployedAt(apiDefinition.getDeployedAt());
+                api.setDeployedAt(new Date());
                 api.setId(apiDefinition.getId());
 
                 switch (kubEvent.getType()) {

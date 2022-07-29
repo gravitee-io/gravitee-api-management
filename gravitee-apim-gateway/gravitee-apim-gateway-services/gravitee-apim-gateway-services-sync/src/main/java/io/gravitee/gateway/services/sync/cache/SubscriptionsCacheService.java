@@ -15,14 +15,11 @@
  */
 package io.gravitee.gateway.services.sync.cache;
 
-import static io.gravitee.repository.management.model.Plan.PlanSecurityType.*;
-
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.reactor.Reactable;
@@ -53,14 +50,15 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public class SubscriptionsCacheService extends AbstractService implements EventListener<ReactorEvent, Reactable> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionsCacheService.class);
+    private static final String PATH = "/subscriptions";
+    private final ThreadPoolTaskScheduler scheduler;
+    private final Map<String, Set<String>> plansPerApi = new ConcurrentHashMap<>();
 
     @Value("${services.sync.bulk_items:100}")
     private int bulkItems;
 
     @Value("${services.sync.distributed:false}")
     private boolean distributed;
-
-    private static final String PATH = "/subscriptions";
 
     @Autowired
     private EventManager eventManager;
@@ -82,10 +80,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
     @Autowired
     private ClusterManager clusterManager;
 
-    private final ThreadPoolTaskScheduler scheduler;
     private ScheduledFuture<?> scheduledFuture;
-
-    private final Map<String, Set<String>> plansPerApi = new ConcurrentHashMap<>();
 
     public SubscriptionsCacheService() {
         scheduler = new ThreadPoolTaskScheduler();
@@ -110,78 +105,6 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
     public void startScheduler(int delay, TimeUnit unit) {
         scheduledFuture = scheduler.scheduleAtFixedRate(new SubscriptionsTask(), Duration.ofMillis(unit.toMillis(delay)));
         eventManager.subscribeForEvents(this, ReactorEvent.class);
-    }
-
-    class SubscriptionsTask extends TimerTask {
-
-        private long lastRefreshAt = -1;
-
-        @Override
-        public void run() {
-            if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
-                long nextLastRefreshAt = System.currentTimeMillis();
-
-                // Merge all plans and split them into buckets
-                final Set<String> plans = plansPerApi.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
-
-                final AtomicInteger counter = new AtomicInteger();
-
-                final Collection<List<String>> chunks = plans
-                    .stream()
-                    .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / bulkItems))
-                    .values();
-
-                // Run refreshers
-                if (!chunks.isEmpty()) {
-                    // Prepare tasks
-                    final List<Callable<Result<Boolean>>> callables = chunks
-                        .stream()
-                        .map(
-                            plansChunk -> {
-                                IncrementalSubscriptionRefresher refresher = new IncrementalSubscriptionRefresher(
-                                    lastRefreshAt,
-                                    nextLastRefreshAt,
-                                    plansChunk
-                                );
-                                refresher.setSubscriptionRepository(subscriptionRepository);
-                                refresher.setSubscriptionService(subscriptionService);
-
-                                return refresher;
-                            }
-                        )
-                        .collect(Collectors.toList());
-
-                    // And run...
-                    try {
-                        List<Future<Result<Boolean>>> futures = executorService.invokeAll(callables);
-
-                        boolean failure = futures
-                            .stream()
-                            .anyMatch(
-                                resultFuture -> {
-                                    try {
-                                        return resultFuture.get().failed();
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-
-                                    return false;
-                                }
-                            );
-
-                        // If there is no failure, move to the next period of time
-                        if (!failure) {
-                            lastRefreshAt = nextLastRefreshAt;
-                        }
-                    } catch (InterruptedException e) {
-                        LOGGER.error("Unexpected error while running the subscriptions refresher");
-                        Thread.currentThread().interrupt();
-                    }
-                } else {
-                    lastRefreshAt = nextLastRefreshAt;
-                }
-            }
-        }
     }
 
     @Override
@@ -280,5 +203,77 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
 
     private void unregister(ReactableApi<?> api) {
         plansPerApi.remove(api.getId());
+    }
+
+    class SubscriptionsTask extends TimerTask {
+
+        private long lastRefreshAt = -1;
+
+        @Override
+        public void run() {
+            if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
+                long nextLastRefreshAt = System.currentTimeMillis();
+
+                // Merge all plans and split them into buckets
+                final Set<String> plans = plansPerApi.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
+
+                final AtomicInteger counter = new AtomicInteger();
+
+                final Collection<List<String>> chunks = plans
+                    .stream()
+                    .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / bulkItems))
+                    .values();
+
+                // Run refreshers
+                if (!chunks.isEmpty()) {
+                    // Prepare tasks
+                    final List<Callable<Result<Boolean>>> callables = chunks
+                        .stream()
+                        .map(
+                            plansChunk -> {
+                                IncrementalSubscriptionRefresher refresher = new IncrementalSubscriptionRefresher(
+                                    lastRefreshAt,
+                                    nextLastRefreshAt,
+                                    plansChunk
+                                );
+                                refresher.setSubscriptionRepository(subscriptionRepository);
+                                refresher.setSubscriptionService(subscriptionService);
+
+                                return refresher;
+                            }
+                        )
+                        .collect(Collectors.toList());
+
+                    // And run...
+                    try {
+                        List<Future<Result<Boolean>>> futures = executorService.invokeAll(callables);
+
+                        boolean failure = futures
+                            .stream()
+                            .anyMatch(
+                                resultFuture -> {
+                                    try {
+                                        return resultFuture.get().failed();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    return false;
+                                }
+                            );
+
+                        // If there is no failure, move to the next period of time
+                        if (!failure) {
+                            lastRefreshAt = nextLastRefreshAt;
+                        }
+                    } catch (InterruptedException e) {
+                        LOGGER.error("Unexpected error while running the subscriptions refresher");
+                        Thread.currentThread().interrupt();
+                    }
+                } else {
+                    lastRefreshAt = nextLastRefreshAt;
+                }
+            }
+        }
     }
 }

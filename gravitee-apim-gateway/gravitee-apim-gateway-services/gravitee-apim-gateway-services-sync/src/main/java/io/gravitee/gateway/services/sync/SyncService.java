@@ -42,12 +42,11 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class SyncService extends AbstractService {
 
+    private static final String PATH = "/sync";
     /**
      * Logger.
      */
     private final Logger logger = LoggerFactory.getLogger(SyncService.class);
-
-    private static final String PATH = "/sync";
 
     @Value("${services.sync.delay:5000}")
     private int delay;

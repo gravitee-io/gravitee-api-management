@@ -213,9 +213,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
             ReactableApi<?> api;
 
             // Check the version of the API definition to read the right model entity
-            if (
-                eventPayload.getDefinitionVersion() == null || !eventPayload.getDefinitionVersion().equals(DefinitionVersion.V4.getLabel())
-            ) {
+            if (eventPayload.getDefinitionVersion() == null || !eventPayload.getDefinitionVersion().equals(DefinitionVersion.V4)) {
                 io.gravitee.definition.model.Api eventApiDefinition = objectMapper.readValue(
                     eventPayload.getDefinition(),
                     io.gravitee.definition.model.Api.class
