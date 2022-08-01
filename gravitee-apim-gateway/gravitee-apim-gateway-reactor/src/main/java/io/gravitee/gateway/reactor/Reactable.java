@@ -30,5 +30,5 @@ public interface Reactable {
 
     <D> Set<D> dependencies(Class<D> type);
 
-    List<HttpAcceptor> entrypoints();
+    List<HttpAcceptor> httpAcceptors();
 }

@@ -25,7 +25,7 @@ import io.gravitee.gateway.api.Request;
  */
 public interface HttpAcceptor {
     /**
-     * @return the listening path of this entrypoint.
+     * @return the listening path of this http acceptor.
      */
     String path();
 
@@ -35,7 +35,7 @@ public interface HttpAcceptor {
     String host();
 
     /**
-     * @return the priority of the this entrypoint.
+     * @return the priority of this http acceptor.
      */
     int priority();
 

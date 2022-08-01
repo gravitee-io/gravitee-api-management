@@ -76,7 +76,7 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
     }
 
     @Override
-    public List<HttpAcceptor> entrypoints() {
+    public List<HttpAcceptor> httpAcceptors() {
         return null;
     }
 }

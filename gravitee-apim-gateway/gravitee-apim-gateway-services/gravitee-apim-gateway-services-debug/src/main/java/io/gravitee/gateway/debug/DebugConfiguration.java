@@ -44,6 +44,8 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFacto
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
 import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
+import io.gravitee.gateway.jupiter.reactor.handler.DefaultHttpAcceptorResolver;
+import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.platform.OrganizationFlowResolver;
@@ -258,7 +260,7 @@ public class DebugConfiguration {
     @Bean
     public HttpRequestDispatcher debugHttpRequestDispatcher(
         GatewayConfiguration gatewayConfiguration,
-        @Qualifier("debugEntrypointResolver") io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver entrypointResolver,
+        @Qualifier("debugHttpAcceptorResolver") HttpAcceptorResolver httpAcceptorResolver,
         IdGenerator idGenerator,
         ComponentProvider globalComponentProvider,
         RequestProcessorChainFactory v3RequestProcessorChainFactory,
@@ -271,7 +273,7 @@ public class DebugConfiguration {
     ) {
         return new DebugHttpRequestDispatcher(
             gatewayConfiguration,
-            entrypointResolver,
+            httpAcceptorResolver,
             idGenerator,
             globalComponentProvider,
             v3RequestProcessorChainFactory,
@@ -285,10 +287,10 @@ public class DebugConfiguration {
     }
 
     @Bean
-    public io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver debugEntrypointResolver(
+    public HttpAcceptorResolver debugHttpAcceptorResolver(
         @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry debugReactorHandlerRegistry
     ) {
-        return new io.gravitee.gateway.jupiter.reactor.handler.DefaultEntrypointResolver(debugReactorHandlerRegistry);
+        return new DefaultHttpAcceptorResolver(debugReactorHandlerRegistry);
     }
 
     @Bean

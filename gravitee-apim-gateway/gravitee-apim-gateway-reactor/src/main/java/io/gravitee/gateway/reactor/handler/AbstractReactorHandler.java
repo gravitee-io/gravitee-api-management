@@ -38,13 +38,10 @@ public abstract class AbstractReactorHandler<T extends Reactable>
     extends AbstractLifecycleComponent<ReactorHandler>
     implements ReactorHandler {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
-
     public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
-
-    private V3ExecutionContextFactory executionContextFactory;
-
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
     protected final T reactable;
+    private V3ExecutionContextFactory executionContextFactory;
 
     protected AbstractReactorHandler(T reactable) {
         this.reactable = reactable;
@@ -92,11 +89,11 @@ public abstract class AbstractReactorHandler<T extends Reactable>
     }
 
     protected void dumpVirtualHosts() {
-        List<HttpAcceptor> httpAcceptors = reactable.entrypoints();
+        List<HttpAcceptor> httpAcceptors = reactable.httpAcceptors();
         logger.debug("{} ready to accept requests on:", this);
         httpAcceptors.forEach(
-            entrypoint -> {
-                logger.debug("\t{}", entrypoint);
+            httpAcceptor -> {
+                logger.debug("\t{}", httpAcceptor);
             }
         );
     }

@@ -1,0 +1,2 @@
+io.gravitee.plugin.core.api.PluginHandler=\
+io.gravitee.plugin.entrypoint.internal.EntrypointPluginHandler

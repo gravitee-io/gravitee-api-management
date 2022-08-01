@@ -19,9 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.net.InternetDomainName;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -31,8 +30,11 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
-import io.gravitee.rest.api.service.v4.exception.FlowSelectorsDuplicatedException;
+import io.gravitee.rest.api.service.v4.EntrypointService;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
+import io.gravitee.rest.api.service.v4.exception.ListenerHttpEntrypointMissingException;
+import io.gravitee.rest.api.service.v4.exception.ListenerHttpEntrypointMissingTypeException;
+import io.gravitee.rest.api.service.v4.exception.ListenerHttpPathMissingException;
 import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
@@ -66,6 +68,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     private final ApiRepository apiRepository;
     private final ObjectMapper objectMapper;
     private final EnvironmentService environmentService;
+    private final EntrypointService entrypointService;
     private final CorsValidationService corsValidationService;
     private final LoggingValidationService loggingValidationService;
 
@@ -73,12 +76,14 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         @Lazy final ApiRepository apiRepository,
         final ObjectMapper objectMapper,
         final EnvironmentService environmentService,
+        final EntrypointService entrypointService,
         final CorsValidationService corsValidationService,
         final LoggingValidationService loggingValidationService
     ) {
         this.apiRepository = apiRepository;
         this.objectMapper = objectMapper;
         this.environmentService = environmentService;
+        this.entrypointService = entrypointService;
         this.corsValidationService = corsValidationService;
         this.loggingValidationService = loggingValidationService;
     }
@@ -121,6 +126,10 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         final String apiId,
         final ListenerHttp listenerHttp
     ) {
+        if (listenerHttp.getPaths() == null || listenerHttp.getPaths().isEmpty()) {
+            throw new ListenerHttpPathMissingException();
+        }
+
         List<Path> sanitizedPaths = listenerHttp
             .getPaths()
             .stream()
@@ -172,11 +181,32 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         listenerHttp.setPaths(sanitizedPaths);
 
         validatePathMappings(listenerHttp.getPathMappings());
-
+        // Validate and clean entrypoints
+        validateEntrypointsConfiguration(listenerHttp.getEntrypoints());
         // Validate and clean cors configuration
         listenerHttp.setCors(corsValidationService.validateAndSanitize(listenerHttp.getCors()));
         // Validate and clean logging configuration
         listenerHttp.setLogging(loggingValidationService.validateAndSanitize(executionContext, listenerHttp.getLogging()));
+    }
+
+    private void validateEntrypointsConfiguration(final List<Entrypoint> entrypoints) {
+        if (entrypoints == null || entrypoints.isEmpty()) {
+            throw new ListenerHttpEntrypointMissingException();
+        }
+        entrypoints.forEach(
+            entrypoint -> {
+                if (entrypoint.getType() == null) {
+                    throw new ListenerHttpEntrypointMissingTypeException();
+                }
+                String entrypointConfiguration = null;
+                if (entrypoint.getConfiguration() != null) {
+                    entrypointConfiguration = entrypoint.getConfiguration().toString();
+                }
+                entrypoint.setConfiguration(
+                    entrypointService.validateEntrypointConfiguration(entrypoint.getType(), entrypointConfiguration)
+                );
+            }
+        );
     }
 
     private List<Path> extractPaths(final Api api) {

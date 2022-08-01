@@ -36,10 +36,9 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     private final ReactorHandlerFactoryManager handlerFactoryManager;
 
-    private final Map<Reactable, ReactableEntrypoints> handlers = new ConcurrentHashMap<>();
-
+    private final Map<Reactable, ReactableHttpAcceptors> handlers = new ConcurrentHashMap<>();
+    private final HttpAcceptorHandlerComparator entryPointComparator = new HttpAcceptorHandlerComparator();
     private List<HttpAcceptorHandler> registeredEntrypoints = new ArrayList<>();
-    private final HandlerEntryPointComparator entryPointComparator = new HandlerEntryPointComparator();
 
     public DefaultReactorHandlerRegistry(ReactorHandlerFactoryManager handlerFactoryManager) {
         this.handlerFactoryManager = handlerFactoryManager;
@@ -58,16 +57,16 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     private void register(ReactorHandler handler) {
         logger.debug("Registering a new handler: {}", handler);
 
-        // Associate the handler to the entrypoints
-        List<HttpAcceptorHandler> reactableEntrypoints = handler
+        // Associate the handler to the http acceptor
+        List<HttpAcceptorHandler> httpAcceptorHandlers = handler
             .reactable()
-            .entrypoints()
+            .httpAcceptors()
             .stream()
-            .map((Function<HttpAcceptor, HttpAcceptorHandler>) entrypoint -> new DefaultHttpAcceptorHandler(handler, entrypoint))
+            .map((Function<HttpAcceptor, HttpAcceptorHandler>) httpAcceptor -> new DefaultHttpAcceptorHandler(handler, httpAcceptor))
             .collect(Collectors.toList());
 
-        handlers.put(handler.reactable(), new ReactableEntrypoints(handler, reactableEntrypoints));
-        addEntrypoints(reactableEntrypoints);
+        handlers.put(handler.reactable(), new ReactableHttpAcceptors(handler, httpAcceptorHandlers));
+        addHttpAcceptors(httpAcceptorHandlers);
     }
 
     private ReactorHandler prepare(Reactable reactable) {
@@ -89,21 +88,21 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     public void update(Reactable reactable) {
         logger.debug("Updating handler for: {}", reactable);
 
-        ReactableEntrypoints reactableEntrypoints = handlers.get(reactable);
+        ReactableHttpAcceptors reactableHttpAcceptors = handlers.get(reactable);
 
-        if (reactableEntrypoints != null) {
-            ReactorHandler currentHandler = reactableEntrypoints.handler;
+        if (reactableHttpAcceptors != null) {
+            ReactorHandler currentHandler = reactableHttpAcceptors.handler;
             logger.debug("Handler is already deployed: {}", currentHandler);
 
             ReactorHandler newHandler = prepare(reactable);
 
             // Do not update handler if the new is not correctly initialized
             if (newHandler != null) {
-                ReactableEntrypoints previousHandler = handlers.remove(reactable);
+                ReactableHttpAcceptors previousHandler = handlers.remove(reactable);
 
-                // Register the new handler before removing the previous entrypoints to avoid 404, especially on high throughput.
+                // Register the new handler before removing the previous http acceptor to avoid 404, especially on high throughput.
                 register(newHandler);
-                removeEntrypoints(previousHandler.entrypoints);
+                removeEntrypoints(previousHandler.httpAcceptorHandlers);
 
                 try {
                     logger.debug("Stopping previous handler for: {}", reactable);
@@ -119,15 +118,15 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     @Override
     public void remove(Reactable reactable) {
-        final ReactableEntrypoints reactableEntrypoints = handlers.get(reactable);
-        remove(reactable, reactableEntrypoints, true);
+        final ReactableHttpAcceptors reactableHttpAcceptors = handlers.get(reactable);
+        remove(reactable, reactableHttpAcceptors, true);
     }
 
     @Override
     public void clear() {
-        Iterator<Map.Entry<Reactable, ReactableEntrypoints>> reactableIte = handlers.entrySet().iterator();
+        Iterator<Map.Entry<Reactable, ReactableHttpAcceptors>> reactableIte = handlers.entrySet().iterator();
         while (reactableIte.hasNext()) {
-            final Map.Entry<Reactable, ReactableEntrypoints> next = reactableIte.next();
+            final Map.Entry<Reactable, ReactableHttpAcceptors> next = reactableIte.next();
             remove(next.getKey(), next.getValue(), false);
             reactableIte.remove();
         }
@@ -138,12 +137,12 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         return handlers.containsKey(reactable);
     }
 
-    private void remove(Reactable reactable, ReactableEntrypoints reactableEntrypoints, boolean remove) {
-        if (reactableEntrypoints != null) {
+    private void remove(Reactable reactable, ReactableHttpAcceptors reactableHttpAcceptors, boolean remove) {
+        if (reactableHttpAcceptors != null) {
             try {
                 // Remove the entrypoints before stopping the handler to avoid 500 errors.
-                removeEntrypoints(reactableEntrypoints.entrypoints);
-                reactableEntrypoints.handler.stop();
+                removeEntrypoints(reactableHttpAcceptors.httpAcceptorHandlers);
+                reactableHttpAcceptors.handler.stop();
 
                 if (remove) {
                     handlers.remove(reactable);
@@ -156,19 +155,39 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     }
 
     @Override
-    public Collection<HttpAcceptorHandler> getEntrypoints() {
+    public Collection<HttpAcceptorHandler> getHttpAcceptorHandlers() {
         return registeredEntrypoints;
     }
 
-    private static class ReactableEntrypoints {
+    private void addHttpAcceptors(List<HttpAcceptorHandler> reactableEntrypoints) {
+        synchronized (this) {
+            final ArrayList<HttpAcceptorHandler> handlerEntrypoints = new ArrayList<>(registeredEntrypoints);
+            handlerEntrypoints.addAll(reactableEntrypoints);
+            handlerEntrypoints.sort(entryPointComparator);
+
+            registeredEntrypoints = handlerEntrypoints;
+        }
+    }
+
+    private void removeEntrypoints(List<HttpAcceptorHandler> previousEntrypoints) {
+        synchronized (this) {
+            final ArrayList<HttpAcceptorHandler> handlerEntrypoints = new ArrayList<>(registeredEntrypoints);
+            handlerEntrypoints.removeAll(previousEntrypoints);
+            handlerEntrypoints.sort(entryPointComparator);
+
+            registeredEntrypoints = handlerEntrypoints;
+        }
+    }
+
+    private static class ReactableHttpAcceptors {
 
         private final ReactorHandler handler;
 
-        private final List<HttpAcceptorHandler> entrypoints;
+        private final List<HttpAcceptorHandler> httpAcceptorHandlers;
 
-        public ReactableEntrypoints(ReactorHandler handler, List<HttpAcceptorHandler> entrypoints) {
+        public ReactableHttpAcceptors(ReactorHandler handler, List<HttpAcceptorHandler> httpAcceptorHandlers) {
             this.handler = handler;
-            this.entrypoints = entrypoints;
+            this.httpAcceptorHandlers = httpAcceptorHandlers;
         }
     }
 
@@ -220,26 +239,6 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         @Override
         public String toString() {
             return httpAcceptor.toString();
-        }
-    }
-
-    private void addEntrypoints(List<HttpAcceptorHandler> reactableEntrypoints) {
-        synchronized (this) {
-            final ArrayList<HttpAcceptorHandler> handlerEntrypoints = new ArrayList<>(registeredEntrypoints);
-            handlerEntrypoints.addAll(reactableEntrypoints);
-            handlerEntrypoints.sort(entryPointComparator);
-
-            registeredEntrypoints = handlerEntrypoints;
-        }
-    }
-
-    private void removeEntrypoints(List<HttpAcceptorHandler> previousEntrypoints) {
-        synchronized (this) {
-            final ArrayList<HttpAcceptorHandler> handlerEntrypoints = new ArrayList<>(registeredEntrypoints);
-            handlerEntrypoints.removeAll(previousEntrypoints);
-            handlerEntrypoints.sort(entryPointComparator);
-
-            registeredEntrypoints = handlerEntrypoints;
         }
     }
 }

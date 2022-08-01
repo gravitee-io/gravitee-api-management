@@ -23,6 +23,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.gateway.connector.spring.ConnectorConfiguration;
 import io.gravitee.gateway.dictionary.spring.DictionaryConfiguration;
+import io.gravitee.gateway.entrypoint.spring.EntrypointConfiguration;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.TimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
@@ -73,11 +74,17 @@ import org.springframework.context.annotation.Import;
         PolicyConfiguration.class,
         PlatformConfiguration.class,
         ConnectorConfiguration.class,
+        EntrypointConfiguration.class,
         ClusterConfiguration.class,
         TimeoutConfiguration.class,
     }
 )
 public class StandaloneConfiguration {
+
+    @Bean
+    public static GatewayConfiguration gatewayConfiguration() {
+        return new GatewayConfiguration();
+    }
 
     @Bean
     public EventManager eventManager() {
@@ -104,11 +111,6 @@ public class StandaloneConfiguration {
     @Bean
     public RepositoryScopeProvider repositoryScopeProvider() {
         return new GatewayRepositoryScopeProvider();
-    }
-
-    @Bean
-    public static GatewayConfiguration gatewayConfiguration() {
-        return new GatewayConfiguration();
     }
 
     @Bean

@@ -49,6 +49,7 @@ import lombok.ToString;
 public class ListenerHttp extends Listener {
 
     @NotEmpty
+    @NotNull
     private List<Path> paths;
 
     private Set<String> pathMappings;
@@ -57,6 +58,7 @@ public class ListenerHttp extends Listener {
     private Map<String, Pattern> pathMappingsPattern;
 
     @NotEmpty
+    @NotNull
     private List<Entrypoint> entrypoints;
 
     private Cors cors;

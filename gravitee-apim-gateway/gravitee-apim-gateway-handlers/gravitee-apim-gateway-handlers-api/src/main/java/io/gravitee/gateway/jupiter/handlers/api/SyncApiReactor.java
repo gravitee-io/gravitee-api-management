@@ -84,14 +84,12 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final Api api;
     protected final List<ChainHook> processorChainHooks;
     protected final List<InvokerHook> invokerHooks;
-    protected LoggingContext loggingContext;
     protected final ComponentProvider componentProvider;
     protected final List<TemplateVariableProvider> templateVariableProviders;
     protected final Invoker defaultInvoker;
     protected final ResourceLifecycleManager resourceLifecycleManager;
     protected final PolicyManager policyManager;
     protected final GroupLifecycleManager groupLifecycleManager;
-    private final HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration;
     protected final FlowChain platformFlowChain;
     protected final FlowChain apiPlanFlowChain;
     protected final FlowChain apiFlowChain;
@@ -99,12 +97,12 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final ProcessorChain apiPostProcessorChain;
     protected final ProcessorChain apiErrorProcessorChain;
     protected final Node node;
-
+    private final HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration;
     private final boolean tracingEnabled;
-    protected SecurityChain securityChain;
     private final AtomicInteger pendingRequests = new AtomicInteger(0);
-
     private final long pendingRequestsTimeout;
+    protected LoggingContext loggingContext;
+    protected SecurityChain securityChain;
 
     public SyncApiReactor(
         final Api api,
@@ -427,9 +425,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     protected void dumpVirtualHosts() {
-        List<HttpAcceptor> httpAcceptors = api.entrypoints();
+        List<HttpAcceptor> httpAcceptors = api.httpAcceptors();
         log.debug("{} ready to accept requests on:", this);
-        httpAcceptors.forEach(entrypoint -> log.debug("\t{}", entrypoint));
+        httpAcceptors.forEach(httpAcceptor -> log.debug("\t{}", httpAcceptor));
     }
 
     @Override
