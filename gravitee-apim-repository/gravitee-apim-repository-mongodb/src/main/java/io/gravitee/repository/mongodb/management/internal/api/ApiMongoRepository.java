@@ -30,4 +30,7 @@ import org.springframework.stereotype.Repository;
 public interface ApiMongoRepository extends MongoRepository<ApiMongo, String>, ApiMongoRepositoryCustom {
     @Query("{ 'environmentId': ?0, 'crossId': ?1 }")
     Optional<ApiMongo> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
+
+    @Query(value = "{ 'environmentId': ?0, 'crossId': ?1 }", fields = "{ _id : 1 }")
+    Optional<ApiMongo> findIdByEnvironmentIdAndCrossId(String environmentId, String crossId);
 }

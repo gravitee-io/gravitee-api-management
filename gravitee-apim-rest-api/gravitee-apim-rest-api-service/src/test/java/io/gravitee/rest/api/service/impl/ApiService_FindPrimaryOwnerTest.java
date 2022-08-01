@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -34,14 +35,18 @@ import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.NoPrimaryOwnerGroupForUserException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.impl.PrimaryOwnerServiceImpl;
 import java.util.Arrays;
 import java.util.HashSet;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -57,6 +62,9 @@ public class ApiService_FindPrimaryOwnerTest {
     @InjectMocks
     private final ApiServiceImpl apiService = new ApiServiceImpl();
 
+    @Spy
+    private final ObjectMapper objectMapper = (new ServiceConfiguration()).objectMapper();
+
     @Mock
     private ParameterService parameterService;
 
@@ -64,10 +72,21 @@ public class ApiService_FindPrimaryOwnerTest {
     private GroupService groupService;
 
     @Mock
+    private MembershipService membershipService;
+
+    @Mock
     private UserService userService;
 
-    @Spy
-    private final ObjectMapper objectMapper = (new ServiceConfiguration()).objectMapper();
+    @Before
+    public void before() {
+        PrimaryOwnerService primaryOwnerService = new PrimaryOwnerServiceImpl(
+            userService,
+            membershipService,
+            groupService,
+            parameterService
+        );
+        ReflectionTestUtils.setField(apiService, "primaryOwnerService", primaryOwnerService);
+    }
 
     // HYBRID + import with PO GROUP
     @Test

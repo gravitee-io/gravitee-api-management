@@ -13,9 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model.flow;
+package io.gravitee.definition.model.v4.endpointgroup.loadbalancer;
 
-public enum FlowOperator {
-    STARTS_WITH,
-    EQUALS,
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+/**
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ */
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+public class LoadBalancer implements Serializable {
+
+    @JsonProperty("type")
+    private LoadBalancerType type = LoadBalancerType.ROUND_ROBIN;
 }

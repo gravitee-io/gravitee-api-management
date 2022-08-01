@@ -27,6 +27,8 @@ import java.util.Set;
 public interface PolicyService extends PluginService<PolicyEntity> {
     void validatePolicyConfiguration(Policy policy);
 
+    String validatePolicyConfiguration(String policyName, String configuration);
+
     void validatePolicyConfiguration(Step step);
 
     Set<PolicyEntity> findAll(Boolean withResource);

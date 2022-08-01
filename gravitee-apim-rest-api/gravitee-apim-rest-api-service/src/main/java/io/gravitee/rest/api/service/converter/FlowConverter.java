@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.converter;
 import io.gravitee.definition.model.flow.*;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.*;
+import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Collections;
 import java.util.Date;

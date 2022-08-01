@@ -1,0 +1,23 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Repository - JDBC" type="JUnit" factoryName="JUnit" folderName="Repository">
+    <classpathModifications>
+      <entry exclude="true" path="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-test/target/test-classes" />
+    </classpathModifications>
+    <module name="gravitee-apim-repository-jdbc" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="PACKAGE_NAME" value="io.gravitee.repository.management" />
+    <option name="MAIN_CLASS_NAME" value="io.gravitee.repository.management.RepositoryTestSuite" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="class" />
+    <dir value="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-mongodb/target/test-classes/io/gravitee/repository" />
+    <patterns>
+      <pattern testClass="io\.gravitee\.repository\..*RepositoryTest" />
+    </patterns>
+    <method v="2">
+      <option name="Make" enabled="true" />
+      <option name="Maven.BeforeRunTask" enabled="true" file="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-test/pom.xml" goal="install -DskipTests=true -Dskip.validation" />
+      <option name="Maven.BeforeRunTask" enabled="true" file="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-jdbc/pom.xml" goal="test-compile -Dskip.validation" />
+    </method>
+  </configuration>
+</component>

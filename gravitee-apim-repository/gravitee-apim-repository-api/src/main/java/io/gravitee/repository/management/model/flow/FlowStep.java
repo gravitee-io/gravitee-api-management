@@ -15,10 +15,21 @@
  */
 package io.gravitee.repository.management.model.flow;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
 public class FlowStep {
 
     /**
@@ -51,87 +62,4 @@ public class FlowStep {
      * Condition attached to the FlowStep
      */
     private String condition;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPolicy() {
-        return policy;
-    }
-
-    public void setPolicy(String policy) {
-        this.policy = policy;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public int getOrder() {
-        return order;
-    }
-
-    public void setOrder(int order) {
-        this.order = order;
-    }
-
-    public String getCondition() {
-        return condition;
-    }
-
-    public void setCondition(String condition) {
-        this.condition = condition;
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "FlowStep{" +
-            "name='" +
-            name +
-            '\'' +
-            ", policy='" +
-            policy +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", configuration='" +
-            configuration +
-            '\'' +
-            ", enabled=" +
-            enabled +
-            ", order=" +
-            order +
-            ", condition='" +
-            condition +
-            '\'' +
-            '}'
-        );
-    }
 }

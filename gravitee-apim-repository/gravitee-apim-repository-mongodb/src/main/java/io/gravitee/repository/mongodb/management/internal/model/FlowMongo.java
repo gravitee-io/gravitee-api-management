@@ -17,9 +17,10 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.management.model.flow.FlowConsumer;
-import io.gravitee.repository.management.model.flow.FlowOperator;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.FlowStep;
+import io.gravitee.repository.management.model.flow.selector.FlowOperator;
+import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -51,32 +52,62 @@ public class FlowMongo extends Auditable {
      * Flow name
      */
     private String name;
+
     /**
      * Flow pre steps
      */
+    @Deprecated
     private List<FlowStep> pre = new ArrayList<>();
+
     /**
      * Flow post steps
      */
+    @Deprecated
     private List<FlowStep> post = new ArrayList<>();
+
+    /**
+     * Flow request steps
+     */
+    private List<FlowStep> request = new ArrayList<>();
+    /**
+     * Flow response steps
+     */
+    private List<FlowStep> response = new ArrayList<>();
+    /**
+     * Flow subscribe steps
+     */
+    private List<FlowStep> subscribe = new ArrayList<>();
+    /**
+     * Flow publish steps
+     */
+    private List<FlowStep> publish = new ArrayList<>();
     /**
      * Flow state
      */
     private boolean enabled;
+
     /**
      * Condition attached to the Flow
      */
+    @Deprecated
     private String condition;
 
     /**
      * Flow Path
      */
+    @Deprecated
     private String path;
 
     /**
      * Flow operator
      */
+    @Deprecated
     private FlowOperator operator;
+
+    /**
+     * Flow selectors
+     */
+    private List<FlowSelector> selectors = new ArrayList<>();
 
     /**
      * Flow Path
@@ -86,9 +117,13 @@ public class FlowMongo extends Auditable {
     /**
      * Http methods
      */
+    @Deprecated
     private Set<HttpMethod> methods;
 
+    @Deprecated
     private List<FlowConsumer> consumers;
+
+    private List<String> tags;
 
     public String getId() {
         return id;
@@ -207,5 +242,59 @@ public class FlowMongo extends Auditable {
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    public List<FlowStep> getRequest() {
+        return request;
+    }
+
+    public FlowMongo setRequest(final List<FlowStep> request) {
+        this.request = request;
+        return this;
+    }
+
+    public List<FlowStep> getResponse() {
+        return response;
+    }
+
+    public FlowMongo setResponse(final List<FlowStep> response) {
+        this.response = response;
+        return this;
+    }
+
+    public List<FlowStep> getSubscribe() {
+        return subscribe;
+    }
+
+    public FlowMongo setSubscribe(final List<FlowStep> subscribe) {
+        this.subscribe = subscribe;
+        return this;
+    }
+
+    public List<FlowStep> getPublish() {
+        return publish;
+    }
+
+    public FlowMongo setPublish(final List<FlowStep> publish) {
+        this.publish = publish;
+        return this;
+    }
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public FlowMongo setTags(final List<String> tags) {
+        this.tags = tags;
+        return this;
+    }
+
+    public List<FlowSelector> getSelectors() {
+        return selectors;
+    }
+
+    public FlowMongo setSelectors(final List<FlowSelector> selectors) {
+        this.selectors = selectors;
+        return this;
     }
 }

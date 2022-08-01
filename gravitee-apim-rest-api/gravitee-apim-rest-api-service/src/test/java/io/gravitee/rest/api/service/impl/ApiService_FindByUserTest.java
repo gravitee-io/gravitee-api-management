@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -133,10 +134,10 @@ public class ApiService_FindByUserTest {
 
         when(roleService.findById(userRoleId)).thenReturn(userRole);
         when(api.getId()).thenReturn("api-1");
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api.getId()).build()))
+        when(apiRepository.search(getDefaultApiCriteriaBuilder().environmentId("DEFAULT").ids(api.getId()).build()))
             .thenReturn(singletonList(api));
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
-        apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").ids("api-1").build());
+        apiCriteriaList.add(getDefaultApiCriteriaBuilder().environmentId("DEFAULT").ids("api-1").build());
         ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
         when(apiRepository.searchIds(null, apiCriteria)).thenReturn(singletonList("api-1"));
 
@@ -225,7 +226,7 @@ public class ApiService_FindByUserTest {
 
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
             .thenReturn(new HashSet<>(Arrays.asList(membership1, membership2)));
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api1.getId()).build()))
+        when(apiRepository.search(getDefaultApiCriteriaBuilder().environmentId("DEFAULT").ids(api1.getId()).build()))
             .thenReturn(singletonList(api1));
 
         RoleEntity poRole = new RoleEntity();
@@ -326,5 +327,15 @@ public class ApiService_FindByUserTest {
 
         assertNotNull(apiEntities);
         assertEquals(0, apiEntities.size());
+    }
+
+    private ApiCriteria.Builder getDefaultApiCriteriaBuilder() {
+        // By default in this service, we do not care for V4 APIs.
+        List<DefinitionVersion> allowedDefinitionVersion = new ArrayList<>();
+        allowedDefinitionVersion.add(null);
+        allowedDefinitionVersion.add(DefinitionVersion.V1);
+        allowedDefinitionVersion.add(DefinitionVersion.V2);
+
+        return new ApiCriteria.Builder().definitionVersion(allowedDefinitionVersion);
     }
 }

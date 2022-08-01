@@ -178,6 +178,11 @@ public class EnvironmentResource extends AbstractResource {
         return resourceContext.getResource(ApisResource.class);
     }
 
+    @Path("v4/apis")
+    public io.gravitee.rest.api.management.rest.resource.v4.api.ApisResource getV4ApisResource() {
+        return resourceContext.getResource(io.gravitee.rest.api.management.rest.resource.v4.api.ApisResource.class);
+    }
+
     @Path("applications")
     public ApplicationsResource getApplicationsResource() {
         return resourceContext.getResource(ApplicationsResource.class);

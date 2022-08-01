@@ -20,6 +20,7 @@ import static java.util.Collections.singleton;
 import static java.util.Comparator.comparing;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -96,7 +97,7 @@ public class ApiLoggingConditionUpgrader extends OneShotUpgrader {
     }
 
     protected void fixApis(ExecutionContext executionContext) throws Exception {
-        for (Api api : apiRepository.search(new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build())) {
+        for (Api api : apiRepository.search(getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId()).build())) {
             io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
                 api.getDefinition(),
                 io.gravitee.definition.model.Api.class
@@ -185,5 +186,15 @@ public class ApiLoggingConditionUpgrader extends OneShotUpgrader {
         if (apiDeploymentEntity != null && StringUtils.isNotEmpty(apiDeploymentEntity.getDeploymentLabel())) {
             properties.put(Event.EventProperties.DEPLOYMENT_LABEL.getValue(), apiDeploymentEntity.getDeploymentLabel());
         }
+    }
+
+    private ApiCriteria.Builder getDefaultApiCriteriaBuilder() {
+        // By default in this service, we do not care for V4 APIs.
+        List<DefinitionVersion> allowedDefinitionVersion = new ArrayList<>();
+        allowedDefinitionVersion.add(null);
+        allowedDefinitionVersion.add(DefinitionVersion.V1);
+        allowedDefinitionVersion.add(DefinitionVersion.V2);
+
+        return new ApiCriteria.Builder().definitionVersion(allowedDefinitionVersion);
     }
 }

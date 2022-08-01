@@ -32,13 +32,13 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntityResult;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
 import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.ApiService;
 import io.reactivex.observers.TestObserver;
 import java.time.Instant;
 import java.util.List;
@@ -278,9 +278,8 @@ public class DeployModelCommandHandlerTest {
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId("api#id");
-        when(apiService.findByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiEntity));
+        String apiId = "api#id";
+        when(apiService.findApiIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
@@ -296,7 +295,7 @@ public class DeployModelCommandHandlerTest {
                 GraviteeContext.getExecutionContext(),
                 user.getId(),
                 environment.getId(),
-                apiEntity.getId(),
+                apiId,
                 DeploymentMode.API_DOCUMENTED
             )
         )
@@ -305,7 +304,7 @@ public class DeployModelCommandHandlerTest {
         when(
             cockpitApiService.updateApi(
                 any(),
-                eq(apiEntity.getId()),
+                eq(apiId),
                 eq(user.getId()),
                 eq(payload.getSwaggerDefinition()),
                 eq(environment.getId()),
@@ -339,9 +338,8 @@ public class DeployModelCommandHandlerTest {
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId("api#id");
-        when(apiService.findByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiEntity));
+        String apiId = "api#id";
+        when(apiService.findApiIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
@@ -357,7 +355,7 @@ public class DeployModelCommandHandlerTest {
                 GraviteeContext.getExecutionContext(),
                 user.getId(),
                 environment.getId(),
-                apiEntity.getId(),
+                apiId,
                 DeploymentMode.API_MOCKED
             )
         )
@@ -366,7 +364,7 @@ public class DeployModelCommandHandlerTest {
         when(
             cockpitApiService.updateApi(
                 any(),
-                eq(apiEntity.getId()),
+                eq(apiId),
                 eq(user.getId()),
                 eq(payload.getSwaggerDefinition()),
                 eq(environment.getId()),
@@ -400,9 +398,8 @@ public class DeployModelCommandHandlerTest {
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId("api#id");
-        when(apiService.findByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiEntity));
+        String apiId = "api#id";
+        when(apiService.findApiIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
@@ -418,7 +415,7 @@ public class DeployModelCommandHandlerTest {
                 GraviteeContext.getExecutionContext(),
                 user.getId(),
                 environment.getId(),
-                apiEntity.getId(),
+                apiId,
                 DeploymentMode.API_PUBLISHED
             )
         )
@@ -427,7 +424,7 @@ public class DeployModelCommandHandlerTest {
         when(
             cockpitApiService.updateApi(
                 any(),
-                eq(apiEntity.getId()),
+                eq(apiId),
                 eq(user.getId()),
                 eq(payload.getSwaggerDefinition()),
                 eq(environment.getId()),
@@ -604,9 +601,8 @@ public class DeployModelCommandHandlerTest {
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId("api#id");
-        when(apiService.findByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiEntity));
+        String apiId = "api#id";
+        when(apiService.findApiIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
@@ -622,7 +618,7 @@ public class DeployModelCommandHandlerTest {
                 any(),
                 eq(user.getId()),
                 eq(environment.getId()),
-                eq(apiEntity.getId()),
+                eq(apiId),
                 eq(DeploymentMode.API_DOCUMENTED)
             )
         )

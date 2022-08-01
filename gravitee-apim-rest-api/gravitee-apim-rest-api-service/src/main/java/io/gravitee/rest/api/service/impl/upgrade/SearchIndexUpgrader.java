@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade;
 import static io.gravitee.rest.api.service.common.SecurityContextHelper.authenticateAsSystem;
 import static java.util.stream.Collectors.toList;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -31,20 +32,21 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserRoleEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.SecurityContextHelper;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -85,11 +87,13 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
 
     private final EnvironmentRepository environmentRepository;
 
+    private final ApiMapper apiMapper;
     private final ApiConverter apiConverter;
 
     private final UserConverter userConverter;
 
     private final Map<String, String> organizationIdByEnvironmentIdMap = new ConcurrentHashMap<>();
+    private final PrimaryOwnerService primaryOwnerService;
 
     @Autowired
     public SearchIndexUpgrader(
@@ -99,8 +103,10 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         @Lazy UserRepository userRepository,
         SearchEngineService searchEngineService,
         @Lazy EnvironmentRepository environmentRepository,
+        final ApiMapper apiMapper,
         ApiConverter apiConverter,
-        UserConverter userConverter
+        UserConverter userConverter,
+        final PrimaryOwnerService primaryOwnerService
     ) {
         this.apiRepository = apiRepository;
         this.apiService = apiService;
@@ -108,8 +114,10 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         this.userRepository = userRepository;
         this.searchEngineService = searchEngineService;
         this.environmentRepository = environmentRepository;
+        this.apiMapper = apiMapper;
         this.apiConverter = apiConverter;
         this.userConverter = userConverter;
+        this.primaryOwnerService = primaryOwnerService;
     }
 
     @Override
@@ -175,30 +183,37 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         );
 
         ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
+        Indexable indexable;
         PrimaryOwnerEntity primaryOwner = null;
         try {
-            primaryOwner = apiService.getPrimaryOwner(executionContext, api.getId());
+            primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
         } catch (PrimaryOwnerNotFoundException e) {
             LOGGER.warn("Failed to retrieve API primary owner, API will we indexed without his primary owner", e);
         }
-        return runApiIndexationAsync(executionContext, apiConverter.toApiEntity(api, primaryOwner), executorService);
+        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+            indexable = apiMapper.toEntity(executionContext, api, primaryOwner, null, false);
+        } else {
+            indexable = apiConverter.toApiEntity(api, primaryOwner);
+        }
+        return runApiIndexationAsync(executionContext, api.getId(), indexable, executorService);
     }
 
     private CompletableFuture<?> runApiIndexationAsync(
         ExecutionContext executionContext,
-        ApiEntity apiEntity,
+        String apiId,
+        Indexable indexable,
         ExecutorService executorService
     ) {
         return CompletableFuture.runAsync(
             () -> {
                 try {
                     // API
-                    searchEngineService.index(executionContext, apiEntity, true, false);
+                    searchEngineService.index(executionContext, indexable, true, false);
 
                     // Pages
                     List<PageEntity> apiPages = pageService.search(
                         executionContext.getEnvironmentId(),
-                        new PageQuery.Builder().api(apiEntity.getId()).published(true).build(),
+                        new PageQuery.Builder().api(apiId).published(true).build(),
                         true
                     );
                     apiPages.forEach(
@@ -210,7 +225,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
                                     !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
                                     !PageType.LINK.name().equals(page.getType())
                                 ) {
-                                    pageService.transformSwagger(executionContext, page, apiEntity.getId());
+                                    pageService.transformSwagger(executionContext, page, apiId);
                                     searchEngineService.index(executionContext, page, true, false);
                                 }
                             } catch (Exception ignored) {}

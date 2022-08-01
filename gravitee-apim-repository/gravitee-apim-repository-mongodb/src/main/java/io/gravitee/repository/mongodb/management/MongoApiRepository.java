@@ -146,4 +146,14 @@ public class MongoApiRepository implements ApiRepository {
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
         return internalApiRepo.findByEnvironmentIdAndCrossId(environmentId, crossId).map(this::mapApi);
     }
+
+    @Override
+    public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException {
+        return internalApiRepo.findIdByEnvironmentIdAndCrossId(environmentId, crossId).map(ApiMongo::getId);
+    }
+
+    @Override
+    public boolean existById(final String appId) throws TechnicalException {
+        return internalApiRepo.existsById(appId);
+    }
 }

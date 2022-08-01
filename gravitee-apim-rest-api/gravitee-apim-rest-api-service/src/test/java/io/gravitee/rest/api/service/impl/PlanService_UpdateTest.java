@@ -20,7 +20,14 @@ import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.repository.management.model.Plan.Status.PUBLISHED;
 import static java.util.Arrays.asList;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -36,14 +43,18 @@ import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
 import io.gravitee.rest.api.service.exceptions.PlanInvalidException;
-import io.gravitee.rest.api.service.processor.PlanSynchronizationProcessor;
+import io.gravitee.rest.api.service.processor.SynchronizationService;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -93,7 +104,7 @@ public class PlanService_UpdateTest {
     private ParameterService parameterService;
 
     @Mock
-    private PlanSynchronizationProcessor synchronizationProcessor;
+    private SynchronizationService synchronizationService;
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();

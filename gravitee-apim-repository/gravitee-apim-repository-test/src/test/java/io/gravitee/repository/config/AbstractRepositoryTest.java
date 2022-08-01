@@ -18,6 +18,9 @@ package io.gravitee.repository.config;
 import static java.lang.Class.forName;
 import static org.springframework.util.StringUtils.capitalize;
 
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import java.io.File;
 import java.net.URL;
@@ -26,7 +29,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -48,7 +50,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 public abstract class AbstractRepositoryTest {
 
     private static final String JSON_EXTENSION = "json";
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Inject
     private TestRepositoryInitializer testRepositoryInitializer;

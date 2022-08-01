@@ -305,28 +305,6 @@ public class ApiResource extends AbstractResource {
             .build();
     }
 
-    private Response.ResponseBuilder evaluateIfMatch(final HttpHeaders headers, final String etagValue) {
-        String ifMatch = headers.getHeaderString(HttpHeaders.IF_MATCH);
-        if (ifMatch == null || ifMatch.isEmpty()) {
-            return null;
-        }
-
-        // Handle case for -gzip appended automatically (and sadly) by Apache
-        ifMatch = ifMatch.replaceAll("-gzip", "");
-
-        try {
-            Set<MatchingEntityTag> matchingTags = HttpHeaderReader.readMatchingEntityTag(ifMatch);
-            MatchingEntityTag ifMatchHeader = matchingTags.iterator().next();
-            EntityTag eTag = new EntityTag(etagValue, ifMatchHeader.isWeak());
-
-            return matchingTags != MatchingEntityTag.ANY_MATCH && !matchingTags.contains(eTag)
-                ? Response.status(Status.PRECONDITION_FAILED)
-                : null;
-        } catch (java.text.ParseException e) {
-            return null;
-        }
-    }
-
     @DELETE
     @Operation(summary = "Delete the API", description = "User must have the DELETE permission to use this service")
     @ApiResponse(responseCode = "204", description = "API successfully deleted")
