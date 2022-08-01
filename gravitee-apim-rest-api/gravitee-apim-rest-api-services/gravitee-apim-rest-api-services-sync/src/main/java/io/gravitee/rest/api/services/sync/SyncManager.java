@@ -15,10 +15,7 @@
  */
 package io.gravitee.rest.api.services.sync;
 
-import static java.util.stream.Collectors.toMap;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
@@ -27,23 +24,23 @@ import io.gravitee.repository.management.model.EventType;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
