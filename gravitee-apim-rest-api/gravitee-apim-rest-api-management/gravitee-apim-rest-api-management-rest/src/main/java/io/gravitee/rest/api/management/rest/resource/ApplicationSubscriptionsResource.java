@@ -221,8 +221,9 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         private ListStringParam apis;
 
         @QueryParam("status")
+        @DefaultValue("ACCEPTED")
         @Parameter(
-            description = "Subscription status",
+            description = "Comma separated list of Subscription status, default is ACCEPTED",
             explode = Explode.FALSE,
             schema = @Schema(type = "array", defaultValue = "[\"ACCEPTED\"]")
         )
