@@ -21,15 +21,20 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux@graviteesource.com)
  * @author GraviteeSource Team
  */
+@RequiredArgsConstructor
+@Getter
 public enum DefinitionVersion {
     @JsonEnumDefaultValue
     V1("1.0.0"),
-    V2("2.0.0");
+    V2("2.0.0"),
+    V4("4.0.0");
 
     private static final Map<String, DefinitionVersion> BY_LABEL = new HashMap<>();
 
@@ -42,17 +47,9 @@ public enum DefinitionVersion {
     @JsonValue
     private final String label;
 
-    DefinitionVersion(String label) {
-        this.label = label;
-    }
-
     @JsonCreator
     public static DefinitionVersion valueOfLabel(String label) {
         return BY_LABEL.get(label);
-    }
-
-    public String getLabel() {
-        return label;
     }
 
     public static Set<String> versions() {

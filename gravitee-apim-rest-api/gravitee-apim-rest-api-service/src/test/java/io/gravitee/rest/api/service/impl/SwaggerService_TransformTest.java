@@ -27,7 +27,6 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.service.SwaggerService;
-import io.gravitee.rest.api.service.impl.SwaggerServiceImpl;
 import io.gravitee.rest.api.service.impl.swagger.SwaggerProperties;
 import io.gravitee.rest.api.service.impl.swagger.transformer.entrypoints.EntrypointsOAITransformer;
 import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurationOAITransformer;

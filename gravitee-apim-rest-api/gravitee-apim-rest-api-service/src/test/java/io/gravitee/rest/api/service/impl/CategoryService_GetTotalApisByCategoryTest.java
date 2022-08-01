@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;

@@ -19,13 +19,11 @@ import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Map;
-import java.util.Set;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;

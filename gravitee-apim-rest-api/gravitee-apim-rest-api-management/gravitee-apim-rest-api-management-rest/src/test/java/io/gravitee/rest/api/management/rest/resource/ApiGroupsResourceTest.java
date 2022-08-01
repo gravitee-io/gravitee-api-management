@@ -23,8 +23,6 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.GroupMemberEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.permissions.ApiPermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -58,6 +56,48 @@ public class ApiGroupsResourceTest extends AbstractResourceTest {
         resourceConfig.register(ApiResourceNotAdminTest.AuthenticationFilter.class);
     }
 
+    @Before
+    public void init() {
+        Mockito.reset(apiService);
+        Mockito.reset(apiGroupService);
+        Mockito.reset(roleService);
+    }
+
+    @Test
+    public void shouldReturn500IfTechnicalException() {
+        when(apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), API_ID))
+            .thenThrow(new TechnicalManagementException());
+
+        Response response = envTarget(API_ID).path("groups").request().get();
+
+        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
+    }
+
+    @Test
+    public void shouldReturn403IfNotGranted() {
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+        Response response = envTarget(API_ID).path("groups").request().get();
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void shouldReturnGroupsIfGranted() {
+        ApiEntity api = Mockito.mock(ApiEntity.class);
+
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+
+        when(apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), API_ID))
+            .thenReturn(Map.of(UuidString.generateRandom(), List.of(new GroupMemberEntity())));
+
+        Response response = envTarget(API_ID).path("groups").request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        Map<String, List<MemberEntity>> responseBody = response.readEntity(new GenericType<>() {});
+
+        assertEquals(1, responseBody.size());
+    }
+
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
 
@@ -87,49 +127,5 @@ public class ApiGroupsResourceTest extends AbstractResourceTest {
                 }
             );
         }
-    }
-
-    @Before
-    public void init() {
-        Mockito.reset(apiService);
-        Mockito.reset(roleService);
-    }
-
-    @Test
-    public void shouldReturn500IfTechnicalException() {
-        ApiEntity api = Mockito.mock(ApiEntity.class);
-
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
-
-        when(apiService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), API_ID)).thenThrow(new TechnicalManagementException());
-
-        Response response = envTarget(API_ID).path("groups").request().get();
-
-        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
-    }
-
-    @Test
-    public void shouldReturn403IfNotGranted() {
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        Response response = envTarget(API_ID).path("groups").request().get();
-        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
-    }
-
-    @Test
-    public void shouldReturnGroupsIfGranted() {
-        ApiEntity api = Mockito.mock(ApiEntity.class);
-
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
-
-        when(apiService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), API_ID))
-            .thenReturn(Map.of(UuidString.generateRandom(), List.of(new GroupMemberEntity())));
-
-        Response response = envTarget(API_ID).path("groups").request().get();
-
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        Map<String, List<MemberEntity>> responseBody = response.readEntity(new GenericType<>() {});
-
-        assertEquals(1, responseBody.size());
     }
 }

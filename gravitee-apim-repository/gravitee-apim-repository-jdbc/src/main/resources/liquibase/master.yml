@@ -130,4 +130,6 @@ databaseChangeLog:
   - include:
       - file: liquibase/changelogs/v3_18_2/schema.yml
   - include:
+      - file: liquibase/changelogs/v3_19_0/schema.yml
+  - include:
       - file: liquibase/changelogs/v3_19_0/schema_gko.yml

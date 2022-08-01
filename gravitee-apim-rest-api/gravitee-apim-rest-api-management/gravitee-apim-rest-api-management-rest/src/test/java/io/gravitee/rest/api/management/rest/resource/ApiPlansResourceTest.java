@@ -22,12 +22,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Plan;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.Arrays;
 import java.util.Set;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
