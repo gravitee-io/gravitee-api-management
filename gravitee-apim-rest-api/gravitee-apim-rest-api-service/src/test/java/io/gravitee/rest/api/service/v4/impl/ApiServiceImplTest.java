@@ -99,7 +99,6 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
-import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -107,7 +106,12 @@ import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.*;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.PropertiesService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.IndexableApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
@@ -238,7 +242,7 @@ public class ApiServiceImplTest {
     private UpdateApiEntity updateApiEntity;
     private Api api;
     private Api updatedApi;
-    private ObjectMapper objectMapper = new GraviteeMapper();
+    private final ObjectMapper objectMapper = new GraviteeMapper();
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -318,13 +322,11 @@ public class ApiServiceImplTest {
     @Test
     public void shouldCreateWithListener() throws TechnicalException {
         when(apiRepository.create(any()))
-            .thenAnswer(
-                invocation -> {
-                    Api api = invocation.getArgument(0);
-                    api.setId(API_ID);
-                    return api;
-                }
-            );
+            .thenAnswer(invocation -> {
+                Api api = invocation.getArgument(0);
+                api.setId(API_ID);
+                return api;
+            });
         NewApiEntity newApiEntity = new NewApiEntity();
         newApiEntity.setName(API_NAME);
         newApiEntity.setApiVersion("v1");
@@ -367,10 +369,9 @@ public class ApiServiceImplTest {
         verify(apiMetadataService, times(1))
             .create(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    newApiMetadataEntity ->
-                        newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
-                        newApiMetadataEntity.getName().equals(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY)
+                argThat(newApiMetadataEntity ->
+                    newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
+                    newApiMetadataEntity.getName().equals(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY)
                 )
             );
         verify(membershipService, times(1))
@@ -385,13 +386,11 @@ public class ApiServiceImplTest {
     @Test
     public void shouldCreateWithListenerAndFlows() throws TechnicalException {
         when(apiRepository.create(any()))
-            .thenAnswer(
-                invocation -> {
-                    Api api = invocation.getArgument(0);
-                    api.setId(API_ID);
-                    return api;
-                }
-            );
+            .thenAnswer(invocation -> {
+                Api api = invocation.getArgument(0);
+                api.setId(API_ID);
+                return api;
+            });
         NewApiEntity newApiEntity = new NewApiEntity();
         newApiEntity.setName(API_NAME);
         newApiEntity.setApiVersion("v1");
@@ -437,10 +436,9 @@ public class ApiServiceImplTest {
         verify(apiMetadataService, times(1))
             .create(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    newApiMetadataEntity ->
-                        newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
-                        newApiMetadataEntity.getName().equals(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY)
+                argThat(newApiMetadataEntity ->
+                    newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
+                    newApiMetadataEntity.getName().equals(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY)
                 )
             );
         verify(membershipService, times(1))
