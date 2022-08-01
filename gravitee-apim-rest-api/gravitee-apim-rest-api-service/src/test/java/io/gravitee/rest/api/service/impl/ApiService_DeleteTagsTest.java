@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +47,9 @@ import org.mockito.junit.MockitoJUnitRunner;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_DeleteTagsTest {
+
+    @InjectMocks
+    private final ApiService apiService = new ApiServiceImpl();
 
     @Mock
     EnvironmentService environmentService;
@@ -78,10 +82,10 @@ public class ApiService_DeleteTagsTest {
     ParameterService parameterService;
 
     @Mock
-    ObjectMapper objectMapper;
+    ApiNotificationService apiNotificationService;
 
-    @InjectMocks
-    private final ApiService apiService = new ApiServiceImpl();
+    @Mock
+    ObjectMapper objectMapper;
 
     @Test
     public void shouldDeleteTags() throws TechnicalException, JsonProcessingException {

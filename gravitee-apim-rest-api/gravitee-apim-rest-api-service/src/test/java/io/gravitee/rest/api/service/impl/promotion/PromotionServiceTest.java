@@ -21,9 +21,16 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,14 +44,34 @@ import io.gravitee.repository.management.model.PromotionStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.promotion.*;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.model.promotion.PromotionEntity;
+import io.gravitee.rest.api.model.promotion.PromotionEntityAuthor;
+import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
+import io.gravitee.rest.api.model.promotion.PromotionRequestEntity;
+import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
+import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.service.ApiDuplicatorService;
+import io.gravitee.rest.api.service.ApiExportService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.services.CockpitPromotionService;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.*;
-import java.util.*;
+import io.gravitee.rest.api.service.exceptions.BridgeOperationException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.PromotionAlreadyInProgressException;
+import io.gravitee.rest.api.service.exceptions.PromotionNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.v4.ApiService;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -242,7 +269,7 @@ public class PromotionServiceTest {
 
         ApiEntity existingApi = new ApiEntity();
         existingApi.setId("api#existing");
-        when(apiService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingApi);
+        when(apiService.findIndexableApiById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingApi);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
         when(
@@ -305,6 +332,7 @@ public class PromotionServiceTest {
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
         when(apiService.exists(any())).thenReturn(true);
+        when(apiService.findIndexableApiById(any(), any())).thenReturn(mock(IndexableApi.class));
         Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
@@ -332,7 +360,7 @@ public class PromotionServiceTest {
 
         ApiEntity existingApi = new ApiEntity();
         existingApi.setId("api#existing");
-        when(apiService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingApi);
+        when(apiService.findIndexableApiById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingApi);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.ERROR);
 
@@ -429,17 +457,17 @@ public class PromotionServiceTest {
         environment.setId("env-id");
 
         // API is found by crossId
-        ApiEntity apiFoundByCrossId = mock(ApiEntity.class);
-        when(apiService.findByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.of(apiFoundByCrossId));
+        String apiIdFoundByCrossId = UUID.randomUUID().toString();
+        when(apiService.findApiIdByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.of(apiIdFoundByCrossId));
 
-        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(
+        String resultApiId = promotionService.findAlreadyPromotedTargetApi(
             GraviteeContext.getExecutionContext(),
             environment,
             new Promotion(),
             apiDefinition
         );
 
-        assertSame(resultApi, apiFoundByCrossId);
+        assertSame(resultApiId, apiIdFoundByCrossId);
     }
 
     @Test
@@ -450,25 +478,27 @@ public class PromotionServiceTest {
         environment.setId("env-id");
 
         // API is not found by crossId
-        when(apiService.findByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
+        when(apiService.findApiIdByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
 
         // Last promotions of this API are found
-        Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
+        Promotion aPromotion = getAPromotion();
+        Page<Promotion> promotionPage = new Page<>(singletonList(aPromotion), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         // Target API of last promotion is found
-        ApiEntity apiFromLastPromotion = mock(ApiEntity.class);
-        when(apiService.exists("api#1-Promoted")).thenReturn(true);
-        when(apiService.findById(GraviteeContext.getExecutionContext(), "api#1-Promoted")).thenReturn(apiFromLastPromotion);
+        IndexableApi apiFromLastPromotion = mock(IndexableApi.class);
+        when(apiFromLastPromotion.getId()).thenReturn(aPromotion.getApiId());
+        when(apiService.exists(aPromotion.getTargetApiId())).thenReturn(true);
+        when(apiService.findIndexableApiById(GraviteeContext.getExecutionContext(), "api#1-Promoted")).thenReturn(apiFromLastPromotion);
 
-        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(
+        String resultApi = promotionService.findAlreadyPromotedTargetApi(
             GraviteeContext.getExecutionContext(),
             environment,
-            getAPromotion(),
+            aPromotion,
             apiDefinition
         );
 
-        assertSame(resultApi, apiFromLastPromotion);
+        assertSame(resultApi, aPromotion.getApiId());
     }
 
     @Test
@@ -479,20 +509,20 @@ public class PromotionServiceTest {
         environment.setId("env-id");
 
         // API is not found by crossId
-        when(apiService.findByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
+        when(apiService.findApiIdByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
 
         // Searching for previous promotions of this API returns an empty list
         Page<Promotion> promotionPage = new Page<>(emptyList(), 0, 0, 0);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
-        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(
+        String resultApiId = promotionService.findAlreadyPromotedTargetApi(
             GraviteeContext.getExecutionContext(),
             environment,
             getAPromotion(),
             apiDefinition
         );
 
-        assertNull(resultApi);
+        assertNull(resultApiId);
     }
 
     @Test
@@ -503,24 +533,24 @@ public class PromotionServiceTest {
         environment.setId("env-id");
 
         // API is not found by crossId
-        when(apiService.findByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
+        when(apiService.findApiIdByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
 
         // Last promotions of this API are found
-        Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
+        Promotion aPromotion = getAPromotion();
+        Page<Promotion> promotionPage = new Page<>(singletonList(aPromotion), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         // Target API of last promotion is not found
-        ApiEntity apiFromLastPromotion = mock(ApiEntity.class);
-        when(apiService.exists("api#1-Promoted")).thenReturn(false);
+        when(apiService.exists(aPromotion.getTargetApiId())).thenReturn(false);
 
-        ApiEntity resultApi = promotionService.findAlreadyPromotedTargetApi(
+        String resultApiId = promotionService.findAlreadyPromotedTargetApi(
             GraviteeContext.getExecutionContext(),
             environment,
-            getAPromotion(),
+            aPromotion,
             apiDefinition
         );
 
-        assertNull(resultApi);
+        assertNull(resultApiId);
     }
 
     private UserEntity getAUserEntity() {

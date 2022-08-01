@@ -53,4 +53,10 @@ public class ResourceServiceImpl extends AbstractPluginService<ResourcePlugin, P
         String schema = getSchema(resource.getType());
         jsonSchemaService.validate(schema, resource.getConfiguration());
     }
+
+    @Override
+    public void validateResourceConfiguration(io.gravitee.definition.model.v4.resource.Resource resource) {
+        String schema = getSchema(resource.getType());
+        jsonSchemaService.validate(schema, resource.getConfiguration());
+    }
 }

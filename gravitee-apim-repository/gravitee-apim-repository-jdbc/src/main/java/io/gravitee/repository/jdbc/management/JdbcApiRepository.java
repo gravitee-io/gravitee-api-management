@@ -20,11 +20,17 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.*;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -32,11 +38,20 @@ import io.gravitee.repository.management.model.Visibility;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -49,6 +64,16 @@ import org.springframework.util.StringUtils;
 public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> implements ApiRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiRepository.class);
+    private static final JdbcHelper.ChildAdder<Api> CHILD_ADDER = (Api parent, ResultSet rs) -> {
+        Set<String> categories = parent.getCategories();
+        if (categories == null) {
+            categories = new HashSet<>();
+            parent.setCategories(categories);
+        }
+        if (rs.getString("category") != null) {
+            categories.add(rs.getString("category"));
+        }
+    };
     private final String API_CATEGORIES;
     private final String API_LABELS;
     private final String API_GROUPS;
@@ -72,7 +97,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("version", Types.NVARCHAR, String.class)
+            .addColumn("definition_version", Types.NVARCHAR, DefinitionVersion.class)
             .addColumn("definition", Types.NVARCHAR, String.class)
+            .addColumn("type", Types.NVARCHAR, ApiType.class)
             .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
@@ -84,17 +111,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .addColumn("background", Types.NVARCHAR, String.class)
             .build();
     }
-
-    private static final JdbcHelper.ChildAdder<Api> CHILD_ADDER = (Api parent, ResultSet rs) -> {
-        Set<String> categories = parent.getCategories();
-        if (categories == null) {
-            categories = new HashSet<>();
-            parent.setCategories(categories);
-        }
-        if (rs.getString("category") != null) {
-            categories.add(rs.getString("category"));
-        }
-    };
 
     private void addLabels(Api parent) {
         List<String> labels = getLabels(parent.getId());
@@ -562,5 +578,38 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
         LOGGER.debug("JdbcApiRepository.findByEnvironmentIdAndCrossId({}, {}) = {}", environmentId, crossId, result);
         return result;
+    }
+
+    @Override
+    public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException {
+        LOGGER.debug("JdbcApiRepository.findIdByEnvironmentIdAndCrossId({}, {})", environmentId, crossId);
+        List<String> rows = jdbcTemplate.queryForList(
+            getOrm().getSelectAllSql() + " a.id where a.environment_id = ? and a.cross_id = ?",
+            String.class,
+            environmentId,
+            crossId
+        );
+
+        if (rows.size() > 1) {
+            throw new TechnicalException("More than one API was found for environmentId " + environmentId + " and crossId " + crossId);
+        }
+
+        Optional<String> result = rows.stream().findFirst();
+
+        LOGGER.debug("JdbcApiRepository.findIdByEnvironmentIdAndCrossId({}, {}) = {}", environmentId, crossId, result);
+        return result;
+    }
+
+    @Override
+    public boolean existById(final String appId) throws TechnicalException {
+        LOGGER.debug("JdbcApiRepository.existById({})", appId);
+        try {
+            String idFound = jdbcTemplate.queryForObject(getOrm().getSelectAllSql() + " a.id where a.id = ?", String.class, appId);
+
+            LOGGER.debug("JdbcApiRepository.existById({}) = {}", appId, idFound);
+            return true;
+        } catch (EmptyResultDataAccessException e) {
+            return false;
+        }
     }
 }

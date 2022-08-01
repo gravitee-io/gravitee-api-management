@@ -44,15 +44,6 @@
         <url>https://github.com/gravitee-io/issues/issues</url>
         <system>GitHub Issues</system>
     </issueManagement>
-
-    <modules>
-        <module>gravitee-apim-definition</module>
-        <module>gravitee-apim-distribution</module>
-        <module>gravitee-apim-repository</module>
-        <module>gravitee-apim-rest-api</module>
-        <module>gravitee-apim-gateway</module>
-    </modules>
-
     <properties>
         <!-- Version properties -->
         <revision>3.19.0</revision>
@@ -968,4 +959,46 @@
             </snapshots>
         </repository>
     </repositories>
+
+    <profiles>
+        <profile>
+            <id>all-modules</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>gravitee-apim-definition</module>
+                <module>gravitee-apim-distribution</module>
+                <module>gravitee-apim-repository</module>
+                <module>gravitee-apim-rest-api</module>
+                <module>gravitee-apim-gateway</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>main-modules</id>
+            <activation>
+                <property>
+                    <name>main-modules</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>gravitee-apim-definition</module>
+                <module>gravitee-apim-rest-api</module>
+                <module>gravitee-apim-gateway</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>repository-modules</id>
+            <activation>
+                <property>
+                    <name>repository-modules</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>gravitee-apim-repository</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>

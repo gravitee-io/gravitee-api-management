@@ -34,6 +34,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiOwnershipTransferException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.impl.MembershipServiceImpl;
+import io.gravitee.rest.api.service.v4.ApiGroupService;
+import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.Assert;
@@ -83,6 +85,9 @@ public class MembershipService_TransferOwnershipTest {
     @Mock
     private ApiService apiService;
 
+    @Mock
+    private ApiGroupService apiGroupService;
+
     @Before
     public void setUp() {
         newPrimaryOwnerRole.setId(USER_ROLE_ID);
@@ -96,7 +101,7 @@ public class MembershipService_TransferOwnershipTest {
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
-        when(apiService.findById(EXECUTION_CONTEXT, API_ID)).thenReturn(apiEntity);
+        when(apiService.findIndexableApiById(EXECUTION_CONTEXT, API_ID)).thenReturn(apiEntity);
     }
 
     @Test

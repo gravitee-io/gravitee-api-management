@@ -42,12 +42,6 @@ import org.springframework.stereotype.Component;
 public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcTestRepositoryInitializer.class);
-
-    private final DataSource dataSource;
-
-    private final String prefix;
-    private final String rateLimitPrefix;
-
     private static final List<String> tablesToTruncate = Arrays.asList(
         "apis",
         "keys",
@@ -133,20 +127,19 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "flows",
         "flow_steps",
         "flow_methods",
-        "flow_consumers"
+        "flow_consumers",
+        "flow_selectors",
+        "flow_selector_http_methods",
+        "flow_selector_channel_operations",
+        "flow_tags"
     );
-
     private static final List<String> tablesToDrop = concatenate(
         tablesToTruncate,
         Arrays.asList("databasechangelog", "databasechangeloglock")
     );
-
-    private static <T> List<T> concatenate(List<T> first, List<T> second) {
-        final List result = new ArrayList<>(first.size() + second.size());
-        result.addAll(first);
-        result.addAll(second);
-        return result;
-    }
+    private final DataSource dataSource;
+    private final String prefix;
+    private final String rateLimitPrefix;
 
     @Autowired
     public JdbcTestRepositoryInitializer(DataSource dataSource, Properties graviteeProperties) {
@@ -160,6 +153,13 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             jt.execute("drop table if exists " + escapeReservedWord(prefix + table));
         }
         jt.execute("drop table if exists " + escapeReservedWord(rateLimitPrefix + "ratelimit"));
+    }
+
+    private static <T> List<T> concatenate(List<T> first, List<T> second) {
+        final List result = new ArrayList<>(first.size() + second.size());
+        result.addAll(first);
+        result.addAll(second);
+        return result;
     }
 
     @Override

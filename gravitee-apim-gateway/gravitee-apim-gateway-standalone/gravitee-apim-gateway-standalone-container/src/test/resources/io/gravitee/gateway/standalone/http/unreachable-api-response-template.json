@@ -13,7 +13,6 @@
     "strip_context_path": false,
     "dumpRequest": true
   },
-
   "flows": [
     {
       "name": "flow-1",
@@ -27,7 +26,6 @@
       "post": []
     }
   ],
-
   "response_templates" : {
     "GATEWAY_CLIENT_CONNECTION_ERROR" : {
       "*/*" : {

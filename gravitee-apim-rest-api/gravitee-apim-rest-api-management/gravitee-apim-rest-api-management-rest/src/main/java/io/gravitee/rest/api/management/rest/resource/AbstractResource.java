@@ -37,9 +37,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import org.glassfish.jersey.message.internal.HttpHeaderReader;
+import org.glassfish.jersey.message.internal.MatchingEntityTag;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.CollectionUtils;
 
@@ -67,6 +72,9 @@ public abstract class AbstractResource {
 
     @Inject
     protected ApiService apiService;
+
+    @Inject
+    protected io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
 
     @Inject
     protected PermissionService permissionService;
@@ -132,14 +140,18 @@ public abstract class AbstractResource {
     }
 
     protected boolean canManageApi(final ApiEntity api) {
-        return isAdmin() || isDirectMember(api) || isMemberThroughGroup(api);
+        return isAdmin() || isDirectMember(api.getId()) || isMemberThroughGroup(api.getGroups());
     }
 
-    private boolean isDirectMember(ApiEntity api) {
+    protected boolean canManageV4Api(final io.gravitee.rest.api.model.v4.api.ApiEntity api) {
+        return isAdmin() || isDirectMember(api.getId()) || isMemberThroughGroup(api.getGroups());
+    }
+
+    private boolean isDirectMember(String apiId) {
         return membershipService
             .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), API)
             .stream()
-            .filter(membership -> membership.getReferenceId().equals(api.getId()))
+            .filter(membership -> membership.getReferenceId().equals(apiId))
             .filter(membership -> membership.getRoleId() != null)
             .anyMatch(
                 membership -> {
@@ -149,8 +161,8 @@ public abstract class AbstractResource {
             );
     }
 
-    private boolean isMemberThroughGroup(ApiEntity api) {
-        if (CollectionUtils.isEmpty(api.getGroups())) {
+    private boolean isMemberThroughGroup(Set<String> apiGroups) {
+        if (CollectionUtils.isEmpty(apiGroups)) {
             return false;
         }
 
@@ -167,37 +179,37 @@ public abstract class AbstractResource {
             .map(MembershipEntity::getReferenceId)
             .collect(Collectors.toSet());
 
-        groups.retainAll(api.getGroups());
+        groups.retainAll(apiGroups);
 
         return !groups.isEmpty();
     }
 
-    protected void canReadApi(final ExecutionContext executionContext, final String api) {
+    protected void canReadApi(final ExecutionContext executionContext, final String apiId) {
         if (!isAdmin()) {
             // get memberships of the current user
             List<MembershipEntity> memberships = retrieveApiMembership().collect(Collectors.toList());
             Set<String> groups = memberships
                 .stream()
                 .filter(m -> GROUP.equals(m.getReferenceType()))
-                .map(m -> m.getReferenceId())
+                .map(MembershipEntity::getReferenceId)
                 .collect(Collectors.toSet());
             Set<String> directMembers = memberships
                 .stream()
                 .filter(m -> API.equals(m.getReferenceType()))
-                .map(m -> m.getReferenceId())
+                .map(MembershipEntity::getReferenceId)
                 .collect(Collectors.toSet());
 
             // if the current user is member of the API, continue
-            if (directMembers.contains(api)) {
+            if (directMembers.contains(apiId)) {
                 return;
             }
 
             // fetch group memberships
             final ApiQuery apiQuery = new ApiQuery();
             apiQuery.setGroups(new ArrayList<>(groups));
-            apiQuery.setIds(Collections.singletonList(api));
+            apiQuery.setIds(Collections.singletonList(apiId));
             final Collection<String> strings = apiService.searchIds(executionContext, apiQuery);
-            final boolean canReadAPI = strings.contains(api);
+            final boolean canReadAPI = strings.contains(apiId);
             if (!canReadAPI) {
                 throw new ForbiddenAccessException();
             }
@@ -214,5 +226,27 @@ public abstract class AbstractResource {
             requestUriBuilder.path(path);
         }
         return requestUriBuilder.build();
+    }
+
+    protected Response.ResponseBuilder evaluateIfMatch(final HttpHeaders headers, final String etagValue) {
+        String ifMatch = headers.getHeaderString(HttpHeaders.IF_MATCH);
+        if (ifMatch == null || ifMatch.isEmpty()) {
+            return null;
+        }
+
+        // Handle case for -gzip appended automatically (and sadly) by Apache
+        ifMatch = ifMatch.replaceAll("-gzip", "");
+
+        try {
+            Set<MatchingEntityTag> matchingTags = HttpHeaderReader.readMatchingEntityTag(ifMatch);
+            MatchingEntityTag ifMatchHeader = matchingTags.iterator().next();
+            EntityTag eTag = new EntityTag(etagValue, ifMatchHeader.isWeak());
+
+            return matchingTags != MatchingEntityTag.ANY_MATCH && !matchingTags.contains(eTag)
+                ? Response.status(Response.Status.PRECONDITION_FAILED)
+                : null;
+        } catch (java.text.ParseException e) {
+            return null;
+        }
     }
 }

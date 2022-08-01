@@ -24,7 +24,6 @@ import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.v3.oas.models.servers.Server;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 

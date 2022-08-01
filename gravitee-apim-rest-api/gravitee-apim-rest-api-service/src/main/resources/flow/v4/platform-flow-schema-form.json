@@ -1,0 +1,114 @@
+{
+  "type": "object",
+  "id": "apim",
+  "properties": {
+    "name": {
+      "title": "Name",
+      "description": "The name of flow. If empty, the name will be generated with the path and methods",
+      "type": "string"
+    },
+    "http-selector": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "description": "The path of flow (must start by /)",
+          "type": "string",
+          "pattern": "^/",
+          "default": "/"
+        },
+        "path-operator": {
+          "title": "Operator path",
+          "description": "The operator path",
+          "type": "string",
+          "enum": [
+            "EQUALS",
+            "STARTS_WITH"
+          ],
+          "default": "STARTS_WITH",
+          "x-schema-form": {
+            "titleMap": {
+              "EQUALS": "Equals",
+              "STARTS_WITH": "Starts with"
+            }
+          }
+        },
+        "methods": {
+          "title": "Methods",
+          "description": "The HTTP methods of flow (ALL if empty)",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "CONNECT",
+              "DELETE",
+              "GET",
+              "HEAD",
+              "OPTIONS",
+              "PATCH",
+              "POST",
+              "PUT",
+              "TRACE"
+            ]
+          }
+        }
+      },
+      "required": [
+        "path",
+        "path-operator"
+      ]
+    },
+    "channel-selector": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "title": "Channel",
+          "description": "The channel of flow",
+          "type": "string"
+        },
+        "channel-operator": {
+          "title": "Operator channel",
+          "description": "The operator channel",
+          "type": "string",
+          "enum": [
+            "EQUALS",
+            "STARTS_WITH"
+          ],
+          "default": "STARTS_WITH",
+          "x-schema-form": {
+            "titleMap": {
+              "EQUALS": "Equals",
+              "STARTS_WITH": "Starts with"
+            }
+          }
+        }
+      },
+      "required": [
+        "channel",
+        "channel-operator"
+      ]
+    },
+    "condition-selector": {
+      "type": "object",
+      "properties": {
+        "condition": {
+          "title": "Condition",
+          "description": "The condition of the flow. Supports EL.",
+          "type": "string",
+          "x-schema-form": {
+            "expression-language": true
+          }
+        }
+      }
+    },
+    "tags": {
+      "title": "Tags",
+      "description": "The tags of flow.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": []
+      }
+    }
+  }
+}

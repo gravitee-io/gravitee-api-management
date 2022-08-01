@@ -51,6 +51,8 @@ import org.springframework.beans.factory.annotation.Value;
 public class ApiSynchronizer extends AbstractSynchronizer {
 
     private final Logger logger = LoggerFactory.getLogger(ApiSynchronizer.class);
+    private final Map<String, Environment> environmentMap = new ConcurrentHashMap<>();
+    private final Map<String, io.gravitee.repository.management.model.Organization> organizationMap = new ConcurrentHashMap<>();
 
     @Autowired
     private PlanRepository planRepository;
@@ -69,9 +71,6 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
     @Autowired
     private OrganizationRepository organizationRepository;
-
-    private final Map<String, Environment> environmentMap = new ConcurrentHashMap<>();
-    private final Map<String, io.gravitee.repository.management.model.Organization> organizationMap = new ConcurrentHashMap<>();
 
     public void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments) {
         final long start = System.currentTimeMillis();
@@ -220,7 +219,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                 eventApiDefinition
             );
             apiDefinition.setEnabled(eventPayload.getLifecycleState() == LifecycleState.STARTED);
-            apiDefinition.setDeployedAt(eventPayload.getDeployedAt());
+            apiDefinition.setDeployedAt(apiEvent.getCreatedAt());
 
             enhanceWithOrgAndEnv(eventPayload.getEnvironmentId(), apiDefinition);
 

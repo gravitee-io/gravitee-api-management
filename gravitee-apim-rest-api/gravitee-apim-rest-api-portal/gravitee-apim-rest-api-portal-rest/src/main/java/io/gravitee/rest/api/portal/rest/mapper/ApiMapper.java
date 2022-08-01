@@ -32,7 +32,6 @@ import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import java.math.BigDecimal;
 import java.time.ZoneOffset;

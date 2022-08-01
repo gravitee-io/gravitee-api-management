@@ -19,8 +19,8 @@ import static org.junit.Assert.*;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.*;
-import io.gravitee.repository.management.model.flow.FlowOperator;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;
@@ -31,6 +31,37 @@ import org.junit.Test;
 public class FLowConverterTest {
 
     private final FlowConverter converter = new FlowConverter();
+
+    private static PathOperator pathOperator() {
+        PathOperator pathOperator = new PathOperator();
+        pathOperator.setPath("/");
+        return pathOperator;
+    }
+
+    private static List<Consumer> consumers() {
+        Consumer consumer = new Consumer();
+        consumer.setConsumerId("consumer");
+        consumer.setConsumerType(ConsumerType.TAG);
+        return List.of(consumer);
+    }
+
+    private static List<Step> pre() {
+        Step step = new Step();
+        step.setEnabled(true);
+        step.setName("IPFiltering");
+        step.setPolicy("ip-filtering");
+        step.setConfiguration("{\"whitelistIps\":[\"0.0.0.0/0\"]}");
+        return List.of(step);
+    }
+
+    private static List<Step> post() {
+        Step step = new Step();
+        step.setEnabled(true);
+        step.setName("Transform Headers");
+        step.setPolicy("transform-headers");
+        step.setConfiguration("{\"scope\":\"RESPONSE\",\"addHeaders\":[{\"name\":\"x-platform\",\"value\":\"true\"}]}");
+        return List.of(step);
+    }
 
     @Test
     public void toModelShouldInitializeNonNullableFields() {
@@ -70,36 +101,5 @@ public class FLowConverterTest {
         assertNotNull(flowDefinition.getPathOperator());
         assertEquals(expectedOperator.getOperator(), flowDefinition.getPathOperator().getOperator());
         assertEquals(expectedOperator.getPath(), flowDefinition.getPathOperator().getPath());
-    }
-
-    private static PathOperator pathOperator() {
-        PathOperator pathOperator = new PathOperator();
-        pathOperator.setPath("/");
-        return pathOperator;
-    }
-
-    private static List<Consumer> consumers() {
-        Consumer consumer = new Consumer();
-        consumer.setConsumerId("consumer");
-        consumer.setConsumerType(ConsumerType.TAG);
-        return List.of(consumer);
-    }
-
-    private static List<Step> pre() {
-        Step step = new Step();
-        step.setEnabled(true);
-        step.setName("IPFiltering");
-        step.setPolicy("ip-filtering");
-        step.setConfiguration("{\"whitelistIps\":[\"0.0.0.0/0\"]}");
-        return List.of(step);
-    }
-
-    private static List<Step> post() {
-        Step step = new Step();
-        step.setEnabled(true);
-        step.setName("Transform Headers");
-        step.setPolicy("transform-headers");
-        step.setConfiguration("{\"scope\":\"RESPONSE\",\"addHeaders\":[{\"name\":\"x-platform\",\"value\":\"true\"}]}");
-        return List.of(step);
     }
 }
