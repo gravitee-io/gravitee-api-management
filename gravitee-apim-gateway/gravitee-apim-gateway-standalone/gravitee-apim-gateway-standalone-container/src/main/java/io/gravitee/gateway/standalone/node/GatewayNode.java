@@ -15,12 +15,8 @@
  */
 package io.gravitee.gateway.standalone.node;
 
-import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_BY_DEFAULT;
-import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_KEY;
-
 import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
-import io.gravitee.gateway.reactor.Reactor;
+import io.gravitee.gateway.reactor.handler.ReactorEventListener;
 import io.gravitee.gateway.report.impl.NodeMonitoringReporterService;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
 import io.gravitee.node.api.NodeMetadataResolver;
@@ -31,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,9 +36,6 @@ public class GatewayNode extends AbstractNode {
 
     @Autowired
     private NodeMetadataResolver nodeMetadataResolver;
-
-    @Value("${" + JUPITER_MODE_ENABLED_KEY + ":" + JUPITER_MODE_ENABLED_BY_DEFAULT + "}")
-    private boolean jupiterMode;
 
     private Map<String, Object> metadata = null;
 
@@ -71,13 +63,7 @@ public class GatewayNode extends AbstractNode {
         final List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
 
         components.add(NodeMonitoringReporterService.class);
-
-        if (jupiterMode) {
-            components.add(HttpRequestDispatcher.class);
-        } else {
-            components.add(Reactor.class);
-        }
-
+        components.add(ReactorEventListener.class);
         components.add(VertxEmbeddedContainer.class);
         components.add(ClusterService.class);
 

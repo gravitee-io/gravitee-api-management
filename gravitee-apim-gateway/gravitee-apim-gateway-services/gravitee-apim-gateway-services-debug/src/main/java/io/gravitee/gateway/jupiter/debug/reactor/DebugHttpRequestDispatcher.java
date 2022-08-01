@@ -43,7 +43,6 @@ import io.vertx.reactivex.core.http.HttpServerRequest;
 public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
 
     public DebugHttpRequestDispatcher(
-        EventManager eventManager,
         GatewayConfiguration gatewayConfiguration,
         ReactorHandlerRegistry reactorHandlerRegistry,
         EntrypointResolver entrypointResolver,
@@ -58,7 +57,6 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
         Vertx vertx
     ) {
         super(
-            eventManager,
             gatewayConfiguration,
             reactorHandlerRegistry,
             entrypointResolver,

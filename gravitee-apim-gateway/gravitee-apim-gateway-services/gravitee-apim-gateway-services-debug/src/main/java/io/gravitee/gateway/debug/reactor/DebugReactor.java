@@ -15,11 +15,8 @@
  */
 package io.gravitee.gateway.debug.reactor;
 
-import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
@@ -47,10 +44,5 @@ public class DebugReactor extends DefaultReactor {
             responseProcessorChainFactory,
             notFoundProcessorChainFactory
         );
-    }
-
-    @Override
-    public void onEvent(Event<ReactorEvent, Reactable> reactorEvent) {
-        // Ignore events
     }
 }
