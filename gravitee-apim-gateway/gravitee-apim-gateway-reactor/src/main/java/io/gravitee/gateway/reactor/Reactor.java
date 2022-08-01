@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.reactor;
 
-import io.gravitee.common.service.Service;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -25,6 +24,6 @@ import io.gravitee.gateway.api.handler.Handler;
  * @author David BRASSELY (david at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Reactor extends Service<Reactor> {
+public interface Reactor {
     void route(Request request, Response response, Handler<ExecutionContext> handler);
 }

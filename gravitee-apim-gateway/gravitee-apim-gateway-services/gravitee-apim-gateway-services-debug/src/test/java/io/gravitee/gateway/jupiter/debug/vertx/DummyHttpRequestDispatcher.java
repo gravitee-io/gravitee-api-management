@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.jupiter.debug.vertx;
 
-import io.gravitee.common.component.Lifecycle;
 import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
 import io.reactivex.Completable;
 import io.vertx.reactivex.core.http.HttpServerRequest;
@@ -29,20 +28,5 @@ public class DummyHttpRequestDispatcher implements HttpRequestDispatcher {
     @Override
     public Completable dispatch(HttpServerRequest httpServerRequest) {
         return httpServerRequest.response().rxEnd();
-    }
-
-    @Override
-    public Lifecycle.State lifecycleState() {
-        return null;
-    }
-
-    @Override
-    public HttpRequestDispatcher start() throws Exception {
-        return this;
-    }
-
-    @Override
-    public HttpRequestDispatcher stop() {
-        return this;
     }
 }
