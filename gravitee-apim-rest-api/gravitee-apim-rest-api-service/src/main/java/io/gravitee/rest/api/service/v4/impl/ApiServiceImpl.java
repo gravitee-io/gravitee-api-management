@@ -296,7 +296,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, userId, null);
 
             Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
-            final ApiEntity existingApiEntity = apiMapper.toEntity(apiToUpdate, primaryOwner);
+            final ApiEntity existingApiEntity = apiMapper.toEntity(executionContext, apiToUpdate, primaryOwner, null, false);
 
             apiValidationService.validateAndSanitizeUpdateApi(executionContext, updateApiEntity, primaryOwner, existingApiEntity);
 
@@ -435,13 +435,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     .findFirst();
                 if (firstUpdateHttpListener.isPresent() && firstExistingHttpListener.isPresent()) {
                     ListenerHttp updateHttpListener = (ListenerHttp) firstUpdateHttpListener.get();
-                    ListenerHttp existingHttpListener = (ListenerHttp) firstUpdateHttpListener.get();
+                    ListenerHttp existingHttpListener = (ListenerHttp) firstExistingHttpListener.get();
                     // Audit API logging if option is enabled
                     auditApiLogging(
                         executionContext,
                         updateApiEntity.getId(),
-                        updateHttpListener.getLogging(),
-                        existingHttpListener.getLogging()
+                        existingHttpListener.getLogging(),
+                        updateHttpListener.getLogging()
                     );
                 }
             }
