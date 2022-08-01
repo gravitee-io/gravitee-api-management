@@ -502,6 +502,7 @@ jobs:
                       - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
                       - gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
                       - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
+                      - gravitee-apim-plugin/gravitee-apim-plugin-coverage/target/site/jacoco-aggregate/
 
     test-repository:
         machine:
@@ -1650,6 +1651,7 @@ workflows:
                               - gravitee-apim-rest-api
                               - gravitee-apim-gateway
                               - gravitee-apim-definition
+                              - gravitee-apim-plugin
                   context: cicd-orchestrator
                   requires:
                       - test

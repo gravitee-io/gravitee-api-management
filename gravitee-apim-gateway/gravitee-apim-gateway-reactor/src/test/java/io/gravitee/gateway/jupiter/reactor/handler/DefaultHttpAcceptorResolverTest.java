@@ -41,11 +41,11 @@ class DefaultHttpAcceptorResolverTest {
     @Mock
     private ReactorHandlerRegistry handlerRegistry;
 
-    private DefaultEntrypointResolver cut;
+    private DefaultHttpAcceptorResolver cut;
 
     @BeforeEach
     public void init() {
-        cut = new DefaultEntrypointResolver(handlerRegistry);
+        cut = new DefaultHttpAcceptorResolver(handlerRegistry);
     }
 
     @Test
@@ -58,7 +58,7 @@ class DefaultHttpAcceptorResolverTest {
         when(handler2.accept(HOST, PATH)).thenReturn(false);
         when(handler3.accept(HOST, PATH)).thenReturn(true);
 
-        when(handlerRegistry.getEntrypoints()).thenReturn(List.of(handler1, handler2, handler3));
+        when(handlerRegistry.getHttpAcceptorHandlers()).thenReturn(List.of(handler1, handler2, handler3));
 
         final HttpAcceptorHandler resolvedHandler = cut.resolve(HOST, PATH);
 
@@ -75,7 +75,7 @@ class DefaultHttpAcceptorResolverTest {
         when(handler2.accept(HOST, PATH)).thenReturn(false);
         when(handler3.accept(HOST, PATH)).thenReturn(false);
 
-        when(handlerRegistry.getEntrypoints()).thenReturn(List.of(handler1, handler2, handler3));
+        when(handlerRegistry.getHttpAcceptorHandlers()).thenReturn(List.of(handler1, handler2, handler3));
 
         final HttpAcceptorHandler resolvedHandler = cut.resolve(HOST, PATH);
 

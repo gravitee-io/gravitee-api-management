@@ -37,7 +37,7 @@ import io.gravitee.gateway.jupiter.core.hook.HookHelper;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
 import io.gravitee.gateway.jupiter.http.vertx.VertxHttpServerRequest;
-import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
@@ -59,7 +59,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Request dispatcher responsible to dispatch any HTTP request to the appropriate {@link io.gravitee.gateway.reactor.handler.ReactorHandler}.
- * The execution mode depends on the entrypoint resolved and the associated handler:
+ * The execution mode depends on the reactable resolved and the associated handler:
  * <ul>
  *     <li>{@link ExecutionMode#JUPITER}: request is handled by an instance of {@link ApiReactor}</li>
  *     <li>{@link ExecutionMode#V3}: request is handled by an instance of {@link ReactorHandler}</li>
@@ -73,7 +73,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
     private final Logger log = LoggerFactory.getLogger(DefaultHttpRequestDispatcher.class);
     private final GatewayConfiguration gatewayConfiguration;
-    private final EntrypointResolver entrypointResolver;
+    private final HttpAcceptorResolver httpAcceptorResolver;
     private final IdGenerator idGenerator;
     private final RequestProcessorChainFactory requestProcessorChainFactory;
     private final ResponseProcessorChainFactory responseProcessorChainFactory;
@@ -86,7 +86,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
     public DefaultHttpRequestDispatcher(
         GatewayConfiguration gatewayConfiguration,
-        EntrypointResolver entrypointResolver,
+        HttpAcceptorResolver httpAcceptorResolver,
         IdGenerator idGenerator,
         ComponentProvider globalComponentProvider,
         RequestProcessorChainFactory requestProcessorChainFactory,
@@ -98,7 +98,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         Vertx vertx
     ) {
         this.gatewayConfiguration = gatewayConfiguration;
-        this.entrypointResolver = entrypointResolver;
+        this.httpAcceptorResolver = httpAcceptorResolver;
         this.idGenerator = idGenerator;
         this.globalComponentProvider = globalComponentProvider;
         this.requestProcessorChainFactory = requestProcessorChainFactory;
@@ -128,9 +128,13 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     public Completable dispatch(HttpServerRequest httpServerRequest) {
         log.debug("Dispatching request on host {} and path {}", httpServerRequest.host(), httpServerRequest.path());
 
-        final HttpAcceptorHandler handlerEntrypoint = entrypointResolver.resolve(httpServerRequest.host(), httpServerRequest.path());
+        final HttpAcceptorHandler httpAcceptorHandler = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path());
 
-        if (handlerEntrypoint == null || handlerEntrypoint.target() == null || handlerEntrypoint.executionMode() == ExecutionMode.JUPITER) {
+        if (
+            httpAcceptorHandler == null ||
+            httpAcceptorHandler.target() == null ||
+            httpAcceptorHandler.executionMode() == ExecutionMode.JUPITER
+        ) {
             // For now, supports only sync requests.
             VertxHttpServerRequest request = new VertxHttpServerRequest(httpServerRequest, idGenerator);
 
@@ -152,12 +156,12 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                 .andThen(
                     Completable.defer(
                         () -> {
-                            if (handlerEntrypoint == null || handlerEntrypoint.target() == null) {
+                            if (httpAcceptorHandler == null || httpAcceptorHandler.target() == null) {
                                 return handleNotFound(ctx);
                             } else {
                                 // Jupiter execution mode.
                                 ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
-                                return handleJupiterRequest(ctx, handlerEntrypoint)
+                                return handleJupiterRequest(ctx, httpAcceptorHandler)
                                     .andThen(
                                         HookHelper.hook(
                                             () -> postProcessorChain.execute(ctx, ExecutionPhase.RESPONSE),
@@ -173,7 +177,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                 );
         } else {
             // V3 execution mode.
-            return handleV3Request(httpServerRequest, handlerEntrypoint);
+            return handleV3Request(httpServerRequest, httpAcceptorHandler);
         }
     }
 

@@ -34,9 +34,9 @@ public interface ReactorHandlerRegistry {
     boolean contains(Reactable reactable);
 
     /**
-     * An ordered collection of registered entrypoints.
+     * An ordered collection of registered http acceptor handlers.
      *
      * @return
      */
-    Collection<HttpAcceptorHandler> getEntrypoints();
+    Collection<HttpAcceptorHandler> getHttpAcceptorHandlers();
 }

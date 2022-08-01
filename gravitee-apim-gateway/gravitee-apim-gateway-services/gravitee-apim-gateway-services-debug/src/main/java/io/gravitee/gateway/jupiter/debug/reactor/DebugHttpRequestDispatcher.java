@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.jupiter.debug.reactor;
 
-import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.component.ComponentProvider;
@@ -26,11 +25,10 @@ import io.gravitee.gateway.jupiter.debug.reactor.context.DebugRequestExecutionCo
 import io.gravitee.gateway.jupiter.debug.vertx.TimeoutServerResponseDebugDecorator;
 import io.gravitee.gateway.jupiter.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.jupiter.reactor.DefaultHttpRequestDispatcher;
-import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.vertx.core.Vertx;
@@ -44,7 +42,7 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
 
     public DebugHttpRequestDispatcher(
         GatewayConfiguration gatewayConfiguration,
-        EntrypointResolver entrypointResolver,
+        HttpAcceptorResolver httpAcceptorResolver,
         IdGenerator idGenerator,
         ComponentProvider globalComponentProvider,
         RequestProcessorChainFactory requestProcessorChainFactory,
@@ -57,7 +55,7 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
     ) {
         super(
             gatewayConfiguration,
-            entrypointResolver,
+            httpAcceptorResolver,
             idGenerator,
             globalComponentProvider,
             requestProcessorChainFactory,

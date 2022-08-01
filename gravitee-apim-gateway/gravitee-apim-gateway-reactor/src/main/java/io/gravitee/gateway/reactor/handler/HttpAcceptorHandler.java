@@ -18,7 +18,7 @@ package io.gravitee.gateway.reactor.handler;
 import io.gravitee.definition.model.ExecutionMode;
 
 /**
- * This class represents a listening entrypoint link to a {@link ReactorHandler}.
+ * This class represents a http acceptor link to a {@link ReactorHandler}.
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team

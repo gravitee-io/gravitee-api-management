@@ -21,12 +21,12 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
- * Comparator used to sort {@link HttpAcceptorHandler} in a centralized entrypoints collection.
+ * Comparator used to sort {@link HttpAcceptorHandler} in a centralized acceptor collection.
  * The final entrypoint collection is a {@link ConcurrentSkipListSet} which rely on this comparator to add / remove entry keeping entries ordered.
  *
- * Entrypoint are first sorted by host (lower-cased), then in case of equality, by path and, in case of equality in path, the entrypoint priority is used (higher priority first).
+ * Http acceptor are first sorted by host (lower-cased), then in case of equality, by path and, in case of equality in path, the http acceptor priority is used (higher priority first).
  */
-public class HandlerEntryPointComparator implements Comparator<HttpAcceptorHandler> {
+public class HttpAcceptorHandlerComparator implements Comparator<HttpAcceptorHandler> {
 
     @Override
     public int compare(HttpAcceptorHandler o1, HttpAcceptorHandler o2) {

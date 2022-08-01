@@ -22,16 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.when;
@@ -49,7 +47,7 @@ import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.http.vertx.TimeoutServerResponse;
 import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
-import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
@@ -87,12 +85,13 @@ class DefaultHttpRequestDispatcherTest {
     protected static final String HOST = "gravitee.io";
     protected static final String PATH = "/path";
     protected static final String MOCK_ERROR_MESSAGE = "Mock error";
+    private final Vertx vertx = Vertx.vertx();
 
     @Mock
     private GatewayConfiguration gatewayConfiguration;
 
     @Mock
-    private EntrypointResolver entrypointResolver;
+    private HttpAcceptorResolver httpAcceptorResolver;
 
     @Mock
     private IdGenerator idGenerator;
@@ -136,8 +135,6 @@ class DefaultHttpRequestDispatcherTest {
     @Mock
     private HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration;
 
-    private final Vertx vertx = Vertx.vertx();
-
     private DefaultHttpRequestDispatcher cut;
 
     @BeforeEach
@@ -176,7 +173,7 @@ class DefaultHttpRequestDispatcherTest {
         cut =
             new DefaultHttpRequestDispatcher(
                 gatewayConfiguration,
-                entrypointResolver,
+                httpAcceptorResolver,
                 idGenerator,
                 globalComponentProvider,
                 new RequestProcessorChainFactory(),
@@ -355,7 +352,7 @@ class DefaultHttpRequestDispatcherTest {
     void shouldHandleNotFoundWhenNoHandlerResolved() {
         ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
         when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
-        when(entrypointResolver.resolve(HOST, PATH)).thenReturn(null);
+        when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(null);
 
         cut.dispatch(rxRequest).test().assertResult();
 
@@ -369,7 +366,7 @@ class DefaultHttpRequestDispatcherTest {
 
         ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
         when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
-        when(entrypointResolver.resolve(HOST, PATH)).thenReturn(null);
+        when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(null);
         cut.dispatch(rxRequest).test().assertResult();
 
         verify(notFoundProcessorChainFactory).processorChain();
@@ -380,7 +377,7 @@ class DefaultHttpRequestDispatcherTest {
     void shouldSetMetricsWhenHandlingNotFoundRequest() {
         ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
         when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
-        when(entrypointResolver.resolve(HOST, PATH)).thenReturn(null);
+        when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(null);
 
         final ArgumentCaptor<MutableRequestExecutionContext> ctxCaptor = ArgumentCaptor.forClass(MutableRequestExecutionContext.class);
 
@@ -395,14 +392,14 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     private void prepareJupiterMock(HttpAcceptorHandler handlerEntrypoint, ApiReactor apiReactor) {
-        when(entrypointResolver.resolve(HOST, PATH)).thenReturn(handlerEntrypoint);
+        when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(handlerEntrypoint);
         when(handlerEntrypoint.executionMode()).thenReturn(ExecutionMode.JUPITER);
         when(handlerEntrypoint.path()).thenReturn(PATH);
         when(handlerEntrypoint.target()).thenReturn(apiReactor);
     }
 
     private void prepareV3Mock(HttpAcceptorHandler handlerEntrypoint, ReactorHandler apiReactor) {
-        when(entrypointResolver.resolve(HOST, PATH)).thenReturn(handlerEntrypoint);
+        when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(handlerEntrypoint);
 
         if (apiReactor != null) {
             when(handlerEntrypoint.executionMode()).thenReturn(ExecutionMode.V3);

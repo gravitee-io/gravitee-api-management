@@ -27,7 +27,7 @@ import java.util.Set;
  */
 public class ReactableWrapper<T> implements Reactable {
 
-    private T content;
+    private final T content;
 
     public ReactableWrapper(T content) {
         this.content = content;
@@ -48,7 +48,7 @@ public class ReactableWrapper<T> implements Reactable {
     }
 
     @Override
-    public List<HttpAcceptor> entrypoints() {
+    public List<HttpAcceptor> httpAcceptors() {
         return Collections.emptyList();
     }
 }

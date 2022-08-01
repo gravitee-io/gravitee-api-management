@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.reactor.handler;
+package io.gravitee.plugin.entrypoint;
 
-import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
+import io.gravitee.plugin.core.api.PluginClassLoader;
+import io.gravitee.plugin.core.api.PluginClassLoaderFactory;
 
 /**
- * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EntrypointResolver {
-    HttpAcceptorHandler resolve(String host, String path);
+public interface EntrypointClassLoaderFactory extends PluginClassLoaderFactory<EntrypointPlugin<?>> {
+    @Override
+    default PluginClassLoader getOrCreateClassLoader(EntrypointPlugin<?> entrypointPlugin) {
+        return getOrCreateClassLoader(entrypointPlugin, entrypointPlugin.getClass().getClassLoader());
+    }
 }

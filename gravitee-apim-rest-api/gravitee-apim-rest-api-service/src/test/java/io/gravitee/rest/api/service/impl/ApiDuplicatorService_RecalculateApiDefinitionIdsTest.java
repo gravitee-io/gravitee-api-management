@@ -53,8 +53,6 @@ public class ApiDuplicatorService_RecalculateApiDefinitionIdsTest {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private static final ObjectMapper mapper = new ObjectMapper();
-
     @InjectMocks
     protected ApiDuplicatorServiceImpl apiDuplicatorService;
 

@@ -209,7 +209,7 @@ public class Api extends ReactableApi<io.gravitee.definition.model.Api> {
     }
 
     @Override
-    public List<HttpAcceptor> entrypoints() {
+    public List<HttpAcceptor> httpAcceptors() {
         return definition
             .getProxy()
             .getVirtualHosts()

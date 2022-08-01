@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.reactor.spring;
 
-import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_BY_DEFAULT;
-import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_KEY;
 import static io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_REQUEST_ID_HEADER;
 import static io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_TRANSACTION_ID_HEADER;
 
@@ -29,8 +27,8 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
-import io.gravitee.gateway.jupiter.reactor.handler.DefaultEntrypointResolver;
-import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.jupiter.reactor.handler.DefaultHttpAcceptorResolver;
+import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.Reactor;
@@ -133,7 +131,7 @@ public class ReactorConfiguration {
     @Bean
     public HttpRequestDispatcher httpRequestDispatcher(
         GatewayConfiguration gatewayConfiguration,
-        EntrypointResolver entrypointResolver,
+        HttpAcceptorResolver httpAcceptorResolver,
         IdGenerator idGenerator,
         ComponentProvider globalComponentProvider,
         RequestProcessorChainFactory v3RequestProcessorChainFactory,
@@ -146,7 +144,7 @@ public class ReactorConfiguration {
     ) {
         return new DefaultHttpRequestDispatcher(
             gatewayConfiguration,
-            entrypointResolver,
+            httpAcceptorResolver,
             idGenerator,
             globalComponentProvider,
             v3RequestProcessorChainFactory,
@@ -160,8 +158,8 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public EntrypointResolver entrypointResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
-        return new DefaultEntrypointResolver(reactorHandlerRegistry);
+    public HttpAcceptorResolver httpAcceptorResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
+        return new DefaultHttpAcceptorResolver(reactorHandlerRegistry);
     }
 
     @Bean

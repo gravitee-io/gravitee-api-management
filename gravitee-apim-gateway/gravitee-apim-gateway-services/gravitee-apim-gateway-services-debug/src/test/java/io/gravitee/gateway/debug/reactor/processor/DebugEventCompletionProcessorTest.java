@@ -86,7 +86,7 @@ class DebugEventCompletionProcessorTest {
         cut = new DebugEventCompletionProcessor(eventRepository, objectMapper);
         cut.handler(__ -> {});
 
-        when(debugApi.getDefinition()).thenReturn(new io.gravitee.definition.model.debug.DebugApi());
+        lenient().when(debugApi.getDefinition()).thenReturn(new io.gravitee.definition.model.debug.DebugApi());
     }
 
     @ParameterizedTest

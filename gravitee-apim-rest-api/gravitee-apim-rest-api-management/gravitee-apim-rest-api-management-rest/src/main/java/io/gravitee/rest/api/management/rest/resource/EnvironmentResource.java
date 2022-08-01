@@ -23,6 +23,7 @@ import io.gravitee.rest.api.management.rest.resource.auth.OAuth2AuthenticationRe
 import io.gravitee.rest.api.management.rest.resource.organization.CurrentUserResource;
 import io.gravitee.rest.api.management.rest.resource.organization.UsersResource;
 import io.gravitee.rest.api.management.rest.resource.search.SearchResource;
+import io.gravitee.rest.api.management.rest.resource.v4.entrypoint.EntrypointsResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -178,11 +179,6 @@ public class EnvironmentResource extends AbstractResource {
         return resourceContext.getResource(ApisResource.class);
     }
 
-    @Path("v4/apis")
-    public io.gravitee.rest.api.management.rest.resource.v4.api.ApisResource getV4ApisResource() {
-        return resourceContext.getResource(io.gravitee.rest.api.management.rest.resource.v4.api.ApisResource.class);
-    }
-
     @Path("applications")
     public ApplicationsResource getApplicationsResource() {
         return resourceContext.getResource(ApplicationsResource.class);
@@ -301,5 +297,19 @@ public class EnvironmentResource extends AbstractResource {
     @Path("promotion-targets")
     public PromotionTargetsResource getPromotionTargetsResource() {
         return resourceContext.getResource(PromotionTargetsResource.class);
+    }
+
+    /**
+     *  new V4 path
+     */
+
+    @Path("v4/apis")
+    public io.gravitee.rest.api.management.rest.resource.v4.api.ApisResource getV4ApisResource() {
+        return resourceContext.getResource(io.gravitee.rest.api.management.rest.resource.v4.api.ApisResource.class);
+    }
+
+    @Path("v4/entrypoints")
+    public EntrypointsResource getEntrypointsResource() {
+        return resourceContext.getResource(EntrypointsResource.class);
     }
 }

@@ -26,7 +26,9 @@ import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
  */
 public class DefaultAcceptorResolver implements AcceptorResolver {
 
+    // TODO This attribute should be renamed/removed as entrypoint has been renamed to Acceptor
     public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
+    public static final String ATTR_ACCEPTOR = ExecutionContext.ATTR_PREFIX + "acceptor";
 
     private final ReactorHandlerRegistry handlerRegistry;
 
@@ -36,11 +38,12 @@ public class DefaultAcceptorResolver implements AcceptorResolver {
 
     @Override
     public HttpAcceptorHandler resolve(ExecutionContext context) {
-        for (HttpAcceptorHandler entrypoint : handlerRegistry.getEntrypoints()) {
-            if (entrypoint.accept(context.request())) {
-                context.setAttribute(ATTR_ENTRYPOINT, entrypoint);
+        for (HttpAcceptorHandler acceptorHandler : handlerRegistry.getHttpAcceptorHandlers()) {
+            if (acceptorHandler.accept(context.request())) {
+                context.setAttribute(ATTR_ENTRYPOINT, acceptorHandler);
+                context.setAttribute(ATTR_ACCEPTOR, acceptorHandler);
 
-                return entrypoint;
+                return acceptorHandler;
             }
         }
 

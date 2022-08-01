@@ -27,6 +27,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
 import io.gravitee.plugin.connector.spring.ConnectorPluginConfiguration;
 import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
+import io.gravitee.plugin.entrypoint.spring.EntrypointPluginConfiguration;
 import io.gravitee.plugin.fetcher.spring.FetcherPluginConfiguration;
 import io.gravitee.plugin.notifier.spring.NotifierPluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
@@ -72,6 +73,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         AlertPluginConfiguration.class,
         ServiceDiscoveryPluginConfiguration.class,
         ConnectorPluginConfiguration.class,
+        EntrypointPluginConfiguration.class,
     }
 )
 public class ServiceConfiguration {
