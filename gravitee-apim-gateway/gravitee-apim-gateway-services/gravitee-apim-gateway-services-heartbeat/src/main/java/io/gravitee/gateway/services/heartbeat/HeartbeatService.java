@@ -118,11 +118,16 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
     // How to avoid duplicate
     private ITopic<Event> topic;
 
+    private ITopic<Event> topicFailure;
+
     private java.util.UUID subscriptionId;
+
+    private java.util.UUID subscriptionFailureId;
 
     @Override
     public void afterPropertiesSet() throws Exception {
         topic = hzInstance.getTopic("heartbeats");
+        topicFailure = hzInstance.getTopic("heartbeats-failure");
         subscriptionId = topic.addMessageListener(this);
     }
 
@@ -133,6 +138,7 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
             LOGGER.info("Start gateway heartbeat");
 
             heartbeatEvent = prepareEvent();
+
             topic.publish(heartbeatEvent);
 
             // Remove the state to not include it in the underlying repository as it's just used for internal purpose
@@ -141,6 +147,8 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
             executorService = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "gio-heartbeat"));
 
             HeartbeatThread monitorThread = new HeartbeatThread(topic, heartbeatEvent);
+
+            subscriptionFailureId = topicFailure.addMessageListener(monitorThread);
 
             LOGGER.info("Monitoring scheduled with fixed delay {} {} ", delay, unit.name());
 
@@ -157,35 +165,26 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
             Event event = message.getMessageObject();
 
             String state = event.getProperties().get(EVENT_STATE_PROPERTY);
-            if (state != null) {
-                try {
+            try {
+                if (state != null) {
                     eventRepository.create(event);
-                } catch (Exception ex) {
-                    // We make the assumption that an IllegalStateException is thrown when trying to update the
-                    // event while it is not existing in the database anymore.
-                    // This can be caused, for instance, by a db event cleanup without taking care of the heartbeat event.
-                    event.getProperties().put(EVENT_STATE_PROPERTY, "recreate");
-                    LOGGER.error(
-                        "An error occurred while trying to create the heartbeat event id[{}] type[{}] while it is not existing anymore",
-                        event.getId(),
-                        event.getType(),
-                        ex
-                    );
-                    topic.publish(event);
-                }
-            } else {
-                try {
+                } else {
                     eventRepository.update(event);
-                } catch (Exception ex) {
-                    // We assume to lose the event if something goes wrong and not republish it to avoid infinite
-                    // loop and cpu starving. It will be overridden by the next heartbeat event.
-                    LOGGER.warn(
-                        "An error occurred while trying to update the heartbeat event id[{}] type[{}], skipping it...",
-                        event.getId(),
-                        event.getType(),
-                        ex
-                    );
                 }
+            } catch (Exception ex) {
+                // We make the assumption that an Exception is thrown when trying to
+                //  - create (duplicate key)
+                //  - or update (id not found)
+                // event while it is not existing in the database anymore.
+                // This can be caused, for instance, by a db event cleanup without taking care of the heartbeat event.
+                LOGGER.warn(
+                    "An error occurred while trying to create or update the heartbeat event id[{}] type[{}]",
+                    event.getId(),
+                    event.getType(),
+                    ex
+                );
+                event.getProperties().put(EVENT_STATE_PROPERTY, "recreate");
+                topicFailure.publish(event);
             }
         }
     }
@@ -222,6 +221,8 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
             topic.publish(heartbeatEvent);
 
             topic.removeMessageListener(subscriptionId);
+
+            topicFailure.removeMessageListener(subscriptionFailureId);
 
             super.doStop();
             LOGGER.info("Stop gateway monitor : DONE");
