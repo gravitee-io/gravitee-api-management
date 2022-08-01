@@ -15,37 +15,18 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@NoArgsConstructor
+@Getter
+@Setter
 public class Order {
 
     private String field;
-
     private boolean order;
-
     private String type;
-
-    public String getField() {
-        return field;
-    }
-
-    public void setField(String field) {
-        this.field = field;
-    }
-
-    public boolean isOrder() {
-        return order;
-    }
-
-    public void setOrder(boolean order) {
-        this.order = order;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 
     public static Order parse(String param) {
         try {
@@ -63,7 +44,9 @@ public class Order {
 
                 return order;
             }
-        } catch (IllegalArgumentException iae) {}
+        } catch (IllegalArgumentException iae) {
+            // Ignore in case of error
+        }
         return null;
     }
 }

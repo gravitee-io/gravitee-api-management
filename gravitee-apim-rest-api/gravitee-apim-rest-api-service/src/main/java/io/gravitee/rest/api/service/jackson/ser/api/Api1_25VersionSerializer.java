@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.jackson.ser.api;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.*;
@@ -28,7 +27,6 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

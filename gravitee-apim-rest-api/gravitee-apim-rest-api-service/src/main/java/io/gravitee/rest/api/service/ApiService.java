@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -151,16 +150,12 @@ public interface ApiService {
         return findByIdForTemplates(executionContext, apiId, false);
     }
 
-    boolean exists(String apiId);
-
     ApiEntity importPathMappingsFromPage(
         ExecutionContext executionContext,
         ApiEntity apiEntity,
         String page,
         DefinitionVersion definitionVersion
     );
-
-    Set<CategoryEntity> listCategories(Collection<String> apis, String environment);
 
     Page<ApiEntity> search(ExecutionContext executionContext, ApiQuery query, Sortable sortable, Pageable pageable);
 
@@ -197,16 +192,6 @@ public interface ApiService {
     ApiEntity migrate(ExecutionContext executionContext, String api);
 
     boolean hasHealthCheckEnabled(ApiEntity api, boolean mustBeEnabledOnAllEndpoints);
-
-    ApiEntity fetchMetadataForApi(ExecutionContext executionContext, ApiEntity apiEntity);
-
-    PrimaryOwnerEntity getPrimaryOwner(ExecutionContext executionContext, String apiId) throws TechnicalManagementException;
-
-    void addGroup(ExecutionContext executionContext, String api, String group);
-    void removeGroup(ExecutionContext executionContext, String api, String group);
-
-    Map<String, List<GroupMemberEntity>> getGroupsWithMembers(ExecutionContext executionContext, String apiId)
-        throws TechnicalManagementException;
 
     boolean canManageApi(RoleEntity role);
 

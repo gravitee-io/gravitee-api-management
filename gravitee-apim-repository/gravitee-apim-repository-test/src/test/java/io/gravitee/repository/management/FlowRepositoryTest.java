@@ -15,12 +15,22 @@
  */
 package io.gravitee.repository.management;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.flow.*;
-import java.util.*;
+import io.gravitee.repository.management.model.flow.Flow;
+import io.gravitee.repository.management.model.flow.FlowConsumer;
+import io.gravitee.repository.management.model.flow.FlowConsumerType;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.repository.management.model.flow.FlowStep;
+import io.gravitee.repository.management.model.flow.selector.FlowOperator;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 import org.junit.Test;
 
 /**
@@ -44,18 +54,18 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
         List<Flow> flows = flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-1");
 
         assertEquals(1, flows.size());
-        assertEquals(flows.get(0).getPre().size(), 2);
-        assertEquals(flows.get(0).getPost().size(), 3);
-        assertEquals(flows.get(0).getCondition(), "my-condition");
-        assertEquals(flows.get(0).getCreatedAt(), new Date(1470157767000L));
-        assertEquals(flows.get(0).getId(), "flow-tag1");
-        assertEquals(flows.get(0).getMethods().size(), 2);
-        assertEquals(flows.get(0).getName(), "tag-1");
-        assertEquals(flows.get(0).getOrder(), 1);
-        assertEquals(flows.get(0).getUpdatedAt(), new Date(1470157767000L));
-        assertEquals(flows.get(0).getConsumers().size(), 2);
-        assertEquals(flows.get(0).getPath(), "/");
-        assertEquals(flows.get(0).getOperator(), FlowOperator.STARTS_WITH);
+        assertEquals(2, flows.get(0).getPre().size());
+        assertEquals(3, flows.get(0).getPost().size());
+        assertEquals("my-condition", flows.get(0).getCondition());
+        assertEquals(new Date(1470157767000L), flows.get(0).getCreatedAt());
+        assertEquals("flow-tag1", flows.get(0).getId());
+        assertEquals(2, flows.get(0).getMethods().size(), 2);
+        assertEquals("tag-1", flows.get(0).getName());
+        assertEquals(1, flows.get(0).getOrder());
+        assertEquals(new Date(1470157767000L), flows.get(0).getUpdatedAt());
+        assertEquals(2, flows.get(0).getConsumers().size());
+        assertEquals("/", flows.get(0).getPath());
+        assertEquals(FlowOperator.STARTS_WITH, flows.get(0).getOperator());
     }
 
     @Test
@@ -90,22 +100,22 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
 
         Flow flowCreated = flowRepository.create(flow);
 
-        assertEquals(flow.getId(), flowCreated.getId());
-        assertEquals(flow.getName(), flowCreated.getName());
-        assertEquals(flow.getCondition(), flowCreated.getCondition());
+        assertEquals(flowCreated.getId(), flow.getId());
+        assertEquals(flowCreated.getName(), flow.getName());
+        assertEquals(flowCreated.getCondition(), flow.getCondition());
 
-        assertEquals(flow.getCreatedAt(), flowCreated.getCreatedAt());
-        assertEquals(flow.isEnabled(), flowCreated.isEnabled());
-        assertEquals(flow.getMethods(), flowCreated.getMethods());
-        assertEquals(flow.getPath(), flowCreated.getPath());
-        assertEquals(flow.getOperator(), flowCreated.getOperator());
-        assertEquals(flow.getReferenceId(), flowCreated.getReferenceId());
-        assertEquals(flow.getUpdatedAt(), flowCreated.getUpdatedAt());
-        assertEquals(flow.getConsumers().size(), flowCreated.getConsumers().size());
-        assertEquals(flow.getConsumers().get(0), flowCreated.getConsumers().get(0));
-        assertEquals(flow.getOrder(), flowCreated.getOrder());
-        assertEquals(flow.getPre().get(0).getOrder(), flowCreated.getPre().get(0).getOrder());
-        assertEquals(flow.getPre().get(0).getCondition(), flowCreated.getPre().get(0).getCondition());
+        assertEquals(flowCreated.getCreatedAt(), flow.getCreatedAt());
+        assertEquals(flowCreated.isEnabled(), flow.isEnabled());
+        assertEquals(flowCreated.getMethods(), flow.getMethods());
+        assertEquals(flowCreated.getPath(), flow.getPath());
+        assertEquals(flowCreated.getOperator(), flow.getOperator());
+        assertEquals(flowCreated.getReferenceId(), flow.getReferenceId());
+        assertEquals(flowCreated.getUpdatedAt(), flow.getUpdatedAt());
+        assertEquals(flowCreated.getConsumers().size(), flow.getConsumers().size());
+        assertEquals(flowCreated.getConsumers().get(0), flow.getConsumers().get(0));
+        assertEquals(flowCreated.getOrder(), flow.getOrder());
+        assertEquals(flowCreated.getPre().get(0).getOrder(), flow.getPre().get(0).getOrder());
+        assertEquals(flowCreated.getPre().get(0).getCondition(), flow.getPre().get(0).getCondition());
     }
 
     @Test
@@ -138,22 +148,22 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
 
         Flow flowUpdated = flowRepository.update(flow);
 
-        assertEquals(flow.getId(), flowUpdated.getId());
-        assertEquals(flow.getName(), flowUpdated.getName());
-        assertEquals(flow.getCondition(), flowUpdated.getCondition());
+        assertEquals(flowUpdated.getId(), flow.getId());
+        assertEquals(flowUpdated.getName(), flow.getName());
+        assertEquals(flowUpdated.getCondition(), flow.getCondition());
 
-        assertEquals(flow.getCreatedAt(), flowUpdated.getCreatedAt());
-        assertEquals(flow.isEnabled(), flowUpdated.isEnabled());
-        assertEquals(flow.getMethods(), flowUpdated.getMethods());
-        assertEquals(flow.getPath(), flowUpdated.getPath());
-        assertEquals(flow.getOperator(), flowUpdated.getOperator());
-        assertEquals(flow.getReferenceId(), flowUpdated.getReferenceId());
-        assertEquals(flow.getUpdatedAt(), flowUpdated.getUpdatedAt());
-        assertEquals(flow.getConsumers().size(), flowUpdated.getConsumers().size());
-        assertEquals(flow.getConsumers().get(0), flowUpdated.getConsumers().get(0));
-        assertEquals(flow.getPre().size(), 1);
-        assertEquals(flow.getPost().size(), 1);
-        assertEquals(flow.getOrder(), 5);
+        assertEquals(flowUpdated.getCreatedAt(), flow.getCreatedAt());
+        assertEquals(flowUpdated.isEnabled(), flow.isEnabled());
+        assertEquals(flowUpdated.getMethods(), flow.getMethods());
+        assertEquals(flowUpdated.getPath(), flow.getPath());
+        assertEquals(flowUpdated.getOperator(), flow.getOperator());
+        assertEquals(flowUpdated.getReferenceId(), flow.getReferenceId());
+        assertEquals(flowUpdated.getUpdatedAt(), flow.getUpdatedAt());
+        assertEquals(flowUpdated.getConsumers().size(), flow.getConsumers().size());
+        assertEquals(flowUpdated.getConsumers().get(0), flow.getConsumers().get(0));
+        assertEquals(1, flowUpdated.getPre().size());
+        assertEquals(1, flowUpdated.getPost().size());
+        assertEquals(5, flowUpdated.getOrder());
     }
 
     @Test

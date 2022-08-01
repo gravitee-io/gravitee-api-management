@@ -28,7 +28,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.impl.GroupServiceImpl;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;

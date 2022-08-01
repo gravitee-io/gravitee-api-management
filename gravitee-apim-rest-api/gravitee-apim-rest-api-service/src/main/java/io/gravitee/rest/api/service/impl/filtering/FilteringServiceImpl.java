@@ -24,11 +24,24 @@ import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.impl.AbstractService;
-import java.util.*;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -54,6 +67,9 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
 
     @Autowired
     ApiService apiService;
+
+    @Autowired
+    ApiCategoryService apiCategoryService;
 
     @Autowired
     PermissionService permissionService;
@@ -158,7 +174,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     ) {
         Set<String> apisForUser = this.apiService.findPublishedIdsByUser(executionContext, userId);
         Collection<String> apis = this.filterApis(executionContext, apisForUser, filterType, excludedFilterType);
-        return this.apiService.listCategories(apis, executionContext.getEnvironmentId());
+        return this.apiCategoryService.listCategories(apis, executionContext.getEnvironmentId());
     }
 
     private Collection<String> getTopApis(ExecutionContext executionContext, Set<String> apis, boolean excluded) {

@@ -31,11 +31,13 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +85,9 @@ public class ApiService_FindByIdAsMapTest {
     @Mock
     private FlowService flowService;
 
+    @Mock
+    private PrimaryOwnerService primaryOwnerService;
+
     @Spy
     private ApiConverter apiConverter;
 
@@ -104,9 +109,9 @@ public class ApiService_FindByIdAsMapTest {
         when(environmentService.findById("env-id")).thenReturn(environment);
         when(objectMapper.convertValue(any(), any(Map.class.getClass())))
             .thenAnswer(i -> getObjectMapper().convertValue(i.getArgument(0), Map.class));
-        when(membershipService.getPrimaryOwner("org-id", io.gravitee.rest.api.model.MembershipReferenceType.API, "api-id"))
-            .thenReturn(membership);
-        when(userService.findById(any(), eq("member-id"))).thenReturn(mock(UserEntity.class));
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId("user");
+        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(userEntity));
         when(apiMetadataService.findAllByApi("api-id")).thenReturn(buildMetadatas());
 
         Map resultMap = apiService.findByIdAsMap("api-id");

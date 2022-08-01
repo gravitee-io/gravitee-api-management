@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
@@ -50,10 +51,10 @@ import org.springframework.context.annotation.Lazy;
  */
 public class SyncManager {
 
-    private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
-
     private static final int TIMEFRAME_BEFORE_DELAY = 10 * 60 * 1000;
     private static final int TIMEFRAME_AFTER_DELAY = 1 * 60 * 1000;
+    private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
+    private final AtomicLong counter = new AtomicLong(0);
 
     @Autowired
     private DictionaryManager dictionaryManager;
@@ -72,21 +73,10 @@ public class SyncManager {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private EventManager eventManager;
-
-    @Autowired
-    private MembershipService membershipService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
     private EnvironmentService environmentService;
 
     @Autowired
-    private ApiService apiService;
-
-    private final AtomicLong counter = new AtomicLong(0);
+    private PrimaryOwnerService primaryOwnerService;
 
     private long lastRefreshAt = -1;
 
@@ -226,7 +216,7 @@ public class SyncManager {
 
         PrimaryOwnerEntity primaryOwnerEntity = null;
         try {
-            primaryOwnerEntity = apiService.getPrimaryOwner(GraviteeContext.getExecutionContext(), api.getId());
+            primaryOwnerEntity = primaryOwnerService.getPrimaryOwner(GraviteeContext.getExecutionContext(), api.getId());
         } catch (PrimaryOwnerNotFoundException e) {
             logger.error(e.getMessage());
         }

@@ -28,7 +28,6 @@ import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyServ
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;

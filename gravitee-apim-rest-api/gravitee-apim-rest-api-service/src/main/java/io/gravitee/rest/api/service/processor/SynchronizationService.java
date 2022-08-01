@@ -17,40 +17,41 @@ package io.gravitee.rest.api.service.processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.DeploymentRequired;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class ApiSynchronizationProcessor {
+public class SynchronizationService {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ApiSynchronizationProcessor.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(SynchronizationService.class);
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-    public boolean processCheckSynchronization(ApiEntity deployedApi, ApiEntity apiToDeploy) {
-        Class<ApiEntity> cl = ApiEntity.class;
+    public SynchronizationService(final ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    public <T> boolean checkSynchronization(final Class<T> entityClass, final T deployedEntity, final T entityToDeploy) {
         List<Object> requiredFieldsDeployedApi = new ArrayList<Object>();
         List<Object> requiredFieldsApiToDeploy = new ArrayList<Object>();
-        for (Field f : cl.getDeclaredFields()) {
+        for (Field f : entityClass.getDeclaredFields()) {
             if (f.getAnnotation(DeploymentRequired.class) != null) {
                 boolean previousAccessibleState = f.isAccessible();
                 f.setAccessible(true);
                 try {
-                    requiredFieldsDeployedApi.add(f.get(deployedApi));
-                    requiredFieldsApiToDeploy.add(f.get(apiToDeploy));
+                    requiredFieldsDeployedApi.add(f.get(deployedEntity));
+                    requiredFieldsApiToDeploy.add(f.get(entityToDeploy));
                 } catch (Exception e) {
-                    LOGGER.error("Error access API required deployment fields", e);
+                    LOGGER.error("Error access entity required deployment fields", e);
                 } finally {
                     f.setAccessible(previousAccessibleState);
                 }

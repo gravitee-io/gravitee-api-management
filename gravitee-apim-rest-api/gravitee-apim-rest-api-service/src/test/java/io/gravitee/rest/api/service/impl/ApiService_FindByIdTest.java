@@ -30,6 +30,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.*;
@@ -39,6 +40,7 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -97,6 +99,9 @@ public class ApiService_FindByIdTest {
     @Spy
     private ApiConverter apiConverter;
 
+    @Mock
+    private PrimaryOwnerService primaryOwnerService;
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
@@ -120,9 +125,9 @@ public class ApiService_FindByIdTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         MembershipEntity po = new MembershipEntity();
         po.setMemberId(USER_NAME);
-        when(membershipService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), MembershipReferenceType.API, API_ID))
-            .thenReturn(po);
-        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(mock(UserEntity.class));
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId("user");
+        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(userEntity));
 
         final ApiEntity apiEntity = apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
 
@@ -145,9 +150,7 @@ public class ApiService_FindByIdTest {
 
         MembershipEntity po = new MembershipEntity();
         po.setMemberId(USER_NAME);
-        when(membershipService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), MembershipReferenceType.API, API_ID))
-            .thenReturn(po);
-        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(mock(UserEntity.class));
+        when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
 
         final ApiEntity apiEntity = apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
 

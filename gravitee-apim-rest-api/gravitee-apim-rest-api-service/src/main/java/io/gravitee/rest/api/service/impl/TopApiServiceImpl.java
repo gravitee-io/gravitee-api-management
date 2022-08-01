@@ -23,12 +23,12 @@ import static java.util.stream.Collectors.toList;
 import io.gravitee.rest.api.model.NewTopApiEntity;
 import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.UpdateTopApiEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.model.v4.api.IndexableApi;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
@@ -54,22 +54,22 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
     @Override
     public List<TopApiEntity> findAll(final ExecutionContext executionContext) {
         LOGGER.debug("Find all top APIs");
-        final List<ApiEntity> apis = parameterService.findAll(
+        final List<IndexableApi> apis = parameterService.findAll(
             executionContext,
             PORTAL_TOP_APIS,
-            apiId -> apiService.findById(executionContext, apiId),
+            apiId -> apiService.findIndexableApiById(executionContext, apiId),
             apiService::exists,
             ParameterReferenceType.ENVIRONMENT
         );
         if (!apis.isEmpty()) {
             final List<TopApiEntity> topApis = new ArrayList<>(apis.size());
             for (int i = 0; i < apis.size(); i++) {
-                final ApiEntity api = apis.get(i);
+                final IndexableApi api = apis.get(i);
 
                 final TopApiEntity topApiEntity = new TopApiEntity();
                 topApiEntity.setApi(api.getId());
                 topApiEntity.setName(api.getName());
-                topApiEntity.setVersion(api.getVersion());
+                topApiEntity.setVersion(api.getApiVersion());
                 topApiEntity.setDescription(api.getDescription());
                 topApiEntity.setOrder(i);
 
