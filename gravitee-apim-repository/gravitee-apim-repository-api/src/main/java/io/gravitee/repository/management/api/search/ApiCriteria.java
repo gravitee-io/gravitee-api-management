@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api.search;
 
 import static java.util.Arrays.asList;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
@@ -43,6 +44,7 @@ public class ApiCriteria {
     private String environmentId;
     private List<String> environments;
     private String crossId;
+    private List<DefinitionVersion> definitionVersion;
 
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -57,6 +59,7 @@ public class ApiCriteria {
         this.environmentId = builder.environmentId;
         this.environments = builder.environments;
         this.crossId = builder.crossId;
+        this.definitionVersion = builder.definitionVersion;
     }
 
     public Collection<String> getIds() {
@@ -111,6 +114,14 @@ public class ApiCriteria {
         this.crossId = crossId;
     }
 
+    public List<DefinitionVersion> getDefinitionVersion() {
+        return definitionVersion;
+    }
+
+    public void setDefinitionVersion(List<DefinitionVersion> definitionVersion) {
+        this.definitionVersion = definitionVersion;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -128,7 +139,8 @@ public class ApiCriteria {
             Objects.equals(lifecycleStates, that.lifecycleStates) &&
             Objects.equals(environmentId, that.environmentId) &&
             Objects.equals(environments, that.environments) &&
-            Objects.equals(crossId, that.crossId)
+            Objects.equals(crossId, that.crossId) &&
+            Objects.equals(definitionVersion, that.definitionVersion)
         );
     }
 
@@ -146,7 +158,8 @@ public class ApiCriteria {
             lifecycleStates,
             environmentId,
             environments,
-            crossId
+            crossId,
+            definitionVersion
         );
     }
 
@@ -164,6 +177,7 @@ public class ApiCriteria {
         private String environmentId;
         private List<String> environments;
         private String crossId;
+        private List<DefinitionVersion> definitionVersion;
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = Set.of(id);
@@ -232,6 +246,11 @@ public class ApiCriteria {
 
         public ApiCriteria.Builder crossId(final String crossId) {
             this.crossId = crossId;
+            return this;
+        }
+
+        public ApiCriteria.Builder definitionVersion(final List<DefinitionVersion> definitionVersion) {
+            this.definitionVersion = definitionVersion;
             return this;
         }
 

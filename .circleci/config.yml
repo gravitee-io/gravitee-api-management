@@ -407,7 +407,7 @@ jobs:
             - run:
                   name: "Build project"
                   command: |
-                      mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
+                      mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -Ddistribution-dev
                       mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
                       mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
 
@@ -484,7 +484,7 @@ jobs:
             - run:
                   name: Run tests
                   command: |
-                      mvn -U -pl 'gravitee-apim-definition, gravitee-apim-rest-api, gravitee-apim-gateway' -amd --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -T 2C
+                      mvn -U --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dmain-modules -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
                   command: |
@@ -521,8 +521,7 @@ jobs:
                   command: |
                       # Need to use `verify` phase to get repo-test's jar build and shared to mongodb and jdbc repos 
                       # and then collect and merge all coverage reports
-                      cd gravitee-apim-repository
-                      mvn -s ../.gravitee.settings.xml verify --no-transfer-progress -Dskip.validation=true -T 2C
+                      mvn -s .gravitee.settings.xml verify --no-transfer-progress -Drepository-modules -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
                   command: |
@@ -1074,7 +1073,7 @@ jobs:
             - run:
                   name: Maven deploy to Gravitee's private Artifactory
                   command: |
-                      mvn --settings .gravitee.settings.xml -B -U -P gio-artifactory-release,gio-release clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
+                      mvn --settings .gravitee.settings.xml -B -U -P all-modules,gio-artifactory-release,gio-release clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
             - save-maven-job-cache:
                   jobName: backend-build-and-publish-artifactory
 
@@ -1252,7 +1251,7 @@ jobs:
             - run:
                   name: Release on Nexus
                   command: |
-                      mvn clean deploy --activate-profiles gravitee-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
+                      mvn clean deploy --batch-mode -Dgravitee-release  -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
             - save-maven-job-cache:
                   jobName: nexus-staging
             - keeper/env-export:

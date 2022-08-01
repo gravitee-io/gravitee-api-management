@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -52,6 +53,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     private static final String PLAN_DESCRIPTION =
         "This plan has been recreated during a data fix process. See documentation : https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#upgrade_to_3_10_8";
     private static final String PLAN_NAME_SUFFIX = "-Recreated";
+    private final Map<String, ExecutionContext> executionContextByEnvironment = new ConcurrentHashMap<>();
 
     @Lazy
     @Autowired
@@ -69,7 +71,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     private EmailService emailService;
 
     @Autowired
-    private ApiService apiService;
+    private PrimaryOwnerService primaryOwnerService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -84,8 +86,6 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     private boolean notifyApiOwner;
 
     private boolean anomalyFound = false;
-
-    private final Map<String, ExecutionContext> executionContextByEnvironment = new ConcurrentHashMap<>();
 
     public PlansDataFixUpgrader() {
         super(InstallationService.PLANS_DATA_UPGRADER_STATUS);
@@ -263,7 +263,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     }
 
     private Optional<String> getApiOwnerEmail(ExecutionContext executionContext, Api api) {
-        return Optional.ofNullable(apiService.getPrimaryOwner(executionContext, api.getId()).getEmail());
+        return Optional.ofNullable(primaryOwnerService.getPrimaryOwner(executionContext, api.getId()).getEmail());
     }
 
     private void logWarningHeaderBlock() {

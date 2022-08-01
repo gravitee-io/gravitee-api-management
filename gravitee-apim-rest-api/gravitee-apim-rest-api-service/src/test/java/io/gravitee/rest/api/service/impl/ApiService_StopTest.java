@@ -41,6 +41,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -103,24 +104,18 @@ public class ApiService_StopTest {
     @Spy
     private ApiConverter apiConverter;
 
+    @Mock
+    private PrimaryOwnerService primaryOwnerService;
+
     @Before
     public void setUp() throws TechnicalException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(
             new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
         );
-        UserEntity u = mock(UserEntity.class);
-        when(u.getId()).thenReturn("uid");
+        UserEntity u = new UserEntity();
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(u);
-        MembershipEntity po = mock(MembershipEntity.class);
-        when(
-            membershipService.getPrimaryOwner(
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(io.gravitee.rest.api.model.MembershipReferenceType.API),
-                anyString()
-            )
-        )
-            .thenReturn(po);
+        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(u));
         when(api.getId()).thenReturn(API_ID);
     }
 

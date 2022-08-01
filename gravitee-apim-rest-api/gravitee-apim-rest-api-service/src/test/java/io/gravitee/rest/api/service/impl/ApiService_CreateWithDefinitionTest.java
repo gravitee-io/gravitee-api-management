@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.definition.model.DefinitionContext.*;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.mockito.Mockito.*;
 
@@ -26,11 +25,10 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -38,8 +36,9 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,6 +103,12 @@ public class ApiService_CreateWithDefinitionTest {
     @Mock
     private NotificationTemplateService notificationTemplateService;
 
+    @Mock
+    private LoggingValidationService loggingValidationService;
+
+    @Mock
+    private PrimaryOwnerService primaryOwnerService;
+
     @InjectMocks
     private final ApiService apiService = new ApiServiceImpl();
 
@@ -128,9 +133,7 @@ public class ApiService_CreateWithDefinitionTest {
         api.setDescription("k8s basic example");
         api.setDefinitionContext(new DefinitionContext(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED));
 
-        when(parameterService.find(EXECUTION_CONTEXT, Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn("USER");
-
-        when(userService.findById(eq(EXECUTION_CONTEXT), any())).thenReturn(new UserEntity());
+        when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
 
         Api updateApiDefinition = new Api();
         when(objectMapper.readValue(any(String.class), eq(Api.class))).thenReturn(updateApiDefinition);
@@ -139,10 +142,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiConverter.toApiEntity(any(), any())).thenReturn(new ApiEntity());
 
-        when(apiMetadataService.findAllByApi(any())).thenReturn(emptyList());
-
-        when(notificationTemplateService.resolveInlineTemplateWithParam(any(), any(), any(StringReader.class), any()))
-            .thenReturn("template");
+        when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
         apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, "", definition);
 
@@ -166,9 +166,7 @@ public class ApiService_CreateWithDefinitionTest {
         api.setDescription("k8s basic example");
         api.setDefinitionContext(new DefinitionContext(ORIGIN_MANAGEMENT, MODE_FULLY_MANAGED));
 
-        when(parameterService.find(EXECUTION_CONTEXT, Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn("USER");
-
-        when(userService.findById(eq(EXECUTION_CONTEXT), any())).thenReturn(new UserEntity());
+        when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
 
         Api updateApiDefinition = new Api();
         when(objectMapper.readValue(any(String.class), eq(Api.class))).thenReturn(updateApiDefinition);
@@ -177,10 +175,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiConverter.toApiEntity(any(), any())).thenReturn(new ApiEntity());
 
-        when(apiMetadataService.findAllByApi(any())).thenReturn(emptyList());
-
-        when(notificationTemplateService.resolveInlineTemplateWithParam(any(), any(), any(StringReader.class), any()))
-            .thenReturn("template");
+        when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
         apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, "", definition);
 

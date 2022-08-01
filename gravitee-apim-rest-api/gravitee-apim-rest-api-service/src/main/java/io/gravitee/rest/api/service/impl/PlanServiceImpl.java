@@ -41,7 +41,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.processor.PlanSynchronizationProcessor;
+import io.gravitee.rest.api.service.processor.SynchronizationService;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -58,6 +58,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class PlanServiceImpl extends TransactionalService implements PlanService {
 
+    private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST = Collections.unmodifiableList(
+        Arrays.asList(
+            new PlanSecurityEntity("oauth2", "OAuth2", "oauth2"),
+            new PlanSecurityEntity("jwt", "JWT", "'jwt'"),
+            new PlanSecurityEntity("api_key", "API Key", "api-key"),
+            new PlanSecurityEntity("key_less", "Keyless (public)", "")
+        )
+    );
     private final Logger logger = LoggerFactory.getLogger(PlanServiceImpl.class);
 
     @Lazy
@@ -80,7 +88,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     private ParameterService parameterService;
 
     @Autowired
-    private PlanSynchronizationProcessor planSynchronizationProcessor;
+    private SynchronizationService synchronizationService;
 
     @Lazy
     @Autowired
@@ -91,15 +99,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Autowired
     private FlowService flowService;
-
-    private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST = Collections.unmodifiableList(
-        Arrays.asList(
-            new PlanSecurityEntity("oauth2", "OAuth2", "oauth2"),
-            new PlanSecurityEntity("jwt", "JWT", "'jwt'"),
-            new PlanSecurityEntity("api_key", "API Key", "api-key"),
-            new PlanSecurityEntity("key_less", "Keyless (public)", "")
-        )
-    );
 
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, String plan) {
@@ -292,7 +291,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 flowService.save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
                 PlanEntity newPlanEntity = convert(newPlan);
 
-                if (!planSynchronizationProcessor.processCheckSynchronization(oldPlanEntity, newPlanEntity)) {
+                if (!synchronizationService.checkSynchronization(PlanEntity.class, oldPlanEntity, newPlanEntity)) {
                     newPlan.setNeedRedeployAt(newPlan.getUpdatedAt());
                 }
                 newPlan = planRepository.update(newPlan);

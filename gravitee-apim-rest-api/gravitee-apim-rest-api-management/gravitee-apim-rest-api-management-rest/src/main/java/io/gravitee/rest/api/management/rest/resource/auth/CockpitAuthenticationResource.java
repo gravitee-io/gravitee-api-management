@@ -30,14 +30,15 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.ApiService;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
@@ -64,29 +65,28 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @Path("/auth/cockpit")
 public class CockpitAuthenticationResource extends AbstractAuthenticationResource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CockpitAuthenticationResource.class);
-    private static final String COCKPIT_SOURCE = "cockpit";
     protected static final String ORG_CLAIM = "org";
     protected static final String KID = "cockpit";
     protected static final String REDIRECT_URI_CLAIM = "redirect_uri";
     protected static final String ENVIRONMENT_CLAIM = "env";
     protected static final String API_CLAIM = "api";
+    private static final Logger LOGGER = LoggerFactory.getLogger(CockpitAuthenticationResource.class);
+    private static final String COCKPIT_SOURCE = "cockpit";
+
+    @Autowired
+    protected MembershipService membershipService;
+
+    @Autowired
+    protected CookieGenerator cookieGenerator;
 
     private boolean enabled;
-
     private JWTProcessor<SecurityContext> jwtProcessor;
 
     @Autowired
     private UserService userService;
 
     @Autowired
-    protected MembershipService membershipService;
-
-    @Autowired
     private Environment environment;
-
-    @Autowired
-    protected CookieGenerator cookieGenerator;
 
     @Autowired
     private AuthoritiesProvider authoritiesProvider;
@@ -153,8 +153,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             final String apiCrossId = jwtClaimsSet.getStringClaim(API_CLAIM);
             final String apiId = Optional
                 .ofNullable(apiCrossId)
-                .flatMap(crossId -> this.apiService.findByEnvironmentIdAndCrossId(environmentId, crossId))
-                .map(ApiEntity::getId)
+                .flatMap(crossId -> this.apiService.findApiIdByEnvironmentIdAndCrossId(environmentId, crossId))
                 .orElse(null);
 
             String url = String.format(
@@ -162,7 +161,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 jwtClaimsSet.getStringClaim(REDIRECT_URI_CLAIM),
                 jwtClaimsSet.getStringClaim(ORG_CLAIM),
                 environmentId,
-                apiId == null ? "" : URLEncoder.encode(String.format("apis/%s/portal", apiId), "UTF-8")
+                apiId == null ? "" : URLEncoder.encode(String.format("apis/%s/portal", apiId), StandardCharsets.UTF_8)
             );
 
             // Redirect the user.

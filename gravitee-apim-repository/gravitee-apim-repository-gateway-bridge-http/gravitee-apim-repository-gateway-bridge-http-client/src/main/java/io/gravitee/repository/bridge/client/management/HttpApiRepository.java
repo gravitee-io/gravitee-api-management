@@ -62,6 +62,7 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
     public Page<Api> search(
         ApiCriteria apiCriteria,
         Sortable sortable,
@@ -120,6 +121,18 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     @Override
     @ExcludeMethodFromGeneratedCoverage
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    @ExcludeMethodFromGeneratedCoverage
+    public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    @ExcludeMethodFromGeneratedCoverage
+    public boolean existById(final String appId) throws TechnicalException {
         throw new IllegalStateException();
     }
 }

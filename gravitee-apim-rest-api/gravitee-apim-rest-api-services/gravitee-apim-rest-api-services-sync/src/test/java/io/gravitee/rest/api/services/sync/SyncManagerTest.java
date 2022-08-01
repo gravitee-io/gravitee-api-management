@@ -25,11 +25,10 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
-import io.gravitee.rest.api.services.sync.SyncManager;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -46,7 +45,7 @@ public class SyncManagerTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private ApiService apiService;
+    private PrimaryOwnerService primaryOwnerService;
 
     @Mock
     private ApiConverter apiConverter;
@@ -65,7 +64,7 @@ public class SyncManagerTest {
 
         when(objectMapper.readValue("{my-payload}", Api.class)).thenReturn(new Api());
         when(environmentService.findById(any())).thenReturn(new EnvironmentEntity());
-        when(apiService.getPrimaryOwner(any(), any())).thenThrow(PrimaryOwnerNotFoundException.class);
+        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenThrow(PrimaryOwnerNotFoundException.class);
         when(apiConverter.toApiEntity(any(), any())).thenReturn(new ApiEntity());
 
         syncManager.processApiEvent("my-api", event);

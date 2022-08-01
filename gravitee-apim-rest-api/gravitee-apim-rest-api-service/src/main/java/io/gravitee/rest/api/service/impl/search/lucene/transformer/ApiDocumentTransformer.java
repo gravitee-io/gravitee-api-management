@@ -64,7 +64,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
     public static final String FIELD_METADATA_SPLIT = "metadata_split";
 
     @Override
-    public Document transform(io.gravitee.rest.api.model.api.ApiEntity api) {
+    public Document transform(ApiEntity api) {
         Document doc = new Document();
 
         doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));

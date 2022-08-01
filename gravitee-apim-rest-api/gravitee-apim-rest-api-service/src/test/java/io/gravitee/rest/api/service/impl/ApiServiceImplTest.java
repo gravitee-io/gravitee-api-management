@@ -45,9 +45,6 @@ public class ApiServiceImplTest {
     @Mock
     private DataEncryptor dataEncryptor;
 
-    @Mock
-    private MembershipService membershipService;
-
     @Test
     public void encryptProperties_should_call_data_encryptor_for_each_encryptable_property_not_yet_encrypted()
         throws GeneralSecurityException {
@@ -84,27 +81,6 @@ public class ApiServiceImplTest {
         assertEquals("encryptedValue2", properties.get(1).getValue());
         assertEquals("value3", properties.get(2).getValue());
         assertEquals("encryptedValue4", properties.get(3).getValue());
-    }
-
-    @Test(expected = PrimaryOwnerNotFoundException.class)
-    public void getPrimaryOwner_should_throw_PrimaryOwnerNotFoundException_if_no_membership_found() {
-        try {
-            when(
-                membershipService.getPrimaryOwner(
-                    GraviteeContext.getExecutionContext().getOrganizationId(),
-                    MembershipReferenceType.API,
-                    "my-api"
-                )
-            )
-                .thenReturn(null);
-            apiService.getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api");
-        } catch (PrimaryOwnerNotFoundException e) {
-            assertEquals("Primary owner not found for API [my-api]", e.getMessage());
-            assertEquals("primaryOwner.notFound", e.getTechnicalCode());
-            assertEquals(500, e.getHttpStatusCode());
-            assertEquals(Map.of("api", "my-api"), e.getParameters());
-            throw e;
-        }
     }
 
     private List<PropertyEntity> buildProperties() {
