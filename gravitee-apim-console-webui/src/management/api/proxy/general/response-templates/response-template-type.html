@@ -22,14 +22,17 @@
   </div>
 
   <div class="gv-form-content">
-    <!-- Content-Type -->
+    <!-- Accept header -->
     <div flex-xs flex="50">
       <md-input-container class="md-block">
-        <label>Content-type</label>
+        <label><code>Accept</code> header to match</label>
         <input ng-model="$ctrl.template.type" type="text" required />
       </md-input-container>
-      <div class="hint">The content-type for which this template response must be send.</div>
+      <div class="hint">The <code>Accept</code> header of requests for which this template response should be used.</div>
     </div>
+
+    <br />
+    <br />
 
     <!-- Status Code -->
     <div flex-xs flex="50">
@@ -52,6 +55,8 @@
       </md-autocomplete>
       <div class="hint">The status code send to the API consumer.</div>
     </div>
+
+    <br />
 
     <!-- Headers -->
     <div flex-xs flex="50" layout="column" layout-sm="column">
