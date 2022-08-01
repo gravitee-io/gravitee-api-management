@@ -15,20 +15,38 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Logging;
+import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.definition.model.v4.listener.http.Path;
@@ -37,18 +55,24 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.IndexableApi;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
+import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -75,6 +99,9 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
+import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
+import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
@@ -85,8 +112,10 @@ import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.IndexableApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -206,6 +235,11 @@ public class ApiServiceImplTest {
 
     private ApiService apiService;
 
+    private UpdateApiEntity updateApiEntity;
+    private Api api;
+    private Api updatedApi;
+    private ObjectMapper objectMapper = new GraviteeMapper();
+
     @AfterClass
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
@@ -264,6 +298,21 @@ public class ApiServiceImplTest {
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
         when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(admin));
+
+        updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setId(API_ID);
+        updateApiEntity.setApiVersion("v1");
+        updateApiEntity.setName(API_NAME);
+        updateApiEntity.setDescription("Ma description");
+
+        api = new Api();
+        api.setId(API_ID);
+        api.setEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId());
+
+        updatedApi = new Api();
+        updatedApi.setId(API_ID);
+        updatedApi.setName(API_NAME);
+        updatedApi.setEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId());
     }
 
     @Test
@@ -645,5 +694,401 @@ public class ApiServiceImplTest {
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
+    }
+
+    /*
+    Update tests
+     */
+    @Test
+    public void shouldUpdate() throws TechnicalException {
+        prepareUpdate();
+
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        assertNotNull(apiEntity);
+        assertEquals(API_NAME, apiEntity.getName());
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+    }
+
+    @Test
+    public void shouldUpdatePlans() throws TechnicalException {
+        prepareUpdate();
+
+        PlanEntity plan1 = new PlanEntity();
+        plan1.setId("plan1");
+        PlanEntity plan2 = new PlanEntity();
+        plan2.setId("plan2");
+        updateApiEntity.setPlans(Set.of(plan1, plan2));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(planService, times(1)).createOrUpdatePlan(any(), same(plan1));
+        verify(planService, times(1)).createOrUpdatePlan(any(), same(plan2));
+    }
+
+    @Test
+    public void shouldUpdateFlows() throws TechnicalException {
+        prepareUpdate();
+
+        List<Flow> apiFlows = List.of(mock(Flow.class), mock(Flow.class));
+        updateApiEntity.setFlows(apiFlows);
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, apiFlows);
+    }
+
+    @Test(expected = ApiNotFoundException.class)
+    public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
+        prepareUpdate();
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldNotUpdateBecauseTechnicalException() throws TechnicalException {
+        prepareUpdate();
+
+        when(apiRepository.update(any())).thenThrow(TechnicalException.class);
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+    }
+
+    @Test(expected = EndpointNameInvalidException.class)
+    public void shouldNotUpdateBecauseValidationException() throws TechnicalException {
+        prepareUpdate();
+        doThrow(EndpointNameInvalidException.class).when(apiValidationService).validateAndSanitizeUpdateApi(any(), any(), any(), any());
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+    }
+
+    @Test
+    public void shouldNotDuplicateLabels() throws TechnicalException {
+        prepareUpdate();
+        updateApiEntity.setLabels(asList("label1", "label1"));
+
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        verify(apiRepository).update(argThat(api -> api.getLabels().size() == 1));
+        assertNotNull(apiEntity);
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldNotUpdate_NewPlanNotAllowed() throws TechnicalException {
+        prepareUpdate();
+        PlanEntity updatedPlan = new PlanEntity();
+        updatedPlan.setName("Plan Malicious");
+        updatedPlan.setStatus(PlanStatus.PUBLISHED);
+        updateApiEntity.setPlans(Set.of(updatedPlan));
+
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldNotUpdate_PlanClosed() throws TechnicalException {
+        prepareUpdate();
+
+        PlanEntity updatedPlan = new PlanEntity();
+        updatedPlan.setId("MALICIOUS");
+        updatedPlan.setName("Plan Malicious");
+        updatedPlan.setStatus(PlanStatus.PUBLISHED);
+        updateApiEntity.setPlans(Set.of(updatedPlan));
+
+        PlanEntity originalPlan = new PlanEntity();
+        originalPlan.setId("MALICIOUS");
+        originalPlan.setStatus(PlanStatus.CLOSED);
+        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    }
+
+    @Test
+    public void shouldUpdate_PlanStatusNotChanged() throws TechnicalException {
+        prepareUpdate();
+
+        PlanEntity updatedPlan = new PlanEntity();
+        updatedPlan.setId("MALICIOUS");
+        updatedPlan.setName("Plan Malicious");
+        updatedPlan.setStatus(PlanStatus.CLOSED);
+        updateApiEntity.setPlans(Set.of(updatedPlan));
+
+        PlanEntity originalPlan = new PlanEntity();
+        originalPlan.setId("MALICIOUS");
+        originalPlan.setStatus(PlanStatus.CLOSED);
+        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    }
+
+    @Test
+    public void shouldUpdate_PlanStatusChanged_authorized() throws TechnicalException {
+        prepareUpdate();
+
+        PlanEntity updatedPlan = new PlanEntity();
+        updatedPlan.setId("VALID");
+        updatedPlan.setName("Plan VALID");
+        updatedPlan.setStatus(PlanStatus.CLOSED);
+        updateApiEntity.setPlans(Set.of(updatedPlan));
+
+        PlanEntity originalPlan = new PlanEntity();
+        originalPlan.setId("VALID");
+        originalPlan.setStatus(PlanStatus.PUBLISHED);
+        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    }
+
+    // TODO FCY: should be moved into right test class once healthcheck is moved to HTTP endpoint plugin
+    //    @Test(expected = InvalidDataException.class)
+    //    public void shouldNotUpdateWithInvalidSchedule() throws TechnicalException {
+    //        prepareUpdate();
+    //        Services services = new Services();
+    //        HealthCheckService healthCheckService = mock(HealthCheckService.class);
+    //        when(healthCheckService.getSchedule()).thenReturn("**");
+    //        services.put(HealthCheckService.class, healthCheckService);
+    //        updateApiEntity.setServices(services);
+    //        final io.gravitee.rest.api.model.api.ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+    //
+    //        assertNotNull(apiEntity);
+    //        assertEquals(API_NAME, apiEntity.getName());
+    //        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    //    }
+    //
+    //    @Test
+    //    public void shouldUpdateWithValidSchedule() throws TechnicalException {
+    //        prepareUpdate();
+    //        Services services = new Services();
+    //        HealthCheckService healthCheckService = new HealthCheckService();
+    //        healthCheckService.setSchedule("1,2 */100 5-8 * * *");
+    //        services.put(HealthCheckService.class, healthCheckService);
+    //        updateApiEntity.setServices(services);
+    //        final io.gravitee.rest.api.model.api.ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+    //
+    //        assertNotNull(apiEntity);
+    //        assertEquals(API_NAME, apiEntity.getName());
+    //        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+    //        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    //    }
+
+    @Test
+    public void shouldPublishApi() throws TechnicalException {
+        prepareUpdate();
+        // from UNPUBLISHED state
+        api.setApiLifecycleState(ApiLifecycleState.UNPUBLISHED);
+        updateApiEntity.setLifecycleState(PUBLISHED);
+        updatedApi.setApiLifecycleState(ApiLifecycleState.PUBLISHED);
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        assertNotNull(apiEntity);
+        assertEquals(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED, apiEntity.getLifecycleState());
+
+        verify(apiRepository).update(argThat(api -> api.getApiLifecycleState().equals(ApiLifecycleState.PUBLISHED)));
+        clearInvocations(apiRepository);
+
+        // from CREATED state
+        api.setApiLifecycleState(ApiLifecycleState.CREATED);
+        updateApiEntity.setLifecycleState(PUBLISHED);
+        updatedApi.setApiLifecycleState(ApiLifecycleState.PUBLISHED);
+
+        apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        assertNotNull(apiEntity);
+        assertEquals(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED, apiEntity.getLifecycleState());
+        verify(apiRepository).update(argThat(api -> api.getApiLifecycleState().equals(ApiLifecycleState.PUBLISHED)));
+
+        verify(apiNotificationService, times(2)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    }
+
+    @Test
+    public void shouldUnpublishApi() throws TechnicalException {
+        prepareUpdate();
+        api.setApiLifecycleState(ApiLifecycleState.PUBLISHED);
+        updateApiEntity.setLifecycleState(UNPUBLISHED);
+        updatedApi.setApiLifecycleState(ApiLifecycleState.UNPUBLISHED);
+
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        assertNotNull(apiEntity);
+        assertEquals(UNPUBLISHED, apiEntity.getLifecycleState());
+
+        verify(apiRepository).update(argThat(api -> api.getApiLifecycleState().equals(ApiLifecycleState.UNPUBLISHED)));
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    }
+
+    @Test
+    public void shouldCreateAuditApiLoggingDisabledWhenSwitchingLogging() throws TechnicalException, JsonProcessingException {
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.LOGGING_AUDIT_TRAIL_ENABLED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(true);
+
+        prepareUpdate();
+
+        io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
+        apiDefinition.setId(API_ID);
+        apiDefinition.setName(API_NAME);
+
+        ListenerHttp listenerHttp = new ListenerHttp();
+        listenerHttp.setPaths(singletonList(new Path("/old")));
+        Logging logging = new Logging();
+        logging.setMode(LoggingMode.CLIENT_PROXY);
+        logging.setCondition("condition");
+        listenerHttp.setLogging(logging);
+        apiDefinition.setListeners(singletonList(listenerHttp));
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+
+        listenerHttp.setLogging(null);
+        updateApiEntity.setListeners(singletonList(listenerHttp));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(auditService)
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API_ID),
+                eq(emptyMap()),
+                eq(Api.AuditEvent.API_LOGGING_DISABLED),
+                any(Date.class),
+                any(),
+                any()
+            );
+    }
+
+    @Test
+    public void shouldCreateAuditApiLoggingEnabledWhenSwitchingLogging() throws TechnicalException, JsonProcessingException {
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.LOGGING_AUDIT_TRAIL_ENABLED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(true);
+
+        prepareUpdate();
+
+        io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
+        apiDefinition.setId(API_ID);
+        apiDefinition.setName(API_NAME);
+
+        ListenerHttp listenerHttp = new ListenerHttp();
+        listenerHttp.setPaths(singletonList(new Path("/old")));
+        apiDefinition.setListeners(singletonList(listenerHttp));
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+
+        Logging logging = new Logging();
+        logging.setMode(LoggingMode.CLIENT_PROXY);
+        logging.setCondition("condition");
+        listenerHttp.setLogging(logging);
+        updateApiEntity.setListeners(singletonList(listenerHttp));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(auditService)
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API_ID),
+                eq(emptyMap()),
+                eq(Api.AuditEvent.API_LOGGING_ENABLED),
+                any(Date.class),
+                any(),
+                any()
+            );
+    }
+
+    @Test
+    public void shouldCreateAuditApiLoggingUpdatedWhenSwitchingLogging() throws TechnicalException, JsonProcessingException {
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.LOGGING_AUDIT_TRAIL_ENABLED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(true);
+
+        prepareUpdate();
+
+        io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
+        apiDefinition.setId(API_ID);
+        apiDefinition.setName(API_NAME);
+
+        ListenerHttp listenerHttp = new ListenerHttp();
+        listenerHttp.setPaths(singletonList(new Path("/old")));
+        Logging logging = new Logging();
+        logging.setMode(LoggingMode.CLIENT_PROXY);
+        logging.setCondition("condition");
+        listenerHttp.setLogging(logging);
+        apiDefinition.setListeners(singletonList(listenerHttp));
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+
+        logging.setCondition("condition2");
+        updateApiEntity.setListeners(singletonList(listenerHttp));
+
+        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(auditService)
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API_ID),
+                eq(emptyMap()),
+                eq(Api.AuditEvent.API_LOGGING_UPDATED),
+                any(Date.class),
+                any(),
+                any()
+            );
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    }
+
+    private void prepareUpdate() throws TechnicalException {
+        prepareUpdate("endpointGroupName", "endpointName", "/context");
+    }
+
+    private void prepareUpdate(String endpointGroupName, String endpointName, String path) throws TechnicalException {
+        prepareUpdateApiEntity(endpointGroupName, endpointName, path);
+
+        when(apiRepository.update(any())).thenReturn(updatedApi);
+
+        api.setName(API_NAME);
+        api.setApiLifecycleState(ApiLifecycleState.CREATED);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        RoleEntity poRoleEntity = new RoleEntity();
+        poRoleEntity.setName(SystemRole.PRIMARY_OWNER.name());
+        poRoleEntity.setScope(RoleScope.API);
+
+        MemberEntity po = new MemberEntity();
+        po.setId(USER_NAME);
+        po.setReferenceId(API_ID);
+        po.setReferenceType(MembershipReferenceType.API);
+        po.setRoles(Collections.singletonList(poRoleEntity));
+    }
+
+    private void prepareUpdateApiEntity(String endpointGroupName, String endpointName, String path) {
+        updateApiEntity.setName(API_NAME);
+        updateApiEntity.setApiVersion("v1");
+        updateApiEntity.setDescription("Ma description");
+        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        updateApiEntity.setType(ApiType.ASYNC);
+
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName(endpointGroupName);
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName(endpointName);
+        endpointGroup.setEndpoints(singletonList(endpoint));
+        updateApiEntity.setEndpointGroups(singletonList(endpointGroup));
+        updateApiEntity.setLifecycleState(CREATED);
+
+        ListenerHttp listener = new ListenerHttp();
+        listener.setPaths(singletonList(new Path(path)));
+        updateApiEntity.setListeners(singletonList(listener));
     }
 }
