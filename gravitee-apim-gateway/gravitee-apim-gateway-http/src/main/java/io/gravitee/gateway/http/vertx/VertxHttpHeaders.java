@@ -138,7 +138,8 @@ public class VertxHttpHeaders implements HttpHeaders, MultiValueMap<String, Stri
      */
     @Override
     public List<String> get(Object key) {
-        return headers.getAll(String.valueOf(key));
+        String keyAsString = String.valueOf(key);
+        return contains(keyAsString) ? getAll(keyAsString) : null;
     }
 
     /**

@@ -39,6 +39,8 @@ import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,6 +103,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     @Override
     public ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey) {
+        final PlanEntity plan = planService.findById(executionContext, subscription.getPlan());
+        if (!PlanSecurityType.API_KEY.equals(plan.getSecurity())) {
+            throw new TechnicalManagementException("Invalid plan security.");
+        }
         try {
             LOGGER.debug("Renew API Key for subscription {}", subscription.getId());
 
