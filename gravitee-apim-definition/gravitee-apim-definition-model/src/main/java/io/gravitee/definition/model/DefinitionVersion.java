@@ -29,7 +29,8 @@ import java.util.Set;
 public enum DefinitionVersion {
     @JsonEnumDefaultValue
     V1("1.0.0"),
-    V2("2.0.0");
+    V2("2.0.0"),
+    V4("4.0.0");
 
     private static final Map<String, DefinitionVersion> BY_LABEL = new HashMap<>();
 
@@ -51,12 +52,12 @@ public enum DefinitionVersion {
         return BY_LABEL.get(label);
     }
 
-    public String getLabel() {
-        return label;
-    }
-
     public static Set<String> versions() {
         return BY_LABEL.keySet();
+    }
+
+    public String getLabel() {
+        return label;
     }
 
     public Integer asInteger() {

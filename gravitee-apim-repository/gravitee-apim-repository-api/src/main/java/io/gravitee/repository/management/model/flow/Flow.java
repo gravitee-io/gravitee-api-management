@@ -16,8 +16,20 @@
 package io.gravitee.repository.management.model.flow;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.management.model.flow.selector.FlowOperator;
+import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import java.util.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
 public class Flow {
 
     /**
@@ -37,21 +49,16 @@ public class Flow {
      */
     private String name;
     /**
-     * Flow pre steps
-     */
-    private List<FlowStep> pre = new ArrayList<>();
-    /**
-     * Flow post steps
-     */
-    private List<FlowStep> post = new ArrayList<>();
-    /**
      * Flow state
      */
     private boolean enabled;
+
     /**
      * Condition attached to the Flow
      */
+    @Deprecated
     private String condition;
+
     /**
      * Flow created date
      */
@@ -62,18 +69,50 @@ public class Flow {
     private Date updatedAt;
 
     /**
+     * Flow pre steps
+     */
+    @Deprecated
+    private List<FlowStep> pre = new ArrayList<>();
+
+    /**
+     * Flow post steps
+     */
+    @Deprecated
+    private List<FlowStep> post = new ArrayList<>();
+
+    /**
+     * Flow request steps
+     */
+    private List<FlowStep> request = new ArrayList<>();
+    /**
+     * Flow response steps
+     */
+    private List<FlowStep> response = new ArrayList<>();
+    /**
+     * Flow subscribe steps
+     */
+    private List<FlowStep> subscribe = new ArrayList<>();
+    /**
+     * Flow publish steps
+     */
+    private List<FlowStep> publish = new ArrayList<>();
+
+    /**
      * Path operator
      */
+    @Deprecated
     private String path;
 
     /**
      * Flow operator
      */
+    @Deprecated
     private FlowOperator operator;
 
     /**
      * Http methods
      */
+    @Deprecated
     private Set<HttpMethod> methods;
 
     /**
@@ -84,201 +123,41 @@ public class Flow {
     /**
      * Flow consumers
      */
+    @Deprecated
     private List<FlowConsumer> consumers;
 
-    public Flow() {}
+    /**
+     * Flow tags
+     */
+    private Set<String> tags;
+
+    /**
+     * Flow selectors
+     */
+    private List<FlowSelector> selectors = new ArrayList<>();
 
     public Flow(Flow other) {
         this.id = other.id;
-        this.condition = other.condition;
-        this.consumers = other.consumers;
         this.createdAt = other.createdAt;
-        this.enabled = other.enabled;
-        this.methods = other.methods;
-        this.name = other.name;
-        this.order = other.order;
-        this.path = other.path;
-        this.operator = other.operator;
-        this.post = other.post;
-        this.pre = other.pre;
+        this.updatedAt = other.updatedAt;
         this.referenceId = other.referenceId;
         this.referenceType = other.referenceType;
-        this.updatedAt = other.updatedAt;
-    }
+        this.enabled = other.enabled;
+        this.name = other.name;
+        this.order = other.order;
+        this.post = other.post;
+        this.pre = other.pre;
+        this.request = other.request;
+        this.response = other.response;
+        this.subscribe = other.subscribe;
+        this.publish = other.publish;
+        this.path = other.path;
+        this.operator = other.operator;
+        this.methods = other.methods;
+        this.tags = other.tags;
+        this.consumers = other.consumers;
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public FlowReferenceType getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(FlowReferenceType referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<FlowStep> getPre() {
-        return pre;
-    }
-
-    public void setPre(List<FlowStep> pre) {
-        this.pre = pre;
-    }
-
-    public List<FlowStep> getPost() {
-        return post;
-    }
-
-    public void setPost(List<FlowStep> post) {
-        this.post = post;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public String getCondition() {
-        return condition;
-    }
-
-    public void setCondition(String condition) {
-        this.condition = condition;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public FlowOperator getOperator() {
-        return operator;
-    }
-
-    public void setOperator(FlowOperator operator) {
-        this.operator = operator;
-    }
-
-    public Set<HttpMethod> getMethods() {
-        return methods;
-    }
-
-    public void setMethods(Set<HttpMethod> methods) {
-        this.methods = methods;
-    }
-
-    public int getOrder() {
-        return order;
-    }
-
-    public void setOrder(int order) {
-        this.order = order;
-    }
-
-    public List<FlowConsumer> getConsumers() {
-        return consumers;
-    }
-
-    public void setConsumers(List<FlowConsumer> consumers) {
-        this.consumers = consumers;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Flow flow = (Flow) o;
-        return Objects.equals(id, flow.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "Flow{" +
-            "id='" +
-            id +
-            '\'' +
-            ", referenceType=" +
-            referenceType +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", pre=" +
-            pre +
-            ", post=" +
-            post +
-            ", enabled=" +
-            enabled +
-            ", condition='" +
-            condition +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            ", path='" +
-            path +
-            '\'' +
-            ", operator=" +
-            operator +
-            ", methods=" +
-            methods +
-            ", order=" +
-            order +
-            ", consumers=" +
-            consumers +
-            '}'
-        );
+        this.condition = other.condition;
+        this.selectors = other.selectors;
     }
 }

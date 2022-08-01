@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.19.0
+      author: GraviteeSource Team
+      changes:
+        # ################
+        # Apis v4 Changes
+        # ################
+        - addColumn:
+            tableName: ${gravitee_prefix}apis
+            columns:
+              - column:
+                  name: version_definition
+                  type: nvarchar(64)
+                  beforeColumn: definition
+                  constraints:
+                    nullable: true
+              - column:
+                  name: type
+                  type: nvarchar(64)
+                  afterColumn: definition
+                  constraints:
+                    nullable: true

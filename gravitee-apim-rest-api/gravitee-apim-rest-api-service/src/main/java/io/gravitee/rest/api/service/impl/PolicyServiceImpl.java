@@ -80,7 +80,8 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
         return convert(policyDefinition, true);
     }
 
-    private String validatePolicyConfiguration(String policyName, String configuration) {
+    @Override
+    public String validatePolicyConfiguration(String policyName, String configuration) {
         if (policyName != null && configuration != null) {
             String schema = getSchema(policyName);
             return jsonSchemaService.validate(schema, configuration);

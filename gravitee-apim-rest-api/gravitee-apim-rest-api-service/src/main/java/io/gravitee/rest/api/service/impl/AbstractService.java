@@ -32,7 +32,21 @@ public abstract class AbstractService extends TransactionalService {
 
     public static final String ENVIRONMENT_ADMIN = RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name();
 
-    String getAuthenticatedUsername() {
+    protected static io.gravitee.repository.management.api.search.Pageable convert(Pageable pageable) {
+        if (pageable != null) {
+            return new PageableBuilder().pageNumber(pageable.getPageNumber()).pageSize(pageable.getPageSize()).build();
+        }
+        return null;
+    }
+
+    protected static io.gravitee.repository.management.api.search.Sortable convert(Sortable sortable) {
+        if (sortable != null) {
+            return new SortableBuilder().field(sortable.getField()).setAsc(sortable.isAscOrder()).build();
+        }
+        return null;
+    }
+
+    protected String getAuthenticatedUsername() {
         UserDetails authenticatedUser = getAuthenticatedUser();
         return authenticatedUser == null ? null : authenticatedUser.getUsername();
     }
@@ -62,19 +76,5 @@ public abstract class AbstractService extends TransactionalService {
             .getAuthorities()
             .stream()
             .anyMatch(auth -> role.equals(auth.getAuthority()));
-    }
-
-    protected static io.gravitee.repository.management.api.search.Pageable convert(Pageable pageable) {
-        if (pageable != null) {
-            return new PageableBuilder().pageNumber(pageable.getPageNumber()).pageSize(pageable.getPageSize()).build();
-        }
-        return null;
-    }
-
-    protected static io.gravitee.repository.management.api.search.Sortable convert(Sortable sortable) {
-        if (sortable != null) {
-            return new SortableBuilder().field(sortable.getField()).setAsc(sortable.isAscOrder()).build();
-        }
-        return null;
     }
 }

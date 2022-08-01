@@ -4,25 +4,24 @@
     "name": "tag-1",
     "referenceType": "ORGANIZATION",
     "referenceId": "orga-1",
-    "condition": "my-condition",
+    "createdAt": 1470157767000,
+    "updatedAt": 1470157767000,
+    "order": 1,
     "enabled": true,
-    "methods": [
-      "GET",
-      "POST"
-    ],
-    "path": "/",
-    "operator": "STARTS_WITH",
-    "consumers": [
+    "selectors" : [
       {
-        "consumerType": "TAG",
-        "consumerId": "tag-1"
+        "type": "http-selector",
+        "methods": [ "GET", "POST" ],
+        "path": "/",
+        "path-operator": "STARTS_WITH"
       },
       {
-        "consumerType": "TAG",
-        "consumerId": "tag-2"
+        "type": "condition-selector",
+        "condition": "my-condition"
       }
     ],
-    "pre": [
+    "tags": [ "tag-1", "tag-2" ],
+    "request": [
       {
         "policy": "rate-limit",
         "name": "Rate Limit",
@@ -41,7 +40,7 @@
         "order": 2
       }
     ],
-    "post": [
+    "response": [
       {
         "name": "Groovy",
         "policy": "groovy",
@@ -66,25 +65,30 @@
         "enabled": true,
         "order": 3
       }
-    ],
-    "createdAt": 1470157767000,
-    "updatedAt": 1470157767000,
-    "order": 1
+    ]
   },
   {
     "id": "tag-updated",
     "name": "tag-1",
     "referenceType": "ORGANIZATION",
     "referenceId": "my-orga",
-    "condition": "my-condition",
+    "createdAt": 1470157767000,
+    "updatedAt": 1470157767000,
+    "order": 2,
     "enabled": true,
     "methods": [
       "GET",
       "POST"
     ],
-    "path": "/",
-    "operator": "STARTS_WITH",
-    "pre": [
+    "selectors" : [
+      {
+        "type": "http-selector",
+        "methods": [ "GET", "POST" ],
+        "path": "/",
+        "path-operator": "STARTS_WITH"
+      }
+    ],
+    "request": [
       {
         "policy": "rate-limit",
         "name": "Rate Limit",
@@ -102,7 +106,7 @@
         "order": 2
       }
     ],
-    "post": [
+    "response": [
       {
         "name": "Groovy",
         "policy": "groovy",
@@ -127,31 +131,38 @@
         "enabled": true,
         "order": 3
       }
-    ],
-    "createdAt": 1470157767000,
-    "updatedAt": 1470157767000,
-    "order": 2
+    ]
   },
   {
     "id": "tag-deleted",
     "referenceType": "ORGANIZATION",
     "referenceId": "my-orga",
-    "condition": "",
+    "createdAt": 1456790400000,
+    "updatedAt": 1456790400000,
+    "order": 3,
     "enabled": true,
-    "methods": [
-      "GET",
-      "HEAD",
-      "POST",
-      "PUT",
-      "DELETE",
-      "CONNECT",
-      "OPTIONS",
-      "TRACE",
-      "PATCH"
+    "selectors" : [
+      {
+        "type": "http-selector",
+        "methods": [
+          "GET",
+          "HEAD",
+          "POST",
+          "PUT",
+          "DELETE",
+          "CONNECT",
+          "OPTIONS",
+          "TRACE",
+          "PATCH" ],
+        "path": "/",
+        "path-operator": "STARTS_WITH"
+      },
+      {
+        "type": "condition-selector",
+        "condition": ""
+      }
     ],
-    "path": "/",
-    "operator": "STARTS_WITH",
-    "pre": [
+    "request": [
       {
         "policy": "rate-limit",
         "name": "Rate Limit",
@@ -169,7 +180,7 @@
         "order": 2
       }
     ],
-    "post": [
+    "response": [
       {
         "name": "Groovy",
         "policy": "groovy",
@@ -194,32 +205,38 @@
         "enabled": true,
         "order": 3
       }
-    ],
-    "createdAt": 1456790400000,
-    "updatedAt": 1456790400000,
-    "order": 3
+    ]
   },
-
   {
     "id": "tag-ref-deleted",
     "referenceType": "ORGANIZATION",
     "referenceId": "orga-deleted",
-    "condition": "",
+    "createdAt": 1456790400000,
+    "updatedAt": 1456790400000,
+    "order": 3,
     "enabled": true,
-    "methods": [
-      "GET",
-      "HEAD",
-      "POST",
-      "PUT",
-      "DELETE",
-      "CONNECT",
-      "OPTIONS",
-      "TRACE",
-      "PATCH"
+    "selectors" : [
+      {
+        "type": "http-selector",
+        "methods": [
+          "GET",
+          "HEAD",
+          "POST",
+          "PUT",
+          "DELETE",
+          "CONNECT",
+          "OPTIONS",
+          "TRACE",
+          "PATCH"],
+        "path": "/",
+        "path-operator": "STARTS_WITH"
+      },
+      {
+        "type": "condition-selector",
+        "condition": ""
+      }
     ],
-    "path": "/",
-    "operator": "STARTS_WITH",
-    "pre": [
+    "request": [
       {
         "policy": "rate-limit",
         "name": "Rate Limit",
@@ -237,7 +254,7 @@
         "order": 2
       }
     ],
-    "post": [
+    "response": [
       {
         "name": "Groovy",
         "policy": "groovy",
@@ -262,31 +279,38 @@
         "enabled": true,
         "order": 3
       }
-    ],
-    "createdAt": 1456790400000,
-    "updatedAt": 1456790400000,
-    "order": 3
+    ]
   },
   {
     "id": "tag-ref-deleted-1",
     "referenceType": "ORGANIZATION",
     "referenceId": "orga-deleted",
-    "condition": "",
+    "createdAt": 1456790400000,
+    "updatedAt": 1456790400000,
+    "order": 3,
     "enabled": true,
-    "methods": [
-      "GET",
-      "HEAD",
-      "POST",
-      "PUT",
-      "DELETE",
-      "CONNECT",
-      "OPTIONS",
-      "TRACE",
-      "PATCH"
+    "selectors" : [
+      {
+        "type": "http-selector",
+        "methods": [
+          "GET",
+          "HEAD",
+          "POST",
+          "PUT",
+          "DELETE",
+          "CONNECT",
+          "OPTIONS",
+          "TRACE",
+          "PATCH"],
+        "path": "/",
+        "path-operator": "STARTS_WITH"
+      },
+      {
+        "type": "condition-selector",
+        "condition": ""
+      }
     ],
-    "path": "/",
-    "operator": "STARTS_WITH",
-    "pre": [
+    "request": [
       {
         "policy": "rate-limit",
         "name": "Rate Limit",
@@ -304,7 +328,7 @@
         "order": 2
       }
     ],
-    "post": [
+    "response": [
       {
         "name": "Groovy",
         "policy": "groovy",
@@ -329,9 +353,6 @@
         "enabled": true,
         "order": 3
       }
-    ],
-    "createdAt": 1456790400000,
-    "updatedAt": 1456790400000,
-    "order": 3
+    ]
   }
 ]
