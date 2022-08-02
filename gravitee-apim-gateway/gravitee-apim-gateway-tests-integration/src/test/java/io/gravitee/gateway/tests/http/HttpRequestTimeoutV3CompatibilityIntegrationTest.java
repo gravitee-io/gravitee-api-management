@@ -15,9 +15,16 @@
  */
 package io.gravitee.gateway.tests.http;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.gateway.tests.fakes.policies.AddHeaderPolicy;
+import io.vertx.reactivex.core.buffer.Buffer;
+import io.vertx.reactivex.ext.web.client.HttpResponse;
+import io.vertx.reactivex.ext.web.client.WebClient;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -35,5 +42,11 @@ public class HttpRequestTimeoutV3CompatibilityIntegrationTest extends HttpReques
     public void configureApi(Api api) {
         super.configureApi(api);
         api.setExecutionMode(ExecutionMode.V3);
+    }
+
+    // IN V3 mode, if an exception is thrown during api flows, then platform response flow is not executed.
+    @Override
+    protected void assertPlatformHeaders(HttpResponse<Buffer> response) {
+        assertThat(response.headers().contains(AddHeaderPolicy.HEADER_NAME)).isFalse();
     }
 }
