@@ -19,6 +19,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.node.api.Node;
@@ -44,7 +45,7 @@ public class ShutdownProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final RequestExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
                 if (node.lifecycleState() != Lifecycle.State.STARTED) {

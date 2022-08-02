@@ -15,37 +15,43 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler.context;
 
-import io.gravitee.el.TemplateContext;
-import io.gravitee.el.TemplateEngine;
-import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
-import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
-import io.gravitee.gateway.jupiter.api.el.EvaluableResponse;
-import io.gravitee.gateway.jupiter.core.context.MutableRequest;
-import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
-import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableHttpExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableHttpRequest;
+import io.gravitee.gateway.jupiter.core.context.MutableHttpResponse;
+import io.gravitee.gateway.jupiter.core.context.MutableMessageRequest;
+import io.gravitee.gateway.jupiter.core.context.MutableMessageResponse;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.reactivex.Completable;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-abstract class AbstractExecutionContext implements MutableRequestExecutionContext {
+abstract class AbstractExecutionContext<RQ extends MutableHttpRequest, RS extends MutableHttpResponse>
+    implements MutableHttpExecutionContext {
 
+    private final RQ request;
+    private final RS response;
     private final Map<String, Object> attributes = new ContextAttributeMap();
     private final Map<String, Object> internalAttributes = new HashMap<>();
-    private final MutableRequest request;
-    private final MutableResponse response;
-    private ComponentProvider componentProvider;
-    private Collection<TemplateVariableProvider> templateVariableProviders;
-    protected TemplateEngine templateEngine;
+    protected ComponentProvider componentProvider;
 
-    protected AbstractExecutionContext(MutableRequest request, MutableResponse response) {
+    AbstractExecutionContext(final RQ request, final RS response) {
         this.request = request;
         this.response = response;
+    }
+
+    @Override
+    public RQ request() {
+        return request;
+    }
+
+    @Override
+    public RS response() {
+        return response;
     }
 
     @Override
@@ -61,16 +67,6 @@ abstract class AbstractExecutionContext implements MutableRequestExecutionContex
                 return Completable.error(new InterruptionFailureException(executionFailure));
             }
         );
-    }
-
-    @Override
-    public MutableRequest request() {
-        return request;
-    }
-
-    @Override
-    public MutableResponse response() {
-        return response;
     }
 
     @Override
@@ -133,34 +129,8 @@ abstract class AbstractExecutionContext implements MutableRequestExecutionContex
         return (Map<String, T>) internalAttributes;
     }
 
-    @Override
-    public TemplateEngine getTemplateEngine() {
-        if (templateEngine == null) {
-            templateEngine = TemplateEngine.templateEngine();
-
-            final TemplateContext templateContext = templateEngine.getTemplateContext();
-            final EvaluableRequest evaluableRequest = new EvaluableRequest(request());
-            final EvaluableResponse evaluableResponse = new EvaluableResponse(response());
-
-            templateContext.setVariable(TEMPLATE_ATTRIBUTE_REQUEST, evaluableRequest);
-            templateContext.setVariable(TEMPLATE_ATTRIBUTE_RESPONSE, evaluableResponse);
-            templateContext.setVariable(TEMPLATE_ATTRIBUTE_CONTEXT, new EvaluableExecutionContext(this));
-
-            if (templateVariableProviders != null) {
-                templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide(this));
-            }
-        }
-
-        return templateEngine;
-    }
-
-    public MutableRequestExecutionContext componentProvider(final ComponentProvider componentProvider) {
+    public MutableHttpExecutionContext componentProvider(final ComponentProvider componentProvider) {
         this.componentProvider = componentProvider;
-        return this;
-    }
-
-    public MutableRequestExecutionContext templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders) {
-        this.templateVariableProviders = templateVariableProviders;
         return this;
     }
 }

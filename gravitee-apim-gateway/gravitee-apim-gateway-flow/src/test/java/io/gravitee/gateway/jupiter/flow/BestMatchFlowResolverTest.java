@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.flow;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.reactivex.subscribers.TestSubscriber;

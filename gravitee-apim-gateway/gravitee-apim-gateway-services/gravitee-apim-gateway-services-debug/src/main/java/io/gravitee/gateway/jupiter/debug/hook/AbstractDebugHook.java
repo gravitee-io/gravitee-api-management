@@ -17,6 +17,7 @@ package io.gravitee.gateway.jupiter.debug.hook;
 
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.Hook;
 import io.gravitee.gateway.jupiter.debug.reactor.context.DebugRequestExecutionContext;
@@ -29,7 +30,7 @@ import io.reactivex.Completable;
 public abstract class AbstractDebugHook implements Hook {
 
     @Override
-    public Completable pre(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {
+    public Completable pre(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         DebugRequestExecutionContext debugCtx = getExecutionContext(ctx);
         if (debugCtx != null) {
             return pre(id, debugCtx, executionPhase);
@@ -40,7 +41,7 @@ public abstract class AbstractDebugHook implements Hook {
     protected abstract Completable pre(final String id, final DebugRequestExecutionContext ctx, final ExecutionPhase executionPhase);
 
     @Override
-    public Completable post(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {
+    public Completable post(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         DebugRequestExecutionContext debugCtx = getExecutionContext(ctx);
         if (debugCtx != null) {
             return post(id, debugCtx, executionPhase);
@@ -53,7 +54,7 @@ public abstract class AbstractDebugHook implements Hook {
     @Override
     public Completable error(
         final String id,
-        final RequestExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final ExecutionPhase executionPhase,
         final Throwable throwable
     ) {
@@ -72,7 +73,7 @@ public abstract class AbstractDebugHook implements Hook {
     );
 
     @Override
-    public Completable interrupt(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {
+    public Completable interrupt(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         DebugRequestExecutionContext debugCtx = getExecutionContext(ctx);
         if (debugCtx != null) {
             return interrupt(id, debugCtx, executionPhase);
@@ -85,7 +86,7 @@ public abstract class AbstractDebugHook implements Hook {
     @Override
     public Completable interruptWith(
         final String id,
-        final RequestExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final ExecutionPhase executionPhase,
         final ExecutionFailure failure
     ) {
@@ -107,7 +108,7 @@ public abstract class AbstractDebugHook implements Hook {
         final ExecutionFailure failure
     );
 
-    private DebugRequestExecutionContext getExecutionContext(final RequestExecutionContext ctx) {
+    private DebugRequestExecutionContext getExecutionContext(final HttpExecutionContext ctx) {
         if (ctx instanceof DebugRequestExecutionContext) {
             return (DebugRequestExecutionContext) ctx;
         }

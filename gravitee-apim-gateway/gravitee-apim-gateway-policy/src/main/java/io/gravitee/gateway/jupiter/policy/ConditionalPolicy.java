@@ -16,7 +16,7 @@
 package io.gravitee.gateway.jupiter.policy;
 
 import io.gravitee.definition.model.ConditionSupplier;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.Message;
@@ -61,13 +61,13 @@ public class ConditionalPolicy implements Policy, ConditionSupplier {
     }
 
     @Override
-    public Maybe<Message> onMessage(ExecutionContext ctx, Message message) {
-        return onCondition((MessageExecutionContext) ctx, policy.onMessage(ctx, message));
+    public Completable onMessageRequest(final MessageExecutionContext ctx) {
+        return onCondition(ctx, policy.onMessageRequest(ctx));
     }
 
     @Override
-    public Flowable<Message> onMessageFlow(ExecutionContext ctx, Flowable<Message> messageFlow) {
-        return onCondition((MessageExecutionContext) ctx, policy.onMessageFlow(ctx, messageFlow));
+    public Completable onMessageResponse(final MessageExecutionContext ctx) {
+        return onCondition(ctx, policy.onMessageResponse(ctx));
     }
 
     @Override
@@ -75,15 +75,15 @@ public class ConditionalPolicy implements Policy, ConditionSupplier {
         return condition;
     }
 
-    private Completable onCondition(RequestExecutionContext ctx, Completable toExecute) {
+    private Completable onCondition(HttpExecutionContext ctx, Completable toExecute) {
         return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> toExecute);
     }
 
-    private Maybe<Message> onCondition(MessageExecutionContext ctx, Maybe<Message> toExecute) {
+    private Maybe<Message> onCondition(HttpExecutionContext ctx, Maybe<Message> toExecute) {
         return conditionFilter.filter(ctx, this).flatMap(conditionalPolicy -> toExecute);
     }
 
-    private Flowable<Message> onCondition(MessageExecutionContext ctx, Flowable<Message> toExecute) {
+    private Flowable<Message> onCondition(HttpExecutionContext ctx, Flowable<Message> toExecute) {
         return conditionFilter.filter(ctx, this).flatMapPublisher(conditionalPolicy -> toExecute);
     }
 }

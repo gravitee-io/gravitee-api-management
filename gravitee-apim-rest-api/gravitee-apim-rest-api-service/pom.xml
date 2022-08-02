@@ -84,8 +84,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.gravitee.apim.plugin</groupId>
-			<artifactId>gravitee-apim-plugin-entrypoint</artifactId>
+			<groupId>io.gravitee.apim.plugin.entrypoint</groupId>
+			<artifactId>gravitee-apim-plugin-entrypoint-handler</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -293,12 +293,6 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-email</artifactId>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.gravitee.apim.plugins</groupId>
-			<artifactId>gravitee-apim-plugins-entrypoint</artifactId>
-			<version>3.19.0-SNAPSHOT</version>
-			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 

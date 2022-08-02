@@ -19,7 +19,8 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.reactivex.observers.TestObserver;
 import java.util.Arrays;
@@ -38,16 +39,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class HttpMethodConditionFilterTest {
 
-    @Mock
-    private RequestExecutionContext ctx;
+    private final HttpMethodConditionFilter cut = new HttpMethodConditionFilter();
 
     @Mock
-    private Request request;
+    private HttpExecutionContext ctx;
+
+    @Mock
+    private HttpRequest request;
 
     @Mock
     private Flow flow;
-
-    private final HttpMethodConditionFilter cut = new HttpMethodConditionFilter();
 
     @BeforeEach
     void init() {

@@ -16,7 +16,6 @@
 package io.gravitee.gateway.jupiter.core.context;
 
 import io.gravitee.el.TemplateVariableProvider;
-import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import java.util.Collection;
 
@@ -24,12 +23,9 @@ import java.util.Collection;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MutableRequestExecutionContext extends RequestExecutionContext {
-    MutableRequestExecutionContext componentProvider(final ComponentProvider componentProvider);
-
-    MutableRequestExecutionContext templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders);
-
+public interface MutableRequestExecutionContext extends MutableHttpExecutionContext, RequestExecutionContext {
     MutableRequest request();
 
     MutableResponse response();
+    MutableRequestExecutionContext templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders);
 }

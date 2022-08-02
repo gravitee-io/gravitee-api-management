@@ -146,8 +146,9 @@ public class PathValidationServiceImpl implements PathValidationService {
                         .stream()
                         .filter(listener -> listener instanceof ListenerHttp)
                         .map(listener -> (ListenerHttp) listener)
-                        .flatMap(listenerHttp ->
-                            listenerHttp.getPaths().stream().map(path -> new Path(path.getHost(), sanitizePath(path.getPath())))
+                        .flatMap(
+                            listenerHttp ->
+                                listenerHttp.getPaths().stream().map(path -> new Path(path.getHost(), sanitizePath(path.getPath())))
                         )
                         .collect(Collectors.toList());
                 } catch (IOException ioe) {

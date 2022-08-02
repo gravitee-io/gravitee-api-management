@@ -16,14 +16,13 @@
 package io.gravitee.gateway.jupiter.core.processor;
 
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.Hookable;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
 import io.gravitee.gateway.jupiter.core.hook.HookHelper;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,13 +51,13 @@ public class ProcessorChain implements Hookable<ProcessorHook> {
         processorHooks.addAll(hooks);
     }
 
-    public Completable execute(final RequestExecutionContext ctx, final ExecutionPhase phase) {
+    public Completable execute(final HttpExecutionContext ctx, final ExecutionPhase phase) {
         return processors
             .doOnSubscribe(subscription -> log.debug("Executing processor chain {}", id))
             .flatMapCompletable(processor -> executeNext(ctx, processor, phase), false, 1);
     }
 
-    private Completable executeNext(final RequestExecutionContext ctx, final Processor processor, final ExecutionPhase phase) {
+    private Completable executeNext(final HttpExecutionContext ctx, final Processor processor, final ExecutionPhase phase) {
         log.debug("Executing processor {}", processor.getId());
         return HookHelper.hook(() -> processor.execute(ctx), processor.getId(), processorHooks, ctx, phase);
     }

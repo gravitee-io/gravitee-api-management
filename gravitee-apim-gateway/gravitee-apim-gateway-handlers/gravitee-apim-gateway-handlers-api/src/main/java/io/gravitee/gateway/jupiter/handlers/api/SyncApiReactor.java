@@ -36,8 +36,11 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
@@ -150,15 +153,21 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     @Override
-    public Completable handle(final MutableRequestExecutionContext ctx) {
-        ctx.componentProvider(componentProvider).templateVariableProviders(templateVariableProviders);
+    public Completable handle(final HttpExecutionContext ctx) {
+        if (!(ctx instanceof MutableRequestExecutionContext)) {
+            throw new IllegalArgumentException("Given execution context is not compatible with current reactor");
+        }
+        MutableRequestExecutionContext requestExecutionContext = (MutableRequestExecutionContext) ctx;
+
+        requestExecutionContext.componentProvider(componentProvider);
+        requestExecutionContext.templateVariableProviders(templateVariableProviders);
 
         // Prepare attributes and metrics before handling the request.
-        prepareContextAttributes(ctx);
-        prepareMetrics(ctx);
+        prepareContextAttributes(requestExecutionContext);
+        prepareMetrics(requestExecutionContext);
 
         pendingRequests.incrementAndGet();
-        return handleRequest(ctx).doFinally(pendingRequests::decrementAndGet);
+        return handleRequest(requestExecutionContext).doFinally(pendingRequests::decrementAndGet);
     }
 
     private void prepareContextAttributes(RequestExecutionContext ctx) {
@@ -172,7 +181,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     private void prepareMetrics(RequestExecutionContext ctx) {
-        final Request request = ctx.request();
+        final HttpRequest request = ctx.request();
         final Metrics metrics = request.metrics();
 
         metrics.setApi(api.getId());
@@ -185,7 +194,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         }
     }
 
-    private Completable handleRequest(final RequestExecutionContext ctx) {
+    private Completable handleRequest(final MutableRequestExecutionContext ctx) {
         // Execute platform flow chain.
         return platformFlowChain
             .execute(ctx, REQUEST)
@@ -211,7 +220,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             .andThen(endResponse(ctx));
     }
 
-    private Completable timeoutAndError(Completable upstream, RequestExecutionContext ctx) {
+    private Completable timeoutAndError(Completable upstream, MutableRequestExecutionContext ctx) {
         // When timeout is configured with 0 or less, consider it as infinity: no timeout operator to use in the chain.
         if (httpRequestTimeoutConfiguration.getHttpRequestTimeout() <= 0) {
             return upstream.onErrorResumeNext(error -> processThrowable(ctx, error));
@@ -244,7 +253,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      * @return a {@link Completable} that will complete once the flow chain phase has been fully executed.
      */
     private Completable executeProcessorsChain(
-        final RequestExecutionContext ctx,
+        final MutableRequestExecutionContext ctx,
         final ProcessorChain processorChain,
         final ExecutionPhase phase
     ) {
@@ -272,7 +281,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      *
      * @return a {@link Completable} that will complete once the invoker has been invoked or that completes immediately if execution isn't required.
      */
-    private Completable invokeBackend(final RequestExecutionContext ctx) {
+    private Completable invokeBackend(final MutableRequestExecutionContext ctx) {
         return defer(
                 () -> {
                     if (!Objects.equals(false, ctx.<Boolean>getAttribute(ATTR_INVOKER_SKIP))) {
@@ -311,7 +320,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         return (Invoker) invoker;
     }
 
-    private Completable endResponse(RequestExecutionContext ctx) {
+    private Completable endResponse(MutableRequestExecutionContext ctx) {
         return ctx.response().end();
     }
 
@@ -322,7 +331,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      * @param throwable the source error
      * @return a {@link Completable} that will complete once processor chain has been fully executed or source error rethrown
      */
-    private Completable processThrowable(final RequestExecutionContext ctx, final Throwable throwable) {
+    private Completable processThrowable(final MutableRequestExecutionContext ctx, final Throwable throwable) {
         if (InterruptionHelper.isInterruption(throwable)) {
             // In case of any interruption without failure, execute api post processor chain and resume the execution
             return executeProcessorsChain(ctx, apiPostProcessorChain, RESPONSE);

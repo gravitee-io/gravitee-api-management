@@ -17,6 +17,7 @@ package io.gravitee.gateway.jupiter.handlers.api.processor.plan;
 
 import static io.gravitee.gateway.api.ExecutionContext.*;
 
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.handlers.api.security.SecurityChain;
@@ -30,9 +31,9 @@ import java.util.Objects;
  */
 public class PlanProcessor implements Processor {
 
+    public static final String ID = "processor-plan";
     static final String APPLICATION_NAME_ANONYMOUS = "1";
     static final String PLAN_NAME_ANONYMOUS = "1";
-    public static final String ID = "processor-plan";
 
     private PlanProcessor() {}
 
@@ -46,7 +47,7 @@ public class PlanProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(RequestExecutionContext ctx) {
+    public Completable execute(HttpExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
                 final Metrics metrics = ctx.request().metrics();

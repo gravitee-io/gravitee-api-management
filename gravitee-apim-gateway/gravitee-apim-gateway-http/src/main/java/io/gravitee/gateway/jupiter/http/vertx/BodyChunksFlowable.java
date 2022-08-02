@@ -28,7 +28,7 @@ import java.util.function.Supplier;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AbstractHttpChunks {
+public class BodyChunksFlowable {
 
     protected Flowable<Buffer> chunks;
     protected Maybe<Buffer> cachedBuffer;

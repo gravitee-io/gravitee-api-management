@@ -22,7 +22,9 @@ import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightInvoker;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
+import io.gravitee.gateway.jupiter.api.context.HttpResponse;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.reactivex.Completable;
@@ -52,7 +54,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
     }
 
     @Override
-    public Completable execute(final RequestExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContext ctx) {
         return Completable.defer(
             () -> {
                 // Test if we are in the context of a preflight request
@@ -74,7 +76,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
         );
     }
 
-    private boolean isPreflightRequest(final Request request) {
+    private boolean isPreflightRequest(final HttpRequest request) {
         String originHeader = request.headers().get(HttpHeaderNames.ORIGIN);
         String accessControlRequestMethod = request.headers().get(HttpHeaderNames.ACCESS_CONTROL_REQUEST_METHOD);
         return request.method() == HttpMethod.OPTIONS && originHeader != null && accessControlRequestMethod != null;
@@ -86,7 +88,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
      * @param request Incoming Request
      * @param response Client response
      */
-    private void handlePreflightRequest(final Cors cors, final Request request, final Response response) {
+    private void handlePreflightRequest(final Cors cors, final HttpRequest request, final HttpResponse response) {
         // In case of pre-flight request, we are not able to define what is the calling application.
         // Define it as unknown
         request.metrics().setApplication("1");

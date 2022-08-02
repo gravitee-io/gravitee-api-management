@@ -1,0 +1,6 @@
+{
+  "type": "object",
+  "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:sse:configuration:SseEntrypointConnectorConfiguration",
+  "properties": {},
+  "additionalProperties": false
+}

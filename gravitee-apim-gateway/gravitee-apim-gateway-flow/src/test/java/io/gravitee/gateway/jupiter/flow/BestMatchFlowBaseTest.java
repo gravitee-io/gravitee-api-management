@@ -23,6 +23,7 @@ import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Flowable;
@@ -44,6 +45,8 @@ import org.mockito.junit.MockitoRule;
 @RunWith(Parameterized.class)
 public abstract class BestMatchFlowBaseTest {
 
+    public final ConditionEvaluator evaluator = new CompositeConditionEvaluator(new PathBasedConditionEvaluator());
+
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
@@ -59,14 +62,7 @@ public abstract class BestMatchFlowBaseTest {
     @Parameterized.Parameter(3)
     public String requestPath;
 
-    public final ConditionEvaluator evaluator = new CompositeConditionEvaluator(new PathBasedConditionEvaluator());
-
     public TestFlowResolver flowResolver;
-
-    @Before
-    public void setUp() {
-        flowResolver = new TestFlowResolver(evaluator, buildFlows());
-    }
 
     /**
      * Build list of parameters for test case.
@@ -267,6 +263,11 @@ public abstract class BestMatchFlowBaseTest {
         );
     }
 
+    @Before
+    public void setUp() {
+        flowResolver = new TestFlowResolver(evaluator, buildFlows());
+    }
+
     private List<Flow> buildFlows() {
         return flowPaths
             .stream()
@@ -300,13 +301,13 @@ public abstract class BestMatchFlowBaseTest {
         }
 
         @Override
-        public Flowable<Flow> provideFlows(RequestExecutionContext ctx) {
+        public Flowable<Flow> provideFlows(HttpExecutionContext ctx) {
             return Flowable.fromIterable(flows);
         }
 
         @Override
-        public Flowable<Flow> resolve(RequestExecutionContext ctx) {
-            return Flowable.fromIterable(super.resolve(ExecutionContextAdapter.create(ctx)));
+        public Flowable<Flow> resolve(HttpExecutionContext ctx) {
+            return Flowable.fromIterable(super.resolve(ExecutionContextAdapter.create((RequestExecutionContext) ctx)));
         }
     }
 }

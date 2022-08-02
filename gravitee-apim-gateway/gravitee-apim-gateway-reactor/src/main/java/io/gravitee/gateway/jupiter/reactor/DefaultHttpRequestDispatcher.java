@@ -32,6 +32,7 @@ import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
+import io.gravitee.gateway.jupiter.core.context.MutableHttpExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.hook.HookHelper;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
@@ -185,7 +186,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         return new DefaultRequestExecutionContext(request, request.response());
     }
 
-    private Completable handleNotFound(final MutableRequestExecutionContext ctx) {
+    private Completable handleNotFound(final MutableHttpExecutionContext ctx) {
         ctx.request().contextPath(ctx.request().path());
         ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
         return HookHelper.hook(
@@ -197,7 +198,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         );
     }
 
-    private Completable handleJupiterRequest(final MutableRequestExecutionContext ctx, final HttpAcceptorHandler handlerEntrypoint) {
+    private Completable handleJupiterRequest(final MutableHttpExecutionContext ctx, final HttpAcceptorHandler handlerEntrypoint) {
         ctx.request().contextPath(handlerEntrypoint.path());
         final ApiReactor apiReactor = handlerEntrypoint.target();
         return apiReactor.handle(ctx);

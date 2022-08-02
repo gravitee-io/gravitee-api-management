@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.reactivex.Completable;
@@ -43,9 +44,10 @@ public class NotFoundProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final RequestExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContext ctx) {
         return Completable.defer(
             () -> {
+                RequestExecutionContext requestExecutionContext = (RequestExecutionContext) ctx;
                 LOGGER.warn("No handler can be found for request {}, returning NOT_FOUND (404)", ctx.request().path());
                 // Send a NOT_FOUND HTTP status code (404)
                 ctx.response().status(HttpStatusCode.NOT_FOUND_404);
@@ -55,8 +57,8 @@ public class NotFoundProcessor implements Processor {
                     .response()
                     .headers()
                     .set(HttpHeaderNames.CONTENT_TYPE, environment.getProperty("http.errors[404].contentType", MediaType.TEXT_PLAIN));
-                ctx.response().body(Buffer.buffer(message));
-                return ctx.response().end();
+                requestExecutionContext.response().body(Buffer.buffer(message));
+                return requestExecutionContext.response().end();
             }
         );
     }

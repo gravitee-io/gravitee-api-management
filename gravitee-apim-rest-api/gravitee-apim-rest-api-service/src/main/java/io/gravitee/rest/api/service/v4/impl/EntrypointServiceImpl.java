@@ -80,10 +80,11 @@ public class EntrypointServiceImpl extends AbstractPluginService<EntrypointPlugi
         return super
             .list()
             .stream()
-            .filter(plugin ->
-                ((EntrypointPluginManager) pluginManager).getFactoryById(plugin.id())
-                    .supportedApi()
-                    .equals(io.gravitee.gateway.jupiter.api.ApiType.fromLabel(apiType.getLabel()))
+            .filter(
+                plugin ->
+                    ((EntrypointPluginManager) pluginManager).getFactoryById(plugin.id())
+                        .supportedApi()
+                        .equals(io.gravitee.gateway.jupiter.api.ApiType.fromLabel(apiType.getLabel()))
             )
             .map(this::convert)
             .collect(Collectors.toSet());
@@ -94,10 +95,11 @@ public class EntrypointServiceImpl extends AbstractPluginService<EntrypointPlugi
         return super
             .list()
             .stream()
-            .filter(plugin ->
-                ((EntrypointPluginManager) pluginManager).getFactoryById(plugin.id())
-                    .supportedModes()
-                    .contains(io.gravitee.gateway.jupiter.api.ConnectorMode.fromLabel(connectorMode.getLabel()))
+            .filter(
+                plugin ->
+                    ((EntrypointPluginManager) pluginManager).getFactoryById(plugin.id())
+                        .supportedModes()
+                        .contains(io.gravitee.gateway.jupiter.api.ConnectorMode.fromLabel(connectorMode.getLabel()))
             )
             .map(this::convert)
             .collect(Collectors.toSet());

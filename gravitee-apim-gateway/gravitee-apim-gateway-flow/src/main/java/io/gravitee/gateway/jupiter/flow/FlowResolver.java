@@ -16,7 +16,7 @@
 package io.gravitee.gateway.jupiter.flow;
 
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.reactivex.Flowable;
 
 /**
@@ -32,16 +32,16 @@ public interface FlowResolver {
      * @param ctx the current context
      * @return a {@link Flowable} of {@link Flow}.
      */
-    Flowable<Flow> provideFlows(final RequestExecutionContext ctx);
+    Flowable<Flow> provideFlows(final HttpExecutionContext ctx);
 
     /**
      * Resolve the flows against the current context.
      * Each flow of the initial flow list is filtered thanks to the provided evaluator before being returned.
      *
-     * Initial flow list must be provided by a concrete implementation of {@link #provideFlows(RequestExecutionContext)}.
+     * Initial flow list must be provided by a concrete implementation of {@link #provideFlows(HttpExecutionContext)}.
      *
      * @param ctx the current context.
      * @return a {@link Flowable} of {@link Flow} that have passed the filter step.
      */
-    Flowable<Flow> resolve(final RequestExecutionContext ctx);
+    Flowable<Flow> resolve(final HttpExecutionContext ctx);
 }

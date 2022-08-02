@@ -29,8 +29,8 @@ public interface PolicyChainFactory {
      * Creates a policy chain from the provided flow, for the given execution phase.
      * The policies composing the policy chain, depends on the specified execution phase:
      * <ul>
-     *     <li>{@link ExecutionPhase#REQUEST}, {@link ExecutionPhase#ASYNC_REQUEST}: {@link Flow#getPre()}</li>
-     *     <li>{@link ExecutionPhase#RESPONSE}, {@link ExecutionPhase#ASYNC_RESPONSE}: {@link Flow#getPost()}</li>
+     *     <li>{@link ExecutionPhase#REQUEST}, {@link ExecutionPhase#MESSAGE_REQUEST}: {@link Flow#getPre()}</li>
+     *     <li>{@link ExecutionPhase#RESPONSE}, {@link ExecutionPhase#MESSAGE_RESPONSE}: {@link Flow#getPost()}</li>
      * </ul>
      *
      * @param flowChainId the flow chain id in which one the policy chain will be executed

@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.core.condition;
 
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.reactivex.Maybe;
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +36,7 @@ public class CompositeConditionFilter<T> implements ConditionFilter<T> {
     }
 
     @Override
-    public Maybe<T> filter(RequestExecutionContext ctx, T elt) {
+    public Maybe<T> filter(HttpExecutionContext ctx, T elt) {
         Maybe<T> filtered = Maybe.just(elt);
 
         for (ConditionFilter<T> filter : filters) {

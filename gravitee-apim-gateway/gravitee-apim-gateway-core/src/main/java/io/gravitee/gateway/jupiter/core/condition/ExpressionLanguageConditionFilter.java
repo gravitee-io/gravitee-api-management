@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.core.condition;
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.el.spel.function.xml.DocumentBuilderFactoryUtils;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.reactivex.Maybe;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class ExpressionLanguageConditionFilter<T extends ConditionSupplier> impl
     private static final Logger log = LoggerFactory.getLogger(DocumentBuilderFactoryUtils.class);
 
     @Override
-    public Maybe<T> filter(RequestExecutionContext ctx, T elt) {
+    public Maybe<T> filter(HttpExecutionContext ctx, T elt) {
         final String condition = elt.getCondition();
 
         if (condition == null || condition.isEmpty()) {

@@ -29,11 +29,6 @@ import java.util.Set;
 public class FakeEntrypointFactory implements EntrypointConnectorFactory<FakeEntrypointConnector> {
 
     @Override
-    public String id() {
-        return "fake-entrypoint";
-    }
-
-    @Override
     public ApiType supportedApi() {
         return ApiType.SYNC;
     }

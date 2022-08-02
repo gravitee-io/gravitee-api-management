@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.reactivex.Completable;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,20 +41,20 @@ class ProcessorChainTest {
     @Test
     public void shouldCompleteWithNullProcessors() {
         ProcessorChain processorChain = new ProcessorChain("id", null);
-        processorChain.execute(mock(RequestExecutionContext.class), ExecutionPhase.REQUEST).test().assertResult();
+        processorChain.execute(mock(HttpExecutionContext.class), ExecutionPhase.REQUEST).test().assertResult();
     }
 
     @Test
     public void shouldCompleteWithEmptyProcessors() {
         ProcessorChain processorChain = new ProcessorChain("id", List.of());
-        processorChain.execute(mock(RequestExecutionContext.class), ExecutionPhase.REQUEST).test().assertResult();
+        processorChain.execute(mock(HttpExecutionContext.class), ExecutionPhase.REQUEST).test().assertResult();
     }
 
     @Test
     public void shouldCompleteWithCompleteProcessor() {
         when(mockProcessor.execute(any())).thenReturn(Completable.complete());
         ProcessorChain processorChain = new ProcessorChain("id", List.of(mockProcessor));
-        processorChain.execute(mock(RequestExecutionContext.class), ExecutionPhase.REQUEST).test().assertResult();
+        processorChain.execute(mock(HttpExecutionContext.class), ExecutionPhase.REQUEST).test().assertResult();
     }
 
     @Test
@@ -64,7 +64,7 @@ class ProcessorChainTest {
             .thenReturn(Completable.complete())
             .thenReturn(Completable.complete());
         ProcessorChain processorChain = new ProcessorChain("id", List.of(mockProcessor, mockProcessor, mockProcessor));
-        processorChain.execute(mock(RequestExecutionContext.class), ExecutionPhase.REQUEST).test().assertResult();
+        processorChain.execute(mock(HttpExecutionContext.class), ExecutionPhase.REQUEST).test().assertResult();
         verify(mockProcessor, times(3)).execute(any());
     }
 
@@ -75,7 +75,7 @@ class ProcessorChainTest {
             .thenReturn(Completable.error(new RuntimeException()))
             .thenReturn(Completable.complete());
         ProcessorChain processorChain = new ProcessorChain("id", List.of(mockProcessor, mockProcessor, mockProcessor));
-        processorChain.execute(mock(RequestExecutionContext.class), ExecutionPhase.REQUEST).test().assertError(RuntimeException.class);
+        processorChain.execute(mock(HttpExecutionContext.class), ExecutionPhase.REQUEST).test().assertError(RuntimeException.class);
 
         verify(mockProcessor, times(2)).execute(any());
     }

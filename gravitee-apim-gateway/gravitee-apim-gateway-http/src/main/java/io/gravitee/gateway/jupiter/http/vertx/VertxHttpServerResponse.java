@@ -15,110 +15,77 @@
  */
 package io.gravitee.gateway.jupiter.http.vertx;
 
-import io.gravitee.common.http.HttpHeadersValues;
-import io.gravitee.common.http.HttpVersion;
-import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.reactivex.*;
-import io.vertx.reactivex.core.http.HttpServerResponse;
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.FlowableTransformer;
+import io.reactivex.Maybe;
+import io.reactivex.MaybeTransformer;
+import io.reactivex.Single;
 
 /**
- * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxHttpServerResponse extends AbstractHttpChunks implements MutableResponse {
+public class VertxHttpServerResponse extends AbstractVertxServerResponse implements MutableResponse {
 
-    protected final VertxHttpServerRequest serverRequest;
-    protected HttpHeaders headers;
-    protected final HttpHeaders trailers;
-    protected final HttpServerResponse nativeResponse;
+    private final BodyChunksFlowable httpChunks;
 
-    public VertxHttpServerResponse(VertxHttpServerRequest serverRequest) {
-        this.serverRequest = serverRequest;
-        this.nativeResponse = serverRequest.nativeRequest.response();
-        this.headers = new VertxHttpHeaders(nativeResponse.headers().getDelegate());
-        this.trailers = new VertxHttpHeaders(nativeResponse.trailers().getDelegate());
-    }
-
-    protected boolean valid() {
-        return !nativeResponse.closed() && !nativeResponse.ended();
+    public VertxHttpServerResponse(final VertxHttpServerRequest vertxHttpServerRequest) {
+        super(vertxHttpServerRequest);
+        httpChunks = new BodyChunksFlowable();
     }
 
     @Override
-    public int status() {
-        return nativeResponse.getStatusCode();
+    public Maybe<Buffer> body() {
+        return httpChunks.body();
     }
 
     @Override
-    public String reason() {
-        return nativeResponse.getStatusMessage();
+    public Single<Buffer> bodyOrEmpty() {
+        return httpChunks.bodyOrEmpty();
     }
 
     @Override
-    public VertxHttpServerResponse reason(String reason) {
-        if (reason != null) {
-            nativeResponse.setStatusMessage(reason);
-        }
-        return this;
+    public void body(final Buffer buffer) {
+        httpChunks.body(buffer);
     }
 
     @Override
-    public VertxHttpServerResponse status(int statusCode) {
-        nativeResponse.setStatusCode(statusCode);
-        return this;
+    public Completable onBody(final MaybeTransformer<Buffer, Buffer> onBody) {
+        return httpChunks.onBody(onBody);
     }
 
     @Override
-    public HttpHeaders headers() {
-        return headers;
+    public Flowable<Buffer> chunks() {
+        return httpChunks.chunks();
     }
 
     @Override
-    public boolean ended() {
-        return nativeResponse.ended();
+    public void chunks(final Flowable<Buffer> chunks) {
+        httpChunks.chunks(chunks);
     }
 
     @Override
-    public HttpHeaders trailers() {
-        return trailers;
-    }
-
-    protected void writeHeaders() {
-        if (HttpVersion.HTTP_2 == serverRequest.version()) {
-            if (
-                headers.contains(io.vertx.core.http.HttpHeaders.CONNECTION) &&
-                headers.getAll(io.vertx.core.http.HttpHeaders.CONNECTION).contains(HttpHeadersValues.CONNECTION_GO_AWAY)
-            ) {
-                // 'Connection: goAway' is a special header indicating the native connection should be shutdown because of the node itself will shutdown.
-                serverRequest.nativeRequest.connection().shutdown();
-            }
-
-            // As per https://tools.ietf.org/html/rfc7540#section-8.1.2.2
-            // connection-specific header fields must be removed from response headers
-            headers
-                .remove(io.vertx.core.http.HttpHeaders.CONNECTION)
-                .remove(io.vertx.core.http.HttpHeaders.KEEP_ALIVE)
-                .remove(io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING);
-        }
+    public Completable onChunks(final FlowableTransformer<Buffer, Buffer> onChunks) {
+        return httpChunks.onChunks(onChunks);
     }
 
     @Override
     public Completable end() {
         return Completable.defer(
             () -> {
-                if (serverRequest.isWebSocketUpgraded()) {
+                if (((VertxHttpServerRequest) serverRequest).isWebSocketUpgraded()) {
                     return Completable.complete();
                 }
 
-                if (!valid()) {
+                if (!opened()) {
                     return Completable.error(new IllegalStateException("The response is already ended"));
                 }
-                if (!nativeResponse.headWritten()) {
-                    writeHeaders();
-                }
+                writeHeaders();
 
-                if (chunks != null) {
+                if (httpChunks.chunks != null) {
                     return nativeResponse.rxSend(
                         chunks()
                             .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
@@ -134,10 +101,5 @@ public class VertxHttpServerResponse extends AbstractHttpChunks implements Mutab
                 return nativeResponse.rxEnd();
             }
         );
-    }
-
-    @Override
-    public void setHeaders(HttpHeaders headers) {
-        this.headers = headers;
     }
 }

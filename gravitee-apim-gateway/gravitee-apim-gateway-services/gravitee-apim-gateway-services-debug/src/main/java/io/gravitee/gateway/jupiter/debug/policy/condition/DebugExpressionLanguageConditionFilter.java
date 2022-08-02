@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.debug.policy.condition;
 
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.jupiter.debug.reactor.context.DebugRequestExecutionContext;
@@ -28,7 +29,7 @@ import io.reactivex.Maybe;
 public class DebugExpressionLanguageConditionFilter extends ExpressionLanguageConditionFilter<ConditionalPolicy> {
 
     @Override
-    public Maybe<ConditionalPolicy> filter(final RequestExecutionContext ctx, final ConditionalPolicy elt) {
+    public Maybe<ConditionalPolicy> filter(final HttpExecutionContext ctx, final ConditionalPolicy elt) {
         return super
             .filter(ctx, elt)
             .doOnEvent(

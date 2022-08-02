@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.handlers.api.hook.logging;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
 import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
@@ -41,14 +42,15 @@ public class LoggingHook implements InvokerHook {
     }
 
     @Override
-    public Completable pre(String id, RequestExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
+    public Completable pre(String id, HttpExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
         return Completable.fromRunnable(
             () -> {
+                RequestExecutionContext requestExecutionContext = (RequestExecutionContext) ctx;
                 final Log log = ctx.request().metrics().getLog();
                 final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE);
 
                 if (log != null && loggingContext.proxyMode()) {
-                    final LogProxyRequest logRequest = new LogProxyRequest(loggingContext, ctx.request());
+                    final LogProxyRequest logRequest = new LogProxyRequest(loggingContext, requestExecutionContext.request());
                     log.setProxyRequest(logRequest);
                     ((MutableRequestExecutionContext) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
                 }
@@ -57,14 +59,15 @@ public class LoggingHook implements InvokerHook {
     }
 
     @Override
-    public Completable post(String id, RequestExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
+    public Completable post(String id, HttpExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
         return Completable.fromRunnable(
             () -> {
+                RequestExecutionContext requestExecutionContext = (RequestExecutionContext) ctx;
                 final Log log = ctx.request().metrics().getLog();
                 final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE);
 
                 if (log != null && loggingContext.proxyMode()) {
-                    final LogProxyResponse logResponse = new LogProxyResponse(loggingContext, ctx.response());
+                    final LogProxyResponse logResponse = new LogProxyResponse(loggingContext, requestExecutionContext.response());
                     log.setProxyResponse(logResponse);
 
                     final MutableResponse response = ((MutableRequestExecutionContext) ctx).response();
@@ -75,14 +78,14 @@ public class LoggingHook implements InvokerHook {
     }
 
     @Override
-    public Completable interrupt(String id, RequestExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
+    public Completable interrupt(String id, HttpExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
         return post(id, ctx, executionPhase);
     }
 
     @Override
     public Completable interruptWith(
         String id,
-        RequestExecutionContext ctx,
+        HttpExecutionContext ctx,
         @Nullable ExecutionPhase executionPhase,
         ExecutionFailure failure
     ) {

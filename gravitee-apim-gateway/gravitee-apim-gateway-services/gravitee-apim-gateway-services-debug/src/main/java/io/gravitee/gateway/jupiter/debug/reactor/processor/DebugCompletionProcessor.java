@@ -25,6 +25,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyStep;
@@ -65,7 +66,7 @@ public class DebugCompletionProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final RequestExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContext ctx) {
         return Completable.defer(
             () -> {
                 final DebugRequestExecutionContext debugContext = (DebugRequestExecutionContext) ctx;

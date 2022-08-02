@@ -49,6 +49,13 @@ class DefaultPolicyFactoryTest {
     private PolicyMetadata policyMetadata;
     private PolicyConfiguration policyConfiguration;
 
+    private static Stream<Arguments> wrongPhase() {
+        return Stream.of(
+            Arguments.of(ExecutionPhase.REQUEST, DummyPolicyResponse.class),
+            Arguments.of(ExecutionPhase.RESPONSE, DummyPolicyRequest.class)
+        );
+    }
+
     @BeforeEach
     public void init() {
         policyFactory = new DefaultPolicyFactory(new PolicyPluginFactoryImpl(), new ExpressionLanguageConditionFilter<>());
@@ -136,7 +143,7 @@ class DefaultPolicyFactoryTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = ExecutionPhase.class, names = { "ASYNC_REQUEST", "ASYNC_RESPONSE" })
+    @EnumSource(value = ExecutionPhase.class, names = { "MESSAGE_REQUEST", "MESSAGE_RESPONSE" })
     public void shouldCreatePolicyAdapterWithConfig(final ExecutionPhase phase) {
         PolicyManifest policyManifest = policyManifestBuilder
             .setPolicy(DummyPolicyWithConfig.class)
@@ -187,12 +194,5 @@ class DefaultPolicyFactoryTest {
             .setMethods(new PolicyMethodResolver().resolve(policyClass))
             .build();
         assertNull(policyFactory.create(executionPhase, policyManifest, policyConfiguration, policyMetadata));
-    }
-
-    private static Stream<Arguments> wrongPhase() {
-        return Stream.of(
-            Arguments.of(ExecutionPhase.REQUEST, DummyPolicyResponse.class),
-            Arguments.of(ExecutionPhase.RESPONSE, DummyPolicyRequest.class)
-        );
     }
 }

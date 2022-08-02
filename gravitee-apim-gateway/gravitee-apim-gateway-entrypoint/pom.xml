@@ -37,8 +37,8 @@
             <artifactId>gravitee-gateway-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.gravitee.apim.plugin</groupId>
-            <artifactId>gravitee-apim-plugin-entrypoint</artifactId>
+            <groupId>io.gravitee.apim.plugin.entrypoint</groupId>
+            <artifactId>gravitee-apim-plugin-entrypoint-handler</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!-- Spring dependencies -->
