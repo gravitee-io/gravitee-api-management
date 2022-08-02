@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.handlers.api.processor.logging;
 
 import io.gravitee.gateway.core.logging.LoggingContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.handlers.api.logging.response.LogClientResponse;
@@ -42,14 +43,17 @@ public class LogResponseProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(RequestExecutionContext ctx) {
+    public Completable execute(HttpExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
-                final Log log = ctx.request().metrics().getLog();
-                final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE);
+                RequestExecutionContext requestExecutionContext = (RequestExecutionContext) ctx;
+                final Log log = requestExecutionContext.request().metrics().getLog();
+                final LoggingContext loggingContext = requestExecutionContext.getInternalAttribute(
+                    LoggingContext.LOGGING_CONTEXT_ATTRIBUTE
+                );
 
                 if (log != null && loggingContext.clientMode()) {
-                    final LogClientResponse logResponse = new LogClientResponse(loggingContext, ctx.response());
+                    final LogClientResponse logResponse = new LogClientResponse(loggingContext, requestExecutionContext.response());
                     log.setClientResponse(logResponse);
                 }
             }

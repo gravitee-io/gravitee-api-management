@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Response;
@@ -54,6 +55,7 @@ class ContentTemplateVariableProviderTest {
     protected static final String RESPONSE_CONTENT = "response content";
     protected static final String RESPONSE_JSON_CONTENT = "{\"response\": \"content\"}";
     protected static final String RESPONSE_XML_CONTENT = "<response>content</response>";
+    private final ContentTemplateVariableProvider cut = new ContentTemplateVariableProvider();
 
     @Mock
     private RequestExecutionContext ctx;
@@ -75,8 +77,6 @@ class ContentTemplateVariableProviderTest {
 
     @Mock
     private EvaluableResponse evaluableResponse;
-
-    private final ContentTemplateVariableProvider cut = new ContentTemplateVariableProvider();
 
     @BeforeEach
     void init() {

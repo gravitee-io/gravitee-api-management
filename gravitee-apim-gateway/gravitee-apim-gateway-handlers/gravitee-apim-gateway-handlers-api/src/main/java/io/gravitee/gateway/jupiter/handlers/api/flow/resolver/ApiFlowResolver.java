@@ -17,6 +17,7 @@ package io.gravitee.gateway.jupiter.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.flow.AbstractFlowResolver;
@@ -40,7 +41,7 @@ class ApiFlowResolver extends AbstractFlowResolver {
     }
 
     @Override
-    public Flowable<Flow> provideFlows(RequestExecutionContext ctx) {
+    public Flowable<Flow> provideFlows(HttpExecutionContext ctx) {
         return this.flows;
     }
 

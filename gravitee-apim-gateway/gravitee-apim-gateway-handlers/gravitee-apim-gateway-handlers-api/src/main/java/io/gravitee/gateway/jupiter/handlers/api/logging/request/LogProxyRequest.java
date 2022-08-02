@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.handlers.api.logging.request;
 
 import io.gravitee.gateway.core.logging.LoggingContext;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.api.context.Request;
 
 /**

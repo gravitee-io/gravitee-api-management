@@ -17,6 +17,7 @@ package io.gravitee.gateway.jupiter.flow.condition.evaluation;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.reactivex.Maybe;
@@ -33,7 +34,7 @@ public class PathBasedConditionFilter
     implements ConditionFilter<Flow> {
 
     @Override
-    public Maybe<Flow> filter(RequestExecutionContext ctx, Flow flow) {
+    public Maybe<Flow> filter(HttpExecutionContext ctx, Flow flow) {
         return evaluate(ctx.request().pathInfo(), flow) ? Maybe.just(flow) : Maybe.empty();
     }
 }

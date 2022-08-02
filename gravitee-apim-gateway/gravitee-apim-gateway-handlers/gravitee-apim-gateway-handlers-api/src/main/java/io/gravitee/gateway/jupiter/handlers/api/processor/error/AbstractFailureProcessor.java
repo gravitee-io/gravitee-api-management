@@ -24,7 +24,9 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
-import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
+import io.gravitee.gateway.jupiter.api.context.HttpResponse;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
@@ -53,8 +55,9 @@ public abstract class AbstractFailureProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final RequestExecutionContext executionContext) {
-        ExecutionFailure executionFailure = executionContext.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
+    public Completable execute(final HttpExecutionContext executionContext) {
+        RequestExecutionContext requestExecutionContext = (RequestExecutionContext) executionContext;
+        ExecutionFailure executionFailure = requestExecutionContext.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
 
         if (executionFailure == null) {
             executionFailure =
@@ -64,16 +67,16 @@ public abstract class AbstractFailureProcessor implements Processor {
 
         // If no application has been associated to the request (for example in case security chain can not be processed
         // correctly) set the default application to track it.
-        if (executionContext.request().metrics().getApplication() == null) {
-            executionContext.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
+        if (requestExecutionContext.request().metrics().getApplication() == null) {
+            requestExecutionContext.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
         }
 
-        return processFailure(executionContext, executionFailure);
+        return processFailure(requestExecutionContext, executionFailure);
     }
 
     protected Completable processFailure(final RequestExecutionContext context, final ExecutionFailure executionFailure) {
-        final Request request = context.request();
-        final Response response = context.response();
+        final HttpRequest request = context.request();
+        final HttpResponse response = context.response();
 
         request.metrics().setErrorKey(executionFailure.key());
         response.status(executionFailure.statusCode());

@@ -24,8 +24,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.hook.Hook;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.MessageHook;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
@@ -52,7 +51,7 @@ class HookHelperTest {
     private MessageHook mockHook2;
 
     @Mock
-    private RequestExecutionContext mockCtx;
+    private HttpExecutionContext mockCtx;
 
     @BeforeEach
     public void beforeEach() {

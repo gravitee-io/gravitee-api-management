@@ -52,7 +52,7 @@ public class EntrypointPluginManagerImpl extends AbstractConfigurablePluginManag
                 plugin.clazz()
             );
             final EntrypointConnectorFactory<?> factory = connectorFactoryClass.getDeclaredConstructor().newInstance();
-            factories.put(factory.id(), factory);
+            factories.put(plugin.id(), factory);
         } catch (Exception ex) {
             logger.error("Unexpected error while loading entrypoint plugin: {}", plugin.clazz(), ex);
         } finally {

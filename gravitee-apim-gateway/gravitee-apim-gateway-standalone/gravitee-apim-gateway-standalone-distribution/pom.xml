@@ -16,7 +16,7 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -100,6 +100,14 @@
         <dependency>
             <groupId>io.gravitee.apim.gateway.services</groupId>
             <artifactId>gravitee-apim-gateway-services-debug</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.entrypoint</groupId>
+            <artifactId>gravitee-apim-plugin-entrypoint-sse</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
             <type>zip</type>

@@ -18,7 +18,9 @@ package io.gravitee.gateway.jupiter.handlers.api.processor.cors;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
+import io.gravitee.gateway.jupiter.api.context.HttpResponse;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.reactivex.Completable;
@@ -44,7 +46,7 @@ public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
     }
 
     @Override
-    public Completable execute(final RequestExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
                 Api api = ctx.getComponent(Api.class);
@@ -54,7 +56,7 @@ public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
         );
     }
 
-    private void handleSimpleCrossOriginRequest(final Cors cors, final Request request, final Response response) {
+    private void handleSimpleCrossOriginRequest(final Cors cors, final HttpRequest request, final HttpResponse response) {
         // 1. If the Origin header is not present terminate this set of steps. The request is outside the scope of
         // this specification.
         // 2. If the value of the Origin header is not a case-sensitive match for any of the values in list of origins,

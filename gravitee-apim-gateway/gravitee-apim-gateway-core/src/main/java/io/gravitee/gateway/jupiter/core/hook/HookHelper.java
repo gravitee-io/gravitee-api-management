@@ -17,7 +17,7 @@ package io.gravitee.gateway.jupiter.core.hook;
 
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.Hook;
 import io.gravitee.gateway.jupiter.api.hook.MessageHook;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionHelper;
@@ -43,7 +43,7 @@ public class HookHelper {
         final Supplier<Completable> completableSupplier,
         final String componentId,
         final List<T> hooks,
-        final RequestExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final ExecutionPhase executionPhase
     ) {
         if (hooks != null && !hooks.isEmpty()) {
@@ -63,7 +63,7 @@ public class HookHelper {
         final Supplier<Maybe<T>> maybeSupplier,
         final String componentId,
         final List<MessageHook> hooks,
-        final RequestExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final ExecutionPhase executionPhase
     ) {
         if (hooks != null && !hooks.isEmpty()) {
@@ -84,7 +84,7 @@ public class HookHelper {
     private static <T extends Hook> Completable executeHookOnError(
         final String componentId,
         final List<T> hooks,
-        final RequestExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final ExecutionPhase executionPhase,
         final Throwable throwable
     ) {
@@ -109,7 +109,7 @@ public class HookHelper {
         final String componentId,
         final List<T> hooks,
         final HookPhase phase,
-        final RequestExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final ExecutionPhase executionPhase,
         final Throwable throwable,
         final ExecutionFailure executionFailure

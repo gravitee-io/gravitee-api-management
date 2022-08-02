@@ -18,7 +18,7 @@ package io.gravitee.gateway.jupiter.core.tracing;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.Hook;
 import io.gravitee.tracing.api.Span;
 import io.gravitee.tracing.api.Tracer;
@@ -34,19 +34,19 @@ public abstract class AbstractTracingHook implements Hook {
     private static final String CTX_TRACING_SPAN_ATTR = ExecutionContext.ATTR_INTERNAL_PREFIX + "tracing-span-%s";
 
     @Override
-    public Completable pre(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {
+    public Completable pre(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         return Completable.fromRunnable(() -> createSpan(id, ctx, executionPhase));
     }
 
     @Override
-    public Completable post(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {
+    public Completable post(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         return Completable.fromRunnable(() -> endSpan(id, ctx));
     }
 
     @Override
     public Completable error(
         final String id,
-        final RequestExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final ExecutionPhase executionPhase,
         final Throwable throwable
     ) {
@@ -54,21 +54,21 @@ public abstract class AbstractTracingHook implements Hook {
     }
 
     @Override
-    public Completable interrupt(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {
+    public Completable interrupt(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         return Completable.fromRunnable(() -> endSpan(id, ctx));
     }
 
     @Override
     public Completable interruptWith(
         final String id,
-        final RequestExecutionContext ctx,
+        final HttpExecutionContext ctx,
         final ExecutionPhase executionPhase,
         final ExecutionFailure failure
     ) {
         return Completable.fromRunnable(() -> endSpanWithFailure(id, ctx, failure));
     }
 
-    protected void createSpan(final String id, final RequestExecutionContext ctx, final ExecutionPhase executionPhase) {
+    protected void createSpan(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         Tracer tracer = ctx.getComponent(Tracer.class);
         if (tracer != null) {
             Span span = tracer.span(getSpanName(id, executionPhase));
@@ -79,18 +79,13 @@ public abstract class AbstractTracingHook implements Hook {
 
     protected abstract String getSpanName(final String id, final ExecutionPhase executionPhase);
 
-    protected void withAttributes(
-        final String id,
-        final RequestExecutionContext ctx,
-        final ExecutionPhase executionPhase,
-        final Span span
-    ) {
+    protected void withAttributes(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase, final Span span) {
         if (executionPhase != null) {
             span.withAttribute(SPAN_PHASE_ATTR, executionPhase.getLabel());
         }
     }
 
-    protected void endSpan(final String id, final RequestExecutionContext ctx) {
+    protected void endSpan(final String id, final HttpExecutionContext ctx) {
         Span span = getSpan(ctx, id);
         if (span != null) {
             span.end();
@@ -98,7 +93,7 @@ public abstract class AbstractTracingHook implements Hook {
         }
     }
 
-    protected void endSpanOnError(final String is, final RequestExecutionContext ctx, final Throwable throwable) {
+    protected void endSpanOnError(final String is, final HttpExecutionContext ctx, final Throwable throwable) {
         Span span = getSpan(ctx, is);
         if (span != null) {
             span.reportError(throwable).end();
@@ -106,7 +101,7 @@ public abstract class AbstractTracingHook implements Hook {
         }
     }
 
-    protected void endSpanWithFailure(final String id, final RequestExecutionContext ctx, final ExecutionFailure failure) {
+    protected void endSpanWithFailure(final String id, final HttpExecutionContext ctx, final ExecutionFailure failure) {
         Span span = getSpan(ctx, id);
         if (span != null) {
             span
@@ -119,15 +114,15 @@ public abstract class AbstractTracingHook implements Hook {
         }
     }
 
-    private void putSpan(String id, RequestExecutionContext ctx, Span span) {
+    private void putSpan(String id, HttpExecutionContext ctx, Span span) {
         ctx.putInternalAttribute(getCtxAttributeKey(id), span);
     }
 
-    private Span getSpan(RequestExecutionContext ctx, String is) {
+    private Span getSpan(HttpExecutionContext ctx, String is) {
         return ctx.getInternalAttribute(getCtxAttributeKey(is));
     }
 
-    private void removeSpan(RequestExecutionContext ctx, String id) {
+    private void removeSpan(HttpExecutionContext ctx, String id) {
         ctx.removeInternalAttribute(getCtxAttributeKey(id));
     }
 

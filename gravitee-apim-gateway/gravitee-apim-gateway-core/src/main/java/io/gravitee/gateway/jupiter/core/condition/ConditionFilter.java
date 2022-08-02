@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.core.condition;
 
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.reactivex.Maybe;
 
@@ -31,5 +32,5 @@ public interface ConditionFilter<T> {
      *
      * @return a {@link Maybe} containing the filtered element or empty if the element didn't pass the filter step.
      */
-    Maybe<T> filter(RequestExecutionContext ctx, T elt);
+    Maybe<T> filter(HttpExecutionContext ctx, T elt);
 }

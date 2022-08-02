@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.policy.tracing;
 
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.MessageHook;
 import io.gravitee.tracing.api.Span;
@@ -34,16 +35,11 @@ public class TracingMessageHook extends AbstractTracingPolicyHook implements Mes
     }
 
     @Override
-    protected void withAttributes(
-        final String id,
-        final RequestExecutionContext ctx,
-        final ExecutionPhase executionPhase,
-        final Span span
-    ) {
+    protected void withAttributes(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase, final Span span) {
         super.withAttributes(id, ctx, executionPhase, span);
-        if (ExecutionPhase.ASYNC_REQUEST == executionPhase) {
+        if (ExecutionPhase.MESSAGE_REQUEST == executionPhase) {
             span.withAttribute(SPAN_MESSAGE_ATTR, "incoming");
-        } else if (ExecutionPhase.ASYNC_RESPONSE == executionPhase) {
+        } else if (ExecutionPhase.MESSAGE_RESPONSE == executionPhase) {
             span.withAttribute(SPAN_MESSAGE_ATTR, "outgoing");
         }
     }

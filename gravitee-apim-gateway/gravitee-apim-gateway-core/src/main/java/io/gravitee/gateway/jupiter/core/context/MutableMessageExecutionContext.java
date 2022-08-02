@@ -21,4 +21,8 @@ import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MutableMessageExecutionContext extends MessageExecutionContext {}
+public interface MutableMessageExecutionContext extends MessageExecutionContext, MutableHttpExecutionContext {
+    MutableMessageRequest request();
+
+    MutableMessageResponse response();
+}

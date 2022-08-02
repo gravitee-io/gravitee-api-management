@@ -18,13 +18,11 @@ package io.gravitee.gateway.jupiter.policy.adapter.policy;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Completable;
-import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -58,13 +56,13 @@ public class PolicyAdapter implements Policy {
     }
 
     @Override
-    public Maybe<Message> onMessage(ExecutionContext ctx, Message message) {
-        return Maybe.error(new RuntimeException("Cannot adapt v3 policy for message execution"));
+    public Completable onMessageRequest(final MessageExecutionContext ctx) {
+        return Completable.error(new RuntimeException("Cannot adapt v3 policy for message execution"));
     }
 
     @Override
-    public Flowable<Message> onMessageFlow(ExecutionContext ctx, Flowable<Message> messageFlow) {
-        return Flowable.error(new RuntimeException("Cannot adapt v3 policy for message flow execution"));
+    public Completable onMessageResponse(final MessageExecutionContext ctx) {
+        return Completable.error(new RuntimeException("Cannot adapt v3 policy for message execution"));
     }
 
     /**

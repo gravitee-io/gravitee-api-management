@@ -15,18 +15,10 @@
  */
 package io.gravitee.gateway.jupiter.core.context;
 
-import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.context.Response;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MutableResponse extends Response {
-    /**
-     * Allows to replace the response headers.
-     *
-     * @param headers the new response headers.
-     */
-    void setHeaders(HttpHeaders headers);
-}
+public interface MutableResponse extends Response, MutableHttpResponse {}

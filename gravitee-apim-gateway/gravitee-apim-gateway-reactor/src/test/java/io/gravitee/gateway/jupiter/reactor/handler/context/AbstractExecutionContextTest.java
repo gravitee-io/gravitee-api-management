@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler.context;
 
+import static io.gravitee.gateway.jupiter.api.context.RequestExecutionContext.TEMPLATE_ATTRIBUTE_CONTEXT;
+import static io.gravitee.gateway.jupiter.api.context.RequestExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
+import static io.gravitee.gateway.jupiter.api.context.RequestExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
 import static io.gravitee.gateway.jupiter.reactor.handler.context.AbstractExecutionContext.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -182,24 +185,5 @@ abstract class AbstractExecutionContextTest {
     @Test
     public void shouldReturnNullWhenGetUnknownInternalAttribute() {
         assertNull(executionContext.getInternalAttribute(ATTRIBUTE_KEY));
-    }
-
-    @Test
-    public void shouldPopulateTemplateContextWithVariables() {
-        final TemplateEngine templateEngine = executionContext.getTemplateEngine();
-        final TemplateContext templateContext = templateEngine.getTemplateContext();
-
-        assertNotNull(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST));
-        assertNotNull(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE));
-        assertNotNull(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_CONTEXT));
-    }
-
-    @Test
-    public void shouldInitializeTemplateEngineOnlyOnce() {
-        final TemplateEngine templateEngine = executionContext.getTemplateEngine();
-
-        for (int i = 0; i < 10; i++) {
-            assertEquals(templateEngine, executionContext.getTemplateEngine());
-        }
     }
 }

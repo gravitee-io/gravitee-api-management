@@ -15,210 +15,42 @@
  */
 package io.gravitee.gateway.jupiter.http.vertx;
 
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.http.IdGenerator;
-import io.gravitee.common.util.LinkedMultiValueMap;
-import io.gravitee.common.util.MultiValueMap;
-import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.gateway.http.utils.WebSocketUtils;
-import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.http.vertx.ws.VertxWebSocket;
-import io.gravitee.reporter.api.http.Metrics;
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.FlowableTransformer;
+import io.reactivex.Maybe;
+import io.reactivex.MaybeTransformer;
+import io.reactivex.Single;
 import io.vertx.reactivex.core.http.HttpServerRequest;
-import io.vertx.reactivex.core.net.SocketAddress;
-import javax.net.ssl.SSLSession;
 
 /**
- * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxHttpServerRequest extends AbstractHttpChunks implements MutableRequest {
+public class VertxHttpServerRequest extends AbstractVertxServerRequest implements MutableRequest {
 
-    protected final long timestamp;
-    protected final Metrics metrics;
-    protected final HttpServerRequest nativeRequest;
-    protected String contextPath;
-    protected String pathInfo;
-    protected String id;
-    protected String transactionId;
-    protected String remoteAddress;
-    protected String localAddress;
+    private final BodyChunksFlowable bodyChunksFlowable;
     protected Boolean isWebSocket = null;
     protected WebSocket webSocket;
-    protected MultiValueMap<String, String> queryParameters = null;
-    protected MultiValueMap<String, String> pathParameters = null;
-    protected HttpHeaders headers;
 
-    public VertxHttpServerRequest(HttpServerRequest nativeRequest, IdGenerator idGenerator) {
-        this.nativeRequest = nativeRequest;
-        this.timestamp = System.currentTimeMillis();
-        this.id = idGenerator.randomString();
-        this.headers = new VertxHttpHeaders(nativeRequest.headers().getDelegate());
-        this.metrics = Metrics.on(timestamp).build();
-        this.metrics.setRequestId(id());
-        this.metrics.setHttpMethod(method());
-        this.metrics.setLocalAddress(localAddress());
-        this.metrics.setRemoteAddress(remoteAddress());
-        this.metrics.setHost(nativeRequest.host());
-        this.metrics.setUri(uri());
-        this.metrics.setUserAgent(nativeRequest.getHeader(io.vertx.reactivex.core.http.HttpHeaders.USER_AGENT));
-        this.chunks =
+    public VertxHttpServerRequest(final HttpServerRequest nativeRequest, IdGenerator idGenerator) {
+        super(nativeRequest, idGenerator);
+        bodyChunksFlowable = new BodyChunksFlowable();
+        bodyChunksFlowable.chunks =
             nativeRequest
                 .toFlowable()
-                .doOnNext(buffer -> metrics.setRequestContentLength(metrics.getRequestContentLength() + buffer.length()))
+                .doOnNext(buffer -> metrics().setRequestContentLength(metrics().getRequestContentLength() + buffer.length()))
                 .map(Buffer::buffer);
     }
 
     public VertxHttpServerResponse response() {
         return new VertxHttpServerResponse(this);
-    }
-
-    @Override
-    public String id() {
-        return id;
-    }
-
-    @Override
-    public String transactionId() {
-        return this.transactionId;
-    }
-
-    @Override
-    public MutableRequest transactionId(String transactionId) {
-        this.transactionId = transactionId;
-        return this;
-    }
-
-    @Override
-    public String uri() {
-        return nativeRequest.uri();
-    }
-
-    @Override
-    public String path() {
-        return nativeRequest.path();
-    }
-
-    @Override
-    public String pathInfo() {
-        return pathInfo;
-    }
-
-    @Override
-    public MutableRequest pathInfo(final String pathInfo) {
-        this.pathInfo = pathInfo;
-        return this;
-    }
-
-    @Override
-    public MutableRequest contextPath(String contextPath) {
-        this.contextPath = contextPath;
-        this.pathInfo = path().substring((contextPath.length() == 1) ? 0 : contextPath.length() - 1);
-        return this;
-    }
-
-    @Override
-    public String contextPath() {
-        return contextPath;
-    }
-
-    @Override
-    public MultiValueMap<String, String> parameters() {
-        if (queryParameters == null) {
-            queryParameters = URIUtils.parameters(nativeRequest.uri());
-        }
-
-        return queryParameters;
-    }
-
-    @Override
-    public MultiValueMap<String, String> pathParameters() {
-        if (pathParameters == null) {
-            pathParameters = new LinkedMultiValueMap<>();
-        }
-
-        return pathParameters;
-    }
-
-    @Override
-    public HttpHeaders headers() {
-        return headers;
-    }
-
-    @Override
-    public HttpMethod method() {
-        try {
-            return HttpMethod.valueOf(nativeRequest.method().name());
-        } catch (IllegalArgumentException iae) {
-            return HttpMethod.OTHER;
-        }
-    }
-
-    @Override
-    public String scheme() {
-        return nativeRequest.scheme();
-    }
-
-    @Override
-    public HttpVersion version() {
-        return HttpVersion.valueOf(nativeRequest.version().name());
-    }
-
-    @Override
-    public long timestamp() {
-        return timestamp;
-    }
-
-    @Override
-    public String remoteAddress() {
-        if (remoteAddress == null) {
-            SocketAddress nativeRemoteAddress = nativeRequest.remoteAddress();
-            this.remoteAddress = extractAddress(nativeRemoteAddress);
-        }
-        return remoteAddress;
-    }
-
-    @Override
-    public MutableRequest remoteAddress(String remoteAddress) {
-        this.remoteAddress = remoteAddress;
-        return this;
-    }
-
-    @Override
-    public String localAddress() {
-        if (localAddress == null) {
-            this.localAddress = extractAddress(nativeRequest.localAddress());
-        }
-        return localAddress;
-    }
-
-    private String extractAddress(SocketAddress address) {
-        if (address != null) {
-            //TODO Could be improve to a better compatibility with geoIP
-            int ipv6Idx = address.host().indexOf("%");
-            return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();
-        }
-        return null;
-    }
-
-    @Override
-    public SSLSession sslSession() {
-        return nativeRequest.sslSession();
-    }
-
-    @Override
-    public Metrics metrics() {
-        return metrics;
-    }
-
-    @Override
-    public boolean ended() {
-        return nativeRequest.isEnded();
     }
 
     @Override
@@ -253,7 +85,37 @@ public class VertxHttpServerRequest extends AbstractHttpChunks implements Mutabl
     }
 
     @Override
-    public String host() {
-        return this.nativeRequest.host();
+    public Maybe<Buffer> body() {
+        return bodyChunksFlowable.body();
+    }
+
+    @Override
+    public Single<Buffer> bodyOrEmpty() {
+        return bodyChunksFlowable.bodyOrEmpty();
+    }
+
+    @Override
+    public void body(final Buffer buffer) {
+        bodyChunksFlowable.body(buffer);
+    }
+
+    @Override
+    public Completable onBody(final MaybeTransformer<Buffer, Buffer> onBody) {
+        return bodyChunksFlowable.onBody(onBody);
+    }
+
+    @Override
+    public Flowable<Buffer> chunks() {
+        return bodyChunksFlowable.chunks();
+    }
+
+    @Override
+    public void chunks(final Flowable<Buffer> chunks) {
+        bodyChunksFlowable.chunks(chunks);
+    }
+
+    @Override
+    public Completable onChunks(final FlowableTransformer<Buffer, Buffer> onChunks) {
+        return bodyChunksFlowable.onChunks(onChunks);
     }
 }

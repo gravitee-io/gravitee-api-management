@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.reactor.processor.reporter;
 
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.http.Metrics;
@@ -44,7 +44,7 @@ public class ReporterProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final RequestExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContext ctx) {
         return Completable
             .fromRunnable(
                 () -> {

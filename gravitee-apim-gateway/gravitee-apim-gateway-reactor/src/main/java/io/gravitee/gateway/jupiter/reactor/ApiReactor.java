@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.reactor;
 
-import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.reactivex.Completable;
 
 /**
@@ -23,5 +23,5 @@ import io.reactivex.Completable;
  * @author GraviteeSource Team
  */
 public interface ApiReactor {
-    Completable handle(final MutableRequestExecutionContext ctx);
+    Completable handle(final HttpExecutionContext ctx);
 }

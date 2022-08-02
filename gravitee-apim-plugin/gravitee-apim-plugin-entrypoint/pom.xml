@@ -34,5 +34,6 @@
 
     <modules>
         <module>gravitee-apim-plugin-entrypoint-handler</module>
+        <module>gravitee-apim-plugin-entrypoint-sse</module>
     </modules>
 </project>

@@ -175,7 +175,7 @@ class DebugRequestExecutionContextTest {
 
     @Test
     public void shouldNotCreatePolicyStepWithAsyncRequestExecutionMode() {
-        debugRequestExecutionContext.prePolicyExecution("id", ExecutionPhase.ASYNC_REQUEST).test().assertResult();
+        debugRequestExecutionContext.prePolicyExecution("id", ExecutionPhase.MESSAGE_REQUEST).test().assertResult();
         assertThat(debugRequestExecutionContext.getDebugSteps().size()).isEqualTo(0);
     }
 
@@ -201,7 +201,7 @@ class DebugRequestExecutionContextTest {
 
     @Test
     public void shouldNotCreatePolicyStepWithAsyncResponseExecutionMode() {
-        debugRequestExecutionContext.prePolicyExecution("id", ExecutionPhase.ASYNC_RESPONSE).test().assertResult();
+        debugRequestExecutionContext.prePolicyExecution("id", ExecutionPhase.MESSAGE_RESPONSE).test().assertResult();
         assertThat(debugRequestExecutionContext.getDebugSteps().size()).isEqualTo(0);
     }
 }

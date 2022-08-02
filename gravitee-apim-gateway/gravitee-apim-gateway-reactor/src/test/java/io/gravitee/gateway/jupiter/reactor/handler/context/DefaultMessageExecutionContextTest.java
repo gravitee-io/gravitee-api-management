@@ -15,10 +15,13 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler.context;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import io.gravitee.definition.model.Api;
-import io.gravitee.gateway.jupiter.core.context.MutableRequest;
-import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.gravitee.gateway.jupiter.core.context.MutableMessageRequest;
+import io.gravitee.gateway.jupiter.core.context.MutableMessageResponse;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,10 +34,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DefaultMessageExecutionContextTest extends AbstractExecutionContextTest {
 
     @Mock
-    protected MutableRequest request;
+    protected MutableMessageRequest request;
 
     @Mock
-    protected MutableResponse response;
+    protected MutableMessageResponse response;
 
     @Mock
     protected Api api;
@@ -42,5 +45,10 @@ class DefaultMessageExecutionContextTest extends AbstractExecutionContextTest {
     @BeforeEach
     public void init() {
         executionContext = new DefaultMessageExecutionContext(request, response);
+    }
+
+    @Test
+    public void shouldThrowUnsupportedExceptionWhenGettingTemplateEngine() {
+        assertThrows(UnsupportedOperationException.class, () -> executionContext.getTemplateEngine());
     }
 }

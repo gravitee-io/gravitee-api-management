@@ -15,16 +15,11 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler.context;
 
-import io.gravitee.el.TemplateVariableProvider;
-import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.message.MessageFlow;
 import io.gravitee.gateway.jupiter.core.context.MutableMessageExecutionContext;
-import io.gravitee.gateway.jupiter.core.context.MutableRequest;
-import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.gravitee.gateway.jupiter.reactor.handler.message.DefaultMessageFlow;
-import io.reactivex.Flowable;
-import java.util.Collection;
+import io.gravitee.gateway.jupiter.core.context.MutableMessageRequest;
+import io.gravitee.gateway.jupiter.core.context.MutableMessageResponse;
 
 /**
  * Default implementation of {@link MessageExecutionContext} to use when handling async api requests.
@@ -32,32 +27,17 @@ import java.util.Collection;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultMessageExecutionContext extends AbstractExecutionContext implements MutableMessageExecutionContext {
+public class DefaultMessageExecutionContext
+    extends AbstractExecutionContext<MutableMessageRequest, MutableMessageResponse>
+    implements MutableMessageExecutionContext {
 
-    private final MessageFlow incomingMessageFlow;
-    private final MessageFlow outgoingMessageFlow;
-
-    public DefaultMessageExecutionContext(final MutableRequest request, final MutableResponse response) {
+    public DefaultMessageExecutionContext(final MutableMessageRequest request, final MutableMessageResponse response) {
         super(request, response);
-        incomingMessageFlow = new DefaultMessageFlow(Flowable.empty());
-        outgoingMessageFlow = new DefaultMessageFlow(Flowable.empty());
     }
 
     @Override
-    public MessageFlow incomingMessageFlow() {
-        return incomingMessageFlow;
-    }
-
-    @Override
-    public MessageFlow outgoingMessageFlow() {
-        return outgoingMessageFlow;
-    }
-
-    public DefaultMessageExecutionContext componentProvider(final ComponentProvider componentProvider) {
-        return (DefaultMessageExecutionContext) super.componentProvider(componentProvider);
-    }
-
-    public DefaultMessageExecutionContext templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders) {
-        return (DefaultMessageExecutionContext) super.templateVariableProviders(templateVariableProviders);
+    public TemplateEngine getTemplateEngine() {
+        //FIXME should be implemented to properly handle message execution context
+        throw new UnsupportedOperationException("Not Implemented yet");
     }
 }

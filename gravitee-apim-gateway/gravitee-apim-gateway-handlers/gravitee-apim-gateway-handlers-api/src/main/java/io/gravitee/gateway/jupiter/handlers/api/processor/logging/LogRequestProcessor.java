@@ -19,6 +19,8 @@ import static io.gravitee.gateway.core.logging.LoggingContext.LOGGING_CONTEXT_AT
 import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_API;
 
 import io.gravitee.gateway.core.logging.LoggingContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
@@ -48,18 +50,19 @@ public class LogRequestProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final RequestExecutionContext ctx) {
+    public Completable execute(final HttpExecutionContext ctx) {
         return Completable.defer(
             () -> {
-                final LoggingContext loggingContext = ctx.getInternalAttribute(LOGGING_CONTEXT_ATTRIBUTE);
+                RequestExecutionContext requestExecutionContext = (RequestExecutionContext) ctx;
+                final LoggingContext loggingContext = requestExecutionContext.getInternalAttribute(LOGGING_CONTEXT_ATTRIBUTE);
 
                 if (loggingContext == null) {
                     return Completable.complete();
                 }
 
                 return CONDITION_FILTER
-                    .filter(ctx, loggingContext)
-                    .doOnSuccess(activeLoggingContext -> initLogEntity(ctx, activeLoggingContext))
+                    .filter(requestExecutionContext, loggingContext)
+                    .doOnSuccess(activeLoggingContext -> initLogEntity(requestExecutionContext, activeLoggingContext))
                     .ignoreElement();
             }
         );

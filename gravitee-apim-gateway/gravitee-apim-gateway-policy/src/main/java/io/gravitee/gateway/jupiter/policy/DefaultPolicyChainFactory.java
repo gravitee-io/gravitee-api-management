@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.policy;
 
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.ASYNC_REQUEST;
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_REQUEST;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
 
 import io.gravitee.definition.model.ExecutionMode;
@@ -111,7 +111,7 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
     private List<Step> getSteps(Flow flow, ExecutionPhase phase) {
         final List<Step> steps;
 
-        if (phase == REQUEST || phase == ASYNC_REQUEST) {
+        if (phase == REQUEST || phase == MESSAGE_REQUEST) {
             steps = flow.getPre();
         } else {
             steps = flow.getPost();

@@ -30,10 +30,8 @@ import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
-import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.observers.TestObserver;
-import io.reactivex.subscribers.TestSubscriber;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -46,28 +44,27 @@ class PolicyAdapterTest {
     protected static final String MOCK_EXCEPTION_MESSAGE = "Mock exception";
 
     @Test
-    public void shouldCompleteInErrorWhenOnMessage() {
+    public void shouldCompleteInErrorWhenOnMessageRequest() {
         final Policy policy = mock(Policy.class);
         final MessageExecutionContext ctx = mock(MessageExecutionContext.class);
-        final Message msg = mock(Message.class);
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
 
-        final TestObserver<Message> obs = cut.onMessage(ctx, msg).test();
+        final TestObserver<Void> obs = cut.onMessageRequest(ctx).test();
 
         obs.assertErrorMessage("Cannot adapt v3 policy for message execution");
     }
 
     @Test
-    public void shouldCompleteInErrorWhenOnMessageFlow() {
+    public void shouldCompleteInErrorWhenOnMessageResponse() {
         final Policy policy = mock(Policy.class);
         final MessageExecutionContext ctx = mock(MessageExecutionContext.class);
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
 
-        final TestSubscriber<Message> obs = cut.onMessageFlow(ctx, Flowable.empty()).test();
+        final TestObserver<Void> obs = cut.onMessageResponse(ctx).test();
 
-        obs.assertErrorMessage("Cannot adapt v3 policy for message flow execution");
+        obs.assertErrorMessage("Cannot adapt v3 policy for message execution");
     }
 
     @Test
@@ -135,24 +132,20 @@ class PolicyAdapterTest {
         when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
 
         // Simulate a policy that produces multiple buffers in the stream.
-        doAnswer(
-                invocation -> {
-                    Handler<Buffer> bodyHandler = invocation.getArgument(0);
-                    bodyHandler.handle(policyChunk1);
-                    bodyHandler.handle(policyChunk2);
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                Handler<Buffer> bodyHandler = invocation.getArgument(0);
+                bodyHandler.handle(policyChunk1);
+                bodyHandler.handle(policyChunk2);
+                return null;
+            })
             .when(stream)
             .bodyHandler(any(Handler.class));
 
-        doAnswer(
-                invocation -> {
-                    Handler<Void> endHandler = invocation.getArgument(0);
-                    endHandler.handle(null);
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                Handler<Void> endHandler = invocation.getArgument(0);
+                endHandler.handle(null);
+                return null;
+            })
             .when(stream)
             .endHandler(any(Handler.class));
 
@@ -186,24 +179,20 @@ class PolicyAdapterTest {
         when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
 
         // Simulate a policy that produces multiple buffers in the stream.
-        doAnswer(
-                invocation -> {
-                    Handler<Buffer> bodyHandler = invocation.getArgument(0);
-                    bodyHandler.handle(policyChunk1);
-                    bodyHandler.handle(policyChunk2);
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                Handler<Buffer> bodyHandler = invocation.getArgument(0);
+                bodyHandler.handle(policyChunk1);
+                bodyHandler.handle(policyChunk2);
+                return null;
+            })
             .when(stream)
             .bodyHandler(any(Handler.class));
 
-        doAnswer(
-                invocation -> {
-                    Handler<Void> endHandler = invocation.getArgument(0);
-                    endHandler.handle(null);
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                Handler<Void> endHandler = invocation.getArgument(0);
+                endHandler.handle(null);
+                return null;
+            })
             .when(stream)
             .endHandler(any(Handler.class));
 
@@ -306,13 +295,11 @@ class PolicyAdapterTest {
     }
 
     private void mockPolicyExecution(Policy policy) throws PolicyException {
-        doAnswer(
-                invocation -> {
-                    PolicyChainAdapter policyChain = invocation.getArgument(0);
-                    policyChain.doNext(mock(Request.class), mock(Response.class));
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                PolicyChainAdapter policyChain = invocation.getArgument(0);
+                policyChain.doNext(mock(Request.class), mock(Response.class));
+                return null;
+            })
             .when(policy)
             .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
     }

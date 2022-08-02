@@ -22,7 +22,6 @@ import static org.mockito.Mockito.*;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
@@ -72,7 +71,7 @@ class NotFoundProcessorChainFactoryTest {
             false
         );
         ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
-        RequestExecutionContext notFoundRequestContext = new DefaultRequestExecutionContext(request, response);
+        DefaultRequestExecutionContext notFoundRequestContext = new DefaultRequestExecutionContext(request, response);
 
         processorChain.execute(notFoundRequestContext, ExecutionPhase.RESPONSE).test().assertResult();
         verify(response).status(HttpStatusCode.NOT_FOUND_404);

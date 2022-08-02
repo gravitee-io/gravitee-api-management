@@ -25,6 +25,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.reactivex.Flowable;
 import io.reactivex.subscribers.TestSubscriber;

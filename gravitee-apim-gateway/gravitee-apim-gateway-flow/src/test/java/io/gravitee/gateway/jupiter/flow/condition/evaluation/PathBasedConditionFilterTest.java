@@ -19,6 +19,8 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.reactivex.observers.TestObserver;
@@ -35,16 +37,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PathBasedConditionFilterTest {
 
+    private final PathBasedConditionFilter cut = new PathBasedConditionFilter();
+
     @Mock
-    private RequestExecutionContext ctx;
+    private HttpExecutionContext ctx;
 
     @Mock
     private Request request;
 
     @Mock
     private Flow flow;
-
-    private final PathBasedConditionFilter cut = new PathBasedConditionFilter();
 
     @BeforeEach
     void init() {

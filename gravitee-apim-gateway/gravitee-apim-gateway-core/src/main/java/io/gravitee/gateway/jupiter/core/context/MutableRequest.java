@@ -21,31 +21,4 @@ import io.gravitee.gateway.jupiter.api.context.Request;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MutableRequest extends Request {
-    /**
-     * Allow setting context path.
-     *
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest contextPath(final String contextPath);
-    /**
-     * Allow setting path info.
-     *
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest pathInfo(final String pathInfo);
-
-    /**
-     * Allow setting transaction id.
-     *
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest transactionId(final String id);
-
-    /**
-     * Allow overriding remote adresse
-     *
-     * @return {@link MutableRequest}.
-     */
-    MutableRequest remoteAddress(final String remoteAddress);
-}
+public interface MutableRequest extends Request, MutableHttpRequest {}

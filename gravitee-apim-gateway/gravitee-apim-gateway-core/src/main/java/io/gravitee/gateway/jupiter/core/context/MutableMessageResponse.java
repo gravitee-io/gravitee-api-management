@@ -13,36 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.reactor.handler.message;
+package io.gravitee.gateway.jupiter.core.context;
 
+import io.gravitee.gateway.jupiter.api.context.MessageResponse;
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.gravitee.gateway.jupiter.api.message.MessageFlow;
-import io.reactivex.Completable;
 import io.reactivex.Flowable;
-import io.reactivex.FlowableTransformer;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultMessageFlow implements MessageFlow {
-
-    private Flowable<Message> flow;
-
-    public DefaultMessageFlow(final Flowable<Message> flow) {
-        this.flow = flow;
-    }
-
-    public Completable flow(final Flowable<Message> messageFlow) {
-        flow = messageFlow;
-        return Completable.complete();
-    }
-
-    public Completable onMessage(final FlowableTransformer<Message, Message> messagesTransformer) {
-        return flow(flow.compose(messagesTransformer));
-    }
-
-    public Completable consume() {
-        return Completable.defer(() -> flow.ignoreElements());
-    }
-}
+public interface MutableMessageResponse extends MessageResponse, MutableHttpResponse {}
