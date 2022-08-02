@@ -21,18 +21,27 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.policy.api.PolicyChain;
+import io.gravitee.policy.api.PolicyConfiguration;
 import io.gravitee.policy.api.annotations.OnRequest;
+import io.gravitee.policy.api.annotations.OnResponse;
 import io.reactivex.Completable;
 import io.vertx.core.Vertx;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Allow to add a latency on response or request.
+ * You can provide a delay through configuration or use the default {@link LatencyPolicy#DEFAULT_DELAY}
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class LatencyPolicy implements Policy {
 
-    public static final int DELAY = 600;
+    public static final int DEFAULT_DELAY = 600;
+    private final Long delay;
+
+    public LatencyPolicy(LatencyConfiguration configuration) {
+        delay = configuration.getDelay() != null ? configuration.getDelay() : DEFAULT_DELAY;
+    }
 
     @OnRequest
     public void onRequest(
@@ -41,7 +50,17 @@ public class LatencyPolicy implements Policy {
         final ExecutionContext executionContext,
         final PolicyChain policyChain
     ) {
-        executionContext.getComponent(Vertx.class).setTimer(DELAY, timerId -> policyChain.doNext(request, response));
+        executionContext.getComponent(Vertx.class).setTimer(delay, timerId -> policyChain.doNext(request, response));
+    }
+
+    @OnResponse
+    public void onResponse(
+        final Request request,
+        final Response response,
+        final ExecutionContext executionContext,
+        final PolicyChain policyChain
+    ) {
+        executionContext.getComponent(Vertx.class).setTimer(delay, timerId -> policyChain.doNext(request, response));
     }
 
     @Override
@@ -51,6 +70,24 @@ public class LatencyPolicy implements Policy {
 
     @Override
     public Completable onRequest(RequestExecutionContext ctx) {
-        return Completable.timer(DELAY, TimeUnit.MILLISECONDS);
+        return Completable.timer(delay, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public Completable onResponse(RequestExecutionContext ctx) {
+        return Completable.timer(delay, TimeUnit.MILLISECONDS);
+    }
+
+    public static class LatencyConfiguration implements PolicyConfiguration {
+
+        private Long delay;
+
+        public Long getDelay() {
+            return delay;
+        }
+
+        public void setDelay(Long delay) {
+            this.delay = delay;
+        }
     }
 }
