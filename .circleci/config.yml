@@ -382,17 +382,17 @@ jobs:
                   docker-image-name: apim-portal-ui
                   version: << pipeline.parameters.graviteeio_version >>
             - add-docker-image-in-snyk:
-                docker-image-name: apim-gateway
-                version: << pipeline.parameters.graviteeio_version >>-ee
+                  docker-image-name: apim-gateway
+                  version: << pipeline.parameters.graviteeio_version >>-ee
             - add-docker-image-in-snyk:
-                docker-image-name: apim-management-api
-                version: << pipeline.parameters.graviteeio_version >>-ee
+                  docker-image-name: apim-management-api
+                  version: << pipeline.parameters.graviteeio_version >>-ee
             - add-docker-image-in-snyk:
-                docker-image-name: apim-management-ui
-                version: << pipeline.parameters.graviteeio_version >>-ee
+                  docker-image-name: apim-management-ui
+                  version: << pipeline.parameters.graviteeio_version >>-ee
             - add-docker-image-in-snyk:
-                docker-image-name: apim-portal-ui
-                version: << pipeline.parameters.graviteeio_version >>-ee
+                  docker-image-name: apim-portal-ui
+                  version: << pipeline.parameters.graviteeio_version >>-ee
     build:
         docker:
             - image: cimg/openjdk:11.0
@@ -679,10 +679,10 @@ jobs:
             - artifactory-orb/install
             - artifactory-orb/configure
             - run:
-                name: Update Build version
-                command: |
-                  sed -i "s/-SNAPSHOT//" dist/build.json
-                working_directory: << parameters.apim-ui-project >>
+                  name: Update Build version
+                  command: |
+                      sed -i "s/-SNAPSHOT//" dist/build.json
+                  working_directory: << parameters.apim-ui-project >>
             - run:
                   name: Rename and zip dist folder
                   command: mv dist << parameters.apim-ui-project >>-${APIM_VERSION%-SNAPSHOT} && zip -r dist.zip << parameters.apim-ui-project >>-${APIM_VERSION%-SNAPSHOT}
@@ -724,9 +724,9 @@ jobs:
             - webui-install:
                   apim-ui-project: << parameters.apim-ui-project >>
             - run:
-                name: Update Build version
-                command: |
-                  sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${APIM_VERSION}\"/" << parameters.apim-ui-project >>/build.json
+                  name: Update Build version
+                  command: |
+                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${APIM_VERSION}\"/" << parameters.apim-ui-project >>/build.json
             - run:
                   name: Build
                   command: npm run build:prod
@@ -983,28 +983,31 @@ jobs:
     ## Release Jobs
     announce-release:
         docker:
-          - image: cimg/base:stable
+            - image: cimg/base:stable
         resource_class: small
         steps:
-          - when:
-              condition:
-                not: << pipeline.parameters.dry_run>>
-              steps:
-                - slack/notify:
-                    channel: C02NGT20S4W
-                    event: always
-                    custom: |
-                      {
-                        "blocks": [
-                          {
-                            "type": "section",
-                            "text": {
-                              "type": "mrkdwn",
-                              "text": "🚀 Starting << pipeline.parameters.graviteeio_version >> release"
-                            }
-                          }
-                        ]
-                      }
+            - keeper/env-export:
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - slack/notify:
+                            channel: C02NGT20S4W
+                            event: always
+                            custom: |
+                                {
+                                  "blocks": [
+                                    {
+                                      "type": "section",
+                                      "text": {
+                                        "type": "mrkdwn",
+                                        "text": "🚀 Starting << pipeline.parameters.graviteeio_version >> release"
+                                      }
+                                    }
+                                  ]
+                                }
 
     backend-build-and-publish-artifactory:
         docker:
@@ -1012,9 +1015,6 @@ jobs:
         resource_class: large
         steps:
             - checkout
-            - keeper/env-export:
-                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
-                  var-name: SLACK_ACCESS_TOKEN
             - restore-maven-job-cache:
                   jobName: release
             - attach_workspace:
@@ -1046,7 +1046,6 @@ jobs:
         docker:
             - image: cimg/base:stable
         resource_class: medium
-
         steps:
             - checkout
             - attach_workspace:
@@ -1076,7 +1075,7 @@ jobs:
                       # Remove `-SNAPSHOT` from source
                       # Backend
                       sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
-                      
+
                       # UI
                       sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${MVN_PRJ_VERSION}\"/" gravitee-apim-console-webui/build.json
                       sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${MVN_PRJ_VERSION}\"/" gravitee-apim-portal-webui/build.json
@@ -1479,12 +1478,12 @@ workflows:
                   requires:
                       - build
                   filters:
-                    branches:
-                      only:
-                        - master
-                        - /.*-run-e2e.*/
-                        - /.*merge.*/
-                        - /^\d+\.\d+\.x$/
+                      branches:
+                          only:
+                              - master
+                              - /.*-run-e2e.*/
+                              - /.*merge.*/
+                              - /^\d+\.\d+\.x$/
             - test:
                   context: cicd-orchestrator
                   requires:
