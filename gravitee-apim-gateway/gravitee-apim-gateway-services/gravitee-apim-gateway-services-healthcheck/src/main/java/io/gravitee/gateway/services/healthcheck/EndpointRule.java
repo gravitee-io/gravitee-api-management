@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.healthcheck;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.services.healthcheck.Step;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.ProxyOptions;
@@ -29,7 +30,7 @@ import org.springframework.core.env.Environment;
  * @author GraviteeSource Team
  */
 public interface EndpointRule<T extends Endpoint> {
-    String api();
+    Api api();
 
     T endpoint();
 

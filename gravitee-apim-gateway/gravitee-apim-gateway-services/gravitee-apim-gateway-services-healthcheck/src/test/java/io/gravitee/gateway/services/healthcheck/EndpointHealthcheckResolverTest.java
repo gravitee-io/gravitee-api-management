@@ -24,7 +24,7 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRule;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.vertx.core.json.JsonObject;
 import java.util.*;
 import org.junit.Before;
@@ -249,7 +249,8 @@ public class EndpointHealthcheckResolverTest {
 
         assertNotNull(resolve);
         assertEquals(1, resolve.size());
-        assertEquals("api-id", resolve.get(0).api());
+        assertNotNull(resolve.get(0).api());
+        assertEquals("api-id", resolve.get(0).api().getId());
     }
 
     @Test
@@ -290,7 +291,8 @@ public class EndpointHealthcheckResolverTest {
 
         assertNotNull(resolve);
         assertEquals(1, resolve.size());
-        assertEquals("api-id", resolve.get(0).api());
+        assertNotNull(resolve.get(0).api());
+        assertEquals("api-id", resolve.get(0).api().getId());
     }
 
     @Test
@@ -332,7 +334,8 @@ public class EndpointHealthcheckResolverTest {
 
         assertNotNull(resolve);
         assertEquals(1, resolve.size());
-        assertEquals("api-id", resolve.get(0).api());
+        assertNotNull(resolve.get(0).api());
+        assertEquals("api-id", resolve.get(0).api().getId());
     }
 
     @Test
@@ -378,7 +381,8 @@ public class EndpointHealthcheckResolverTest {
 
         assertNotNull(resolve);
         assertEquals(1, resolve.size());
-        assertEquals("api-id", resolve.get(0).api());
+        assertNotNull(resolve.get(0).api());
+        assertEquals("api-id", resolve.get(0).api().getId());
     }
 
     @Test
