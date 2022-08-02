@@ -15,34 +15,18 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.net.InternetDomainName;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
-import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostNullHostException;
-import java.io.IOException;
+import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
+import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
+import io.gravitee.rest.api.service.v4.validation.PathValidationService;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,23 +36,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class VirtualHostServiceImpl extends TransactionalService implements VirtualHostService {
 
-    private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("[//]+");
+    private final PathValidationService pathValidationService;
 
-    private static final String URI_PATH_SEPARATOR = "/";
-
-    private static final char URI_PATH_SEPARATOR_CHAR = '/';
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(VirtualHostServiceImpl.class);
-
-    @Lazy
-    @Autowired
-    private ApiRepository apiRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private EnvironmentService environmentService;
+    public VirtualHostServiceImpl(final PathValidationService pathValidationService) {
+        this.pathValidationService = pathValidationService;
+    }
 
     @Override
     public Collection<VirtualHost> sanitizeAndValidate(
@@ -77,178 +49,30 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         String apiId
     ) {
         // Sanitize virtual hosts
-        Collection<VirtualHost> sanitizedVirtualHosts = virtualHosts.stream().map(this::sanitize).collect(Collectors.toList());
-
-        final EnvironmentEntity currentEnv = environmentService.findById(executionContext.getEnvironmentId());
-
-        // validate domain restrictions
-        validateDomainRestrictions(sanitizedVirtualHosts, currentEnv.getDomainRestrictions());
-
-        // In virtual host mode, every vhost should have a host set
-        final boolean virtualHostModeEnabled =
-            sanitizedVirtualHosts.size() > 1 ||
-            sanitizedVirtualHosts.iterator().next().getHost() != null ||
-            currentEnv.getDomainRestrictions() != null &&
-            !currentEnv.getDomainRestrictions().isEmpty();
-        if (virtualHostModeEnabled) {
-            final List<VirtualHost> nullHostVirtualHosts = sanitizedVirtualHosts
-                .stream()
-                .filter(virtualHost -> virtualHost.getHost() == null)
-                .collect(Collectors.toList());
-            if (!nullHostVirtualHosts.isEmpty()) {
-                throw new InvalidVirtualHostNullHostException(
-                    "In Virtual Host mode, all listening host have to be configured",
-                    nullHostVirtualHosts
-                );
-            }
-        }
-
-        // Get all the API of the currentEnvironment, except the one to update
-        Set<ApiEntity> apis = apiRepository
-            .search(null)
+        List<Path> paths = virtualHosts
             .stream()
-            .filter(api -> !api.getId().equals(apiId) && api.getEnvironmentId().equals(executionContext.getEnvironmentId()))
-            .map(this::convert)
-            .collect(Collectors.toSet());
-
-        // Extract all the virtual hosts with a host
-        Map<String, List<String>> registeredVirtualHosts = apis
-            .stream()
-            .flatMap(
-                (Function<ApiEntity, Stream<VirtualHost>>) api ->
-                    api
-                        .getProxy()
-                        .getVirtualHosts()
-                        .stream()
-                        .filter(virtualHost -> virtualHost.getHost() != null && !virtualHost.getHost().isEmpty())
-            )
-            .collect(Collectors.groupingBy(VirtualHost::getHost, Collectors.mapping(VirtualHost::getPath, Collectors.toList())));
-
-        // Extract all the virtual hosts with a single path
-        List<String> registeredContextPaths = apis
-            .stream()
-            .flatMap(
-                (Function<ApiEntity, Stream<String>>) api ->
-                    api.getProxy().getVirtualHosts().stream().filter(virtualHost -> virtualHost.getHost() == null).map(VirtualHost::getPath)
-            )
+            .map(virtualHost -> new Path(virtualHost.getHost(), virtualHost.getPath()))
             .collect(Collectors.toList());
 
-        // Check only virtual hosts with a host and compare to registered virtual hosts
-        if (!registeredVirtualHosts.isEmpty()) {
-            sanitizedVirtualHosts
+        try {
+            return pathValidationService
+                .validateAndSanitizePaths(executionContext, apiId, paths)
                 .stream()
-                .filter(virtualHost -> virtualHost.getHost() != null && !virtualHost.getHost().isEmpty())
-                .forEach(
-                    virtualHost -> checkPathNotYetRegistered(virtualHost.getPath(), registeredVirtualHosts.get(virtualHost.getHost()))
-                );
+                .map(path -> new VirtualHost(path.getHost(), path.getPath()))
+                .collect(Collectors.toList());
+        } catch (PathAlreadyExistsException e) {
+            throw new ApiContextPathAlreadyExistsException(e.getPathValue());
+        } catch (InvalidHostException e) {
+            throw new InvalidVirtualHostException(e.getHost(), e.getRestrictions());
         }
-
-        // Then check remaining virtual hosts without a host and compare to registered context paths
-        if (!registeredContextPaths.isEmpty()) {
-            sanitizedVirtualHosts
-                .stream()
-                .filter(virtualHost -> virtualHost.getHost() == null)
-                .forEach(virtualHost -> checkPathNotYetRegistered(virtualHost.getPath(), registeredContextPaths));
-        }
-        return sanitizedVirtualHosts;
-    }
-
-    private void validateDomainRestrictions(Collection<VirtualHost> virtualHosts, List<String> domainRestrictions) {
-        if (domainRestrictions != null && !domainRestrictions.isEmpty()) {
-            for (VirtualHost vHost : virtualHosts) {
-                String host = vHost.getHost();
-                if (!StringUtils.isEmpty(host)) {
-                    String hostWithoutPort = host.split(":")[0];
-                    if (!isValidDomainOrSubDomain(hostWithoutPort, domainRestrictions)) {
-                        throw new InvalidVirtualHostException(hostWithoutPort, domainRestrictions);
-                    }
-                } else {
-                    vHost.setHost(domainRestrictions.get(0));
-                }
-            }
-        }
-    }
-
-    private boolean isValidDomainOrSubDomain(String domain, List<String> domainRestrictions) {
-        boolean isSubDomain = false;
-
-        if (domainRestrictions.isEmpty()) {
-            return true;
-        }
-
-        for (String domainRestriction : domainRestrictions) {
-            InternetDomainName domainIDN = InternetDomainName.from(domain);
-            InternetDomainName parentIDN = InternetDomainName.from(domainRestriction);
-
-            if (domainIDN.equals(parentIDN)) {
-                return true;
-            }
-
-            while (!isSubDomain && domainIDN.hasParent()) {
-                isSubDomain = parentIDN.equals(domainIDN);
-                domainIDN = domainIDN.parent();
-            }
-
-            if (isSubDomain) {
-                break;
-            }
-        }
-
-        return isSubDomain;
     }
 
     @Override
     public VirtualHost sanitize(VirtualHost virtualHost) {
         String path = virtualHost.getPath();
-        if (path == null || path.isEmpty()) {
-            path = URI_PATH_SEPARATOR;
-        }
-
-        if (!path.startsWith(URI_PATH_SEPARATOR)) {
-            path = URI_PATH_SEPARATOR + path;
-        }
-
-        if (path.lastIndexOf(URI_PATH_SEPARATOR_CHAR) != path.length() - 1) {
-            path += URI_PATH_SEPARATOR;
-        }
-
-        path = DUPLICATE_SLASH_REMOVER.matcher(path).replaceAll(URI_PATH_SEPARATOR);
+        String sanitizePath = pathValidationService.sanitizePath(path);
 
         // Create a copy of the virtual host to avoid any change into the initial one
-        return new VirtualHost(virtualHost.getHost(), path, virtualHost.isOverrideEntrypoint());
-    }
-
-    private void checkPathNotYetRegistered(String path, List<String> registeredPaths) {
-        boolean match =
-            registeredPaths != null &&
-            registeredPaths.stream().anyMatch(registeredPath -> path.startsWith(registeredPath) || registeredPath.startsWith(path));
-
-        if (match) {
-            throw new ApiContextPathAlreadyExistsException(path);
-        }
-    }
-
-    private ApiEntity convert(Api api) {
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId(api.getId());
-
-        if (api.getDefinition() != null) {
-            try {
-                io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                    api.getDefinition(),
-                    io.gravitee.definition.model.Api.class
-                );
-                apiEntity.setProxy(apiDefinition.getProxy());
-
-                // Sanitize virtual hosts
-                apiEntity
-                    .getProxy()
-                    .setVirtualHosts(apiEntity.getProxy().getVirtualHosts().stream().map(this::sanitize).collect(Collectors.toList()));
-            } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while getting API definition", ioe);
-            }
-        }
-
-        return apiEntity;
+        return new VirtualHost(virtualHost.getHost(), sanitizePath, virtualHost.isOverrideEntrypoint());
     }
 }

@@ -20,12 +20,14 @@ import io.gravitee.common.util.Maps;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
 public class InvalidHostException extends AbstractManagementException {
 
     private final String host;

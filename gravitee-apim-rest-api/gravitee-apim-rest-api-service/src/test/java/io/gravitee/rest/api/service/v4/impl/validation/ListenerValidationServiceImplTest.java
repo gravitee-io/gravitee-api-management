@@ -77,9 +77,7 @@ public class ListenerValidationServiceImplTest {
         lenient().when(entrypointService.validateEntrypointConfiguration(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         listenerValidationService =
             new ListenerValidationServiceImpl(
-                apiRepository,
-                objectMapper,
-                environmentService,
+                new PathValidationServiceImpl(apiRepository, objectMapper, environmentService),
                 entrypointService,
                 corsValidationService,
                 loggingValidationService
@@ -142,8 +140,7 @@ public class ListenerValidationServiceImplTest {
         ListenerHttp listener = new ListenerHttp();
         // When
         assertThatExceptionOfType(ListenerHttpPathMissingException.class)
-            .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(listener))
+            .isThrownBy(() -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(listener))
             );
     }
 
@@ -154,8 +151,7 @@ public class ListenerValidationServiceImplTest {
         listener.setPaths(List.of(new Path("/path")));
         // When
         assertThatExceptionOfType(ListenerHttpEntrypointMissingException.class)
-            .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(listener))
+            .isThrownBy(() -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(listener))
             );
     }
 
@@ -167,8 +163,7 @@ public class ListenerValidationServiceImplTest {
         listener.setEntrypoints(List.of(new Entrypoint()));
         // When
         assertThatExceptionOfType(ListenerHttpEntrypointMissingTypeException.class)
-            .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(listener))
+            .isThrownBy(() -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(listener))
             );
     }
 }

@@ -20,12 +20,14 @@ import static java.util.Collections.singletonMap;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import java.util.Map;
+import lombok.Getter;
 
 /**
  *
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
 public class PathAlreadyExistsException extends AbstractManagementException {
 
     private final String pathValue;

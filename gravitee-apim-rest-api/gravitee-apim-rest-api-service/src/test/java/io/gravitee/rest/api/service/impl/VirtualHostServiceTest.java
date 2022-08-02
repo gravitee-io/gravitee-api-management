@@ -31,7 +31,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
 import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostNullHostException;
-import io.gravitee.rest.api.service.impl.VirtualHostServiceImpl;
+import io.gravitee.rest.api.service.v4.impl.validation.PathValidationServiceImpl;
+import io.gravitee.rest.api.service.v4.validation.PathValidationService;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,9 +54,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class VirtualHostServiceTest {
 
-    @InjectMocks
-    private VirtualHostService virtualHostService = new VirtualHostServiceImpl();
-
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
 
@@ -65,10 +63,14 @@ public class VirtualHostServiceTest {
     @Mock
     private EnvironmentService environmentService;
 
+    private VirtualHostService virtualHostService;
+
     @Before
     public void init() {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
         when(environmentService.findById(any())).thenReturn(mock(EnvironmentEntity.class));
+        PathValidationService pathValidationService = new PathValidationServiceImpl(apiRepository, objectMapper, environmentService);
+        virtualHostService = new VirtualHostServiceImpl(pathValidationService);
     }
 
     @After
