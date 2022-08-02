@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -27,6 +28,8 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
@@ -278,5 +281,45 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         assertEquals(OK_200, response.getStatus());
         verify(subscriptionService, times(1)).search(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true), eq(false));
+    }
+
+    @Test
+    public void get_subscriptions_with_default_status() {
+        when(subscriptionService.search(any(ExecutionContext.class), any(), any(), anyBoolean(), anyBoolean()))
+            .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
+        when(subscriptionService.getMetadata(any(ExecutionContext.class), any())).thenReturn(mock(Metadata.class));
+
+        final Response response = envTarget().request().get();
+
+        assertEquals(OK_200, response.getStatus());
+
+        ArgumentCaptor<SubscriptionQuery> subscriptionQueryCaptor = ArgumentCaptor.forClass(SubscriptionQuery.class);
+
+        verify(subscriptionService, times(1))
+            .search(any(ExecutionContext.class), subscriptionQueryCaptor.capture(), any(), anyBoolean(), anyBoolean());
+
+        SubscriptionQuery subscriptionQuery = subscriptionQueryCaptor.getValue();
+        assertThat(subscriptionQuery).extracting(SubscriptionQuery::getStatuses).isEqualTo(List.of(SubscriptionStatus.ACCEPTED));
+    }
+
+    @Test
+    public void get_subscriptions_with_status_from_query_params() {
+        when(subscriptionService.search(any(ExecutionContext.class), any(), any(), anyBoolean(), anyBoolean()))
+            .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
+        when(subscriptionService.getMetadata(any(ExecutionContext.class), any())).thenReturn(mock(Metadata.class));
+
+        final Response response = envTarget().queryParam("status", "PENDING, REJECTED, ACCEPTED").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+
+        ArgumentCaptor<SubscriptionQuery> subscriptionQueryCaptor = ArgumentCaptor.forClass(SubscriptionQuery.class);
+
+        verify(subscriptionService, times(1))
+            .search(any(ExecutionContext.class), subscriptionQueryCaptor.capture(), any(), anyBoolean(), anyBoolean());
+
+        SubscriptionQuery subscriptionQuery = subscriptionQueryCaptor.getValue();
+        assertThat(subscriptionQuery)
+            .extracting(SubscriptionQuery::getStatuses)
+            .isEqualTo(List.of(SubscriptionStatus.PENDING, SubscriptionStatus.REJECTED, SubscriptionStatus.ACCEPTED));
     }
 }

@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.configuration.application.registration
 import static io.gravitee.repository.management.model.Audit.AuditProperties.CLIENT_REGISTRATION_PROVIDER;
 import static java.util.Collections.singletonMap;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -413,9 +414,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 convert(registrationRequest, application),
                 application.getSettings().getoAuthClient().getClientId()
             );
-        } catch (Exception ex) {
+        } catch (JsonProcessingException ex) {
             LOGGER.error("Unexpected error while updating a client", ex);
-            return null;
+            throw new RegisteredClientNotUpdatableException();
         }
     }
 

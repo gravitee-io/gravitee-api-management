@@ -185,7 +185,7 @@ const restApiDependenciesExclusion = [
   'gravitee-gateway-services-ratelimit',
   'gravitee-apim-repository-hazelcast',
   'gravitee-apim-repository-redis',
-  'gravitee-apim-repository-gateway-bridge-http-client'
+  'gravitee-apim-repository-gateway-bridge-http-client',
 ];
 await spinner('Add plugins to Rest API...', () =>
   Promise.all(

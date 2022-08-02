@@ -491,7 +491,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return roleIdsToImport;
     }
 
-    private void addOrUpdateMembers(
+    protected void addOrUpdateMembers(
         ExecutionContext executionContext,
         String apiId,
         String poRoleId,

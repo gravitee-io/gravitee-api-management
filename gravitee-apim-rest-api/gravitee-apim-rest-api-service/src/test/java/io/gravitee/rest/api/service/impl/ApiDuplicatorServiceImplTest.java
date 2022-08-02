@@ -52,6 +52,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ApiDuplicatorServiceImplTest {
 
     private static final String API_ID = "id-api";
+    public static final String ORGANIZATION_ID = "DEFAULT";
     public static final String ENVIRONMENT_ID = "DEFAULT";
 
     @InjectMocks
@@ -321,6 +322,32 @@ public class ApiDuplicatorServiceImplTest {
         when(apiMetadataService.update(eq(GraviteeContext.getExecutionContext()), any())).thenThrow(new RuntimeException("fake exception"));
 
         apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), apiEntity, metadataNode);
+    }
+
+    @Test
+    public void addOrUpdateMembers_shouldAddRolesUsingMembershipService_butNotFailIfItThrowsException() {
+        var currentPo = new ApiDuplicatorServiceImpl.MemberToImport();
+        currentPo.setSource("source");
+        currentPo.setSourceId("currentPo-sourceId");
+
+        var memberToImport = new ApiDuplicatorServiceImpl.MemberToImport();
+        memberToImport.setRoles(List.of("member-role"));
+        memberToImport.setSource("source");
+        memberToImport.setSourceId("memberToImport-sourceId");
+
+        when(userService.findBySource(any(), any(), any(), eq(false))).thenReturn(new UserEntity());
+
+        apiDuplicatorService.addOrUpdateMembers(
+            GraviteeContext.getExecutionContext(),
+            API_ID,
+            "po-role-id",
+            currentPo,
+            memberToImport,
+            List.of("new-role"),
+            false
+        );
+
+        verify(membershipService).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any(), any());
     }
 
     /*

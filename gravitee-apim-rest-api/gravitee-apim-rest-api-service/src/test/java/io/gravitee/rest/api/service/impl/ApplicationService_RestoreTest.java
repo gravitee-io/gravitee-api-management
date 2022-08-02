@@ -33,8 +33,12 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationActiveException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
+import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -51,6 +55,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ApplicationService_RestoreTest {
 
     private static final String APP = "my-app";
+
+    private static final String CLIENT_ID = "myClientId";
+    private static final String ENVIRONMENT_ID = "DEFAULT";
 
     @InjectMocks
     private ApplicationServiceImpl applicationService = new ApplicationServiceImpl();
@@ -94,6 +101,22 @@ public class ApplicationService_RestoreTest {
         app.setStatus(ApplicationStatus.ACTIVE);
 
         when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
+
+        applicationService.restore(GraviteeContext.getExecutionContext(), APP);
+    }
+
+    @Test(expected = ClientIdAlreadyExistsException.class)
+    public void shouldNotRestoreApp_ClientIdAlreadyExists() throws TechnicalException {
+        Application appToRestore = fakeApp(false);
+        appToRestore.setStatus(ApplicationStatus.ARCHIVED);
+        appToRestore.setMetadata(Map.of(Application.METADATA_CLIENT_ID, CLIENT_ID));
+        appToRestore.setEnvironmentId(ENVIRONMENT_ID);
+
+        Application anotherApp = fakeApp(true);
+        anotherApp.setMetadata(Map.of(Application.METADATA_CLIENT_ID, CLIENT_ID));
+
+        when(applicationRepository.findById(APP)).thenReturn(Optional.of(appToRestore));
+        when(applicationRepository.findAllByEnvironment(ENVIRONMENT_ID, ApplicationStatus.ACTIVE)).thenReturn(Set.of(anotherApp));
 
         applicationService.restore(GraviteeContext.getExecutionContext(), APP);
     }
