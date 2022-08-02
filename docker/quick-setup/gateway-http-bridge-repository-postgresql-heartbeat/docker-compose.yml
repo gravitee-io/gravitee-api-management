@@ -47,7 +47,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: user@g.io
       PGADMIN_DEFAULT_PASSWORD: pass
     ports:
-      - "8081:80"
+      - "8091:80"
     networks:
       - storage
     restart: unless-stopped
@@ -107,45 +107,11 @@ services:
       - storage
       - frontend
 
-  gateway_client_1:
+  gateway_client:
     image: graviteeio/apim-gateway:${APIM_VERSION:-latest}
     restart: always
     ports:
-      - "8082:8082"
-    links:
-      # Workaround used because of call to URI.create(uri) in WebClientFactory. If host contains "_", then host is null and the connection cannot be done.
-      - "gateway_server:gateway-server"
-    depends_on:
-      - elasticsearch
-      - gateway_server
-      - pg_database
-    volumes:
-      - ./.logs/apim-gateway-client:/opt/graviteeio-gateway/logs
-      - ./.driver:/opt/graviteeio-gateway/plugins/ext/repository-jdbc
-    environment:
-      - gravitee_management_type=http
-      - gravitee_management_http_url=http://gateway-server:18092
-      - gravitee_ratelimit_type=jdbc
-      - gravitee_ratelimit_jdbc_url=jdbc:postgresql://pg_database:5432/gravitee
-      - gravitee_ratelimit_jdbc_username=postgres
-      - gravitee_ratelimit_jdbc_password=password
-      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_ds_mongodb_host=mongodb
-      - gravitee_reporters_elasticsearch_enabled=true
-      - gravitee_management_http_authentication_basic_username=admin
-      - gravitee_management_http_authentication_basic_password=adminadmin
-      - gravitee_management_http_ssl_verifyHostName=false
-      - gravitee_services_heartbeat_enabled=true
-      - gravitee_services_heartbeat_delay=5000
-    networks:
-      - storage
-      - frontend
-
-  gateway_client_2:
-    image: graviteeio/apim-gateway:${APIM_VERSION:-latest}
-    restart: always
-    ports:
-      - "8882:8082"
+      - "8075-8082:8082"
     links:
       # Workaround used because of call to URI.create(uri) in WebClientFactory. If host contains "_", then host is null and the connection cannot be done.
       - "gateway_server:gateway-server"

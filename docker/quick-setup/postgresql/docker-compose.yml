@@ -46,7 +46,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: user@g.io
       PGADMIN_DEFAULT_PASSWORD: pass
     ports:
-      - "8081:80"
+      - "8091:80"
     networks:
       - storage
     restart: unless-stopped
