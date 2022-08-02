@@ -75,7 +75,7 @@
         <!--	<gravitee-policy-quota.version>1.13.0</gravitee-policy-quota.version>	-->
         <!--	<gravitee-policy-spikearrest.version>1.13.0</gravitee-policy-spikearrest.version>	-->
         <gravitee-policy-ratelimit.version>1.13.2</gravitee-policy-ratelimit.version>
-        <gravitee-policy-regex-threat-protection.version>1.2.1</gravitee-policy-regex-threat-protection.version>
+        <gravitee-policy-regex-threat-protection.version>1.2.2</gravitee-policy-regex-threat-protection.version>
         <gravitee-policy-request-content-limit.version>1.7.0</gravitee-policy-request-content-limit.version>
         <gravitee-policy-request-validation.version>1.12.0</gravitee-policy-request-validation.version>
         <gravitee-policy-resource-filtering.version>1.8.0</gravitee-policy-resource-filtering.version>
