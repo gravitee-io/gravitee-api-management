@@ -15,25 +15,34 @@
  */
 package io.gravitee.rest.api.management.rest.resource.v4.api;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static javax.ws.rs.client.Entity.entity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.Date;
@@ -41,10 +50,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedStatic;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -146,6 +159,45 @@ public class ApiResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldUpdateApi() {
+        UpdateApiEntity updateApiEntity = prepareValidUpdateApiEntity();
+
+        ApiEntity updatedApiEntity = new ApiEntity();
+        updatedApiEntity.setUpdatedAt(new Date());
+        doReturn(updatedApiEntity).when(apiServiceV4).update(GraviteeContext.getExecutionContext(), API, updateApiEntity, true, USER_NAME);
+
+        final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
+
+        verify(apiServiceV4, times(1)).update(GraviteeContext.getExecutionContext(), API, updateApiEntity, true, USER_NAME);
+
+        assertEquals(OK_200, response.getStatus());
+
+        final ApiEntity responseApi = response.readEntity(ApiEntity.class);
+        assertNull(responseApi.getPicture());
+        assertNotNull(responseApi.getPictureUrl());
+        assertNull(responseApi.getBackground());
+        assertNotNull(responseApi.getBackgroundUrl());
+    }
+
+    @Test
+    public void shouldNotUpdateApiBecauseWrongApiId() {
+        UpdateApiEntity updateApiEntity = prepareValidUpdateApiEntity();
+        updateApiEntity.setId(UNKNOWN_API);
+        final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotUpdateApiBecausePictureInvalid() {
+        UpdateApiEntity updateApiEntity = prepareValidUpdateApiEntity();
+        updateApiEntity.setPicture("not-an-image");
+
+        final Response response = envTarget(API).request().put(entity(updateApiEntity, MediaType.APPLICATION_JSON));
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
     public void shouldDeleteApi() {
         final Response response = envTarget(UNKNOWN_API).request().delete();
 
@@ -157,5 +209,29 @@ public class ApiResourceTest extends AbstractResourceTest {
         final Response response = envTarget(API).request().delete();
 
         assertEquals(NO_CONTENT_204, response.getStatus());
+    }
+
+    @NotNull
+    private UpdateApiEntity prepareValidUpdateApiEntity() {
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setId(API);
+        updateApiEntity.setName("api-name");
+        updateApiEntity.setDescription("api-description");
+        updateApiEntity.setVisibility(Visibility.PUBLIC);
+
+        ListenerHttp listenerHttp = new ListenerHttp();
+        listenerHttp.setEntrypoints(List.of(new Entrypoint()));
+        listenerHttp.setPaths(List.of(new Path()));
+        updateApiEntity.setListeners(List.of(listenerHttp));
+
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpointName");
+        endpoint.setType("http");
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("endpointGroupName");
+        endpointGroup.setType("http");
+        endpointGroup.setEndpoints(List.of(endpoint));
+        updateApiEntity.setEndpointGroups(List.of(endpointGroup));
+        return updateApiEntity;
     }
 }

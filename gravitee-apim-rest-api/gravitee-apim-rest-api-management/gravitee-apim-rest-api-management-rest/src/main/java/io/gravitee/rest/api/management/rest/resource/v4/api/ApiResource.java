@@ -49,6 +49,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -157,7 +158,13 @@ public class ApiResource extends AbstractResource {
             apiToUpdate.setListeners(currentApi.getListeners());
         }
 
-        final ApiEntity updatedApi = apiServiceV4.update(GraviteeContext.getExecutionContext(), api, apiToUpdate, getAuthenticatedUser());
+        final ApiEntity updatedApi = apiServiceV4.update(
+            GraviteeContext.getExecutionContext(),
+            api,
+            apiToUpdate,
+            true,
+            getAuthenticatedUser()
+        );
         setPictures(updatedApi);
 
         return Response
