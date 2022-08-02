@@ -1022,6 +1022,9 @@ jobs:
             - image: cimg/base:stable
         resource_class: small
         steps:
+            - keeper/env-export:
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
             - when:
                   condition:
                       not: << pipeline.parameters.dry_run>>
@@ -1048,9 +1051,6 @@ jobs:
         resource_class: large
         steps:
             - checkout
-            - keeper/env-export:
-                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
-                  var-name: SLACK_ACCESS_TOKEN
             - restore-maven-job-cache:
                   jobName: release
             - attach_workspace:
@@ -1082,7 +1082,6 @@ jobs:
         docker:
             - image: cimg/base:stable
         resource_class: medium
-
         steps:
             - checkout
             - attach_workspace:
