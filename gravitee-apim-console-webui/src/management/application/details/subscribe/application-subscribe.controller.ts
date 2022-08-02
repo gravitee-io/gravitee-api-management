@@ -30,6 +30,7 @@ class ApplicationSubscribeController {
   private readonly groups = [];
   private readonly subscribedAPIs = [];
 
+  private canAccessSelectedApiPlans = false;
   private apis = [];
   private plans = [];
   private subscribedPlans = [];
@@ -65,16 +66,25 @@ class ApplicationSubscribeController {
   onSelectAPI(api) {
     if (api) {
       const authorizedSecurity = this.getAuthorizedSecurity();
-      this.ApiService.getApiPlans(api.id, 'PUBLISHED').then((response) => {
-        this.plans = _.filter(response.data, (plan) => {
-          plan.alreadySubscribed = _.includes(this.subscribedPlans, plan.id);
-          const subscription = _.find(this.subscriptions.data, { plan: plan.id });
-          plan.pending = subscription && 'PENDING' === subscription.status;
-          return _.includes(authorizedSecurity, plan.security);
+      this.selectedAPI = api;
+      this.canAccessSelectedApiPlans = false;
+      this.ApiService.getApiPlans(api.id, 'PUBLISHED')
+        .then((response) => {
+          this.canAccessSelectedApiPlans = true;
+          this.plans = _.filter(response.data, (plan) => {
+            plan.alreadySubscribed = _.includes(this.subscribedPlans, plan.id);
+            const subscription = _.find(this.subscriptions.data, { plan: plan.id });
+            plan.pending = subscription && 'PENDING' === subscription.status;
+            return _.includes(authorizedSecurity, plan.security);
+          });
+          this.selectedAPI = api;
+          this.refreshPlansExcludedGroupsNames();
+        })
+        .catch((error) => {
+          if (error.status === 403 && error.interceptorFuture) {
+            error.interceptorFuture.cancel();
+          }
         });
-        this.selectedAPI = api;
-        this.refreshPlansExcludedGroupsNames();
-      });
     } else {
       delete this.plans;
       delete this.selectedAPI;

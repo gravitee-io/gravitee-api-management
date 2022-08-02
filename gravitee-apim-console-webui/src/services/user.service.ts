@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { UrlService } from '@uirouter/angularjs';
 import { IHttpResponse, ILocationService, IScope } from 'angular';
 import * as _ from 'lodash';
 
@@ -35,7 +34,6 @@ class UserService {
    * Current authenticated user or empty user if not authenticated.
    */
   public currentUser: User;
-  private routerInitialized = false;
   private isLogout = false;
 
   constructor(
@@ -44,7 +42,6 @@ class UserService {
     private Constants,
     private RoleService: RoleService,
     private PermPermissionStore,
-    private $urlService: UrlService,
     private ApplicationService: ApplicationService,
     private ApiService: ApiService,
     private EnvironmentService: EnvironmentService,
@@ -205,13 +202,6 @@ class UserService {
           this.currentUser = new User();
           this.currentUser.authenticated = false;
           return this.$q.resolve<User>(this.currentUser);
-        })
-        .finally(() => {
-          if (!this.routerInitialized) {
-            this.$urlService.sync();
-            this.$urlService.listen();
-            this.routerInitialized = true;
-          }
         });
     } else {
       return this.$q.resolve<User>(this.currentUser);

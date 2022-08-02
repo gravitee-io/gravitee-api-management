@@ -51,6 +51,7 @@ public class ApiKeyServiceTest {
     private static final String PLAN_ID = "myPlan";
     private static final String API_KEY = "ef02ecd0-71bb-11e5-9d70-feff819cdc9f";
     private static final String SUBSCRIPTION_ID = "subscription-1";
+    private static final String CUSTOM_API_KEY = "an-api-key";
 
     @InjectMocks
     private ApiKeyService apiKeyService = new ApiKeyServiceImpl();
@@ -158,8 +159,6 @@ public class ApiKeyServiceTest {
 
     @Test
     public void shouldGenerateWithCustomApiKey() throws TechnicalException {
-        final String customApiKey = "customApiKey";
-
         // Prepare subscription
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
@@ -171,7 +170,12 @@ public class ApiKeyServiceTest {
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), anyString())).thenReturn(application);
 
         // Run
-        final ApiKeyEntity apiKey = apiKeyService.generate(GraviteeContext.getExecutionContext(), application, subscription, customApiKey);
+        final ApiKeyEntity apiKey = apiKeyService.generate(
+            GraviteeContext.getExecutionContext(),
+            application,
+            subscription,
+            CUSTOM_API_KEY
+        );
 
         // Verify
         verify(apiKeyRepository, times(1)).create(any());
@@ -189,7 +193,7 @@ public class ApiKeyServiceTest {
         assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
 
         verify(apiKeyGenerator, times(0)).generate();
-        assertEquals(customApiKey, apiKey.getKey());
+        assertEquals(CUSTOM_API_KEY, apiKey.getKey());
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -468,7 +472,6 @@ public class ApiKeyServiceTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId(SUBSCRIPTION_ID);
-
         subscription.setEndingAt(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
         subscription.setPlan(PLAN_ID);
         subscription.setApplication(APPLICATION_ID);
@@ -481,6 +484,9 @@ public class ApiKeyServiceTest {
         List<String> subscriptionIds = List.of(SUBSCRIPTION_ID);
         Set<SubscriptionEntity> subscriptions = Set.of(subscription);
         apiKey.setSubscriptions(subscriptionIds);
+
+        PlanEntity plan = new PlanEntity();
+        plan.setSecurity(PlanSecurityType.API_KEY);
 
         // Stub
         when(apiKeyGenerator.generate()).thenReturn(API_KEY);
@@ -548,6 +554,9 @@ public class ApiKeyServiceTest {
         Set<SubscriptionEntity> subscriptions = Set.of(subscription, sharedSubscription);
         apiKey.setSubscriptions(subscriptionIds);
 
+        PlanEntity plan = new PlanEntity();
+        plan.setSecurity(PlanSecurityType.API_KEY);
+
         when(apiKeyGenerator.generate()).thenReturn(API_KEY);
         when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
         when(subscriptionService.findByIdIn(argThat(subscriptionIds::containsAll))).thenReturn(subscriptions);
@@ -579,7 +588,6 @@ public class ApiKeyServiceTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId(SUBSCRIPTION_ID);
-
         subscription.setEndingAt(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
         subscription.setPlan(PLAN_ID);
         subscription.setApplication(APPLICATION_ID);
@@ -592,6 +600,9 @@ public class ApiKeyServiceTest {
         List<String> subscriptionIds = List.of(SUBSCRIPTION_ID);
         Set<SubscriptionEntity> subscriptions = Set.of(subscription);
         apiKey.setSubscriptions(subscriptionIds);
+
+        PlanEntity plan = new PlanEntity();
+        plan.setSecurity(PlanSecurityType.API_KEY);
 
         // Stub
         when(apiKeyGenerator.generate()).thenReturn(API_KEY);
@@ -625,6 +636,7 @@ public class ApiKeyServiceTest {
         subscription.setId(SUBSCRIPTION_ID);
         subscription.setApi(API_ID);
         subscription.setApplication(APPLICATION_ID);
+        subscription.setPlan(PLAN_ID);
 
         SubscriptionEntity conflictingSubscription = new SubscriptionEntity();
         conflictingSubscription.setId("conflicting-subscription-id");
@@ -638,10 +650,63 @@ public class ApiKeyServiceTest {
         conflictingKey.setApplication(conflictingApplicationId);
         conflictingKey.setSubscriptions(List.of(conflictingSubscription.getId()));
 
+        PlanEntity plan = new PlanEntity();
+        plan.setSecurity(PlanSecurityType.API_KEY);
+
         when(applicationService.findById(any(), eq(conflictingApplicationId))).thenReturn(conflictingApplication);
         when(apiKeyRepository.findByKey("alreadyExistingApiKey")).thenReturn(List.of(conflictingKey));
+        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(plan);
 
         apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription, "alreadyExistingApiKey");
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldNotRenewSubscriptionWithJwtPlan() {
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setPlan(PLAN_ID);
+
+        PlanEntity plan = new PlanEntity();
+        plan.setSecurity(PlanSecurityType.JWT);
+        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(plan);
+
+        apiKeyService.renew(GraviteeContext.getExecutionContext(), subscriptionEntity, CUSTOM_API_KEY);
+    }
+
+    @Test
+    public void shouldRenewForCustomApiKeyAssociatedToClosedSubscription() throws TechnicalException {
+        apiKey = new ApiKey();
+        apiKey.setKey("123-456-789");
+        apiKey.setSubscription(SUBSCRIPTION_ID);
+        apiKey.setCreatedAt(new Date());
+        apiKey.setPlan(PLAN_ID);
+        apiKey.setApplication(APPLICATION_ID);
+        apiKey.setExpireAt(Date.from(new Date().toInstant().minus(1, ChronoUnit.DAYS)));
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setPlan(PLAN_ID);
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setStatus(SubscriptionStatus.PAUSED);
+        subscription.setEndingAt(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
+        subscription.setApplication(APPLICATION_ID);
+
+        PlanEntity plan = new PlanEntity();
+        plan.setSecurity(PlanSecurityType.API_KEY);
+        plan.setApi(API_ID);
+        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(plan);
+
+        when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
+        when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), subscription.getApplication())).thenReturn(application);
+
+        final ApiModelEntity api = mock(ApiModelEntity.class);
+
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setPlan(PLAN_ID);
+        subscriptionEntity.setId(SUBSCRIPTION_ID);
+
+        apiKeyService.renew(GraviteeContext.getExecutionContext(), subscriptionEntity, CUSTOM_API_KEY);
+
+        verify(apiKeyRepository, times(1)).create(any());
     }
 
     @Test(expected = ApiKeyNotFoundException.class)

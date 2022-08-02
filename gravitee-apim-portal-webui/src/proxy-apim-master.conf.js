@@ -15,12 +15,12 @@
  */
 module.exports = {
   '/portal/environments/DEFAULT': {
-    target: 'https://apim-master-api.cloud.gravitee.io/',
+    target: 'https://apim-master-api.team-apim.gravitee.xyz/',
     logLevel: 'debug',
     secure: false,
     changeOrigin: true,
     onProxyReq: function (proxyReq, req, res) {
-      proxyReq.setHeader('origin', 'https://apim-master-portal.cloud.gravitee.io');
+      proxyReq.setHeader('origin', 'https://apim-master-portal.team-apim.gravitee.xyz');
     },
   },
 };

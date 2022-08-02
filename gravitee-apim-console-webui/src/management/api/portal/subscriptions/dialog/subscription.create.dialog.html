@@ -64,7 +64,7 @@
             </md-radio-button>
 
             <div
-              ng-if="dialogSubscriptionCreateController.selectedPlan === plan.id && dialogSubscriptionCreateController.planIsApiKey(plan.id) && dialogSubscriptionCreateController.canUseCustomApiKey"
+              ng-if="dialogSubscriptionCreateController.selectedPlan.id === plan.id && dialogSubscriptionCreateController.planIsApiKey(plan.id) && dialogSubscriptionCreateController.canUseCustomApiKey"
               style="color: rgba(0, 0, 0, 0.54); font-size: smaller; margin: 0 0 0 30px"
             >
               <api-key-validated-input

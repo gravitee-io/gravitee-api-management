@@ -18,21 +18,23 @@ package io.gravitee.rest.api.services.sync;
 import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.io.IOException;
+import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
@@ -62,6 +64,9 @@ public class SyncManager {
 
     @Autowired
     private ApiManager apiManager;
+
+    @Autowired
+    private ApiConverter apiConverter;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -171,7 +176,7 @@ public class SyncManager {
         }
     }
 
-    private void processApiEvent(String apiId, Event apiEvent) {
+    protected void processApiEvent(String apiId, Event apiEvent) {
         switch (apiEvent.getType()) {
             case UNPUBLISH_API:
             case STOP_API:
@@ -209,52 +214,6 @@ public class SyncManager {
     }
 
     private ApiEntity convert(Api api) {
-        ApiEntity apiEntity = new ApiEntity();
-
-        apiEntity.setId(api.getId());
-        apiEntity.setName(api.getName());
-        apiEntity.setDeployedAt(api.getDeployedAt());
-        apiEntity.setCreatedAt(api.getCreatedAt());
-
-        if (api.getDefinition() != null) {
-            try {
-                io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                    api.getDefinition(),
-                    io.gravitee.definition.model.Api.class
-                );
-
-                apiEntity.setProxy(apiDefinition.getProxy());
-                apiEntity.setPaths(apiDefinition.getPaths());
-                apiEntity.setServices(apiDefinition.getServices());
-                apiEntity.setResources(apiDefinition.getResources());
-                apiEntity.setProperties(apiDefinition.getProperties());
-                apiEntity.setTags(apiDefinition.getTags());
-                if (apiDefinition.getPathMappings() != null) {
-                    apiEntity.setPathMappings(new HashSet<>(apiDefinition.getPathMappings().keySet()));
-                }
-            } catch (IOException ioe) {
-                logger.error("Unexpected error while generating API definition", ioe);
-            }
-        }
-        apiEntity.setUpdatedAt(api.getUpdatedAt());
-        apiEntity.setVersion(api.getVersion());
-        apiEntity.setDescription(api.getDescription());
-        apiEntity.setPicture(api.getPicture());
-        apiEntity.setBackground(api.getBackground());
-        apiEntity.setCategories(api.getCategories());
-
-        final LifecycleState lifecycleState = api.getLifecycleState();
-        if (lifecycleState != null) {
-            apiEntity.setState(Lifecycle.State.valueOf(lifecycleState.name()));
-        }
-        final ApiLifecycleState apiLifecycleState = api.getApiLifecycleState();
-        if (apiLifecycleState != null) {
-            apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(apiLifecycleState.name()));
-        }
-        if (api.getVisibility() != null) {
-            apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));
-        }
-
         // When event was created with APIM < 3.x, the api doesn't have environmentId, we must use default.
         if (api.getEnvironmentId() == null) {
             api.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
@@ -265,8 +224,12 @@ public class SyncManager {
         EnvironmentEntity environmentEntity = this.environmentService.findById(api.getEnvironmentId());
         GraviteeContext.setCurrentOrganization(environmentEntity.getOrganizationId());
 
-        apiEntity.setPrimaryOwner(apiService.getPrimaryOwner(GraviteeContext.getExecutionContext(), api.getId()));
-
-        return apiEntity;
+        PrimaryOwnerEntity primaryOwnerEntity = null;
+        try {
+            primaryOwnerEntity = apiService.getPrimaryOwner(GraviteeContext.getExecutionContext(), api.getId());
+        } catch (PrimaryOwnerNotFoundException e) {
+            logger.error(e.getMessage());
+        }
+        return apiConverter.toApiEntity(api, primaryOwnerEntity);
     }
 }

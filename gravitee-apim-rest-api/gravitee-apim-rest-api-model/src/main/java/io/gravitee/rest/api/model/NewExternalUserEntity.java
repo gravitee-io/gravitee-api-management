@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model;
 
 import java.util.Map;
 import javax.validation.constraints.NotNull;
+import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -80,7 +81,7 @@ public class NewExternalUserEntity {
     }
 
     public void setFirstname(String firstname) {
-        this.firstname = firstname;
+        this.firstname = StringEscapeUtils.escapeHtml4(firstname);
     }
 
     public String getLastname() {
@@ -88,7 +89,7 @@ public class NewExternalUserEntity {
     }
 
     public void setLastname(String lastname) {
-        this.lastname = lastname;
+        this.lastname = StringEscapeUtils.escapeHtml4(lastname);
     }
 
     public String getPicture() {

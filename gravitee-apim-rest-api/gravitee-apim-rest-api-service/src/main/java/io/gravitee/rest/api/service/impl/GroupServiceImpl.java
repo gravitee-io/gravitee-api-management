@@ -68,6 +68,7 @@ import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -381,6 +382,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
 
             if (
+                executionContext.hasEnvironmentId() &&
                 permissionService.hasPermission(
                     executionContext,
                     RolePermission.ENVIRONMENT_GROUP,

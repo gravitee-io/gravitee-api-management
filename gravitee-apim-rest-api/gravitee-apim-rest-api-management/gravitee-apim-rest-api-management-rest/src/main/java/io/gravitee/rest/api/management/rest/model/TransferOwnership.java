@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.rest.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

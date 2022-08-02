@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-    slack: circleci/slack@4.4.4
+    slack: circleci/slack@4.10.1
     keeper: gravitee-io/keeper@0.6.2
     gh: circleci/github-cli@1.0.5
     aws-cli: circleci/aws-cli@2.0.6
@@ -78,7 +78,11 @@ commands:
 
     notify-on-failure:
         steps:
+            - keeper/env-export:
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
             - slack/notify:
+                  channel: C02JENTV2AX
                   branch_pattern: master,[0-9]+\.[0-9]+\.x
                   event: fail
                   template: basic_fail_1
@@ -211,6 +215,28 @@ commands:
                   name: Load Image from Docker Cache
                   command: docker load < ./docker-cache/<< parameters.docker-image-name >>.tar
 
+    add-docker-image-in-snyk:
+        parameters:
+            docker-image-name:
+                type: string
+            version:
+                type: string
+        steps:
+            - run:
+                  name: Add << parameters.docker-image-name >> << parameters.version >> to Snyk
+                  command: |
+                      curl --fail \
+                           --include \
+                           --request POST \
+                           --header "Content-Type: application/json; charset=utf-8" \
+                           --header "Authorization: token ${SNYK_API_KEY}" \
+                           --data-binary "{
+                        \"target\": {
+                          \"name\": \"graviteeio/<< parameters.docker-image-name >>:<< parameters.version >>\"
+                        }
+                      }" \
+                      "https://api.snyk.io/api/v1/org/${SNYK_ORG_ID}/integrations/${SNYK_INTEGRATION_ID}/import"
+
 parameters:
     gio_action:
         type: enum
@@ -228,21 +254,6 @@ parameters:
         default: ""
         type: string
         description: "Version of APIM to be used in docker images"
-    license_version:
-        default: ""
-        type: string
-    ae_version:
-        default: ""
-        type: string
-    notifier_email_version:
-        default: ""
-        type: string
-    notifier_slack_version:
-        default: ""
-        type: string
-    notifier_webhook_version:
-        default: ""
-        type: string
 
 jobs:
     setup:
@@ -344,6 +355,44 @@ jobs:
                   jobName: validate
             - notify-on-failure
 
+    add-docker-images-in-snyk:
+        docker:
+            - image: cimg/base:stable
+        resource_class: small
+        steps:
+            - keeper/env-export:
+                  secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/field/password
+                  var-name: SNYK_API_KEY
+            - keeper/env-export:
+                  secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/graviteeio_org_id
+                  var-name: SNYK_ORG_ID
+            - keeper/env-export:
+                  secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/dockerhub_integration_id
+                  var-name: SNYK_INTEGRATION_ID
+            - add-docker-image-in-snyk:
+                  docker-image-name: apim-gateway
+                  version: << pipeline.parameters.graviteeio_version >>
+            - add-docker-image-in-snyk:
+                  docker-image-name: apim-management-api
+                  version: << pipeline.parameters.graviteeio_version >>
+            - add-docker-image-in-snyk:
+                  docker-image-name: apim-management-ui
+                  version: << pipeline.parameters.graviteeio_version >>
+            - add-docker-image-in-snyk:
+                  docker-image-name: apim-portal-ui
+                  version: << pipeline.parameters.graviteeio_version >>
+            - add-docker-image-in-snyk:
+                  docker-image-name: apim-gateway
+                  version: << pipeline.parameters.graviteeio_version >>-ee
+            - add-docker-image-in-snyk:
+                  docker-image-name: apim-management-api
+                  version: << pipeline.parameters.graviteeio_version >>-ee
+            - add-docker-image-in-snyk:
+                  docker-image-name: apim-management-ui
+                  version: << pipeline.parameters.graviteeio_version >>-ee
+            - add-docker-image-in-snyk:
+                  docker-image-name: apim-portal-ui
+                  version: << pipeline.parameters.graviteeio_version >>-ee
     build:
         docker:
             - image: cimg/openjdk:11.0
@@ -650,10 +699,10 @@ jobs:
             - artifactory-orb/install
             - artifactory-orb/configure
             - run:
-                name: Update Build version
-                command: |
-                  sed -i "s/-SNAPSHOT//" dist/build.json
-                working_directory: << parameters.apim-ui-project >>
+                  name: Update Build version
+                  command: |
+                      sed -i "s/-SNAPSHOT//" dist/build.json
+                  working_directory: << parameters.apim-ui-project >>
             - run:
                   name: Rename and zip dist folder
                   command: mv dist << parameters.apim-ui-project >>-${APIM_VERSION%-SNAPSHOT} && zip -r dist.zip << parameters.apim-ui-project >>-${APIM_VERSION%-SNAPSHOT}
@@ -695,9 +744,9 @@ jobs:
             - webui-install:
                   apim-ui-project: << parameters.apim-ui-project >>
             - run:
-                name: Update Build version
-                command: |
-                  sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${APIM_VERSION}\"/" << parameters.apim-ui-project >>/build.json
+                  name: Update Build version
+                  command: |
+                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${APIM_VERSION}\"/" << parameters.apim-ui-project >>/build.json
             - run:
                   name: Build
                   command: npm run build:prod
@@ -955,19 +1004,47 @@ jobs:
                       kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-ui -n ${K8S_NAMESPACE}-jdbc
                       kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-gateway -n ${K8S_NAMESPACE}-jdbc
             - keeper/env-export:
-                secret-url: keeper://G4hBnFUDBYb9Sw3TxhvjHg/custom_field/token
-                var-name: CIRCLE_TOKEN
+                  secret-url: keeper://G4hBnFUDBYb9Sw3TxhvjHg/custom_field/token
+                  var-name: CIRCLE_TOKEN
             - run:
-                name: Rollout pods on "gravitee-apim-preprod-aks-cluster"
-                command: |
-                  curl --request POST \
-                  --url https://circleci.com/api/v2/project/gh/gravitee-io/cloud-apim/pipeline \
-                  --header "Circle-Token: ${CIRCLE_TOKEN}" \
-                  --header "content-type: application/json" \
-                  --data '{"branch":"hprod-geckos","parameters":{"command-name":"k8s-rollout-all"}}'
+                  name: Rollout pods on "gravitee-apim-preprod-aks-cluster"
+                  command: |
+                      curl --request POST \
+                      --url https://circleci.com/api/v2/project/gh/gravitee-io/cloud-apim/pipeline \
+                      --header "Circle-Token: ${CIRCLE_TOKEN}" \
+                      --header "content-type: application/json" \
+                      --data '{"branch":"hprod-geckos","parameters":{"command-name":"k8s-rollout-all"}}'
             - notify-on-failure
 
     ## Release Jobs
+    announce-release:
+        docker:
+            - image: cimg/base:stable
+        resource_class: small
+        steps:
+            - keeper/env-export:
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - slack/notify:
+                            channel: C02NGT20S4W
+                            event: always
+                            custom: |
+                                {
+                                  "blocks": [
+                                    {
+                                      "type": "section",
+                                      "text": {
+                                        "type": "mrkdwn",
+                                        "text": "🚀 Starting << pipeline.parameters.graviteeio_version >> release"
+                                      }
+                                    }
+                                  ]
+                                }
+
     backend-build-and-publish-artifactory:
         docker:
             - image: cimg/openjdk:11.0.13
@@ -1005,7 +1082,6 @@ jobs:
         docker:
             - image: cimg/base:stable
         resource_class: medium
-
         steps:
             - checkout
             - attach_workspace:
@@ -1035,7 +1111,7 @@ jobs:
                       # Remove `-SNAPSHOT` from source
                       # Backend
                       sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
-                      
+
                       # UI
                       sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${MVN_PRJ_VERSION}\"/" gravitee-apim-console-webui/build.json
                       sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${MVN_PRJ_VERSION}\"/" gravitee-apim-portal-webui/build.json
@@ -1179,6 +1255,28 @@ jobs:
                       mvn clean deploy --activate-profiles gravitee-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
             - save-maven-job-cache:
                   jobName: nexus-staging
+            - keeper/env-export:
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - slack/notify:
+                            channel: C02NGT20S4W
+                            event: always
+                            custom: |
+                                {
+                                  "blocks": [
+                                    {
+                                      "type": "section",
+                                      "text": {
+                                        "type": "mrkdwn",
+                                        "text": "🎆 APIM - << pipeline.parameters.graviteeio_version >> released!"
+                                      }
+                                    }
+                                  ]
+                                }
 
     jdbc-test-container:
         parameters:
@@ -1300,107 +1398,107 @@ jobs:
                       cd gravitee-apim-e2e/jacoco
                       mv jacoco.exec jacoco-<< parameters.execution_mode >>-<< parameters.database >>.exec
             - persist_to_workspace:
-                root: .
-                paths:
-                  - gravitee-apim-e2e/jacoco/jacoco-*-*.exec
+                  root: .
+                  paths:
+                      - gravitee-apim-e2e/jacoco/jacoco-*-*.exec
             - when:
-                condition:
-                  and:
-                    - equal: [ v3, << parameters.execution_mode >> ]
-                    - equal: [ mongo, << parameters.database >> ]
-                steps:
-                  - persist_to_workspace:
-                      root: .
-                      paths:
-                        - .git
-                        - gravitee-apim-gateway
-                        - gravitee-apim-rest-api
-                        - rest-api-docker-context
-                        - gateway-docker-context
-                        - gravitee-api-management
-                        - gravitee-apim-e2e/package.json
-                        - gravitee-apim-e2e/jacoco/lib
-                        - gravitee-apim-e2e/jacoco/*.xml
+                  condition:
+                      and:
+                          - equal: [v3, << parameters.execution_mode >>]
+                          - equal: [mongo, << parameters.database >>]
+                  steps:
+                      - persist_to_workspace:
+                            root: .
+                            paths:
+                                - .git
+                                - gravitee-apim-gateway
+                                - gravitee-apim-rest-api
+                                - rest-api-docker-context
+                                - gateway-docker-context
+                                - gravitee-api-management
+                                - gravitee-apim-e2e/package.json
+                                - gravitee-apim-e2e/jacoco/lib
+                                - gravitee-apim-e2e/jacoco/*.xml
             - notify-on-failure
             - store_test_results:
-                path: ~/test-results
+                  path: ~/test-results
     e2e-report:
-      machine:
-        image: ubuntu-2004:202101-01
-      resource_class: small
-      steps:
-        - attach_workspace:
-            at: .
-        - keeper/env-export:
-            secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-            var-name: GITHUB_TOKEN
-        - run:
-            name: Merge E2E exec files
-            command: |
-              cd gravitee-apim-e2e
-              npm run test:report:merge
-        - run:
-            name: Generate e2e coverage report
-            command: |
-              cd gravitee-apim-e2e
-              npm run test:report
-        - run:
-            name: Remove Report Details (Only keep index files)
-            command: |
-              cd gravitee-apim-e2e/jacoco/reports
-              rm -f report.xml
-              find . -type f -not -name 'index.html' -name '*.html' -delete
-        - store_artifacts:
-            name: Upload jacoco report
-            path: gravitee-apim-e2e/jacoco/reports
-        - store_artifacts:
-            name: Upload jacoco exec file
-            path: gravitee-apim-e2e/jacoco/jacoco.exec
-        - gh/setup
-        - run:
-            name: Edit Pull Request Description
-            command: |
-              # First check there is an associated pull request, otherwise just stop the job here
-              if ! gh pr view --json title;
-              then
-                echo "No PR found for this branch, stopping the job here."
-                exit 0
-              fi
-              
-              # If PR state is different from OPEN
-              if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
-              then
-                echo "PR is not opened, stopping the job here."
-                exit 0
-              fi
-              
-              pushd gravitee-apim-e2e/jacoco/reports
-                export COVERAGE_SUMMARY=$(sed -nE 's/^.*<td>Total<([^>]+>){4}([^<]*)([^>]+>){4}([^<]*).*$/\2 | \4/p' index.html)
-              popd
-              
-              export COVERAGE_URL="https://output.circle-artifacts.com/output/job/${CIRCLE_WORKFLOW_JOB_ID}/artifacts/0/gravitee-apim-e2e/jacoco/reports/index.html"
-              
-              export PR_BODY_COVERAGE_SECTION="
-              <!-- E2E Coverage placeholder -->
-              ---
-              ### 🧪 End-to-End Coverage
-              
-              | INSTRUCTIONS | BRANCHES |
-              | :----------: | :------: |
-              |   ${COVERAGE_SUMMARY}   |
-              
-              A more detailed report has been uploaded to [circleci](${COVERAGE_URL})
-              <!-- E2E Coverage placeholder end -->
-              "
-              
-              export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/E2E Coverage placeholder -->/,/E2E Coverage placeholder end -->/d')
-              
-              echo "
-                Editing PR description with body:
-                  $CLEAN_BODY$PR_BODY_COVERAGE_SECTION
-              "
-              
-              gh pr edit --body "$CLEAN_BODY$PR_BODY_COVERAGE_SECTION"
+        machine:
+            image: ubuntu-2004:202101-01
+        resource_class: small
+        steps:
+            - attach_workspace:
+                  at: .
+            - keeper/env-export:
+                  secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                  var-name: GITHUB_TOKEN
+            - run:
+                  name: Merge E2E exec files
+                  command: |
+                      cd gravitee-apim-e2e
+                      npm run test:report:merge
+            - run:
+                  name: Generate e2e coverage report
+                  command: |
+                      cd gravitee-apim-e2e
+                      npm run test:report
+            - run:
+                  name: Remove Report Details (Only keep index files)
+                  command: |
+                      cd gravitee-apim-e2e/jacoco/reports
+                      rm -f report.xml
+                      find . -type f -not -name 'index.html' -name '*.html' -delete
+            - store_artifacts:
+                  name: Upload jacoco report
+                  path: gravitee-apim-e2e/jacoco/reports
+            - store_artifacts:
+                  name: Upload jacoco exec file
+                  path: gravitee-apim-e2e/jacoco/jacoco.exec
+            - gh/setup
+            - run:
+                  name: Edit Pull Request Description
+                  command: |
+                      # First check there is an associated pull request, otherwise just stop the job here
+                      if ! gh pr view --json title;
+                      then
+                        echo "No PR found for this branch, stopping the job here."
+                        exit 0
+                      fi
+
+                      # If PR state is different from OPEN
+                      if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
+                      then
+                        echo "PR is not opened, stopping the job here."
+                        exit 0
+                      fi
+
+                      pushd gravitee-apim-e2e/jacoco/reports
+                        export COVERAGE_SUMMARY=$(sed -nE 's/^.*<td>Total<([^>]+>){4}([^<]*)([^>]+>){4}([^<]*).*$/\2 | \4/p' index.html)
+                      popd
+
+                      export COVERAGE_URL="https://output.circle-artifacts.com/output/job/${CIRCLE_WORKFLOW_JOB_ID}/artifacts/0/gravitee-apim-e2e/jacoco/reports/index.html"
+
+                      export PR_BODY_COVERAGE_SECTION="
+                      <!-- E2E Coverage placeholder -->
+                      ---
+                      ### 🧪 End-to-End Coverage
+
+                      | INSTRUCTIONS | BRANCHES |
+                      | :----------: | :------: |
+                      |   ${COVERAGE_SUMMARY}   |
+
+                      A more detailed report has been uploaded to [circleci](${COVERAGE_URL})
+                      <!-- E2E Coverage placeholder end -->
+                      "
+
+                      export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/E2E Coverage placeholder -->/,/E2E Coverage placeholder end -->/d')
+
+                      echo "
+                        Editing PR description with body:
+                          $CLEAN_BODY$PR_BODY_COVERAGE_SECTION
+                      "
+
+                      gh pr edit --body "$CLEAN_BODY$PR_BODY_COVERAGE_SECTION"
     e2e-cypress:
         machine:
             image: ubuntu-2004:202101-01
@@ -1459,10 +1557,11 @@ jobs:
 
     package-bundle:
         docker:
-            - image: cimg/python:3.10
+            - image: cimg/openjdk:11.0-node
         resource_class: medium
         environment:
             RELEASE_VERSION: << pipeline.parameters.graviteeio_version >>
+            ARTIFACTORY_REPO_URL: "https://odbxikk7vo-artifactory.services.clever-cloud.com/external-dependencies-n-gravitee-all"
         steps:
             - keeper/env-export:
                   secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login
@@ -1472,120 +1571,38 @@ jobs:
                   var-name: ARTIFACTORY_PASSWORD
             - checkout
             - run:
-                  name: "Install python libraries"
-                  command: |
-                      pip install requests
-
+                  name: Install dependencies
+                  command: npm install
+                  working_directory: "./release"
             - run:
                   name: "Building package bundle"
-                  command: |
-                      python .circleci/package_bundles.py
-            - run:
-                  name: "Prepare bundles for uploading"
-                  command: |
-                      workingDir=$(pwd)
-
-                      ####################
-                      #Distribution - Full                                            
-                      ####################
-                      mkdir -p graviteeio-apim/distributions
-                      cp ./tmp/${RELEASE_VERSION}/dist/graviteeio-full-${RELEASE_VERSION}.zip graviteeio-apim/distributions/
-
-                      cd graviteeio-apim/distributions
-
-                      md5sum graviteeio-full-${RELEASE_VERSION}.zip > graviteeio-full-${RELEASE_VERSION}.zip.md5
-                      sha512sum graviteeio-full-${RELEASE_VERSION}.zip > graviteeio-full-${RELEASE_VERSION}.zip.sha512sum
-                      sha1sum graviteeio-full-${RELEASE_VERSION}.zip > graviteeio-full-${RELEASE_VERSION}.zip.sha1
-
-                      cd $workingDir
-
-                      #####################
-                      #Components - Gateway
-                      #####################
-                      mkdir -p graviteeio-apim/components/gravitee-gateway
-                      cp ./tmp/${RELEASE_VERSION}/gatewas/gravitee-apim-gateway-standalone-distribution-zip-${RELEASE_VERSION}.zip graviteeio-apim/components/gravitee-gateway/gravitee-apim-gateway-${RELEASE_VERSION}.zip
-
-                      cd graviteeio-apim/components/gravitee-gateway
-
-                      md5sum gravitee-apim-gateway-${RELEASE_VERSION}.zip > gravitee-apim-gateway-${RELEASE_VERSION}.zip.md5
-                      sha512sum gravitee-apim-gateway-${RELEASE_VERSION}.zip > gravitee-apim-gateway-${RELEASE_VERSION}.zip.sha512sum
-                      sha1sum gravitee-apim-gateway-${RELEASE_VERSION}.zip > gravitee-apim-gateway-${RELEASE_VERSION}.zip.sha1
-
-                      cd $workingDir
-
-                      ######################
-                      #Components - Rest API
-                      ######################
-                      mkdir -p graviteeio-apim/components/gravitee-management-rest-api
-                      cp ./tmp/${RELEASE_VERSION}/rests/gravitee-apim-rest-api-standalone-distribution-zip-${RELEASE_VERSION}.zip graviteeio-apim/components/gravitee-management-rest-api/gravitee-apim-rest-api-${RELEASE_VERSION}.zip
-
-                      cd graviteeio-apim/components/gravitee-management-rest-api
-
-                      md5sum gravitee-apim-rest-api-${RELEASE_VERSION}.zip > gravitee-apim-rest-api-${RELEASE_VERSION}.zip.md5
-                      sha512sum gravitee-apim-rest-api-${RELEASE_VERSION}.zip > gravitee-apim-rest-api-${RELEASE_VERSION}.zip.sha512sum
-                      sha1sum gravitee-apim-rest-api-${RELEASE_VERSION}.zip > gravitee-apim-rest-api-${RELEASE_VERSION}.zip.sha1
-
-                      cd $workingDir
-
-                      #####################
-                      #Components - Console
-                      #####################
-                      mkdir -p graviteeio-apim/components/gravitee-management-webui
-                      cp ./tmp/${RELEASE_VERSION}/consoles/gravitee-apim-console-webui-${RELEASE_VERSION}.zip graviteeio-apim/components/gravitee-management-webui/
-
-                      cd graviteeio-apim/components/gravitee-management-webui
-
-                      md5sum gravitee-apim-console-webui-${RELEASE_VERSION}.zip > gravitee-apim-console-webui-${RELEASE_VERSION}.zip.md5
-                      sha512sum gravitee-apim-console-webui-${RELEASE_VERSION}.zip > gravitee-apim-console-webui-${RELEASE_VERSION}.zip.sha512sum
-                      sha1sum gravitee-apim-console-webui-${RELEASE_VERSION}.zip > gravitee-apim-console-webui-${RELEASE_VERSION}.zip.sha1
-
-                      cd $workingDir
-
-                      ####################
-                      #Components - Portal
-                      ####################
-                      mkdir -p graviteeio-apim/components/gravitee-portal-webui
-                      cp ./tmp/${RELEASE_VERSION}/portals/gravitee-apim-portal-webui-${RELEASE_VERSION}.zip graviteeio-apim/components/gravitee-portal-webui/
-
-                      cd graviteeio-apim/components/gravitee-portal-webui
-
-                      md5sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.md5
-                      sha512sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.sha512sum
-                      sha1sum gravitee-apim-portal-webui-${RELEASE_VERSION}.zip > gravitee-apim-portal-webui-${RELEASE_VERSION}.zip.sha1
-
-                      cd $workingDir
-
-                      #############
-                      #Repositories 
-                      #############
-                      for repositoryZipFile in $(find ./tmp/${RELEASE_VERSION}/repositories/ -name '*.zip' | sed "s#./tmp/${RELEASE_VERSION}/repositories/##"); do
-                        # compute the destination folder on S3 to publish the artefact
-                        # e.g. gravitee-my-project-1.14.0.zip => graviteeio-apim/plugins/repositories/gravitee-my-project
-                        artefactFolderToSync=graviteeio-apim/plugins/repositories/${repositoryZipFile%-*p}                                               
-
-                        mkdir -p $artefactFolderToSync
-                        cp ./tmp/${RELEASE_VERSION}/repositories/$repositoryZipFile $artefactFolderToSync/
-
-                        cd $artefactFolderToSync
-
-                        md5sum $repositoryZipFile > $repositoryZipFile.md5
-                        sha512sum $repositoryZipFile > $repositoryZipFile.sha512sum
-                        sha1sum $repositoryZipFile > $repositoryZipFile.sha1
-
-                        cd $workingDir
-                      done
+                  working_directory: "./release"
+                  command: npm run zx -- --experimental ci-steps/package-bundles.mjs --version=<< pipeline.parameters.graviteeio_version >>
             - keeper/env-export:
                   secret-url: keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password
                   var-name: AWS_ACCESS_KEY_ID
             - keeper/env-export:
                   secret-url: keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password
                   var-name: AWS_SECRET_ACCESS_KEY
-            - aws-s3/sync:
-                  arguments: |
-                      --endpoint-url https://cellar-c2.services.clever-cloud.com \
-                      --acl public-read
-                  from: graviteeio-apim
-                  to: "s3://gravitee-releases-downloads/graviteeio-apim"
+            - when:
+                  condition: << pipeline.parameters.dry_run>>
+                  steps:
+                      - aws-s3/sync:
+                            arguments: |
+                                --endpoint-url https://cellar-c2.services.clever-cloud.com \
+                                --acl public-read
+                            from: ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
+                            to: "s3://gravitee-dry-releases-downloads/graviteeio-apim"
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - aws-s3/sync:
+                            arguments: |
+                                --endpoint-url https://cellar-c2.services.clever-cloud.com \
+                                --acl public-read
+                            from: ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
+                            to: "s3://gravitee-releases-downloads/graviteeio-apim"
 
 workflows:
     pull_requests:
@@ -1603,11 +1620,11 @@ workflows:
             - setup:
                   context: cicd-orchestrator
             - validate:
-                  context: gravitee-qa
+                  context: cicd-orchestrator
                   requires:
                       - setup
             - build:
-                  context: gravitee-qa
+                  context: cicd-orchestrator
                   requires:
                       - validate
             - build-images:
@@ -1621,6 +1638,7 @@ workflows:
                               - /.*merge.*/
                               - /^\d+\.\d+\.x$/
             - test:
+                  context: cicd-orchestrator
                   requires:
                       - build
             - sonarcloud-analysis:
@@ -1635,6 +1653,7 @@ workflows:
                   requires:
                       - test
             - test-repository:
+                  context: cicd-orchestrator
                   requires:
                       - build
             - sonarcloud-analysis:
@@ -1644,6 +1663,7 @@ workflows:
                   requires:
                       - test-repository
             - publish-on-artifactory:
+                  context: cicd-orchestrator
                   filters:
                       branches:
                           only:
@@ -1654,6 +1674,7 @@ workflows:
                       - test
                       - test-repository
             - publish-on-nexus:
+                  context: cicd-orchestrator
                   filters:
                       branches:
                           only:
@@ -1676,6 +1697,7 @@ workflows:
                               - /^\d+\.\d+\.x$/
             - webui-lint-test:
                   name: Lint & test APIM Console
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
                       - setup
@@ -1686,6 +1708,7 @@ workflows:
                   requires:
                       - Lint & test APIM Console
             - console-webui-build-storybook:
+                  context: cicd-orchestrator
                   name: Build Console Storybook
                   requires:
                       - setup
@@ -1697,6 +1720,7 @@ workflows:
                       - test
             - webui-build:
                   name: Build APIM Console
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-console-webui
                   docker-image-name: apim-management-ui
                   requires:
@@ -1724,6 +1748,7 @@ workflows:
                               - /^\d+\.\d+\.x$/
             - webui-lint-test:
                   name: Lint & test APIM Portal
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   resource-class: large
                   requires:
@@ -1736,6 +1761,7 @@ workflows:
                       - Lint & test APIM Portal
             - webui-build:
                   name: Build APIM Portal
+                  context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
                   requires:
@@ -1767,6 +1793,7 @@ workflows:
             # To be modified when testing strategy will be defined
             - e2e-lint-build:
                   name: Lint & Build APIM e2e
+                  context: cicd-orchestrator
                   requires:
                       - setup
             - e2e-test:
@@ -1787,17 +1814,18 @@ workflows:
                               - /.*merge.*/
                               - /^\d+\.\d+\.x$/
             - e2e-report:
-                context: cicd-orchestrator
-                name: Generate E2E Test Reports
-                requires:
-                  - e2e-test
-                filters:
-                  branches:
-                    only:
-                      - master
-                      - /.*-run-e2e.*/
-                      - /^\d+\.\d+\.x$/
+                  context: cicd-orchestrator
+                  name: Generate E2E Test Reports
+                  requires:
+                      - e2e-test
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /.*-run-e2e.*/
+                              - /^\d+\.\d+\.x$/
             - e2e-cypress:
+                  context: cicd-orchestrator
                   name: Run Cypress UI tests
                   requires:
                       - Build APIM Portal
@@ -1820,6 +1848,10 @@ workflows:
                   dry_run: << pipeline.parameters.dry_run >>
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
+            - add-docker-images-in-snyk:
+                  context: cicd-orchestrator
+                  requires:
+                      - Build and push docker images for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
             - publish_rpm_packages:
                   context: cicd-orchestrator
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>
@@ -1833,21 +1865,25 @@ workflows:
             # Prepare
             - setup:
                   context: cicd-orchestrator
-
+            - announce-release:
+                  context: cicd-orchestrator
             # APIM Portal
             - webui-lint-test:
+                  context: cicd-orchestrator
                   name: Lint & Test APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
                   resource-class: large
                   requires:
                       - setup
             - webui-build:
+                  context: cicd-orchestrator
                   name: Build APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
                   requires:
                       - setup
             - webui-publish-artifactory:
+                  context: cicd-orchestrator
                   name: Publish APIM Portal to artifactory
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
@@ -1856,18 +1892,21 @@ workflows:
 
             # APIM Console
             - webui-lint-test:
+                  context: cicd-orchestrator
                   name: Lint & Test APIM Console
                   apim-ui-project: gravitee-apim-console-webui
                   resource-class: large
                   requires:
                       - setup
             - webui-build:
+                  context: cicd-orchestrator
                   name: Build APIM Console
                   apim-ui-project: gravitee-apim-console-webui
                   docker-image-name: apim-management-ui
                   requires:
                       - setup
             - webui-publish-artifactory:
+                  context: cicd-orchestrator
                   name: Publish APIM Console to artifactory
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
@@ -1896,8 +1935,7 @@ workflows:
         jobs:
             - package-bundle:
                   context: cicd-orchestrator
-    # ---
-    # Workflow For APIM Orchestrated Nexus Staging
+
     nexus_staging:
         when:
             equal: [nexus_staging, << pipeline.parameters.gio_action >>]

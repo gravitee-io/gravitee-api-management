@@ -562,12 +562,17 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setClosedAt(new Date());
             }
 
-            subscription = subscriptionRepository.update(subscription);
-
             final String apiId = plan.getApi();
             final ApiModelEntity api = apiService.findByIdForTemplates(executionContext, apiId);
 
             ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
+
+            SubscriptionEntity subscriptionEntity = convert(subscription);
+            if (plan.getSecurity() == API_KEY && subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED) {
+                apiKeyService.generate(executionContext, application, subscriptionEntity, processSubscription.getCustomApiKey());
+            }
+
+            subscription = subscriptionRepository.update(subscription);
 
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
             createAudit(
@@ -579,8 +584,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 previousSubscription,
                 subscription
             );
-
-            SubscriptionEntity subscriptionEntity = convert(subscription);
 
             final Map<String, Object> params = new NotificationParamsBuilder()
                 .owner(owner)
@@ -639,10 +642,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                             }
                         }
                     );
-            }
-
-            if (plan.getSecurity() == API_KEY && subscription.getStatus() == Subscription.Status.ACCEPTED) {
-                apiKeyService.generate(executionContext, application, subscriptionEntity, processSubscription.getCustomApiKey());
             }
 
             return subscriptionEntity;

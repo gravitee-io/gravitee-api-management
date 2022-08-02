@@ -30,6 +30,7 @@ import javax.validation.constraints.Size;
 @JsonIgnoreProperties("system")
 public class UpdateRoleEntity {
 
+    @NotNull
     private String id;
 
     @NotNull

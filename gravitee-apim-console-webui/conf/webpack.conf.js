@@ -162,11 +162,11 @@ module.exports = {
     port: 3000,
     proxy: {
       '/management': {
-        target: env ? `https://${env}.gravitee.io` : 'http://localhost:8083',
+        target: env ? `https://${env}` : 'http://localhost:8083',
         secure: false,
         changeOrigin: true,
         onProxyReq: function (proxyReq, req, res) {
-          proxyReq.setHeader('origin', 'https://apim-master-console.cloud.gravitee.io');
+          proxyReq.setHeader('origin', 'https://apim-master-console.team-apim.gravitee.xyz');
         },
       },
     },
