@@ -43,11 +43,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
@@ -67,9 +67,6 @@ import javax.ws.rs.core.UriBuilder;
 @Hidden
 @Tag(name = "APIs")
 public class ApiResource extends AbstractResource {
-
-    @Inject
-    protected JsonPatchService jsonPatchService;
 
     @Context
     private ResourceContext resourceContext;
@@ -168,6 +165,17 @@ public class ApiResource extends AbstractResource {
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
             .lastModified(updatedApi.getUpdatedAt())
             .build();
+    }
+
+    @DELETE
+    @Operation(summary = "Delete the API", description = "User must have the DELETE permission to use this service")
+    @ApiResponse(responseCode = "204", description = "API successfully deleted")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
+    public Response deleteApi() {
+        apiServiceV4.delete(GraviteeContext.getExecutionContext(), api);
+
+        return Response.noContent().build();
     }
 
     private void setPictures(final ApiEntity apiEntity) {

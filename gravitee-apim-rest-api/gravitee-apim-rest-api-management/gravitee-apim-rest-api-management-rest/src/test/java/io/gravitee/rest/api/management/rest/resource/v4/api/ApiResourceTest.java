@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource.v4.api;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
+import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -65,6 +66,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         apiEntity.setUpdatedAt(new Date());
         doReturn(apiEntity).when(apiServiceV4).findById(GraviteeContext.getExecutionContext(), API);
         doThrow(ApiNotFoundException.class).when(apiServiceV4).findById(GraviteeContext.getExecutionContext(), UNKNOWN_API);
+        doThrow(ApiNotFoundException.class).when(apiServiceV4).delete(GraviteeContext.getExecutionContext(), UNKNOWN_API);
     }
 
     @After
@@ -88,5 +90,19 @@ public class ApiResourceTest extends AbstractResourceTest {
         final Response response = envTarget(UNKNOWN_API).request().get();
 
         assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldDeleteApi() {
+        final Response response = envTarget(UNKNOWN_API).request().delete();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotDeleteApiBecauseNotfound() {
+        final Response response = envTarget(API).request().delete();
+
+        assertEquals(NO_CONTENT_204, response.getStatus());
     }
 }
