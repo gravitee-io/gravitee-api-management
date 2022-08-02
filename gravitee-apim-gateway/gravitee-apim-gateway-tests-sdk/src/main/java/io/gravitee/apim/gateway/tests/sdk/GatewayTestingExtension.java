@@ -16,8 +16,10 @@
 package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
+import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.runner.GatewayRunner;
+import java.io.IOException;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -76,6 +78,7 @@ public class GatewayTestingExtension implements BeforeAllCallback, BeforeEachCal
      */
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
+        beforeDeployingOrganization(context);
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployApi.class)) {
             LOGGER.debug("Deploying apis for test {}", context.getRequiredTestMethod().getName());
             final DeployApi annotation = context.getRequiredTestMethod().getAnnotation(DeployApi.class);
@@ -88,7 +91,29 @@ public class GatewayTestingExtension implements BeforeAllCallback, BeforeEachCal
                 }
             }
         }
+
         gatewayTest.deployedApis = gatewayRunner.deployedApis();
+    }
+
+    /**
+     * An organization can only be deployed once. If {@link DeployOrganization} annotation is used both at method level and class level, method level one will take precedence over the class level one.
+     * @param context
+     * @throws IOException
+     */
+    private void beforeDeployingOrganization(ExtensionContext context) throws IOException {
+        if (context.getRequiredTestMethod().isAnnotationPresent(DeployOrganization.class)) {
+            LOGGER.debug("Deploying organization for test {}", context.getRequiredTestMethod().getName());
+            final DeployOrganization annotation = context.getRequiredTestMethod().getAnnotation(DeployOrganization.class);
+            try {
+                gatewayRunner.deployOrganization(annotation.value());
+            } catch (Exception e) {
+                exception = e;
+                throw e;
+            }
+        } else if (context.getRequiredTestClass().isAnnotationPresent(DeployOrganization.class)) {
+            final DeployOrganization annotation = context.getRequiredTestClass().getAnnotation(DeployOrganization.class);
+            gatewayRunner.deployOrganization(annotation.value());
+        }
     }
 
     /**
@@ -98,9 +123,11 @@ public class GatewayTestingExtension implements BeforeAllCallback, BeforeEachCal
     @Override
     public void afterEach(ExtensionContext context) {
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployApi.class)) {
-            LOGGER.debug("Deploying test method's apis");
+            LOGGER.debug("Clear test method's apis");
             gatewayRunner.undeployForTest();
         }
+        LOGGER.debug("Clear organization");
+        gatewayRunner.undeployOrganization();
     }
 
     /**

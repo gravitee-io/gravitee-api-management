@@ -29,6 +29,8 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Plan;
+import io.gravitee.gateway.platform.Organization;
+import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import io.reactiverse.junit5.web.WebClientOptionsInject;
@@ -39,6 +41,7 @@ import io.vertx.reactivex.core.Vertx;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -46,12 +49,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.platform.commons.PreconditionViolationException;
 import org.mockito.Mockito;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -220,11 +225,23 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
      * Ensures the api has the minimal requirement to be run properly.
      * - Add a default Keyless plan if api has no plan.
      * - Add a default Endpoint group if api has none.
+     *
      * @param api
      */
     public void ensureMinimalRequirementForApi(Api api) {
         this.addDefaultKeylessPlanIfNeeded(api);
         this.addDefaultEndpointGroupIfNeeded(api);
+    }
+
+    /**
+     * Ensures the organization has the minimal requirement to be run properly.
+     * - add a default id ("organization-id") if not set
+     * @param organization to deploy
+     */
+    public void ensureMinimalRequirementForOrganization(Organization organization) {
+        if (!StringUtils.hasText(organization.getId())) {
+            organization.setId("organization-id");
+        }
     }
 
     /**
@@ -308,6 +325,30 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
         for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
             endpointConsumer.accept(endpoint);
         }
+    }
+
+    /**
+     * Update the current deployed organization (if it exists) and redeploy it.
+     * Useful to add a policy for a specific test and avoid rewriting a json file.
+     * @param organizationConsumer a consumer modifying the current deployed organization.
+     */
+    protected final void updateAndDeployOrganization(Consumer<Organization> organizationConsumer) {
+        // Get deployed organization and create a new one from it
+        final OrganizationManager organizationManager = applicationContext.getBean(OrganizationManager.class);
+        final Organization currentOrganization = organizationManager.getCurrentOrganization();
+
+        if (currentOrganization == null) {
+            throw new PreconditionViolationException("No organization deployed, you cannot use this method");
+        }
+
+        Organization updatingOrganization = new Organization(currentOrganization);
+
+        // Apply developer transformation on this organization
+        organizationConsumer.accept(updatingOrganization);
+
+        // redeploy new organization
+        updatingOrganization.setUpdatedAt(new Date());
+        organizationManager.register(updatingOrganization);
     }
 
     private int getAvailablePort() {
