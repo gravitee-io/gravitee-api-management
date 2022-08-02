@@ -68,6 +68,7 @@ public class ListenerHttp extends Listener {
     }
 
     public void setPathMappings(final Set<String> pathMappings) {
+        this.pathMappings = pathMappings;
         if (pathMappings != null) {
             setPathMappingsPattern(pathMappings.stream().collect(toMap(pathMapping -> pathMapping, Pattern::compile)));
         }
