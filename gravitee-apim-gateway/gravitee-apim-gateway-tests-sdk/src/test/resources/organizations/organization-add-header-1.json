@@ -1,0 +1,32 @@
+{
+  "id" : "DEFAULT",
+  "hrids" : [ "default" ],
+  "name" : "Default organization",
+  "description" : "Default organization",
+  "flowMode" : "DEFAULT",
+  "flows" : [ {
+    "name" : "",
+    "path-operator" : {
+      "path" : "/",
+      "operator" : "STARTS_WITH"
+    },
+    "condition" : "",
+    "pre" : [ {
+      "name" : "Add Request Header",
+      "description" : "",
+      "enabled" : true,
+      "policy" : "header-policy1",
+      "configuration" : {}
+    } ],
+    "post" : [
+      {
+        "name" : "Add Response Header",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "header-policy1",
+        "configuration" : {}
+      }
+    ],
+    "enabled" : true
+  } ]
+}

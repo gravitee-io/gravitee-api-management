@@ -32,6 +32,8 @@ import io.gravitee.connector.http.HttpConnectorFactory;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.platform.Organization;
+import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
 import io.gravitee.node.reporter.ReporterManager;
 import io.gravitee.plugin.connector.ConnectorPlugin;
@@ -92,6 +94,7 @@ public class GatewayRunner {
     private final ObjectMapper graviteeMapper;
     private final Map<String, Api> deployedForTestClass;
     private final Map<String, Api> deployedForTest;
+    private Organization deployedOrganization = null;
 
     private GatewayTestContainer gatewayContainer;
     private VertxEmbeddedContainer vertxContainer;
@@ -218,6 +221,31 @@ public class GatewayRunner {
     }
 
     /**
+     * Deploys an Organization, thanks to {@link io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization}
+     * @param organizationDefinition is the definition of the organization to deploy
+     * @throws Exception
+     */
+    public void deployOrganization(String organizationDefinition) throws IOException {
+        final Organization organization = loadOrganizationDefinition(organizationDefinition);
+
+        OrganizationManager organizationManager = gatewayContainer.applicationContext().getBean(OrganizationManager.class);
+
+        testInstance.ensureMinimalRequirementForOrganization(organization);
+        organization.setUpdatedAt(new Date());
+
+        try {
+            organizationManager.register(organization);
+            deployedOrganization = organization;
+            // When deploying an organization at method level, it's important to set the organization id on every already deployed apis (at class level)
+            final ApiManager apiManager = gatewayContainer.applicationContext().getBean(ApiManager.class);
+            apiManager.apis().forEach(api -> api.setOrganizationId(deployedOrganization.getId()));
+        } catch (Exception e) {
+            LOGGER.error("An error occurred deploying the organization {}: {}", organization.getId(), e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
      * Deploys an API, declared at method level, thanks to it definition
      * @param apiDefinition is the definition of the api to deploy
      * @throws Exception
@@ -259,6 +287,10 @@ public class GatewayRunner {
         try {
             final io.gravitee.gateway.handlers.api.definition.Api apiToRegister = new io.gravitee.gateway.handlers.api.definition.Api(api);
             apiToRegister.setDeployedAt(new Date());
+            // For each new deployed API, set the organization id if one deployed
+            if (deployedOrganization != null) {
+                apiToRegister.setOrganizationId(deployedOrganization.getId());
+            }
             apiManager.register(apiToRegister);
         } catch (Exception e) {
             LOGGER.error("An error occurred deploying the api {}: {}", api.getId(), e.getMessage());
@@ -286,6 +318,14 @@ public class GatewayRunner {
     private void undeploy(Api api) {
         ApiManager apiManager = gatewayContainer.applicationContext().getBean(ApiManager.class);
         apiManager.unregister(api.getId());
+    }
+
+    public void undeployOrganization() {
+        OrganizationManager organizationManager = gatewayContainer.applicationContext().getBean(OrganizationManager.class);
+        if (organizationManager.getCurrentOrganization() != null) {
+            organizationManager.unregister(organizationManager.getCurrentOrganization().getId());
+        }
+        deployedOrganization = null;
     }
 
     private VertxEmbeddedContainer startServer(GatewayTestContainer container) throws InterruptedException {
@@ -415,8 +455,20 @@ public class GatewayRunner {
     }
 
     private Api loadApiDefinition(String apiDefinitionPath) throws IOException {
-        URL jsonFile = GatewayRunner.class.getResource(apiDefinitionPath);
-        return graviteeMapper.readValue(jsonFile, Api.class);
+        return loadResource(apiDefinitionPath, Api.class);
+    }
+
+    private Organization loadOrganizationDefinition(String orgDefinitionPath) throws IOException {
+        final io.gravitee.definition.model.Organization organization = loadResource(
+            orgDefinitionPath,
+            io.gravitee.definition.model.Organization.class
+        );
+        return new Organization(organization);
+    }
+
+    private <T> T loadResource(String resourcePath, Class<T> toClass) throws IOException {
+        URL jsonFile = GatewayRunner.class.getResource(resourcePath);
+        return graviteeMapper.readValue(jsonFile, toClass);
     }
 
     /**

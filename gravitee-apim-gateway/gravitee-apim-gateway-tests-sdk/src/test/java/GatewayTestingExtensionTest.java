@@ -24,6 +24,7 @@ import testcases.Http2HeadersTestCase;
 import testcases.InvalidApiClassLevelTestCase;
 import testcases.InvalidGatewayConfigFolderTestCase;
 import testcases.NotExtendingAbstractClassTestCase;
+import testcases.OrganizationDeploymentTestCase;
 import testcases.RegisterTwiceSameApiClassLevelTestCase;
 import testcases.RegisterTwiceSameApiMethodLevelTestCase;
 import testcases.SuccessTestCase;
@@ -92,7 +93,7 @@ class GatewayTestingExtensionTest {
             .testEvents()
             .assertStatistics(
                 stats -> {
-                    stats.started(3).succeeded(2).failed(1);
+                    stats.succeeded(2).failed(1);
                 }
             );
     }
@@ -168,6 +169,21 @@ class GatewayTestingExtensionTest {
             .assertStatistics(
                 stats -> {
                     stats.started(0);
+                }
+            );
+    }
+
+    @Test
+    @DisplayName("Should success tests with valid organization at class level and method level")
+    void shouldSuccessTestsWithValidOrganizationAtClassLevel() {
+        EngineTestKit
+            .engine("junit-jupiter")
+            .selectors(selectClass(OrganizationDeploymentTestCase.class))
+            .execute()
+            .testEvents()
+            .assertStatistics(
+                stats -> {
+                    stats.started(3).succeeded(3).failed(0);
                 }
             );
     }
