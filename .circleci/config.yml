@@ -1611,12 +1611,13 @@ workflows:
                 - equal: [pull_requests, << pipeline.parameters.gio_action >>]
         jobs:
             - community-build:
+                  context: cicd-orchestrator
                   filters:
                       branches:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - fix-community-buid
+                              - /.*merge.*/
             - setup:
                   context: cicd-orchestrator
             - validate:
@@ -1628,6 +1629,7 @@ workflows:
                   requires:
                       - validate
             - build-images:
+                  context: cicd-orchestrator
                   requires:
                       - build
                   filters:
