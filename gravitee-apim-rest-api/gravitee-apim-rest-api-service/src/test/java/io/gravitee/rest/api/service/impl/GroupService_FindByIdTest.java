@@ -39,7 +39,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GroupService_FindById extends TestCase {
+public class GroupService_FindByIdTest extends TestCase {
 
     private static final String GROUP_ID = "my-group-id";
     private static final String ORGANIZATION_ID = "org-id";
