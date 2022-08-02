@@ -986,21 +986,25 @@ jobs:
           - image: cimg/base:stable
         resource_class: small
         steps:
-          - slack/notify:
-              channel: 'C02JENTV2AX'
-              event: always
-              custom: |
-                {
-                  "blocks": [
-                    {
-                      "type": "section",
-                      "text": {
-                        "type": "mrkdwn",
-                        "text": "🚀 Starting << pipeline.parameters.graviteeio_version >> release"
+          - when:
+              condition:
+                not: << pipeline.parameters.dry_run>>
+              steps:
+                - slack/notify:
+                    channel: C02NGT20S4W
+                    event: always
+                    custom: |
+                      {
+                        "blocks": [
+                          {
+                            "type": "section",
+                            "text": {
+                              "type": "mrkdwn",
+                              "text": "🚀 Starting << pipeline.parameters.graviteeio_version >> release"
+                            }
+                          }
+                        ]
                       }
-                    }
-                  ]
-                }
 
     backend-build-and-publish-artifactory:
         docker:
@@ -1011,25 +1015,6 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
                   var-name: SLACK_ACCESS_TOKEN
-            - when:
-                  condition:
-                      not: << pipeline.parameters.dry_run>>
-                  steps:
-                      - slack/notify:
-                            channel: C02NGT20S4W
-                            event: always
-                            custom: |
-                                {
-                                  "blocks": [
-                                    {
-                                      "type": "section",
-                                      "text": {
-                                        "type": "mrkdwn",
-                                        "text": "🚀 Starting << pipeline.parameters.graviteeio_version >> release"
-                                      }
-                                    }
-                                  ]
-                                }
             - restore-maven-job-cache:
                   jobName: release
             - attach_workspace:
