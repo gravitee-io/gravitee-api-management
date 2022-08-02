@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.18.2
+      author: GraviteeSource Team
+      changes:
+        - dropNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: environment_id
+            tableName: ${gravitee_prefix}commands

@@ -53,6 +53,8 @@
 
   <md-dialog-actions layout="row">
     <md-button ng-click="$ctrl.hide()">Cancel</md-button>
-    <md-button class="md-raised md-primary" ng-click="$ctrl.save()" ng-disabled="SubscriptionForm.$invalid">Accept</md-button>
+    <md-button class="md-raised md-primary" ng-click="$ctrl.save()" ng-disabled="$ctrl.customApiKeyInputState === 'invalid'"
+      >Accept</md-button
+    >
   </md-dialog-actions>
 </md-dialog>

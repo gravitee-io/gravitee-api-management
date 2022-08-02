@@ -30,7 +30,7 @@
         <gio-form-card class="identity-provider__card__provider-type-group__button" value="GRAVITEEIO_AM">
           <img
             class="identity-provider__card__provider-type-group__button__logo"
-            src="/assets/logo_graviteeio_am-idp.svg"
+            [src]="'assets/logo_graviteeio_am-idp.svg'"
             alt="ravitee.io AM Logo"
           />
           <p class="identity-provider__card__provider-type-group__button__label">Gravitee.io AM</p>
@@ -39,19 +39,19 @@
         <gio-form-card class="identity-provider__card__provider-type-group__button" value="OIDC">
           <img
             class="identity-provider__card__provider-type-group__button__logo"
-            src="/assets/logo_oidc-idp.svg"
+            [src]="'assets/logo_oidc-idp.svg'"
             alt="OpenID Connect Logo"
           />
           <p class="identity-provider__card__provider-type-group__button__label">OpenID Connect</p>
         </gio-form-card>
 
         <gio-form-card class="identity-provider__card__provider-type-group__button" value="GOOGLE">
-          <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_google-idp.svg" alt="Google Logo" />
+          <img class="identity-provider__card__provider-type-group__button__logo" [src]="'assets/logo_google-idp.svg'" alt="Google Logo" />
           <p class="identity-provider__card__provider-type-group__button__label">Google</p>
         </gio-form-card>
 
         <gio-form-card class="identity-provider__card__provider-type-group__button" value="GITHUB">
-          <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_github-idp.svg" alt="Github Logo" />
+          <img class="identity-provider__card__provider-type-group__button__logo" [src]="'assets/logo_github-idp.svg'" alt="Github Logo" />
           <p class="identity-provider__card__provider-type-group__button__label">Github</p>
         </gio-form-card>
       </gio-form-card-group>

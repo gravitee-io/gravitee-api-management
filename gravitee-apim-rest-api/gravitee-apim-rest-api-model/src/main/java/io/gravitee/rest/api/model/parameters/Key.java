@@ -306,7 +306,7 @@ public enum Key {
     CONSOLE_SYSTEM_ROLE_EDITION_ENABLED("console.systemRoleEdition.enabled", "false", Set.of(SYSTEM)),
 
     CONSOLE_ANALYTICS_PENDO_ENABLED("console.analytics.pendo.enabled", "false", Set.of(SYSTEM)),
-    CONSOLE_ANALYTICS_PENDO_API_KEY("console.analytics.pendo.apikey", "", Set.of(SYSTEM)),
+    CONSOLE_ANALYTICS_PENDO_API_KEY("console.analytics.pendo.apiKey", "", Set.of(SYSTEM)),
 
     JUPITER_MODE_ENABLED("api.jupiterMode.enabled", "false", Set.of(SYSTEM)),
 

@@ -11,21 +11,6 @@ const versions = computeVersion(releasingVersion);
 
 console.log(chalk.blue(`Triggering Package Zip Pipeline`));
 
-const tagSteps = await question(
-  chalk.blue(
-    '⚠️ Before packaging, you have to:\n' +
-      " - Update gravitee-io/release's release.json to update 'gravitee-api-management' version\n" +
-      ' - Commit\n' +
-      " - Create a tag for the new version (To create a tag, use 'git tag -a {version}' then 'git push origin {version}')\n" +
-      '\n' +
-      'Is it ok ? (y/n)\n',
-  ),
-);
-if (tagSteps !== 'y') {
-  console.log(chalk.yellow('Follow previous steps and try again!'));
-  process.exit();
-}
-
 // Use the preconfigured payload from config folder with the good parameters
 const body = {
   branch: versions.branch,

@@ -161,7 +161,7 @@
             <unpack>false</unpack>
             <excludes>
                 <exclude>*:*:jar</exclude>
-                <exclude>io.gravitee.apim.repository.gateway.bridge.http:*:zip</exclude>
+                <exclude>io.gravitee.apim.repository.gateway.bridge.http:gravitee-apim-repository-gateway-bridge-http-client:zip</exclude>
                 <exclude>io.gravitee.policy:gravitee-gateway-services-ratelimit:zip</exclude>
                 <exclude>io.gravitee.reporter:*:zip</exclude>
                 <exclude>io.gravitee.tracer:*:zip</exclude>

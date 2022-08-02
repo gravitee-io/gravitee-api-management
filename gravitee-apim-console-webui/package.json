@@ -143,7 +143,7 @@
     "typescript": "4.3.2",
     "url-loader": "1.1.2",
     "webpack": "4.46.0",
-    "webpack-cli": "4.9.2",
+    "webpack-cli": "4.10.0",
     "webpack-dev-server": "4.7.3"
   },
   "engines": {
@@ -165,7 +165,7 @@
     "storybook": "start-storybook -p 6006 -s src/assets",
     "build-storybook": "build-storybook",
     "serve": "webpack serve -c ./conf/webpack.conf.js --progress --hot",
-    "serve:apim-master": "BACKEND_ENV=apim-master-api.cloud npm run serve",
+    "serve:apim-master": "BACKEND_ENV=apim-master-api.team-apim.gravitee.xyz npm run serve",
     "serve:prod": "node scripts/serve.js",
     "test": "jest --detectOpenHandles",
     "test:auto": "jest --watch",

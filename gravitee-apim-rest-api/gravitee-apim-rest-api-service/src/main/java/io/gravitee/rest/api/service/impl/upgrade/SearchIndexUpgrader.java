@@ -43,12 +43,17 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.SecurityContextHelper;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
+import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -170,7 +175,12 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         );
 
         ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
-        PrimaryOwnerEntity primaryOwner = apiService.getPrimaryOwner(executionContext, api.getId());
+        PrimaryOwnerEntity primaryOwner = null;
+        try {
+            primaryOwner = apiService.getPrimaryOwner(executionContext, api.getId());
+        } catch (PrimaryOwnerNotFoundException e) {
+            LOGGER.warn("Failed to retrieve API primary owner, API will we indexed without his primary owner", e);
+        }
         return runApiIndexationAsync(executionContext, apiConverter.toApiEntity(api, primaryOwner), executorService);
     }
 

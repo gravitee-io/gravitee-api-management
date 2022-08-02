@@ -30,10 +30,13 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
+import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.List;
 import java.util.Optional;
@@ -144,6 +147,20 @@ public class SearchIndexUpgraderTest {
     }
 
     @Test
+    public void runApisIndexationAsync_should_index_every_api_even_if_primaryOwner_not_found() throws Exception {
+        mockTestApis();
+        mockTestUsers();
+        when(apiService.getPrimaryOwner(any(), any())).thenThrow(PrimaryOwnerNotFoundException.class);
+
+        List<CompletableFuture<?>> futures = upgrader.runApisIndexationAsync(Executors.newSingleThreadExecutor());
+        assertEquals(futures.size(), 4);
+
+        futures.forEach(CompletableFuture::join);
+
+        verify(searchEngineService, times(4)).index(any(ExecutionContext.class), any(Indexable.class), anyBoolean(), anyBoolean());
+    }
+
+    @Test
     public void runUsersIndexationAsync_should_index_every_user() throws Exception {
         mockTestApis();
         mockTestUsers();
@@ -201,7 +218,7 @@ public class SearchIndexUpgraderTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(apiId);
 
-        when(apiConverter.toApiEntity(api, primaryOwnerEntity)).thenReturn(apiEntity);
+        when(apiConverter.toApiEntity(same(api), any())).thenReturn(apiEntity);
 
         return api;
     }
