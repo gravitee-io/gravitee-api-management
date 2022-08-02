@@ -1730,18 +1730,21 @@ workflows:
                   context: cicd-orchestrator
             # APIM Portal
             - webui-lint-test:
+                  context: cicd-orchestrator
                   name: Lint & Test APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
                   resource-class: large
                   requires:
                       - setup
             - webui-build:
+                  context: cicd-orchestrator
                   name: Build APIM Portal
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
                   requires:
                       - setup
             - webui-publish-artifactory:
+                  context: cicd-orchestrator
                   name: Publish APIM Portal to artifactory
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
@@ -1750,18 +1753,21 @@ workflows:
 
             # APIM Console
             - webui-lint-test:
+                  context: cicd-orchestrator
                   name: Lint & Test APIM Console
                   apim-ui-project: gravitee-apim-console-webui
                   resource-class: large
                   requires:
                       - setup
             - webui-build:
+                  context: cicd-orchestrator
                   name: Build APIM Console
                   apim-ui-project: gravitee-apim-console-webui
                   docker-image-name: apim-management-ui
                   requires:
                       - setup
             - webui-publish-artifactory:
+                  context: cicd-orchestrator
                   name: Publish APIM Console to artifactory
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
