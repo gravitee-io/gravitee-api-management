@@ -39,7 +39,7 @@ public class SecurityPlanFactory {
         final SecurityPolicy policy = SecurityPolicyFactory.forPlan(plan, policyManager);
 
         if (policy != null) {
-            return new SecurityPlan(plan, policy);
+            return new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
         }
 
         log.warn(

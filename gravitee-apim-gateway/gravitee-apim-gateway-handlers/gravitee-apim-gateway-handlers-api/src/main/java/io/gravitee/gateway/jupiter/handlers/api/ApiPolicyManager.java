@@ -21,7 +21,10 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.policy.AbstractPolicyManager;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
+import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
+import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -33,11 +36,11 @@ import java.util.Set;
  */
 public class ApiPolicyManager extends AbstractPolicyManager {
 
-    private final Api api;
+    private final ReactableApi<?> reactableApi;
 
     public ApiPolicyManager(
         DefaultClassLoader classLoader,
-        Api api,
+        ReactableApi<?> reactableApi,
         PolicyFactory policyFactory,
         PolicyConfigurationFactory policyConfigurationFactory,
         ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
@@ -45,11 +48,11 @@ public class ApiPolicyManager extends AbstractPolicyManager {
         ComponentProvider componentProvider
     ) {
         super(classLoader, policyFactory, policyConfigurationFactory, policyPluginManager, policyClassLoaderFactory, componentProvider);
-        this.api = api;
+        this.reactableApi = reactableApi;
     }
 
     @Override
     protected Set<Policy> dependencies() {
-        return api.dependencies(Policy.class);
+        return reactableApi.dependencies(Policy.class);
     }
 }

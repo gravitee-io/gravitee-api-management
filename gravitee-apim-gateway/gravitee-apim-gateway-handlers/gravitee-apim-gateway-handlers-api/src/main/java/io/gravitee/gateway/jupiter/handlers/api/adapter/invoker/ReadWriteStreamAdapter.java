@@ -20,7 +20,6 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.SimpleReadWriteStream;
-import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.jupiter.policy.adapter.context.RequestAdapter;

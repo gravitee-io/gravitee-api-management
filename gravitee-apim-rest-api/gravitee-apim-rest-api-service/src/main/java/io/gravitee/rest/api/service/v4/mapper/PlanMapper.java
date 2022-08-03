@@ -27,6 +27,8 @@ import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -95,6 +97,7 @@ public class PlanMapper {
         plan.setType(Plan.PlanType.valueOf(newPlanEntity.getType().name()));
         PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(newPlanEntity.getSecurity().getType());
         plan.setSecurity(Plan.PlanSecurityType.valueOf(planSecurityType.name()));
+        plan.setSecurityDefinition(newPlanEntity.getSecurity().getConfiguration());
         plan.setStatus(Plan.Status.valueOf(newPlanEntity.getStatus().name()));
         plan.setExcludedGroups(newPlanEntity.getExcludedGroups());
         plan.setCommentRequired(newPlanEntity.isCommentRequired());
@@ -117,6 +120,23 @@ public class PlanMapper {
 
         plan.setCharacteristics(newPlanEntity.getCharacteristics());
         return plan;
+    }
+
+    public List<io.gravitee.definition.model.v4.plan.Plan> toDefinitions(final Set<PlanEntity> planEntities) {
+        return planEntities.stream().map(this::toDefinition).collect(Collectors.toList());
+    }
+
+    public io.gravitee.definition.model.v4.plan.Plan toDefinition(final PlanEntity planEntity) {
+        io.gravitee.definition.model.v4.plan.Plan planDefinition = new io.gravitee.definition.model.v4.plan.Plan();
+        planDefinition.setId(planEntity.getId());
+        planDefinition.setSecurity(planEntity.getSecurity());
+        planDefinition.setFlows(planEntity.getFlows());
+        planDefinition.setId(planEntity.getId());
+        planDefinition.setName(planEntity.getName());
+        planDefinition.setSelectionRule(planEntity.getSelectionRule());
+        planDefinition.setStatus(planEntity.getStatus());
+        planDefinition.setTags(planEntity.getTags());
+        return planDefinition;
     }
 
     public UpdatePlanEntity toUpdatePlanEntity(final PlanEntity planEntity) {

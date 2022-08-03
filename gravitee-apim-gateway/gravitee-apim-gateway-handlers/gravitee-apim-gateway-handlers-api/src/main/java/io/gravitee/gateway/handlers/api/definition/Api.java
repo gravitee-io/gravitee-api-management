@@ -24,6 +24,7 @@ import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import java.util.Collection;

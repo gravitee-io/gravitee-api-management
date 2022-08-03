@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.definition;
+package io.gravitee.gateway.reactor;
 
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.gateway.reactor.Reactable;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;

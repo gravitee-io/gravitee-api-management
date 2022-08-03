@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.rest.api.model.NewPlanEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.service.AuditService;
@@ -109,14 +110,12 @@ public class PlanService_CreateOrUpdateTest {
         expected.setId("created");
 
         when(planEntity.getId()).thenReturn(null);
-        when(planRepository.findById(any())).thenReturn(Optional.empty());
 
         doReturn(expected).when(planService).create(eq(GraviteeContext.getExecutionContext()), any());
 
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planService, times(1)).findById(eq(GraviteeContext.getExecutionContext()), any());
         verify(planService, times(1)).create(eq(GraviteeContext.getExecutionContext()), any());
     }
 
@@ -126,14 +125,11 @@ public class PlanService_CreateOrUpdateTest {
         expected.setId("updated");
 
         when(planEntity.getId()).thenReturn(null);
-        when(planConverter.toUpdatePlanEntity(planEntity)).thenCallRealMethod();
-        doReturn(expected).when(planService).findById(eq(GraviteeContext.getExecutionContext()), any());
-        doReturn(expected).when(planService).update(eq(GraviteeContext.getExecutionContext()), any(UpdatePlanEntity.class));
+        doReturn(expected).when(planService).create(eq(GraviteeContext.getExecutionContext()), any());
 
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planService, times(1)).findById(eq(GraviteeContext.getExecutionContext()), any());
-        verify(planService, times(1)).update(eq(GraviteeContext.getExecutionContext()), any(UpdatePlanEntity.class));
+        verify(planService, times(1)).create(eq(GraviteeContext.getExecutionContext()), any());
     }
 }

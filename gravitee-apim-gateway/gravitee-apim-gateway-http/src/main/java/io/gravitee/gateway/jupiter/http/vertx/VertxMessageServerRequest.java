@@ -36,6 +36,10 @@ public class VertxMessageServerRequest extends AbstractVertxServerRequest implem
         httpMessages = new MessageFlowable();
     }
 
+    public VertxMessageServerResponse response() {
+        return new VertxMessageServerResponse(this);
+    }
+
     @Override
     public void messages(final Flowable<Message> messages) {
         httpMessages.messages(messages);

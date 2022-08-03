@@ -125,7 +125,7 @@ public class PolicyChain implements Hookable<Hook> {
             case MESSAGE_RESPONSE:
                 return HookHelper.hook(() -> policy.onMessageResponse((MessageExecutionContext) ctx), policy.id(), policyHooks, ctx, phase);
             default:
-                throw new IllegalArgumentException("Execution phase unknown");
+                return Completable.error(new IllegalArgumentException("Execution phase unknown"));
         }
     }
 }

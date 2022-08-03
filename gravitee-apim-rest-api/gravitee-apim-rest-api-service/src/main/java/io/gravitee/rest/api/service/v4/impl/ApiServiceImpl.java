@@ -16,11 +16,14 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
+import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 import static java.util.Collections.*;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.*;
 
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
@@ -37,6 +40,7 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -48,6 +52,7 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.WorkflowReferenceType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
+import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -85,7 +90,7 @@ import io.gravitee.rest.api.service.v4.mapper.IndexableApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -177,11 +182,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity findById(final ExecutionContext executionContext, final String apiId) {
         final Api api = this.findApiById(executionContext, apiId);
-        if (api.getDefinitionVersion() != DefinitionVersion.V4) {
-            throw new IllegalArgumentException(
-                String.format("Api found doesn't support v%s definition model.", DefinitionVersion.V4.getLabel())
-            );
-        }
 
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
 
@@ -190,9 +190,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public IndexableApi findIndexableApiById(final ExecutionContext executionContext, final String apiId) {
-        final Api api = this.findApiById(executionContext, apiId);
+        final Api api = this.findApiById(executionContext, apiId, false);
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
-        return indexableApiMapper.toGenericApi(api, primaryOwner);
+        return indexableApiMapper.toIndexableApi(api, primaryOwner);
     }
 
     @Override
@@ -555,7 +555,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private Api findApiById(final ExecutionContext executionContext, final String apiId) {
+    @Override
+    public Api findApiById(final ExecutionContext executionContext, final String apiId) {
+        return this.findApiById(executionContext, apiId, true);
+    }
+
+    private Api findApiById(final ExecutionContext executionContext, final String apiId, boolean throwWhenNotV4) {
         try {
             log.debug("Find API by ID: {}", apiId);
 
@@ -565,7 +570,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 optApi = optApi.filter(result -> result.getEnvironmentId().equals(executionContext.getEnvironmentId()));
             }
 
-            return optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
+            final Api api = optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
+
+            if (throwWhenNotV4 && api.getDefinitionVersion() != DefinitionVersion.V4) {
+                throw new IllegalArgumentException(
+                    String.format("Api found doesn't support v%s definition model.", DefinitionVersion.V4.getLabel())
+                );
+            }
+
+            return api;
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);

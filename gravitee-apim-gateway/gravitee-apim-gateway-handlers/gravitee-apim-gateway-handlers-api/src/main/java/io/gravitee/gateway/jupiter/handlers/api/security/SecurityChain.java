@@ -22,7 +22,7 @@ import static io.reactivex.Completable.defer;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.Hookable;
 import io.gravitee.gateway.jupiter.api.hook.SecurityPlanHook;
 import io.gravitee.gateway.jupiter.core.hook.HookHelper;
@@ -54,13 +54,16 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
     public static final String SKIP_SECURITY_CHAIN = "skip-security-chain";
     protected static final String PLAN_UNRESOLVABLE = "GATEWAY_PLAN_UNRESOLVABLE";
     protected static final String UNAUTHORIZED_MESSAGE = "Unauthorized";
-    protected static final Single<Boolean> TRUE = Single.just(true), FALSE = Single.just(false);
+    protected static final Single<Boolean> TRUE = Single.just(true);
+    protected static final Single<Boolean> FALSE = Single.just(false);
     private static final Logger log = LoggerFactory.getLogger(SecurityChain.class);
     private final Flowable<SecurityPlan> chain;
+    private final ExecutionPhase executionPhase;
+
     private List<SecurityPlanHook> securityPlanHooks;
 
-    public SecurityChain(Api api, PolicyManager policyManager) {
-        chain =
+    public SecurityChain(Api api, PolicyManager policyManager, ExecutionPhase executionPhase) {
+        this(
             Flowable.fromIterable(
                 api
                     .getPlans()
@@ -69,7 +72,14 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
                     .filter(Objects::nonNull)
                     .sorted(Comparator.comparingInt(SecurityPlan::order))
                     .collect(Collectors.toList())
-            );
+            ),
+            executionPhase
+        );
+    }
+
+    public SecurityChain(Flowable<SecurityPlan> securityPlans, ExecutionPhase executionPhase) {
+        this.chain = securityPlans;
+        this.executionPhase = executionPhase;
     }
 
     /**
@@ -83,7 +93,7 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
      * @return a {@link Completable} that completes if the request has been successfully handled by a {@link SecurityPlan} or returns
      * an error if no {@link SecurityPlan} can execute the request or the {@link SecurityPlan} failed.
      */
-    public Completable execute(RequestExecutionContext ctx) {
+    public Completable execute(HttpExecutionContext ctx) {
         return defer(
             () -> {
                 if (!Objects.equals(true, ctx.getAttribute(SKIP_SECURITY_CHAIN))) {
@@ -92,7 +102,7 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
                         .any(Boolean::booleanValue)
                         .flatMapCompletable(
                             securityHandled -> {
-                                if (!securityHandled) {
+                                if (Boolean.FALSE.equals(securityHandled)) {
                                     return ctx.interruptWith(
                                         new ExecutionFailure(UNAUTHORIZED_401).key(PLAN_UNRESOLVABLE).message(UNAUTHORIZED_MESSAGE)
                                     );
@@ -115,14 +125,20 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
         );
     }
 
-    private Single<Boolean> continueChain(RequestExecutionContext ctx, SecurityPlan securityPlan) {
+    private Single<Boolean> continueChain(HttpExecutionContext ctx, SecurityPlan securityPlan) {
         return securityPlan
             .canExecute(ctx)
             .flatMap(
                 canExecute -> {
-                    if (canExecute) {
+                    if (Boolean.TRUE.equals(canExecute)) {
                         return HookHelper
-                            .hook(() -> securityPlan.execute(ctx), securityPlan.id(), securityPlanHooks, ctx, ExecutionPhase.REQUEST)
+                            .hook(
+                                () -> securityPlan.execute(ctx, executionPhase),
+                                securityPlan.id(),
+                                securityPlanHooks,
+                                ctx,
+                                executionPhase
+                            )
                             .andThen(TRUE);
                     }
                     return FALSE;

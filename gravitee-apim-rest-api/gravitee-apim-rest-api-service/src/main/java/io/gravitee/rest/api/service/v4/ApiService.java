@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4;
 
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.IndexableApi;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
@@ -48,4 +50,6 @@ public interface ApiService {
     void delete(final ExecutionContext executionContext, final String apiId);
 
     boolean exists(final String apiId);
+
+    Api findApiById(ExecutionContext executionContext, String apiId);
 }

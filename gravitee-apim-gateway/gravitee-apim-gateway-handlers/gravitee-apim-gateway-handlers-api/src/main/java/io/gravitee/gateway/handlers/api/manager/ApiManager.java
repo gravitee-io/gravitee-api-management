@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.manager;
 
-import io.gravitee.gateway.handlers.api.definition.ReactableApi;
+import io.gravitee.gateway.reactor.ReactableApi;
 import java.util.Collection;
 
 /**

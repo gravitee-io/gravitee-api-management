@@ -23,7 +23,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.NotifierService;
@@ -32,13 +31,11 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.mapper.IndexableApiMapper;
-import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -65,7 +62,7 @@ public class ApiNotificationServiceImplTest {
     public void before() {
         apiNotificationService = new ApiNotificationServiceImpl(indexableApiMapper, notifierService, userService);
 
-        when(indexableApiMapper.toGenericApi(any(), any())).thenReturn(new ApiEntity());
+        when(indexableApiMapper.toIndexableApi(any(), any())).thenReturn(new ApiEntity());
         when(userService.findById(any(), any())).thenReturn(new UserEntity());
     }
 

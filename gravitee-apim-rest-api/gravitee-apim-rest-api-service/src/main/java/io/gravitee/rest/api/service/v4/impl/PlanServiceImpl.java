@@ -238,8 +238,12 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     public PlanEntity createOrUpdatePlan(final ExecutionContext executionContext, PlanEntity planEntity) {
         PlanEntity resultPlanEntity;
         try {
-            findById(executionContext, planEntity.getId());
-            resultPlanEntity = update(executionContext, planMapper.toUpdatePlanEntity(planEntity));
+            if (planEntity.getId() == null) {
+                resultPlanEntity = create(executionContext, planMapper.toNewPlanEntity(planEntity));
+            } else {
+                findById(executionContext, planEntity.getId());
+                resultPlanEntity = update(executionContext, planMapper.toUpdatePlanEntity(planEntity));
+            }
         } catch (PlanNotFoundException npe) {
             resultPlanEntity = create(executionContext, planMapper.toNewPlanEntity(planEntity));
         }

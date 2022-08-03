@@ -23,12 +23,15 @@ import static javax.ws.rs.client.Entity.entity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
@@ -40,7 +43,9 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -59,7 +64,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockedStatic;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -158,6 +162,38 @@ public class ApiResourceTest extends AbstractResourceTest {
         final Response response = envTarget(UNKNOWN_API).request().get();
 
         assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldDeployApi() {
+        ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
+        deployEntity.setDeploymentLabel("label");
+
+        apiEntity.setState(Lifecycle.State.STARTED);
+        apiEntity.setUpdatedAt(new Date());
+        doReturn(apiEntity).when(apiStateServiceV4).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+
+        final Response response = envTarget(API + "/deploy").request().post(Entity.json(deployEntity));
+
+        assertEquals(OK_200, response.getStatus());
+
+        verify(apiStateServiceV4, times(1)).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+    }
+
+    @Test
+    public void shouldNotDeployApi() {
+        ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
+        deployEntity.setDeploymentLabel("label_too_long_because_more_than_32_chars");
+
+        apiEntity.setState(Lifecycle.State.STARTED);
+        apiEntity.setUpdatedAt(new Date());
+        doReturn(apiEntity).when(apiStateServiceV4).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+
+        final Response response = envTarget(API + "/deploy").request().post(Entity.json(deployEntity));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+
+        verify(apiService, times(0)).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(EventType.PUBLISH_API), any());
     }
 
     @Test

@@ -2172,12 +2172,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final ApiEntity deployed = convert(executionContext, singletonList(api)).iterator().next();
 
         if (getAuthenticatedUser() != null && !getAuthenticatedUser().isSystem()) {
-            notifierService.trigger(
-                executionContext,
-                ApiHook.API_DEPLOYED,
-                apiId,
-                new NotificationParamsBuilder().api(deployed).user(userService.findById(executionContext, userId)).build()
-            );
+            apiNotificationService.triggerDeployNotification(executionContext, deployed);
         }
 
         return deployed;

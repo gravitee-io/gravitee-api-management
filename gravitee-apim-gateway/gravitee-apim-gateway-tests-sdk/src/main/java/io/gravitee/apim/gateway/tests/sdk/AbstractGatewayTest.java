@@ -267,7 +267,7 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
     }
 
     /**
-     * Override api plans to create a default Keyless plan
+     * Override api plans to create a default Keyless plan and ensure their are published
      * @param api is the api to override
      */
     protected void addDefaultKeylessPlanIfNeeded(Api api) {
@@ -277,8 +277,15 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
             plan.setId("default_plan");
             plan.setName("Default plan");
             plan.setSecurity("key_less");
+            plan.setStatus("published");
 
             api.setPlans(Collections.singletonList(plan));
+        } else {
+            api
+                .getPlans()
+                .stream()
+                .filter(plan -> plan.getStatus() == null || plan.getStatus().isEmpty())
+                .forEach(plan -> plan.setStatus("published"));
         }
     }
 

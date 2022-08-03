@@ -95,13 +95,29 @@ public class ApiValidationServiceImplTest {
     @Test
     public void shouldCallOtherServicesWhenValidatingNewApiEntity() {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
-        apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), new NewApiEntity(), primaryOwnerEntity);
+        NewApiEntity newApiEntity = new NewApiEntity();
+        newApiEntity.setType(ApiType.SYNC);
+        apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, primaryOwnerEntity);
 
         verify(tagsValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null);
         verify(groupValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null, primaryOwnerEntity);
         verify(listenerValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null);
         verify(endpointGroupsValidationService, times(1)).validateAndSanitize(null);
         verify(flowValidationService, times(1)).validateAndSanitize(null);
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldValidateNewApiThrowExceptionWhenDefinitionVersionNull() {
+        NewApiEntity newApiEntity = new NewApiEntity();
+        newApiEntity.setDefinitionVersion(null);
+
+        apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, new PrimaryOwnerEntity());
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldValidateNewApiThrowExceptionWhenApiTypeNull() {
+        NewApiEntity newApiEntity = new NewApiEntity();
+        apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, new PrimaryOwnerEntity());
     }
 
     @Test(expected = InvalidDataException.class)
@@ -119,8 +135,8 @@ public class ApiValidationServiceImplTest {
         );
     }
 
-    @Test(expected = DefinitionVersionException.class)
-    public void shouldThrowExceptionBecauseMustNotDowngradeDefinitionVersion() {
+    @Test(expected = InvalidDataException.class)
+    public void shouldThrowExceptionBecauseDefinitionVersionNotV4() {
         UpdateApiEntity updateApiEntity = new UpdateApiEntity();
         updateApiEntity.setDefinitionVersion(DefinitionVersion.V2);
         ApiEntity existingApiEntity = new ApiEntity();

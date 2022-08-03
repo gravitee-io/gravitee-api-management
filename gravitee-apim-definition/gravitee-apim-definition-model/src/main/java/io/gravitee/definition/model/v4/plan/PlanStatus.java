@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.v4.plan;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +32,24 @@ public enum PlanStatus {
     DEPRECATED("deprecated"),
     CLOSED("closed");
 
+    private static final Map<String, PlanStatus> maps = Map.of(
+        STAGING.label,
+        STAGING,
+        PUBLISHED.label,
+        PUBLISHED,
+        DEPRECATED.label,
+        DEPRECATED,
+        CLOSED.label,
+        CLOSED
+    );
+
     @JsonValue
     private final String label;
+
+    public static PlanStatus valueOfLabel(final String label) {
+        if (label != null) {
+            return maps.get(label);
+        }
+        return null;
+    }
 }

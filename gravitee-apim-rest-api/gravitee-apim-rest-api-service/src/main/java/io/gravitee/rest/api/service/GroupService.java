@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.IndexableApi;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Set;
@@ -38,11 +39,12 @@ public interface GroupService {
     void associate(final ExecutionContext executionContext, String groupId, String associationType);
     Set<GroupEntity> findByEvent(final String environmentId, GroupEvent event);
     List<GroupEntity> findByName(final String environmentId, String name);
+
     Set<GroupEntity> findByUser(String username);
     List<ApiEntity> getApis(final String environmentId, String groupId);
     List<ApplicationEntity> getApplications(String groupId);
     int getNumberOfMembers(ExecutionContext executionContext, String groupId);
-    boolean isUserAuthorizedToAccessApiData(ApiEntity api, List<String> excludedGroups, String username);
+    boolean isUserAuthorizedToAccessApiData(IndexableApi api, List<String> excludedGroups, String username);
     GroupEntity update(ExecutionContext executionContext, String groupId, UpdateGroupEntity group);
     void updateApiPrimaryOwner(String groupId, String newApiPrimaryOwner);
 }

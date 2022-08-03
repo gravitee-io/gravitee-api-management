@@ -15,8 +15,11 @@
  */
 package io.gravitee.rest.api.model.v4.api;
 
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.search.Indexable;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,6 +38,12 @@ public interface IndexableApi extends Indexable {
 
     DefinitionVersion getDefinitionVersion();
 
+    Date getDeployedAt();
+
+    Date getCreatedAt();
+
+    Date getUpdatedAt();
+
     boolean isDisableMembershipNotifications();
 
     Map<String, Object> getMetadata();
@@ -42,4 +51,8 @@ public interface IndexableApi extends Indexable {
     void setMetadata(Map<String, Object> metadata);
 
     Set<String> getGroups();
+
+    Lifecycle.State getState();
+
+    Visibility getVisibility();
 }

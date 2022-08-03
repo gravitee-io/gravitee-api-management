@@ -51,7 +51,7 @@ public class IndexableApiMapperTest {
         Api api = new Api();
         api.setDefinitionVersion(DefinitionVersion.V4);
 
-        indexableApiMapper.toGenericApi(api, null);
+        indexableApiMapper.toIndexableApi(api, null);
         verify(apiMapper).toEntity(api, null);
     }
 
@@ -60,7 +60,7 @@ public class IndexableApiMapperTest {
         Api api = new Api();
         api.setDefinitionVersion(DefinitionVersion.V2);
 
-        indexableApiMapper.toGenericApi(api, null);
+        indexableApiMapper.toIndexableApi(api, null);
         verify(apiConverter).toApiEntity(api, null);
     }
 
@@ -69,7 +69,7 @@ public class IndexableApiMapperTest {
         Api api = new Api();
         api.setDefinitionVersion(DefinitionVersion.V1);
 
-        indexableApiMapper.toGenericApi(api, null);
+        indexableApiMapper.toIndexableApi(api, null);
         verify(apiConverter).toApiEntity(api, null);
     }
 
@@ -77,7 +77,7 @@ public class IndexableApiMapperTest {
     public void shouldCallV2ApiMapperWhenNoDefinitionVersion() {
         Api api = new Api();
 
-        indexableApiMapper.toGenericApi(api, null);
+        indexableApiMapper.toIndexableApi(api, null);
         verify(apiConverter).toApiEntity(api, null);
     }
 }

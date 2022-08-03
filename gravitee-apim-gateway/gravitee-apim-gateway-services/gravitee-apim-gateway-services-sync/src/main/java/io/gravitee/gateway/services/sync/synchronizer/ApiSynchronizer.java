@@ -21,8 +21,8 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
 import io.gravitee.repository.exceptions.TechnicalException;

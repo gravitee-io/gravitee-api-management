@@ -27,6 +27,7 @@ import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.UUID;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,45 +41,44 @@ import lombok.extern.slf4j.Slf4j;
 public class SseEntrypointConnector implements EntrypointAsyncConnector {
 
     @Override
-    public int matchesCriteria() {
+    public int matchCriteriaCount() {
         return 2;
     }
 
     @Override
-    public boolean matches(final MessageExecutionContext executionContext) {
-        String contentTypeHeader = executionContext.request().headers().get(HttpHeaderNames.CONTENT_TYPE);
+    public boolean matches(final MessageExecutionContext ctx) {
+        String acceptHeader = ctx.request().headers().get(HttpHeaderNames.ACCEPT);
 
-        return (
-            executionContext.request().method().equals(HttpMethod.GET) &&
-            contentTypeHeader != null &&
-            contentTypeHeader.contains(TEXT_EVENT_STREAM)
-        );
+        return (ctx.request().method().equals(HttpMethod.GET) && acceptHeader != null && acceptHeader.contains(TEXT_EVENT_STREAM));
     }
 
     @Override
-    public Completable handleRequest(final MessageExecutionContext executionContext) {
+    public Completable handleRequest(final MessageExecutionContext ctx) {
         return Completable.complete();
     }
 
     @Override
-    public Completable handleResponse(final MessageExecutionContext executionContext) {
-        return Completable
-            .fromRunnable(
-                () -> {
-                    // set headers
-                    executionContext.response().headers().add(HttpHeaderNames.CONTENT_TYPE, "text/event-stream;charset=UTF-8");
-                    executionContext.response().headers().add(HttpHeaderNames.CONNECTION, "keep-alive");
-                    executionContext.response().headers().add(HttpHeaderNames.CACHE_CONTROL, "no-cache");
-                }
-            )
-            .andThen(
-                executionContext
+    public Completable handleResponse(final MessageExecutionContext ctx) {
+        return Completable.defer(
+            () -> {
+                // set headers
+                ctx.response().headers().add(HttpHeaderNames.CONTENT_TYPE, "text/event-stream;charset=UTF-8");
+                ctx.response().headers().add(HttpHeaderNames.CONNECTION, "keep-alive");
+                ctx.response().headers().add(HttpHeaderNames.CACHE_CONTROL, "no-cache");
+                return ctx
                     .response()
-                    .messages()
-                    .doOnNext(message -> log.debug(String.format("Transform message to sse event %s", message)))
+                    .writeHeaders()
+                    .andThen(ctx.response().messages())
                     .flatMapSingle(
-                        message ->
-                            executionContext
+                        message -> {
+                            HashMap<String, Object> comments = new HashMap<>();
+                            if (message.headers() != null) {
+                                message.headers().toListValuesMap().forEach((key, value) -> comments.put(key, String.join(",", value)));
+                            }
+                            if (message.metadata() != null) {
+                                comments.putAll(message.metadata());
+                            }
+                            return ctx
                                 .response()
                                 .write(
                                     Buffer.buffer(
@@ -87,18 +87,19 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
                                             .id(UUID.randomUUID().toString())
                                             .event("message")
                                             .data(message.content().getBytes())
-                                            .comments(message.metadata())
+                                            .comments(comments)
                                             .build()
                                             .format()
                                     )
                                 )
-                                .andThen(executionContext.response().write(Buffer.buffer("\n\n")))
-                                .andThen(Single.just(message))
+                                .andThen(ctx.response().write(Buffer.buffer("\n\n")))
+                                .andThen(Single.just(message));
+                        }
                     )
                     .onErrorResumeNext(
                         error -> {
                             log.error("Error when dealing with response messages", error);
-                            return executionContext
+                            return ctx
                                 .response()
                                 .end(
                                     Buffer.buffer(
@@ -115,7 +116,8 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
                         }
                     )
                     .ignoreElements()
-                    .andThen(executionContext.response().end())
-            );
+                    .andThen(ctx.response().end());
+            }
+        );
     }
 }

@@ -53,6 +53,6 @@ public class PathAlreadyExistsException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return singletonMap("api.listeners[].paths[].path.exists", pathValue);
+        return singletonMap("api.listeners['http'].paths[].path.exists", pathValue);
     }
 }

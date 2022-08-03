@@ -37,7 +37,7 @@ public class IndexableApiMapper {
         this.apiConverter = apiConverter;
     }
 
-    public IndexableApi toGenericApi(final Api api, final PrimaryOwnerEntity primaryOwner) {
+    public IndexableApi toIndexableApi(final Api api, final PrimaryOwnerEntity primaryOwner) {
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
             return apiMapper.toEntity(api, primaryOwner);
         } else {

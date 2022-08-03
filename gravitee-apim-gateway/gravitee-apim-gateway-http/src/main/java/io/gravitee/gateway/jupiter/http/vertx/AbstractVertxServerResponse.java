@@ -87,7 +87,7 @@ class AbstractVertxServerResponse implements MutableHttpResponse {
         return trailers;
     }
 
-    public void writeHeaders() {
+    protected void prepareHeaders() {
         if (!nativeResponse.headWritten()) {
             if (HttpVersion.HTTP_2 == serverRequest.version()) {
                 if (

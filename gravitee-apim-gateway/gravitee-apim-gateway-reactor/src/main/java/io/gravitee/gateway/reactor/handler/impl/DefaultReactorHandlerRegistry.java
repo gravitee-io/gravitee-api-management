@@ -246,11 +246,6 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         }
 
         @Override
-        public ExecutionMode executionMode() {
-            return handler.executionMode();
-        }
-
-        @Override
         public String path() {
             return httpAcceptor.path();
         }

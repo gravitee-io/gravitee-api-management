@@ -278,7 +278,6 @@ class SyncApiReactorTest {
     void shouldStartWithoutTracing() throws Exception {
         cut.doStart();
 
-        assertThat(cut.executionMode()).isEqualTo(ExecutionMode.JUPITER);
         verify(resourceLifecycleManager).start();
         verify(policyManager).start();
         verify(groupLifecycleManager).start();

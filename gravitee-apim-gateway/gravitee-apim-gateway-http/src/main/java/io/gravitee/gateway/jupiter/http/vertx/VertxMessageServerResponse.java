@@ -55,14 +55,10 @@ public class VertxMessageServerResponse extends AbstractVertxServerResponse impl
     public Completable end() {
         return Completable.defer(
             () -> {
-                if (((VertxHttpServerRequest) serverRequest).isWebSocketUpgraded()) {
-                    return Completable.complete();
-                }
-
                 if (!opened()) {
                     return Completable.error(new IllegalStateException("The response is already ended"));
                 }
-                writeHeaders();
+                prepareHeaders();
 
                 return nativeResponse.rxEnd();
             }
@@ -80,7 +76,7 @@ public class VertxMessageServerResponse extends AbstractVertxServerResponse impl
                 if (!opened()) {
                     return Completable.error(new IllegalStateException("The response is already ended"));
                 }
-                writeHeaders();
+                prepareHeaders();
 
                 return nativeResponse.rxEnd(io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()));
             }
@@ -90,5 +86,10 @@ public class VertxMessageServerResponse extends AbstractVertxServerResponse impl
     @Override
     public Completable write(final Buffer buffer) {
         return Completable.defer(() -> nativeResponse.rxWrite(io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer())));
+    }
+
+    public Completable writeHeaders() {
+        super.prepareHeaders();
+        return Completable.defer(() -> nativeResponse.rxWrite(io.vertx.reactivex.core.buffer.Buffer.buffer()));
     }
 }

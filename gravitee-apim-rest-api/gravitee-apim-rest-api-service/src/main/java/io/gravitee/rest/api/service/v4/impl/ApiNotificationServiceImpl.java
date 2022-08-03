@@ -51,7 +51,7 @@ public class ApiNotificationServiceImpl extends AbstractService implements ApiNo
 
     @Override
     public void triggerUpdateNotification(final ExecutionContext executionContext, final Api api) {
-        IndexableApi indexableApi = indexableApiMapper.toGenericApi(api, null);
+        IndexableApi indexableApi = indexableApiMapper.toIndexableApi(api, null);
         triggerUpdateNotification(executionContext, indexableApi);
     }
 
@@ -63,6 +63,21 @@ public class ApiNotificationServiceImpl extends AbstractService implements ApiNo
     @Override
     public void triggerDeprecatedNotification(final ExecutionContext executionContext, final IndexableApi indexableApi) {
         triggerNotification(executionContext, ApiHook.API_DEPRECATED, indexableApi);
+    }
+
+    @Override
+    public void triggerDeployNotification(final ExecutionContext executionContext, final IndexableApi indexableApi) {
+        triggerNotification(executionContext, ApiHook.API_DEPLOYED, indexableApi);
+    }
+
+    @Override
+    public void triggerStartNotification(final ExecutionContext executionContext, final IndexableApi indexableApi) {
+        triggerNotification(executionContext, ApiHook.API_STARTED, indexableApi);
+    }
+
+    @Override
+    public void triggerStopNotification(final ExecutionContext executionContext, final IndexableApi indexableApi) {
+        triggerNotification(executionContext, ApiHook.API_STOPPED, indexableApi);
     }
 
     private void triggerNotification(final ExecutionContext executionContext, final ApiHook hook, final IndexableApi indexableApi) {

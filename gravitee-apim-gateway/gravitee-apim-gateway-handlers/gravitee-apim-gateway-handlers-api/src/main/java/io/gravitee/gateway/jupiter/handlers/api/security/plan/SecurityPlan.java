@@ -20,9 +20,11 @@ import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_APPL
 import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_PLAN;
 import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_SUBSCRIPTION_ID;
 
-import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
@@ -52,14 +54,14 @@ public class SecurityPlan {
     protected static final Single<Boolean> TRUE = Single.just(true);
     protected static final Single<Boolean> FALSE = Single.just(false);
     private static final Logger log = LoggerFactory.getLogger(SecurityPlan.class);
-    private final Plan plan;
+    private final String planId;
     private final SecurityPolicy policy;
     private final String selectionRule;
 
-    SecurityPlan(@Nonnull final Plan plan, @Nonnull final SecurityPolicy policy) {
-        this.plan = plan;
+    public SecurityPlan(@Nonnull final String planId, @Nonnull final SecurityPolicy policy, final String selectionRule) {
+        this.planId = planId;
         this.policy = policy;
-        this.selectionRule = getSelectionRule(plan.getSelectionRule());
+        this.selectionRule = getSelectionRule(selectionRule);
     }
 
     public String id() {
@@ -72,7 +74,7 @@ public class SecurityPlan {
      * @param ctx the current execution context.
      * @return <code>true</code> if this security plan can be executed for the request, <code>false</code> otherwise.
      */
-    public Single<Boolean> canExecute(RequestExecutionContext ctx) {
+    public Single<Boolean> canExecute(HttpExecutionContext ctx) {
         return policy
             .support(ctx)
             .flatMap(
@@ -93,11 +95,23 @@ public class SecurityPlan {
      * @param ctx the current execution context.
      * @return a {@link Completable} that completes when the security policy has been successfully executed or returns an error otherwise.
      */
-    public Completable execute(RequestExecutionContext ctx) {
-        return policy
-            .onRequest(ctx)
+    public Completable execute(final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
+        return executeSecurityPolicy(ctx, executionPhase)
             .andThen(validateSubscription(ctx))
-            .doOnSubscribe(disposable -> ctx.setAttribute(ATTR_PLAN, plan.getId()));
+            .doOnSubscribe(disposable -> ctx.setAttribute(ATTR_PLAN, planId));
+    }
+
+    private Completable executeSecurityPolicy(final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
+        switch (executionPhase) {
+            case REQUEST:
+                return policy.onRequest((RequestExecutionContext) ctx);
+            case MESSAGE_REQUEST:
+                return policy.onMessageRequest((MessageExecutionContext) ctx);
+            case RESPONSE:
+            case MESSAGE_RESPONSE:
+            default:
+                throw new IllegalArgumentException("Execution phase unsupported for security plan execution");
+        }
     }
 
     public int order() {
@@ -116,7 +130,7 @@ public class SecurityPlan {
         return selectionRule;
     }
 
-    private Single<Boolean> matchSelectionRule(RequestExecutionContext ctx) {
+    private Single<Boolean> matchSelectionRule(HttpExecutionContext ctx) {
         if (selectionRule == null || selectionRule.isEmpty()) {
             return TRUE;
         }
@@ -124,7 +138,7 @@ public class SecurityPlan {
         return ctx.getTemplateEngine().eval(selectionRule, Boolean.class).toSingle();
     }
 
-    private Completable validateSubscription(RequestExecutionContext ctx) {
+    private Completable validateSubscription(HttpExecutionContext ctx) {
         if (!policy.requireSubscription()) {
             return Completable.complete();
         }
@@ -141,13 +155,13 @@ public class SecurityPlan {
                     if (subscriptionId != null) {
                         subscriptionOpt = subscriptionService.getById(subscriptionId);
                     } else if (api != null && clientId != null) {
-                        subscriptionOpt = subscriptionService.getByApiAndClientIdAndPlan(api, clientId, plan.getId());
+                        subscriptionOpt = subscriptionService.getByApiAndClientIdAndPlan(api, clientId, planId);
                     }
 
                     if (subscriptionOpt.isPresent()) {
                         Subscription subscription = subscriptionOpt.get();
 
-                        if (subscription.getPlan().equals(plan.getId()) && subscription.isTimeValid(ctx.request().timestamp())) {
+                        if (subscription.getPlan().equals(planId) && subscription.isTimeValid(ctx.request().timestamp())) {
                             ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
                             ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
                             return Completable.complete();

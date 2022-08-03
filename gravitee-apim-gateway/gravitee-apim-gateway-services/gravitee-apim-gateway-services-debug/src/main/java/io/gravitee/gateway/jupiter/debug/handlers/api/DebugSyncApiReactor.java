@@ -23,6 +23,7 @@ import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
 import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
 import io.gravitee.gateway.jupiter.debug.invoker.DebugInvokerHook;
@@ -75,21 +76,20 @@ public class DebugSyncApiReactor extends SyncApiReactor {
     }
 
     @Override
-    public Completable handle(final HttpExecutionContext ctx) {
-        MutableRequestExecutionContext executionContext = (MutableRequestExecutionContext) ctx;
+    public Completable handle(final MutableRequestExecutionContext ctx) {
         /*
          * Debug path contains a generated uuid to isolate each debug request.
          * The code bellow remove this generated uuid from both context path and path the uuid and override request attributes to be sure the gateway find the right api
          */
-        String debugContextPath = executionContext.request().contextPath();
+        String debugContextPath = ctx.request().contextPath();
         String cleanContextPath = PathTransformer.removeEventIdFromPath(((DebugApi) api).getEventId(), debugContextPath);
-        executionContext.request().contextPath(cleanContextPath);
+        ctx.request().contextPath(cleanContextPath);
 
-        String debugPath = executionContext.request().path();
+        String debugPath = ctx.request().path();
         String cleanPath = PathTransformer.removeEventIdFromPath(((DebugApi) api).getEventId(), debugPath);
         String pathInfo = cleanPath.substring((cleanContextPath.length() == 1) ? 0 : cleanContextPath.length() - 1);
-        executionContext.request().pathInfo(pathInfo);
-        return super.handle(executionContext);
+        ctx.request().pathInfo(pathInfo);
+        return super.handle(ctx);
     }
 
     @Override

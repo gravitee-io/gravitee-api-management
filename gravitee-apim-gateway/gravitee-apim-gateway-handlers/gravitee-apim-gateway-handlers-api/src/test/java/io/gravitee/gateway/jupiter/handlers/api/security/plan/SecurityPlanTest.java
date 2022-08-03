@@ -23,6 +23,7 @@ import io.gravitee.definition.model.Plan;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.api.context.Request;
@@ -76,7 +77,7 @@ class SecurityPlanTest {
     void shouldReturnTrueWhenPolicyCanHandleAndSelectionRuleIsNull() {
         when(policy.support(ctx)).thenReturn(Single.just(true));
 
-        final SecurityPlan cut = new SecurityPlan(plan, policy);
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
 
         obs.assertResult(true);
@@ -89,7 +90,7 @@ class SecurityPlanTest {
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.eval(SELECTION_RULE, Boolean.class)).thenReturn(Maybe.just(true));
 
-        final SecurityPlan cut = new SecurityPlan(plan, policy);
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
 
         obs.assertResult(true);
@@ -102,7 +103,7 @@ class SecurityPlanTest {
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.eval(SELECTION_RULE, Boolean.class)).thenReturn(Maybe.just(true));
 
-        final SecurityPlan cut = new SecurityPlan(plan, policy);
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
 
         obs.assertResult(true);
@@ -115,7 +116,7 @@ class SecurityPlanTest {
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.eval(SELECTION_RULE, Boolean.class)).thenReturn(Maybe.just(false));
 
-        final SecurityPlan cut = new SecurityPlan(plan, policy);
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
 
         obs.assertResult(false);
@@ -125,7 +126,7 @@ class SecurityPlanTest {
     void shouldReturnFalseWhenPolicyCannotHandle() {
         when(policy.support(ctx)).thenReturn(Single.just(false));
 
-        final SecurityPlan cut = new SecurityPlan(plan, policy);
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
 
         obs.assertResult(false);
@@ -136,7 +137,7 @@ class SecurityPlanTest {
         final int order = 123;
         when(policy.order()).thenReturn(order);
 
-        final SecurityPlan cut = new SecurityPlan(plan, policy);
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
         assertEquals(order, cut.order());
     }
 
@@ -145,8 +146,8 @@ class SecurityPlanTest {
         when(policy.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy.requireSubscription()).thenReturn(false);
 
-        final SecurityPlan cut = new SecurityPlan(plan, policy);
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
+        final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
 
         obs.assertResult();
     }
@@ -170,8 +171,8 @@ class SecurityPlanTest {
         when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
         when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
 
-        final SecurityPlan cut = new SecurityPlan(plan, policy);
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
+        final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
 
         obs.assertResult();
         verify(policy, times(0)).onInvalidSubscription(any());
@@ -194,8 +195,8 @@ class SecurityPlanTest {
         when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
         when(subscriptionService.getById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
 
-        final SecurityPlan cut = new SecurityPlan(plan, policy);
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
+        final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
 
         obs.assertResult();
         verify(policy, times(0)).onInvalidSubscription(any());
@@ -217,8 +218,8 @@ class SecurityPlanTest {
         when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
         when(policy.onInvalidSubscription(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
-        final SecurityPlan cut = new SecurityPlan(plan, policy);
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
+        final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
 
         obs.assertErrorMessage(MOCK_EXCEPTION);
     }
@@ -242,8 +243,8 @@ class SecurityPlanTest {
         when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
         when(policy.onInvalidSubscription(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
-        final SecurityPlan cut = new SecurityPlan(plan, policy);
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
+        final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
 
         obs.assertErrorMessage(MOCK_EXCEPTION);
     }
@@ -259,8 +260,8 @@ class SecurityPlanTest {
         when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.empty());
         when(policy.onInvalidSubscription(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
-        final SecurityPlan cut = new SecurityPlan(plan, policy);
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
+        final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
 
         obs.assertErrorMessage(MOCK_EXCEPTION);
     }
@@ -277,8 +278,8 @@ class SecurityPlanTest {
             .thenThrow(new RuntimeException("Mock TechnicalException"));
         when(policy.onInvalidSubscription(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
-        final SecurityPlan cut = new SecurityPlan(plan, policy);
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
+        final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
 
         obs.assertErrorMessage(MOCK_EXCEPTION);
     }

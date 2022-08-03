@@ -17,13 +17,12 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.definition.ReactableApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.Deployer;
 import io.gravitee.gateway.handlers.api.manager.deployer.ApiDeployer;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheListener;
@@ -120,7 +119,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
             // if API will be deployed or updated
             if (apiToDeploy || apiToUpdate) {
                 Deployer deployer = deployers.get(api.getClass());
-                deployer.prepare(api);
+                deployer.initialize(api);
             }
 
             // API is not yet deployed, so let's do it

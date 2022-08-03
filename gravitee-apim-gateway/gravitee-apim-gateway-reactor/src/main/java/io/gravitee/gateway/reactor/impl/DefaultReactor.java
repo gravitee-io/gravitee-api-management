@@ -46,7 +46,7 @@ public class DefaultReactor implements Reactor {
     private final AcceptorResolver acceptorResolver;
 
     public DefaultReactor(
-        final @Qualifier("v3EntrypointResolver") AcceptorResolver acceptorResolver,
+        final @Qualifier("v3AcceptorResolver") AcceptorResolver acceptorResolver,
         final GatewayConfiguration gatewayConfiguration,
         final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
         final @Qualifier("v3ResponseProcessorChainFactory") ResponseProcessorChainFactory responseProcessorChainFactory,

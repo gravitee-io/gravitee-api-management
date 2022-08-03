@@ -21,6 +21,7 @@ import io.gravitee.definition.model.VirtualHost;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Getter;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -29,11 +30,11 @@ import java.util.stream.Collectors;
 public class InvalidVirtualHostNullHostException extends AbstractManagementException {
 
     private final String message;
-    private final List<VirtualHost> virtualHosts;
+    private final List<String> virtualHostsPath;
 
-    public InvalidVirtualHostNullHostException(String message, List<VirtualHost> restrictions) {
+    public InvalidVirtualHostNullHostException(String message, List<String> restrictions) {
         this.message = message;
-        this.virtualHosts = restrictions;
+        this.virtualHostsPath = restrictions;
     }
 
     @Override
@@ -48,10 +49,7 @@ public class InvalidVirtualHostNullHostException extends AbstractManagementExcep
 
     @Override
     public Map<String, String> getParameters() {
-        return Maps
-            .<String, String>builder()
-            .put("virtualHosts", virtualHosts.stream().map(VirtualHost::getPath).collect(Collectors.joining()))
-            .build();
+        return Maps.<String, String>builder().put("virtualHosts", String.join(",", virtualHostsPath)).build();
     }
 
     @Override

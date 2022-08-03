@@ -109,6 +109,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
 
     @Autowired
+    protected io.gravitee.rest.api.service.v4.ApiStateService apiStateServiceV4;
+
+    @Autowired
     protected ApiGroupService apiGroupService;
 
     @Autowired
@@ -294,6 +297,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public io.gravitee.rest.api.service.v4.ApiService apiServiceV4() {
             return mock(io.gravitee.rest.api.service.v4.ApiService.class);
+        }
+
+        @Bean
+        public io.gravitee.rest.api.service.v4.ApiStateService apiStateServiceV4() {
+            return mock(io.gravitee.rest.api.service.v4.ApiStateService.class);
         }
 
         @Bean

@@ -25,14 +25,14 @@ import io.gravitee.plugin.entrypoint.EntrypointPluginManager;
  */
 public class EntrypointRegistryImpl implements EntrypointRegistry {
 
-    private final EntrypointPluginManager pluginManager;
+    private final EntrypointPluginManager entrypointPluginManager;
 
     public EntrypointRegistryImpl(final EntrypointPluginManager pluginManager) {
-        this.pluginManager = pluginManager;
+        this.entrypointPluginManager = pluginManager;
     }
 
     @Override
     public EntrypointConnectorFactory<?> getById(final String id) {
-        return pluginManager.getFactoryById(id);
+        return entrypointPluginManager.getFactoryById(id);
     }
 }
