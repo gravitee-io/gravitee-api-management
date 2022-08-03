@@ -15,27 +15,28 @@
  */
 package io.gravitee.rest.api.model.v4.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Logging;
-import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.resource.Resource;
+import io.gravitee.definition.model.v4.responsetemplate.ResponseTemplate;
+import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -54,7 +55,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode
 public class UpdateApiEntity {
 
     @Schema(description = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
@@ -64,82 +65,44 @@ public class UpdateApiEntity {
     private String crossId;
 
     @NotBlank
-    @NotEmpty(message = "Api's name must not be empty")
-    @Schema(description = "Api's name. Duplicate names can exists.", example = "My Api")
+    @NotEmpty(message = "API's name must not be empty")
+    @Schema(description = "API's name. Duplicate names can exists.", example = "My Api")
     private String name;
 
+    @NotBlank
     @Schema(description = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
-    @EqualsAndHashCode.Include
     private String apiVersion;
 
+    @NotNull
     @Schema(description = "API's gravitee definition version")
     private DefinitionVersion definitionVersion;
 
+    @NotNull
     @Schema(description = "API's type", example = "async")
     private ApiType type;
 
-    @NotNull
+    @NotBlank
     @Schema(
         description = "API's description. A short description of your API.",
         example = "I can use a hundred characters to describe this API."
     )
     private String description;
 
-    @NotNull
-    @Schema(description = "The visibility of the API regarding the portal.", example = "PUBLIC")
-    private Visibility visibility;
+    @Schema(description = "The list of sharding tags associated with this API.", example = "public, private")
+    @DeploymentRequired
+    private Set<String> tags = new HashSet<>();
 
-    @Schema(description = "the list of sharding tags associated with this API.", example = "public, private")
-    private Set<String> tags;
-
-    @Schema(description = "the API logo encoded in base64")
-    private String picture;
-
-    @JsonProperty("pictureUrl")
-    @Schema(description = "the API logo URL")
-    private String pictureUrl;
-
-    @Schema(description = "the list of categories associated with this API", example = "Product, Customer, Misc")
-    private Set<String> categories;
-
-    @Schema(description = "the free list of labels associated with this API", example = "json, read_only, awesome")
-    private List<String> labels;
-
-    @Schema(description = "API's groups. Used to add team in your API.", example = "['MY_GROUP1', 'MY_GROUP2']")
-    private Set<String> groups;
-
-    @Schema(description = "A list of listeners used to describe our you api could be reached.")
     @NotNull
     @Valid
+    @Schema(description = "A list of listeners used to describe our you api could be reached.")
+    @DeploymentRequired
     private List<@NotNull Listener> listeners;
 
-    @Schema(description = "A list of endpoint describing the endpoints to contact.")
     @NotNull
     @Valid
-    private List<EndpointGroup> endpointGroups;
-
-    private List<ApiMetadataEntity> metadata;
-
-    @JsonProperty(value = "lifecycleState")
-    private ApiLifecycleState lifecycleState;
-
-    @JsonProperty("disableMembershipNotifications")
-    private boolean disableMembershipNotifications;
-
-    @Schema(description = "the API background encoded in base64")
-    private String background;
-
-    @JsonProperty("backgroundUrl")
-    @Schema(description = "the API background URL")
-    private String backgroundUrl;
-
-    @Schema(description = "API's flow mode.", example = "BEST_MATCH")
-    private FlowMode flowMode;
-
-    @Schema(description = "A list of flows containing the policies configuration.")
+    @Schema(description = "A list of endpoint describing the endpoints to contact.")
     @DeploymentRequired
-    @Valid
-    private List<Flow> flows;
+    private List<EndpointGroup> endpointGroups;
 
     @Schema(description = "A dictionary (could be dynamic) of properties available in the API context.")
     @DeploymentRequired
@@ -152,4 +115,62 @@ public class UpdateApiEntity {
     @Schema(description = "A list of plans to apply on the API")
     @DeploymentRequired
     private Set<PlanEntity> plans = new HashSet<>();
+
+    @Schema(description = "API's flow mode.", example = "BEST_MATCH")
+    @DeploymentRequired
+    private FlowMode flowMode;
+
+    @Valid
+    @Schema(description = "A list of flows containing the policies configuration.")
+    @DeploymentRequired
+    private List<Flow> flows;
+
+    @Valid
+    @DeploymentRequired
+    @Schema(
+        description = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-key is missing, ..."
+    )
+    private Map<String, Map<String, ResponseTemplate>> responseTemplates = new LinkedHashMap<>();
+
+    @Valid
+    @DeploymentRequired
+    @Schema(description = "The configuration of API services like the dynamic properties.")
+    private ApiServices services;
+
+    @Schema(description = "API's groups. Used to add team in your API.", example = "['MY_GROUP1', 'MY_GROUP2']")
+    private Set<@NotBlank String> groups;
+
+    @NotNull
+    @Schema(description = "The visibility of the API regarding the portal.", example = "PUBLIC")
+    private Visibility visibility;
+
+    @Schema(description = "the API logo encoded in base64")
+    private String picture;
+
+    @Schema(
+        description = "the API logo URL.",
+        example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture"
+    )
+    private String pictureUrl;
+
+    @Schema(description = "the list of categories associated with this API", example = "Product, Customer, Misc")
+    private Set<String> categories;
+
+    @Schema(description = "the free list of labels associated with this API", example = "json, read_only, awesome")
+    private List<String> labels;
+
+    private List<ApiMetadataEntity> metadata;
+
+    private ApiLifecycleState lifecycleState;
+
+    private boolean disableMembershipNotifications;
+
+    @Schema(description = "the API background encoded in base64")
+    private String background;
+
+    @Schema(
+        description = "the API background url.",
+        example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background"
+    )
+    private String backgroundUrl;
 }

@@ -49,6 +49,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -341,6 +342,7 @@ public class ApiMapperTest {
         apiDefinition.setResources(List.of(new Resource()));
         apiDefinition.setFlowMode(FlowMode.DEFAULT);
         apiDefinition.setFlows(List.of(new Flow(), new Flow()));
+        apiDefinition.setResponseTemplates(new HashMap<>());
         assertThat(api.getDefinition()).isEqualTo(objectMapper.writeValueAsString(apiDefinition));
     }
 }

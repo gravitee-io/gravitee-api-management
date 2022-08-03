@@ -15,13 +15,9 @@
  */
 package io.gravitee.rest.api.model.v4.api;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -31,7 +27,10 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.responsetemplate.ResponseTemplate;
 import io.gravitee.definition.model.v4.service.ApiServices;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.DeploymentRequired;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -53,12 +52,11 @@ import lombok.ToString;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonFilter("apiMembershipTypeFilter")
 @NoArgsConstructor
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode
 public class ApiEntity implements IndexableApi {
 
     @Schema(description = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
@@ -71,7 +69,6 @@ public class ApiEntity implements IndexableApi {
     private String name;
 
     @Schema(description = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
-    @EqualsAndHashCode.Include
     private String apiVersion;
 
     @Schema(description = "API's gravitee definition version")
@@ -111,7 +108,7 @@ public class ApiEntity implements IndexableApi {
     @DeploymentRequired
     private List<Property> properties = new ArrayList<>();
 
-    @JsonProperty("resources")
+    @Schema(description = "The list of API resources used by policies like cache resources or oauth2")
     @DeploymentRequired
     private List<Resource> resources = new ArrayList<>();
 
@@ -152,7 +149,7 @@ public class ApiEntity implements IndexableApi {
     private String picture;
 
     @Schema(
-        description = "the API logo url.",
+        description = "the API logo URL.",
         example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture"
     )
     private String pictureUrl;

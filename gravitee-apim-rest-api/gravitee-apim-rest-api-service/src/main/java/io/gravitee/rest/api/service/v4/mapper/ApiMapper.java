@@ -294,9 +294,9 @@ public class ApiMapper {
 
             apiDefinition.setId(updateApiEntity.getId());
             apiDefinition.setName(updateApiEntity.getName());
-            apiDefinition.setDefinitionVersion(updateApiEntity.getDefinitionVersion());
             apiDefinition.setType(updateApiEntity.getType());
             apiDefinition.setApiVersion(updateApiEntity.getApiVersion());
+            apiDefinition.setDefinitionVersion(updateApiEntity.getDefinitionVersion());
             apiDefinition.setTags(updateApiEntity.getTags());
             apiDefinition.setListeners(updateApiEntity.getListeners());
             apiDefinition.setEndpointGroups(updateApiEntity.getEndpointGroups());
@@ -310,6 +310,8 @@ public class ApiMapper {
             apiDefinition.setResources(updateApiEntity.getResources());
             apiDefinition.setFlowMode(updateApiEntity.getFlowMode());
             apiDefinition.setFlows(updateApiEntity.getFlows());
+            apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
+            apiDefinition.setServices(updateApiEntity.getServices());
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {
