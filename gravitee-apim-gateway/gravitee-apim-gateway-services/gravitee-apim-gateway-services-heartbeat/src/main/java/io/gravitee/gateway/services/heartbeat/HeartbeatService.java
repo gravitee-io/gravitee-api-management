@@ -176,10 +176,10 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
                 // event while it is not existing in the database anymore.
                 // This can be caused, for instance, by a db event cleanup without taking care of the heartbeat event.
                 LOGGER.warn(
-                        "An error occurred while trying to create or update the heartbeat event id[{}] type[{}]",
-                        event.getId(),
-                        event.getType(),
-                        ex
+                    "An error occurred while trying to create or update the heartbeat event id[{}] type[{}]",
+                    event.getId(),
+                    event.getType(),
+                    ex
                 );
                 event.getProperties().put(EVENT_STATE_PROPERTY, "recreate");
                 topicFailure.publish(event);
