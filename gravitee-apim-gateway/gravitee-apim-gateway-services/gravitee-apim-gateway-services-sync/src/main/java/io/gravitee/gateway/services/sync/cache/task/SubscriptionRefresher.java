@@ -51,7 +51,7 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
     }
 
     private void saveOrUpdate(Subscription subscription) {
-        String key = subscription.getApi() + '-' + subscription.getClientId();
+        String key = String.format("%s.%s.%s", subscription.getApi(), subscription.getClientId(), subscription.getPlan());
 
         Object element = cache.get(subscription.getId());
 

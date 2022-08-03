@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.policy.security;
+package io.gravitee.gateway.handlers.api.security;
 
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
