@@ -1,0 +1,10 @@
+{
+  "priority": 99,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/.*/oauth/check_token"
+  },
+  "response": {
+    "status": 401
+  }
+}

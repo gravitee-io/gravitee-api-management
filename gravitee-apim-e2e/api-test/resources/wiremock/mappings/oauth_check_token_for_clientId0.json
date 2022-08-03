@@ -1,0 +1,19 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/clientId0/oauth/check_token",
+    "queryParameters": {
+      "token": {
+        "equalTo": "valid_token_for_clientId0"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "oauth_check_token.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
