@@ -29,6 +29,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -215,6 +217,9 @@ public class ApiResourceTest extends AbstractResourceTest {
     private UpdateApiEntity prepareValidUpdateApiEntity() {
         UpdateApiEntity updateApiEntity = new UpdateApiEntity();
         updateApiEntity.setId(API);
+        updateApiEntity.setApiVersion("v1");
+        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        updateApiEntity.setType(ApiType.ASYNC);
         updateApiEntity.setName("api-name");
         updateApiEntity.setDescription("api-description");
         updateApiEntity.setVisibility(Visibility.PUBLIC);
