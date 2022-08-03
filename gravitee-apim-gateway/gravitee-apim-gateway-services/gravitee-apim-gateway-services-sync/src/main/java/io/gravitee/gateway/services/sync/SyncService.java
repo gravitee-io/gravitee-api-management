@@ -58,7 +58,7 @@ public class SyncService extends AbstractService {
     @Value("${services.sync.enabled:true}")
     private boolean enabled;
 
-    @Value("${services.sync.kubernetes.enabled:true}")
+    @Value("${services.sync.kubernetes.enabled:false}")
     private boolean kubernetesEnabled;
 
     @Value("${services.local.enabled:false}")
