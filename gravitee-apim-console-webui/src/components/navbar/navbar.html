@@ -75,7 +75,7 @@
         </div>
         <md-divider></md-divider>
         <div layout="column" layout-align="end start" class="gv-menu-content-links">
-          <a ui-sref="user">My account</a>
+          <a ng-click="$ctrl.goToMyAccount()">My account</a>
           <a ui-sref="management.tasks"
             >Tasks<span ng-if="$ctrl.getUserTaskCount() > 0" flex class="badge gv-menu-badge">{{$ctrl.getUserTaskCount()}}</span></a
           >

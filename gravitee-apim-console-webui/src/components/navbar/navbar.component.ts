@@ -21,6 +21,7 @@ import UserNotificationService from '../../services/userNotification.service';
 import { StateService } from '@uirouter/core';
 import OrganizationService from '../../services/organization.service';
 import AuthenticationService from '../../services/authentication.service';
+import { Constants } from '../../entities/Constants';
 
 export const NavbarComponent: ng.IComponentOptions = {
   template: require('./navbar.html'),
@@ -30,7 +31,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     UserNotificationService: UserNotificationService,
     OrganizationService: OrganizationService,
     $scope: IScope,
-    Constants,
+    Constants: Constants,
     $rootScope: IScope,
     $state: StateService,
     $transitions,
@@ -169,6 +170,10 @@ export const NavbarComponent: ng.IComponentOptions = {
           this.$state.go('login');
         }
       });
+    };
+
+    this.goToMyAccount = () => {
+      this.$state.go('user', { ...this.$state.params, environmentId: this.$state.params.environmentId ?? Constants.org.currentEnv.id });
     };
   },
 };
