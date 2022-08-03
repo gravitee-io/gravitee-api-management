@@ -77,7 +77,9 @@ public class HttpAcceptorResolverTest {
 
     @Test
     public void test_uniqContextPath() {
-        DummyReactorandlerHttpAcceptorHandler acceptorHandler = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
+        DummyReactorandlerHttpAcceptorHandler acceptorHandler = new DummyReactorandlerHttpAcceptorHandler(
+            new DefaultHttpAcceptor("/teams")
+        );
 
         final ConcurrentSkipListSet<HttpAcceptorHandler> httpAcceptorHandlers = new ConcurrentSkipListSet<>(
             new HttpAcceptorHandlerComparator()
@@ -92,7 +94,9 @@ public class HttpAcceptorResolverTest {
 
     @Test
     public void test_uniqContextPath_unknownRequestPath() {
-        DummyReactorandlerHttpAcceptorHandler acceptorHandler = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
+        DummyReactorandlerHttpAcceptorHandler acceptorHandler = new DummyReactorandlerHttpAcceptorHandler(
+            new DefaultHttpAcceptor("/teams")
+        );
 
         final ConcurrentSkipListSet<HttpAcceptorHandler> httpAcceptorHandlers = new ConcurrentSkipListSet<>(
             new HttpAcceptorHandlerComparator()
@@ -107,8 +111,12 @@ public class HttpAcceptorResolverTest {
 
     @Test
     public void test_multipleContextPath_validRequestPath() {
-        DummyReactorandlerHttpAcceptorHandler acceptorHandler1 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
-        DummyReactorandlerHttpAcceptorHandler acceptorHandler2 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams2"));
+        DummyReactorandlerHttpAcceptorHandler acceptorHandler1 = new DummyReactorandlerHttpAcceptorHandler(
+            new DefaultHttpAcceptor("/teams")
+        );
+        DummyReactorandlerHttpAcceptorHandler acceptorHandler2 = new DummyReactorandlerHttpAcceptorHandler(
+            new DefaultHttpAcceptor("/teams2")
+        );
 
         final List<HttpAcceptorHandler> httpAcceptorHandlers = Arrays.asList(acceptorHandler1, acceptorHandler2);
         httpAcceptorHandlers.sort(new HttpAcceptorHandlerComparator());
@@ -121,8 +129,12 @@ public class HttpAcceptorResolverTest {
 
     @Test
     public void test_multipleContextPath_unknownRequestPath() {
-        DummyReactorandlerHttpAcceptorHandler acceptorHandler1 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
-        DummyReactorandlerHttpAcceptorHandler acceptorHandler2 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams2"));
+        DummyReactorandlerHttpAcceptorHandler acceptorHandler1 = new DummyReactorandlerHttpAcceptorHandler(
+            new DefaultHttpAcceptor("/teams")
+        );
+        DummyReactorandlerHttpAcceptorHandler acceptorHandler2 = new DummyReactorandlerHttpAcceptorHandler(
+            new DefaultHttpAcceptor("/teams2")
+        );
 
         final List<HttpAcceptorHandler> httpAcceptorHandlers = Arrays.asList(acceptorHandler1, acceptorHandler2);
         httpAcceptorHandlers.sort(new HttpAcceptorHandlerComparator());
@@ -136,8 +148,12 @@ public class HttpAcceptorResolverTest {
 
     @Test
     public void test_multipleContextPath_unknownRequestPath2() {
-        DummyReactorandlerHttpAcceptorHandler acceptorHandler1 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
-        DummyReactorandlerHttpAcceptorHandler acceptorHandler2 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams2"));
+        DummyReactorandlerHttpAcceptorHandler acceptorHandler1 = new DummyReactorandlerHttpAcceptorHandler(
+            new DefaultHttpAcceptor("/teams")
+        );
+        DummyReactorandlerHttpAcceptorHandler acceptorHandler2 = new DummyReactorandlerHttpAcceptorHandler(
+            new DefaultHttpAcceptor("/teams2")
+        );
 
         final ConcurrentSkipListSet<HttpAcceptorHandler> httpAcceptorHandlers = new ConcurrentSkipListSet<>(
             new HttpAcceptorHandlerComparator()
@@ -153,8 +169,12 @@ public class HttpAcceptorResolverTest {
 
     @Test
     public void test_multipleContextPath_extraSeparatorRequestPath() {
-        DummyReactorandlerHttpAcceptorHandler acceptorHandler1 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
-        DummyReactorandlerHttpAcceptorHandler acceptorHandler2 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams2"));
+        DummyReactorandlerHttpAcceptorHandler acceptorHandler1 = new DummyReactorandlerHttpAcceptorHandler(
+            new DefaultHttpAcceptor("/teams")
+        );
+        DummyReactorandlerHttpAcceptorHandler acceptorHandler2 = new DummyReactorandlerHttpAcceptorHandler(
+            new DefaultHttpAcceptor("/teams2")
+        );
 
         final List<HttpAcceptorHandler> httpAcceptorHandlers = Arrays.asList(acceptorHandler1, acceptorHandler2);
         httpAcceptorHandlers.sort(new HttpAcceptorHandlerComparator());
@@ -168,8 +188,12 @@ public class HttpAcceptorResolverTest {
 
     @Test
     public void test_multipleContextPath_extraSeparatorUnknownRequestPath() {
-        DummyReactorandlerHttpAcceptorHandler acceptorHandler1 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams"));
-        DummyReactorandlerHttpAcceptorHandler acceptorHandler2 = new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("/teams2"));
+        DummyReactorandlerHttpAcceptorHandler acceptorHandler1 = new DummyReactorandlerHttpAcceptorHandler(
+            new DefaultHttpAcceptor("/teams")
+        );
+        DummyReactorandlerHttpAcceptorHandler acceptorHandler2 = new DummyReactorandlerHttpAcceptorHandler(
+            new DefaultHttpAcceptor("/teams2")
+        );
 
         final List<HttpAcceptorHandler> httpAcceptorHandlers = Arrays.asList(acceptorHandler1, acceptorHandler2);
         httpAcceptorHandlers.sort(new HttpAcceptorHandlerComparator());
@@ -187,33 +211,35 @@ public class HttpAcceptorResolverTest {
         final List<HttpAcceptorHandler> withHostAndPathABC = new ArrayList<>();
         final List<HttpAcceptorHandler> withHostAndNotPathABC = new ArrayList<>();
 
-        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/a")));
-        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/b")));
-        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/d")));
-        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/e")));
-        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/f")));
-        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/c1/sub")));
-        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/c1/sub2")));
-        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost(null, "/b/c1/sub3")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor(null, "/b/a")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor(null, "/b/b")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor(null, "/b/d")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor(null, "/b/e")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor(null, "/b/f")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor(null, "/b/c1/sub")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor(null, "/b/c1/sub2")));
+        noHosts.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor(null, "/b/c1/sub3")));
 
-        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api1.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api2.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api3.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api4.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("apiX.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api10.gravitee.io", "/a/b/c")));
-        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api11.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api1.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api2.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api3.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api4.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("apiX.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api10.gravitee.io", "/a/b/c")));
+        withHostAndPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api11.gravitee.io", "/a/b/c")));
 
-        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api.gravitee.io", "/a/b/a")));
-        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api1.gravitee.io", "/a/b/b")));
-        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api2.gravitee.io", "/a/b/d")));
-        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api3.gravitee.io", "/a/b/e")));
-        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api4.gravitee.io", "/a/b/f")));
-        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("apiX.gravitee.io", "/a/b/c1/sub")));
-        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api10.gravitee.io", "/a/b/c1/sub")));
-        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("api11.gravitee.io", "/a/b/c1/sub")));
-        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new VirtualHost("apispecial.gravitee.io", "/a/b/special")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api.gravitee.io", "/a/b/a")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api1.gravitee.io", "/a/b/b")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api2.gravitee.io", "/a/b/d")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api3.gravitee.io", "/a/b/e")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api4.gravitee.io", "/a/b/f")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("apiX.gravitee.io", "/a/b/c1/sub")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api10.gravitee.io", "/a/b/c1/sub")));
+        withHostAndNotPathABC.add(new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("api11.gravitee.io", "/a/b/c1/sub")));
+        withHostAndNotPathABC.add(
+            new DummyReactorandlerHttpAcceptorHandler(new DefaultHttpAcceptor("apispecial.gravitee.io", "/a/b/special"))
+        );
 
         final List<HttpAcceptorHandler> httpAcceptorHandlers = new ArrayList<>();
         httpAcceptorHandlers.addAll(noHosts);

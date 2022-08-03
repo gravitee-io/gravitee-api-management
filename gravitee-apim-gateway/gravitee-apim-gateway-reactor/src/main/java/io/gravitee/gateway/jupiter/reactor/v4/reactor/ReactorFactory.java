@@ -15,15 +15,15 @@
  */
 package io.gravitee.gateway.jupiter.reactor.v4.reactor;
 
-import io.gravitee.definition.model.v4.Api;
-import io.gravitee.gateway.jupiter.reactor.ApiReactor;
+import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.handler.ReactorHandler;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ReactorFactory {
-    boolean canHandle(Api api);
+public interface ReactorFactory<T extends Reactable> {
+    boolean canCreate(T api);
 
-    ApiReactor create(Api api);
+    ReactorHandler create(T api);
 }

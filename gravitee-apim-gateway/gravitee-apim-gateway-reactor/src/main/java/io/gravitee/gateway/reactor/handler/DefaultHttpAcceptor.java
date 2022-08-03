@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VirtualHost implements HttpAcceptor {
+public class DefaultHttpAcceptor implements HttpAcceptor {
 
     private static final int HOST_MASK = 1000;
 
@@ -40,7 +40,7 @@ public class VirtualHost implements HttpAcceptor {
 
     private final String path;
 
-    public VirtualHost(String host, String path) {
+    public DefaultHttpAcceptor(String host, String path) {
         this.host = host;
 
         // Sanitize
@@ -63,7 +63,7 @@ public class VirtualHost implements HttpAcceptor {
         }
     }
 
-    public VirtualHost(String path) {
+    public DefaultHttpAcceptor(String path) {
         this(null, path);
     }
 

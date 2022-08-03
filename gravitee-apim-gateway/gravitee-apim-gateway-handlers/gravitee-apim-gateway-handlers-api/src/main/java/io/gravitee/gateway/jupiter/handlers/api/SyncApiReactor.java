@@ -79,7 +79,7 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor, ReactorHandler {
+public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor {
 
     protected static final String ATTR_INVOKER_SKIP = "invoker.skip";
 
@@ -437,10 +437,5 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         List<HttpAcceptor> httpAcceptors = api.httpAcceptors();
         log.debug("{} ready to accept requests on:", this);
         httpAcceptors.forEach(httpAcceptor -> log.debug("\t{}", httpAcceptor));
-    }
-
-    @Override
-    public void handle(io.gravitee.gateway.api.ExecutionContext ctx, Handler<io.gravitee.gateway.api.ExecutionContext> endHandler) {
-        throw new RuntimeException(new IllegalAccessException("Handle method can't be called on SyncApiReactor"));
     }
 }

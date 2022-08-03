@@ -48,6 +48,8 @@ import io.gravitee.gateway.jupiter.reactor.handler.DefaultHttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
+import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
+import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.platform.OrganizationFlowResolver;
 import io.gravitee.gateway.platform.PlatformPolicyManager;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
@@ -58,10 +60,9 @@ import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
+import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.impl.DefaultAcceptorResolver;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
@@ -328,7 +329,7 @@ public class DebugConfiguration {
     }
 
     @Bean
-    public ReactorHandlerFactory<Api> debugReactorHandlerFactory(
+    public ReactorFactory<Api> debugReactorHandlerFactory(
         @Qualifier("debugV3PolicyFactoryCreator") io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         @Qualifier("debugPolicyFactory") PolicyFactory policyFactory,
         @Qualifier("debugPlatformPolicyChainFactory") io.gravitee.gateway.jupiter.policy.PolicyChainFactory platformPolicyChainFactory,
@@ -354,16 +355,16 @@ public class DebugConfiguration {
     }
 
     @Bean
-    public ReactorHandlerFactoryManager debugReactorHandlerFactoryManager(
-        @Qualifier("debugReactorHandlerFactory") ReactorHandlerFactory reactorHandlerFactory
+    public ReactorFactoryManager debugReactorHandlerFactoryManager(
+        @Qualifier("debugReactorHandlerFactory") List<ReactorFactory> reactorFactories
     ) {
-        return new ReactorHandlerFactoryManager(reactorHandlerFactory);
+        return new ReactorFactoryManager(reactorFactories);
     }
 
     @Bean
     public ReactorHandlerRegistry debugReactorHandlerRegistry(
-        @Qualifier("debugReactorHandlerFactoryManager") ReactorHandlerFactoryManager reactorHandlerFactoryManager
+        @Qualifier("debugReactorHandlerFactoryManager") ReactorFactoryManager reactorFactoryManager
     ) {
-        return new DefaultReactorHandlerRegistry(reactorHandlerFactoryManager);
+        return new DefaultReactorHandlerRegistry(reactorFactoryManager);
     }
 }

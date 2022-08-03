@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.Invoker;
@@ -51,6 +52,7 @@ import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyChainFactory;
+import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
@@ -59,7 +61,6 @@ import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.reactor.handler.context.DefaultV3ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
@@ -67,7 +68,12 @@ import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
 import io.gravitee.gateway.resource.internal.ResourceManagerImpl;
-import io.gravitee.gateway.security.core.*;
+import io.gravitee.gateway.security.core.AuthenticationHandlerEnhancer;
+import io.gravitee.gateway.security.core.AuthenticationHandlerManager;
+import io.gravitee.gateway.security.core.AuthenticationHandlerSelector;
+import io.gravitee.gateway.security.core.DefaultAuthenticationHandlerSelector;
+import io.gravitee.gateway.security.core.SecurityPolicyResolver;
+import io.gravitee.gateway.security.core.SecurityProviderLoader;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -88,7 +94,7 @@ import org.springframework.core.ResolvableType;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
+public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
 
     public static final String CLASSLOADER_LEGACY_ENABLED_PROPERTY = "classloader.legacy.enabled";
     public static final String REPORTERS_LOGGING_MAX_SIZE_PROPERTY = "reporters.logging.max_size";
@@ -137,6 +143,11 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         this.flowResolverFactory = flowResolverFactory;
         this.httpRequestTimeoutConfiguration = httpRequestTimeoutConfiguration;
         this.contentTemplateVariableProvider = new ContentTemplateVariableProvider();
+    }
+
+    @Override
+    public boolean canCreate(final Api api) {
+        return api.getDefinitionVersion() != DefinitionVersion.V4;
     }
 
     @Override

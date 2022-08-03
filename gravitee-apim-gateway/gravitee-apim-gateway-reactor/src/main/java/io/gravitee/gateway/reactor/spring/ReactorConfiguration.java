@@ -31,6 +31,9 @@ import io.gravitee.gateway.jupiter.reactor.handler.DefaultHttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
+import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
+import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactoryManager;
+import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.*;
 import io.gravitee.gateway.reactor.handler.context.provider.NodeTemplateVariableProvider;
@@ -45,6 +48,7 @@ import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.vertx.core.Vertx;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -168,13 +172,13 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public ReactorHandlerRegistry reactorHandlerRegistry(ReactorHandlerFactoryManager reactorHandlerFactoryManager) {
-        return new DefaultReactorHandlerRegistry(reactorHandlerFactoryManager);
+    public ReactorHandlerRegistry reactorHandlerRegistry(ReactorFactoryManager reactorFactoryManager) {
+        return new DefaultReactorHandlerRegistry(reactorFactoryManager);
     }
 
     @Bean
-    public ReactorHandlerFactoryManager reactorHandlerFactoryManager(ReactorHandlerFactory reactorHandlerFactory) {
-        return new ReactorHandlerFactoryManager(reactorHandlerFactory);
+    public ReactorFactoryManager reactorFactoryManager(List<ReactorFactory> reactorFactories) {
+        return new ReactorFactoryManager(reactorFactories);
     }
 
     @Bean
