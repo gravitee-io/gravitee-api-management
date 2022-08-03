@@ -31,6 +31,7 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -222,10 +223,20 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         )
             .thenReturn(Set.of(apiToUpdateProjection, groupedApiProjectionWithoutCategory, bigNameApiProjection));
 
+        Api v4Api = Mockito.mock(Api.class);
+        when(v4Api.getId()).thenReturn("async-api");
+        when(v4Api.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+
+        when(apiRepository.search(new ApiCriteria.Builder().definitionVersion(singletonList(DefinitionVersion.V4)).build()))
+            .thenReturn(List.of(v4Api));
+        when(apiRepository.search(new ApiCriteria.Builder().definitionVersion(singletonList(null)).environmentId("DEV").build()))
+            .thenReturn(asList(apiToDelete, apiBigName));
+
         Set<String> categories = new LinkedHashSet<>();
         categories.add("category-1");
         categories.add("cycling");
         categories.add("hiking");
+        categories.add("my-async-category");
         categories.add("my-category");
         when(apiRepository.listCategories(eq(new ApiCriteria.Builder().build()))).thenReturn(categories);
 

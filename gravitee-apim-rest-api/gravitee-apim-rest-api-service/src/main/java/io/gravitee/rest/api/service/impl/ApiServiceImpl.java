@@ -161,11 +161,9 @@ import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.TimeBoundedCharSequence;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.exceptions.AllowOriginNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.ApiMetadataNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
@@ -205,7 +203,6 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -223,9 +220,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.bind.DatatypeConverter;
@@ -929,7 +924,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 convert(
                     executionContext,
                     apiRepository.search(
-                        new ApiCriteria.Builder()
+                        getDefaultApiCriteriaBuilder()
                             .environmentId(executionContext.getEnvironmentId())
                             .visibility(Visibility.valueOf(visibility.name()))
                             .build()
@@ -949,7 +944,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return new HashSet<>(
                 convert(
                     executionContext,
-                    apiRepository.search(new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build())
+                    apiRepository.search(getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId()).build())
                 )
             );
         } catch (TechnicalException ex) {
@@ -962,7 +957,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findByEnvironmentAndIdIn(final ExecutionContext executionContext, Set<String> ids) {
         LOGGER.debug("Find APIs by environment {} and ID in {}", executionContext.getEnvironmentId(), ids);
         try {
-            ApiCriteria criteria = new ApiCriteria.Builder().ids(ids).environmentId(executionContext.getEnvironmentId()).build();
+            ApiCriteria criteria = getDefaultApiCriteriaBuilder().ids(ids).environmentId(executionContext.getEnvironmentId()).build();
             return new HashSet<>(convert(executionContext, apiRepository.search(criteria)));
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while trying to find APIs by environment and ids", e);
@@ -985,7 +980,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 convert(
                     executionContext,
                     apiRepository.search(
-                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
+                        getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId()).build(),
                         exclusionFilterBuilder.build()
                     )
                 )
@@ -2357,7 +2352,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public void deleteCategoryFromAPIs(ExecutionContext executionContext, final String categoryId) {
         apiRepository
-            .search(new ApiCriteria.Builder().category(categoryId).build())
+            .search(getDefaultApiCriteriaBuilder().category(categoryId).build())
             .forEach(api -> removeCategory(executionContext, api, categoryId));
     }
 
@@ -2873,7 +2868,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private ApiCriteria.Builder queryToCriteria(ExecutionContext executionContext, ApiQuery query) {
-        final ApiCriteria.Builder builder = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
+        final ApiCriteria.Builder builder = getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId());
         if (query == null) {
             return builder;
         }
@@ -3317,7 +3312,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public Map<String, Long> countPublishedByUserGroupedByCategories(String userId) {
-        ApiCriteria criteria = new ApiCriteria.Builder().visibility(PUBLIC).lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).build();
+        ApiCriteria criteria = getDefaultApiCriteriaBuilder()
+            .visibility(PUBLIC)
+            .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
+            .build();
         ApiFieldInclusionFilter filter = ApiFieldInclusionFilter.builder().includeCategories().build();
 
         Set<Api> apis = apiRepository.search(criteria, filter);
@@ -3349,7 +3347,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .toArray(String[]::new);
 
         if (userApiIds.length > 0) {
-            ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids(userApiIds).build();
+            ApiCriteria criteria = getDefaultApiCriteriaBuilder()
+                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
+                .ids(userApiIds)
+                .build();
             Set<Api> userApis = apiRepository.search(criteria, filter);
             apis.addAll(userApis);
         }
@@ -3367,12 +3368,26 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .toArray(String[]::new);
 
         if (groupIds.length > 0 && groupIds[0] != null) {
-            ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).groups(groupIds).build();
+            ApiCriteria criteria = getDefaultApiCriteriaBuilder()
+                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
+                .groups(groupIds)
+                .build();
             Set<Api> groupApis = apiRepository.search(criteria, filter);
             apis.addAll(groupApis);
         }
 
         return apis;
+    }
+
+    @NotNull
+    private ApiCriteria.Builder getDefaultApiCriteriaBuilder() {
+        // By default in this service, we do not care for V4 APIs.
+        List<DefinitionVersion> allowedDefinitionVersion = new ArrayList<>();
+        allowedDefinitionVersion.add(null);
+        allowedDefinitionVersion.add(DefinitionVersion.V1);
+        allowedDefinitionVersion.add(DefinitionVersion.V2);
+
+        return new ApiCriteria.Builder().definitionVersion(allowedDefinitionVersion);
     }
 
     private static class MemberToImport {

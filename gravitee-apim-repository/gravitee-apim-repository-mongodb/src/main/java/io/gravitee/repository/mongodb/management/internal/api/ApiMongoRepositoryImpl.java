@@ -185,6 +185,9 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                         if (apiCriteria.getCrossId() != null && !apiCriteria.getCrossId().isEmpty()) {
                             criteria.add(where("crossId").is(apiCriteria.getCrossId()));
                         }
+                        if (apiCriteria.getDefinitionVersion() != null && !apiCriteria.getDefinitionVersion().isEmpty()) {
+                            criteria.add(where("definitionVersion").in(apiCriteria.getDefinitionVersion()));
+                        }
                         return criteria;
                     }
                 )

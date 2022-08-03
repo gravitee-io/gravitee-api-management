@@ -339,7 +339,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
         String projection =
             "ac.*, a.id, a.environment_id, a.name, a.description, a.version, a.deployed_at, a.created_at, a.updated_at, " +
-            "a.visibility, a.lifecycle_state, a.api_lifecycle_state";
+            "a.visibility, a.lifecycle_state, a.api_lifecycle_state, a.definition_version";
 
         if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isDefinition()) {
             projection += ", a.definition";
@@ -436,6 +436,13 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             if (!isEmpty(apiCriteria.getEnvironments())) {
                 lastIndex = getOrm().setArguments(ps, apiCriteria.getEnvironments(), lastIndex);
             }
+            if (!isEmpty(apiCriteria.getDefinitionVersion())) {
+                List<DefinitionVersion> definitionVersionList = new ArrayList<>(apiCriteria.getDefinitionVersion());
+                definitionVersionList.remove(null);
+                if (!definitionVersionList.isEmpty()) {
+                    lastIndex = getOrm().setArguments(ps, definitionVersionList, lastIndex);
+                }
+            }
         }
         return lastIndex;
     }
@@ -477,7 +484,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         if (hasText(apiCriteria.getCrossId())) {
             clauses.add("a.cross_id = ?");
         }
-        if (!StringUtils.isEmpty(apiCriteria.getLifecycleStates())) {
+        if (!isEmpty(apiCriteria.getLifecycleStates())) {
             clauses.add(
                 new StringBuilder()
                     .append("a.api_lifecycle_state in (")
@@ -497,6 +504,26 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                     .append(")")
                     .toString()
             );
+        }
+        if (!isEmpty(apiCriteria.getDefinitionVersion())) {
+            List<DefinitionVersion> definitionVersionList = new ArrayList<>(apiCriteria.getDefinitionVersion());
+
+            boolean addNullClause = definitionVersionList.remove(null);
+
+            StringBuilder clauseBuilder = new StringBuilder();
+            if (addNullClause) {
+                if (definitionVersionList.isEmpty()) {
+                    clauseBuilder.append("a.definition_version is null");
+                } else {
+                    clauseBuilder
+                        .append("(a.definition_version is null or a.definition_version in (")
+                        .append(getOrm().buildInClause(definitionVersionList))
+                        .append("))");
+                }
+            } else {
+                clauseBuilder.append("a.definition_version in (").append(getOrm().buildInClause(definitionVersionList)).append(")");
+            }
+            clauses.add(clauseBuilder.toString());
         }
         if (!clauses.isEmpty()) {
             return String.join(" and ", clauses);

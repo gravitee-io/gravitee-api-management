@@ -20,6 +20,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -30,6 +31,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -70,7 +72,8 @@ public class ApiService_DeleteCategoryTest {
         secondOrphan.setId(UuidString.generateRandom());
         secondOrphan.setCategories(new HashSet<>(Set.of(UuidString.generateRandom(), categoryId)));
 
-        when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build())).thenReturn(List.of(firstOrphan, secondOrphan));
+        when(apiRepository.search(getDefaultApiCriteriaBuilder().category(categoryId).build()))
+            .thenReturn(List.of(firstOrphan, secondOrphan));
         apiService.deleteCategoryFromAPIs(GraviteeContext.getExecutionContext(), categoryId);
 
         verify(apiRepository, times(1)).update(firstOrphan);
@@ -78,5 +81,15 @@ public class ApiService_DeleteCategoryTest {
 
         assertEquals(0, firstOrphan.getCategories().size());
         assertEquals(1, secondOrphan.getCategories().size());
+    }
+
+    private ApiCriteria.Builder getDefaultApiCriteriaBuilder() {
+        // By default in this service, we do not care for V4 APIs.
+        List<DefinitionVersion> allowedDefinitionVersion = new ArrayList<>();
+        allowedDefinitionVersion.add(null);
+        allowedDefinitionVersion.add(DefinitionVersion.V1);
+        allowedDefinitionVersion.add(DefinitionVersion.V2);
+
+        return new ApiCriteria.Builder().definitionVersion(allowedDefinitionVersion);
     }
 }
