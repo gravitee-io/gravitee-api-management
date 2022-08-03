@@ -18,6 +18,8 @@
 import UserService from '../services/user.service';
 import EnvironmentService from '../services/environment.service';
 import PortalConfigService from '../services/portalConfig.service';
+import { Transition } from '@uirouter/angularjs';
+import NotificationService from '../services/notification.service';
 
 function runBlock(
   $rootScope,
@@ -34,6 +36,7 @@ function runBlock(
   ApiService,
   EnvironmentService: EnvironmentService,
   PortalConfigService: PortalConfigService,
+  NotificationService: NotificationService,
 ) {
   'ngInject';
 
@@ -74,10 +77,10 @@ function runBlock(
         );
       },
     },
-    (trans) => {
-      const params = Object.assign({}, trans.params());
-      const stateService = trans.router.stateService;
-      const toState = trans.to();
+    (transition: Transition) => {
+      const params = Object.assign({}, transition.params());
+      const stateService = transition.router.stateService;
+      const toState = transition.to();
 
       let shouldReload = true;
       if (!params.environmentId) {
@@ -91,8 +94,15 @@ function runBlock(
           return stateService.target(toState, params, { reload: shouldReload });
         });
       } else {
-        params.environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
-        return stateService.target(toState, params, { reload: shouldReload });
+        const environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
+
+        if (environmentId) {
+          params.environmentId = environmentId;
+          return stateService.target(toState, params, { reload: shouldReload });
+        } else {
+          NotificationService.showError('You are not allowed to access APIM because you do not have any role on any environment');
+          transition.abort();
+        }
       }
     },
   );
