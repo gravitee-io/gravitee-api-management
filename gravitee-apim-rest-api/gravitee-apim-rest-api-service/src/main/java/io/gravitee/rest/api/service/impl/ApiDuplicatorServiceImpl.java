@@ -891,9 +891,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     private boolean canRegenerateId(ImportApiJsonNode apiJsonNode) {
         // If the definition is managed by kubernetes, do not try to recalculate ids because k8s is the source of truth.
-        return !DefinitionContext.ORIGIN_KUBERNETES.equalsIgnoreCase(
-            apiJsonNode.getJsonNode().findPath("definition_context").findPath("origin").asText()
-        );
+        return !DefinitionContext.ORIGIN_KUBERNETES.equalsIgnoreCase(apiJsonNode.getDefinitionContextOrigin());
     }
 
     private void updatePagesHierarchy(List<ImportJsonNodeWithIds> pagesNodes, String parentId, String newParentId) {
