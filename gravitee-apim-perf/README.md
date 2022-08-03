@@ -52,6 +52,8 @@ To properly collect all the gateway's metrics, it is required to enable metrics 
 
 ```bash
 gravitee.services.metrics.enabled=true
+gravitee.services.metrics.include.http.client[0]=remote
+gravitee.services.metrics.exclude.http.client[0]=local
 ```
 
 Once the gateway has started, you can verify that metrics are properly enabled by typing the following:
