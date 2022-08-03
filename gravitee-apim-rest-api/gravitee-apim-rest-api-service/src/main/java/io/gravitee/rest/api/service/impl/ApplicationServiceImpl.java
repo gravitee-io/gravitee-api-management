@@ -625,7 +625,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         subscriptionService.update(
                             executionContext,
                             updateSubscriptionEntity,
-                            application.getMetadata().get("METADATA_CLIENT_ID")
+                            application.getMetadata().get(METADATA_CLIENT_ID)
                         );
                     }
                 );
