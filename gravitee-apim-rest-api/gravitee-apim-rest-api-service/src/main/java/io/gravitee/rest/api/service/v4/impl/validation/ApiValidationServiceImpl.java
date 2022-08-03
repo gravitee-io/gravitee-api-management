@@ -108,7 +108,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             )
         );
         // Validate and clean listeners
-        updateApiEntity.setListeners(listenerValidationService.validateAndSanitize(executionContext, null, updateApiEntity.getListeners()));
+        updateApiEntity.setListeners(
+            listenerValidationService.validateAndSanitize(executionContext, updateApiEntity.getId(), updateApiEntity.getListeners())
+        );
         // Validate and clean endpoints
         updateApiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitize(updateApiEntity.getEndpointGroups()));
         // Validate and clean flow
