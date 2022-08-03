@@ -32,7 +32,7 @@ public class FakeEntrypointConnector implements EntrypointConnector<RequestExecu
     private FakeEntrypointConnectorConfiguration configuration;
 
     @Override
-    public int matchesCriteria() {
+    public int matchCriteriaCount() {
         return 0;
     }
 

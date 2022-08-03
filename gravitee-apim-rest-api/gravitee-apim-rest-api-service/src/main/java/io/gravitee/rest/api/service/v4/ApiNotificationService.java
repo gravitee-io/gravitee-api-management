@@ -28,4 +28,10 @@ public interface ApiNotificationService {
     void triggerUpdateNotification(ExecutionContext executionContext, IndexableApi api);
 
     void triggerDeprecatedNotification(ExecutionContext executionContext, IndexableApi indexableApi);
+
+    void triggerDeployNotification(ExecutionContext executionContext, IndexableApi api);
+
+    void triggerStartNotification(ExecutionContext executionContext, IndexableApi indexableApi);
+
+    void triggerStopNotification(ExecutionContext executionContext, IndexableApi indexableApi);
 }

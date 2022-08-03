@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.reactor;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
@@ -33,12 +34,15 @@ import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.core.context.MutableHttpExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableMessageExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.hook.HookHelper;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
 import io.gravitee.gateway.jupiter.http.vertx.VertxHttpServerRequest;
+import io.gravitee.gateway.jupiter.http.vertx.VertxMessageServerRequest;
 import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
+import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultMessageExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
@@ -130,60 +134,91 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         log.debug("Dispatching request on host {} and path {}", httpServerRequest.host(), httpServerRequest.path());
 
         final HttpAcceptorHandler httpAcceptorHandler = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path());
-
-        if (
-            httpAcceptorHandler == null ||
-            httpAcceptorHandler.target() == null ||
-            httpAcceptorHandler.executionMode() == ExecutionMode.JUPITER
-        ) {
-            // For now, supports only sync requests.
-            VertxHttpServerRequest request = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-
-            // Set gateway tenants and zones in request metrics.
-            prepareMetrics(request.metrics());
-
-            MutableRequestExecutionContext ctx = createExecutionContext(request);
-            ctx.componentProvider(globalComponentProvider);
+        if (httpAcceptorHandler == null || httpAcceptorHandler.target() == null) {
+            MutableRequestExecutionContext mutableCtx = prepareRequestExecutionContext(httpServerRequest);
 
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
             return HookHelper
                 .hook(
-                    () -> preProcessorChain.execute(ctx, ExecutionPhase.REQUEST),
+                    () -> preProcessorChain.execute(mutableCtx, ExecutionPhase.REQUEST),
                     preProcessorChain.getId(),
                     processorChainHooks,
-                    ctx,
+                    mutableCtx,
+                    ExecutionPhase.REQUEST
+                )
+                .andThen(handleNotFound(mutableCtx));
+        } else if (httpAcceptorHandler.target() instanceof ApiReactor) {
+            ApiReactor<?, ?> apiReactor = httpAcceptorHandler.target();
+            MutableHttpExecutionContext mutableCtx;
+            if (apiReactor.apiType() == ApiType.SYNC) {
+                mutableCtx = prepareRequestExecutionContext(httpServerRequest);
+            } else if (apiReactor.apiType() == ApiType.ASYNC) {
+                mutableCtx = prepareMessageExecutionContext(httpServerRequest);
+            } else {
+                return Completable.error(new IllegalAccessException("Unsupported api type"));
+            }
+
+            ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
+            MutableHttpExecutionContext finalMutableCtx = mutableCtx;
+            return HookHelper
+                .hook(
+                    () -> preProcessorChain.execute(finalMutableCtx, ExecutionPhase.REQUEST),
+                    preProcessorChain.getId(),
+                    processorChainHooks,
+                    mutableCtx,
                     ExecutionPhase.REQUEST
                 )
                 .andThen(
                     Completable.defer(
                         () -> {
-                            if (httpAcceptorHandler == null || httpAcceptorHandler.target() == null) {
-                                return handleNotFound(ctx);
-                            } else {
-                                // Jupiter execution mode.
-                                ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
-                                return handleJupiterRequest(ctx, httpAcceptorHandler)
-                                    .andThen(
-                                        HookHelper.hook(
-                                            () -> postProcessorChain.execute(ctx, ExecutionPhase.RESPONSE),
-                                            postProcessorChain.getId(),
-                                            processorChainHooks,
-                                            ctx,
-                                            ExecutionPhase.RESPONSE
-                                        )
-                                    );
-                            }
+                            // Jupiter execution mode.
+                            ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
+                            return handleJupiterRequest(finalMutableCtx, httpAcceptorHandler)
+                                .andThen(
+                                    HookHelper.hook(
+                                        () -> postProcessorChain.execute(finalMutableCtx, ExecutionPhase.RESPONSE),
+                                        postProcessorChain.getId(),
+                                        processorChainHooks,
+                                        finalMutableCtx,
+                                        ExecutionPhase.RESPONSE
+                                    )
+                                );
                         }
                     )
                 );
-        } else {
-            // V3 execution mode.
-            return handleV3Request(httpServerRequest, httpAcceptorHandler);
         }
+        // V3 execution mode.
+        return handleV3Request(httpServerRequest, httpAcceptorHandler);
     }
 
-    protected DefaultRequestExecutionContext createExecutionContext(VertxHttpServerRequest request) {
+    private MutableRequestExecutionContext prepareRequestExecutionContext(final HttpServerRequest httpServerRequest) {
+        VertxHttpServerRequest request = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+
+        // Set gateway tenants and zones in request metrics.
+        prepareMetrics(request.metrics());
+
+        MutableRequestExecutionContext ctx = createRequestExecutionContext(request);
+        ctx.componentProvider(globalComponentProvider);
+        return ctx;
+    }
+
+    protected DefaultRequestExecutionContext createRequestExecutionContext(VertxHttpServerRequest request) {
         return new DefaultRequestExecutionContext(request, request.response());
+    }
+
+    private MutableMessageExecutionContext prepareMessageExecutionContext(final HttpServerRequest httpServerRequest) {
+        VertxMessageServerRequest request = new VertxMessageServerRequest(httpServerRequest, idGenerator);
+
+        // Set gateway tenants and zones in request metrics.
+        prepareMetrics(request.metrics());
+
+        MutableMessageExecutionContext ctx = createMessageExecutionContext(request);
+        ctx.componentProvider(globalComponentProvider);
+        return ctx;
+    }
+
+    protected DefaultMessageExecutionContext createMessageExecutionContext(VertxMessageServerRequest request) {
+        return new DefaultMessageExecutionContext(request, request.response());
     }
 
     private Completable handleNotFound(final MutableHttpExecutionContext ctx) {

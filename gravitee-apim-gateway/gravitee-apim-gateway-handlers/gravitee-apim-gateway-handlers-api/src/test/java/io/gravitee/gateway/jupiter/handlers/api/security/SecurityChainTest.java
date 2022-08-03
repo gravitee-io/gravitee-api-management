@@ -19,7 +19,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Api;
@@ -27,7 +32,6 @@ import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
-import io.gravitee.gateway.jupiter.handlers.api.security.plan.SecurityPlanFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.reactivex.Completable;
 import io.reactivex.Single;
@@ -76,7 +80,7 @@ class SecurityChainTest {
 
         when(policy2.onRequest(ctx)).thenReturn(Completable.complete());
 
-        final SecurityChain cut = new SecurityChain(api, policyManager);
+        final SecurityChain cut = new SecurityChain(api, policyManager, ExecutionPhase.REQUEST);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertResult();
@@ -99,7 +103,7 @@ class SecurityChainTest {
 
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
 
-        final SecurityChain cut = new SecurityChain(api, policyManager);
+        final SecurityChain cut = new SecurityChain(api, policyManager, ExecutionPhase.REQUEST);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertResult();
@@ -124,7 +128,7 @@ class SecurityChainTest {
 
         when(ctx.getAttribute(SecurityChain.SKIP_SECURITY_CHAIN)).thenReturn(true);
 
-        final SecurityChain cut = new SecurityChain(api, policyManager);
+        final SecurityChain cut = new SecurityChain(api, policyManager, ExecutionPhase.REQUEST);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertResult();
@@ -138,7 +142,7 @@ class SecurityChainTest {
         when(api.getPlans()).thenReturn(new ArrayList<>());
         when(ctx.interruptWith(any())).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
-        final SecurityChain cut = new SecurityChain(api, policyManager);
+        final SecurityChain cut = new SecurityChain(api, policyManager, ExecutionPhase.REQUEST);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertError(Throwable.class);
@@ -162,7 +166,7 @@ class SecurityChainTest {
 
         when(ctx.interruptWith(any())).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
 
-        final SecurityChain cut = new SecurityChain(api, policyManager);
+        final SecurityChain cut = new SecurityChain(api, policyManager, ExecutionPhase.REQUEST);
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertError(Throwable.class);

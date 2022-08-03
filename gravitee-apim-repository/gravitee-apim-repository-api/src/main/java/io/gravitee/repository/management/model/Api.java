@@ -152,6 +152,8 @@ public class Api {
         this.origin = cloned.origin;
         this.mode = cloned.mode;
         this.version = cloned.version;
+        this.type = cloned.type;
+        this.definitionVersion = cloned.definitionVersion;
         this.definition = cloned.definition;
         this.deployedAt = cloned.deployedAt;
         this.createdAt = cloned.createdAt;

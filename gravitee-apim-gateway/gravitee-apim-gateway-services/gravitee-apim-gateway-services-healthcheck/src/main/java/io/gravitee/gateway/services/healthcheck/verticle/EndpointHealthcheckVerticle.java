@@ -23,6 +23,7 @@ import io.gravitee.common.util.ObservableSet;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.services.healthcheck.EndpointHealthcheckResolver;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
@@ -51,6 +52,7 @@ import org.springframework.core.env.Environment;
 public class EndpointHealthcheckVerticle extends AbstractVerticle implements EventListener<ReactorEvent, Reactable> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EndpointHealthcheckVerticle.class);
+    private final Map<Api, List<EndpointRuleCronHandler>> apiHandlers = new ConcurrentHashMap<>();
 
     @Autowired
     private EventManager eventManager;
@@ -73,8 +75,6 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     @Autowired
     private Environment environment;
 
-    private final Map<Api, List<EndpointRuleCronHandler>> apiHandlers = new ConcurrentHashMap<>();
-
     @Override
     public void start(final Promise<Void> startPromise) {
         eventManager.subscribeForEvents(this, ReactorEvent.class);
@@ -83,17 +83,22 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
     @Override
     public void onEvent(Event<ReactorEvent, Reactable> event) {
-        switch (event.type()) {
-            case DEPLOY:
-                startHealthCheck((Api) event.content());
-                break;
-            case UNDEPLOY:
-                stopHealthCheck((Api) event.content());
-                break;
-            case UPDATE:
-                stopHealthCheck((Api) event.content());
-                startHealthCheck((Api) event.content());
-                break;
+        Reactable reactable = event.content();
+        if (reactable instanceof Api) {
+            switch (event.type()) {
+                case DEPLOY:
+                    startHealthCheck((Api) event.content());
+                    break;
+                case UNDEPLOY:
+                    stopHealthCheck((Api) event.content());
+                    break;
+                case UPDATE:
+                    stopHealthCheck((Api) event.content());
+                    startHealthCheck((Api) event.content());
+                    break;
+            }
+        } else {
+            LOGGER.warn("Health check service is not compatible with api V4");
         }
     }
 

@@ -48,7 +48,11 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
             path = URI_PATH_SEPARATOR;
         }
 
-        pathWithoutTrailingSlash = path;
+        if (path.length() > 1 && path.lastIndexOf(URI_PATH_SEPARATOR_CHAR) == path.length() - 1) {
+            pathWithoutTrailingSlash = path.substring(0, path.length() - 1);
+        } else {
+            pathWithoutTrailingSlash = path;
+        }
 
         if (path.lastIndexOf(URI_PATH_SEPARATOR_CHAR) != path.length() - 1) {
             path += URI_PATH_SEPARATOR;

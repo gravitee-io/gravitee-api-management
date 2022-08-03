@@ -25,6 +25,4 @@ import io.gravitee.definition.model.ExecutionMode;
  */
 public interface HttpAcceptorHandler extends HttpAcceptor {
     <T extends ReactorHandler> T target();
-
-    ExecutionMode executionMode();
 }

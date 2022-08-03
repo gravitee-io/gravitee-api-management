@@ -20,6 +20,7 @@ import io.gravitee.plugin.core.api.AbstractSimplePluginHandler;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.entrypoint.EntrypointPlugin;
+import java.io.IOException;
 import java.net.URLClassLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -53,6 +54,15 @@ public class EntrypointPluginHandler extends AbstractSimplePluginHandler<Entrypo
     @Override
     protected void register(EntrypointPlugin<?> entrypointPlugin) {
         entrypointPluginManager.register(entrypointPlugin);
+
+        // Once registered, the classloader should be released
+        // TODO: why do we need this here ?
+        URLClassLoader classLoader = (URLClassLoader) entrypointPlugin.entrypointConnectorFactory().getClassLoader();
+        try {
+            classLoader.close();
+        } catch (IOException e) {
+            logger.error("Unexpected exception while trying to release the policy classloader");
+        }
     }
 
     @Override

@@ -56,6 +56,8 @@ public enum DefinitionVersion {
         return BY_LABEL.keySet();
     }
 
+    // First argument is a regex so ignore sonar because of false positive
+    @SuppressWarnings("java:S5361")
     public Integer asInteger() {
         return Integer.valueOf(label.replaceAll("\\.", ""));
     }

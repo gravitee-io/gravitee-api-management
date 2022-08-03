@@ -21,7 +21,6 @@ import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.entrypoint.EntrypointClassLoaderFactory;
 import io.gravitee.plugin.entrypoint.EntrypointPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointPluginManager;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -55,14 +54,6 @@ public class EntrypointPluginManagerImpl extends AbstractConfigurablePluginManag
             factories.put(plugin.id(), factory);
         } catch (Exception ex) {
             logger.error("Unexpected error while loading entrypoint plugin: {}", plugin.clazz(), ex);
-        } finally {
-            if (pluginClassLoader != null) {
-                try {
-                    pluginClassLoader.close();
-                } catch (IOException e) {
-                    logger.error("Unexpected exception while trying to release the entrypoint plugin classloader", e);
-                }
-            }
         }
     }
 

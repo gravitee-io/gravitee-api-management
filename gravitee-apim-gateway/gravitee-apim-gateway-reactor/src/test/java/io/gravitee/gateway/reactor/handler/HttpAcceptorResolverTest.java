@@ -373,11 +373,6 @@ public class HttpAcceptorResolverTest {
         }
 
         @Override
-        public ExecutionMode executionMode() {
-            return null;
-        }
-
-        @Override
         public String path() {
             return httpAcceptor.path();
         }

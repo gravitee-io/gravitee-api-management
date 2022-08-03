@@ -30,46 +30,46 @@ import io.reactivex.Single;
  */
 public class VertxHttpServerResponse extends AbstractVertxServerResponse implements MutableResponse {
 
-    private final BodyChunksFlowable httpChunks;
+    private final BodyChunksFlowable bodyChunksFlowable;
 
     public VertxHttpServerResponse(final VertxHttpServerRequest vertxHttpServerRequest) {
         super(vertxHttpServerRequest);
-        httpChunks = new BodyChunksFlowable();
+        bodyChunksFlowable = new BodyChunksFlowable();
     }
 
     @Override
     public Maybe<Buffer> body() {
-        return httpChunks.body();
+        return bodyChunksFlowable.body();
     }
 
     @Override
     public Single<Buffer> bodyOrEmpty() {
-        return httpChunks.bodyOrEmpty();
+        return bodyChunksFlowable.bodyOrEmpty();
     }
 
     @Override
     public void body(final Buffer buffer) {
-        httpChunks.body(buffer);
+        bodyChunksFlowable.body(buffer);
     }
 
     @Override
     public Completable onBody(final MaybeTransformer<Buffer, Buffer> onBody) {
-        return httpChunks.onBody(onBody);
+        return bodyChunksFlowable.onBody(onBody);
     }
 
     @Override
     public Flowable<Buffer> chunks() {
-        return httpChunks.chunks();
+        return bodyChunksFlowable.chunks();
     }
 
     @Override
     public void chunks(final Flowable<Buffer> chunks) {
-        httpChunks.chunks(chunks);
+        bodyChunksFlowable.chunks(chunks);
     }
 
     @Override
     public Completable onChunks(final FlowableTransformer<Buffer, Buffer> onChunks) {
-        return httpChunks.onChunks(onChunks);
+        return bodyChunksFlowable.onChunks(onChunks);
     }
 
     @Override
@@ -83,9 +83,9 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse impleme
                 if (!opened()) {
                     return Completable.error(new IllegalStateException("The response is already ended"));
                 }
-                writeHeaders();
+                prepareHeaders();
 
-                if (httpChunks.chunks != null) {
+                if (bodyChunksFlowable.chunks != null) {
                     return nativeResponse.rxSend(
                         chunks()
                             .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))

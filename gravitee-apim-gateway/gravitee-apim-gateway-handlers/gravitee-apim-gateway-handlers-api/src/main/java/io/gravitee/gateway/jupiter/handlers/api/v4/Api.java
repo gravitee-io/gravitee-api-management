@@ -16,29 +16,25 @@
 package io.gravitee.gateway.jupiter.handlers.api.v4;
 
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
-import static io.gravitee.repository.management.model.Plan.PlanSecurityType.JWT;
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.OAUTH2;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.gateway.handlers.api.definition.ReactableApi;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -77,14 +73,31 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
 
     @Override
     public Set<String> getSubscribablePlans() {
-        // TODO
-        return null;
+        return definition
+            .getPlans()
+            .stream()
+            .filter(
+                plan ->
+                    OAUTH2.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
+                    API_KEY.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
+                    "api-key".equalsIgnoreCase(plan.getSecurity().getType())
+            )
+            .map(Plan::getId)
+            .collect(Collectors.toSet());
     }
 
     @Override
     public Set<String> getApiKeyPlans() {
-        // TODO
-        return null;
+        return definition
+            .getPlans()
+            .stream()
+            .filter(
+                plan ->
+                    API_KEY.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
+                    "api-key".equalsIgnoreCase(plan.getSecurity().getType())
+            )
+            .map(Plan::getId)
+            .collect(Collectors.toSet());
     }
 
     @Override
@@ -102,24 +115,26 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
         Set<Policy> policies = new HashSet<>();
 
         // Load policies from Plans
-        definition
-            .getPlans()
-            .forEach(
-                plan -> {
-                    PlanSecurity security = plan.getSecurity();
-                    Policy secPolicy = new Policy();
-                    secPolicy.setName(security.getType());
+        if (definition.getPlans() != null) {
+            definition
+                .getPlans()
+                .forEach(
+                    plan -> {
+                        PlanSecurity security = plan.getSecurity();
+                        Policy secPolicy = new Policy();
+                        secPolicy.setName(security.getType());
 
-                    if (secPolicy.getName() != null) {
-                        policies.add(secPolicy);
-                    }
+                        if (secPolicy.getName() != null) {
+                            policies.add(secPolicy);
+                        }
 
-                    if (plan.getFlows() != null) {
-                        List<Flow> flows = plan.getFlows();
-                        addFlowsPolicies(policies, flows);
+                        if (plan.getFlows() != null) {
+                            List<Flow> flows = plan.getFlows();
+                            addFlowsPolicies(policies, flows);
+                        }
                     }
-                }
-            );
+                );
+        }
 
         // Load policies from flows
         if (definition.getFlows() != null) {

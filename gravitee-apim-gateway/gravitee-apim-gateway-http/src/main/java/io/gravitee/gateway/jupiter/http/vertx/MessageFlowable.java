@@ -26,7 +26,7 @@ import io.reactivex.FlowableTransformer;
  */
 public class MessageFlowable {
 
-    protected Flowable<Message> messages;
+    protected Flowable<Message> messages = Flowable.empty();
 
     public Flowable<Message> messages() {
         return messages;

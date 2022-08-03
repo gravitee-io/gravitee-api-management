@@ -70,7 +70,7 @@ public class ReactorConfiguration {
 
     @Bean
     public Reactor v3Reactor(
-        final @Qualifier("v3EntrypointResolver") AcceptorResolver acceptorResolver,
+        final @Qualifier("v3AcceptorResolver") AcceptorResolver acceptorResolver,
         final GatewayConfiguration gatewayConfiguration,
         final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
         final @Qualifier("v3ResponseProcessorChainFactory") ResponseProcessorChainFactory responseProcessorChainFactory,
@@ -89,7 +89,7 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public AcceptorResolver v3EntrypointResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
+    public AcceptorResolver v3AcceptorResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
         // V3 EntrypointResolver bean must be kept while we are still supporting v3 execution mode.
         return new DefaultAcceptorResolver(reactorHandlerRegistry);
     }

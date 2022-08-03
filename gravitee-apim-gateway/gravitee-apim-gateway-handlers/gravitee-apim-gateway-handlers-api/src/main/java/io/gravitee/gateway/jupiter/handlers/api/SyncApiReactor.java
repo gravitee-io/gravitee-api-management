@@ -24,9 +24,8 @@ import static io.reactivex.Observable.interval;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.el.TemplateVariableProvider;
-import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.logging.LoggingContext;
@@ -38,9 +37,7 @@ import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
-import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
@@ -57,7 +54,7 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFacto
 import io.gravitee.gateway.jupiter.handlers.api.security.SecurityChain;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
-import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
@@ -79,7 +76,9 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor {
+public class SyncApiReactor
+    extends AbstractLifecycleComponent<ReactorHandler>
+    implements ApiReactor<io.gravitee.definition.model.Api, MutableRequestExecutionContext> {
 
     protected static final String ATTR_INVOKER_SKIP = "invoker.skip";
 
@@ -148,26 +147,21 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     @Override
-    public ExecutionMode executionMode() {
-        return ExecutionMode.JUPITER;
+    public ApiType apiType() {
+        return ApiType.SYNC;
     }
 
     @Override
-    public Completable handle(final HttpExecutionContext ctx) {
-        if (!(ctx instanceof MutableRequestExecutionContext)) {
-            throw new IllegalArgumentException("Given execution context is not compatible with current reactor");
-        }
-        MutableRequestExecutionContext requestExecutionContext = (MutableRequestExecutionContext) ctx;
-
-        requestExecutionContext.componentProvider(componentProvider);
-        requestExecutionContext.templateVariableProviders(templateVariableProviders);
+    public Completable handle(final MutableRequestExecutionContext ctx) {
+        ctx.componentProvider(componentProvider);
+        ctx.templateVariableProviders(templateVariableProviders);
 
         // Prepare attributes and metrics before handling the request.
-        prepareContextAttributes(requestExecutionContext);
-        prepareMetrics(requestExecutionContext);
+        prepareContextAttributes(ctx);
+        prepareMetrics(ctx);
 
         pendingRequests.incrementAndGet();
-        return handleRequest(requestExecutionContext).doFinally(pendingRequests::decrementAndGet);
+        return handleRequest(ctx).doFinally(pendingRequests::decrementAndGet);
     }
 
     private void prepareContextAttributes(RequestExecutionContext ctx) {
@@ -358,7 +352,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     @Override
-    public Reactable reactable() {
+    public ReactableApi<io.gravitee.definition.model.Api> reactable() {
         return api;
     }
 
@@ -375,7 +369,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         dumpVirtualHosts();
 
         // Create securityChain once policy manager has been started.
-        this.securityChain = new SecurityChain(api.getDefinition(), policyManager);
+        this.securityChain = new SecurityChain(api.getDefinition(), policyManager, REQUEST);
         if (tracingEnabled) {
             processorChainHooks.add(new TracingHook("processor-chain"));
             invokerHooks.add(new TracingHook("invoker"));
@@ -431,6 +425,11 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         if (o == null || getClass() != o.getClass()) return false;
         SyncApiReactor that = (SyncApiReactor) o;
         return api.equals(that.api);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(api);
     }
 
     protected void dumpVirtualHosts() {

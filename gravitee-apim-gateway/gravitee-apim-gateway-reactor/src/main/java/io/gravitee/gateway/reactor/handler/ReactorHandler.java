@@ -31,9 +31,5 @@ public interface ReactorHandler extends LifecycleComponent<ReactorHandler> {
      */
     Reactable reactable();
 
-    default ExecutionMode executionMode() {
-        return ExecutionMode.V3;
-    }
-
     void handle(ExecutionContext context, Handler<ExecutionContext> endHandler);
 }

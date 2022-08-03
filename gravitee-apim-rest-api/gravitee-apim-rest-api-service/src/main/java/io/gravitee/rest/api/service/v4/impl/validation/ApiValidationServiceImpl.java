@@ -15,8 +15,13 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
-import static io.gravitee.rest.api.model.api.ApiLifecycleState.*;
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.ARCHIVED;
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED;
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -29,7 +34,13 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
-import io.gravitee.rest.api.service.v4.validation.*;
+import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
+import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
+import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
+import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
+import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
+import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -68,6 +79,10 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final NewApiEntity newApiEntity,
         final PrimaryOwnerEntity currentPrimaryOwnerEntity
     ) {
+        // Validate version
+        this.validateDefinitionVersion(null, newApiEntity.getDefinitionVersion());
+        // Validate API Type
+        this.validateApiType(null, newApiEntity.getType());
         // Validate and clean tags
         newApiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, newApiEntity.getTags()));
         // Validate and clean groups
@@ -90,14 +105,16 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final ApiEntity existingApiEntity
     ) {
         // Validate version
-        this.validateDefinitionVersion(updateApiEntity, existingApiEntity);
+        this.validateDefinitionVersion(existingApiEntity.getDefinitionVersion(), updateApiEntity.getDefinitionVersion());
         // Validate API Type
-        this.validateApiType(updateApiEntity, existingApiEntity);
+        this.validateApiType(existingApiEntity.getType(), updateApiEntity.getType());
         // Validate and clean lifecycle state
-        updateApiEntity.setLifecycleState(this.validateAndSanitizeLifecycleState(updateApiEntity, existingApiEntity));
+        updateApiEntity.setLifecycleState(this.validateAndSanitizeLifecycleState(existingApiEntity, updateApiEntity));
 
         // Validate and clean tags
-        updateApiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, updateApiEntity.getTags()));
+        updateApiEntity.setTags(
+            tagsValidationService.validateAndSanitize(executionContext, existingApiEntity.getTags(), updateApiEntity.getTags())
+        );
         // Validate and clean groups
         updateApiEntity.setGroups(
             groupValidationService.validateAndSanitize(
@@ -119,46 +136,39 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         updateApiEntity.setResources(resourcesValidationService.validateAndSanitize(updateApiEntity.getResources()));
     }
 
-    private void validateDefinitionVersion(final UpdateApiEntity updateApiEntity, final ApiEntity existingApiEntity) {
-        if (updateApiEntity.getDefinitionVersion() == null) {
-            throw new InvalidDataException("Invalid definition version for api '" + updateApiEntity.getId() + "'");
+    private void validateDefinitionVersion(final DefinitionVersion oldDefinitionVersion, final DefinitionVersion newDefinitionVersion) {
+        if (newDefinitionVersion != DefinitionVersion.V4) {
+            throw new InvalidDataException("Definition version is unsupported, should be V4 or higher");
         }
-        if (updateApiEntity.getDefinitionVersion().asInteger() < existingApiEntity.getDefinitionVersion().asInteger()) {
-            // not allowed to downgrade definition version
+        if (oldDefinitionVersion != null && oldDefinitionVersion.asInteger() > newDefinitionVersion.asInteger()) {
+            // not allowed downgrading definition version
             throw new DefinitionVersionException();
         }
     }
 
-    private void validateApiType(final UpdateApiEntity updateApiEntity, final ApiEntity existingApiEntity) {
-        if (updateApiEntity.getType() == null) {
-            throw new InvalidDataException("Invalid definition type for api '" + updateApiEntity.getId() + "'");
+    private void validateApiType(final ApiType oldApiType, final ApiType newApiType) {
+        if (newApiType == null) {
+            throw new InvalidDataException("ApiType cannot be null.");
         }
-        if (updateApiEntity.getType() != existingApiEntity.getType()) {
-            // not allowed to change API Type
+        if (oldApiType != null && oldApiType != newApiType) {
+            // not allowed changing API Type
             throw new ApiTypeException();
         }
     }
 
-    private ApiLifecycleState validateAndSanitizeLifecycleState(final UpdateApiEntity updateApiEntity, final ApiEntity existingApiEntity) {
+    private ApiLifecycleState validateAndSanitizeLifecycleState(final ApiEntity existingApiEntity, final UpdateApiEntity updateApiEntity) {
         // if lifecycle state not provided, return the existing one
         if (updateApiEntity.getLifecycleState() == null) {
             return existingApiEntity.getLifecycleState();
-        }
-        // TODO FCY: because of this, you can't update a deprecated API but the reason is not clear.
-        //  if we don't want a deprecated API to be updated, then we should have a specific check
-        //  Otherwise, we should first check that existingAPI and updateApi have the same lifecycleState and THEN check for deprecation status of the exiting API
-        if (DEPRECATED.equals(existingApiEntity.getLifecycleState())) {
+        } else if (DEPRECATED == existingApiEntity.getLifecycleState()) { //  Otherwise, we should first check that existingAPI and updateApi have the same lifecycleState and THEN check for deprecation status of the exiting API //  if we don't want a deprecated API to be updated, then we should have a specific check // TODO FCY: because of this, you can't update a deprecated API but the reason is not clear.
             throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
-        }
-        if (existingApiEntity.getLifecycleState() == updateApiEntity.getLifecycleState()) {
+        } else if (existingApiEntity.getLifecycleState() == updateApiEntity.getLifecycleState()) {
             return existingApiEntity.getLifecycleState();
-        }
-        if (ARCHIVED.equals(existingApiEntity.getLifecycleState()) && !ARCHIVED.equals(updateApiEntity.getLifecycleState())) {
-            throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
-        } else if (UNPUBLISHED.equals(existingApiEntity.getLifecycleState()) && CREATED.equals(updateApiEntity.getLifecycleState())) {
-            throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
         } else if (
-            CREATED.equals(existingApiEntity.getLifecycleState()) && WorkflowState.IN_REVIEW.equals(existingApiEntity.getWorkflowState())
+            (ARCHIVED == existingApiEntity.getLifecycleState() && (ARCHIVED != updateApiEntity.getLifecycleState())) ||
+            ((UNPUBLISHED == existingApiEntity.getLifecycleState()) && (CREATED == updateApiEntity.getLifecycleState())) ||
+            (CREATED == existingApiEntity.getLifecycleState()) &&
+            (WorkflowState.IN_REVIEW == existingApiEntity.getWorkflowState())
         ) {
             throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
         }

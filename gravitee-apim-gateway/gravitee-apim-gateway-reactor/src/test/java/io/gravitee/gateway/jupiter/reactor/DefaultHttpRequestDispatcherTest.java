@@ -38,6 +38,7 @@ import static org.mockito.Mockito.withSettings;
 
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
@@ -190,7 +191,7 @@ class DefaultHttpRequestDispatcherTest {
 
     @Test
     void shouldHandleJupiterRequest() {
-        final ApiReactor apiReactor = mock(ApiReactor.class, withSettings().extraInterfaces(ReactorHandler.class));
+        final ApiReactor apiReactor = mock(ApiReactor.class);
 
         this.prepareJupiterMock(handlerEntrypoint, apiReactor);
 
@@ -392,8 +393,8 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     private void prepareJupiterMock(HttpAcceptorHandler handlerEntrypoint, ApiReactor apiReactor) {
+        when(apiReactor.apiType()).thenReturn(ApiType.SYNC);
         when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(handlerEntrypoint);
-        when(handlerEntrypoint.executionMode()).thenReturn(ExecutionMode.JUPITER);
         when(handlerEntrypoint.path()).thenReturn(PATH);
         when(handlerEntrypoint.target()).thenReturn(apiReactor);
     }
@@ -402,7 +403,6 @@ class DefaultHttpRequestDispatcherTest {
         when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(handlerEntrypoint);
 
         if (apiReactor != null) {
-            when(handlerEntrypoint.executionMode()).thenReturn(ExecutionMode.V3);
             when(handlerEntrypoint.target()).thenReturn(apiReactor);
         }
     }

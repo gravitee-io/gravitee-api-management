@@ -15,11 +15,13 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -56,8 +58,12 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.EventEntity;
+import io.gravitee.rest.api.model.EventQuery;
+import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -65,6 +71,7 @@ import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -94,10 +101,12 @@ import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -108,6 +117,7 @@ import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
@@ -117,6 +127,7 @@ import io.gravitee.rest.api.service.v4.mapper.IndexableApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -143,6 +154,7 @@ public class ApiServiceImplTest {
     private static final String API_NAME = "myAPI";
     private static final String USER_NAME = "myUser";
     private static final String PLAN_ID = "my-plan";
+    private final ObjectMapper objectMapper = new GraviteeMapper();
 
     @Mock
     private ApiRepository apiRepository;
@@ -238,11 +250,10 @@ public class ApiServiceImplTest {
     private ApiNotificationService apiNotificationService;
 
     private ApiService apiService;
-
     private UpdateApiEntity updateApiEntity;
     private Api api;
     private Api updatedApi;
-    private final ObjectMapper objectMapper = new GraviteeMapper();
+    private ApiStateService apiStateService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -297,6 +308,17 @@ public class ApiServiceImplTest {
                 propertiesService,
                 apiNotificationService
             );
+        apiStateService =
+            new ApiStateServiceImpl(
+                apiService,
+                apiRepository,
+                apiMapper,
+                apiNotificationService,
+                primaryOwnerService,
+                auditService,
+                eventService,
+                objectMapper
+            );
         //        when(virtualHostService.sanitizeAndValidate(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -312,6 +334,7 @@ public class ApiServiceImplTest {
         api = new Api();
         api.setId(API_ID);
         api.setEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId());
+        api.setDefinitionVersion(DefinitionVersion.V4);
 
         updatedApi = new Api();
         updatedApi.setId(API_ID);
@@ -561,6 +584,7 @@ public class ApiServiceImplTest {
         Api api = new Api();
         api.setId(API_ID);
         api.setEnvironmentId("DEFAULT");
+        api.setDefinitionVersion(null);
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         UserEntity userEntity = new UserEntity();
@@ -653,7 +677,7 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.PUBLISHED);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(planEntity));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID);
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
@@ -669,7 +693,7 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.CLOSED);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(planEntity));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID);
 
@@ -688,7 +712,7 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.STAGING);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(planEntity));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID);
 
@@ -1050,6 +1074,43 @@ public class ApiServiceImplTest {
                 any()
             );
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    }
+
+    @Test(expected = ApiNotManagedException.class)
+    public void shouldThrowWhenDeployingIfManagedByKubernetes() throws TechnicalException {
+        api.setOrigin(ORIGIN_KUBERNETES);
+        Mockito.when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
+    }
+
+    @Test
+    public void shouldDeployApi() throws TechnicalException {
+        final EventEntity previousPublishedEvent = new EventEntity();
+        previousPublishedEvent.setProperties(new HashMap<>());
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiRepository.update(api)).thenReturn(api);
+        when(eventService.search(any(ExecutionContext.class), any())).thenReturn(singleton(previousPublishedEvent));
+
+        final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
+        apiDeploymentEntity.setDeploymentLabel("deploy-label");
+        final ApiEntity result = apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, apiDeploymentEntity);
+
+        verify(eventService)
+            .createApiEvent(
+                any(ExecutionContext.class),
+                any(Set.class),
+                eq(EventType.PUBLISH_API),
+                eq(api),
+                argThat(
+                    properties ->
+                        properties.get(Event.EventProperties.API_ID.getValue()).equals(API_ID) &&
+                        properties.get(Event.EventProperties.USER.getValue()).equals(USER_NAME) &&
+                        properties.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()).equals("1") &&
+                        properties.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue()).equals(apiDeploymentEntity.getDeploymentLabel())
+                )
+            );
+        verify(apiNotificationService).triggerDeployNotification(any(ExecutionContext.class), eq(result));
     }
 
     private void prepareUpdate() throws TechnicalException {

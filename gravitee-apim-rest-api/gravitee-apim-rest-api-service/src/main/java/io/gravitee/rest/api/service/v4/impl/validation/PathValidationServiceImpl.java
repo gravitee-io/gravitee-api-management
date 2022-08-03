@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
+import io.gravitee.rest.api.service.v4.exception.InvalidPathNullHostException;
 import io.gravitee.rest.api.service.v4.exception.ListenerHttpPathMissingException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import io.gravitee.rest.api.service.v4.validation.PathValidationService;
@@ -73,14 +74,32 @@ public class PathValidationServiceImpl implements PathValidationService {
         if (paths == null || paths.isEmpty()) {
             throw new ListenerHttpPathMissingException();
         }
-
         List<Path> sanitizedPaths = paths
             .stream()
             .map(path -> new Path(path.getHost(), sanitizePath(path.getPath())))
             .collect(Collectors.toList());
 
+        final EnvironmentEntity currentEnv = environmentService.findById(executionContext.getEnvironmentId());
+
         // validate domain restrictions
-        validateDomainRestrictions(executionContext, sanitizedPaths);
+        validateDomainRestrictions(sanitizedPaths, currentEnv.getDomainRestrictions());
+
+        // In virtual host mode, every vhost should have a host set
+        final boolean virtualHostModeEnabled =
+            sanitizedPaths.size() > 1 ||
+            sanitizedPaths.iterator().next().getHost() != null ||
+            currentEnv.getDomainRestrictions() != null &&
+            !currentEnv.getDomainRestrictions().isEmpty();
+        if (virtualHostModeEnabled) {
+            final List<String> nullHostPaths = sanitizedPaths
+                .stream()
+                .filter(path -> path.getHost() == null)
+                .map(Path::getPath)
+                .collect(Collectors.toList());
+            if (!nullHostPaths.isEmpty()) {
+                throw new InvalidPathNullHostException("In Virtual Host mode, all listening host have to be configured", nullHostPaths);
+            }
+        }
 
         // Get all the paths declared on all API of the currentEnvironment, except the one to update
         Set<Path> existingPaths = apiRepository
@@ -192,9 +211,7 @@ public class PathValidationServiceImpl implements PathValidationService {
         return DUPLICATE_SLASH_REMOVER.matcher(sanitizedPath).replaceAll(URI_PATH_SEPARATOR);
     }
 
-    private void validateDomainRestrictions(final ExecutionContext executionContext, final List<Path> paths) {
-        final EnvironmentEntity currentEnv = environmentService.findById(executionContext.getEnvironmentId());
-        final List<String> domainRestrictions = currentEnv.getDomainRestrictions();
+    private void validateDomainRestrictions(final List<Path> paths, final List<String> domainRestrictions) {
         if (domainRestrictions != null && !domainRestrictions.isEmpty()) {
             for (Path path : paths) {
                 String host = path.getHost();

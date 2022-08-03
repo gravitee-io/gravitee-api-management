@@ -60,6 +60,8 @@ import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
+import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.reactor.handler.context.DefaultV3ExecutionContextFactory;
@@ -146,6 +148,11 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     }
 
     @Override
+    public boolean support(final Class<? extends Reactable> clazz) {
+        return Api.class.isAssignableFrom(clazz);
+    }
+
+    @Override
     public boolean canCreate(final Api api) {
         return api.getDefinitionVersion() != DefinitionVersion.V4;
     }
@@ -165,7 +172,10 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                 );
 
                 customComponentProvider.add(ResourceManager.class, resourceLifecycleManager);
+                // For compatibility, definition api should be from the context
+                customComponentProvider.add(io.gravitee.definition.model.Api.class, api.getDefinition());
                 customComponentProvider.add(Api.class, api);
+                customComponentProvider.add(ReactableApi.class, api);
 
                 final CompositeComponentProvider apiComponentProvider = new CompositeComponentProvider(
                     customComponentProvider,

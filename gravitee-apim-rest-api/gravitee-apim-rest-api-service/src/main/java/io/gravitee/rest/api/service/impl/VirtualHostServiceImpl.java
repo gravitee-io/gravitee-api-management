@@ -21,7 +21,9 @@ import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
+import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostNullHostException;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
+import io.gravitee.rest.api.service.v4.exception.InvalidPathNullHostException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import io.gravitee.rest.api.service.v4.validation.PathValidationService;
 import java.util.Collection;
@@ -64,6 +66,8 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
             throw new ApiContextPathAlreadyExistsException(e.getPathValue());
         } catch (InvalidHostException e) {
             throw new InvalidVirtualHostException(e.getHost(), e.getRestrictions());
+        } catch (InvalidPathNullHostException e) {
+            throw new InvalidVirtualHostNullHostException(e.getMessage(), e.getPaths());
         }
     }
 

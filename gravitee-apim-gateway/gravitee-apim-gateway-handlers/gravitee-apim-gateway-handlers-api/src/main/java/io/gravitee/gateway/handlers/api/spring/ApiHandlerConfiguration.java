@@ -20,6 +20,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
+import io.gravitee.gateway.entrypoint.EntrypointRegistry;
 import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -36,6 +37,7 @@ import io.gravitee.gateway.jupiter.flow.condition.evaluation.HttpMethodCondition
 import io.gravitee.gateway.jupiter.flow.condition.evaluation.PathBasedConditionFilter;
 import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.AsyncReactorFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
@@ -179,5 +181,13 @@ public class ApiHandlerConfiguration {
     @Bean
     public SubscriptionService subscriptionService(CacheManager cacheManager) {
         return new SubscriptionService(cacheManager);
+    }
+
+    @Bean
+    public ReactorFactory<io.gravitee.gateway.jupiter.handlers.api.v4.Api> asyncApiReactorFactory(
+        PolicyFactory policyFactory,
+        EntrypointRegistry entrypointRegistry
+    ) {
+        return new AsyncReactorFactory(applicationContext, configuration, policyFactory, entrypointRegistry);
     }
 }

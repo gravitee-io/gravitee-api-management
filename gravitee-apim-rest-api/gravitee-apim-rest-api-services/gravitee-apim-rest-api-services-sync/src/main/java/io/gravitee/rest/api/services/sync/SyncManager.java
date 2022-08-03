@@ -18,6 +18,7 @@ package io.gravitee.rest.api.services.sync;
 import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
@@ -26,11 +27,13 @@ import io.gravitee.repository.management.model.EventType;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.IndexableApi;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
@@ -73,6 +76,9 @@ public class SyncManager {
 
     @Autowired
     private PrimaryOwnerService primaryOwnerService;
+
+    @Autowired
+    private ApiMapper apiMapper;
 
     private long lastRefreshAt = -1;
 
@@ -175,18 +181,23 @@ public class SyncManager {
                     Api payloadApi = objectMapper.readValue(apiEvent.getPayload(), Api.class);
 
                     // API to deploy
-                    ApiEntity apiToDeploy = convert(payloadApi);
+                    IndexableApi indexableApiToDeploy;
+                    if (payloadApi.getDefinitionVersion() == null || payloadApi.getDefinitionVersion() != DefinitionVersion.V4) {
+                        indexableApiToDeploy = convert(payloadApi);
+                    } else {
+                        indexableApiToDeploy = convertV4(payloadApi);
+                    }
 
-                    if (apiToDeploy != null) {
+                    if (indexableApiToDeploy != null) {
                         // Get deployed API
-                        ApiEntity deployedApi = apiManager.get(apiToDeploy.getId());
+                        IndexableApi deployedApi = apiManager.get(indexableApiToDeploy.getId());
 
                         // API is not yet deployed, so let's do it !
                         if (deployedApi == null) {
-                            apiManager.deploy(apiToDeploy);
+                            apiManager.deploy(indexableApiToDeploy);
                         } else {
-                            if (deployedApi.getDeployedAt().before(apiToDeploy.getDeployedAt())) {
-                                apiManager.update(apiToDeploy);
+                            if (deployedApi.getDeployedAt().before(indexableApiToDeploy.getDeployedAt())) {
+                                apiManager.update(indexableApiToDeploy);
                             }
                         }
                     }
@@ -217,5 +228,10 @@ public class SyncManager {
             logger.error(e.getMessage());
         }
         return apiConverter.toApiEntity(api, primaryOwnerEntity);
+    }
+
+    private io.gravitee.rest.api.model.v4.api.ApiEntity convertV4(Api api) {
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(GraviteeContext.getExecutionContext(), api.getId());
+        return apiMapper.toEntity(api, primaryOwner);
     }
 }

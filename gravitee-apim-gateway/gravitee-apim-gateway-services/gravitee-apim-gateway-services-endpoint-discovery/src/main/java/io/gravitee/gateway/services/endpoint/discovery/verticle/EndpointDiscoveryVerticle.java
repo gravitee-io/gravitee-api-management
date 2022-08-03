@@ -34,8 +34,12 @@ import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.discovery.ServiceDiscoveryPlugin;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class EndpointDiscoveryVerticle extends AbstractVerticle implements EventListener<ReactorEvent, Reactable> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EndpointDiscoveryVerticle.class);
+    private final Map<Api, List<ServiceDiscovery>> apiServiceDiscoveries = new HashMap<>();
 
     @Autowired
     private EventManager eventManager;
@@ -56,8 +61,6 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
 
     @Autowired
     private ServiceDiscoveryFactory serviceDiscoveryFactory;
-
-    private final Map<Api, List<ServiceDiscovery>> apiServiceDiscoveries = new HashMap<>();
 
     @Autowired
     private ObjectMapper mapper;
@@ -70,17 +73,22 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
 
     @Override
     public void onEvent(Event<ReactorEvent, Reactable> event) {
-        switch (event.type()) {
-            case DEPLOY:
-                lookupForServiceDiscovery((Api) event.content());
-                break;
-            case UNDEPLOY:
-                stopServiceDiscovery((Api) event.content());
-                break;
-            case UPDATE:
-                stopServiceDiscovery((Api) event.content());
-                lookupForServiceDiscovery((Api) event.content());
-                break;
+        Reactable reactable = event.content();
+        if (reactable instanceof Api) {
+            switch (event.type()) {
+                case DEPLOY:
+                    lookupForServiceDiscovery((Api) event.content());
+                    break;
+                case UNDEPLOY:
+                    stopServiceDiscovery((Api) event.content());
+                    break;
+                case UPDATE:
+                    stopServiceDiscovery((Api) event.content());
+                    lookupForServiceDiscovery((Api) event.content());
+                    break;
+            }
+        } else {
+            LOGGER.warn("Health check service is not compatible with api V4");
         }
     }
 
@@ -179,7 +187,7 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
     }
 
     private String getEndpointConfiguration(EndpointGroup group, Endpoint endpoint, String scheme) {
-        ObjectNode endpointNode = (ObjectNode) mapper.valueToTree(endpoint);
+        ObjectNode endpointNode = mapper.valueToTree(endpoint);
 
         if (Service.HTTPS_SCHEME.equalsIgnoreCase(scheme)) {
             HttpClientSslOptions groupHttpClientOptions = group.getHttpClientSslOptions();

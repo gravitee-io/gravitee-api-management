@@ -15,7 +15,9 @@
  */
 package io.gravitee.gateway.jupiter.reactor.v4.reactor;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 
 /**
@@ -23,6 +25,8 @@ import io.gravitee.gateway.reactor.handler.ReactorHandler;
  * @author GraviteeSource Team
  */
 public interface ReactorFactory<T extends Reactable> {
+    boolean support(Class<? extends Reactable> clazz);
+
     boolean canCreate(T api);
 
     ReactorHandler create(T api);

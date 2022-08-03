@@ -19,7 +19,6 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.handlers.api.manager.Deployer;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -31,64 +30,51 @@ import org.slf4j.LoggerFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiDeployer implements Deployer<Api> {
+public class ApiDeployer extends AbstractApiDeployer<Api> {
 
     private final Logger logger = LoggerFactory.getLogger(ApiDeployer.class);
-
-    private final GatewayConfiguration gatewayConfiguration;
-
     private final DataEncryptor dataEncryptor;
 
-    public ApiDeployer(GatewayConfiguration gatewayConfiguration, DataEncryptor dataEncryptor) {
-        this.gatewayConfiguration = gatewayConfiguration;
+    public ApiDeployer(final GatewayConfiguration gatewayConfiguration, final DataEncryptor dataEncryptor) {
+        super(gatewayConfiguration);
         this.dataEncryptor = dataEncryptor;
     }
 
     @Override
-    public void prepare(Api api) {
-        api.getDefinition().setPlans(getPlansMatchingShardingTag(api));
-        decryptProperties(api.getDefinition().getProperties());
+    public void initialize(final Api api) {
+        io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
+        if (apiDefinition.getPlans() != null) {
+            apiDefinition.setPlans(filterPlans(apiDefinition.getPlans()));
+        } else {
+            apiDefinition.setPlans(List.of());
+        }
+        if (apiDefinition.getProperties() != null) {
+            decryptProperties(apiDefinition.getProperties());
+        }
     }
 
     @Override
-    public List<String> getPlans(Api api) {
+    public List<String> getPlans(final Api api) {
         return api.getDefinition().getPlans().stream().map(Plan::getName).collect(Collectors.toList());
     }
 
-    private List<Plan> getPlansMatchingShardingTag(Api api) {
-        return api
-            .getDefinition()
-            .getPlans()
+    private List<Plan> filterPlans(final List<Plan> plans) {
+        return plans
             .stream()
-            .filter(
-                plan -> {
-                    if (plan.getTags() != null && !plan.getTags().isEmpty()) {
-                        boolean hasMatchingTags = gatewayConfiguration.hasMatchingTags(plan.getTags());
-                        if (!hasMatchingTags) {
-                            logger.debug(
-                                "Plan name[{}] api[{}] has been ignored because not in configured sharding tags",
-                                plan.getName(),
-                                api.getName()
-                            );
-                        }
-                        return hasMatchingTags;
-                    }
-                    return true;
-                }
-            )
+            .filter(plan -> plan.getStatus() != null)
+            .filter(plan -> filterPlanStatus(plan.getStatus().getLabel()))
+            .filter(plan -> filterShardingTag(plan.getName(), plan.getId(), plan.getTags()))
             .collect(Collectors.toList());
     }
 
-    private void decryptProperties(List<Property> properties) {
-        if (properties != null) {
-            for (Property property : properties) {
-                if (property.isEncrypted()) {
-                    try {
-                        property.setValue(dataEncryptor.decrypt(property.getValue()));
-                        property.setEncrypted(false);
-                    } catch (GeneralSecurityException e) {
-                        logger.error("Error decrypting API property value for key {}", property.getKey(), e);
-                    }
+    private void decryptProperties(final List<Property> properties) {
+        for (Property property : properties) {
+            if (property.isEncrypted()) {
+                try {
+                    property.setValue(dataEncryptor.decrypt(property.getValue()));
+                    property.setEncrypted(false);
+                } catch (GeneralSecurityException e) {
+                    logger.error("Error decrypting API property value for key {}", property.getKey(), e);
                 }
             }
         }

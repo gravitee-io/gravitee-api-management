@@ -43,6 +43,5 @@ public class Entrypoint implements Serializable {
 
     @Schema(implementation = Object.class)
     @JsonRawValue
-    @JsonProperty(required = true)
-    private Object configuration;
+    private String configuration;
 }
