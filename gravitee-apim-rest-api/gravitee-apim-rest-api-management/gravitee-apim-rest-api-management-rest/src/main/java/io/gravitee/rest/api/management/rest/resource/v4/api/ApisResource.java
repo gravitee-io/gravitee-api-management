@@ -66,15 +66,9 @@ public class ApisResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
-    public Response createApi(@Parameter(name = "api", required = true) @Valid @NotNull final NewApiEntity newApiEntity)
-        throws ApiAlreadyExistsException {
-        try {
-            ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
-            return Response.created(this.getLocationHeader(newApi.getId())).entity(newApi).build();
-        } catch (Exception e) {
-            log.error("Unexpected error occured", e);
-            return Response.serverError().build();
-        }
+    public Response createApi(@Parameter(name = "api", required = true) @Valid @NotNull final NewApiEntity newApiEntity) {
+        ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
+        return Response.created(this.getLocationHeader(newApi.getId())).entity(newApi).build();
     }
 
     @Path("{api}")
