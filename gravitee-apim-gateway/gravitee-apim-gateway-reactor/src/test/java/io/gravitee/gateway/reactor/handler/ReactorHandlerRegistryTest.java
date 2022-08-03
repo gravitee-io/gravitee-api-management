@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import java.util.*;
@@ -44,7 +45,7 @@ public class ReactorHandlerRegistryTest {
     private DefaultReactorHandlerRegistry reactorHandlerRegistry;
 
     @Mock
-    private ReactorHandlerFactoryManager reactorHandlerFactoryManager;
+    private ReactorFactoryManager reactorHandlerFactoryManager;
 
     @Before
     public void setUp() throws Exception {
@@ -56,7 +57,7 @@ public class ReactorHandlerRegistryTest {
         Reactable reactable = createReactable("reactable1", "/");
 
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
 
         reactorHandlerRegistry.create(reactable);
 
@@ -68,10 +69,14 @@ public class ReactorHandlerRegistryTest {
 
     @Test
     public void shouldHaveTwoHttpAcceptors_singleReactable() {
-        Reactable reactable = createReactable("reactable1", new VirtualHost("/products/v1"), new VirtualHost("/products/v2"));
+        Reactable reactable = createReactable(
+            "reactable1",
+            new DefaultHttpAcceptor("/products/v1"),
+            new DefaultHttpAcceptor("/products/v2")
+        );
 
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
 
         reactorHandlerRegistry.create(reactable);
 
@@ -86,12 +91,12 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveTwoHttpAcceptors_singleReactable_withVirtualHost() {
         Reactable reactable = createReactable(
             "reactable1",
-            new VirtualHost("/products/v1"),
-            new VirtualHost("api.gravitee.io", "/products/v2")
+            new DefaultHttpAcceptor("/products/v1"),
+            new DefaultHttpAcceptor("api.gravitee.io", "/products/v2")
         );
 
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
 
         reactorHandlerRegistry.create(reactable);
 
@@ -106,12 +111,12 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveTwoHttpAcceptors_duplicateContextPath() {
         Reactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
         Reactable reactable2 = createReactable("reactable2", "/");
         ReactorHandler handler2 = createReactorHandler(reactable2);
-        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
+        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
 
         reactorHandlerRegistry.create(reactable2);
 
@@ -127,12 +132,12 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveTwoEntrypoints() {
         Reactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
         Reactable reactable2 = createReactable("reactable2", "/products");
         ReactorHandler handler2 = createReactorHandler(reactable2);
-        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
+        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         Assert.assertEquals(2, reactorHandlerRegistry.getHttpAcceptorHandlers().size());
@@ -149,12 +154,12 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveTwoHttpAcceptors_duplicateContextPath_withVirtualHost() {
         Reactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
         Reactable reactable2 = createReactable("reactable2", "api.gravitee.io", "/");
         ReactorHandler handler2 = createReactorHandler(reactable2);
-        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
+        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         // Paths "/" are equivalent but virtualhost takes priority over simple path.
@@ -171,12 +176,12 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveTwoHttpAcceptors_updateReactable() {
         DummyReactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
         DummyReactable updateReactable = createReactable("reactable2", "api.gravitee.io", "/");
         ReactorHandler handler2 = createReactorHandler(updateReactable);
-        when(reactorHandlerFactoryManager.create(updateReactable)).thenReturn(handler2);
+        when(reactorHandlerFactoryManager.create(updateReactable)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.update(updateReactable);
 
         final Collection<HttpAcceptorHandler> httpAcceptorHandlers = reactorHandlerRegistry.getHttpAcceptorHandlers();
@@ -190,37 +195,37 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveMultipleHttpAcceptors_multipleCreateReactable() {
         DummyReactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
         DummyReactable reactable2 = createReactable(
             "reactable2",
-            new VirtualHost("api.gravitee.io", "/a"),
-            new VirtualHost("api1.gravitee.io", "/a"),
-            new VirtualHost("api2.gravitee.io", "/a"),
-            new VirtualHost("api3.gravitee.io", "/a"),
-            new VirtualHost("api4.gravitee.io", "/a"),
-            new VirtualHost("apiX.gravitee.io", "/a"),
-            new VirtualHost("api10.gravitee.io", "/a"),
-            new VirtualHost("api11.gravitee.io", "/a")
+            new DefaultHttpAcceptor("api.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api1.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api2.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api3.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api4.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("apiX.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api10.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api11.gravitee.io", "/a")
         );
         ReactorHandler handler2 = createReactorHandler(reactable2);
-        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
+        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         DummyReactable reactable3 = createReactable(
             "reactable3",
-            new VirtualHost("api.gravitee.io", "/a-v1"),
-            new VirtualHost("api1.gravitee.io", "/a-v1"),
-            new VirtualHost("api2.gravitee.io", "/a-v1"),
-            new VirtualHost("api3.gravitee.io", "/a-v1"),
-            new VirtualHost("api4.gravitee.io", "/a-v1"),
-            new VirtualHost("apiX.gravitee.io", "/a-v1"),
-            new VirtualHost("api10.gravitee.io", "/a-v1"),
-            new VirtualHost("api11.gravitee.io", "/a-v1")
+            new DefaultHttpAcceptor("api.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("api1.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("api2.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("api3.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("api4.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("apiX.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("api10.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("api11.gravitee.io", "/a-v1")
         );
         ReactorHandler handler3 = createReactorHandler(reactable3);
-        when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(handler3);
+        when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
         reactorHandlerRegistry.create(reactable3);
 
         final Collection<HttpAcceptorHandler> httpAcceptorHandlers = reactorHandlerRegistry.getHttpAcceptorHandlers();
@@ -249,37 +254,37 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveMultipleHttpAcceptors_multipleVhostsWithSubPaths() {
         DummyReactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
         DummyReactable reactable2 = createReactable(
             "reactable2",
-            new VirtualHost("api.gravitee.io", "/a/b/c"),
-            new VirtualHost("api1.gravitee.io", "/a/b/c"),
-            new VirtualHost("api2.gravitee.io", "/a/b/c"),
-            new VirtualHost("api3.gravitee.io", "/a/b/c"),
-            new VirtualHost("api4.gravitee.io", "/a/b/c"),
-            new VirtualHost("apiX.gravitee.io", "/a/b/c"),
-            new VirtualHost("api10.gravitee.io", "/a/b/c"),
-            new VirtualHost("api11.gravitee.io", "/a/b/c")
+            new DefaultHttpAcceptor("api.gravitee.io", "/a/b/c"),
+            new DefaultHttpAcceptor("api1.gravitee.io", "/a/b/c"),
+            new DefaultHttpAcceptor("api2.gravitee.io", "/a/b/c"),
+            new DefaultHttpAcceptor("api3.gravitee.io", "/a/b/c"),
+            new DefaultHttpAcceptor("api4.gravitee.io", "/a/b/c"),
+            new DefaultHttpAcceptor("apiX.gravitee.io", "/a/b/c"),
+            new DefaultHttpAcceptor("api10.gravitee.io", "/a/b/c"),
+            new DefaultHttpAcceptor("api11.gravitee.io", "/a/b/c")
         );
         ReactorHandler handler2 = createReactorHandler(reactable2);
-        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
+        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         DummyReactable reactable3 = createReactable(
             "reactable3",
-            new VirtualHost("api.gravitee.io", "/a/b/a"),
-            new VirtualHost("api1.gravitee.io", "/a/b/b"),
-            new VirtualHost("api2.gravitee.io", "/a/b/d"),
-            new VirtualHost("api3.gravitee.io", "/a/b/e"),
-            new VirtualHost("api4.gravitee.io", "/a/b/f"),
-            new VirtualHost("apiX.gravitee.io", "/a/b/c1/sub"),
-            new VirtualHost("api10.gravitee.io", "/a/b/c1/sub"),
-            new VirtualHost("api11.gravitee.io", "/a/b/c1/sub")
+            new DefaultHttpAcceptor("api.gravitee.io", "/a/b/a"),
+            new DefaultHttpAcceptor("api1.gravitee.io", "/a/b/b"),
+            new DefaultHttpAcceptor("api2.gravitee.io", "/a/b/d"),
+            new DefaultHttpAcceptor("api3.gravitee.io", "/a/b/e"),
+            new DefaultHttpAcceptor("api4.gravitee.io", "/a/b/f"),
+            new DefaultHttpAcceptor("apiX.gravitee.io", "/a/b/c1/sub"),
+            new DefaultHttpAcceptor("api10.gravitee.io", "/a/b/c1/sub"),
+            new DefaultHttpAcceptor("api11.gravitee.io", "/a/b/c1/sub")
         );
         ReactorHandler handler3 = createReactorHandler(reactable3);
-        when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(handler3);
+        when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
         reactorHandlerRegistry.create(reactable3);
 
         final Collection<HttpAcceptorHandler> httpAcceptorHandlers = reactorHandlerRegistry.getHttpAcceptorHandlers();
@@ -308,53 +313,53 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveMultipleHttpAcceptors_multipleUpdateReactable() {
         DummyReactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
         DummyReactable reactable2 = createReactable(
             "reactable2",
-            new VirtualHost("api.gravitee.io", "/a"),
-            new VirtualHost("api1.gravitee.io", "/a"),
-            new VirtualHost("api2.gravitee.io", "/a"),
-            new VirtualHost("api3.gravitee.io", "/a"),
-            new VirtualHost("api4.gravitee.io", "/a"),
-            new VirtualHost("apiX.gravitee.io", "/a"),
-            new VirtualHost("api10.gravitee.io", "/a"),
-            new VirtualHost("api11.gravitee.io", "/a")
+            new DefaultHttpAcceptor("api.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api1.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api2.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api3.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api4.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("apiX.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api10.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api11.gravitee.io", "/a")
         );
         ReactorHandler handler2 = createReactorHandler(reactable2);
-        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
+        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         DummyReactable reactable3 = createReactable(
             "reactable3",
-            new VirtualHost("api.gravitee.io", "/a-v1"),
-            new VirtualHost("api1.gravitee.io", "/a-v1"),
-            new VirtualHost("api2.gravitee.io", "/a-v1"),
-            new VirtualHost("api3.gravitee.io", "/a-v1"),
-            new VirtualHost("api4.gravitee.io", "/a-v1"),
-            new VirtualHost("apiX.gravitee.io", "/a-v1"),
-            new VirtualHost("api10.gravitee.io", "/a-v1"),
-            new VirtualHost("api11.gravitee.io", "/a-v1")
+            new DefaultHttpAcceptor("api.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("api1.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("api2.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("api3.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("api4.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("apiX.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("api10.gravitee.io", "/a-v1"),
+            new DefaultHttpAcceptor("api11.gravitee.io", "/a-v1")
         );
         ReactorHandler handler3 = createReactorHandler(reactable3);
-        when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(handler3);
+        when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
         reactorHandlerRegistry.create(reactable3);
 
         reactable2 =
             createReactable(
                 "reactable2",
-                new VirtualHost("api.gravitee.io", "/b"),
-                new VirtualHost("api1.gravitee.io", "/b"),
-                new VirtualHost("api2.gravitee.io", "/b"),
-                new VirtualHost("api3.gravitee.io", "/b"),
-                new VirtualHost("api4.gravitee.io", "/b"),
-                new VirtualHost("apiX.gravitee.io", "/b"),
-                new VirtualHost("api10.gravitee.io", "/b"),
-                new VirtualHost("api11.gravitee.io", "/b")
+                new DefaultHttpAcceptor("api.gravitee.io", "/b"),
+                new DefaultHttpAcceptor("api1.gravitee.io", "/b"),
+                new DefaultHttpAcceptor("api2.gravitee.io", "/b"),
+                new DefaultHttpAcceptor("api3.gravitee.io", "/b"),
+                new DefaultHttpAcceptor("api4.gravitee.io", "/b"),
+                new DefaultHttpAcceptor("apiX.gravitee.io", "/b"),
+                new DefaultHttpAcceptor("api10.gravitee.io", "/b"),
+                new DefaultHttpAcceptor("api11.gravitee.io", "/b")
             );
         handler2 = createReactorHandler(reactable2);
-        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
+        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.update(reactable2);
 
         final Collection<HttpAcceptorHandler> httpAcceptorHandlers = reactorHandlerRegistry.getHttpAcceptorHandlers();
@@ -383,7 +388,7 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveOneEntrypoint_updateSameReactableWithVHost() {
         DummyReactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
         Assert.assertEquals(1, reactorHandlerRegistry.getHttpAcceptorHandlers().size());
@@ -391,7 +396,7 @@ public class ReactorHandlerRegistryTest {
         for (int i = 0; i < 100; i++) {
             final DummyReactable toUpdate = createReactable("reactable1", "api.gravitee.io", "/new-path");
             final ReactorHandler handlerUpdate = createReactorHandler(toUpdate);
-            when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(handlerUpdate);
+            when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(List.of(handlerUpdate));
             reactorHandlerRegistry.update(toUpdate);
             Assert.assertEquals(
                 "Size of acceptors list should be 1 (i=" + i + ")",
@@ -410,7 +415,7 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveOneEntrypoint_updateSameReactableWithContextPath() throws InterruptedException {
         DummyReactable reactable = createReactable("reactable", "/c");
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
         Assert.assertEquals(1, reactorHandlerRegistry.getHttpAcceptorHandlers().size());
@@ -418,7 +423,7 @@ public class ReactorHandlerRegistryTest {
         for (int i = 0; i < 100; i++) {
             final Reactable toUpdate = createReactable("reactable", "/c");
             final ReactorHandler handlerUpdate = createReactorHandler(toUpdate);
-            when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(handlerUpdate);
+            when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(List.of(handlerUpdate));
             reactorHandlerRegistry.update(toUpdate);
             Assert.assertEquals(
                 "Size of acceptors list should be 1 (i=" + i + ")",
@@ -444,7 +449,7 @@ public class ReactorHandlerRegistryTest {
             for (int i = 0; i < 100; i++) {
                 final DummyReactable toCreate = createReactable("reactable" + i, "api.gravitee.io", "/new-path" + i);
                 final ReactorHandler handler = createReactorHandler(toCreate);
-                when(reactorHandlerFactoryManager.create(toCreate)).thenReturn(handler);
+                when(reactorHandlerFactoryManager.create(toCreate)).thenReturn(List.of(handler));
                 runnables.add(() -> reactorHandlerRegistry.create(toCreate));
             }
 
@@ -464,7 +469,7 @@ public class ReactorHandlerRegistryTest {
             for (int i = 0; i < 100; i++) {
                 final DummyReactable toUpdate = createReactable("reactable" + i, "api.gravitee.io", "/new-path" + i);
                 final ReactorHandler handler = createReactorHandler(toUpdate);
-                when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(handler);
+                when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(List.of(handler));
                 runnables.add(() -> reactorHandlerRegistry.update(toUpdate));
             }
 
@@ -487,7 +492,7 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveNoEntrypoint_removeSameReactable() {
         DummyReactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
         DummyReactable updateReactable = createReactable("reactable1", "/");
@@ -500,7 +505,7 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveNoEntrypoint_removeUnknownEntrypoint() {
         DummyReactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.remove(reactable);
 
         Assert.assertEquals(0, reactorHandlerRegistry.getHttpAcceptorHandlers().size());
@@ -510,37 +515,37 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveMultipleHttpAcceptors_multipleRemoveReactable() {
         DummyReactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
-        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
         DummyReactable reactable2 = createReactable(
             "reactable2",
-            new VirtualHost("api.gravitee.io", "/a"),
-            new VirtualHost("api1.gravitee.io", "/a"),
-            new VirtualHost("api2.gravitee.io", "/a"),
-            new VirtualHost("api3.gravitee.io", "/a"),
-            new VirtualHost("api4.gravitee.io", "/a"),
-            new VirtualHost("apiX.gravitee.io", "/a"),
-            new VirtualHost("api10.gravitee.io", "/a"),
-            new VirtualHost("api11.gravitee.io", "/a")
+            new DefaultHttpAcceptor("api.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api1.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api2.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api3.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api4.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("apiX.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api10.gravitee.io", "/a"),
+            new DefaultHttpAcceptor("api11.gravitee.io", "/a")
         );
         ReactorHandler handler2 = createReactorHandler(reactable2);
-        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
+        when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         DummyReactable reactable3 = createReactable(
             "reactable3",
-            new VirtualHost("api.gravitee.io", "/b"),
-            new VirtualHost("api1.gravitee.io", "/b"),
-            new VirtualHost("api2.gravitee.io", "/b"),
-            new VirtualHost("api3.gravitee.io", "/b"),
-            new VirtualHost("api4.gravitee.io", "/b"),
-            new VirtualHost("apiX.gravitee.io", "/b"),
-            new VirtualHost("api10.gravitee.io", "/b"),
-            new VirtualHost("api11.gravitee.io", "/b")
+            new DefaultHttpAcceptor("api.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("api1.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("api2.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("api3.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("api4.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("apiX.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("api10.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("api11.gravitee.io", "/b")
         );
         ReactorHandler handler3 = createReactorHandler(reactable3);
-        when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(handler3);
+        when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
         reactorHandlerRegistry.create(reactable3);
 
         Collection<HttpAcceptorHandler> httpAcceptorHandlers = reactorHandlerRegistry.getHttpAcceptorHandlers();
@@ -607,7 +612,7 @@ public class ReactorHandlerRegistryTest {
         Assert.assertEquals(path, httpAcceptor.path());
     }
 
-    private DummyReactable createReactable(String id, VirtualHost... virtualHosts) {
+    private DummyReactable createReactable(String id, DefaultHttpAcceptor... virtualHosts) {
         return new DummyReactable(id, Arrays.asList(virtualHosts));
     }
 
@@ -616,7 +621,7 @@ public class ReactorHandlerRegistryTest {
     }
 
     private DummyReactable createReactable(String id, String virtualHost, String contextPath) {
-        return createReactable(id, new VirtualHost(virtualHost, contextPath));
+        return createReactable(id, new DefaultHttpAcceptor(virtualHost, contextPath));
     }
 
     private ReactorHandler createReactorHandler(Reactable reactable) {

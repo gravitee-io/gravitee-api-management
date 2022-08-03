@@ -24,8 +24,8 @@ import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
+import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
-import io.gravitee.gateway.reactor.handler.VirtualHost;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -214,7 +214,7 @@ public class Api extends ReactableApi<io.gravitee.definition.model.Api> {
             .getProxy()
             .getVirtualHosts()
             .stream()
-            .map(virtualHost -> new VirtualHost(virtualHost.getHost(), virtualHost.getPath()))
+            .map(virtualHost -> new DefaultHttpAcceptor(virtualHost.getHost(), virtualHost.getPath()))
             .collect(Collectors.toList());
     }
 }

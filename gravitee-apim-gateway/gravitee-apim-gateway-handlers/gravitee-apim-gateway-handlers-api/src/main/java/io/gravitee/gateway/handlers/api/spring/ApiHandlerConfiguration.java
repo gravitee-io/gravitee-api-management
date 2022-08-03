@@ -39,12 +39,12 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFacto
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
+import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cache.CacheManager;
@@ -146,7 +146,7 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public ReactorHandlerFactory<Api> reactorHandlerFactory(
+    public ReactorFactory<Api> apiReactorFactory(
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactory policyFactory,
         @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,

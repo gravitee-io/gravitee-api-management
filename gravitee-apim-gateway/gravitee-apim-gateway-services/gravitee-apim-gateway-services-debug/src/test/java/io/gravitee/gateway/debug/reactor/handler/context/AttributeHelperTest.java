@@ -18,23 +18,13 @@ package io.gravitee.gateway.debug.reactor.handler.context;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.gateway.core.invoker.EndpointInvoker;
-import io.gravitee.gateway.reactor.handler.VirtualHost;
+import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
 
 public class AttributeHelperTest {
-
-    static class SimpleSerializableClass implements Serializable {
-
-        private final String name = "name";
-
-        @Override
-        public String toString() {
-            return "{" + "name='" + name + '\'' + '}';
-        }
-    }
 
     @Test
     public void shouldKeepSerializableValues() {
@@ -57,7 +47,7 @@ public class AttributeHelperTest {
     public void shouldRemoveNonSerializableValues() {
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("gravitee.attribute.invoker", new EndpointInvoker(null));
-        attributes.put("gravitee.attribute.entrypoint", new VirtualHost(""));
+        attributes.put("gravitee.attribute.entrypoint", new DefaultHttpAcceptor(""));
         attributes.put("gravitee.attribute.path", "a value");
 
         assertThat(AttributeHelper.filterAndSerializeAttributes(attributes)).isEqualTo(Map.of("gravitee.attribute.path", "a value"));
@@ -85,5 +75,15 @@ public class AttributeHelperTest {
     @Test
     public void shouldReturnNullIfInputIsNull() {
         assertThat(AttributeHelper.filterAndSerializeAttributes(null)).isNull();
+    }
+
+    static class SimpleSerializableClass implements Serializable {
+
+        private final String name = "name";
+
+        @Override
+        public String toString() {
+            return "{" + "name='" + name + '\'' + '}';
+        }
     }
 }

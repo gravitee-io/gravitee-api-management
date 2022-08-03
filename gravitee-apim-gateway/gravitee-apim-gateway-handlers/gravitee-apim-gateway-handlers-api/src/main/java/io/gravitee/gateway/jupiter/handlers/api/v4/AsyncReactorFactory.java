@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.reactor.v4.reactor;
+package io.gravitee.gateway.jupiter.handlers.api.v4;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AsyncReactorFactory implements ReactorFactory {
+public abstract class AsyncReactorFactory implements ReactorFactory<Api> {
 
     @Override
-    public boolean canHandle(Api api) {
-        return api.getDefinitionVersion() == DefinitionVersion.V4 && api.getType() == ApiType.ASYNC;
+    public boolean canCreate(Api api) {
+        return api.getDefinitionVersion() == DefinitionVersion.V4 && api.getDefinition().getType() == ApiType.ASYNC;
     }
 }

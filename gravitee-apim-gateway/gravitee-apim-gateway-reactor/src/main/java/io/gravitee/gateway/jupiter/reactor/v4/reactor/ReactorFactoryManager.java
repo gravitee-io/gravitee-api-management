@@ -15,7 +15,10 @@
  */
 package io.gravitee.gateway.jupiter.reactor.v4.reactor;
 
+import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -23,9 +26,17 @@ import java.util.List;
  */
 public class ReactorFactoryManager {
 
-    private static final List<ReactorFactory> factories = List.of();
+    private final List<ReactorFactory> reactorFactories;
 
-    public List<ReactorFactory> getFactories() {
-        return factories;
+    public ReactorFactoryManager(final List<ReactorFactory> reactorFactories) {
+        this.reactorFactories = reactorFactories;
+    }
+
+    public List<ReactorHandler> create(final Reactable reactable) {
+        return reactorFactories
+            .stream()
+            .filter(reactorFactory -> reactorFactory.canCreate(reactable))
+            .map(reactorFactory -> reactorFactory.create(reactable))
+            .collect(Collectors.toList());
     }
 }

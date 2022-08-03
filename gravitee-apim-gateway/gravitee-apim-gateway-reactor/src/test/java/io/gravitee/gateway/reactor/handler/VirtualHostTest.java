@@ -17,7 +17,6 @@ package io.gravitee.gateway.reactor.handler;
 
 import static org.mockito.Mockito.when;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,35 +40,35 @@ public class VirtualHostTest {
 
     @Test
     public void shouldHaveWeightEqualsTo1() {
-        VirtualHost vHost = new VirtualHost("/");
+        DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("/");
 
         Assert.assertEquals(1, vHost.priority());
     }
 
     @Test
     public void shouldHaveWeightEqualsTo5() {
-        VirtualHost vHost = new VirtualHost("/path/to/my/api");
+        DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("/path/to/my/api");
 
         Assert.assertEquals(5, vHost.priority());
     }
 
     @Test
     public void shouldHaveWeightEqualsTo5_duplicatedPathSeparator() {
-        VirtualHost vHost = new VirtualHost("/path//to///my/api");
+        DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("/path//to///my/api");
 
         Assert.assertEquals(5, vHost.priority());
     }
 
     @Test
     public void shouldHaveWeightEqualsTo1001() {
-        VirtualHost vHost = new VirtualHost("api.gravitee.io", "/");
+        DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("api.gravitee.io", "/");
 
         Assert.assertEquals(1001, vHost.priority());
     }
 
     @Test
     public void shouldAccept_contextPath() {
-        VirtualHost vHost = new VirtualHost("/");
+        DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("/");
 
         when(request.path()).thenReturn("/");
         boolean accept = vHost.accept(request);
@@ -79,7 +78,7 @@ public class VirtualHostTest {
 
     @Test
     public void shouldNotAccept_contextPath() {
-        VirtualHost vHost = new VirtualHost("/products");
+        DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("/products");
 
         when(request.path()).thenReturn("/");
         boolean accept = vHost.accept(request);
@@ -89,7 +88,7 @@ public class VirtualHostTest {
 
     @Test
     public void shouldAccept_contextPath_subPath() {
-        VirtualHost vHost = new VirtualHost("/products");
+        DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("/products");
 
         when(request.path()).thenReturn("/products");
         boolean accept = vHost.accept(request);
@@ -99,7 +98,7 @@ public class VirtualHostTest {
 
     @Test
     public void shouldAccept_contextPath_trailingSlash() {
-        VirtualHost vHost = new VirtualHost("/products");
+        DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("/products");
 
         when(request.path()).thenReturn("/products/");
         boolean accept = vHost.accept(request);
@@ -109,7 +108,7 @@ public class VirtualHostTest {
 
     @Test
     public void shouldNotAccept_contextPath_subPath() {
-        VirtualHost vHost = new VirtualHost("/products");
+        DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("/products");
 
         when(request.path()).thenReturn("/products2");
         boolean accept = vHost.accept(request);
@@ -119,7 +118,7 @@ public class VirtualHostTest {
 
     @Test
     public void shouldNotAccept_withHost() {
-        VirtualHost vHost = new VirtualHost("api.gravitee.io", "/");
+        DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("api.gravitee.io", "/");
 
         // The request does not contain a HOST header
         when(request.path()).thenReturn("/");
@@ -130,7 +129,7 @@ public class VirtualHostTest {
 
     @Test
     public void shouldAccept_withHost() {
-        VirtualHost vHost = new VirtualHost("api.gravitee.io", "/");
+        DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("api.gravitee.io", "/");
 
         when(request.path()).thenReturn("/");
         when(request.host()).thenReturn("api.gravitee.io");
