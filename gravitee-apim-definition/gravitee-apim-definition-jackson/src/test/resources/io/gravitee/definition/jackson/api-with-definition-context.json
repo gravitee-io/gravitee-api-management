@@ -12,7 +12,7 @@
     "strip_context_path": false,
     "preserve_host": true
   },
-  "definitionContext": {
+  "definition_context": {
     "origin": "kubernetes",
     "mode": "fully_managed"
   }

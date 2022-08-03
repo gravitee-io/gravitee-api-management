@@ -59,7 +59,7 @@ public class ApiDefinitionDeserializer extends ApiDeserializer<Api> {
             api.setEnabled(enabledNode.asBoolean());
         }
 
-        JsonNode definitionContextNode = node.get("definitionContext");
+        JsonNode definitionContextNode = node.get("definition_context");
         if (definitionContextNode != null) {
             api.setDefinitionContext(definitionContextNode.traverse(jp.getCodec()).readValueAs(DefinitionContext.class));
         }

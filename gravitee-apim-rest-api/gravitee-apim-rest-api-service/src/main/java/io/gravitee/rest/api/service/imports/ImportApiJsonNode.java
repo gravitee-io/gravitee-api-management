@@ -30,7 +30,9 @@ public class ImportApiJsonNode extends ImportJsonNodeWithIds {
     public static final String VIEWS = "views";
     public static final String API_MEDIA = "apiMedia";
     public static final String MEMBERS = "members";
-    public static final String DEFINITION_CONTEXT = "definitionContext";
+    public static final String DEFINITION_CONTEXT = "definition_context";
+
+    public static final String DEFINITION_CONTEXT_ORIGIN = "origin";
 
     public ImportApiJsonNode(JsonNode jsonNode) {
         super(jsonNode);
@@ -54,6 +56,10 @@ public class ImportApiJsonNode extends ImportJsonNodeWithIds {
 
     public JsonNode getDefinitionContext() {
         return getJsonNode().get(DEFINITION_CONTEXT);
+    }
+
+    public String getDefinitionContextOrigin() {
+        return getJsonNode().findPath(DEFINITION_CONTEXT).findPath(DEFINITION_CONTEXT_ORIGIN).asText();
     }
 
     public List<ImportJsonNodeWithIds> getPages() {
