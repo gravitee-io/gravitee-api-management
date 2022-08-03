@@ -33,6 +33,7 @@ import * as jwt from 'jsonwebtoken';
 import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
 import { teardownApisAndApplications } from '@lib/management';
 import { describeIfV3 } from '@lib/jest-utils';
+import faker from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -227,7 +228,13 @@ describe('Subscribe to OAuth plan and use it', () => {
 
     // Create an application from portal
     createdPortalApplication = await portalApplicationResource.createApplication({
-      applicationInput: PortalApplicationFaker.newApplicationInput(),
+      applicationInput: PortalApplicationFaker.newApplicationInput({
+        settings: {
+          app: {
+            client_id: 'clientId1',
+          },
+        },
+      }),
     });
 
     // Add OAuth2 resource
@@ -289,7 +296,7 @@ describe('Subscribe to OAuth plan and use it', () => {
     describe('Gateway call with correct `Authorization` header using portal subscription', () => {
       test('Should return 200 OK', async () => {
         // Token always validated by wiremock with /oauth/check_token
-        const token = 'realFakeToken';
+        const token = 'valid_token_for_clientId1';
 
         await fetchGatewaySuccess({
           contextPath: createdApi.context_path,
