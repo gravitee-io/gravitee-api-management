@@ -1961,6 +1961,7 @@ workflows:
             - setup:
                   context: cicd-orchestrator
             - jdbc-test-container:
+                  context: cicd-orchestrator
                   requires:
                       - setup
                   matrix:
@@ -1981,6 +1982,7 @@ workflows:
                                   "sqlserver~2017-CU12",
                               ]
             - mongo-test-container:
+                  context: cicd-orchestrator
                   requires:
                       - setup
                   matrix:
