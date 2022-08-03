@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
@@ -48,6 +49,7 @@ import io.gravitee.rest.api.service.search.query.Query;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -155,7 +157,12 @@ public class ApiService_SearchTest {
         Page<Api> page = new Page<>(Arrays.asList(api1), 2, 1, 2);
         when(
             apiRepository.search(
-                eq(new ApiCriteria.Builder().environmentId("DEFAULT").build()),
+                eq(
+                    new ApiCriteria.Builder()
+                        .definitionVersion(List.of(DefinitionVersion.V1, DefinitionVersion.V2))
+                        .environmentId("DEFAULT")
+                        .build()
+                ),
                 any(),
                 any(),
                 eq(new ApiFieldExclusionFilter.Builder().excludePicture().build())
@@ -214,7 +221,15 @@ public class ApiService_SearchTest {
 
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), any(Query.class))).thenReturn(searchResult);
 
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api3.getId(), api1.getId(), api2.getId()).build()))
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder()
+                    .definitionVersion(List.of(DefinitionVersion.V1, DefinitionVersion.V2))
+                    .environmentId("DEFAULT")
+                    .ids(api3.getId(), api1.getId(), api2.getId())
+                    .build()
+            )
+        )
             .thenReturn(Arrays.asList(api3, api1, api2));
 
         RoleEntity poRole = new RoleEntity();

@@ -930,6 +930,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     executionContext,
                     apiRepository.search(
                         new ApiCriteria.Builder()
+                            .definitionVersion(List.of(DefinitionVersion.V1, DefinitionVersion.V2))
                             .environmentId(executionContext.getEnvironmentId())
                             .visibility(Visibility.valueOf(visibility.name()))
                             .build()
@@ -949,7 +950,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return new HashSet<>(
                 convert(
                     executionContext,
-                    apiRepository.search(new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build())
+                    apiRepository.search(
+                        new ApiCriteria.Builder()
+                            .definitionVersion(List.of(DefinitionVersion.V1, DefinitionVersion.V2))
+                            .environmentId(executionContext.getEnvironmentId())
+                            .build()
+                    )
                 )
             );
         } catch (TechnicalException ex) {
@@ -962,7 +968,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findByEnvironmentAndIdIn(final ExecutionContext executionContext, Set<String> ids) {
         LOGGER.debug("Find APIs by environment {} and ID in {}", executionContext.getEnvironmentId(), ids);
         try {
-            ApiCriteria criteria = new ApiCriteria.Builder().ids(ids).environmentId(executionContext.getEnvironmentId()).build();
+            ApiCriteria criteria = new ApiCriteria.Builder()
+                .definitionVersion(List.of(DefinitionVersion.V1, DefinitionVersion.V2))
+                .ids(ids)
+                .environmentId(executionContext.getEnvironmentId())
+                .build();
             return new HashSet<>(convert(executionContext, apiRepository.search(criteria)));
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while trying to find APIs by environment and ids", e);
@@ -985,7 +995,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 convert(
                     executionContext,
                     apiRepository.search(
-                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
+                        new ApiCriteria.Builder()
+                            .definitionVersion(List.of(DefinitionVersion.V1, DefinitionVersion.V2))
+                            .environmentId(executionContext.getEnvironmentId())
+                            .build(),
                         exclusionFilterBuilder.build()
                     )
                 )
@@ -2873,7 +2886,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private ApiCriteria.Builder queryToCriteria(ExecutionContext executionContext, ApiQuery query) {
-        final ApiCriteria.Builder builder = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
+        final ApiCriteria.Builder builder = new ApiCriteria.Builder()
+            .definitionVersion(List.of(DefinitionVersion.V1, DefinitionVersion.V2))
+            .environmentId(executionContext.getEnvironmentId());
         if (query == null) {
             return builder;
         }
@@ -3317,7 +3332,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public Map<String, Long> countPublishedByUserGroupedByCategories(String userId) {
-        ApiCriteria criteria = new ApiCriteria.Builder().visibility(PUBLIC).lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).build();
+        ApiCriteria criteria = new ApiCriteria.Builder()
+            .definitionVersion(List.of(DefinitionVersion.V1, DefinitionVersion.V2))
+            .visibility(PUBLIC)
+            .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
+            .build();
         ApiFieldInclusionFilter filter = ApiFieldInclusionFilter.builder().includeCategories().build();
 
         Set<Api> apis = apiRepository.search(criteria, filter);
@@ -3349,7 +3368,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .toArray(String[]::new);
 
         if (userApiIds.length > 0) {
-            ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids(userApiIds).build();
+            ApiCriteria criteria = new ApiCriteria.Builder()
+                .definitionVersion(List.of(DefinitionVersion.V1, DefinitionVersion.V2))
+                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
+                .ids(userApiIds)
+                .build();
             Set<Api> userApis = apiRepository.search(criteria, filter);
             apis.addAll(userApis);
         }
@@ -3367,7 +3390,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .toArray(String[]::new);
 
         if (groupIds.length > 0 && groupIds[0] != null) {
-            ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).groups(groupIds).build();
+            ApiCriteria criteria = new ApiCriteria.Builder()
+                .definitionVersion(List.of(DefinitionVersion.V1, DefinitionVersion.V2))
+                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
+                .groups(groupIds)
+                .build();
             Set<Api> groupApis = apiRepository.search(criteria, filter);
             apis.addAll(groupApis);
         }

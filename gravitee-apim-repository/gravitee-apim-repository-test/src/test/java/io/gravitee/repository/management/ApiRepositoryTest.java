@@ -26,6 +26,7 @@ import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -408,6 +409,17 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldFindByDefinitionVersion() {
+        final List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().definitionVersion(singletonList(DefinitionVersion.V4)).build()
+        );
+        assertNotNull(apis);
+        assertEquals(1, apis.size());
+        assertEquals("async-api", apis.get(0).getId());
+        assertEquals(DefinitionVersion.V4, apis.get(0).getDefinitionVersion());
+    }
+
+    @Test
     public void shouldOnlyIncludeRequiredAndDefaultFields() {
         ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build();
         ApiFieldInclusionFilter filter = ApiFieldInclusionFilter.builder().includeCategories().build();
@@ -455,6 +467,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         expectedCategories.add("category-1");
         expectedCategories.add("cycling");
         expectedCategories.add("hiking");
+        expectedCategories.add("my-async-category");
         expectedCategories.add("my-category");
         assertEquals(expectedCategories, categories);
     }

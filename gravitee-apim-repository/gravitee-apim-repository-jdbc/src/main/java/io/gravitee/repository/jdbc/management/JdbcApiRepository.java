@@ -339,7 +339,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
         String projection =
             "ac.*, a.id, a.environment_id, a.name, a.description, a.version, a.deployed_at, a.created_at, a.updated_at, " +
-            "a.visibility, a.lifecycle_state, a.api_lifecycle_state";
+            "a.visibility, a.lifecycle_state, a.api_lifecycle_state, a.definition_version";
 
         if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isDefinition()) {
             projection += ", a.definition";
@@ -436,6 +436,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             if (!isEmpty(apiCriteria.getEnvironments())) {
                 lastIndex = getOrm().setArguments(ps, apiCriteria.getEnvironments(), lastIndex);
             }
+            if (!isEmpty(apiCriteria.getDefinitionVersion())) {
+                lastIndex = getOrm().setArguments(ps, apiCriteria.getDefinitionVersion(), lastIndex);
+            }
         }
         return lastIndex;
     }
@@ -477,7 +480,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         if (hasText(apiCriteria.getCrossId())) {
             clauses.add("a.cross_id = ?");
         }
-        if (!StringUtils.isEmpty(apiCriteria.getLifecycleStates())) {
+        if (!isEmpty(apiCriteria.getLifecycleStates())) {
             clauses.add(
                 new StringBuilder()
                     .append("a.api_lifecycle_state in (")
@@ -494,6 +497,15 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 new StringBuilder()
                     .append("a.environment_id in (")
                     .append(getOrm().buildInClause(apiCriteria.getEnvironments()))
+                    .append(")")
+                    .toString()
+            );
+        }
+        if (!isEmpty(apiCriteria.getDefinitionVersion())) {
+            clauses.add(
+                new StringBuilder()
+                    .append("a.definition_version in (")
+                    .append(getOrm().buildInClause(apiCriteria.getDefinitionVersion()))
                     .append(")")
                     .toString()
             );
