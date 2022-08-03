@@ -122,7 +122,7 @@ describe('Create an API with OAuth2 plan and use it', () => {
         ...UpdatePlanEntityFromJSON(ApplicationEntityToJSON(createdApplication)),
         settings: {
           app: {
-            client_id: `MY_CLIENT_ID_${createdOAuth2Plan.id}`,
+            client_id: `clientId1`,
           },
         },
       },
@@ -184,9 +184,9 @@ describe('Create an API with OAuth2 plan and use it', () => {
   });
 
   describe('Call on the OAuth2 plan', () => {
-    test('Should return 200 Ok', async () => {
+    test('Should return 200 Ok with valid token', async () => {
       // Token always validated by wiremock with /oauth/check_token
-      const token = 'realFakeToken';
+      const token = 'valid_token_for_clientId1';
 
       const res = await fetchGatewaySuccess({
         contextPath: `${createdApi.context_path}`,
@@ -195,6 +195,18 @@ describe('Create an API with OAuth2 plan and use it', () => {
         },
       });
       expect(res.headers.get('X-Test-OAuth2-Flow')).toEqual('ok');
+    });
+
+    test('Should return Unauthorized 401 with invalid token', async () => {
+      // Token always considered invalid by wiremock with /oauth/check_token
+      const token = 'invalid_token';
+
+      await fetchGatewayUnauthorized({
+        contextPath: `${createdApi.context_path}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
     });
 
     test('Should return 401 Unauthorized with empty token', async () => {

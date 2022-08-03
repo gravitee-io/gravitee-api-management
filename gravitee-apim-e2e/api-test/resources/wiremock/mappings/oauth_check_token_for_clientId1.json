@@ -1,7 +1,13 @@
 {
+  "priority": 1,
   "request": {
     "method": "GET",
-    "urlPattern": "/.*/oauth/check_token\\?token=.*"
+    "urlPathPattern": "/clientId1/oauth/check_token",
+    "queryParameters": {
+      "token": {
+        "equalTo": "valid_token_for_clientId1"
+      }
+    }
   },
   "response": {
     "status": 200,
