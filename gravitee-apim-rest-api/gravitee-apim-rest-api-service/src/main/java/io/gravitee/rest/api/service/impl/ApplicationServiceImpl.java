@@ -621,7 +621,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
                         updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
 
-                        subscriptionService.update(updateSubscriptionEntity, application.getMetadata().get("METADATA_CLIENT_ID"));
+                        subscriptionService.update(updateSubscriptionEntity, application.getMetadata().get(METADATA_CLIENT_ID));
                     }
                 );
             return convert(Collections.singleton(updatedApplication), organizationId).iterator().next();
