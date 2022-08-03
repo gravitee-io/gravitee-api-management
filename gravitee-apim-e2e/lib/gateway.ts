@@ -86,14 +86,14 @@ async function _fetchGateway(request: Partial<GatewayRequest>): Promise<Response
     headers: request.headers,
   });
 
+  if (response.status != request.expectedStatusCode) {
+    throw new Error(`[${request.method}] [${process.env.GATEWAY_BASE_URL}${request.contextPath}] returned HTTP ${response.status}`);
+  }
+
   const isValidResponse = await request.expectedResponseValidator(response);
 
   if (!isValidResponse) {
     throw new Error(`Unexpected response for [${request.method}] [${process.env.GATEWAY_BASE_URL}${request.contextPath}]`);
-  }
-
-  if (response.status != request.expectedStatusCode) {
-    throw new Error(`[${request.method}] [${process.env.GATEWAY_BASE_URL}${request.contextPath}] returned HTTP ${response.status}`);
   }
 
   return response;
