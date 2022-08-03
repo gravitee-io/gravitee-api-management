@@ -103,5 +103,6 @@ export const testif = (condition) => (condition ? test : test.skip);
 export const describeIf = (condition) => (condition ? describe : describe.skip);
 
 export const describeIfV3 = describeIf(process.env.JUPITER_MODE_ENABLED !== 'true');
+export const describeIfJupiter = describeIf(process.env.JUPITER_MODE_ENABLED == 'true');
 
 export * from './jest-retry';
