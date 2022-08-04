@@ -22,7 +22,6 @@ import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.StreamType;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -40,7 +39,7 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
 
     @Override
     public List<Policy> resolve(StreamType streamType, ExecutionContext context) {
-        final AuthenticationHandler authenticationHandler = authenticationHandlerSelector.select(context.request());
+        final AuthenticationHandler authenticationHandler = authenticationHandlerSelector.select(context);
 
         if (authenticationHandler == null) {
             // No authentication method selected, must send a 401
@@ -67,25 +66,22 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
         return securityPolicies
             .stream()
             .map(
-                new Function<AuthenticationPolicy, Policy>() {
-                    @Override
-                    public Policy apply(AuthenticationPolicy securityPolicy) {
-                        if (securityPolicy instanceof HookAuthenticationPolicy) {
-                            try {
-                                return (Policy) ((HookAuthenticationPolicy) securityPolicy).clazz().newInstance();
-                            } catch (Exception ex) {
-                                logger.error("Unexpected error while loading authentication policy", ex);
-                            }
-                        } else if (securityPolicy instanceof PluginAuthenticationPolicy) {
-                            return create(
-                                StreamType.ON_REQUEST,
-                                ((PluginAuthenticationPolicy) securityPolicy).name(),
-                                ((PluginAuthenticationPolicy) securityPolicy).configuration()
-                            );
+                securityPolicy -> {
+                    if (securityPolicy instanceof HookAuthenticationPolicy) {
+                        try {
+                            return (Policy) ((HookAuthenticationPolicy) securityPolicy).clazz().newInstance();
+                        } catch (Exception ex) {
+                            logger.error("Unexpected error while loading authentication policy", ex);
                         }
-
-                        return null;
+                    } else if (securityPolicy instanceof PluginAuthenticationPolicy) {
+                        return create(
+                            StreamType.ON_REQUEST,
+                            ((PluginAuthenticationPolicy) securityPolicy).name(),
+                            ((PluginAuthenticationPolicy) securityPolicy).configuration()
+                        );
                     }
+
+                    return null;
                 }
             )
             .filter(Objects::nonNull)
