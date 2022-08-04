@@ -732,7 +732,6 @@ jobs:
                   command: npm run build:prod
                   environment:
                       NODE_OPTIONS: --max_old_space_size=4086
-                      BACKEND_ENV: apim-master
                   working_directory: << parameters.apim-ui-project >>
             - build-ui-image:
                   docker-image-name: << parameters.docker-image-name >>
@@ -884,6 +883,7 @@ jobs:
                       export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
                       sed -i 's#<base href="/" />##' gravitee-apim-console-webui/dist/index.html
+                      sed -i 's#http://localhost:8083#https://apim-master-api.team-apim.gravitee.xyz#' gravitee-apim-console-webui/dist/constants.json
                       az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d "\$web/$BRANCH_ID"
             - notify-on-failure
 
