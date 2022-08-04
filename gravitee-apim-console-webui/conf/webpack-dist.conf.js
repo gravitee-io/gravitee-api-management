@@ -23,8 +23,6 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
-const backendEnv = process.env.BACKEND_ENV || 'prod';
-
 module.exports = {
   mode: 'production',
   module: {
@@ -107,7 +105,7 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: !!backendEnv ? `./constants.${backendEnv}.json` : `./constants.json`,
+          from: `./constants.prod.json`,
           to: 'constants.json',
         },
         {
