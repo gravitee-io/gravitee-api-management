@@ -510,4 +510,23 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldFindMultipleByEnvironmentIdAndCrossId_throwsException() throws TechnicalException {
         apiRepository.findByEnvironmentIdAndCrossId("ENV6", "duplicated-crossId");
     }
+
+    @Test
+    public void shouldFindIdByEnvironmentIdAndCrossId() throws TechnicalException {
+        Optional<String> optApiId = apiRepository.findIdByEnvironmentIdAndCrossId("ENV6", "searched-crossId2");
+        assertTrue(optApiId.isPresent());
+        assertEquals("crossId-api", optApiId.get());
+    }
+
+    @Test
+    public void shouldExist() throws TechnicalException {
+        boolean exist = apiRepository.existById("api-to-delete");
+        assertTrue(exist);
+    }
+
+    @Test
+    public void shouldNotExist() throws TechnicalException {
+        boolean exist = apiRepository.existById("unknown-api");
+        assertFalse(exist);
+    }
 }

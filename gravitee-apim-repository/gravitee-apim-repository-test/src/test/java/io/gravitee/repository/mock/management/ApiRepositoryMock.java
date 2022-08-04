@@ -247,5 +247,9 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiRepository.findByEnvironmentIdAndCrossId("ENV6", "searched-crossId2")).thenReturn(Optional.of(apiToFindByCrossId));
 
         when(apiRepository.findByEnvironmentIdAndCrossId("ENV6", "duplicated-crossId")).thenThrow(new TechnicalException("test exception"));
+
+        when(apiRepository.findIdByEnvironmentIdAndCrossId("ENV6", "searched-crossId2")).thenReturn(Optional.of("crossId-api"));
+        when(apiRepository.existById("api-to-delete")).thenReturn(true);
+        when(apiRepository.existById("unknown-api")).thenReturn(false);
     }
 }

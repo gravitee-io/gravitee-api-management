@@ -149,7 +149,7 @@ public class MongoApiRepository implements ApiRepository {
 
     @Override
     public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException {
-        return internalApiRepo.findIdByEnvironmentIdAndCrossId(environmentId, crossId);
+        return internalApiRepo.findIdByEnvironmentIdAndCrossId(environmentId, crossId).map(ApiMongo::getId);
     }
 
     @Override

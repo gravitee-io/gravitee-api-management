@@ -31,6 +31,6 @@ public interface ApiMongoRepository extends MongoRepository<ApiMongo, String>, A
     @Query("{ 'environmentId': ?0, 'crossId': ?1 }")
     Optional<ApiMongo> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
 
-    @Query("{ 'environmentId': ?0, 'crossId': ?1 }")
-    Optional<String> findIdByEnvironmentIdAndCrossId(String environmentId, String crossId);
+    @Query(value = "{ 'environmentId': ?0, 'crossId': ?1 }", fields = "{ _id : 1 }")
+    Optional<ApiMongo> findIdByEnvironmentIdAndCrossId(String environmentId, String crossId);
 }

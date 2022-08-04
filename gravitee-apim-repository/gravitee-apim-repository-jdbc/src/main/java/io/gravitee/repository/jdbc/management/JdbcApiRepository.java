@@ -611,7 +611,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException {
         LOGGER.debug("JdbcApiRepository.findIdByEnvironmentIdAndCrossId({}, {})", environmentId, crossId);
         List<String> rows = jdbcTemplate.queryForList(
-            getOrm().getSelectAllSql() + " a.id where a.environment_id = ? and a.cross_id = ?",
+            "select a.id from " + this.tableName + " a where a.environment_id = ? and a.cross_id = ?",
             String.class,
             environmentId,
             crossId
@@ -628,12 +628,12 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     }
 
     @Override
-    public boolean existById(final String appId) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.existById({})", appId);
+    public boolean existById(final String apiId) throws TechnicalException {
+        LOGGER.debug("JdbcApiRepository.existById({})", apiId);
         try {
-            String idFound = jdbcTemplate.queryForObject(getOrm().getSelectAllSql() + " a.id where a.id = ?", String.class, appId);
+            String idFound = jdbcTemplate.queryForObject("select a.id from " + this.tableName + " a where a.id = ?", String.class, apiId);
 
-            LOGGER.debug("JdbcApiRepository.existById({}) = {}", appId, idFound);
+            LOGGER.debug("JdbcApiRepository.existById({}) = {}", apiId, idFound);
             return true;
         } catch (EmptyResultDataAccessException e) {
             return false;
