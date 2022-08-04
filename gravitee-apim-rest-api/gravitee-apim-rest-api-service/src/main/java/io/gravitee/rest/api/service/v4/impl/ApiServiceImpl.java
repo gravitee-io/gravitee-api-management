@@ -123,6 +123,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final ApiNotificationService apiNotificationService;
 
     @Autowired
+    @Lazy
     public ApiServiceImpl(
         @Lazy final ApiRepository apiRepository,
         final ApiMapper apiMapper,
