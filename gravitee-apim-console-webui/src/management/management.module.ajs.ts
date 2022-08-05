@@ -109,8 +109,6 @@ import ApiSubscriptionComponent from '../management/api/portal/subscriptions/sub
 // Applications
 import ApplicationService from '../services/application.service';
 import ApplicationTypesService from '../services/applicationTypes.service';
-import ApplicationsComponent from './application/applications.component';
-import ApplicationsController from './application/applications.controller';
 
 import ApplicationCreationComponent from './application/creation/steps/application-creation.component';
 import ApplicationCreationController from './application/creation/steps/application-creation.controller';
@@ -546,6 +544,7 @@ import ApiKeysComponent from '../management/api-key/api-keys.component';
 import ApiKeysController from '../management/api-key/api-keys.controller';
 import { OrgSettingsAuditComponent } from '../organization/configuration/audit/org-settings-audit.component';
 import { EnvAuditComponent } from './audit/env-audit.component';
+import { EnvApplicationListComponent } from './application/list/env-application-list.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -890,7 +889,7 @@ graviteeManagementModule.component('apiSubscriptions', ApiSubscriptionsComponent
 graviteeManagementModule.component('apiSubscription', ApiSubscriptionComponent);
 graviteeManagementModule.directive('ngBanner', downgradeComponent({ component: GioBannerComponent }));
 
-graviteeManagementModule.component('applications', ApplicationsComponent);
+graviteeManagementModule.directive('ngEnvApplicationList', downgradeComponent({ component: EnvApplicationListComponent }));
 graviteeManagementModule.component('application', ApplicationComponent);
 
 graviteeManagementModule.component('applicationSubscribe', ApplicationSubscribeComponent);
@@ -915,7 +914,6 @@ graviteeManagementModule.component('applicationAnalytics', ApplicationAnalyticsC
 graviteeManagementModule.component('applicationLogs', ApplicationLogsComponent);
 graviteeManagementModule.component('applicationLog', ApplicationLogComponent);
 graviteeManagementModule.controller('DialogAddMemberController', DialogAddMemberController);
-graviteeManagementModule.controller('ApplicationsController', ApplicationsController);
 graviteeManagementModule.controller('ApplicationGeneralController', ApplicationGeneralController);
 graviteeManagementModule.controller('ApplicationMembersController', ApplicationMembersController);
 graviteeManagementModule.controller('ApplicationSubscriptionsController', ApplicationSubscriptionsController);

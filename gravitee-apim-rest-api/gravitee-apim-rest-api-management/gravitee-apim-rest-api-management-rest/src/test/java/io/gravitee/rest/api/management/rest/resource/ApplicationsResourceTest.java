@@ -15,16 +15,19 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.*;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.rest.JerseySpringTest;
+import io.gravitee.rest.api.management.rest.model.wrapper.ApplicationListItemPagedResult;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
@@ -84,5 +87,25 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             envTarget().path("my-beautiful-application").getUri().toString(),
             response.getHeaders().getFirst(HttpHeaders.LOCATION)
         );
+    }
+
+    @Test
+    public void shouldGetApplications() {
+        Page<ApplicationListItem> applications = mock(Page.class);
+        when(applicationService.search(eq(GraviteeContext.getExecutionContext()), any(ApplicationQuery.class), any(), any()))
+            .thenReturn(applications);
+
+        final Response response = envTarget().request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldGetApplicationsPaged() {
+        Page<ApplicationListItem> applications = mock(Page.class);
+        when(applicationService.search(eq(GraviteeContext.getExecutionContext()), any(ApplicationQuery.class), any(), any()))
+            .thenReturn(applications);
+
+        final Response response = envTarget("/_paged").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 }

@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;

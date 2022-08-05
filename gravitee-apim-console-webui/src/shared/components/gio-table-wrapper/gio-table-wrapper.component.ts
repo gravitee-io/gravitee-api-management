@@ -36,7 +36,7 @@ export interface GioTableWrapperFilters {
   searchTerm: string;
   sort?: {
     /** The id of the column being sorted */
-    active: string;
+    active?: string;
     /** The sort direction */
     direction: 'asc' | 'desc' | '';
   };
@@ -168,6 +168,7 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
         startWith(this.filters ?? INITIAL_FILTERS_VALUE),
       )
       .subscribe((filters) => {
+        this.filters = filters;
         this.filtersChange.emit(filters);
       });
   }

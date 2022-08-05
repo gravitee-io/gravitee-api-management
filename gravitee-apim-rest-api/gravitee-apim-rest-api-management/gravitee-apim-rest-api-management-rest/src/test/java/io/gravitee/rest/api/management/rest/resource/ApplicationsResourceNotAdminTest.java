@@ -16,21 +16,25 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.reset;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
-import java.io.IOException;
-import java.security.Principal;
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
+import io.gravitee.rest.api.management.rest.JerseySpringTest;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.NewApplicationEntity;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApplicationsResourceNotAdminTest extends AbstractResourceTest {
@@ -42,45 +46,18 @@ public class ApplicationsResourceNotAdminTest extends AbstractResourceTest {
 
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
-        resourceConfig.register(ApplicationsResourceNotAdminTest.AuthenticationFilter.class);
+        resourceConfig.register(ApiPagesResourceNotAdminTest.AuthenticationFilter.class);
     }
 
     @Test
-    public void shouldNotFilterByArchivedApplications() {
-        reset(applicationService);
-
+    public void shouldNotGetArchivedApplications() {
         final Response response = envTarget().queryParam("status", "ARCHIVED").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
-    @Priority(50)
-    public static class AuthenticationFilter implements ContainerRequestFilter {
-
-        @Override
-        public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(
-                new SecurityContext() {
-                    @Override
-                    public Principal getUserPrincipal() {
-                        return () -> USER_NAME;
-                    }
-
-                    @Override
-                    public boolean isUserInRole(String string) {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean isSecure() {
-                        return true;
-                    }
-
-                    @Override
-                    public String getAuthenticationScheme() {
-                        return "BASIC";
-                    }
-                }
-            );
-        }
+    @Test
+    public void shouldGetArchivedApplicationsPaged() {
+        final Response response = envTarget("/_paged").queryParam("status", "ARCHIVED").request().get();
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 }
