@@ -35,16 +35,25 @@ public class TimeoutConfiguration {
 
     @Bean
     public HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration(
-        @Value("${http.requestTimeout:30000}") long httpRequestTimeout,
+        @Value("${http.requestTimeout:#{null}}") Long httpRequestTimeout,
         @Value("${http.requestTimeoutGraceDelay:30}") long httpRequestTimeoutGraceDelay,
         @Value("${" + JUPITER_MODE_ENABLED_KEY + ":" + JUPITER_MODE_ENABLED_BY_DEFAULT + "}") boolean isJupiterEnabled
     ) {
-        if (httpRequestTimeout <= 0) {
-            if (isJupiterEnabled) {
-                log.warn("Http request timeout cannot be set to 0. Setting it to default value: 30_000 ms");
+        if (isJupiterEnabled) {
+            if (httpRequestTimeout == null) {
+                log.warn("Http request timeout cannot be unset. Setting it to default value: 30_000 ms");
                 httpRequestTimeout = 30_000L;
-            } else {
-                log.warn("A proper timeout should be set in order to avoid unclose connexion, suggested value is 30_000 ms");
+            } else if (httpRequestTimeout <= 0) {
+                log.warn(
+                    "A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms"
+                );
+            }
+        } else {
+            if (httpRequestTimeout == null || httpRequestTimeout <= 0) {
+                log.warn(
+                    "A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms"
+                );
+                httpRequestTimeout = 0L;
             }
         }
         return new HttpRequestTimeoutConfiguration(httpRequestTimeout, httpRequestTimeoutGraceDelay);

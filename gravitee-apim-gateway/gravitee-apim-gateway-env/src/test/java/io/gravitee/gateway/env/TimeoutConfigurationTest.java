@@ -26,6 +26,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +60,7 @@ class TimeoutConfigurationTest {
     @ValueSource(booleans = { true, false })
     @DisplayName("Should use http.requestTimeout from configuration when greater than 0")
     void shouldConfigureTimeoutWhenGreaterThan0(boolean isJupiterEnabled) {
-        assertThat(cut.httpRequestTimeoutConfiguration(30, 10, isJupiterEnabled))
+        assertThat(cut.httpRequestTimeoutConfiguration(30L, 10, isJupiterEnabled))
             .extracting(
                 HttpRequestTimeoutConfiguration::getHttpRequestTimeout,
                 HttpRequestTimeoutConfiguration::getHttpRequestTimeoutGraceDelay
@@ -68,9 +69,35 @@ class TimeoutConfigurationTest {
     }
 
     @ParameterizedTest(name = "Timeout: {0}")
-    @ValueSource(longs = { -10L, 0 })
-    @DisplayName("Should use default 30_000ms timeout when configured one is 0 or less in Jupiter mode")
-    void shouldUseDefaultTimeoutInJupiterMode(long timeout) {
+    @ValueSource(longs = { -10L, 0, 30L })
+    @DisplayName("Should use http.requestTimeout from configuration when set in Jupiter mode and warn if less than 0")
+    void shouldUseConfiguredTimeoutInJupiterMode(long timeout) {
+        final HttpRequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10, true);
+
+        assertThat(result)
+            .extracting(
+                HttpRequestTimeoutConfiguration::getHttpRequestTimeout,
+                HttpRequestTimeoutConfiguration::getHttpRequestTimeoutGraceDelay
+            )
+            .containsExactly(timeout, 10L);
+
+        if (timeout <= 0) {
+            final List<ILoggingEvent> logList = listAppender.list;
+            assertThat(logList)
+                .hasSize(1)
+                .element(0)
+                .extracting(ILoggingEvent::getMessage, ILoggingEvent::getLevel)
+                .containsExactly(
+                    "A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms",
+                    Level.WARN
+                );
+        }
+    }
+
+    @ParameterizedTest(name = "Timeout: {0}")
+    @NullSource
+    @DisplayName("Should use default 30_000ms timeout when unset in Jupiter mode and warn")
+    void shouldUseDefaultTimeoutInJupiterModeWhenUnset(Long timeout) {
         final HttpRequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10, true);
 
         assertThat(result)
@@ -85,13 +112,14 @@ class TimeoutConfigurationTest {
             .hasSize(1)
             .element(0)
             .extracting(ILoggingEvent::getMessage, ILoggingEvent::getLevel)
-            .containsExactly("Http request timeout cannot be set to 0. Setting it to default value: 30_000 ms", Level.WARN);
+            .containsExactly("Http request timeout cannot be unset. Setting it to default value: 30_000 ms", Level.WARN);
     }
 
     @ParameterizedTest(name = "Timeout: {0}")
     @ValueSource(longs = { -10L, 0 })
-    @DisplayName("Should just warn when configured one is 0 or less in V3 mode")
-    void shouldDoNothingInV3Mode(long timeout) {
+    @NullSource
+    @DisplayName("Should just warn when configured one is unset, 0 or less in V3 mode")
+    void shouldDoNothingInV3Mode(Long timeout) {
         final HttpRequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 5L, false);
 
         assertThat(result)
@@ -99,7 +127,7 @@ class TimeoutConfigurationTest {
                 HttpRequestTimeoutConfiguration::getHttpRequestTimeout,
                 HttpRequestTimeoutConfiguration::getHttpRequestTimeoutGraceDelay
             )
-            .containsExactly(timeout, 5L);
+            .containsExactly(0L, 5L);
 
         final List<ILoggingEvent> logList = listAppender.list;
         assertThat(logList)
@@ -107,7 +135,7 @@ class TimeoutConfigurationTest {
             .element(0)
             .extracting(ILoggingEvent::getMessage, ILoggingEvent::getLevel)
             .containsExactly(
-                "A proper timeout should be set in order to avoid unclose connexion, suggested value is 30_000 ms",
+                "A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms",
                 Level.WARN
             );
     }

@@ -214,6 +214,10 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     private Completable timeoutAndError(Completable upstream, RequestExecutionContext ctx) {
+        // When timeout is configured with 0 or less, consider it as infinity: no timeout operator to use in the chain.
+        if (httpRequestTimeoutConfiguration.getHttpRequestTimeout() <= 0) {
+            return upstream.onErrorResumeNext(error -> processThrowable(ctx, error));
+        }
         return Completable.defer(
             () ->
                 upstream

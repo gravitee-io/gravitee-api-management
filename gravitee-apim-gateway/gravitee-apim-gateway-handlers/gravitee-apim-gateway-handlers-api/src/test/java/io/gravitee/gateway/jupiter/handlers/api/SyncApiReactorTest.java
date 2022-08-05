@@ -71,6 +71,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
@@ -200,6 +202,8 @@ class SyncApiReactorTest {
     SyncApiReactor cut;
 
     TestScheduler testScheduler;
+
+    @Mock
     HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration;
 
     @BeforeEach
@@ -217,7 +221,8 @@ class SyncApiReactorTest {
         when(configuration.getProperty("services.tracing.enabled", Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
 
-        httpRequestTimeoutConfiguration = new HttpRequestTimeoutConfiguration(REQUEST_TIMEOUT, REQUEST_TIMEOUT_GRACE_DELAY);
+        lenient().when(httpRequestTimeoutConfiguration.getHttpRequestTimeout()).thenReturn(REQUEST_TIMEOUT);
+        lenient().when(httpRequestTimeoutConfiguration.getHttpRequestTimeoutGraceDelay()).thenReturn(REQUEST_TIMEOUT_GRACE_DELAY);
 
         cut =
             new SyncApiReactor(
@@ -390,6 +395,63 @@ class SyncApiReactorTest {
         orderedChain.verify(spyResponseApiPlanFlowChain).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spyResponseApiFlowChain).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spyResponseApiPostProcessorChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = { -10L, 0 })
+    void shouldHandleRequestWhenTimeoutZeroOrLess(Long timeout) throws Exception {
+        when(httpRequestTimeoutConfiguration.getHttpRequestTimeout()).thenReturn(timeout);
+        when(api.getDeployedAt()).thenReturn(new Date());
+        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
+        when(apiPreProcessorChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
+        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
+        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPlanFlowChain);
+        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
+        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
+        when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
+        fillRequestExecutionContext();
+        when(invokerAdapter.invoke(any())).thenReturn(spyInvokerAdapterChain);
+        cut.doStart();
+        when(securityChain.execute(any())).thenReturn(spySecurityChain);
+        ReflectionTestUtils.setField(cut, "securityChain", securityChain);
+
+        TestObserver<Void> handleRequestObserver = cut.handle(requestExecutionContext).test();
+
+        handleRequestObserver.assertSubscribed();
+        InOrder orderedChain = inOrder(
+            spyRequestPlatformFlowChain,
+            spySecurityChain,
+            spyRequestApiPreProcessorChain,
+            spyRequestApiPlanFlowChain,
+            spyRequestApiFlowChain,
+            spyInvokerAdapterChain,
+            spyResponseApiFlowChain,
+            spyResponseApiPlanFlowChain,
+            spyResponseApiPostProcessorChain,
+            spyResponsePlatformFlowChain
+        );
+        orderedChain.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyRequestApiPreProcessorChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyRequestApiPlanFlowChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyRequestApiFlowChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyInvokerAdapterChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponseApiPlanFlowChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponseApiFlowChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponseApiPostProcessorChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = { -10L, 0 })
+    void shouldNotApplyFlowChainWhenTimeoutZeroOrLess_InterruptionException(Long timeout) throws Exception {
+        when(httpRequestTimeoutConfiguration.getHttpRequestTimeout()).thenReturn(timeout);
+        InOrder orderedChain = testFlowChainWithInvokeBackendError(spyInterruptionException, InterruptionException.class);
+
+        orderedChain.verify(spyResponseApiPostProcessorChain).subscribe(any(CompletableObserver.class));
+        orderedChain.verify(spyResponseApiErrorProcessorChain, times(0)).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
     }
 

@@ -299,7 +299,7 @@ public class DefaultHttpRequestDispatcher
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request
     ) {
         SimpleExecutionContext simpleExecutionContext;
-        if (!isV3WebSocket(httpServerRequest)) {
+        if (httpRequestTimeoutConfiguration.getHttpRequestTimeout() > 0 && !isV3WebSocket(httpServerRequest)) {
             final long timeoutId = vertx.setTimer(
                 httpRequestTimeoutConfiguration.getHttpRequestTimeout(),
                 event -> {

@@ -30,6 +30,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
+import io.gravitee.gateway.http.vertx.TimeoutServerResponse;
 import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.reactor.handler.EntrypointResolver;
@@ -126,6 +127,9 @@ class DefaultHttpRequestDispatcherTest {
     @Mock
     private ComponentProvider globalComponentProvider;
 
+    @Mock
+    private HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration;
+
     private final Vertx vertx = Vertx.vertx();
 
     private DefaultHttpRequestDispatcher cut;
@@ -160,6 +164,8 @@ class DefaultHttpRequestDispatcherTest {
         lenient().when(responseProcessorChainFactory.create()).thenReturn(new ProcessorProviderChain<>(List.of()));
         lenient().when(platformProcessorChainFactory.preProcessorChain()).thenReturn(new ProcessorChain("pre", List.of()));
         lenient().when(platformProcessorChainFactory.postProcessorChain()).thenReturn(new ProcessorChain("post", List.of()));
+        lenient().when(httpRequestTimeoutConfiguration.getHttpRequestTimeout()).thenReturn(0L);
+        lenient().when(httpRequestTimeoutConfiguration.getHttpRequestTimeoutGraceDelay()).thenReturn(10L);
 
         cut =
             new DefaultHttpRequestDispatcher(
@@ -174,7 +180,7 @@ class DefaultHttpRequestDispatcherTest {
                 platformProcessorChainFactory,
                 notFoundProcessorChainFactory,
                 false,
-                new HttpRequestTimeoutConfiguration(500L, 10L),
+                httpRequestTimeoutConfiguration,
                 vertx
             );
         cut.setApplicationContext(mock(ApplicationContext.class));
@@ -241,6 +247,33 @@ class DefaultHttpRequestDispatcherTest {
             .handle(any(ExecutionContext.class), any(Handler.class));
 
         final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
+
+        obs.assertResult();
+    }
+
+    @Test
+    void shouldHandleV3RequestWithTimeout() {
+        when(httpRequestTimeoutConfiguration.getHttpRequestTimeout()).thenReturn(50L);
+
+        final ReactorHandler apiReactor = mock(ReactorHandler.class);
+
+        this.prepareV3Mock(handlerEntrypoint, apiReactor);
+        when(response.ended()).thenReturn(true);
+        final ArgumentCaptor<ExecutionContext> ctxCaptor = ArgumentCaptor.forClass(ExecutionContext.class);
+
+        doAnswer(
+                i -> {
+                    simulateEndHandlerCall(i);
+                    return null;
+                }
+            )
+            .when(apiReactor)
+            .handle(ctxCaptor.capture(), any(Handler.class));
+
+        final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
+
+        final ExecutionContext ctxCaptorValue = ctxCaptor.getValue();
+        assertThat(ctxCaptorValue.response()).isInstanceOf(TimeoutServerResponse.class);
 
         obs.assertResult();
     }
