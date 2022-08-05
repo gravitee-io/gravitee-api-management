@@ -24,13 +24,13 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
-import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.RatingCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingAnswer;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
@@ -173,7 +173,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             final Page<Rating> pageRating = ratingRepository.findByReferenceIdAndReferenceTypePageable(
                 api,
                 RatingReferenceType.API,
-                new PageableBuilder().pageNumber(pageable.pageNumber() - 1).pageSize(pageable.pageSize()).build()
+                convert(pageable)
             );
             final List<RatingEntity> ratingEntities = pageRating
                 .getContent()

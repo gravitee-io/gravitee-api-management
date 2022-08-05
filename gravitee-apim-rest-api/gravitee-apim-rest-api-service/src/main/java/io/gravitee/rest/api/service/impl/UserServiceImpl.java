@@ -1251,10 +1251,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
             UserCriteria newCriteria = builder.build();
 
-            Page<User> users = userRepository.search(
-                newCriteria,
-                new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
-            );
+            Page<User> users = userRepository.search(newCriteria, convert(pageable));
 
             List<UserEntity> entities = users.getContent().stream().map(u -> convert(executionContext, u, false)).collect(toList());
 

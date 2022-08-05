@@ -27,13 +27,13 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
-import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingAnswer;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
@@ -230,8 +230,8 @@ public class RatingServiceTest {
     @Test
     public void shouldFindByApi() throws TechnicalException {
         final Pageable pageable = mock(Pageable.class);
-        when(pageable.pageNumber()).thenReturn(1);
-        when(pageable.pageSize()).thenReturn(1);
+        when(pageable.getPageNumber()).thenReturn(1);
+        when(pageable.getPageSize()).thenReturn(1);
         final Page<Rating> pageRating = mock(Page.class);
         when(pageRating.getPageNumber()).thenReturn(1);
         when(pageRating.getPageElements()).thenReturn(10L);

@@ -25,6 +25,7 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.RatingService;
@@ -69,7 +70,7 @@ public class ApiRatingResource extends AbstractResource {
             final Page<RatingEntity> ratingEntityPage = ratingService.findByApi(
                 executionContext,
                 api,
-                new PageableBuilder().pageNumber(pageNumber).pageSize(pageSize).build()
+                new PageableImpl(pageNumber, pageSize)
             );
             final List<RatingEntity> filteredRatings = ratingEntityPage
                 .getContent()
