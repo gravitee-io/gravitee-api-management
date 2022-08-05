@@ -247,7 +247,11 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
 
     private List<FlowSelector> getSelectors(final String flowId) {
         List<FlowSelector> flowSelectors = jdbcTemplate.query(
-            "select type, path, path_operator, condition, channel, channel_operator from " + FLOW_SELECTORS + " where flow_id = ?",
+            "select type, path, path_operator, " +
+            escapeReservedWord("condition") +
+            ", channel, channel_operator from " +
+            FLOW_SELECTORS +
+            " where flow_id = ?",
             (resultSet, i) -> {
                 String type = resultSet.getString(1);
                 FlowSelectorType flowSelectorType = FlowSelectorType.valueOf(type);
