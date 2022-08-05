@@ -15,12 +15,8 @@
  */
 package io.gravitee.repository.management.api.search;
 
-import static java.util.Arrays.asList;
-
 import io.gravitee.repository.management.model.ApplicationStatus;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -28,19 +24,21 @@ import java.util.Objects;
  */
 public class ApplicationCriteria {
 
-    private List<String> ids;
+    private Set<String> ids;
     private String name;
-    private List<String> environmentIds;
+    private Set<String> environmentIds;
     private ApplicationStatus status;
+    private Set<String> groups;
 
     ApplicationCriteria(ApplicationCriteria.Builder builder) {
         this.ids = builder.ids;
         this.name = builder.name;
         this.environmentIds = builder.environmentIds;
         this.status = builder.status;
+        this.groups = builder.groups;
     }
 
-    public List<String> getIds() {
+    public Set<String> getIds() {
         return ids;
     }
 
@@ -48,12 +46,16 @@ public class ApplicationCriteria {
         return name;
     }
 
-    public List<String> getEnvironmentIds() {
+    public Set<String> getEnvironmentIds() {
         return environmentIds;
     }
 
     public ApplicationStatus getStatus() {
         return status;
+    }
+
+    public Set<String> getGroups() {
+        return groups;
     }
 
     @Override
@@ -76,13 +78,18 @@ public class ApplicationCriteria {
 
     public static class Builder {
 
-        private List<String> ids;
+        private Set<String> ids;
         private String name;
-        private List<String> environmentIds;
+        private Set<String> environmentIds;
         private ApplicationStatus status;
+        private Set<String> groups;
 
-        public ApplicationCriteria.Builder ids(final String... id) {
-            this.ids = asList(id);
+        public ApplicationCriteria.Builder ids(final String... ids) {
+            return ids(Set.of(ids));
+        }
+
+        public ApplicationCriteria.Builder ids(final Set<String> ids) {
+            this.ids = ids;
             return this;
         }
 
@@ -91,13 +98,26 @@ public class ApplicationCriteria {
             return this;
         }
 
-        public ApplicationCriteria.Builder environmentIds(final List<String> environmentIds) {
+        public ApplicationCriteria.Builder environmentIds(final String... environmentIds) {
+            return environmentIds(Set.of(environmentIds));
+        }
+
+        public ApplicationCriteria.Builder environmentIds(final Set<String> environmentIds) {
             this.environmentIds = environmentIds;
             return this;
         }
 
         public ApplicationCriteria.Builder status(final ApplicationStatus status) {
             this.status = status;
+            return this;
+        }
+
+        public ApplicationCriteria.Builder groups(final String... groups) {
+            return groups(Set.of(groups));
+        }
+
+        public ApplicationCriteria.Builder groups(final Set<String> groups) {
+            this.groups = groups;
             return this;
         }
 

@@ -48,7 +48,7 @@
   {
     "id": "grouped-app1",
     "environmentId": "DEFAULT",
-    "name": "grouped-app",
+    "name": "grouped-app1",
     "description": "Sample grouped-app description",
     "status": "ACTIVE",
     "type": "SIMPLE",
@@ -63,7 +63,7 @@
   {
     "id": "grouped-app2",
     "environmentId": "DEFAULT",
-    "name": "grouped-app",
+    "name": "grouped-app2",
     "description": "Sample grouped-app description",
     "status": "ARCHIVED",
     "type": "SIMPLE",
@@ -82,8 +82,8 @@
     "description": "Sample searched app",
     "status": "ACTIVE",
     "type": "SIMPLE",
-    "createdAt": "1439022010883",
-    "updatedAt": "1439022010883",
+    "createdAt": "1439022010555",
+    "updatedAt": "1439022010555",
     "metadata": {
       "type": "Web"
     },
@@ -97,8 +97,8 @@
     "description": "Sample searched app",
     "status": "ACTIVE",
     "type": "SIMPLE",
-    "createdAt": "1439022010883",
-    "updatedAt": "1439022010883",
+    "createdAt": "1439022010666",
+    "updatedAt": "1439022010666",
     "metadata": {
       "type": "Web"
     },
@@ -111,8 +111,8 @@
     "description": "Sample searched app",
     "status": "ACTIVE",
     "type": "SIMPLE",
-    "createdAt": "1439022010883",
-    "updatedAt": "1439022010883",
+    "createdAt": "1439022010777",
+    "updatedAt": "1439022010777",
     "metadata": {
       "client_id": "my-client-id",
       "type": "Web"
@@ -142,7 +142,7 @@
     "status": "ACTIVE",
     "type": "SIMPLE",
     "createdAt": "1439022010883",
-    "updatedAt": "1439022010883",
+    "updatedAt": "1439022010999",
     "metadata": {
       "type": "Web"
     },

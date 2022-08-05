@@ -32,6 +32,8 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApplicationRepository extends CrudRepository<Application, String> {
+    Set<String> SORTABLE_FIELDS = Set.of("name", "status", "created_at", "updated_at");
+
     /**
      * List all applications.
      *
@@ -83,5 +85,9 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @return applications
      * @throws TechnicalException
      */
-    Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) throws TechnicalException;
+    default Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) throws TechnicalException {
+        return search(applicationCriteria, pageable, null);
+    }
+
+    Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable, Sortable sortable) throws TechnicalException;
 }

@@ -27,15 +27,16 @@ import static org.mockito.internal.util.collections.Sets.newSet;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -172,26 +173,78 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
                     .name("SeArched-app")
                     .ids("searched-app1", "app-with-long-client-id", "app-with-long-name")
                     .status(ApplicationStatus.ACTIVE)
-                    .environmentIds(singletonList("DEV"))
+                    .environmentIds("DEV")
                     .build(),
                 null
             )
         )
             .thenReturn(new Page<>(singletonList(searchedApp1), 1, 1, 1));
-        when(applicationRepository.search(new ApplicationCriteria.Builder().environmentIds(asList("DEV", "TEST", "PROD")).build(), null))
-            .thenReturn(
-                new Page<>(
-                    asList(
-                        mock(Application.class),
-                        mock(Application.class),
-                        mock(Application.class),
-                        mock(Application.class),
-                        mock(Application.class)
-                    ),
-                    1,
-                    5,
-                    5
-                )
-            );
+
+        List<Application> orderedAppsByNameAsc = List
+            .of(
+                "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012",
+                "app-with-client-id",
+                "app-with-long-client-id",
+                "searched-app1",
+                "searched-app2"
+            )
+            .stream()
+            .map(
+                name -> {
+                    Application app = mock(Application.class);
+                    when(app.getName()).thenReturn(name);
+                    return app;
+                }
+            )
+            .collect(Collectors.toList());
+
+        when(applicationRepository.search(new ApplicationCriteria.Builder().environmentIds("DEV", "TEST", "PROD").build(), null))
+            .thenReturn(new Page<>(orderedAppsByNameAsc, 1, 5, 5));
+
+        Pageable pageable = new PageableBuilder().pageSize(1).pageNumber(2).build();
+        when(applicationRepository.search(new ApplicationCriteria.Builder().environmentIds("DEV", "TEST", "PROD").build(), pageable))
+            .thenReturn(new Page<>(asList(mock(Application.class)), 2, 1, 5));
+
+        List<Application> orderedAppsBuUpdatedAt = List
+            .of(
+                "searched-app1",
+                "searched-app2",
+                "app-with-client-id",
+                "app-with-long-client-id",
+                "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012"
+            )
+            .stream()
+            .map(
+                name -> {
+                    Application app = mock(Application.class);
+                    when(app.getName()).thenReturn(name);
+                    return app;
+                }
+            )
+            .collect(Collectors.toList());
+
+        when(
+            applicationRepository.search(
+                new ApplicationCriteria.Builder().environmentIds("DEV", "TEST", "PROD").build(),
+                null,
+                new SortableBuilder().field("updated_at").order(Order.ASC).build()
+            )
+        )
+            .thenReturn(new Page<>(orderedAppsBuUpdatedAt, 1, 5, 5));
+
+        List<Application> orderedAppsWithGroup = List
+            .of("grouped-app1", "grouped-app2")
+            .stream()
+            .map(
+                name -> {
+                    Application app = mock(Application.class);
+                    when(app.getName()).thenReturn(name);
+                    return app;
+                }
+            )
+            .collect(Collectors.toList());
+
+        when(applicationRepository.search(new ApplicationCriteria.Builder().groups("application-group").build(), null))
+            .thenReturn(new Page<>(orderedAppsWithGroup, 1, 2, 2));
     }
 }

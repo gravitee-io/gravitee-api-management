@@ -83,8 +83,9 @@ public class ApplicationRepositoryProxy extends AbstractProxy<ApplicationReposit
     }
 
     @Override
-    public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) throws TechnicalException {
-        return target.search(applicationCriteria, pageable);
+    public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable, Sortable sortable)
+        throws TechnicalException {
+        return target.search(applicationCriteria, pageable, sortable);
     }
 
     @Override
