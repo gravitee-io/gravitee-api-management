@@ -122,8 +122,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final PropertiesService propertiesService;
     private final ApiNotificationService apiNotificationService;
 
-    @Autowired
-    @Lazy
     public ApiServiceImpl(
         @Lazy final ApiRepository apiRepository,
         final ApiMapper apiMapper,
@@ -135,16 +133,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final AuditService auditService,
         final MembershipService membershipService,
         final GenericNotificationConfigService genericNotificationConfigService,
-        final ApiMetadataService apiMetadataService,
+        @Lazy final ApiMetadataService apiMetadataService,
         final FlowService flowService,
-        final SearchEngineService searchEngineService,
+        @Lazy final SearchEngineService searchEngineService,
         final PlanService planService,
-        final SubscriptionService subscriptionService,
+        @Lazy final SubscriptionService subscriptionService,
         final EventService eventService,
-        final PageService pageService,
+        @Lazy final PageService pageService,
         @Lazy final TopApiService topApiService,
         final PortalNotificationConfigService portalNotificationConfigService,
-        final AlertService alertService,
+        @Lazy final AlertService alertService,
         @Lazy final ApiQualityRuleRepository apiQualityRuleRepository,
         final MediaService mediaService,
         final PropertiesService propertiesService,
