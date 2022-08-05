@@ -23,13 +23,18 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -57,6 +62,12 @@ public class ApplicationService_FindByUserAndNameTest {
 
     @Mock
     private MembershipService membershipService;
+
+    @Mock
+    private RoleService roleService;
+
+    @Mock
+    private RoleEntity primaryOwnerRole;
 
     @Test
     public void shouldNotFindByNameWhenNull() throws Exception {
@@ -88,7 +99,8 @@ public class ApplicationService_FindByUserAndNameTest {
 
     @Test
     public void shouldNotFindByName() throws Exception {
-        when(applicationRepository.search(any(), any())).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
+        when(applicationRepository.search(any(), any(), any())).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
+
         Set<ApplicationListItem> set = applicationService.findByUserAndNameAndStatus(
             GraviteeContext.getExecutionContext(),
             "myUser",
@@ -96,12 +108,15 @@ public class ApplicationService_FindByUserAndNameTest {
             "a",
             "ACTIVE"
         );
+
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
         ArgumentCaptor<ApplicationCriteria> queryCaptor = ArgumentCaptor.forClass(ApplicationCriteria.class);
-        Mockito.verify(applicationRepository).search(queryCaptor.capture(), any());
-        final ApplicationCriteria query = queryCaptor.getValue();
-        assertEquals("a", query.getName());
+        Mockito.verify(applicationRepository).search(queryCaptor.capture(), any(), any());
+        final ApplicationCriteria criteria = queryCaptor.getValue();
+        assertEquals("a", criteria.getName());
+        assertEquals(ApplicationStatus.ACTIVE, criteria.getStatus());
+        assertEquals(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()), criteria.getEnvironmentIds());
     }
 
     @Test
@@ -126,7 +141,7 @@ public class ApplicationService_FindByUserAndNameTest {
 
     @Test
     public void shouldNotRetrieveMembershipsWhenUserIdAdminAndFindWithoutApplicationId() throws TechnicalException {
-        when(applicationRepository.search(any(), any())).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
+        when(applicationRepository.search(any(), any(), any())).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
 
         // call
         applicationService.findByUserAndNameAndStatus(GraviteeContext.getExecutionContext(), "myUser", true, "random search", "ACTIVE");
@@ -136,13 +151,15 @@ public class ApplicationService_FindByUserAndNameTest {
 
         // check applicationRepository search has been called without application
         ArgumentCaptor<ApplicationCriteria> queryCaptor = ArgumentCaptor.forClass(ApplicationCriteria.class);
-        Mockito.verify(applicationRepository).search(queryCaptor.capture(), any());
-        assertTrue(queryCaptor.getValue().getIds().isEmpty());
+        Mockito.verify(applicationRepository).search(queryCaptor.capture(), any(), any());
+        assertNull(queryCaptor.getValue().getIds());
+        assertEquals("random search", queryCaptor.getValue().getName());
+        assertEquals(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()), queryCaptor.getValue().getEnvironmentIds());
     }
 
     @Test
     public void shouldRetrieveMembershipsAndFindWithApplicationsId() throws TechnicalException {
-        when(applicationRepository.search(any(), any())).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
+        when(applicationRepository.search(any(), any(), any())).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
 
         // mock applications memberships for this user : found applications "myApplicationId1" and "myApplicationId2"
         MembershipEntity membership1 = new MembershipEntity();
@@ -162,9 +179,10 @@ public class ApplicationService_FindByUserAndNameTest {
 
         // check applicationRepository search has been called with applications
         ArgumentCaptor<ApplicationCriteria> queryCaptor = ArgumentCaptor.forClass(ApplicationCriteria.class);
-        Mockito.verify(applicationRepository).search(queryCaptor.capture(), any());
+        Mockito.verify(applicationRepository).search(queryCaptor.capture(), any(), any());
         assertEquals(2, queryCaptor.getValue().getIds().size());
-        assertEquals("myApplicationId1", queryCaptor.getValue().getIds().get(0));
-        assertEquals("myApplicationId2", queryCaptor.getValue().getIds().get(1));
+        assertTrue(queryCaptor.getValue().getIds().containsAll(Arrays.asList("myApplicationId1", "myApplicationId2")));
+        assertEquals("random search", queryCaptor.getValue().getName());
+        assertEquals(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()), queryCaptor.getValue().getEnvironmentIds());
     }
 }
