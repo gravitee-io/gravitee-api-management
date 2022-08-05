@@ -863,14 +863,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         //find primary owners usernames of each application
-        final List<String> appIds = applications.stream().map(Application::getId).collect(toList());
+        final List<String> appIds = applications.parallelStream().map(Application::getId).collect(toList());
 
         Set<MembershipEntity> memberships = membershipService.getMembershipsByReferencesAndRole(
             io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION,
             appIds,
             primaryOwnerRole.getId()
         );
-        int poMissing = applications.size() - memberships.size();
+        int poMissing = appIds.size() - memberships.size();
         if (poMissing > 0) {
             Set<String> appMembershipsIds = memberships.stream().map(MembershipEntity::getReferenceId).collect(toSet());
 
@@ -886,13 +886,16 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         Map<String, String> applicationToUser = new HashMap<>(memberships.size());
-        memberships.forEach(membership -> applicationToUser.put(membership.getReferenceId(), membership.getMemberId()));
-
         Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
-        // We don't need user metadata, only global information
-        userService
-            .findByIds(executionContext, memberships.stream().map(MembershipEntity::getMemberId).collect(toList()), false)
-            .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
+
+        if (!memberships.isEmpty()) {
+            memberships.forEach(membership -> applicationToUser.put(membership.getReferenceId(), membership.getMemberId()));
+
+            // We don't need user metadata, only global information
+            userService
+                .findByIds(executionContext, memberships.stream().map(MembershipEntity::getMemberId).collect(toList()), false)
+                .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
+        }
 
         return applications
             .stream()
@@ -1129,7 +1132,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
 
             if (applicationQuery.getStatus() != null && !applicationQuery.getStatus().isBlank()) {
-                criteriaBuilder.status(ApplicationStatus.valueOf(applicationQuery.getStatus()));
+                criteriaBuilder.status(ApplicationStatus.valueOf(applicationQuery.getStatus().toUpperCase()));
             }
 
             if (applicationQuery.getName() != null && !applicationQuery.getName().isBlank()) {

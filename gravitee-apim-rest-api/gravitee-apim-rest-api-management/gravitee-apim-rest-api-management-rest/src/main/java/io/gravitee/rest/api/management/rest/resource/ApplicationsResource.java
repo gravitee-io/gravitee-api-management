@@ -15,15 +15,20 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.rest.api.management.rest.model.Pageable;
+import io.gravitee.rest.api.management.rest.model.wrapper.ApplicationListItemPagedResult;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -66,11 +71,16 @@ public class ApplicationsResource extends AbstractResource {
     @Inject
     private ApplicationService applicationService;
 
+    /**
+     * @deprecated must be replaced by /applications/_paged in future major release
+     */
     @GET
+    @Deprecated(forRemoval = true)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
         summary = "List all the applications accessible to authenticated user",
-        description = "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications."
+        description = "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. " +
+        "User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications."
     )
     @ApiResponse(
         responseCode = "200",
@@ -124,6 +134,68 @@ public class ApplicationsResource extends AbstractResource {
                         : o2.getUpdatedAt().compareTo(o1.getUpdatedAt())
             )
             .collect(Collectors.toList());
+    }
+
+    @GET
+    @Path("/_paged")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "List all the applications accessible to authenticated user",
+        description = "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. " +
+        "User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.",
+        operationId = "getApplicationsPaged"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "User's applications",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationListItemPagedResult.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ) })
+    public ApplicationListItemPagedResult getApplications(
+        @QueryParam("group") final String group,
+        @QueryParam("query") final String query,
+        @QueryParam("status") @DefaultValue("ACTIVE") final String status,
+        @Parameter(
+            name = "order",
+            schema = @Schema(
+                implementation = String.class,
+                description = "By default, sort is ASC. If *field* starts with '-', the order sort is DESC. Currently, only **name** and **updated_at** are supported"
+            )
+        ) @QueryParam("order") @DefaultValue("name") final ApplicationsOrderParam applicationsOrderParam,
+        @Valid @BeanParam Pageable pageable
+    ) {
+        if (!isAdmin() && ApplicationStatus.ARCHIVED.name().equalsIgnoreCase(status)) {
+            throw new ForbiddenAccessException();
+        }
+
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final ApplicationQuery applicationQuery = new ApplicationQuery();
+        if (group != null) {
+            applicationQuery.setGroup(group);
+        }
+        applicationQuery.setName(query);
+
+        if (!isAdmin()) {
+            applicationQuery.setUser(getAuthenticatedUser());
+        }
+        if (isAdmin() || (query != null && !query.isEmpty())) {
+            applicationQuery.setStatus(status);
+        } else {
+            applicationQuery.setUser(getAuthenticatedUser());
+        }
+
+        Sortable sortable = applicationsOrderParam.toSortable();
+
+        Page<ApplicationListItem> applications = applicationService.search(
+            executionContext,
+            applicationQuery,
+            sortable,
+            pageable.toPageable()
+        );
+        applications.getContent().forEach(this::addPictureUrl);
+
+        return new ApplicationListItemPagedResult(applications, (int) applications.getPageElements());
     }
 
     private void addPictureUrl(ApplicationListItem application) {

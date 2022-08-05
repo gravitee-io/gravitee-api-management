@@ -18,6 +18,8 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
+import { PagedResult } from '../entities/pagedResult';
+import { Application } from '../entities/application/application';
 
 @Injectable({
   providedIn: 'root',
@@ -41,5 +43,21 @@ export class ApplicationService {
         status: 'active',
       },
     });
+  }
+
+  list(status?: string, query?: string, order?: string, page = 1, size = 10): Observable<PagedResult<Application>> {
+    return this.http.get<PagedResult<Application>>(`${this.constants.env.baseURL}/applications/_paged`, {
+      params: {
+        page,
+        size,
+        ...(status ? { status } : {}),
+        ...(query ? { query } : {}),
+        ...(order ? { order } : {}),
+      },
+    });
+  }
+
+  restore(applicationId: string): Observable<Application> {
+    return this.http.post<Application>(`${this.constants.env.baseURL}/applications/${applicationId}/_restore`, {});
   }
 }
