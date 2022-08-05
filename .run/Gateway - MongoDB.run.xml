@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Gateway - MongoDB" type="Application" factoryName="Application" folderName="Gateway">
+    <option name="MAIN_CLASS_NAME" value="io.gravitee.gateway.standalone.GatewayContainer" />
+    <module name="gravitee-apim-gateway-standalone-container" />
+    <option name="VM_PARAMETERS" value="-Dgravitee.home=$ProjectFileDir$/gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution" />
+    <option name="WORKING_DIRECTORY" value="$ProjectFileDir$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

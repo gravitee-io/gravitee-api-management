@@ -1,0 +1,21 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Rest API - JDBC" type="Application" factoryName="Application" folderName="Rest API">
+    <envs>
+      <env name="GRAVITEE_MANAGEMENT_JDBC_DATABASE" value="gravitee" />
+      <env name="GRAVITEE_MANAGEMENT_JDBC_DRIVER" value="postgresql" />
+      <env name="GRAVITEE_MANAGEMENT_JDBC_HOST" value="localhost" />
+      <env name="GRAVITEE_MANAGEMENT_JDBC_PASSWORD" value="password" />
+      <env name="GRAVITEE_MANAGEMENT_JDBC_PORT" value="5432" />
+      <env name="GRAVITEE_MANAGEMENT_JDBC_URL" value="jdbc:postgresql://localhost:5432/gravitee" />
+      <env name="GRAVITEE_MANAGEMENT_JDBC_USERNAME" value="postgres" />
+      <env name="GRAVITEE_MANAGEMENT_TYPE" value="jdbc" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="io.gravitee.rest.api.standalone.GraviteeApisContainer" />
+    <module name="gravitee-apim-rest-api-standalone-container" />
+    <option name="VM_PARAMETERS" value="-Dgravitee.home=$ProjectFileDir$/gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution" />
+    <option name="WORKING_DIRECTORY" value="$ProjectFileDir$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
