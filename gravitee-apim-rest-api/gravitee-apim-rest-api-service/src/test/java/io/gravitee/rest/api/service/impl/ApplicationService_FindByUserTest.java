@@ -16,11 +16,13 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
@@ -40,10 +42,8 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -95,6 +95,9 @@ public class ApplicationService_FindByUserTest {
     @Mock
     private RoleService roleService;
 
+    @Mock
+    private RoleEntity primaryOwnerRole;
+
     @After
     public void tearDown() {
         GraviteeContext.cleanContext();
@@ -111,9 +114,14 @@ public class ApplicationService_FindByUserTest {
 
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
             .thenReturn(Collections.singleton(appMembership));
-        when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID), null))
-            .thenReturn(Collections.singleton(application));
-        when(application.getEnvironmentId()).thenReturn("envId");
+
+        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+            .ids(Set.of(APPLICATION_ID))
+            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
+            .status(ApplicationStatus.ACTIVE)
+            .build();
+        when(applicationRepository.search(criteria, null, null)).thenReturn(new Page<>(List.of(application), 1, 1, 1));
+
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = new MembershipEntity();
@@ -134,11 +142,15 @@ public class ApplicationService_FindByUserTest {
     @Test
     public void shouldNotFindByUserBecauseOfArchived() throws Exception {
         when(appMembership.getReferenceId()).thenReturn(APPLICATION_ID);
-        when(application.getStatus()).thenReturn(ApplicationStatus.ARCHIVED);
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
             .thenReturn(Collections.singleton(appMembership));
-        when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID), null))
-            .thenReturn(Collections.singleton(application));
+
+        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+            .ids(Set.of(APPLICATION_ID))
+            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
+            .status(ApplicationStatus.ACTIVE)
+            .build();
+        when(applicationRepository.search(criteria, null, null)).thenReturn(new Page<>(Collections.emptyList(), 1, 0, 0));
 
         Set<ApplicationListItem> apps = applicationService.findByUser(GraviteeContext.getExecutionContext(), USERNAME);
 
@@ -157,12 +169,10 @@ public class ApplicationService_FindByUserTest {
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
-        when(application.getEnvironmentId()).thenReturn("envId");
         when(groupApplication.getId()).thenReturn(GROUP_APPLICATION_ID);
         when(groupApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(groupApplication.getType()).thenReturn(ApplicationType.SIMPLE);
         when(groupApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
-        when(groupApplication.getEnvironmentId()).thenReturn("envId");
 
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
             .thenReturn(Collections.singleton(appMembership));
@@ -175,7 +185,12 @@ public class ApplicationService_FindByUserTest {
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(role);
         when(roleService.findById(any())).thenReturn(role);
 
-        when(applicationRepository.findByIds(any(), any())).thenReturn(new HashSet(Arrays.asList(application, groupApplication)));
+        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+            .ids(Set.of(APPLICATION_ID))
+            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
+            .status(ApplicationStatus.ACTIVE)
+            .build();
+        when(applicationRepository.search(criteria, null, null)).thenReturn(new Page<>(List.of(application, groupApplication), 1, 2, 2));
 
         MembershipEntity poApp = new MembershipEntity();
         poApp.setId("poApp-id");
@@ -213,14 +228,15 @@ public class ApplicationService_FindByUserTest {
         when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
             .thenReturn(Collections.singleton(appMembership));
-        when(
-            applicationRepository.findByIds(
-                Collections.singletonList(APPLICATION_ID),
-                new SortableBuilder().field("name").setAsc(true).build()
-            )
-        )
-            .thenReturn(Collections.singleton(application));
-        when(application.getEnvironmentId()).thenReturn("envId");
+
+        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+            .ids(Set.of(APPLICATION_ID))
+            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
+            .status(ApplicationStatus.ACTIVE)
+            .build();
+        when(applicationRepository.search(criteria, null, new SortableBuilder().field("name").setAsc(true).build()))
+            .thenReturn(new Page<>(List.of(application), 1, 2, 2));
+
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = new MembershipEntity();

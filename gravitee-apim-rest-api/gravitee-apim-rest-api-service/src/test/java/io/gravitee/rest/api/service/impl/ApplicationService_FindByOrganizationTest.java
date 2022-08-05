@@ -77,7 +77,7 @@ public class ApplicationService_FindByOrganizationTest {
         application.setType(ApplicationType.WEB);
         application.setStatus(ApplicationStatus.ACTIVE);
         when(environmentService.findByOrganization(organizationId)).thenReturn(List.of(environment));
-        ApplicationCriteria criteria = new ApplicationCriteria.Builder().environmentIds(List.of(environmentId)).build();
+        ApplicationCriteria criteria = new ApplicationCriteria.Builder().environmentIds(environmentId).build();
         when(applicationRepository.search(criteria, null)).thenReturn(new Page<>(List.of(application), 0, 1, 1));
 
         Set<ApplicationListItem> applications = applicationService.findByOrganization(organizationId);
