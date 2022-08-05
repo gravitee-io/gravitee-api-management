@@ -236,7 +236,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             PromotionCriteria criteria = queryToCriteriaBuilder(query).build();
 
-            Page<Promotion> promotions = promotionRepository.search(criteria, buildSortable(sortable), buildPageable(pageable));
+            Page<Promotion> promotions = promotionRepository.search(criteria, convert(sortable), convert(pageable));
 
             List<PromotionEntity> entities = promotions.getContent().stream().map(this::convert).collect(Collectors.toList());
 
@@ -422,20 +422,6 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         }
 
         return builder;
-    }
-
-    private io.gravitee.repository.management.api.search.Sortable buildSortable(Sortable sortable) {
-        if (sortable == null) {
-            return null;
-        }
-        return new SortableBuilder().field(sortable.getField()).order(sortable.isAscOrder() ? Order.ASC : Order.DESC).build();
-    }
-
-    private io.gravitee.repository.management.api.search.Pageable buildPageable(Pageable pageable) {
-        if (pageable == null) {
-            return null;
-        }
-        return new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build();
     }
 
     protected ApiEntity findAlreadyPromotedTargetApi(
