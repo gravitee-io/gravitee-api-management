@@ -15,15 +15,22 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.analytics.query.Sort;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -39,6 +46,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -82,48 +90,38 @@ public class ApplicationsResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ) })
-    public List<ApplicationListItem> getApplications(
+    public Page<ApplicationListItem> getApplications(
         @QueryParam("group") final String group,
         @QueryParam("query") final String query,
         @QueryParam("status") @DefaultValue("ACTIVE") final String status
     ) {
-        Set<ApplicationListItem> applications;
-
         if (!isAdmin() && ApplicationStatus.ARCHIVED.name().equalsIgnoreCase(status)) {
             throw new ForbiddenAccessException();
         }
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (query != null && !query.trim().isEmpty()) {
-            applications =
-                applicationService.findByUserAndNameAndStatus(executionContext, getAuthenticatedUser(), isAdmin(), query, status);
-        } else if (isAdmin()) {
-            applications =
-                group != null
-                    ? applicationService.findByGroupsAndStatus(executionContext, Collections.singletonList(group), status)
-                    : applicationService.findByStatus(executionContext, status);
+        final ApplicationQuery applicationQuery = new ApplicationQuery();
+        applicationQuery.setGroup(group);
+        applicationQuery.setName(query);
+
+        if (!isAdmin()) {
+            applicationQuery.setUser(getAuthenticatedUser());
+        }
+        if (isAdmin() || (query != null && !query.isEmpty())) {
+            applicationQuery.setStatus(status);
         } else {
-            applications = applicationService.findByUser(executionContext, getAuthenticatedUser());
-            if (group != null && !group.isEmpty()) {
-                applications =
-                    applications
-                        .stream()
-                        .filter(app -> app.getGroups() != null && app.getGroups().contains(group))
-                        .collect(Collectors.toSet());
-            }
+            applicationQuery.setUser(getAuthenticatedUser());
+            applicationQuery.setGroup(group);
         }
 
-        applications.forEach(application -> this.addPictureUrl(application));
+        Sortable sortable = ApplicationStatus.ACTIVE.name().equalsIgnoreCase(status)
+            ? new SortableImpl("name", true)
+            : new SortableImpl("updated_at", false);
 
-        return applications
-            .stream()
-            .sorted(
-                (o1, o2) ->
-                    ApplicationStatus.ACTIVE.name().equalsIgnoreCase(status)
-                        ? String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName())
-                        : o2.getUpdatedAt().compareTo(o1.getUpdatedAt())
-            )
-            .collect(Collectors.toList());
+        Page<ApplicationListItem> applications = applicationService.search(executionContext, applicationQuery, sortable, null);
+        applications.getContent().forEach(this::addPictureUrl);
+
+        return applications;
     }
 
     private void addPictureUrl(ApplicationListItem application) {
