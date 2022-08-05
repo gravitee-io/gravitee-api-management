@@ -428,11 +428,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         Objects.requireNonNull(pageable, "FindAll requires a pageable parameter");
         logger.debug("Find all pages with pageNumber {} and pageSize {}", pageable.getPageNumber(), pageable.getPageSize());
         try {
-            io.gravitee.repository.management.api.search.Pageable repoPageable = new PageableBuilder()
-                .pageSize(pageable.getPageSize())
-                .pageNumber(pageable.getPageNumber())
-                .build();
-            io.gravitee.common.data.domain.Page<Page> pages = this.pageRepository.findAll(repoPageable);
+            io.gravitee.common.data.domain.Page<Page> pages = this.pageRepository.findAll(convert(pageable));
             List<PageEntity> entities = pages.getContent().stream().map(this::convert).collect(toList());
 
             logger.debug("{} pages found", pages.getPageElements());
