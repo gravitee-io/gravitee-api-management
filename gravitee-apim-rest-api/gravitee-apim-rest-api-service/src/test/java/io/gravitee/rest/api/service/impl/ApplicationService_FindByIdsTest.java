@@ -21,8 +21,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
@@ -94,12 +97,10 @@ public class ApplicationService_FindByIdsTest {
     public void setUp() {
         GraviteeContext.setCurrentOrganization("DEFAULT");
         GraviteeContext.setCurrentEnvironment("DEFAULT");
-        when(app1.getEnvironmentId()).thenReturn("DEFAULT");
         when(app1.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(app1.getId()).thenReturn(APPLICATION_IDS.get(0));
         when(app1.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
 
-        when(app2.getEnvironmentId()).thenReturn("DEFAULT");
         when(app2.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(app2.getId()).thenReturn(APPLICATION_IDS.get(1));
         when(app2.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
@@ -120,10 +121,16 @@ public class ApplicationService_FindByIdsTest {
 
     @Test
     public void shouldFindByIds() throws TechnicalException {
-        doReturn(new LinkedHashSet<>(Arrays.asList(app1, app2))).when(applicationRepository).findByIds(APPLICATION_IDS);
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+            .ids(Sets.newHashSet(APPLICATION_IDS))
+            .status(ApplicationStatus.ACTIVE)
+            .environmentIds(executionContext.getEnvironmentId())
+            .build();
+        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
+        final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, APPLICATION_IDS);
 
         assertNotNull(applications);
         assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
@@ -131,7 +138,13 @@ public class ApplicationService_FindByIdsTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowsIfNoPrimaryOwner() throws TechnicalException {
-        doReturn(new LinkedHashSet<>(Arrays.asList(app1, app2))).when(applicationRepository).findByIds(APPLICATION_IDS);
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+            .ids(Sets.newHashSet(APPLICATION_IDS))
+            .status(ApplicationStatus.ACTIVE)
+            .environmentIds(executionContext.getEnvironmentId())
+            .build();
+        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
 
         final Set<ApplicationListItem> applications = applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
 
@@ -141,7 +154,7 @@ public class ApplicationService_FindByIdsTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowTechnicalManagementException() throws TechnicalException {
-        when(applicationRepository.findByIds(any())).thenThrow(new TechnicalException());
+        when(applicationRepository.search(any(), any())).thenThrow(new TechnicalException());
         applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
     }
 }

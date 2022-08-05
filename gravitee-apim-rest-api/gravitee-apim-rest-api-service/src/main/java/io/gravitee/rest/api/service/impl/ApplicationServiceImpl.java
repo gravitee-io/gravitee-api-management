@@ -18,12 +18,12 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.repository.management.model.Application.*;
 import static io.gravitee.repository.management.model.Application.AuditEvent.*;
 import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -33,10 +33,8 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.application.ApplicationSettings;
-import io.gravitee.rest.api.model.application.OAuthClientSettings;
-import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.application.*;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
@@ -155,18 +153,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         try {
             LOGGER.debug("Find application by IDs: {}", applicationIds);
 
-            final Set<Application> applications = applicationRepository
-                .findByIds(applicationIds)
-                .stream()
-                .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
-                .filter(app -> app.getEnvironmentId().equals(executionContext.getEnvironmentId()))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+            ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+                .ids(applicationIds.toArray(new String[0]))
+                .environmentIds(executionContext.getEnvironmentId())
+                .status(ApplicationStatus.ACTIVE)
+                .build();
 
-            if (applications.isEmpty()) {
+            Page<Application> applications = applicationRepository.search(criteria, null);
+
+            if (applications.getContent().isEmpty()) {
                 return emptySet();
             }
-
-            return this.convertToList(executionContext, applications);
+            return this.convertToList(executionContext, applications.getContent());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications by ids {}", applicationIds, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications by ids {}" + applicationIds, ex);
@@ -175,28 +173,15 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Override
     public Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable) {
-        try {
-            LOGGER.debug("Find applications for user {}", username);
+        LOGGER.debug("Find applications for user {}", username);
 
-            Set<String> userApplicationsIds = findUserApplicationsIds(executionContext, username, executionContext.getOrganizationId());
+        ApplicationQuery applicationQuery = new ApplicationQuery();
+        applicationQuery.setUser(username);
+        applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
 
-            Set<Application> byIds = applicationRepository.findByIds(new ArrayList<>(userApplicationsIds), convert(sortable));
+        Page<ApplicationListItem> applications = search(executionContext, applicationQuery, sortable, null);
 
-            final Set<Application> applications = byIds
-                .stream()
-                .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
-                .filter(app -> app.getEnvironmentId().equals(executionContext.getEnvironmentId()))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
-            if (applications.isEmpty()) {
-                return emptySet();
-            }
-
-            return this.convertToList(executionContext, applications);
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find applications for user {}", username, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find applications for user " + username, ex);
-        }
+        return new LinkedHashSet<>(applications.getContent());
     }
 
     @Override
@@ -212,15 +197,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             return emptySet();
         }
 
-        Set<String> userApplicationsIds = emptySet();
+        ApplicationQuery query = new ApplicationQuery();
+        query.setStatus(status);
+        query.setName(name);
         if (!isAdminUser) {
-            userApplicationsIds = findUserApplicationsIds(executionContext, userName, executionContext.getOrganizationId());
-            if (userApplicationsIds.isEmpty()) {
-                return emptySet();
-            }
+            query.setUser(userName);
         }
-
-        return searchApplicationsByNameAndStatusAndIds(executionContext, name, status, userApplicationsIds.toArray(new String[0]));
+        return new LinkedHashSet<>(search(executionContext, query, null, null).getContent());
     }
 
     @Override
@@ -231,15 +214,15 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 return emptySet();
             }
 
-            final List<String> environmentIds = environmentService
+            final Set<String> environmentIds = environmentService
                 .findByOrganization(organizationId)
                 .stream()
                 .map(EnvironmentEntity::getId)
-                .collect(toList());
+                .collect(toSet());
             ApplicationCriteria criteria = new ApplicationCriteria.Builder().environmentIds(environmentIds).build();
 
             Page<Application> applications = applicationRepository.search(criteria, null);
-            return convertToSimpleList(new HashSet<>(applications.getContent()));
+            return convertToSimpleList(new LinkedHashSet<>(applications.getContent()));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for organization {}", organizationId, ex);
             throw new TechnicalManagementException(
@@ -866,7 +849,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
-    private Set<ApplicationEntity> convert(ExecutionContext executionContext, Set<Application> applications) throws TechnicalException {
+    private Set<ApplicationEntity> convert(ExecutionContext executionContext, Collection<Application> applications)
+        throws TechnicalException {
         if (applications == null || applications.isEmpty()) {
             return Collections.emptySet();
         }
@@ -941,7 +925,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .collect(toSet());
     }
 
-    private Set<ApplicationListItem> convertToList(final ExecutionContext executionContext, Set<Application> applications)
+    private Page<ApplicationListItem> convertToList(final ExecutionContext executionContext, Page<Application> applications)
+        throws TechnicalException {
+        Set<ApplicationListItem> applicationListItems = convertToList(executionContext, applications.getContent());
+        return new Page(
+            List.copyOf(applicationListItems),
+            applications.getPageNumber(),
+            applicationListItems.size(),
+            applications.getTotalElements()
+        );
+    }
+
+    private Set<ApplicationListItem> convertToList(final ExecutionContext executionContext, Collection<Application> applications)
         throws TechnicalException {
         Set<ApplicationEntity> entities = convert(executionContext, applications);
 
@@ -1096,6 +1091,50 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return dataAsMap;
     }
 
+    @Override
+    public Page<ApplicationListItem> search(
+        ExecutionContext executionContext,
+        ApplicationQuery applicationQuery,
+        Sortable sortable,
+        Pageable pageable
+    ) {
+        try {
+            ApplicationCriteria.Builder criteriaBuilder = new ApplicationCriteria.Builder()
+            .environmentIds(Sets.newHashSet(executionContext.getEnvironmentId()));
+
+            if (applicationQuery.getUser() != null && !applicationQuery.getUser().isBlank()) {
+                Set<String> userApplicationsIds = findUserApplicationsIds(
+                    executionContext,
+                    applicationQuery.getUser(),
+                    executionContext.getOrganizationId()
+                );
+                if (userApplicationsIds.isEmpty()) {
+                    return new Page<>(Collections.emptyList(), 1, 0, 0);
+                }
+                criteriaBuilder.ids(userApplicationsIds);
+            }
+
+            if (applicationQuery.getGroup() != null && !applicationQuery.getGroup().isBlank()) {
+                criteriaBuilder.groups(applicationQuery.getGroup());
+            }
+
+            if (applicationQuery.getStatus() != null && !applicationQuery.getStatus().isBlank()) {
+                criteriaBuilder.status(ApplicationStatus.valueOf(applicationQuery.getStatus()));
+            }
+
+            if (applicationQuery.getName() != null && !applicationQuery.getName().isBlank()) {
+                criteriaBuilder.name(applicationQuery.getName());
+            }
+
+            Page<Application> applications = applicationRepository.search(criteriaBuilder.build(), convert(pageable), convert(sortable));
+
+            return this.convertToList(executionContext, applications);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to search applications for query {}", applicationQuery, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find applications for query " + applicationQuery, ex);
+        }
+    }
+
     private Set<String> findUserApplicationsIds(ExecutionContext executionContext, String username, final String organizationId) {
         //find applications where the user is a member
         Set<String> appIds = membershipService
@@ -1114,28 +1153,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         appIds.addAll(this.findByGroups(executionContext, groupIds).stream().map(ApplicationListItem::getId).collect(toSet()));
 
         return appIds;
-    }
-
-    private Set<ApplicationListItem> searchApplicationsByNameAndStatusAndIds(
-        final ExecutionContext executionContext,
-        String name,
-        String status,
-        String[] ids
-    ) {
-        try {
-            ApplicationCriteria criteria = new ApplicationCriteria.Builder()
-                .status(ApplicationStatus.valueOf(status))
-                .name(name.trim())
-                .environmentIds(singletonList(executionContext.getEnvironmentId()))
-                .ids(ids)
-                .build();
-            Page<Application> applications = applicationRepository.search(criteria, null);
-            return convertToList(executionContext, new HashSet<>(applications.getContent()));
-        } catch (TechnicalException ex) {
-            String errorMessage = String.format("An error occurs while trying to find applications by name %s and id %s", name, ids);
-            LOGGER.error(errorMessage, ex);
-            throw new TechnicalManagementException(errorMessage, ex);
-        }
     }
 
     private void checkClientIdIsUniqueForEnv(String environmentId, String clientId) {

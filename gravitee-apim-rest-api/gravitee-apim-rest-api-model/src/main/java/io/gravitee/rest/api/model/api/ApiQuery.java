@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.model.api;
 
-import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.rest.api.model.Visibility;
 import java.util.Collection;
 import java.util.List;
