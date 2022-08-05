@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest
 @DeployApi("/invalid.json")
+@EnableForGatewayTestingExtensionTesting
 public class InvalidApiClassLevelTestCase extends AbstractGatewayTest {
 
     @Test

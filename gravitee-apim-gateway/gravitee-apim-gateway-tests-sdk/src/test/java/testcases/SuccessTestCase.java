@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest
 @DeployApi({ "/apis/success-flow.json" })
+@EnableForGatewayTestingExtensionTesting
 public class SuccessTestCase extends AbstractGatewayTest {
 
     public static final String ON_REQUEST_POLICY = "on-request-policy";

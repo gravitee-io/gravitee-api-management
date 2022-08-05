@@ -50,6 +50,7 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest
 @DeployApi("/apis/conditional-policy-flow.json")
+@EnableForGatewayTestingExtensionTesting
 public class RegisterTwiceSameApiMethodLevelTestCase extends AbstractGatewayTest {
 
     @Test

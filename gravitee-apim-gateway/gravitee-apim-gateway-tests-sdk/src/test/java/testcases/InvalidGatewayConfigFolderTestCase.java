@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest(configFolder = "/non-existing")
 @DeployApi("fakeApi.json")
+@EnableForGatewayTestingExtensionTesting
 public class InvalidGatewayConfigFolderTestCase extends AbstractGatewayTest {
 
     @Test

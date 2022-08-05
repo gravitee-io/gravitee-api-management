@@ -15,6 +15,8 @@
  */
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.testkit.engine.EngineTestKit;
@@ -33,6 +35,20 @@ import testcases.SuccessTestCase;
  * @author GraviteeSource Team
  */
 class GatewayTestingExtensionTest {
+
+    /**
+     * Setting this property allow to run test cases only in the context of the extension testing.
+     * *TestCase.java classes are not aimed to be run when running all tests in your IDE.
+     */
+    @BeforeEach
+    void setUp() {
+        System.setProperty("io.gravitee.sdk.testcase.enabled", "true");
+    }
+
+    @AfterEach
+    void tearDown() {
+        System.clearProperty("io.gravitee.sdk.testcase.enabled");
+    }
 
     @Test
     @DisplayName("Should success tests")
