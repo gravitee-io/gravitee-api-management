@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest
 @DeployApi("/apis/conditional-policy-flow.json")
+@EnableForGatewayTestingExtensionTesting
 public class NotExtendingAbstractClassTestCase {
 
     @Test

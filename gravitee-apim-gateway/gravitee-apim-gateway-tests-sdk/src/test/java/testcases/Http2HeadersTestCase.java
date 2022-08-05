@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest
 @DeployApi("/apis/teams.json")
+@EnableForGatewayTestingExtensionTesting
 public class Http2HeadersTestCase extends AbstractHttp2GatewayTest {
 
     public static final String ENDPOINT = "/team/my_team";

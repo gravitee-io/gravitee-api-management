@@ -34,6 +34,9 @@ import io.vertx.reactivex.ext.web.client.HttpResponse;
 import io.vertx.reactivex.ext.web.client.WebClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 /**
  *
@@ -52,6 +55,7 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest
 @DeployApi("/apis/client-authentication-pem-inline-support.json")
+@EnableForGatewayTestingExtensionTesting
 public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
 
     public static final String ENDPOINT = "/team/my_team";

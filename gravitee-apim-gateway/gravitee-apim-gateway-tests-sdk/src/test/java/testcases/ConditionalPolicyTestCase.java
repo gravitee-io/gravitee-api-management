@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest
 @DeployApi({ "/apis/conditional-policy-flow.json" })
+@EnableForGatewayTestingExtensionTesting
 public class ConditionalPolicyTestCase extends AbstractGatewayTest {
 
     public static final String ENDPOINT = "/test/my_team";
