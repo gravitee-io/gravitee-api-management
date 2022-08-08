@@ -112,11 +112,11 @@ public class KubernetesSyncService extends AbstractService<KubernetesSyncService
 
                 final io.gravitee.repository.management.model.Event event = new io.gravitee.repository.management.model.Event();
                 event.setProperties(Collections.singletonMap(API_ID.getValue(), apiDefinition.getId()));
+                event.setCreatedAt(new Date());
 
                 final io.gravitee.repository.management.model.Api api = new io.gravitee.repository.management.model.Api();
                 api.setEnvironmentId(configMap.getData().get(DATA_ENVIRONMENT_ID));
                 api.setDefinition(definition);
-                api.setDeployedAt(new Date());
                 api.setId(apiDefinition.getId());
 
                 switch (kubEvent.getType()) {
