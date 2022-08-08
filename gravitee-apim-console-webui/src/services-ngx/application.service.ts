@@ -18,6 +18,8 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
+import { PagedResult } from '../entities/pagedResult';
+import { Application } from '../entities/application/application';
 
 @Injectable({
   providedIn: 'root',
@@ -30,16 +32,39 @@ export class ApplicationService {
       environmentId?: string;
     } = {},
   ): Observable<any[]> {
-    let baseURL = this.constants.env.baseURL;
-
-    if (params.environmentId) {
-      baseURL = `${this.constants.org.baseURL}/environments/${params.environmentId}`;
-    }
+    const baseURL = this.buildBaseURL(params);
 
     return this.http.get<any[]>(`${baseURL}/applications`, {
       params: {
         status: 'active',
       },
     });
+  }
+
+  private buildBaseURL(params: { environmentId?: string }) {
+    let baseURL = this.constants.env.baseURL;
+
+    if (params.environmentId) {
+      baseURL = `${this.constants.org.baseURL}/environments/${params.environmentId}`;
+    }
+    return baseURL;
+  }
+
+  list(environmentId: string, status?: string, query?: string, order?: string, page = 1, size = 10): Observable<PagedResult<Application>> {
+    const baseURL = this.buildBaseURL({ environmentId });
+    return this.http.get<PagedResult<Application>>(`${baseURL}/applications`, {
+      params: {
+        page,
+        size,
+        ...(status ? { status } : {}),
+        ...(query ? { query } : {}),
+        ...(order ? { order } : {}),
+      },
+    });
+  }
+
+  restore(environmentId: string, applicationId: string): Observable<Application> {
+    const baseURL = this.buildBaseURL({ environmentId });
+    return this.http.post<Application>(`${baseURL}/applications/${applicationId}/_restore`, {});
   }
 }

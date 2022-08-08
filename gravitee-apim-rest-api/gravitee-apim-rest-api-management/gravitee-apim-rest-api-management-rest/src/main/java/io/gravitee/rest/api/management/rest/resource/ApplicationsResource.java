@@ -17,10 +17,9 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.analytics.query.Sort;
-import io.gravitee.repository.management.api.search.Order;
-import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.rest.api.management.rest.model.Pageable;
+import io.gravitee.rest.api.management.rest.model.wrapper.ApplicationListItemPagedResult;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -30,7 +29,6 @@ import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.common.Sortable;
-import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -78,7 +76,8 @@ public class ApplicationsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
         summary = "List all the applications accessible to authenticated user",
-        description = "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications."
+        description = "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. " +
+        "User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications."
     )
     @ApiResponse(
         responseCode = "200",
@@ -90,10 +89,18 @@ public class ApplicationsResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ) })
-    public Page<ApplicationListItem> getApplications(
+    public ApplicationListItemPagedResult getApplications(
         @QueryParam("group") final String group,
         @QueryParam("query") final String query,
-        @QueryParam("status") @DefaultValue("ACTIVE") final String status
+        @QueryParam("status") @DefaultValue("ACTIVE") final String status,
+        @Parameter(
+            name = "order",
+            schema = @Schema(
+                implementation = String.class,
+                description = "By default, sort is ASC. If *field* starts with '-', the order sort is DESC. Currently, only **name** and **updated_at** are supported"
+            )
+        ) @QueryParam("order") @DefaultValue("name") final ApplicationsOrderParam applicationsOrderParam,
+        @Valid @BeanParam Pageable pageable
     ) {
         if (!isAdmin() && ApplicationStatus.ARCHIVED.name().equalsIgnoreCase(status)) {
             throw new ForbiddenAccessException();
@@ -114,14 +121,17 @@ public class ApplicationsResource extends AbstractResource {
             applicationQuery.setGroup(group);
         }
 
-        Sortable sortable = ApplicationStatus.ACTIVE.name().equalsIgnoreCase(status)
-            ? new SortableImpl("name", true)
-            : new SortableImpl("updated_at", false);
+        Sortable sortable = applicationsOrderParam.toSortable();
 
-        Page<ApplicationListItem> applications = applicationService.search(executionContext, applicationQuery, sortable, null);
+        Page<ApplicationListItem> applications = applicationService.search(
+            executionContext,
+            applicationQuery,
+            sortable,
+            pageable.toPageable()
+        );
         applications.getContent().forEach(this::addPictureUrl);
 
-        return applications;
+        return new ApplicationListItemPagedResult(applications, (int) applications.getPageElements());
     }
 
     private void addPictureUrl(ApplicationListItem application) {

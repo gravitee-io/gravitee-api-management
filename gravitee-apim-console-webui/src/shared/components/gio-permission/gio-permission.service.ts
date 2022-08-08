@@ -19,6 +19,7 @@ import { intersection } from 'lodash';
 import UserService from '../../../services/user.service';
 import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { User } from '../../../entities/user';
+import { Role } from '../../../entities/role/role';
 
 @Injectable({ providedIn: 'root' })
 export class GioPermissionService {
@@ -38,5 +39,13 @@ export class GioPermissionService {
       intersection(this.currentUser.userApiPermissions, permissions).length > 0 ||
       intersection(this.currentUser.userApplicationPermissions, permissions).length > 0
     );
+  }
+
+  hasRole(role: Partial<Role>): boolean {
+    if (!role || !this.currentUser.roles) {
+      return false;
+    }
+    const { scope, name } = role;
+    return this.currentUser.roles.some((role) => role.scope === scope && role.name === name);
   }
 }

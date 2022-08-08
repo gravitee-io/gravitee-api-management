@@ -20,39 +20,39 @@ import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import java.util.Arrays;
 
-public class ApisOrderParam extends AbstractParam<ApisOrderParam.ApisOrder> {
+public class ApplicationsOrderParam extends AbstractParam<ApplicationsOrderParam.ApplicationsOrder> {
 
-    public ApisOrderParam(String param) {
+    public ApplicationsOrderParam(String param) {
         super(param);
     }
 
     @Override
-    protected ApisOrder parse(String param) {
+    protected ApplicationsOrder parse(String param) {
         if (param != null) {
-            return ApisOrder.forValue(param.toLowerCase());
+            return ApplicationsOrder.forValue(param.toLowerCase());
         }
         return null;
     }
 
     protected Sortable toSortable() {
-        ApisOrder order = this.getValue();
+        ApplicationsOrder order = this.getValue();
         if (order != null) {
             return new SortableImpl(order.field, order.isAsc);
         }
         return null;
     }
 
-    public enum ApisOrder {
+    public enum ApplicationsOrder {
         NAME("name", true),
         NAME_DESC("name", false),
-        PATHS("paths", true),
-        PATHS_DESC("paths", false);
+        UPDATED_AT("updated_at", true),
+        UPDATED_AT_DESC("updated_at", false);
 
-        public static ApisOrder forValue(String order) {
+        public static ApplicationsOrder forValue(String order) {
             boolean isAsc = !order.startsWith("-");
             String field = order.replace("-", "");
             return Arrays
-                .stream(ApisOrder.values())
+                .stream(ApplicationsOrder.values())
                 .filter(o -> o.field.equalsIgnoreCase(field) && o.isAsc == isAsc)
                 .findFirst()
                 .orElse(null);
@@ -61,7 +61,7 @@ public class ApisOrderParam extends AbstractParam<ApisOrderParam.ApisOrder> {
         public final String field;
         public final boolean isAsc;
 
-        ApisOrder(String field, boolean isAsc) {
+        ApplicationsOrder(String field, boolean isAsc) {
             this.field = field;
             this.isAsc = isAsc;
         }

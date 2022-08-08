@@ -35,9 +35,30 @@ function applicationsConfig($stateProvider) {
       url: '/applications',
     })
     .state('management.applications.list', {
-      url: '/',
-      component: 'applications',
+      url: '/?q&page&status&size&order',
+      component: 'ngEnvApplicationList',
+      params: {
+        page: {
+          value: '1',
+          dynamic: true,
+        },
+        q: {
+          dynamic: true,
+        },
+        size: {
+          value: '10',
+          dynamic: true,
+        },
+        status: {
+          value: 'ACTIVE',
+          dynamic: true,
+        },
+        order: {
+          dynamic: true,
+        },
+      },
       data: {
+        useAngularMaterial: true,
         menu: {
           label: 'Applications',
           icon: 'list',
@@ -50,9 +71,6 @@ function applicationsConfig($stateProvider) {
         docs: {
           page: 'management-applications',
         },
-      },
-      resolve: {
-        applications: (ApplicationService: ApplicationService) => ApplicationService.list().then((response) => response.data),
       },
     })
     .state('management.applications.create', {

@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
@@ -71,7 +70,7 @@ public abstract class AbstractService extends TransactionalService {
         }
         // TODO: check  the truth with impl in PromotionService
         // new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build();
-        return new PageableBuilder().pageNumber(pageable.getPageNumber()).pageSize(pageable.getPageSize()).build();
+        return new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build();
     }
 
     protected static io.gravitee.repository.management.api.search.Sortable convert(Sortable sortable) {

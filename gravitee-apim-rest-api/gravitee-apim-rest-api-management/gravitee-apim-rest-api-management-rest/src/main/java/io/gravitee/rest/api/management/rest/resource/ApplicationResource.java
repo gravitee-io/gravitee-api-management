@@ -218,17 +218,13 @@ public class ApplicationResource extends AbstractResource {
     @POST
     @Path("/_restore")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(
-        summary = "Restore the application",
-        description = "User must have APPLICATION_DEFINITION[UPDATE] permission to restore an application."
-    )
+    @Operation(summary = "Restore the application", description = "User must have ORGANIZATION:ADMIN role to restore an application.")
     @ApiResponse(
         responseCode = "200",
         description = "Restored application",
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public ApplicationEntity restoreApplication() {
         if (!isAdmin()) {
             throw new ForbiddenAccessException();

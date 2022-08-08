@@ -419,7 +419,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
         String direction = toSortDirection(sortable);
         String field = "name";
-        if (sortable != null && SORTABLE_FIELDS.contains(sortable.field())) {
+        if (sortable != null) {
             field = sortable.field();
         }
 

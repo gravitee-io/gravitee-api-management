@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.internal.application;
 
-import static io.gravitee.repository.management.api.ApplicationRepository.SORTABLE_FIELDS;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
@@ -74,7 +73,7 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 
         Sort.Direction direction = toSortDirection(sortable);
         Sort.Order order;
-        if (sortable == null || !SORTABLE_FIELDS.contains(sortable.field())) {
+        if (sortable == null) {
             order = new Sort.Order(direction, "name");
         } else {
             order = new Sort.Order(direction, FieldUtils.toCamelCase(sortable.field()));
