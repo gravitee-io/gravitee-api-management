@@ -32,6 +32,7 @@ import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.debug.core.invoker.InvokerResponse;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyRequestStep;
