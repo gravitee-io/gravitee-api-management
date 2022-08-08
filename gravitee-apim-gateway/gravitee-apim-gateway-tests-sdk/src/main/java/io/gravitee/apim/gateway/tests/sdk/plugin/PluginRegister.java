@@ -18,6 +18,7 @@ package io.gravitee.apim.gateway.tests.sdk.plugin;
 import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.plugin.connector.ConnectorPlugin;
 import io.gravitee.plugin.core.api.PluginManifest;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.reporter.api.Reporter;
@@ -63,7 +64,6 @@ public interface PluginRegister {
      *     {@code
      *     @Override
      *     public void configureConnectors(Map<String, ConnectorPlugin> connectors) {
-     *         super.configureConnectors(connectors);
      *         connectors.put("connector-http", ConnectorBuilder.build("connector-http", HttpConnectorFactory.class));
      *     }
      *     }
@@ -72,6 +72,23 @@ public interface PluginRegister {
      * @param connectors is the map containing connectors to deploy
      */
     default void configureConnectors(Map<String, ConnectorPlugin> connectors) {}
+
+    /**
+     * Override this method to register an entrypoint to be used by the gateway.
+     * This method is useful if you want to register a dummy entrypoint.
+     * For example:
+     * <pre>
+     *     {@code
+     *     @Override
+     *     public void configureEntrypoints(Map<String, EntrypointPlugin> entrypoints) {
+     *         entrypoints.put("entrypoint-dummy", EntrypointBuilder.build("entrypoint-dummy", DummyEntrypointConnectorFactory.class));
+     *     }
+     *     }
+     * </pre>
+     * You can check {@link io.gravitee.plugin.entrypoint.sse.SseEntrypointConnectorFactory} to know how to implement it.
+     * @param entrypoints is the map containing entrypoints to deploy
+     */
+    default void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?>> entrypoints) {}
 
     /**
      * Override this method to register a resource to be used by the gateway.
