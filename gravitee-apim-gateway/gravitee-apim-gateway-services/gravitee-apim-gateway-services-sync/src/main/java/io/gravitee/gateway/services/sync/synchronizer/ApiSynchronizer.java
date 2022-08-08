@@ -219,7 +219,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                 eventApiDefinition
             );
             apiDefinition.setEnabled(eventPayload.getLifecycleState() == LifecycleState.STARTED);
-            apiDefinition.setDeployedAt(apiEvent.getCreatedAt());
+            apiDefinition.setDeployedAt(eventPayload.getDeployedAt());
 
             enhanceWithOrgAndEnv(eventPayload.getEnvironmentId(), apiDefinition);
 
