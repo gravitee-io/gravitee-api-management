@@ -210,4 +210,20 @@
             </resource>
         </resources>
     </build>
+
+    <profiles>
+        <profile>
+            <id>ee</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <!-- GraviteeSource dependencies -->
+                <dependency>
+                    <groupId>com.graviteesource.license</groupId>
+                    <artifactId>gravitee-license-node</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>
