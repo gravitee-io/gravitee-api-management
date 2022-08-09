@@ -21,20 +21,19 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.apim</groupId>
-        <artifactId>gravitee-api-management</artifactId>
+        <groupId>io.gravitee.apim.plugin</groupId>
+        <artifactId>gravitee-apim-plugin</artifactId>
         <version>${revision}${sha1}${changelist}</version>
     </parent>
 
-    <groupId>io.gravitee.apim.plugin</groupId>
-    <artifactId>gravitee-apim-plugin</artifactId>
+    <groupId>io.gravitee.apim.plugin.endpoint</groupId>
+    <artifactId>gravitee-apim-plugin-endpoint</artifactId>
     <packaging>pom</packaging>
 
-    <name>Gravitee.io APIM - Plugin</name>
+    <name>Gravitee.io APIM - Plugin - Endpoint</name>
 
     <modules>
-        <module>gravitee-apim-plugin-endpoint</module>
-        <module>gravitee-apim-plugin-entrypoint</module>
-        <module>gravitee-apim-plugin-coverage</module>
+        <module>gravitee-apim-plugin-endpoint-handler</module>
+        <module>gravitee-apim-plugin-endpoint-mock</module>
     </modules>
 </project>

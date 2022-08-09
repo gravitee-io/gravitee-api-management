@@ -1,0 +1,6 @@
+{
+  "type": "object",
+  "id": "urn:jsonschema:io:gravitee:plugin:endpoint:mock:configuration:MockEndpointConnectorConfiguration",
+  "properties": {},
+  "additionalProperties": false
+}
