@@ -244,8 +244,8 @@ public class VirtualHostServiceTest {
         virtualHostService.sanitizeAndValidate(GraviteeContext.getExecutionContext(), Collections.singletonList(vhost));
     }
 
-    @Test(expected = InvalidVirtualHostNullHostException.class)
-    public void validate_notMultipleVirtualHostWithMissingHost() {
+    @Test
+    public void validate_allowNullHostInVirtualHost() {
         final VirtualHost vhost1 = new VirtualHost("host1", "/path_1");
         final VirtualHost vhost2 = new VirtualHost(null, "/path_2");
         final VirtualHost vhost3 = new VirtualHost("host3", "/path_3");

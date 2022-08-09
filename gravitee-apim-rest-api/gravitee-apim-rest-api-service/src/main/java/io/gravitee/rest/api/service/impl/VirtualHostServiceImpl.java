@@ -82,25 +82,6 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         // validate domain restrictions
         validateDomainRestrictions(sanitizedVirtualHosts, currentEnv.getDomainRestrictions());
 
-        // In virtual host mode, every vhost should have a host set
-        final boolean virtualHostModeEnabled =
-            sanitizedVirtualHosts.size() > 1 ||
-            sanitizedVirtualHosts.iterator().next().getHost() != null ||
-            currentEnv.getDomainRestrictions() != null &&
-            !currentEnv.getDomainRestrictions().isEmpty();
-        if (virtualHostModeEnabled) {
-            final List<VirtualHost> nullHostVirtualHosts = sanitizedVirtualHosts
-                .stream()
-                .filter(virtualHost -> virtualHost.getHost() == null)
-                .collect(Collectors.toList());
-            if (!nullHostVirtualHosts.isEmpty()) {
-                throw new InvalidVirtualHostNullHostException(
-                    "In Virtual Host mode, all listening host have to be configured",
-                    nullHostVirtualHosts
-                );
-            }
-        }
-
         // Get all the API of the currentEnvironment, except the one to update
         Set<ApiEntity> apis = apiRepository
             .search(null)
