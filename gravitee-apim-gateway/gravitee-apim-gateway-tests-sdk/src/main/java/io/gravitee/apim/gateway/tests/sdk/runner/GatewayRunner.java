@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.runner;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -24,6 +25,9 @@ import io.gravitee.apim.gateway.tests.sdk.connector.ConnectorBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.container.GatewayTestContainer;
+import io.gravitee.apim.gateway.tests.sdk.converters.ApiDeploymentPreparer;
+import io.gravitee.apim.gateway.tests.sdk.converters.LegacyApiDeploymentPreparer;
+import io.gravitee.apim.gateway.tests.sdk.converters.V4ApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginManifestLoader;
 import io.gravitee.apim.gateway.tests.sdk.policy.KeylessPolicy;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
@@ -33,9 +37,11 @@ import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.connector.http.HttpConnectorFactory;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
 import io.gravitee.node.reporter.ReporterManager;
 import io.gravitee.plugin.connector.ConnectorPlugin;
@@ -100,8 +106,8 @@ public class GatewayRunner {
     private final GatewayConfigurationBuilder gatewayConfigurationBuilder;
     private final AbstractGatewayTest testInstance;
     private final ObjectMapper graviteeMapper;
-    private final Map<String, Api> deployedForTestClass;
-    private final Map<String, Api> deployedForTest;
+    private final Map<String, ReactableApi<?>> deployedForTestClass;
+    private final Map<String, ReactableApi<?>> deployedForTest;
     private Organization deployedOrganization = null;
 
     private GatewayTestContainer gatewayContainer;
@@ -109,6 +115,8 @@ public class GatewayRunner {
 
     private Path tempDir;
     private boolean isRunning = false;
+
+    private final Map<DefinitionVersion, ApiDeploymentPreparer> apiDeploymentPreparers;
 
     public GatewayRunner(GatewayConfigurationBuilder gatewayConfigurationBuilder, AbstractGatewayTest testInstance) {
         this.gatewayConfigurationBuilder = gatewayConfigurationBuilder;
@@ -119,6 +127,16 @@ public class GatewayRunner {
 
         // Allow test instance to access api deployed at class level
         testInstance.setDeployedClassApis(deployedForTestClass);
+
+        apiDeploymentPreparers =
+            Map.of(
+                DefinitionVersion.V1,
+                new LegacyApiDeploymentPreparer(),
+                DefinitionVersion.V2,
+                new LegacyApiDeploymentPreparer(),
+                DefinitionVersion.V4,
+                new V4ApiDeploymentPreparer()
+            );
     }
 
     /**
@@ -221,15 +239,15 @@ public class GatewayRunner {
 
     /**
      * Deploys an API, declared at class level, thanks to it definition
-     * @param apiDefinition is the definition of the api to deploy
+     * @param apiDefinitionPath is the definition file of the api to deploy
      * @throws Exception
      */
-    public void deployForClass(String apiDefinition) throws IOException {
-        Api api = loadApiDefinition(apiDefinition);
-        if (deployedForTestClass.containsKey(api.getId())) {
-            throw new PreconditionViolationException(String.format(ALREADY_DEPLOYED_MESSAGE, api.getId()));
+    public void deployForClass(String apiDefinitionPath) throws IOException {
+        final ReactableApi<?> reactableApi = toReactableApi(apiDefinitionPath);
+        if (deployedForTestClass.containsKey(reactableApi.getId())) {
+            throw new PreconditionViolationException(String.format(ALREADY_DEPLOYED_MESSAGE, reactableApi.getId()));
         }
-        deploy(api, deployedForTestClass);
+        deploy(reactableApi, deployedForTestClass);
     }
 
     /**
@@ -263,11 +281,11 @@ public class GatewayRunner {
      * @throws Exception
      */
     public void deployForTest(String apiDefinition) throws IOException {
-        Api api = loadApiDefinition(apiDefinition);
-        if (deployedForTestClass.containsKey(api.getId()) || deployedForTest.containsKey(api.getId())) {
-            throw new PreconditionViolationException(String.format(ALREADY_DEPLOYED_MESSAGE, api.getId()));
+        final ReactableApi<?> reactableApi = toReactableApi(apiDefinition);
+        if (deployedForTestClass.containsKey(reactableApi.getId()) || deployedForTest.containsKey(reactableApi.getId())) {
+            throw new PreconditionViolationException(String.format(ALREADY_DEPLOYED_MESSAGE, reactableApi.getId()));
         }
-        deploy(api, deployedForTest);
+        deploy(reactableApi, deployedForTest);
     }
 
     /**
@@ -275,8 +293,21 @@ public class GatewayRunner {
      * It allows to update an API directly for testing purpose, for example, the {@link io.gravitee.definition.model.Endpoint.Status}
      * @return the list of deployed API for the current test.
      */
-    public Map<String, Api> deployedApis() {
+    public Map<String, ReactableApi<?>> deployedApis() {
         return deployedForTest;
+    }
+
+    private ReactableApi<?> toReactableApi(String apiDefinitionPath) throws IOException {
+        final DefinitionVersion definitionVersion = extractApiDefinitionVersion(apiDefinitionPath);
+        final ReactableApi<?> reactableApi;
+        if (DefinitionVersion.V4.equals(definitionVersion)) {
+            final io.gravitee.definition.model.v4.Api api = loadApiDefinition(apiDefinitionPath, io.gravitee.definition.model.v4.Api.class);
+            reactableApi = apiDeploymentPreparers.get(definitionVersion).toReactable(api);
+        } else {
+            final Api api = loadApiDefinition(apiDefinitionPath, Api.class);
+            reactableApi = apiDeploymentPreparers.get(definitionVersion).toReactable(api);
+        }
+        return reactableApi;
     }
 
     public boolean isRunning() {
@@ -287,28 +318,33 @@ public class GatewayRunner {
      * Deploy an api and add it to the map belonging to its context (Class or Method).
      * Before deploying the api, we can enrich configuration if user has overridden {@link AbstractGatewayTest#configureApi(Api)}
      * Then, we ensure the api met the minimal requirement before been deployed.
-     * @param api the api to deploy.
-     * @param deployedApisMap the map on which add the api.
+     * @param reactableApi the ReactableApi to deploy
+     * @param deployedApis the map containing deployed apis.
      */
-    private void deploy(Api api, Map<String, Api> deployedApisMap) {
+    private void deploy(ReactableApi<?> reactableApi, Map<String, ReactableApi<?>> deployedApis) {
         ApiManager apiManager = gatewayContainer.applicationContext().getBean(ApiManager.class);
 
-        testInstance.configureApi(api);
-        testInstance.ensureMinimalRequirementForApi(api);
+        if (!DefinitionVersion.V4.equals(reactableApi.getDefinitionVersion())) {
+            final Api api = (Api) reactableApi.getDefinition();
+            testInstance.configureApi(api);
+        }
+
+        testInstance.configureApi(reactableApi, reactableApi.getDefinition().getClass());
+
+        ensureMinimalRequirementForApi(reactableApi);
 
         try {
-            final io.gravitee.gateway.handlers.api.definition.Api apiToRegister = new io.gravitee.gateway.handlers.api.definition.Api(api);
-            apiToRegister.setDeployedAt(new Date());
+            reactableApi.setDeployedAt(new Date());
             // For each new deployed API, set the organization id if one deployed
             if (deployedOrganization != null) {
-                apiToRegister.setOrganizationId(deployedOrganization.getId());
+                reactableApi.setOrganizationId(deployedOrganization.getId());
             }
-            apiManager.register(apiToRegister);
+            apiManager.register(reactableApi);
         } catch (Exception e) {
-            LOGGER.error("An error occurred deploying the api {}: {}", api.getId(), e.getMessage());
+            LOGGER.error("An error occurred deploying the api {}: {}", reactableApi.getId(), e.getMessage());
             throw e;
         }
-        deployedApisMap.put(api.getId(), api);
+        deployedApis.put(reactableApi.getId(), reactableApi);
     }
 
     /**
@@ -327,7 +363,7 @@ public class GatewayRunner {
         deployedForTest.clear();
     }
 
-    private void undeploy(Api api) {
+    private void undeploy(ReactableApi<?> api) {
         ApiManager apiManager = gatewayContainer.applicationContext().getBean(ApiManager.class);
         apiManager.unregister(api.getId());
     }
@@ -384,6 +420,10 @@ public class GatewayRunner {
                 Thread.sleep(5);
             }
         }
+    }
+
+    private void ensureMinimalRequirementForApi(ReactableApi<?> reactableApi) {
+        apiDeploymentPreparers.get(reactableApi.getDefinitionVersion()).ensureMinimalRequirementForApi(reactableApi.getDefinition());
     }
 
     private void registerReporters(GatewayTestContainer container) {
@@ -496,8 +536,8 @@ public class GatewayRunner {
         endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", MockEndpointConnectorFactory.class));
     }
 
-    private Api loadApiDefinition(String apiDefinitionPath) throws IOException {
-        return loadResource(apiDefinitionPath, Api.class);
+    private <T> T loadApiDefinition(String apiDefinitionPath, Class<T> toApiClass) throws IOException {
+        return loadResource(apiDefinitionPath, toApiClass);
     }
 
     private Organization loadOrganizationDefinition(String orgDefinitionPath) throws IOException {
@@ -509,8 +549,16 @@ public class GatewayRunner {
     }
 
     private <T> T loadResource(String resourcePath, Class<T> toClass) throws IOException {
-        URL jsonFile = GatewayRunner.class.getResource(resourcePath);
+        URL jsonFile = loadURL(resourcePath);
+        return loadResource(jsonFile, toClass);
+    }
+
+    private <T> T loadResource(URL jsonFile, Class<T> toClass) throws IOException {
         return graviteeMapper.readValue(jsonFile, toClass);
+    }
+
+    private URL loadURL(String resourcePath) {
+        return GatewayRunner.class.getResource(resourcePath);
     }
 
     /**
@@ -570,6 +618,28 @@ public class GatewayRunner {
                     }
                 }
             );
+        }
+    }
+
+    /**
+     * Read the definition JsonNode and try to find the definition version.
+     * First, check if `definitionVersion` field is present and use its value
+     * Then, check if `gravitee` field is present and use its value
+     * Default to V2.
+     * @param apiDefinitionPath is the path to the api definition to load
+     * @return the definitionVersion found in definition
+     * @throws IOException
+     */
+    private DefinitionVersion extractApiDefinitionVersion(String apiDefinitionPath) throws IOException {
+        final URL url = loadURL(apiDefinitionPath);
+        final JsonNode apiAsJson = graviteeMapper.readTree(url);
+
+        if (apiAsJson.has("definitionVersion")) {
+            return DefinitionVersion.valueOfLabel(apiAsJson.get("definitionVersion").asText());
+        } else if (apiAsJson.has("gravitee")) {
+            return DefinitionVersion.valueOfLabel(apiAsJson.get("gravitee").asText());
+        } else {
+            return DefinitionVersion.V2;
         }
     }
 }
