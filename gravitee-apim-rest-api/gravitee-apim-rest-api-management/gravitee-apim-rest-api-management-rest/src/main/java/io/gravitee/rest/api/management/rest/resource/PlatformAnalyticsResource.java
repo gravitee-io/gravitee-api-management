@@ -97,19 +97,17 @@ public class PlatformAnalyticsResource extends AbstractResource {
                 fieldName = "application";
                 ids =
                     applicationService
-                        .findByUser(executionContext, getAuthenticatedUser())
+                        .findIdsByUser(executionContext, getAuthenticatedUser())
                         .stream()
-                        .filter(app -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, app.getId(), READ))
-                        .map(ApplicationListItem::getId)
+                        .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
                         .collect(Collectors.toList());
             } else {
                 fieldName = "api";
                 ids =
                     apiService
-                        .findByUser(executionContext, getAuthenticatedUser(), null, false)
+                        .findIdsByUser(executionContext, getAuthenticatedUser(), null, false)
                         .stream()
-                        .filter(api -> permissionService.hasPermission(executionContext, API_ANALYTICS, api.getId(), READ))
-                        .map(ApiEntity::getId)
+                        .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
                         .collect(Collectors.toList());
             }
 
