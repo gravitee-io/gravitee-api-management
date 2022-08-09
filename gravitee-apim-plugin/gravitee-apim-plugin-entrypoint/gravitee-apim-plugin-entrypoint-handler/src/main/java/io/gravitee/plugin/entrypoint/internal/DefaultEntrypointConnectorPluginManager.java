@@ -18,9 +18,9 @@ package io.gravitee.plugin.entrypoint.internal;
 import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
-import io.gravitee.plugin.entrypoint.EntrypointClassLoaderFactory;
-import io.gravitee.plugin.entrypoint.EntrypointPlugin;
-import io.gravitee.plugin.entrypoint.EntrypointPluginManager;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorClassLoaderFactory;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -30,18 +30,20 @@ import org.slf4j.LoggerFactory;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EntrypointPluginManagerImpl extends AbstractConfigurablePluginManager<EntrypointPlugin> implements EntrypointPluginManager {
+public class DefaultEntrypointConnectorPluginManager
+    extends AbstractConfigurablePluginManager<EntrypointConnectorPlugin>
+    implements EntrypointConnectorPluginManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(EntrypointPluginManagerImpl.class);
-    private final EntrypointClassLoaderFactory classLoaderFactory;
+    private static final Logger logger = LoggerFactory.getLogger(DefaultEntrypointConnectorPluginManager.class);
+    private final EntrypointConnectorClassLoaderFactory classLoaderFactory;
     private final Map<String, EntrypointConnectorFactory<?>> factories = new HashMap<>();
 
-    public EntrypointPluginManagerImpl(final EntrypointClassLoaderFactory classLoaderFactory) {
+    public DefaultEntrypointConnectorPluginManager(final EntrypointConnectorClassLoaderFactory classLoaderFactory) {
         this.classLoaderFactory = classLoaderFactory;
     }
 
     @Override
-    public void register(final EntrypointPlugin plugin) {
+    public void register(final EntrypointConnectorPlugin plugin) {
         super.register(plugin);
 
         // Create entrypoint

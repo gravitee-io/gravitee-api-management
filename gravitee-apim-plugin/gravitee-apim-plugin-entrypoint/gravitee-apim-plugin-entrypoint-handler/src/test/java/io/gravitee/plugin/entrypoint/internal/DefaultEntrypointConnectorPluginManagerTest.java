@@ -20,10 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorConfiguration;
 import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorFactory;
-import io.gravitee.plugin.entrypoint.EntrypointPluginManager;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnector;
+import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointFactory;
-import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointPlugin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,20 +31,25 @@ import org.junit.jupiter.api.Test;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-class EntrypointPluginManagerImplTest {
+class DefaultEntrypointConnectorPluginManagerTest {
 
-    private EntrypointPluginManager entrypointPluginManager;
+    private EntrypointConnectorPluginManager entrypointConnectorPluginManager;
 
     @BeforeEach
     public void beforeEach() {
-        entrypointPluginManager = new EntrypointPluginManagerImpl(new EntrypointClassLoaderFactoryImpl());
+        entrypointConnectorPluginManager =
+            new DefaultEntrypointConnectorPluginManager(new DefaultEntrypointConnectorConnectorClassLoaderFactory());
     }
 
     @Test
     public void shouldRegisterNewEntrypointPluginWithoutConfiguration() {
-        EntrypointPluginImpl entrypointPlugin = new EntrypointPluginImpl(new FakeEntrypointPlugin(), FakeEntrypointFactory.class, null);
-        entrypointPluginManager.register(entrypointPlugin);
-        EntrypointConnectorFactory<?> fake = entrypointPluginManager.getFactoryById("fake-entrypoint");
+        DefaultEntrypointConnectorPlugin entrypointPlugin = new DefaultEntrypointConnectorPlugin(
+            new FakeEntrypointConnectorPlugin(),
+            FakeEntrypointFactory.class,
+            null
+        );
+        entrypointConnectorPluginManager.register(entrypointPlugin);
+        EntrypointConnectorFactory<?> fake = entrypointConnectorPluginManager.getFactoryById("fake-entrypoint");
         assertThat(fake).isNotNull();
         EntrypointConnector fakeConnector = fake.createConnector(null);
         assertThat(fakeConnector).isNotNull();
@@ -52,13 +57,13 @@ class EntrypointPluginManagerImplTest {
 
     @Test
     public void shouldRegisterNewEntrypointPluginWithConfiguration() {
-        EntrypointPluginImpl entrypointPlugin = new EntrypointPluginImpl(
-            new FakeEntrypointPlugin(),
+        DefaultEntrypointConnectorPlugin entrypointPlugin = new DefaultEntrypointConnectorPlugin(
+            new FakeEntrypointConnectorPlugin(),
             FakeEntrypointFactory.class,
             EntrypointConnectorConfiguration.class
         );
-        entrypointPluginManager.register(entrypointPlugin);
-        EntrypointConnectorFactory<?> fake = entrypointPluginManager.getFactoryById("fake-entrypoint");
+        entrypointConnectorPluginManager.register(entrypointPlugin);
+        EntrypointConnectorFactory<?> fake = entrypointConnectorPluginManager.getFactoryById("fake-entrypoint");
         assertThat(fake).isNotNull();
         EntrypointConnector fakeConnector = fake.createConnector("{\"info\":\"test\"}");
         assertThat(fakeConnector).isNotNull();
@@ -69,6 +74,6 @@ class EntrypointPluginManagerImplTest {
 
     @Test
     public void shouldNotRetrieveUnRegisterPlugin() {
-        assertThat(entrypointPluginManager.getFactoryById("fake-entrypoint")).isNull();
+        assertThat(entrypointConnectorPluginManager.getFactoryById("fake-entrypoint")).isNull();
     }
 }

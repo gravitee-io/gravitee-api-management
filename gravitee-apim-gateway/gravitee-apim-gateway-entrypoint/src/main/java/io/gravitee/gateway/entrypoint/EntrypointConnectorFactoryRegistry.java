@@ -22,6 +22,6 @@ import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorFactory;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EntrypointRegistry {
+public interface EntrypointConnectorFactoryRegistry {
     EntrypointConnectorFactory<? extends EntrypointConnector<?>> getById(final String id);
 }

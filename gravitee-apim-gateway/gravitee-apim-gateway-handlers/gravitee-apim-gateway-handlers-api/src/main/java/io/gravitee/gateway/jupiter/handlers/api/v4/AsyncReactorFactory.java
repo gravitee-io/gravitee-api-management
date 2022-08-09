@@ -23,7 +23,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
-import io.gravitee.gateway.entrypoint.EntrypointRegistry;
+import io.gravitee.gateway.entrypoint.EntrypointConnectorFactoryRegistry;
 import io.gravitee.gateway.jupiter.core.v4.entrypoint.HttpEntrypointResolver;
 import io.gravitee.gateway.jupiter.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
@@ -59,18 +59,18 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
     private final ApplicationContext applicationContext;
     private final Configuration configuration;
     private final PolicyFactory policyFactory;
-    private final EntrypointRegistry entrypointRegistry;
+    private final EntrypointConnectorFactoryRegistry entrypointConnectorFactoryRegistry;
 
     public AsyncReactorFactory(
         final ApplicationContext applicationContext,
         final Configuration configuration,
         final PolicyFactory policyFactory,
-        final EntrypointRegistry entrypointRegistry
+        final EntrypointConnectorFactoryRegistry entrypointConnectorFactoryRegistry
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
         this.policyFactory = policyFactory;
-        this.entrypointRegistry = entrypointRegistry;
+        this.entrypointConnectorFactoryRegistry = entrypointConnectorFactoryRegistry;
     }
 
     @Override
@@ -119,7 +119,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
                     api,
                     apiComponentProvider,
                     policyManager,
-                    new HttpEntrypointResolver(api.getDefinition(), entrypointRegistry)
+                    new HttpEntrypointResolver(api.getDefinition(), entrypointConnectorFactoryRegistry)
                 );
             }
         } catch (Exception ex) {

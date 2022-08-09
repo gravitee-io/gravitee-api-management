@@ -19,7 +19,7 @@ import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorConfigurati
 import io.gravitee.plugin.core.api.AbstractSimplePluginHandler;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
-import io.gravitee.plugin.entrypoint.EntrypointPlugin;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,36 +28,36 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EntrypointPluginHandler extends AbstractSimplePluginHandler<EntrypointPlugin<?>> {
+public class EntrypointConnectorPluginHandler extends AbstractSimplePluginHandler<EntrypointConnectorPlugin<?>> {
 
     @Autowired
-    private ConfigurablePluginManager<EntrypointPlugin<?>> entrypointPluginManager;
+    private ConfigurablePluginManager<EntrypointConnectorPlugin<?>> entrypointPluginManager;
 
     @Override
     public boolean canHandle(final Plugin plugin) {
-        return EntrypointPlugin.PLUGIN_TYPE.equalsIgnoreCase(plugin.type());
+        return EntrypointConnectorPlugin.PLUGIN_TYPE.equalsIgnoreCase(plugin.type());
     }
 
     @Override
     protected String type() {
-        return EntrypointPlugin.PLUGIN_TYPE;
+        return EntrypointConnectorPlugin.PLUGIN_TYPE;
     }
 
     @Override
-    protected EntrypointPlugin<?> create(final Plugin plugin, final Class<?> pluginClass) {
-        Class<? extends EntrypointConnectorConfiguration> configurationClass = new EntrypointConfigurationClassFinder()
+    protected EntrypointConnectorPlugin<?> create(final Plugin plugin, final Class<?> pluginClass) {
+        Class<? extends EntrypointConnectorConfiguration> configurationClass = new EntrypointConnectorConfigurationClassFinder()
         .lookupFirst(pluginClass);
 
-        return new EntrypointPluginImpl(plugin, pluginClass, configurationClass);
+        return new DefaultEntrypointConnectorPlugin(plugin, pluginClass, configurationClass);
     }
 
     @Override
-    protected void register(EntrypointPlugin<?> entrypointPlugin) {
-        entrypointPluginManager.register(entrypointPlugin);
+    protected void register(EntrypointConnectorPlugin<?> entrypointConnectorPlugin) {
+        entrypointPluginManager.register(entrypointConnectorPlugin);
 
         // Once registered, the classloader should be released
         // TODO: why do we need this here ?
-        URLClassLoader classLoader = (URLClassLoader) entrypointPlugin.entrypointConnectorFactory().getClassLoader();
+        URLClassLoader classLoader = (URLClassLoader) entrypointConnectorPlugin.entrypointConnectorFactory().getClassLoader();
         try {
             classLoader.close();
         } catch (IOException e) {
