@@ -242,7 +242,10 @@ public class JsonFormatterTest {
 
         assertTrue(node.has("clientRequest"));
         assertTrue(node.get("clientRequest").has("headers"));
-        assertEquals("{\"header1\":[\"value1\",\"value3\"],\"header2\":[\"value2\"]}", node.get("clientRequest").get("headers").toString());
+        assertEquals(
+            mapper.readTree("{\"header1\":[\"value1\",\"value3\"],\"header2\":[\"value2\"]}"),
+            node.get("clientRequest").get("headers")
+        );
     }
 
     @Test
@@ -264,7 +267,10 @@ public class JsonFormatterTest {
 
         assertTrue(node.has("proxyRequest"));
         assertTrue(node.get("proxyRequest").has("headers"));
-        assertEquals("{\"header1\":[\"value1\",\"value3\"],\"header2\":[\"value2\"]}", node.get("proxyRequest").get("headers").toString());
+        assertEquals(
+            mapper.readTree("{\"header1\":[\"value1\",\"value3\"],\"header2\":[\"value2\"]}"),
+            node.get("proxyRequest").get("headers")
+        );
     }
 
     @Test
@@ -287,8 +293,8 @@ public class JsonFormatterTest {
         assertTrue(node.has("clientResponse"));
         assertTrue(node.get("clientResponse").has("headers"));
         assertEquals(
-            "{\"header1\":[\"value1\",\"value3\"],\"header2\":[\"value2\"]}",
-            node.get("clientResponse").get("headers").toString()
+            mapper.readTree("{\"header1\":[\"value1\",\"value3\"],\"header2\":[\"value2\"]}"),
+            node.get("clientResponse").get("headers")
         );
     }
 
@@ -311,6 +317,9 @@ public class JsonFormatterTest {
 
         assertTrue(node.has("proxyResponse"));
         assertTrue(node.get("proxyResponse").has("headers"));
-        assertEquals("{\"header1\":[\"value1\",\"value3\"],\"header2\":[\"value2\"]}", node.get("proxyResponse").get("headers").toString());
+        assertEquals(
+            mapper.readTree("{\"header1\":[\"value1\",\"value3\"],\"header2\":[\"value2\"]}"),
+            node.get("proxyResponse").get("headers")
+        );
     }
 }
