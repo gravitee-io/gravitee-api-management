@@ -45,7 +45,13 @@ public interface ApplicationService {
         return findByUser(executionContext, username, null);
     }
 
-    Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable);
+    default Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable) {
+        return findByUser(executionContext, username, sortable, null);
+    }
+
+    Set<String> findIdsByUser(final ExecutionContext executionContext, String username, Sortable sortable);
+
+    Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable, Pageable pageable);
 
     Set<ApplicationListItem> findByUserAndNameAndStatus(
         final ExecutionContext executionContext,
@@ -87,4 +93,6 @@ public interface ApplicationService {
         Sortable sortable,
         Pageable pageable
     );
+
+    Set<String> searchIds(final ExecutionContext executionContext, ApplicationQuery applicationQuery, Sortable sortable);
 }
