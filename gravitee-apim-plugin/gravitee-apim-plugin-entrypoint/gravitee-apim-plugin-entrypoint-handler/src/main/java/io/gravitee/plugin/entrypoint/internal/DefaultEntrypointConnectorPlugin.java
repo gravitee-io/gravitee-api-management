@@ -18,7 +18,7 @@ package io.gravitee.plugin.entrypoint.internal;
 import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorConfiguration;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginManifest;
-import io.gravitee.plugin.entrypoint.EntrypointPlugin;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import java.net.URL;
 import java.nio.file.Path;
 
@@ -26,13 +26,13 @@ import java.nio.file.Path;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-class EntrypointPluginImpl implements EntrypointPlugin {
+class DefaultEntrypointConnectorPlugin implements EntrypointConnectorPlugin {
 
     private final Plugin plugin;
     private final Class<?> entryPointConnectorClass;
     private final Class<? extends EntrypointConnectorConfiguration> entrypointConnectorConfigurationClass;
 
-    EntrypointPluginImpl(
+    DefaultEntrypointConnectorPlugin(
         final Plugin plugin,
         final Class<?> entrypointConnectorClass,
         final Class<? extends EntrypointConnectorConfiguration> entryPointConnectorConfigurationClass

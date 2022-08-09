@@ -16,10 +16,10 @@
 package io.gravitee.plugin.entrypoint.spring;
 
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
-import io.gravitee.plugin.entrypoint.EntrypointClassLoaderFactory;
-import io.gravitee.plugin.entrypoint.EntrypointPlugin;
-import io.gravitee.plugin.entrypoint.internal.EntrypointClassLoaderFactoryImpl;
-import io.gravitee.plugin.entrypoint.internal.EntrypointPluginManagerImpl;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorClassLoaderFactory;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.gravitee.plugin.entrypoint.internal.DefaultEntrypointConnectorConnectorClassLoaderFactory;
+import io.gravitee.plugin.entrypoint.internal.DefaultEntrypointConnectorPluginManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,17 +28,17 @@ import org.springframework.context.annotation.Configuration;
  * @author GraviteeSource Team
  */
 @Configuration
-public class EntrypointPluginConfiguration {
+public class EntrypointConnectorPluginConfiguration {
 
     @Bean
-    public ConfigurablePluginManager<EntrypointPlugin> entrypointPluginManager(
-        final EntrypointClassLoaderFactory entrypointClassLoaderFactory
+    public ConfigurablePluginManager<EntrypointConnectorPlugin> entrypointPluginManager(
+        final EntrypointConnectorClassLoaderFactory entrypointConnectorClassLoaderFactory
     ) {
-        return new EntrypointPluginManagerImpl(entrypointClassLoaderFactory);
+        return new DefaultEntrypointConnectorPluginManager(entrypointConnectorClassLoaderFactory);
     }
 
     @Bean
-    public EntrypointClassLoaderFactory entrypointClassLoaderFactory() {
-        return new EntrypointClassLoaderFactoryImpl();
+    public EntrypointConnectorClassLoaderFactory entrypointClassLoaderFactory() {
+        return new DefaultEntrypointConnectorConnectorClassLoaderFactory();
     }
 }
