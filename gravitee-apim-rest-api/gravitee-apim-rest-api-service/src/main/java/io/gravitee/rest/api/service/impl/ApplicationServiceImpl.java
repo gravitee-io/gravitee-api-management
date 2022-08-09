@@ -172,14 +172,30 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable) {
+    public Set<String> findIdsByUser(ExecutionContext executionContext, String username, Sortable sortable) {
         LOGGER.debug("Find applications for user {}", username);
 
         ApplicationQuery applicationQuery = new ApplicationQuery();
         applicationQuery.setUser(username);
         applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
 
-        Page<ApplicationListItem> applications = search(executionContext, applicationQuery, sortable, null);
+        return searchIds(executionContext, applicationQuery, sortable);
+    }
+
+    @Override
+    public Set<ApplicationListItem> findByUser(
+        final ExecutionContext executionContext,
+        String username,
+        Sortable sortable,
+        Pageable pageable
+    ) {
+        LOGGER.debug("Find applications for user {}", username);
+
+        ApplicationQuery applicationQuery = new ApplicationQuery();
+        applicationQuery.setUser(username);
+        applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
+
+        Page<ApplicationListItem> applications = search(executionContext, applicationQuery, sortable, pageable);
 
         return new LinkedHashSet<>(applications.getContent());
     }
@@ -1104,6 +1120,21 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return dataAsMap;
     }
 
+    public Set<String> searchIds(ExecutionContext executionContext, ApplicationQuery applicationQuery, Sortable sortable) {
+        try {
+            ApplicationCriteria searchCriteria = buildSearchCriteria(executionContext, applicationQuery);
+
+            if (searchCriteria == null) {
+                return Collections.emptySet();
+            }
+
+            return applicationRepository.searchIds(searchCriteria, convert(sortable));
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to search applications for query {}", applicationQuery, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find applications for query " + applicationQuery, ex);
+        }
+    }
+
     @Override
     public Page<ApplicationListItem> search(
         ExecutionContext executionContext,
@@ -1112,34 +1143,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         Pageable pageable
     ) {
         try {
-            ApplicationCriteria.Builder criteriaBuilder = new ApplicationCriteria.Builder()
-            .environmentIds(Sets.newHashSet(executionContext.getEnvironmentId()));
+            ApplicationCriteria searchCriteria = buildSearchCriteria(executionContext, applicationQuery);
 
-            if (applicationQuery.getUser() != null && !applicationQuery.getUser().isBlank()) {
-                Set<String> userApplicationsIds = findUserApplicationsIds(
-                    executionContext,
-                    applicationQuery.getUser(),
-                    executionContext.getOrganizationId()
-                );
-                if (userApplicationsIds.isEmpty()) {
-                    return new Page<>(Collections.emptyList(), 1, 0, 0);
-                }
-                criteriaBuilder.ids(userApplicationsIds);
+            if (searchCriteria == null) {
+                return new Page<>(Collections.emptyList(), 1, 0, 0);
             }
 
-            if (applicationQuery.getGroup() != null && !applicationQuery.getGroup().isBlank()) {
-                criteriaBuilder.groups(applicationQuery.getGroup());
-            }
-
-            if (applicationQuery.getStatus() != null && !applicationQuery.getStatus().isBlank()) {
-                criteriaBuilder.status(ApplicationStatus.valueOf(applicationQuery.getStatus().toUpperCase()));
-            }
-
-            if (applicationQuery.getName() != null && !applicationQuery.getName().isBlank()) {
-                criteriaBuilder.name(applicationQuery.getName());
-            }
-
-            Page<Application> applications = applicationRepository.search(criteriaBuilder.build(), convert(pageable), convert(sortable));
+            Page<Application> applications = applicationRepository.search(searchCriteria, convert(pageable), convert(sortable));
 
             // An archived doesn't have owner
             if (!ApplicationStatus.ARCHIVED.name().equals(applicationQuery.getStatus()) && applicationQuery.isWithOwner()) {
@@ -1152,13 +1162,43 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
+    private ApplicationCriteria buildSearchCriteria(ExecutionContext executionContext, ApplicationQuery applicationQuery) {
+        ApplicationCriteria.Builder criteriaBuilder = new ApplicationCriteria.Builder()
+        .environmentIds(Sets.newHashSet(executionContext.getEnvironmentId()));
+
+        if (applicationQuery.getGroup() != null && !applicationQuery.getGroup().isBlank()) {
+            criteriaBuilder.groups(applicationQuery.getGroup());
+        }
+
+        if (applicationQuery.getStatus() != null && !applicationQuery.getStatus().isBlank()) {
+            criteriaBuilder.status(ApplicationStatus.valueOf(applicationQuery.getStatus().toUpperCase()));
+        }
+
+        if (applicationQuery.getName() != null && !applicationQuery.getName().isBlank()) {
+            criteriaBuilder.name(applicationQuery.getName());
+        }
+        if (applicationQuery.getUser() != null && !applicationQuery.getUser().isBlank()) {
+            Set<String> userApplicationsIds = findUserApplicationsIds(
+                executionContext,
+                applicationQuery.getUser(),
+                executionContext.getOrganizationId()
+            );
+            if (userApplicationsIds.isEmpty()) {
+                return null;
+            }
+            criteriaBuilder.ids(userApplicationsIds);
+        }
+        return criteriaBuilder.build();
+    }
+
     private Set<String> findUserApplicationsIds(ExecutionContext executionContext, String username, final String organizationId) {
         //find applications where the user is a member
-        Set<String> appIds = membershipService
-            .getMembershipsByMemberAndReference(MembershipMemberType.USER, username, MembershipReferenceType.APPLICATION)
-            .stream()
-            .map(MembershipEntity::getReferenceId)
-            .collect(toSet());
+        Set<String> appIds = membershipService.getReferenceIdsByMemberAndReference(
+            MembershipMemberType.USER,
+            username,
+            MembershipReferenceType.APPLICATION
+        );
+
         //find user groups
         List<String> groupIds = membershipService
             .getMembershipsByMemberAndReference(MembershipMemberType.USER, username, MembershipReferenceType.GROUP)

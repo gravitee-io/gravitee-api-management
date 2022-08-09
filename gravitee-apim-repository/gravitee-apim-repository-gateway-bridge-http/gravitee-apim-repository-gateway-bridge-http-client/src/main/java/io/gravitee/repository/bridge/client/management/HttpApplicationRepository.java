@@ -93,6 +93,11 @@ public class HttpApplicationRepository extends AbstractRepository implements App
     }
 
     @Override
+    public Set<String> searchIds(ApplicationCriteria applicationCriteria, Sortable sortable) throws TechnicalException {
+        throw new TechnicalException();
+    }
+
+    @Override
     public Set<Application> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }

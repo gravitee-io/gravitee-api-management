@@ -140,6 +140,16 @@ public class MongoApplicationRepository implements ApplicationRepository {
     }
 
     @Override
+    public Set<String> searchIds(ApplicationCriteria applicationCriteria, Sortable sortable) {
+        final Page<ApplicationMongo> applicationsMongo = internalApplicationRepo.search(applicationCriteria, null, sortable);
+        return applicationsMongo
+            .getContent()
+            .parallelStream()
+            .map(ApplicationMongo::getId)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    @Override
     public void delete(String applicationId) throws TechnicalException {
         internalApplicationRepo.deleteById(applicationId);
     }

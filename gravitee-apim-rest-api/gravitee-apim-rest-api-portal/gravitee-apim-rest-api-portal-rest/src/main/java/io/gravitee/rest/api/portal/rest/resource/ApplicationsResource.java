@@ -63,7 +63,7 @@ import javax.ws.rs.core.Response;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApplicationsResource extends AbstractResource<Application, ApplicationListItem> {
+public class ApplicationsResource extends AbstractResource<Application, String> {
 
     protected static final String METADATA_SUBSCRIPTIONS_KEY = "subscriptions";
 
@@ -156,61 +156,54 @@ public class ApplicationsResource extends AbstractResource<Application, Applicat
         @QueryParam("order") @DefaultValue("name") final ApplicationsOrderParam applicationsOrderParam
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        Supplier<Stream<ApplicationListItem>> appSupplier = () -> {
-            Stream<ApplicationListItem> appStream = applicationService
-                .findByUser(executionContext, getAuthenticatedUser(), applicationsOrderParam.toSortable())
+        Supplier<Stream<String>> appSupplier = () -> {
+            Stream<String> appStream = applicationService
+                .findIdsByUser(executionContext, getAuthenticatedUser(), applicationsOrderParam.toSortable())
                 .stream();
+
             if (forSubscription) {
                 appStream =
                     appStream.filter(
-                        app ->
+                        applicationId ->
                             this.hasPermission(
                                     executionContext,
                                     RolePermission.APPLICATION_SUBSCRIPTION,
-                                    app.getId(),
+                                    applicationId,
                                     RolePermissionAction.CREATE
                                 )
                     );
             }
+
             return appStream;
         };
-        List<ApplicationListItem> applicationsList;
-        if (NB_SUBSCRIPTIONS_DESC.equals(applicationsOrderParam.getValue()) || NB_SUBSCRIPTIONS.equals(applicationsOrderParam.getValue())) {
-            List<String> applicationIds = appSupplier.get().map(ApplicationListItem::getId).collect(Collectors.toList());
 
-            List<String> idsOrderedBySubscriptions = new ArrayList<>(
+        Collection<String> applicationIds = appSupplier.get().collect(Collectors.toList());
+        if (NB_SUBSCRIPTIONS_DESC.equals(applicationsOrderParam.getValue()) || NB_SUBSCRIPTIONS.equals(applicationsOrderParam.getValue())) {
+            applicationIds =
                 filteringService.getApplicationsOrderByNumberOfSubscriptions(
                     applicationIds,
                     applicationsOrderParam.getValue().isAsc ? Order.ASC : Order.DESC
-                )
-            );
-            Comparator<ApplicationListItem> orderingComparator = Comparator.comparingInt(
-                value -> idsOrderedBySubscriptions.indexOf(value.getId())
-            );
-            applicationsList = appSupplier.get().sorted(orderingComparator).collect(Collectors.toList());
-        } else {
-            applicationsList = appSupplier.get().collect(Collectors.toList());
+                );
         }
 
-        return createListResponse(executionContext, applicationsList, paginationParam);
+        return createListResponse(executionContext, applicationIds, paginationParam);
     }
 
     @Override
-    protected Map fillMetadata(ExecutionContext executionContext, Map metadata, List<ApplicationListItem> pageContent) {
+    protected Map fillMetadata(ExecutionContext executionContext, Map metadata, List<String> pageContent) {
         final String userId = getAuthenticatedUser();
         List<String> applicationIds = pageContent
             .stream()
             .filter(
-                app ->
+                applicationId ->
                     permissionService.hasPermission(
                         executionContext,
                         userId,
                         RolePermission.APPLICATION_SUBSCRIPTION,
-                        app.getId(),
+                        applicationId,
                         RolePermissionAction.READ
                     )
             )
-            .map(ApplicationListItem::getId)
             .collect(Collectors.toList());
 
         SubscriptionQuery query = new SubscriptionQuery();
@@ -229,11 +222,15 @@ public class ApplicationsResource extends AbstractResource<Application, Applicat
     }
 
     @Override
-    protected List<Application> transformPageContent(final ExecutionContext executionContext, List<ApplicationListItem> pageContent) {
+    protected List<Application> transformPageContent(final ExecutionContext executionContext, List<String> pageContent) {
         if (pageContent.isEmpty()) {
             return Collections.emptyList();
         }
-        return pageContent
+
+        Set<ApplicationListItem> applicationListItems = applicationService.findByIds(executionContext, pageContent);
+        Comparator<String> orderingComparator = Comparator.comparingInt(pageContent::indexOf);
+
+        return applicationListItems
             .stream()
             .map(
                 applicationListItem -> {
@@ -241,6 +238,7 @@ public class ApplicationsResource extends AbstractResource<Application, Applicat
                     return addApplicationLinks(application);
                 }
             )
+            .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
             .collect(Collectors.toList());
     }
 

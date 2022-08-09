@@ -121,10 +121,6 @@ public class ApplicationService_FindByUserAndNameTest {
 
     @Test
     public void shouldNotCallSearchWhenUserHasNoMemberships() throws TechnicalException {
-        // mock applications memberships for this user : nothing found
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "myUser", MembershipReferenceType.APPLICATION))
-            .thenReturn(new HashSet<>());
-
         // call
         Set<ApplicationListItem> resultSet = applicationService.findByUserAndNameAndStatus(
             GraviteeContext.getExecutionContext(),
@@ -171,8 +167,10 @@ public class ApplicationService_FindByUserAndNameTest {
         Set<MembershipEntity> memberships = new HashSet<>();
         memberships.add(membership1);
         memberships.add(membership2);
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "myUser", MembershipReferenceType.APPLICATION))
-            .thenReturn(memberships);
+        when(
+            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "myUser", MembershipReferenceType.APPLICATION)
+        )
+            .thenReturn(new HashSet<>(Arrays.asList(membership1.getReferenceId(), membership2.getReferenceId())));
 
         // call
         applicationService.findByUserAndNameAndStatus(GraviteeContext.getExecutionContext(), "myUser", false, "random search", "ACTIVE");
