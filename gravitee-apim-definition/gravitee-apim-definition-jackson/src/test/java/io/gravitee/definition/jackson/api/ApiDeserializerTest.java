@@ -664,4 +664,23 @@ public class ApiDeserializerTest extends AbstractTest {
         assertEquals(DefinitionContext.ORIGIN_KUBERNETES, definitionContext.getOrigin());
         assertEquals(DefinitionContext.MODE_FULLY_MANAGED, definitionContext.getMode());
     }
+
+    @Test
+    public void definition_withStartedState() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-state-started.json", Api.class);
+
+        String state = api.getState();
+        Assert.assertNotNull(state);
+        assertEquals("STARTED", state);
+    }
+
+    @Test
+    public void definition_withStoppedState() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-state-stoppd.json", Api.class);
+
+        String state = api.getState();
+        Assert.assertNotNull(state);
+        assertEquals("STOPPED", state);
+    }
+
 }
