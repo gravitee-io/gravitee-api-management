@@ -682,5 +682,4 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertNotNull(state);
         assertEquals("STOPPED", state);
     }
-
 }
