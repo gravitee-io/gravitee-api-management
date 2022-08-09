@@ -195,10 +195,6 @@ public class ApiStateServiceImpl implements ApiStateService {
         if (optApi.isPresent()) {
             Api api = optApi.get();
 
-            if (DefinitionContext.isKubernetes(api.getOrigin())) {
-                throw new ApiNotManagedException("The api is managed externally (" + api.getOrigin() + "). Unable to start or stop it.");
-            }
-
             Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
@@ -226,9 +222,12 @@ public class ApiStateServiceImpl implements ApiStateService {
                 default:
                     break;
             }
-            final ApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType);
-            if (deployedApi != null) {
-                return deployedApi;
+
+            if (!DefinitionContext.isKubernetes(updateApi.getOrigin())) {
+                final ApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType);
+                if (deployedApi != null) {
+                    return deployedApi;
+                }
             }
             return apiEntity;
         } else {
