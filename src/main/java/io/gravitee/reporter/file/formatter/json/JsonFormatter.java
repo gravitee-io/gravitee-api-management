@@ -51,7 +51,7 @@ public class JsonFormatter<T extends Reportable> extends AbstractFormatter<T> {
         }
 
         SimpleModule module = new SimpleModule();
-        module.addSerializer(HttpHeaders.class, new HttpHeadersSerializer());
+        module.addSerializer(HttpHeaders.class, new HttpHeadersSerializer(rules));
         mapper.registerModule(module);
 
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
