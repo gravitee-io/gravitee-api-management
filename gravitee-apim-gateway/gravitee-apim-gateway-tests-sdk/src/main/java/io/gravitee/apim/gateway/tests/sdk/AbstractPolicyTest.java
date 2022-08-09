@@ -16,29 +16,12 @@
 package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
-import io.gravitee.common.event.impl.SimpleEvent;
-import io.gravitee.gateway.policy.PolicyManifest;
-import io.gravitee.plugin.core.api.PluginEvent;
 import io.gravitee.plugin.core.api.PluginManifest;
-import io.gravitee.plugin.core.api.PluginManifestFactory;
-import io.gravitee.plugin.core.internal.PluginEventListener;
-import io.gravitee.plugin.core.internal.PluginImpl;
-import io.gravitee.plugin.core.internal.PluginRegistryImpl;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.api.PolicyConfiguration;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.net.URL;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
-import java.util.Properties;
-import org.junit.platform.commons.PreconditionViolationException;
 
 /**
  * Inherit from this class to automatically register the policy you want to test.

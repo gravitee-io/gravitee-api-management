@@ -27,20 +27,20 @@ import io.gravitee.apim.gateway.tests.sdk.plugin.PluginRegister;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiConfigurer;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import io.reactiverse.junit5.web.WebClientOptionsInject;
 import io.reactivex.observers.TestObserver;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
+import io.vertx.reactivex.ext.web.client.WebClient;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -70,10 +70,10 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
     /**
      * Map of deployed apis for the current test method thanks to {@link io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi}
      */
-    protected Map<String, Api> deployedApis;
+    protected Map<String, ReactableApi<?>> deployedApis;
     private int gatewayPort = -1;
     private int technicalApiPort = -1;
-    private Map<String, Api> deployedForTestClass;
+    private Map<String, ReactableApi<?>> deployedForTestClass;
     private boolean areClassApisPrepared = false;
     protected ApplicationContext applicationContext;
 
@@ -96,6 +96,12 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
      *                                    For example, to configure tags for the gateway, just use <code>gatewayConfigurationBuilder.set("tags", "my-tag")</code>
      */
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {}
+
+    /**
+     * Override this method if you want to pass some specific configuration to the HttpClient.
+     * It differs from WebClient which only response with Single, which was not good for SSE api.
+     */
+    protected void configureHttpClient(HttpClientOptions options) {}
 
     /**
      * Proxy for {@link TestObserver#awaitTerminalEvent(long, TimeUnit)} with a default of 30 seconds.
@@ -138,13 +144,15 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
      * when implementing the test cases, the developer will need a {@link io.vertx.ext.web.client.WebClient}, which is automatically resolved as a parameter if Vertx has already been resolved.
      * Injecting it in the BeforeEach at abstract class level allows to automatically inject it to ease the life of the developer.
      *
+     * Same occurs for WebClient
+     *
      * Ensure the testContext is completed before starting a test, see <a href="io.gravitee.gateway.standalone.flow>Vertx documentation</a>"
      * Update endpoints for each apis deployed for the whole test class, see {@link AbstractGatewayTest#updateEndpointsOnDeployedApisForClassIfNeeded()}
      * @param vertx this parameter is only used to let the VertxExtension initialize it. It will allow to use WebClient directly.
      * @param testContext
      */
     @BeforeEach
-    public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    public void setUp(Vertx vertx, VertxTestContext testContext, WebClient webClient) throws Exception {
         resetAllMocks();
         prepareWireMock();
         updateEndpointsOnDeployedApisForClassIfNeeded();
@@ -197,7 +205,7 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
     /**
      * HACK: To ease the developer life, we propose to configure {@link WireMockExtension} thanks to {@link RegisterExtension}.
      * Currently, there is no way to indicate to junit5 that {@link RegisterExtension} should be registered before a {@link org.junit.jupiter.api.extension.ExtendWith} one.
-     * That say, our {@link GatewayTestingExtension} is registered before the wiremock server is configured, and apis for class levels are already deployed, but without the right wiremock port.
+     * That said, our {@link GatewayTestingExtension} is registered before the wiremock server is configured, and apis for class levels are already deployed, but without the right wiremock port.
      * Doing that only once during the first {@link BeforeEach}, we are able to update the endpoints of apis declared at class level with {@link DeployApi}
      */
     private void updateEndpointsOnDeployedApisForClassIfNeeded() {
@@ -217,20 +225,11 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
     public void configureApi(Api api) {}
 
     @Override
+    public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {}
+
+    @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
-    }
-
-    /**
-     * Ensures the api has the minimal requirement to be run properly.
-     * - Add a default Keyless plan if api has no plan.
-     * - Add a default Endpoint group if api has none.
-     *
-     * @param api
-     */
-    public void ensureMinimalRequirementForApi(Api api) {
-        this.addDefaultKeylessPlanIfNeeded(api);
-        this.addDefaultEndpointGroupIfNeeded(api);
     }
 
     /**
@@ -248,7 +247,7 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
      * Called by the {@link GatewayTestingExtension} when apis wanted for the test class are deployed.
      * @param deployedForTestClass is the list of deployed apis.
      */
-    public void setDeployedClassApis(Map<String, Api> deployedForTestClass) {
+    public void setDeployedClassApis(Map<String, ReactableApi<?>> deployedForTestClass) {
         this.deployedForTestClass = deployedForTestClass;
     }
 
@@ -267,50 +266,18 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
     }
 
     /**
-     * Override api plans to create a default Keyless plan and ensure their are published
-     * @param api is the api to override
+     * Override api endpoints to replace port by the configured wiremock port.
+     * Only valid for API Definition versions 1.0.0 and 2.0.0
+     * @param reactableApi is the api to override
      */
-    protected void addDefaultKeylessPlanIfNeeded(Api api) {
-        if (api.getPlans() == null || api.getPlans().isEmpty()) {
-            // By default, add a keyless plan to the API
-            Plan plan = new Plan();
-            plan.setId("default_plan");
-            plan.setName("Default plan");
-            plan.setSecurity("key_less");
-            plan.setStatus("published");
-
-            api.setPlans(Collections.singletonList(plan));
-        } else {
-            api
-                .getPlans()
-                .stream()
-                .filter(plan -> plan.getStatus() == null || plan.getStatus().isEmpty())
-                .forEach(plan -> plan.setStatus("published"));
-        }
-    }
-
-    /**
-     * Add a default endpoint group to the api
-     */
-    private void addDefaultEndpointGroupIfNeeded(Api api) {
-        if (api.getProxy().getGroups() == null || api.getProxy().getGroups().isEmpty()) {
-            // Create a default endpoint group
-            EndpointGroup group = new EndpointGroup();
-            group.setName("default");
-            group.setEndpoints(Collections.emptySet());
-            api.getProxy().setGroups(Collections.singleton(group));
-        }
-    }
-
-    /**
-     * Override api endpoints to replace port by the configured wiremock port
-     * @param api is the api to override
-     */
-    private void updateEndpoints(Api api) {
-        // Define dynamically endpoint port
-        for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
-            final int port = endpoint.getTarget().startsWith("https") ? wiremockHttpsPort : wiremockPort;
-            endpoint.setTarget(exchangePort(endpoint.getTarget(), port));
+    private void updateEndpoints(ReactableApi<?> reactableApi) {
+        if (reactableApi.getDefinition() instanceof Api) {
+            Api api = (Api) reactableApi.getDefinition();
+            // Define dynamically endpoint port
+            for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
+                final int port = endpoint.getTarget().startsWith("https") ? wiremockHttpsPort : wiremockPort;
+                endpoint.setTarget(exchangePort(endpoint.getTarget(), port));
+            }
         }
     }
 

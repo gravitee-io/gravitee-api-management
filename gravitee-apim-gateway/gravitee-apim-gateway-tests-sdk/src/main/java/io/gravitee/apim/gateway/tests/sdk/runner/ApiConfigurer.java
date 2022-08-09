@@ -16,6 +16,7 @@
 package io.gravitee.apim.gateway.tests.sdk.runner;
 
 import io.gravitee.definition.model.Api;
+import io.gravitee.gateway.reactor.ReactableApi;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -24,9 +25,20 @@ import io.gravitee.definition.model.Api;
 public interface ApiConfigurer {
     /**
      * Configure apis before their deployment.
+     * @deprecated see {@link #configureApi(ReactableApi, Class)}, this one is to use for version of the Gateway prior to 3.19.0.
      * Useful to modify programmatically each api that will be deployed during the tests.
      * For example, add a JWT plan, or set endpoint groups.
      * @param api is the api to apply this function code
      */
+    @Deprecated(since = "3.19.0")
     void configureApi(Api api);
+
+    /**
+     * Configure apis before their deployment.
+     * Useful to modify programmatically each api that will be deployed during the tests.
+     * For example, on api definition version under V4, add a JWT plan, or set endpoint groups.
+     * @param reactableApi is the api to apply this function code
+     * @param definitionClass is the class of the definition since V4 apis has a different model from previous versions.
+     */
+    void configureApi(ReactableApi<?> reactableApi, Class<?> definitionClass);
 }
