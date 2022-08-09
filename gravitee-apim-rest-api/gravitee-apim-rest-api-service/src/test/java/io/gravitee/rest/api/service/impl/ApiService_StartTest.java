@@ -146,6 +146,26 @@ public class ApiService_StartTest {
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_STARTED), eq(API_ID), any());
     }
 
+    @Test
+    public void shouldStartWithKubernetesOrigin() throws Exception {
+        objectMapper.addMixIn(Api.class, ApiMixin.class);
+        when(api.getOrigin()).thenReturn(Api.ORIGIN_KUBERNETES);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiRepository.update(api)).thenReturn(api);
+        final EventEntity event = mockEvent(PUBLISH_API);
+        final EventQuery query = new EventQuery();
+        query.setApi(API_ID);
+        query.setTypes(singleton(PUBLISH_API));
+
+        apiService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
+
+        verify(api).setUpdatedAt(any());
+        verify(api).setLifecycleState(LifecycleState.STARTED);
+        verify(apiRepository).update(api);
+        verify(eventService, times(0)).createApiEvent(any(), any(), any(), any(), any());
+        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_STARTED), eq(API_ID), any());
+    }
+
     @Test(expected = ApiNotFoundException.class)
     public void shouldNotStartBecauseNotFound() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());

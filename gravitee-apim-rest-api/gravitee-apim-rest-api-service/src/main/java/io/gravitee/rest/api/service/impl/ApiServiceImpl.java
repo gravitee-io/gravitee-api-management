@@ -2944,10 +2944,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (optApi.isPresent()) {
             Api api = optApi.get();
 
-            if (DefinitionContext.isKubernetes(api.getOrigin())) {
-                throw new ApiNotManagedException("The api is managed externally (" + api.getOrigin() + "). Unable to start or stop it.");
-            }
-
             Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
@@ -2974,9 +2970,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 default:
                     break;
             }
-            final ApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType);
-            if (deployedApi != null) {
-                return deployedApi;
+
+            if (!DefinitionContext.isKubernetes(api.getOrigin())) {
+                final ApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType);
+                if (deployedApi != null) {
+                    return deployedApi;
+                }
             }
             return apiEntity;
         } else {
