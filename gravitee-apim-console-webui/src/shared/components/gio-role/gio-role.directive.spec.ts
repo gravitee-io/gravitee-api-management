@@ -28,7 +28,7 @@ class TestRoleComponent {
   role: GioRoleCheckOptions;
 }
 
-describe('GioPermissionDirective', () => {
+describe('GioRoleDirective', () => {
   let fixture: ComponentFixture<TestRoleComponent>;
   const currentUser = new User();
   currentUser.roles = [];
@@ -92,7 +92,7 @@ describe('GioPermissionDirective', () => {
   });
 
   describe('noneOf', () => {
-    it('should display element if no permission is matching', () => {
+    it('should display element if no role is matching', () => {
       currentUser.roles = [
         { scope: 'ENVIRONMENT', name: 'ADMIN' },
         { scope: 'ORGANIZATION', name: 'ADMIN' },
@@ -105,7 +105,7 @@ describe('GioPermissionDirective', () => {
       expect(inputEl).toBeDefined();
     });
 
-    it('should hide element if a permission is matching', () => {
+    it('should hide element if a role is matching', () => {
       currentUser.roles = [
         { scope: 'ENVIRONMENT', name: 'ADMIN' },
         { scope: 'ORGANIZATION', name: 'ADMIN' },
@@ -118,7 +118,7 @@ describe('GioPermissionDirective', () => {
       expect(inputEl).toBeNull();
     });
 
-    it('should hide element if at least one permission is matching', () => {
+    it('should hide element if at least one role is matching', () => {
       currentUser.roles = [
         { scope: 'ENVIRONMENT', name: 'ADMIN' },
         { scope: 'ORGANIZATION', name: 'ADMIN' },
