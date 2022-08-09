@@ -48,7 +48,7 @@ export interface RoleEntity {
      * @type {string}
      * @memberof RoleEntity
      */
-    id?: string;
+    id: string;
     /**
      * 
      * @type {string}
@@ -88,7 +88,7 @@ export function RoleEntityFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'apiPrimaryOwner': !exists(json, 'apiPrimaryOwner') ? undefined : json['apiPrimaryOwner'],
         '_default': !exists(json, 'default') ? undefined : json['default'],
         'description': !exists(json, 'description') ? undefined : json['description'],
-        'id': !exists(json, 'id') ? undefined : json['id'],
+        'id': json['id'],
         'name': !exists(json, 'name') ? undefined : json['name'],
         'permissions': !exists(json, 'permissions') ? undefined : json['permissions'],
         'scope': !exists(json, 'scope') ? undefined : RoleScopeFromJSON(json['scope']),

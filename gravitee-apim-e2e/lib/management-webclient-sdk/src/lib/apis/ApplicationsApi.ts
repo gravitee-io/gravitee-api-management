@@ -32,6 +32,9 @@ import {
     ApplicationEntity,
     ApplicationEntityFromJSON,
     ApplicationEntityToJSON,
+    ApplicationListItemPagedResult,
+    ApplicationListItemPagedResultFromJSON,
+    ApplicationListItemPagedResultToJSON,
     ApplicationMembership,
     ApplicationMembershipFromJSON,
     ApplicationMembershipToJSON,
@@ -355,6 +358,17 @@ export interface GetApplicationsRequest {
     group?: string;
     query?: string;
     status?: string;
+    envId: string;
+    orgId: string;
+}
+
+export interface GetApplicationsPagedRequest {
+    group?: string;
+    query?: string;
+    status?: string;
+    order?: string;
+    size?: number;
+    page?: number;
     envId: string;
     orgId: string;
 }
@@ -2103,7 +2117,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
     }
 
     /**
-     * User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications.
+     * User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.
      * List all the applications accessible to authenticated user
      */
     async getApplicationsRaw(requestParameters: GetApplicationsRequest): Promise<runtime.ApiResponse<Array<ApplicationEntity>>> {
@@ -2145,11 +2159,74 @@ export class ApplicationsApi extends runtime.BaseAPI {
     }
 
     /**
-     * User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications.
+     * User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.
      * List all the applications accessible to authenticated user
      */
     async getApplications(requestParameters: GetApplicationsRequest): Promise<Array<ApplicationEntity>> {
         const response = await this.getApplicationsRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.
+     * List all the applications accessible to authenticated user
+     */
+    async getApplicationsPagedRaw(requestParameters: GetApplicationsPagedRequest): Promise<runtime.ApiResponse<ApplicationListItemPagedResult>> {
+        if (requestParameters.envId === null || requestParameters.envId === undefined) {
+            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getApplicationsPaged.');
+        }
+
+        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
+            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationsPaged.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        if (requestParameters.group !== undefined) {
+            queryParameters['group'] = requestParameters.group;
+        }
+
+        if (requestParameters.query !== undefined) {
+            queryParameters['query'] = requestParameters.query;
+        }
+
+        if (requestParameters.status !== undefined) {
+            queryParameters['status'] = requestParameters.status;
+        }
+
+        if (requestParameters.order !== undefined) {
+            queryParameters['order'] = requestParameters.order;
+        }
+
+        if (requestParameters.size !== undefined) {
+            queryParameters['size'] = requestParameters.size;
+        }
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/organizations/{orgId}/environments/{envId}/applications/_paged`.replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationListItemPagedResultFromJSON(jsonValue));
+    }
+
+    /**
+     * User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.
+     * List all the applications accessible to authenticated user
+     */
+    async getApplicationsPaged(requestParameters: GetApplicationsPagedRequest): Promise<ApplicationListItemPagedResult> {
+        const response = await this.getApplicationsPagedRaw(requestParameters);
         return await response.value();
     }
 
@@ -2287,7 +2364,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
     }
 
     /**
-     * User must have APPLICATION_DEFINITION[UPDATE] permission to restore an application.
+     * User must have ORGANIZATION:ADMIN role to restore an application.
      * Restore the application
      */
     async restoreApplicationRaw(requestParameters: RestoreApplicationRequest): Promise<runtime.ApiResponse<ApplicationEntity>> {
@@ -2321,7 +2398,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
     }
 
     /**
-     * User must have APPLICATION_DEFINITION[UPDATE] permission to restore an application.
+     * User must have ORGANIZATION:ADMIN role to restore an application.
      * Restore the application
      */
     async restoreApplication(requestParameters: RestoreApplicationRequest): Promise<ApplicationEntity> {
