@@ -254,6 +254,12 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
             api.setDefinitionContext(definitionContext);
         }
 
+        JsonNode stateNode = node.get("state");
+        if (stateNode != null) {
+            String state = stateNode.traverse(jp.getCodec()).readValueAs(String.class);
+            api.setState(state);
+        }
+
         return api;
     }
 }

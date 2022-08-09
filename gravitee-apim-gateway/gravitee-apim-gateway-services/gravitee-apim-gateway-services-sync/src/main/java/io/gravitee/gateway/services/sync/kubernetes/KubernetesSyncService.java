@@ -122,8 +122,12 @@ public class KubernetesSyncService extends AbstractService<KubernetesSyncService
                 switch (kubEvent.getType()) {
                     case "ADDED":
                     case "MODIFIED":
-                        event.setType(EventType.PUBLISH_API);
-                        api.setLifecycleState(LifecycleState.STARTED);
+                        api.setLifecycleState(LifecycleState.valueOf(apiDefinition.getState()));
+                        if (api.getLifecycleState() == LifecycleState.STARTED) {
+                            event.setType(EventType.PUBLISH_API);
+                        } else {
+                            event.setType(EventType.STOP_API);
+                        }
                         break;
                     case "DELETED":
                         event.setType(EventType.UNPUBLISH_API);

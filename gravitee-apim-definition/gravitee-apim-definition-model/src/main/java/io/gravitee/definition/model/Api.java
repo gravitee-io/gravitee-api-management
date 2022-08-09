@@ -81,6 +81,9 @@ public class Api implements Serializable {
     @JsonProperty("execution_mode")
     private ExecutionMode executionMode;
 
+    @JsonProperty("state")
+    private String state;
+
     public Api() {}
 
     public String getId() {
@@ -228,6 +231,14 @@ public class Api implements Serializable {
 
     public void setDefinitionContext(DefinitionContext definitionContext) {
         this.definitionContext = definitionContext;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 
     @Override

@@ -692,6 +692,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+    private void checkApiDefinitionOrigin(Api api) {
+        if (DefinitionContext.isKubernetes(api.getOrigin())) {
+            throw new ApiNotManagedException("The api is managed externally (" + api.getOrigin() + "). Unable to deploy it.");
+        }
+    }
+
     private void checkEndpointsExists(UpdateApiEntity api) {
         if (api.getProxy().getGroups() == null || api.getProxy().getGroups().isEmpty()) {
             throw new EndpointMissingException();
@@ -1476,6 +1482,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiId
             );
             updateApiEntity.getProxy().setVirtualHosts(new ArrayList<>(sanitizedVirtualHosts));
+
+            // Make sure that the API is managed by the console
+            checkApiDefinitionOrigin(apiToUpdate);
 
             // check endpoints presence
             checkEndpointsExists(updateApiEntity);
