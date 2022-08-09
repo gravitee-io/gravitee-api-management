@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Repository - JDBC" type="JUnit" factoryName="JUnit" folderName="Repository">
+  <configuration default="false" name="Repository - JDBC (POSTGRES)" type="JUnit" factoryName="JUnit" folderName="Repository">
     <classpathModifications>
       <entry exclude="true" path="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-test/target/test-classes" />
     </classpathModifications>
