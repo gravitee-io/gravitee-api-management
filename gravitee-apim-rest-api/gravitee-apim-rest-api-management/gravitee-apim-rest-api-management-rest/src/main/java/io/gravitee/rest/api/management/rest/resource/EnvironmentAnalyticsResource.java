@@ -108,18 +108,16 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                 fieldName = APPLICATION_FIELD;
                 ids =
                     applicationService
-                        .findByUser(executionContext, getAuthenticatedUser())
+                        .findIdsByUser(executionContext, getAuthenticatedUser())
                         .stream()
-                        .map(ApplicationListItem::getId)
                         .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
                         .collect(Collectors.toList());
             } else {
                 fieldName = API_FIELD;
                 ids =
                     apiService
-                        .findByUser(executionContext, getAuthenticatedUser(), null, false)
+                        .findIdsByUser(executionContext, getAuthenticatedUser(), null, false)
                         .stream()
-                        .map(ApiEntity::getId)
                         .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
                         .collect(Collectors.toList());
             }
@@ -178,15 +176,15 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         switch (analyticsParam.getField()) {
             case API_FIELD:
                 if (isAdmin()) {
-                    return buildCountStat(apiService.search(executionContext, new ApiQuery()).size());
+                    return buildCountStat(apiService.searchIds(executionContext, new ApiQuery()).size());
                 } else {
-                    return buildCountStat(apiService.findByUser(executionContext, getAuthenticatedUser(), new ApiQuery(), false).size());
+                    return buildCountStat(apiService.findIdsByUser(executionContext, getAuthenticatedUser(), new ApiQuery(), false).size());
                 }
             case APPLICATION_FIELD:
                 if (isAdmin()) {
                     return buildCountStat(applicationService.findAll(executionContext).size());
                 } else {
-                    return buildCountStat(applicationService.findByUser(executionContext, getAuthenticatedUser()).size());
+                    return buildCountStat(applicationService.findIdsByUser(executionContext, getAuthenticatedUser()).size());
                 }
             default:
                 return analyticsService.execute(query);
