@@ -19,8 +19,8 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.Plugin;
-import io.gravitee.plugin.entrypoint.EntrypointPlugin;
-import io.gravitee.plugin.entrypoint.EntrypointPluginManager;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.rest.api.model.v4.entrypoint.EntrypointPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.impl.AbstractPluginService;
@@ -34,7 +34,9 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component("EntrypointServiceImplV4")
-public class EntrypointServiceImpl extends AbstractPluginService<EntrypointPlugin, EntrypointPluginEntity> implements EntrypointService {
+public class EntrypointServiceImpl
+    extends AbstractPluginService<EntrypointConnectorPlugin, EntrypointPluginEntity>
+    implements EntrypointService {
 
     private final JsonSchemaService jsonSchemaService;
 
@@ -49,7 +51,7 @@ public class EntrypointServiceImpl extends AbstractPluginService<EntrypointPlugi
 
     @Override
     public EntrypointPluginEntity findById(String entrypointId) {
-        EntrypointPlugin resourceDefinition = super.get(entrypointId);
+        EntrypointConnectorPlugin resourceDefinition = super.get(entrypointId);
         return convert(resourceDefinition);
     }
 
@@ -61,7 +63,7 @@ public class EntrypointServiceImpl extends AbstractPluginService<EntrypointPlugi
         entity.setDescription(plugin.manifest().description());
         entity.setName(plugin.manifest().name());
         entity.setVersion(plugin.manifest().version());
-        EntrypointConnectorFactory<?> connectorFactory = ((EntrypointPluginManager) pluginManager).getFactoryById(plugin.id());
+        EntrypointConnectorFactory<?> connectorFactory = ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id());
 
         entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
         entity.setSupportedModes(
@@ -82,7 +84,7 @@ public class EntrypointServiceImpl extends AbstractPluginService<EntrypointPlugi
             .stream()
             .filter(
                 plugin ->
-                    ((EntrypointPluginManager) pluginManager).getFactoryById(plugin.id())
+                    ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id())
                         .supportedApi()
                         .equals(io.gravitee.gateway.jupiter.api.ApiType.fromLabel(apiType.getLabel()))
             )
@@ -97,7 +99,7 @@ public class EntrypointServiceImpl extends AbstractPluginService<EntrypointPlugi
             .stream()
             .filter(
                 plugin ->
-                    ((EntrypointPluginManager) pluginManager).getFactoryById(plugin.id())
+                    ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id())
                         .supportedModes()
                         .contains(io.gravitee.gateway.jupiter.api.ConnectorMode.fromLabel(connectorMode.getLabel()))
             )

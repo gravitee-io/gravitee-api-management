@@ -15,10 +15,9 @@
  */
 package io.gravitee.gateway.entrypoint.spring;
 
-import io.gravitee.gateway.entrypoint.EntrypointRegistry;
-import io.gravitee.gateway.entrypoint.plugin.EntrypointRegistryImpl;
-import io.gravitee.plugin.entrypoint.EntrypointPluginManager;
-import io.gravitee.plugin.entrypoint.spring.EntrypointPluginConfiguration;
+import io.gravitee.gateway.entrypoint.EntrypointConnectorFactoryRegistry;
+import io.gravitee.gateway.entrypoint.plugin.EntrypointConnectorFactoryRegistryImpl;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -28,11 +27,13 @@ import org.springframework.context.annotation.Import;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import(EntrypointPluginConfiguration.class)
-public class EntrypointConfiguration {
+@Import(io.gravitee.plugin.entrypoint.spring.EntrypointConnectorPluginConfiguration.class)
+public class EntrypointConnectorPluginConfiguration {
 
     @Bean
-    public EntrypointRegistry entrypointRegistry(final EntrypointPluginManager entrypointPluginManager) {
-        return new EntrypointRegistryImpl(entrypointPluginManager);
+    public EntrypointConnectorFactoryRegistry entrypointConnectorFactoryRegistry(
+        final EntrypointConnectorPluginManager entrypointConnectorPluginManager
+    ) {
+        return new EntrypointConnectorFactoryRegistryImpl(entrypointConnectorPluginManager);
     }
 }

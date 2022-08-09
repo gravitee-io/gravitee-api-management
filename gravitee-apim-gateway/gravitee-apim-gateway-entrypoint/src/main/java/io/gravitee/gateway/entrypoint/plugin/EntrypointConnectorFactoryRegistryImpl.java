@@ -15,24 +15,24 @@
  */
 package io.gravitee.gateway.entrypoint.plugin;
 
-import io.gravitee.gateway.entrypoint.EntrypointRegistry;
+import io.gravitee.gateway.entrypoint.EntrypointConnectorFactoryRegistry;
 import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorFactory;
-import io.gravitee.plugin.entrypoint.EntrypointPluginManager;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EntrypointRegistryImpl implements EntrypointRegistry {
+public class EntrypointConnectorFactoryRegistryImpl implements EntrypointConnectorFactoryRegistry {
 
-    private final EntrypointPluginManager entrypointPluginManager;
+    private final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
 
-    public EntrypointRegistryImpl(final EntrypointPluginManager pluginManager) {
-        this.entrypointPluginManager = pluginManager;
+    public EntrypointConnectorFactoryRegistryImpl(final EntrypointConnectorPluginManager pluginManager) {
+        this.entrypointConnectorPluginManager = pluginManager;
     }
 
     @Override
     public EntrypointConnectorFactory<?> getById(final String id) {
-        return entrypointPluginManager.getFactoryById(id);
+        return entrypointConnectorPluginManager.getFactoryById(id);
     }
 }
