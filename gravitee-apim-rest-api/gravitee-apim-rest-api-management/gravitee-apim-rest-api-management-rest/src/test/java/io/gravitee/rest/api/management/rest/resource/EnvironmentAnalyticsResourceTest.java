@@ -223,8 +223,8 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         ApiEntity api = new ApiEntity();
         api.setId("apiId");
 
-        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false)))
-            .thenReturn(Collections.singleton(api));
+        when(apiService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false)))
+            .thenReturn(Collections.singleton(api.getId()));
         when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(API_ANALYTICS), eq(api.getId()), eq(READ)))
             .thenReturn(true);
 
@@ -248,7 +248,8 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         ApplicationListItem app = new ApplicationListItem();
         app.setId("appId");
 
-        when(applicationService.findByUser(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.singleton(app));
+        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any()))
+            .thenReturn(Collections.singleton(app.getId()));
         when(
             permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ANALYTICS), eq(app.getId()), eq(READ))
         )
