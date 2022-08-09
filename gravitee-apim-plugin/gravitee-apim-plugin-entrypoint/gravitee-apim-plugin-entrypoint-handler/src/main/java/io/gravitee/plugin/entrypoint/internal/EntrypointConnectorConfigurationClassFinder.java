@@ -25,9 +25,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-public class EntrypointConfigurationClassFinder extends AbstractSingleSubTypesFinder<EntrypointConnectorConfiguration> {
+public class EntrypointConnectorConfigurationClassFinder extends AbstractSingleSubTypesFinder<EntrypointConnectorConfiguration> {
 
-    public EntrypointConfigurationClassFinder() {
+    public EntrypointConnectorConfigurationClassFinder() {
         super(EntrypointConnectorConfiguration.class);
     }
 

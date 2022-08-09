@@ -18,7 +18,7 @@ package io.gravitee.gateway.jupiter.core.v4.entrypoint;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
-import io.gravitee.gateway.entrypoint.EntrypointRegistry;
+import io.gravitee.gateway.entrypoint.EntrypointConnectorFactoryRegistry;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnector;
@@ -38,7 +38,7 @@ public class HttpEntrypointResolver {
 
     private final List<EntrypointAsyncConnector> entrypointConnectors;
 
-    public HttpEntrypointResolver(final Api api, final EntrypointRegistry entrypointRegistry) {
+    public HttpEntrypointResolver(final Api api, final EntrypointConnectorFactoryRegistry entrypointConnectorFactoryRegistry) {
         entrypointConnectors =
             api
                 .getListeners()
@@ -48,7 +48,7 @@ public class HttpEntrypointResolver {
                 .flatMap(listenerHttp -> listenerHttp.getEntrypoints().stream())
                 .map(
                     entrypoint -> {
-                        EntrypointConnectorFactory<? extends EntrypointConnector<?>> connectorFactory = entrypointRegistry.getById(
+                        EntrypointConnectorFactory<? extends EntrypointConnector<?>> connectorFactory = entrypointConnectorFactoryRegistry.getById(
                             entrypoint.getType()
                         );
                         if (connectorFactory.supportedApi() == ApiType.ASYNC) {

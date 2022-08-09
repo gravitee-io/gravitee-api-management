@@ -16,13 +16,13 @@
 package io.gravitee.plugin.entrypoint.internal;
 
 import io.gravitee.plugin.core.internal.PluginClassLoaderFactoryImpl;
-import io.gravitee.plugin.entrypoint.EntrypointClassLoaderFactory;
-import io.gravitee.plugin.entrypoint.EntrypointPlugin;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorClassLoaderFactory;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EntrypointClassLoaderFactoryImpl
-    extends PluginClassLoaderFactoryImpl<EntrypointPlugin<?>>
-    implements EntrypointClassLoaderFactory {}
+public class DefaultEntrypointConnectorConnectorClassLoaderFactory
+    extends PluginClassLoaderFactoryImpl<EntrypointConnectorPlugin<?>>
+    implements EntrypointConnectorClassLoaderFactory {}

@@ -22,10 +22,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.plugin.core.api.Plugin;
-import io.gravitee.plugin.entrypoint.EntrypointPlugin;
-import io.gravitee.plugin.entrypoint.EntrypointPluginManager;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointFactory;
-import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointPlugin;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,22 +37,22 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class EntrypointPluginHandlerTest {
+class EntrypointConnectorPluginHandlerTest {
 
     @Mock
-    private EntrypointPluginManager mockEntrypointPluginManager;
+    private EntrypointConnectorPluginManager mockEntrypointConnectorPluginManager;
 
     @InjectMocks
-    private EntrypointPluginHandler entrypointPluginHandler = new EntrypointPluginHandler();
+    private EntrypointConnectorPluginHandler entrypointConnectorPluginHandler = new EntrypointConnectorPluginHandler();
 
     @Test
     public void shouldBeEntrypointType() {
-        assertThat(entrypointPluginHandler.type()).isEqualTo(EntrypointPlugin.PLUGIN_TYPE);
+        assertThat(entrypointConnectorPluginHandler.type()).isEqualTo(EntrypointConnectorPlugin.PLUGIN_TYPE);
     }
 
     @Test
     public void shouldHandleEntrypoint() {
-        boolean canHandle = entrypointPluginHandler.canHandle(new FakeEntrypointPlugin());
+        boolean canHandle = entrypointConnectorPluginHandler.canHandle(new FakeEntrypointConnectorPlugin());
         assertThat(canHandle).isTrue();
     }
 
@@ -60,14 +60,14 @@ class EntrypointPluginHandlerTest {
     public void shouldNotHandleEntrypoint() {
         Plugin mockPlugin = mock(Plugin.class);
         when(mockPlugin.type()).thenReturn("bad");
-        boolean canHandle = entrypointPluginHandler.canHandle(mockPlugin);
+        boolean canHandle = entrypointConnectorPluginHandler.canHandle(mockPlugin);
         assertThat(canHandle).isFalse();
     }
 
     @Test
     public void shouldHandleNewPlugin() {
-        FakeEntrypointPlugin plugin = new FakeEntrypointPlugin();
-        entrypointPluginHandler.handle(plugin, FakeEntrypointFactory.class);
-        verify(mockEntrypointPluginManager).register(any(EntrypointPlugin.class));
+        FakeEntrypointConnectorPlugin plugin = new FakeEntrypointConnectorPlugin();
+        entrypointConnectorPluginHandler.handle(plugin, FakeEntrypointFactory.class);
+        verify(mockEntrypointConnectorPluginManager).register(any(EntrypointConnectorPlugin.class));
     }
 }
