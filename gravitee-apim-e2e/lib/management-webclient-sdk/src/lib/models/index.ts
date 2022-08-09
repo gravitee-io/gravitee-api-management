@@ -41,6 +41,7 @@ export * from './Application';
 export * from './ApplicationEntity';
 export * from './ApplicationGrantTypeEntity';
 export * from './ApplicationListItem';
+export * from './ApplicationListItemPagedResult';
 export * from './ApplicationMembership';
 export * from './ApplicationMetadataEntity';
 export * from './ApplicationRequest';

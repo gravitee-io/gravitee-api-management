@@ -42,7 +42,7 @@ export interface UpdateRoleEntity {
      * @type {string}
      * @memberof UpdateRoleEntity
      */
-    id?: string;
+    id: string;
     /**
      * 
      * @type {string}
@@ -75,7 +75,7 @@ export function UpdateRoleEntityFromJSONTyped(json: any, ignoreDiscriminator: bo
         
         '_default': !exists(json, 'default') ? undefined : json['default'],
         'description': !exists(json, 'description') ? undefined : json['description'],
-        'id': !exists(json, 'id') ? undefined : json['id'],
+        'id': json['id'],
         'name': json['name'],
         'permissions': !exists(json, 'permissions') ? undefined : json['permissions'],
         'scope': RoleScopeFromJSON(json['scope']),
