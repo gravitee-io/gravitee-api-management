@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.management.rest.resource.param.Aggregation;
 import io.gravitee.rest.api.management.rest.resource.param.AnalyticsParam;
 import io.gravitee.rest.api.management.rest.resource.param.Range;
@@ -36,6 +37,7 @@ import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -182,7 +184,9 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                 }
             case APPLICATION_FIELD:
                 if (isAdmin()) {
-                    return buildCountStat(applicationService.findAll(executionContext).size());
+                    ApplicationQuery applicationQuery = new ApplicationQuery();
+                    applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
+                    return buildCountStat(applicationService.searchIds(executionContext, applicationQuery, null).size());
                 } else {
                     return buildCountStat(applicationService.findIdsByUser(executionContext, getAuthenticatedUser()).size());
                 }

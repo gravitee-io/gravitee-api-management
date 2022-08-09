@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.application;
 
+import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,7 +29,7 @@ public class ApplicationQuery {
 
     private String user;
 
-    private String group;
+    private Set<String> groups;
 
     private String status;
 

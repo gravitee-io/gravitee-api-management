@@ -249,10 +249,4 @@ public class ApplicationService_FindByUserTest {
         Assert.assertFalse("should find app", apps.isEmpty());
         Assert.assertEquals(APPLICATION_ID, apps.iterator().next().getId());
     }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void shouldThrowTechnicalManagementException() throws TechnicalException {
-        when(applicationRepository.findByGroups(any(), any())).thenThrow(new TechnicalException());
-        applicationService.findByUser(GraviteeContext.getExecutionContext(), USERNAME, new SortableImpl("name", true));
-    }
 }

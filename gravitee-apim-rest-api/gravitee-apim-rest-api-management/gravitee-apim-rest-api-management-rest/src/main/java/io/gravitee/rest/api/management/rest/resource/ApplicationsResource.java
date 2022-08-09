@@ -172,7 +172,7 @@ public class ApplicationsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApplicationQuery applicationQuery = new ApplicationQuery();
         if (group != null) {
-            applicationQuery.setGroup(group);
+            applicationQuery.setGroups(Set.of(group));
         }
         applicationQuery.setName(query);
 
