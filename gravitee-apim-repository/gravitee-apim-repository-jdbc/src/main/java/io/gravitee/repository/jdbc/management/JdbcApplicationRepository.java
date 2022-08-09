@@ -38,6 +38,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -374,6 +375,16 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
     @Override
     public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable, Sortable sortable) {
+        List<Application> apps = search(applicationCriteria, sortable);
+
+        for (final Application application : apps) {
+            addGroups(application);
+        }
+
+        return getResultAsPage(pageable, apps);
+    }
+
+    private List<Application> search(ApplicationCriteria applicationCriteria, Sortable sortable) {
         LOGGER.debug("JdbcApplicationRepository.search({})", applicationCriteria);
         final JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(
             getOrm().getRowMapper(),
@@ -449,13 +460,13 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             },
             rowMapper
         );
-        List<Application> apps = rowMapper.getRows();
+        return rowMapper.getRows();
+    }
 
-        for (final Application application : apps) {
-            addGroups(application);
-        }
-
-        return getResultAsPage(pageable, apps);
+    @Override
+    public Set<String> searchIds(ApplicationCriteria applicationCriteria, Sortable sortable) throws TechnicalException {
+        List<Application> search = search(applicationCriteria, sortable);
+        return search.parallelStream().map(Application::getId).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override

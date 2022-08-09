@@ -106,14 +106,15 @@ public class ApplicationService_FindByUserTest {
     @Test
     public void shouldFindByUser() throws Exception {
         GraviteeContext.setCurrentEnvironment("envId");
-        when(appMembership.getReferenceId()).thenReturn(APPLICATION_ID);
         when(application.getId()).thenReturn(APPLICATION_ID);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
-            .thenReturn(Collections.singleton(appMembership));
+        when(
+            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
+        )
+            .thenReturn(Collections.singleton(APPLICATION_ID));
 
         ApplicationCriteria criteria = new ApplicationCriteria.Builder()
             .ids(Set.of(APPLICATION_ID))
@@ -141,17 +142,6 @@ public class ApplicationService_FindByUserTest {
 
     @Test
     public void shouldNotFindByUserBecauseOfArchived() throws Exception {
-        when(appMembership.getReferenceId()).thenReturn(APPLICATION_ID);
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
-            .thenReturn(Collections.singleton(appMembership));
-
-        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
-            .ids(Set.of(APPLICATION_ID))
-            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
-            .status(ApplicationStatus.ACTIVE)
-            .build();
-        when(applicationRepository.search(criteria, null, null)).thenReturn(new Page<>(Collections.emptyList(), 1, 0, 0));
-
         Set<ApplicationListItem> apps = applicationService.findByUser(GraviteeContext.getExecutionContext(), USERNAME);
 
         Assert.assertNotNull(apps);
@@ -161,7 +151,6 @@ public class ApplicationService_FindByUserTest {
     @Test
     public void shouldFindByUserAndGroup() throws Exception {
         GraviteeContext.setCurrentEnvironment("envId");
-        when(appMembership.getReferenceId()).thenReturn(APPLICATION_ID);
         when(groupAppMembership.getReferenceId()).thenReturn(GROUP_APPLICATION_ID);
         when(groupAppMembership.getRoleId()).thenReturn("APPLICATION_PRIMARY_OWNER");
 
@@ -174,8 +163,10 @@ public class ApplicationService_FindByUserTest {
         when(groupApplication.getType()).thenReturn(ApplicationType.SIMPLE);
         when(groupApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
-            .thenReturn(Collections.singleton(appMembership));
+        when(
+            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
+        )
+            .thenReturn(Collections.singleton(APPLICATION_ID));
 
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.GROUP))
             .thenReturn(Collections.singleton(groupAppMembership));
@@ -221,13 +212,14 @@ public class ApplicationService_FindByUserTest {
     @Test
     public void shouldFindByUserWithSortable() throws Exception {
         GraviteeContext.setCurrentEnvironment("envId");
-        when(appMembership.getReferenceId()).thenReturn(APPLICATION_ID);
         when(application.getId()).thenReturn(APPLICATION_ID);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
-            .thenReturn(Collections.singleton(appMembership));
+        when(
+            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
+        )
+            .thenReturn(Collections.singleton(APPLICATION_ID));
 
         ApplicationCriteria criteria = new ApplicationCriteria.Builder()
             .ids(Set.of(APPLICATION_ID))

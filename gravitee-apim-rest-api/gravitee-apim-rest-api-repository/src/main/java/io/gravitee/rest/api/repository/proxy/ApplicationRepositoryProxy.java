@@ -89,6 +89,11 @@ public class ApplicationRepositoryProxy extends AbstractProxy<ApplicationReposit
     }
 
     @Override
+    public Set<String> searchIds(ApplicationCriteria applicationCriteria, Sortable sortable) throws TechnicalException {
+        return target.searchIds(applicationCriteria, sortable);
+    }
+
+    @Override
     public Set<Application> findAllByEnvironment(String environment, ApplicationStatus... statuses) throws TechnicalException {
         return target.findAllByEnvironment(environment, statuses);
     }
