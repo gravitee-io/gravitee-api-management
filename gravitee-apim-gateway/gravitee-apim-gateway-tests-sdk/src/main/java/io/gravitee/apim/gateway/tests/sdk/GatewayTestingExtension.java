@@ -19,12 +19,21 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.runner.GatewayRunner;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.junit5.ScopedObject;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.reactivex.core.Vertx;
+import io.vertx.reactivex.core.http.HttpClient;
 import java.io.IOException;
+import java.util.Objects;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolutionException;
+import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.platform.commons.PreconditionViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +48,8 @@ import org.slf4j.LoggerFactory;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class GatewayTestingExtension implements BeforeAllCallback, BeforeEachCallback, AfterEachCallback, AfterAllCallback {
+public class GatewayTestingExtension
+    implements BeforeAllCallback, BeforeEachCallback, AfterEachCallback, AfterAllCallback, ParameterResolver {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(GatewayTestingExtension.class);
 
@@ -173,5 +183,41 @@ public class GatewayTestingExtension implements BeforeAllCallback, BeforeEachCal
         } else {
             throw new PreconditionViolationException("Test class must extend AbstractGatewayTest");
         }
+    }
+
+    @Override
+    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
+        throws ParameterResolutionException {
+        return parameterContext.getParameter().getType() == HttpClient.class;
+    }
+
+    /**
+     * Vertx Webclient is not good when testing async APIs. So we inject the Vertx HttpClient which provides more freedom.
+     * @param parameterContext the context for the parameter for which an argument should
+     * be resolved; never {@code null}
+     * @param extensionContext the extension context for the {@code Executable}
+     * about to be invoked; never {@code null}
+     * @return the instance of HttpClient
+     * @throws ParameterResolutionException
+     */
+    @Override
+    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
+        throws ParameterResolutionException {
+        final AbstractGatewayTest test = parameterContext
+            .getTarget()
+            .map(AbstractGatewayTest.class::cast)
+            .orElseThrow(() -> new PreconditionViolationException("You need to inject this in a child of AbstractGatewayTest"));
+        Vertx vertx = getStoredVertx(extensionContext);
+
+        final HttpClientOptions httpClientOptions = new HttpClientOptions().setDefaultPort(test.gatewayPort()).setDefaultHost("localhost");
+        test.configureHttpClient(httpClientOptions);
+        return vertx.createHttpClient(httpClientOptions);
+    }
+
+    private Vertx getStoredVertx(ExtensionContext extensionContext) {
+        ExtensionContext.Store store = extensionContext.getStore(ExtensionContext.Namespace.GLOBAL);
+        ScopedObject scopedObject = store.get(VertxExtension.VERTX_INSTANCE_KEY, ScopedObject.class);
+        Objects.requireNonNull(scopedObject, "A Vertx instance must exist, try adding the Vertx parameter as the first method argument");
+        return (Vertx) scopedObject.get();
     }
 }
