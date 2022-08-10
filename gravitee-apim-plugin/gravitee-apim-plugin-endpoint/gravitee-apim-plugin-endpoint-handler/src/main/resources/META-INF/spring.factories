@@ -1,2 +1,2 @@
 io.gravitee.plugin.core.api.PluginHandler=\
-io.gravitee.plugin.endpoint.endpoint.internal.EndpointPluginHandler
+io.gravitee.plugin.endpoint.internal.EndpointConnectorPluginHandler
