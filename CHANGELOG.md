@@ -1,3 +1,10 @@
+## [2.5.5](https://github.com/gravitee-io/gravitee-reporter-file/compare/2.5.4...2.5.5) (2022-08-10)
+
+
+### Bug Fixes
+
+* filter headers according to exclude/include Rules ([0390f9f](https://github.com/gravitee-io/gravitee-reporter-file/commit/0390f9f61620755f4f6f5c1f8ca384135f642882))
+
 ## [2.5.4](https://github.com/gravitee-io/gravitee-reporter-file/compare/2.5.3...2.5.4) (2022-07-13)
 
 
