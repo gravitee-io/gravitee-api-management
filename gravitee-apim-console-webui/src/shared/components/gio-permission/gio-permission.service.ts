@@ -18,25 +18,20 @@ import { intersection } from 'lodash';
 
 import UserService from '../../../services/user.service';
 import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { User } from '../../../entities/user';
 
 @Injectable({ providedIn: 'root' })
 export class GioPermissionService {
-  public readonly currentUser: User;
-
-  constructor(@Inject(CurrentUserService) private readonly currentUserService: UserService) {
-    this.currentUser = currentUserService.currentUser;
-  }
+  constructor(@Inject(CurrentUserService) private readonly currentUserService: UserService) {}
 
   hasAnyMatching(permissions: string[]): boolean {
-    if (!permissions || !this.currentUser.userPermissions) {
+    if (!permissions || !this.currentUserService.currentUser.userPermissions) {
       return false;
     }
     return (
-      intersection(this.currentUser.userPermissions, permissions).length > 0 ||
-      intersection(this.currentUser.userEnvironmentPermissions, permissions).length > 0 ||
-      intersection(this.currentUser.userApiPermissions, permissions).length > 0 ||
-      intersection(this.currentUser.userApplicationPermissions, permissions).length > 0
+      intersection(this.currentUserService.currentUser.userPermissions, permissions).length > 0 ||
+      intersection(this.currentUserService.currentUser.userEnvironmentPermissions, permissions).length > 0 ||
+      intersection(this.currentUserService.currentUser.userApiPermissions, permissions).length > 0 ||
+      intersection(this.currentUserService.currentUser.userApplicationPermissions, permissions).length > 0
     );
   }
 }
