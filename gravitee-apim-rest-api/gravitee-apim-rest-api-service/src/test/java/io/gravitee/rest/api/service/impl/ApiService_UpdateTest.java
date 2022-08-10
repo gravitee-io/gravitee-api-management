@@ -1172,6 +1172,27 @@ public class ApiService_UpdateTest {
         assertEquals(ExecutionMode.JUPITER, apiEntity.getExecutionMode());
     }
 
+    @Test
+    public void shouldKeepApiDefinitionContext() throws TechnicalException {
+        api.setOrigin(Api.ORIGIN_KUBERNETES);
+        api.setMode(Api.MODE_FULLY_MANAGED);
+        prepareUpdate();
+        updateApiEntity.setDefinitionContext(null);
+        when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        verify(apiRepository)
+            .update(
+                argThat(
+                    api ->
+                        api.getId().equals(API_ID) &&
+                        api.getOrigin().equals(Api.ORIGIN_KUBERNETES) &&
+                        api.getMode().equals(Api.MODE_FULLY_MANAGED)
+                )
+            );
+    }
+
     private void assertUpdate(
         final ApiLifecycleState fromLifecycleState,
         final io.gravitee.rest.api.model.api.ApiLifecycleState lifecycleState,
