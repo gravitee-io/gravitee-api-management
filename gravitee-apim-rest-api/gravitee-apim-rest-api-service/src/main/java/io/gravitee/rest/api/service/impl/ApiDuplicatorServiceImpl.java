@@ -73,8 +73,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     public static final String API_DEFINITION_FIELD_PLANS = "plans";
     public static final String API_DEFINITION_FIELD_MEMBERS = "members";
     public static final String API_DEFINITION_FIELD_PAGES = "pages";
-    public static final String API_DEFINITION_CONTEXT_FIELD_ORIGIN = "origin";
-    public static final String API_DEFINITION_CONTEXT_FIELD_MODE = "mode";
 
     private final HttpClientService httpClientService;
     private final ImportConfiguration importConfiguration;
@@ -326,13 +324,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         // cause plans definition may contain less data than plans entities (for example when rollback an API from gateway event)
         Map<String, PlanEntity> existingPlans = readApiPlansById(executionContext, apiJsonNode.getId());
         importedApi.setPlans(readPlansToImportFromDefinition(apiJsonNode, existingPlans));
-
-        if (apiJsonNode.hasDefinitionContext()) {
-            JsonNode definitionContextNode = apiJsonNode.getDefinitionContext();
-            String origin = definitionContextNode.get(API_DEFINITION_CONTEXT_FIELD_ORIGIN).asText();
-            String mode = definitionContextNode.get(API_DEFINITION_CONTEXT_FIELD_MODE).asText();
-            importedApi.setDefinitionContext(new DefinitionContext(origin, mode));
-        }
 
         return importedApi;
     }

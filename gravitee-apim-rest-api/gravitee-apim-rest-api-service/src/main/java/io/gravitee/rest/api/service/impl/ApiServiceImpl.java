@@ -244,6 +244,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static final String URI_PATH_SEPARATOR = "/";
     private static final String ENDPOINTS_DELIMITER = "\n";
 
+    public static final String API_DEFINITION_CONTET_FIELD = "definition_context";
+    public static final String API_DEFINITION_CONTEXT_FIELD_ORIGIN = "origin";
+    public static final String API_DEFINITION_CONTEXT_FIELD_MODE = "mode";
+
     @Lazy
     @Autowired
     private ApiRepository apiRepository;
@@ -549,7 +553,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             repoApi.setCreatedAt(new Date());
             repoApi.setUpdatedAt(repoApi.getCreatedAt());
 
-            if (DefinitionContext.isKubernetes(api.getDefinitionContext())) {
+            // Set definition context
+            DefinitionContext definitionContext = new DefinitionContext();
+            if (apiDefinition != null && apiDefinition.hasNonNull(API_DEFINITION_CONTET_FIELD)) {
+                JsonNode definitionContextNode = apiDefinition.get(API_DEFINITION_CONTET_FIELD);
+                String origin = definitionContextNode.get(API_DEFINITION_CONTEXT_FIELD_ORIGIN).asText();
+                String mode = definitionContextNode.get(API_DEFINITION_CONTEXT_FIELD_MODE).asText();
+                definitionContext = new DefinitionContext(origin, mode);
+            }
+            repoApi.setOrigin(definitionContext.getOrigin());
+            repoApi.setMode(definitionContext.getMode());
+
+            if (DefinitionContext.isKubernetes(repoApi.getOrigin())) {
                 // Be sure that api is always marked as STARTED when managed by k8s.
                 repoApi.setLifecycleState(LifecycleState.STARTED);
 
@@ -3186,12 +3201,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         api.setDescription(updateApiEntity.getDescription().trim());
         api.setPicture(updateApiEntity.getPicture());
         api.setBackground(updateApiEntity.getBackground());
-
-        final DefinitionContext definitionContext = updateApiEntity.getDefinitionContext() != null
-            ? updateApiEntity.getDefinitionContext()
-            : new DefinitionContext();
-        api.setOrigin(definitionContext.getOrigin());
-        api.setMode(definitionContext.getMode());
 
         api.setDefinition(buildApiDefinition(apiId, apiDefinition, updateApiEntity));
 

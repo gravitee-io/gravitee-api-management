@@ -154,7 +154,6 @@ public class ApiConverter {
         updateApiEntity.setResponseTemplates(apiEntity.getResponseTemplates());
         updateApiEntity.setCategories(apiEntity.getCategories());
         updateApiEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
-        updateApiEntity.setDefinitionContext(apiEntity.getDefinitionContext());
         return updateApiEntity;
     }
 }

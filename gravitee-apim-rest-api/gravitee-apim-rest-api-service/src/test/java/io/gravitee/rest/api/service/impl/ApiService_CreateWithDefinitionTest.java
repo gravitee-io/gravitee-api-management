@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -131,7 +132,6 @@ public class ApiService_CreateWithDefinitionTest {
         api.setVersion("1.0");
         api.setName("k8s basic");
         api.setDescription("k8s basic example");
-        api.setDefinitionContext(new DefinitionContext(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED));
 
         when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
 
@@ -151,7 +151,7 @@ public class ApiService_CreateWithDefinitionTest {
 
     @Test
     public void shouldNotStartApiIfNotManagedByKubernetes() throws Exception {
-        JsonNode definition = readDefinition("/io/gravitee/rest/api/management/service/import-new-kubernetes-api.definition.json");
+        JsonNode definition = readDefinition("/io/gravitee/rest/api/management/service/import-new-api.definition.json");
         UpdateApiEntity api = new UpdateApiEntity();
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
@@ -164,7 +164,6 @@ public class ApiService_CreateWithDefinitionTest {
         api.setVersion("1.0");
         api.setName("k8s basic");
         api.setDescription("k8s basic example");
-        api.setDefinitionContext(new DefinitionContext(ORIGIN_MANAGEMENT, MODE_FULLY_MANAGED));
 
         when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
 
