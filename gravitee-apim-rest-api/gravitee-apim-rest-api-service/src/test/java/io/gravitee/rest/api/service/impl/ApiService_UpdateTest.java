@@ -1177,7 +1177,6 @@ public class ApiService_UpdateTest {
         api.setOrigin(Api.ORIGIN_KUBERNETES);
         api.setMode(Api.MODE_FULLY_MANAGED);
         prepareUpdate();
-        updateApiEntity.setDefinitionContext(null);
         when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);

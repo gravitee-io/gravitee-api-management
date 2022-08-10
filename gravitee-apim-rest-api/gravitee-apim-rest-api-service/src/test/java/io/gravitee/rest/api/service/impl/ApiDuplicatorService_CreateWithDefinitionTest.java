@@ -580,9 +580,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                 eq(GraviteeContext.getExecutionContext()),
                 argThat(
                     argument -> {
-                        assertEquals(Api.ORIGIN_KUBERNETES, argument.getDefinitionContext().getOrigin());
-                        assertEquals(Api.MODE_FULLY_MANAGED, argument.getDefinitionContext().getMode());
-
                         // Check ids and crossId has been preserved.
                         assertEquals(apiCrossId, argument.getCrossId());
 
