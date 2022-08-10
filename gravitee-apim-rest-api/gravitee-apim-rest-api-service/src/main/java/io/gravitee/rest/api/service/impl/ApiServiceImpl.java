@@ -1594,8 +1594,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api.setEnvironmentId(apiToUpdate.getEnvironmentId());
             api.setDeployedAt(apiToUpdate.getDeployedAt());
             api.setCreatedAt(apiToUpdate.getCreatedAt());
+            api.setOrigin(apiToUpdate.getOrigin());
+            api.setMode(apiToUpdate.getMode());
 
-            if (DefinitionContext.isKubernetes(updateApiEntity.getDefinitionContext())) {
+            if (DefinitionContext.isKubernetes(api.getOrigin())) {
                 // Be sure that api is started when managed by k8s.
                 api.setLifecycleState(LifecycleState.STARTED);
                 if (updateApiEntity.getLifecycleState() != null) {
