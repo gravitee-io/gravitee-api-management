@@ -133,13 +133,11 @@ public class VertxFileWriter<T extends Reportable> {
                     LOGGER.debug("Flush the content to file");
 
                     if (asyncFile != null) {
-                        asyncFile.flush(
-                            event1 -> {
-                                if (event1.failed()) {
-                                    LOGGER.error("An error occurs while flushing the content of the file", event1.cause());
-                                }
+                        asyncFile.flush(event1 -> {
+                            if (event1.failed()) {
+                                LOGGER.error("An error occurs while flushing the content of the file", event1.cause());
                             }
-                        );
+                        });
                     }
                 }
             );
@@ -207,17 +205,15 @@ public class VertxFileWriter<T extends Reportable> {
                                 if (oldAsyncFile != null) {
                                     // Now we can close previous file safely
                                     stop(oldAsyncFile)
-                                        .onComplete(
-                                            closeEvent -> {
-                                                if (!closeEvent.succeeded()) {
-                                                    LOGGER.error(
-                                                        "An error occurs while closing file writer for type[{}]",
-                                                        this.type,
-                                                        closeEvent.cause()
-                                                    );
-                                                }
+                                        .onComplete(closeEvent -> {
+                                            if (!closeEvent.succeeded()) {
+                                                LOGGER.error(
+                                                    "An error occurs while closing file writer for type[{}]",
+                                                    this.type,
+                                                    closeEvent.cause()
+                                                );
                                             }
-                                        );
+                                        });
                                 }
 
                                 promise.complete();
@@ -265,19 +261,17 @@ public class VertxFileWriter<T extends Reportable> {
         }
 
         stop(asyncFile)
-            .onComplete(
-                event -> {
-                    // Cancel timer
-                    vertx.cancelTimer(flushId);
+            .onComplete(event -> {
+                // Cancel timer
+                vertx.cancelTimer(flushId);
 
-                    if (event.succeeded()) {
-                        asyncFile = null;
-                        promise.complete();
-                    } else {
-                        promise.fail(event.cause());
-                    }
+                if (event.succeeded()) {
+                    asyncFile = null;
+                    promise.complete();
+                } else {
+                    promise.fail(event.cause());
                 }
-            );
+            });
 
         return promise.future();
     }
@@ -287,19 +281,16 @@ public class VertxFileWriter<T extends Reportable> {
 
         if (asyncFile != null) {
             // Ensure everything has been flushed before closing the file
-            asyncFile.flush(
-                flushEvent ->
-                    asyncFile.close(
-                        event -> {
-                            if (event.succeeded()) {
-                                LOGGER.info("File writer is now closed for type [{}]", this.type);
-                                promise.complete();
-                            } else {
-                                LOGGER.error("An error occurs while closing file writer for type[{}]", this.type, event.cause());
-                                promise.fail(event.cause());
-                            }
-                        }
-                    )
+            asyncFile.flush(flushEvent ->
+                asyncFile.close(event -> {
+                    if (event.succeeded()) {
+                        LOGGER.info("File writer is now closed for type [{}]", this.type);
+                        promise.complete();
+                    } else {
+                        LOGGER.error("An error occurs while closing file writer for type[{}]", this.type, event.cause());
+                        promise.fail(event.cause());
+                    }
+                })
             );
         } else {
             promise.complete();

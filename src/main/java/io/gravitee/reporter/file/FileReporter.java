@@ -83,15 +83,13 @@ public class FileReporter extends AbstractService implements Reporter {
 
             CompositeFuture
                 .join(writers.values().stream().map(VertxFileWriter::initialize).collect(Collectors.toList()))
-                .onComplete(
-                    event -> {
-                        if (event.succeeded()) {
-                            logger.info("File reporter successfully started");
-                        } else {
-                            logger.info("An error occurs while starting file reporter", event.cause());
-                        }
+                .onComplete(event -> {
+                    if (event.succeeded()) {
+                        logger.info("File reporter successfully started");
+                    } else {
+                        logger.info("An error occurs while starting file reporter", event.cause());
                     }
-                );
+                });
         }
     }
 
@@ -100,15 +98,13 @@ public class FileReporter extends AbstractService implements Reporter {
         if (enabled) {
             CompositeFuture
                 .join(writers.values().stream().map(VertxFileWriter::stop).collect(Collectors.toList()))
-                .onComplete(
-                    event -> {
-                        if (event.succeeded()) {
-                            logger.info("File reporter successfully stopped");
-                        } else {
-                            logger.info("An error occurs while stopping file reporter", event.cause());
-                        }
+                .onComplete(event -> {
+                    if (event.succeeded()) {
+                        logger.info("File reporter successfully stopped");
+                    } else {
+                        logger.info("An error occurs while stopping file reporter", event.cause());
                     }
-                );
+                });
         }
     }
 }
