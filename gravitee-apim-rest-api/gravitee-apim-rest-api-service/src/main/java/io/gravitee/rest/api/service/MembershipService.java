@@ -132,6 +132,11 @@ public interface MembershipService {
         String memberId,
         MembershipReferenceType referenceType
     );
+    Set<String> getReferenceIdsByMemberAndReference(
+        MembershipMemberType memberType,
+        String memberId,
+        MembershipReferenceType referenceType
+    );
     Set<MembershipEntity> getMembershipsByMemberAndReferenceAndRole(
         MembershipMemberType memberType,
         String memberId,

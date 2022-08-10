@@ -36,7 +36,6 @@ import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApiService;
@@ -100,32 +99,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
 
         Analytics analytics = null;
 
-        // add filter by Apis or Applications
-        String extraFilter = null;
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (!isAdmin()) {
-            String fieldName;
-            List<String> ids;
-            if (APPLICATION_FIELD.equals(analyticsParam.getField())) {
-                fieldName = APPLICATION_FIELD;
-                ids =
-                    applicationService
-                        .findIdsByUser(executionContext, getAuthenticatedUser())
-                        .stream()
-                        .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
-                        .collect(Collectors.toList());
-            } else {
-                fieldName = API_FIELD;
-                ids =
-                    apiService
-                        .findIdsByUser(executionContext, getAuthenticatedUser(), null, false)
-                        .stream()
-                        .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
-                        .collect(Collectors.toList());
-            }
-
-            extraFilter = getExtraFilter(fieldName, ids);
-        }
 
         if (analyticsParam.getQuery() != null) {
             analyticsParam.setQuery(analyticsParam.getQuery().replaceAll("\\?", "1"));
@@ -133,48 +107,41 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
 
         switch (analyticsParam.getType()) {
             case DATE_HISTO:
-                analytics =
-                    !isAdmin() && extraFilter == null
-                        ? new HistogramAnalytics()
-                        : executeDateHisto(executionContext, analyticsParam, extraFilter);
+                analytics = executeDateHisto(executionContext, analyticsParam);
                 break;
             case GROUP_BY:
-                analytics =
-                    !isAdmin() && extraFilter == null
-                        ? new TopHitsAnalytics()
-                        : executeGroupBy(executionContext, analyticsParam, extraFilter);
+                analytics = executeGroupBy(executionContext, analyticsParam);
                 break;
             case COUNT:
-                analytics =
-                    !isAdmin() && extraFilter == null ? new StatsAnalytics() : executeCount(executionContext, analyticsParam, extraFilter);
+                analytics = executeCount(executionContext, analyticsParam);
                 break;
             case STATS:
-                analytics = !isAdmin() && extraFilter == null ? new StatsAnalytics() : executeStats(analyticsParam, extraFilter);
+                analytics = executeStats(executionContext, analyticsParam);
                 break;
         }
 
         return Response.ok(analytics).build();
     }
 
-    private Analytics executeStats(AnalyticsParam analyticsParam, String extraFilter) {
+    private Analytics executeStats(ExecutionContext executionContext, AnalyticsParam analyticsParam) {
+        String fieldFilter;
+        try {
+            fieldFilter = buildFieldFilterForNonAdmin(executionContext, analyticsParam);
+        } catch (FieldFilterEmptyException e) {
+            return new StatsAnalytics();
+        }
+
         final StatsQuery query = new StatsQuery();
         query.setFrom(analyticsParam.getFrom());
         query.setTo(analyticsParam.getTo());
         query.setInterval(analyticsParam.getInterval());
         query.setQuery(analyticsParam.getQuery());
         query.setField(analyticsParam.getField());
-        addExtraFilter(query, extraFilter);
+        addExtraFilter(query, fieldFilter);
         return analyticsService.execute(query);
     }
 
-    private Analytics executeCount(final ExecutionContext executionContext, AnalyticsParam analyticsParam, String extraFilter) {
-        CountQuery query = new CountQuery();
-        query.setFrom(analyticsParam.getFrom());
-        query.setTo(analyticsParam.getTo());
-        query.setInterval(analyticsParam.getInterval());
-        query.setQuery(analyticsParam.getQuery());
-        addExtraFilter(query, extraFilter);
-
+    private Analytics executeCount(final ExecutionContext executionContext, AnalyticsParam analyticsParam) {
         switch (analyticsParam.getField()) {
             case API_FIELD:
                 if (isAdmin()) {
@@ -191,6 +158,19 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                     return buildCountStat(applicationService.findIdsByUser(executionContext, getAuthenticatedUser()).size());
                 }
             default:
+                String fieldFilter;
+                try {
+                    fieldFilter = buildFieldFilterForNonAdmin(executionContext, analyticsParam);
+                } catch (FieldFilterEmptyException e) {
+                    return new StatsAnalytics();
+                }
+
+                CountQuery query = new CountQuery();
+                query.setFrom(analyticsParam.getFrom());
+                query.setTo(analyticsParam.getTo());
+                query.setInterval(analyticsParam.getInterval());
+                query.setQuery(analyticsParam.getQuery());
+                addExtraFilter(query, fieldFilter);
                 return analyticsService.execute(query);
         }
     }
@@ -201,7 +181,14 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         return stats;
     }
 
-    private Analytics executeDateHisto(final ExecutionContext executionContext, AnalyticsParam analyticsParam, String extraFilter) {
+    private Analytics executeDateHisto(final ExecutionContext executionContext, AnalyticsParam analyticsParam) {
+        String fieldFilter;
+        try {
+            fieldFilter = buildFieldFilterForNonAdmin(executionContext, analyticsParam);
+        } catch (FieldFilterEmptyException e) {
+            return new HistogramAnalytics();
+        }
+
         DateHistogramQuery query = new DateHistogramQuery();
         query.setFrom(analyticsParam.getFrom());
         query.setTo(analyticsParam.getTo());
@@ -229,35 +216,51 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
 
             query.setAggregations(aggregationList);
         }
-        addExtraFilter(query, extraFilter);
+        addExtraFilter(query, fieldFilter);
         return analyticsService.execute(executionContext, query);
     }
 
-    private Analytics executeGroupBy(final ExecutionContext executionContext, AnalyticsParam analyticsParam, String extraFilter) {
-        GroupByQuery query = new GroupByQuery();
-        query.setFrom(analyticsParam.getFrom());
-        query.setTo(analyticsParam.getTo());
-        query.setInterval(analyticsParam.getInterval());
-        query.setQuery(analyticsParam.getQuery());
-        query.setField(analyticsParam.getField());
-
-        if (analyticsParam.getOrder() != null) {
-            final GroupByQuery.Order order = new GroupByQuery.Order();
-            order.setField(analyticsParam.getOrder().getField());
-            order.setType(analyticsParam.getOrder().getType());
-            order.setOrder(analyticsParam.getOrder().isOrder());
-            query.setOrder(order);
+    /**
+     * @param executionContext
+     * @param analyticsParam
+     * @return
+     * @throws FieldFilterEmptyException: if user is not Admin and filter based on ids field is empty
+     */
+    private String buildFieldFilterForNonAdmin(ExecutionContext executionContext, AnalyticsParam analyticsParam)
+        throws FieldFilterEmptyException {
+        // add filter by Apis or Applications
+        if (isAdmin()) {
+            return null;
         }
 
-        List<Range> ranges = analyticsParam.getRanges();
-        if (ranges != null) {
-            Map<Double, Double> rangeMap = ranges.stream().collect(Collectors.toMap(Range::getFrom, Range::getTo));
-
-            query.setGroups(rangeMap);
+        String fieldName;
+        List<String> ids;
+        if (APPLICATION_FIELD.equalsIgnoreCase(analyticsParam.getField())) {
+            fieldName = APPLICATION_FIELD;
+            ids =
+                applicationService
+                    .findIdsByUser(executionContext, getAuthenticatedUser())
+                    .stream()
+                    .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
+                    .collect(Collectors.toList());
+        } else {
+            fieldName = API_FIELD;
+            ids =
+                apiService
+                    .findIdsByUser(executionContext, getAuthenticatedUser(), null, false)
+                    .stream()
+                    .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
+                    .collect(Collectors.toList());
         }
 
-        addExtraFilter(query, extraFilter);
+        if (ids.isEmpty()) {
+            throw new FieldFilterEmptyException();
+        } else {
+            return fieldName + ":(" + String.join(" OR ", ids) + ")";
+        }
+    }
 
+    private Analytics executeGroupBy(final ExecutionContext executionContext, AnalyticsParam analyticsParam) {
         switch (analyticsParam.getField()) {
             case STATE_FIELD:
                 {
@@ -268,6 +271,37 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                     return getTopHitsAnalytics(executionContext, api -> api.getLifecycleState().name());
                 }
             default:
+                String fieldFilter;
+
+                try {
+                    fieldFilter = buildFieldFilterForNonAdmin(executionContext, analyticsParam);
+                } catch (FieldFilterEmptyException e) {
+                    return new TopHitsAnalytics();
+                }
+
+                GroupByQuery query = new GroupByQuery();
+                query.setFrom(analyticsParam.getFrom());
+                query.setTo(analyticsParam.getTo());
+                query.setInterval(analyticsParam.getInterval());
+                query.setQuery(analyticsParam.getQuery());
+                query.setField(analyticsParam.getField());
+
+                if (analyticsParam.getOrder() != null) {
+                    final GroupByQuery.Order order = new GroupByQuery.Order();
+                    order.setField(analyticsParam.getOrder().getField());
+                    order.setType(analyticsParam.getOrder().getType());
+                    order.setOrder(analyticsParam.getOrder().isOrder());
+                    query.setOrder(order);
+                }
+
+                List<Range> ranges = analyticsParam.getRanges();
+                if (ranges != null) {
+                    Map<Double, Double> rangeMap = ranges.stream().collect(Collectors.toMap(Range::getFrom, Range::getTo));
+
+                    query.setGroups(rangeMap);
+                }
+
+                addExtraFilter(query, fieldFilter);
                 return analyticsService.execute(executionContext, query);
         }
     }
@@ -289,14 +323,10 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         } else if (extraFilter != null && !extraFilter.isEmpty()) {
             query.setQuery(query.getQuery() + " AND " + extraFilter);
         } else {
+            // WTF ?
             query.setQuery(query.getQuery());
         }
     }
 
-    private String getExtraFilter(String fieldName, List<String> ids) {
-        if (ids != null && !ids.isEmpty()) {
-            return fieldName + ":(" + String.join(" OR ", ids) + ")";
-        }
-        return null;
-    }
+    private class FieldFilterEmptyException extends Throwable {}
 }
