@@ -117,7 +117,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         StatsAnalytics analytics = response.readEntity(StatsAnalytics.class);
-        assertThat(analytics.getCount()).isNull();
+        assertThat(analytics.getCount()).isEqualTo(0);
     }
 
     @Test
@@ -195,7 +195,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         StatsAnalytics analytics = response.readEntity(StatsAnalytics.class);
-        assertThat(analytics.getCount()).isNull();
+        assertThat(analytics.getCount()).isEqualTo(0);
     }
 
     @Test
