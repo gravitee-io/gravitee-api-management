@@ -109,8 +109,8 @@
         <gravitee-notifier-webhook.version>1.1.0</gravitee-notifier-webhook.version>
         <!-- Gateway Only -->
         <gravitee-reporter-elasticsearch.version>3.12.4</gravitee-reporter-elasticsearch.version>
-        <gravitee-reporter-file.version>2.5.4</gravitee-reporter-file.version>
-        <gravitee-reporter-tcp.version>1.4.3</gravitee-reporter-tcp.version>
+        <gravitee-reporter-file.version>2.5.5</gravitee-reporter-file.version>
+        <gravitee-reporter-tcp.version>1.4.4</gravitee-reporter-tcp.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
         <!--    <gravitee-gateway-services-ratelimit.version>1.15.0</gravitee-gateway-services-ratelimit.version>    -->
         <gravitee-tracer-jaeger.version>1.2.0</gravitee-tracer-jaeger.version>
