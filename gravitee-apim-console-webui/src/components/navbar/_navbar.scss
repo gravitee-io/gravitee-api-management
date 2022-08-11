@@ -16,6 +16,11 @@ md-toolbar.topnavbar {
   }
 }
 
+.topnavbar-contextual-doc {
+  // Allow Pendo to add a badge
+  overflow: initial;
+}
+
 .gv-navbar-link:hover,
 .gv-navbar-link:focus {
   color: inherit;
