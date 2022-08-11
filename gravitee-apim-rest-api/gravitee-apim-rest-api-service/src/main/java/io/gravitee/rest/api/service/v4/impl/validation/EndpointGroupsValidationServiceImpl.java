@@ -19,10 +19,10 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.service.Service;
-import io.gravitee.rest.api.service.ConnectorService;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.v4.EndpointService;
 import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeInvalidException;
 import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeMismatchInvalidException;
 import io.gravitee.rest.api.service.v4.exception.EndpointTypeInvalidException;
@@ -38,10 +38,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class EndpointGroupsValidationServiceImpl extends TransactionalService implements EndpointGroupsValidationService {
 
-    private final ConnectorService connectorService;
+    private final EndpointService endpointService;
 
-    public EndpointGroupsValidationServiceImpl(final ConnectorService connectorService) {
-        this.connectorService = connectorService;
+    public EndpointGroupsValidationServiceImpl(final EndpointService endpointService) {
+        this.endpointService = endpointService;
     }
 
     @Override
@@ -65,8 +65,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                                 validateEndpointType(endpoint.getType());
                                 validateServices(endpoint.getServices());
                                 endpoint.setConfiguration(
-                                    // TODO this need to be improved when endpoint connector are implemented in order to check the configuration schema
-                                    connectorService.validateConnectorConfiguration(endpoint.getType(), endpoint.getConfiguration())
+                                    endpointService.validateEndpointConfiguration(endpoint.getType(), endpoint.getConfiguration())
                                 );
                             }
                         );
