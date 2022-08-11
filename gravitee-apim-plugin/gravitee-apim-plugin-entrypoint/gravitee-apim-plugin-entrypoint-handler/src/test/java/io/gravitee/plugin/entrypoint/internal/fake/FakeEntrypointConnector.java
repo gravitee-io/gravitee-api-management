@@ -17,8 +17,8 @@ package io.gravitee.plugin.entrypoint.internal.fake;
 
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnector;
 import io.reactivex.Completable;
 import java.util.Set;
 import lombok.Builder;

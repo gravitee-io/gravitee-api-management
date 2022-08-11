@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.entrypoint.sse.configuration;
 
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorConfiguration;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

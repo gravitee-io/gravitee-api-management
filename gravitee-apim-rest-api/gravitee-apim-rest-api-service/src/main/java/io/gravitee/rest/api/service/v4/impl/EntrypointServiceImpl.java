@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
@@ -63,7 +63,7 @@ public class EntrypointServiceImpl
         entity.setDescription(plugin.manifest().description());
         entity.setName(plugin.manifest().name());
         entity.setVersion(plugin.manifest().version());
-        EntrypointConnectorFactory<?> connectorFactory = ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id());
+        AbstractConnectorFactory<?> connectorFactory = ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id());
 
         entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
         entity.setSupportedModes(

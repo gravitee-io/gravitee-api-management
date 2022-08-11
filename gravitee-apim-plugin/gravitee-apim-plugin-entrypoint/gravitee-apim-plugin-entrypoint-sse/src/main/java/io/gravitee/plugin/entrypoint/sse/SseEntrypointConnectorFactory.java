@@ -17,15 +17,19 @@ package io.gravitee.plugin.entrypoint.sse;
 
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorFactory;
-import io.gravitee.gateway.jupiter.api.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.plugin.entrypoint.sse.configuration.SseEntrypointConnectorConfiguration;
 import java.util.Set;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SseEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory {
+public class SseEntrypointConnectorFactory extends EntrypointAsyncConnectorFactory {
+
+    public SseEntrypointConnectorFactory() {
+        super(SseEntrypointConnectorConfiguration.class);
+    }
 
     @Override
     public ApiType supportedApi() {

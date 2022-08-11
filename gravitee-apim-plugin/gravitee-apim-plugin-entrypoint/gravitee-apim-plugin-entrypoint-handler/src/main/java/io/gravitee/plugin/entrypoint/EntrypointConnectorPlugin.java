@@ -15,8 +15,8 @@
  */
 package io.gravitee.plugin.entrypoint;
 
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorConfiguration;
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 
 /**
@@ -26,7 +26,7 @@ import io.gravitee.plugin.core.api.ConfigurablePlugin;
 public interface EntrypointConnectorPlugin<C extends EntrypointConnectorConfiguration> extends ConfigurablePlugin<C> {
     String PLUGIN_TYPE = "entrypoint-connector";
 
-    Class<? extends EntrypointConnectorFactory<?>> entrypointConnectorFactory();
+    Class<? extends AbstractConnectorFactory<?>> entrypointConnectorFactory();
 
     @Override
     default String type() {

@@ -19,9 +19,9 @@ import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import java.util.Comparator;
 import java.util.List;
@@ -69,7 +69,7 @@ public class HttpEntrypointConnectorResolver {
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         Entrypoint entrypoint
     ) {
-        EntrypointConnectorFactory<? extends EntrypointConnector<?>> connectorFactory = entrypointConnectorPluginManager.getFactoryById(
+        AbstractConnectorFactory<? extends EntrypointConnector<?>> connectorFactory = entrypointConnectorPluginManager.getFactoryById(
             entrypoint.getType()
         );
 
