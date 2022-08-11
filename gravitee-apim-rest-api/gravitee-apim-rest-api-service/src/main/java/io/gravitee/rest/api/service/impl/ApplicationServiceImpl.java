@@ -201,26 +201,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByUserAndNameAndStatus(
-        final ExecutionContext executionContext,
-        String userName,
-        boolean isAdminUser,
-        String name,
-        String status
-    ) {
-        LOGGER.debug("Find applications by user {} and name {}, with isAdminUser {})", userName, name, isAdminUser);
-        if (name == null || name.trim().isEmpty()) {
             return emptySet();
         }
-
-        ApplicationQuery query = new ApplicationQuery();
-        query.setStatus(status);
-        query.setName(name);
-        if (!isAdminUser) {
-            query.setUser(userName);
-        }
-        return new LinkedHashSet<>(search(executionContext, query, null, null).getContent());
-    }
 
     @Override
     public Set<ApplicationListItem> findByOrganization(String organizationId) {
@@ -266,51 +248,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for groups {}", groupIds, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for groups " + groupIds, ex);
-        }
-    }
-
-    @Override
-    public Set<ApplicationListItem> findAll(final ExecutionContext executionContext) {
-        try {
-            LOGGER.debug("Find all applications");
-
-            final Set<Application> applications = applicationRepository.findAllByEnvironment(
-                executionContext.getEnvironmentId(),
-                ApplicationStatus.ACTIVE
-            );
-
-            if (applications == null || applications.isEmpty()) {
-                return emptySet();
-            }
-
-            return this.convertToList(executionContext, applications);
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all applications", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all applications", ex);
-        }
-    }
-
-    @Override
-    public Set<ApplicationListItem> findByStatus(final ExecutionContext executionContext, String status) {
-        try {
-            LOGGER.debug("Find all applications");
-
-            ApplicationStatus requestedStatus = ApplicationStatus.valueOf(status.toUpperCase());
-            final Set<Application> applications = applicationRepository.findAllByEnvironment(
-                executionContext.getEnvironmentId(),
-                requestedStatus
-            );
-
-            if (applications == null || applications.isEmpty()) {
-                return emptySet();
-            }
-
-            return ApplicationStatus.ACTIVE.equals(requestedStatus)
-                ? convertToList(executionContext, applications)
-                : convertToSimpleList(applications);
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all applications", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all applications", ex);
         }
     }
 
@@ -1216,12 +1153,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .collect(toList());
 
         if (!groupIds.isEmpty()) {
-            ApplicationQuery groupQuery = new ApplicationQuery();
-            groupQuery.setGroups(new HashSet<>(groupIds));
+            ApplicationQuery applicationQueryWithGroupsAndStatus = new ApplicationQuery();
+            applicationQueryWithGroupsAndStatus.setGroups(new HashSet<>(groupIds));
             if (status != null) {
-                groupQuery.setStatus(status.name());
+                applicationQueryWithGroupsAndStatus.setStatus(status.name());
             }
-            appIds.addAll(this.searchIds(executionContext, groupQuery, null));
+            appIds.addAll(this.searchIds(executionContext, applicationQueryWithGroupsAndStatus, null));
         }
 
         return appIds;
