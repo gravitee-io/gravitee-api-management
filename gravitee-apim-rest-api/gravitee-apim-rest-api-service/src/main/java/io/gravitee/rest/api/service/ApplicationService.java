@@ -57,23 +57,11 @@ public interface ApplicationService {
 
     Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable, Pageable pageable);
 
-    Set<ApplicationListItem> findByUserAndNameAndStatus(
-        final ExecutionContext executionContext,
-        String username,
-        boolean isAdminUser,
-        String name,
-        String status
-    );
-
     Set<ApplicationListItem> findByOrganization(String organizationId);
 
     Set<ApplicationListItem> findByGroups(ExecutionContext executionContext, List<String> groupId);
 
     Set<ApplicationListItem> findByGroupsAndStatus(ExecutionContext executionContext, List<String> groupId, String status);
-
-    Set<ApplicationListItem> findAll(final ExecutionContext executionContext);
-
-    Set<ApplicationListItem> findByStatus(final ExecutionContext executionContext, String status);
 
     ApplicationEntity create(final ExecutionContext executionContext, NewApplicationEntity application, String username);
 

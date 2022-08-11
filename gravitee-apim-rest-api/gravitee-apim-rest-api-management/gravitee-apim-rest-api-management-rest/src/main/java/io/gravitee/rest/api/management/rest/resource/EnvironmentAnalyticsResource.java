@@ -322,9 +322,6 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
             query.setQuery(extraFilter);
         } else if (extraFilter != null && !extraFilter.isEmpty()) {
             query.setQuery(query.getQuery() + " AND " + extraFilter);
-        } else {
-            // WTF ?
-            query.setQuery(query.getQuery());
         }
     }
 

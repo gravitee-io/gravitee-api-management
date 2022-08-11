@@ -29,10 +29,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApplicationMongoRepositoryCustom {
-    default Page<ApplicationMongo> search(ApplicationCriteria applicationCriteria, final Pageable pageable) {
-        return search(applicationCriteria, pageable, null);
-    }
-
     Page<ApplicationMongo> search(ApplicationCriteria applicationCriteria, final Pageable pageable, final Sortable sortable);
 
     Set<ApplicationMongo> findByIds(Collection<String> ids, Sortable sortable);
