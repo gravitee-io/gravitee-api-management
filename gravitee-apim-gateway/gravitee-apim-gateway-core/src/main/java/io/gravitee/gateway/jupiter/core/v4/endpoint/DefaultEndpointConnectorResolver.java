@@ -20,11 +20,10 @@ import static java.util.stream.Collectors.toList;
 
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.endpoint.EndpointConnector;
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnector;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
-import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;

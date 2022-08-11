@@ -17,9 +17,9 @@ package io.gravitee.plugin.entrypoint.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorConfiguration;
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnector;
 import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnectorPlugin;
@@ -49,7 +49,9 @@ class DefaultEntrypointConnectorPluginManagerTest {
             null
         );
         entrypointConnectorPluginManager.register(entrypointPlugin);
-        EntrypointConnectorFactory<?> fake = entrypointConnectorPluginManager.getFactoryById("fake-entrypoint");
+        AbstractConnectorFactory<? extends EntrypointConnector<?>> fake = entrypointConnectorPluginManager.getFactoryById(
+            "fake-entrypoint"
+        );
         assertThat(fake).isNotNull();
         EntrypointConnector fakeConnector = fake.createConnector(null);
         assertThat(fakeConnector).isNotNull();
@@ -63,7 +65,9 @@ class DefaultEntrypointConnectorPluginManagerTest {
             EntrypointConnectorConfiguration.class
         );
         entrypointConnectorPluginManager.register(entrypointPlugin);
-        EntrypointConnectorFactory<?> fake = entrypointConnectorPluginManager.getFactoryById("fake-entrypoint");
+        AbstractConnectorFactory<? extends EntrypointConnector<?>> fake = entrypointConnectorPluginManager.getFactoryById(
+            "fake-entrypoint"
+        );
         assertThat(fake).isNotNull();
         EntrypointConnector fakeConnector = fake.createConnector("{\"info\":\"test\"}");
         assertThat(fakeConnector).isNotNull();

@@ -15,7 +15,8 @@
  */
 package io.gravitee.plugin.entrypoint.internal;
 
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorClassLoaderFactory;
@@ -36,7 +37,7 @@ public class DefaultEntrypointConnectorPluginManager
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultEntrypointConnectorPluginManager.class);
     private final EntrypointConnectorClassLoaderFactory classLoaderFactory;
-    private final Map<String, EntrypointConnectorFactory<?>> factories = new HashMap<>();
+    private final Map<String, AbstractConnectorFactory<? extends EntrypointConnector<?>>> factories = new HashMap<>();
 
     public DefaultEntrypointConnectorPluginManager(final EntrypointConnectorClassLoaderFactory classLoaderFactory) {
         this.classLoaderFactory = classLoaderFactory;
@@ -49,10 +50,12 @@ public class DefaultEntrypointConnectorPluginManager
         // Create entrypoint
         PluginClassLoader pluginClassLoader = classLoaderFactory.getOrCreateClassLoader(plugin);
         try {
-            final Class<EntrypointConnectorFactory<?>> connectorFactoryClass = (Class<EntrypointConnectorFactory<?>>) pluginClassLoader.loadClass(
+            final Class<AbstractConnectorFactory<? extends EntrypointConnector<?>>> connectorFactoryClass = (Class<AbstractConnectorFactory<? extends EntrypointConnector<?>>>) pluginClassLoader.loadClass(
                 plugin.clazz()
             );
-            final EntrypointConnectorFactory<?> factory = connectorFactoryClass.getDeclaredConstructor().newInstance();
+            final AbstractConnectorFactory<? extends EntrypointConnector<?>> factory = connectorFactoryClass
+                .getDeclaredConstructor()
+                .newInstance();
             factories.put(plugin.id(), factory);
         } catch (Exception ex) {
             logger.error("Unexpected error while loading entrypoint plugin: {}", plugin.clazz(), ex);
@@ -60,7 +63,7 @@ public class DefaultEntrypointConnectorPluginManager
     }
 
     @Override
-    public EntrypointConnectorFactory<?> getFactoryById(final String entrypointPluginId) {
+    public AbstractConnectorFactory<? extends EntrypointConnector<?>> getFactoryById(final String entrypointPluginId) {
         return factories.get(entrypointPluginId);
     }
 }
