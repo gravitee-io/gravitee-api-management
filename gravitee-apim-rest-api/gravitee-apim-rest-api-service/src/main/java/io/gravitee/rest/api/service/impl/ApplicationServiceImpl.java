@@ -201,33 +201,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
+    public Set<String> findIdsByOrganization(String organizationId) {
+        LOGGER.debug("Find applications by organization {} ", organizationId);
+        if (organizationId == null || organizationId.trim().isEmpty()) {
             return emptySet();
         }
 
-    @Override
-    public Set<ApplicationListItem> findByOrganization(String organizationId) {
-        LOGGER.debug("Find applications by organization {} ", organizationId);
-        try {
-            if (organizationId == null || organizationId.trim().isEmpty()) {
-                return emptySet();
-            }
-
-            final Set<String> environmentIds = environmentService
-                .findByOrganization(organizationId)
-                .stream()
-                .map(EnvironmentEntity::getId)
-                .collect(toSet());
-            ApplicationCriteria criteria = new ApplicationCriteria.Builder().environmentIds(environmentIds).build();
-
-            Page<Application> applications = applicationRepository.search(criteria, null);
-            return convertToSimpleList(new LinkedHashSet<>(applications.getContent()));
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find applications for organization {}", organizationId, ex);
-            throw new TechnicalManagementException(
-                "An error occurs while trying to find applications for organization {}" + organizationId,
-                ex
-            );
-        }
+        return this.searchIds(new ExecutionContext(organizationId, null), new ApplicationQuery(), null);
     }
 
     @Override

@@ -57,7 +57,7 @@ public interface ApplicationService {
 
     Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable, Pageable pageable);
 
-    Set<ApplicationListItem> findByOrganization(String organizationId);
+    Set<String> findIdsByOrganization(String organizationId);
 
     Set<ApplicationListItem> findByGroups(ExecutionContext executionContext, List<String> groupId);
 

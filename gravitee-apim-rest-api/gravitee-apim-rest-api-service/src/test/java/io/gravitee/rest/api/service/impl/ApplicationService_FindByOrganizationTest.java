@@ -27,7 +27,6 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -56,12 +55,12 @@ public class ApplicationService_FindByOrganizationTest {
 
     @Test
     public void shouldReturnEmptyListWithNullOrganization() {
-        assertThat(applicationService.findByOrganization(null)).isEmpty();
+        assertThat(applicationService.findIdsByOrganization(null)).isEmpty();
     }
 
     @Test
     public void shouldReturnEmptyListWithEmptyOrganization() {
-        assertThat(applicationService.findByOrganization("")).isEmpty();
+        assertThat(applicationService.findIdsByOrganization("")).isEmpty();
     }
 
     @Test
@@ -78,12 +77,12 @@ public class ApplicationService_FindByOrganizationTest {
         application.setStatus(ApplicationStatus.ACTIVE);
         when(environmentService.findByOrganization(organizationId)).thenReturn(List.of(environment));
         ApplicationCriteria criteria = new ApplicationCriteria.Builder().environmentIds(environmentId).build();
-        when(applicationRepository.search(criteria, null)).thenReturn(new Page<>(List.of(application), 0, 1, 1));
+        when(applicationRepository.searchIds(criteria, null)).thenReturn(Set.of(application.getId()));
 
-        Set<ApplicationListItem> applications = applicationService.findByOrganization(organizationId);
+        Set<String> applications = applicationService.findIdsByOrganization(organizationId);
 
         assertThat(applications).hasSize(1);
-        assertThat(applications).extracting(ApplicationListItem::getId).containsExactly("test-application");
+        assertThat(applications).containsExactly("test-application");
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -94,7 +93,7 @@ public class ApplicationService_FindByOrganizationTest {
         environment.setId(environmentId);
         environment.setOrganizationId(organizationId);
         when(environmentService.findByOrganization(organizationId)).thenReturn(List.of(environment));
-        when(applicationRepository.search(any(), any())).thenThrow(new TechnicalException());
-        applicationService.findByOrganization(organizationId);
+        when(applicationRepository.searchIds(any(), any())).thenThrow(new TechnicalException());
+        applicationService.findIdsByOrganization(organizationId);
     }
 }
