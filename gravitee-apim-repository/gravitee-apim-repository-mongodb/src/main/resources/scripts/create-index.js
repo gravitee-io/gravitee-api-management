@@ -49,7 +49,11 @@ db.getCollection(`${prefix}keys`).reIndex();
 
 // "pages" collection
 db.getCollection(`${prefix}pages`).dropIndexes();
-db.getCollection(`${prefix}pages`).createIndex( { "api" : 1 }, { "name": "a1" } );
+db.getCollection(`${prefix}pages`).createIndex( { "order" : 1 }, { "name": "o1" } );
+db.getCollection(`${prefix}pages`).createIndex( { "parent" : 1, "name":1, "referenceId":1, "referenceType":1, "type":1 }, { "name": "p1n1ri1rt1t1" } );
+db.getCollection(`${prefix}pages`).createIndex( { "parent" : 1, "type":1 }, { "name": "p1t1" } );
+db.getCollection(`${prefix}pages`).createIndex( { "referenceId":1, "referenceType":1 }, { "name": "ri1rt1" } );
+db.getCollection(`${prefix}pages`).createIndex( { "type" : 1 }, { "name": "t1" } );
 db.getCollection(`${prefix}pages`).createIndex( { "useAutoFetch" : 1 }, { "name": "u1" } );
 db.getCollection(`${prefix}pages`).reIndex();
 
