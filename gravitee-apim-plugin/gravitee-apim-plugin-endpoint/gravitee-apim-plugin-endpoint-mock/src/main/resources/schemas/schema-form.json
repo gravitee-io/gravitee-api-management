@@ -1,6 +1,23 @@
 {
   "type": "object",
   "id": "urn:jsonschema:io:gravitee:plugin:endpoint:mock:configuration:MockEndpointConnectorConfiguration",
-  "properties": {},
-  "additionalProperties": false
+  "additionalProperties": false,
+  "properties": {
+    "messageInterval": {
+      "type": "integer",
+      "title": "Interval between messages publication",
+      "description": "Interval between messages publication, in milliseconds.",
+      "default": 1000
+    },
+    "messageContent": {
+      "type": "string",
+      "title": "Content of published messages",
+      "description": "Content of published messages. Will be suffixed with message index.",
+      "default": "mock message"
+    }
+  },
+  "required": [
+    "messageContent",
+    "messageInterval"
+  ]
 }
