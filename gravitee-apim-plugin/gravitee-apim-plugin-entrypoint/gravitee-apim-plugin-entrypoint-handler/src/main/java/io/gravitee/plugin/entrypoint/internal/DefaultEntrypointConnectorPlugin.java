@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.entrypoint.internal;
 
-import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnectorConfiguration;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;

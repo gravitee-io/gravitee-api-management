@@ -15,8 +15,8 @@
  */
 package io.gravitee.plugin.endpoint;
 
-import io.gravitee.gateway.jupiter.api.endpoint.EndpointConnectorConfiguration;
-import io.gravitee.gateway.jupiter.api.endpoint.EndpointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 
 /**
@@ -25,7 +25,7 @@ import io.gravitee.plugin.core.api.ConfigurablePlugin;
 public interface EndpointConnectorPlugin<C extends EndpointConnectorConfiguration> extends ConfigurablePlugin<C> {
     String PLUGIN_TYPE = "endpoint-connector";
 
-    Class<? extends EndpointConnectorFactory<?>> endpointConnectorFactory();
+    Class<? extends AbstractConnectorFactory<?>> endpointConnectorFactory();
 
     @Override
     default String type() {

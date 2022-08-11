@@ -17,8 +17,8 @@ package io.gravitee.plugin.endpoint.mock;
 
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import io.reactivex.Completable;

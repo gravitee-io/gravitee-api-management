@@ -15,7 +15,8 @@
  */
 package io.gravitee.plugin.endpoint.internal;
 
-import io.gravitee.gateway.jupiter.api.endpoint.EndpointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.endpoint.EndpointConnectorClassLoaderFactory;
@@ -35,7 +36,7 @@ public class DefaultEndpointConnectorPluginManager
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultEndpointConnectorPluginManager.class);
     private final EndpointConnectorClassLoaderFactory classLoaderFactory;
-    private final Map<String, EndpointConnectorFactory<?>> factories = new HashMap<>();
+    private final Map<String, AbstractConnectorFactory<? extends EndpointConnector<?>>> factories = new HashMap<>();
 
     public DefaultEndpointConnectorPluginManager(final EndpointConnectorClassLoaderFactory classLoaderFactory) {
         this.classLoaderFactory = classLoaderFactory;
@@ -48,10 +49,12 @@ public class DefaultEndpointConnectorPluginManager
         // Create endpoint
         PluginClassLoader pluginClassLoader = classLoaderFactory.getOrCreateClassLoader(plugin);
         try {
-            final Class<EndpointConnectorFactory<?>> connectorFactoryClass = (Class<EndpointConnectorFactory<?>>) pluginClassLoader.loadClass(
+            final Class<AbstractConnectorFactory<? extends EndpointConnector<?>>> connectorFactoryClass = (Class<AbstractConnectorFactory<? extends EndpointConnector<?>>>) pluginClassLoader.loadClass(
                 plugin.clazz()
             );
-            final EndpointConnectorFactory<?> factory = connectorFactoryClass.getDeclaredConstructor().newInstance();
+            final AbstractConnectorFactory<? extends EndpointConnector<?>> factory = connectorFactoryClass
+                .getDeclaredConstructor()
+                .newInstance();
             factories.put(plugin.id(), factory);
         } catch (Exception ex) {
             logger.error("Unexpected error while loading endpoint plugin: {}", plugin.clazz(), ex);
@@ -59,7 +62,7 @@ public class DefaultEndpointConnectorPluginManager
     }
 
     @Override
-    public EndpointConnectorFactory<?> getFactoryById(final String endpointPluginId) {
+    public AbstractConnectorFactory<? extends EndpointConnector<?>> getFactoryById(final String endpointPluginId) {
         return factories.get(endpointPluginId);
     }
 }
