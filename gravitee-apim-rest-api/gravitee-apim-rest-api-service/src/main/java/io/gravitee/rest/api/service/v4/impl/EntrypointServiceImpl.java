@@ -50,8 +50,8 @@ public class EntrypointServiceImpl
     }
 
     @Override
-    public EntrypointPluginEntity findById(String entrypointId) {
-        EntrypointConnectorPlugin resourceDefinition = super.get(entrypointId);
+    public EntrypointPluginEntity findById(String entrypointPluginId) {
+        EntrypointConnectorPlugin resourceDefinition = super.get(entrypointPluginId);
         return convert(resourceDefinition);
     }
 
@@ -108,10 +108,9 @@ public class EntrypointServiceImpl
     }
 
     @Override
-    public String validateEntrypointConfiguration(final String entrypointId, final String configuration) {
-        EntrypointPluginEntity entrypointPluginEntity = this.findById(entrypointId);
-        validateConfiguration(entrypointPluginEntity, configuration);
-        return configuration;
+    public String validateEntrypointConfiguration(final String entrypointPluginId, final String configuration) {
+        EntrypointPluginEntity entrypointPluginEntity = this.findById(entrypointPluginId);
+        return validateConfiguration(entrypointPluginEntity, configuration);
     }
 
     private String validateConfiguration(EntrypointPluginEntity plugin, String configuration) {
