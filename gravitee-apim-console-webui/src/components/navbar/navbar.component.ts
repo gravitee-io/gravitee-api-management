@@ -132,6 +132,11 @@ export const NavbarComponent: ng.IComponentOptions = {
     this.getUserPicture = () => UserService.currentUserPicture();
 
     this.openContextualDocumentation = () => {
+      if (window.pendo && window.pendo.isReady()) {
+        // Do nothing Pendo use this button to trigger the "Resource Center"
+        return;
+      }
+
       this.$rootScope.$broadcast('openContextualDocumentation');
     };
 
