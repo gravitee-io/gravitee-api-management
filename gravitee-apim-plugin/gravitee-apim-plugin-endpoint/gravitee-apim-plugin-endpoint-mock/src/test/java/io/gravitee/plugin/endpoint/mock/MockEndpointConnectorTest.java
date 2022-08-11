@@ -47,8 +47,8 @@ class MockEndpointConnectorTest {
     @BeforeEach
     public void setup() {
         MockEndpointConnectorConfiguration configuration = new MockEndpointConnectorConfiguration();
-        configuration.setMessagesInterval(1L);
-        configuration.setMessagesContent("test mock endpoint");
+        configuration.setMessageInterval(100L);
+        configuration.setMessageContent("test mock endpoint");
         mockEndpointConnector = new MockEndpointConnector(configuration);
     }
 
