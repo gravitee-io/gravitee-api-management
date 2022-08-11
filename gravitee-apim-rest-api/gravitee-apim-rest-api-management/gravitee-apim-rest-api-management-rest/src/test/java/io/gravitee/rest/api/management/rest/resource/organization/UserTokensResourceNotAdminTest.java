@@ -22,14 +22,8 @@ import static org.mockito.Mockito.*;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.io.IOException;
-import java.security.Principal;
-import javax.annotation.Priority;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,7 +44,7 @@ public class UserTokensResourceNotAdminTest extends AbstractResourceTest {
 
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
-        resourceConfig.register(UserTokensResourceNotAdminTest.AuthenticationFilter.class);
+        resourceConfig.register(NotAdminAuthenticationFilter.class);
     }
 
     @Before
@@ -79,36 +73,5 @@ public class UserTokensResourceNotAdminTest extends AbstractResourceTest {
         final Response response = envTarget().path(TOKEN_ID).request().delete();
         assertThat(response.getStatus()).isEqualTo(403);
         verify(tokenService, never()).revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
-    }
-
-    @Priority(50)
-    public static class AuthenticationFilter implements ContainerRequestFilter {
-
-        @Override
-        public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(
-                new SecurityContext() {
-                    @Override
-                    public Principal getUserPrincipal() {
-                        return () -> USER_NAME;
-                    }
-
-                    @Override
-                    public boolean isUserInRole(String string) {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean isSecure() {
-                        return true;
-                    }
-
-                    @Override
-                    public String getAuthenticationScheme() {
-                        return "BASIC";
-                    }
-                }
-            );
-        }
     }
 }
