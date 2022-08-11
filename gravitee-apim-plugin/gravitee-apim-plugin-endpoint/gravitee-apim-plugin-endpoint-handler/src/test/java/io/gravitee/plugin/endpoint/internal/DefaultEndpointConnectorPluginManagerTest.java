@@ -17,9 +17,9 @@ package io.gravitee.plugin.endpoint.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.gateway.jupiter.api.endpoint.EndpointConnector;
-import io.gravitee.gateway.jupiter.api.endpoint.EndpointConnectorConfiguration;
-import io.gravitee.gateway.jupiter.api.endpoint.EndpointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnector;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorPlugin;
@@ -47,7 +47,7 @@ class DefaultEndpointConnectorPluginManagerTest {
             null
         );
         endpointConnectorPluginManager.register(endpointPlugin);
-        EndpointConnectorFactory<?> fake = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
+        AbstractConnectorFactory<? extends EndpointConnector<?>> fake = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
         assertThat(fake).isNotNull();
         EndpointConnector fakeConnector = fake.createConnector(null);
         assertThat(fakeConnector).isNotNull();
@@ -61,7 +61,7 @@ class DefaultEndpointConnectorPluginManagerTest {
             EndpointConnectorConfiguration.class
         );
         endpointConnectorPluginManager.register(endpointPlugin);
-        EndpointConnectorFactory<?> fake = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
+        AbstractConnectorFactory<? extends EndpointConnector<?>> fake = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
         assertThat(fake).isNotNull();
         EndpointConnector fakeConnector = fake.createConnector("{\"info\":\"test\"}");
         assertThat(fakeConnector).isNotNull();
