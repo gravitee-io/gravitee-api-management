@@ -15,12 +15,15 @@
  */
 package io.gravitee.plugin.endpoint.mock;
 
+import io.gravitee.gateway.jupiter.api.ApiType;
+import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
 
@@ -30,7 +33,20 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class MockEndpointConnector implements EndpointAsyncConnector {
 
-    private MockEndpointConnectorConfiguration configuration;
+    static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
+    static final ApiType SUPPORTED_API = ApiType.ASYNC;
+
+    private final MockEndpointConnectorConfiguration configuration;
+
+    @Override
+    public ApiType supportedApi() {
+        return SUPPORTED_API;
+    }
+
+    @Override
+    public Set<ConnectorMode> supportedModes() {
+        return SUPPORTED_MODES;
+    }
 
     @Override
     public Completable connect(MessageExecutionContext ctx) {

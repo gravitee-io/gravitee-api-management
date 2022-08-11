@@ -15,13 +15,8 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler.context;
 
-import io.gravitee.el.TemplateContext;
-import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
-import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
-import io.gravitee.gateway.jupiter.api.el.EvaluableResponse;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
@@ -37,36 +32,7 @@ public class DefaultRequestExecutionContext
     extends AbstractExecutionContext<MutableRequest, MutableResponse>
     implements MutableRequestExecutionContext {
 
-    private TemplateEngine templateEngine;
-    private Collection<TemplateVariableProvider> templateVariableProviders;
-
     public DefaultRequestExecutionContext(final MutableRequest request, final MutableResponse response) {
         super(request, response);
-    }
-
-    public DefaultRequestExecutionContext templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders) {
-        this.templateVariableProviders = templateVariableProviders;
-        return this;
-    }
-
-    @Override
-    public TemplateEngine getTemplateEngine() {
-        if (templateEngine == null) {
-            templateEngine = TemplateEngine.templateEngine();
-
-            final TemplateContext templateContext = templateEngine.getTemplateContext();
-            final EvaluableRequest evaluableRequest = new EvaluableRequest(request());
-            final EvaluableResponse evaluableResponse = new EvaluableResponse(response());
-
-            templateContext.setVariable(TEMPLATE_ATTRIBUTE_REQUEST, evaluableRequest);
-            templateContext.setVariable(TEMPLATE_ATTRIBUTE_RESPONSE, evaluableResponse);
-            templateContext.setVariable(TEMPLATE_ATTRIBUTE_CONTEXT, new EvaluableExecutionContext(this));
-
-            if (templateVariableProviders != null) {
-                templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide(this));
-            }
-        }
-
-        return templateEngine;
     }
 }

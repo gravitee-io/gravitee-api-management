@@ -20,7 +20,6 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
-import io.gravitee.gateway.entrypoint.EntrypointConnectorFactoryRegistry;
 import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -50,6 +49,8 @@ import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cache.CacheManager;
+import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -186,8 +187,21 @@ public class ApiHandlerConfiguration {
     @Bean
     public ReactorFactory<io.gravitee.gateway.jupiter.handlers.api.v4.Api> asyncApiReactorFactory(
         PolicyFactory policyFactory,
-        EntrypointConnectorFactoryRegistry entrypointConnectorFactoryRegistry
+        EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+        EndpointConnectorPluginManager endpointConnectorPluginManager,
+        @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
+        OrganizationManager organizationManager,
+        FlowResolverFactory flowResolverFactory
     ) {
-        return new AsyncReactorFactory(applicationContext, configuration, policyFactory, entrypointConnectorFactoryRegistry);
+        return new AsyncReactorFactory(
+            applicationContext,
+            configuration,
+            policyFactory,
+            entrypointConnectorPluginManager,
+            endpointConnectorPluginManager,
+            platformPolicyChainFactory,
+            organizationManager,
+            flowResolverFactory
+        );
     }
 }

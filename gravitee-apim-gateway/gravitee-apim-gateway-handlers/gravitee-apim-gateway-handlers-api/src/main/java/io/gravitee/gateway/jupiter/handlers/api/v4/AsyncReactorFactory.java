@@ -23,12 +23,18 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
-import io.gravitee.gateway.entrypoint.EntrypointConnectorFactoryRegistry;
-import io.gravitee.gateway.jupiter.core.v4.entrypoint.HttpEntrypointResolver;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver;
+import io.gravitee.gateway.jupiter.core.v4.entrypoint.HttpEntrypointConnectorResolver;
+import io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.jupiter.handlers.api.ApiPolicyManager;
+import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
+import io.gravitee.gateway.jupiter.policy.DefaultPolicyChainFactory;
+import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
+import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactor.Reactable;
@@ -39,6 +45,8 @@ import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
 import io.gravitee.gateway.resource.internal.ResourceManagerImpl;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
@@ -59,18 +67,31 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
     private final ApplicationContext applicationContext;
     private final Configuration configuration;
     private final PolicyFactory policyFactory;
-    private final EntrypointConnectorFactoryRegistry entrypointConnectorFactoryRegistry;
+
+    private final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
+    private final EndpointConnectorPluginManager endpointConnectorPluginManager;
+    private final PolicyChainFactory platformPolicyChainFactory;
+    private final OrganizationManager organizationManager;
+    private final FlowResolverFactory flowResolverFactory;
 
     public AsyncReactorFactory(
         final ApplicationContext applicationContext,
         final Configuration configuration,
         final PolicyFactory policyFactory,
-        final EntrypointConnectorFactoryRegistry entrypointConnectorFactoryRegistry
+        final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+        EndpointConnectorPluginManager endpointConnectorPluginManager,
+        final PolicyChainFactory platformPolicyChainFactory,
+        final OrganizationManager organizationManager,
+        final FlowResolverFactory flowResolverFactory
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
         this.policyFactory = policyFactory;
-        this.entrypointConnectorFactoryRegistry = entrypointConnectorFactoryRegistry;
+        this.entrypointConnectorPluginManager = entrypointConnectorPluginManager;
+        this.endpointConnectorPluginManager = endpointConnectorPluginManager;
+        this.platformPolicyChainFactory = platformPolicyChainFactory;
+        this.organizationManager = organizationManager;
+        this.flowResolverFactory = flowResolverFactory;
     }
 
     @Override
@@ -115,11 +136,30 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
                     apiComponentProvider
                 );
 
+                final io.gravitee.gateway.jupiter.policy.PolicyChainFactory policyChainFactory = new DefaultPolicyChainFactory(
+                    api.getId(),
+                    policyManager,
+                    configuration
+                );
+
+                final FlowChainFactory flowChainFactory = new FlowChainFactory(
+                    platformPolicyChainFactory,
+                    policyChainFactory,
+                    organizationManager,
+                    configuration,
+                    flowResolverFactory
+                );
+
                 return new AsyncApiReactor(
                     api,
                     apiComponentProvider,
                     policyManager,
-                    new HttpEntrypointResolver(api.getDefinition(), entrypointConnectorFactoryRegistry)
+                    new HttpEntrypointConnectorResolver(api.getDefinition(), entrypointConnectorPluginManager),
+                    new EndpointInvoker(
+                        api.getDefinition(),
+                        new DefaultEndpointConnectorResolver(api.getDefinition(), endpointConnectorPluginManager)
+                    ),
+                    flowChainFactory
                 );
             }
         } catch (Exception ex) {
@@ -128,6 +168,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     public ResourceLifecycleManager resourceLifecycleManager(
         Api api,
         ResourceClassLoaderFactory resourceClassLoaderFactory,
@@ -153,6 +194,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
         );
     }
 
+    @SuppressWarnings("unchecked")
     public PolicyManager policyManager(
         Api api,
         PolicyFactory factory,

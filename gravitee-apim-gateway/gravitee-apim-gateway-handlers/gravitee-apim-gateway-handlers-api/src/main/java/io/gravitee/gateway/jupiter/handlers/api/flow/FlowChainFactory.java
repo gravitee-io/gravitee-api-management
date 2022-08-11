@@ -21,6 +21,7 @@ import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
 import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,19 +34,19 @@ public class FlowChainFactory {
 
     protected final List<ChainHook> flowHooks = new ArrayList<>();
     private final PolicyChainFactory platformPolicyChainFactory;
-    private final PolicyChainFactory apiPolicyChainFactory;
+    private final PolicyChainFactory policyChainFactory;
     private final OrganizationManager organizationManager;
     private final FlowResolverFactory flowResolverFactory;
 
     public FlowChainFactory(
         final PolicyChainFactory platformPolicyChainFactory,
-        final PolicyChainFactory apiPolicyChainFactory,
+        final PolicyChainFactory policyChainFactory,
         final OrganizationManager organizationManager,
         final Configuration configuration,
         final FlowResolverFactory flowResolverFactory
     ) {
         this.platformPolicyChainFactory = platformPolicyChainFactory;
-        this.apiPolicyChainFactory = apiPolicyChainFactory;
+        this.policyChainFactory = policyChainFactory;
         this.organizationManager = organizationManager;
         this.flowResolverFactory = flowResolverFactory;
         boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
@@ -54,7 +55,7 @@ public class FlowChainFactory {
         }
     }
 
-    public FlowChain createPlatformFlow(final Api api) {
+    public FlowChain createPlatformFlow(final ReactableApi<?> api) {
         FlowChain flowPlatformChain = new FlowChain(
             "platform",
             flowResolverFactory.forPlatform(api, organizationManager),
@@ -65,13 +66,13 @@ public class FlowChainFactory {
     }
 
     public FlowChain createPlanFlow(final Api api) {
-        FlowChain flowPlanChain = new FlowChain("plan", flowResolverFactory.forApiPlan(api), apiPolicyChainFactory);
+        FlowChain flowPlanChain = new FlowChain("plan", flowResolverFactory.forApiPlan(api), policyChainFactory);
         flowPlanChain.addHooks(flowHooks);
         return flowPlanChain;
     }
 
     public FlowChain createApiFlow(final Api api) {
-        FlowChain flowApiChain = new FlowChain("api", flowResolverFactory.forApi(api), apiPolicyChainFactory);
+        FlowChain flowApiChain = new FlowChain("api", flowResolverFactory.forApi(api), policyChainFactory);
         flowApiChain.addHooks(flowHooks);
         return flowApiChain;
     }

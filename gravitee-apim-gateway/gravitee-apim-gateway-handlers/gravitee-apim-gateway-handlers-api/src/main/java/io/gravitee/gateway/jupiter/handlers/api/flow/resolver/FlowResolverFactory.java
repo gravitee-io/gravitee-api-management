@@ -23,6 +23,7 @@ import io.gravitee.gateway.jupiter.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.jupiter.flow.FlowResolver;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.reactor.ReactableApi;
 
 /**
  * Factory allowing to create a {@link FlowResolver} to be used to resolve flows to execute at api plan level, api level or platform level.
@@ -58,14 +59,12 @@ public class FlowResolverFactory {
         return flowResolver;
     }
 
-    public FlowResolver forPlatform(Api api, OrganizationManager organizationManager) {
-        PlatformFlowResolver flowResolver = new PlatformFlowResolver(api, organizationManager, flowFilter);
-
+    public FlowResolver forPlatform(ReactableApi<?> api, OrganizationManager organizationManager) {
+        final PlatformFlowResolver flowResolver = new PlatformFlowResolver(api, organizationManager, flowFilter);
         final Organization organization = organizationManager.getCurrentOrganization();
-        if (organization != null) {
-            if (isBestMatchFlowMode(organization.getFlowMode())) {
-                return new BestMatchFlowResolver(flowResolver);
-            }
+
+        if (organization != null && isBestMatchFlowMode(organization.getFlowMode())) {
+            return new BestMatchFlowResolver(flowResolver);
         }
 
         return flowResolver;

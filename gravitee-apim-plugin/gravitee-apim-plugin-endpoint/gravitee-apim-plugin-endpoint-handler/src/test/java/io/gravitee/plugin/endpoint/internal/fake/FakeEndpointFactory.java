@@ -33,12 +33,12 @@ public class FakeEndpointFactory extends EndpointConnectorFactory<FakeEndpointCo
 
     @Override
     public ApiType supportedApi() {
-        return ApiType.SYNC;
+        return FakeEndpointConnector.SUPPORTED_API;
     }
 
     @Override
     public Set<ConnectorMode> supportedModes() {
-        return Set.of(ConnectorMode.REQUEST_RESPONSE);
+        return FakeEndpointConnector.SUPPORTED_MODES;
     }
 
     @Override

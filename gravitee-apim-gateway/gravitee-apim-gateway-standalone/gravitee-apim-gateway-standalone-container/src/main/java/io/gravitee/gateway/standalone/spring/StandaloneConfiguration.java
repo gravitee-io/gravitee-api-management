@@ -23,7 +23,6 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.gateway.connector.spring.ConnectorConfiguration;
 import io.gravitee.gateway.dictionary.spring.DictionaryConfiguration;
-import io.gravitee.gateway.entrypoint.spring.EntrypointConnectorPluginConfiguration;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.TimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
@@ -45,6 +44,8 @@ import io.gravitee.platform.repository.api.RepositoryScopeProvider;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
 import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
+import io.gravitee.plugin.endpoint.spring.EndpointConnectorPluginConfiguration;
+import io.gravitee.plugin.entrypoint.spring.EntrypointConnectorPluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
 import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -75,6 +76,7 @@ import org.springframework.context.annotation.Import;
         PlatformConfiguration.class,
         ConnectorConfiguration.class,
         EntrypointConnectorPluginConfiguration.class,
+        EndpointConnectorPluginConfiguration.class,
         ClusterConfiguration.class,
         TimeoutConfiguration.class,
     }
