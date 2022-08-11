@@ -27,12 +27,12 @@ import lombok.Setter;
 public class MockEndpointConnectorConfiguration implements EndpointConnectorConfiguration {
 
     /**
-     * Interval on which mock messages are published, in seconds.
+     * Interval on which mock messages are published, in milliseconds.
      */
-    private Long messagesInterval;
+    private Long messageInterval;
 
     /**
      * Content of mocked messages.
      */
-    private String messagesContent;
+    private String messageContent;
 }

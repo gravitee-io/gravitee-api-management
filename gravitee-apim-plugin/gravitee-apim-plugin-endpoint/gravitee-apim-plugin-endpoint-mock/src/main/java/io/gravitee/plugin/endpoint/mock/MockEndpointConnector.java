@@ -55,7 +55,7 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
 
     private Flowable<Message> generateMessageFlow() {
         return Flowable
-            .interval(configuration.getMessagesInterval(), TimeUnit.SECONDS)
-            .map(value -> new MockMessage(configuration.getMessagesContent() + " " + value));
+            .interval(configuration.getMessageInterval(), TimeUnit.MILLISECONDS)
+            .map(value -> new MockMessage(configuration.getMessageContent() + " " + value));
     }
 }
