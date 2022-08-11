@@ -16,15 +16,16 @@
 package io.gravitee.gateway.jupiter.policy.adapter.context;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.core.processor.RuntimeProcessorFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
+import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -100,5 +101,47 @@ class ExecutionContextAdapterTest {
         contextAdapter.restore();
 
         verify(templateEngine).restore();
+    }
+
+    @Test
+    void shouldReplaceAdaptedRequest() {
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final Request request = mock(Request.class);
+
+        when(ctx.request()).thenReturn(request);
+
+        final ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(ctx);
+        final io.gravitee.gateway.api.Request adaptedRequest = contextAdapter.request();
+
+        assertNotNull(adaptedRequest);
+        assertTrue(adaptedRequest instanceof RequestAdapter);
+
+        // Try to override the current request with another one.
+        final io.gravitee.gateway.api.Request replaced = mock(io.gravitee.gateway.api.Request.class);
+        contextAdapter.request(replaced);
+
+        // The adapted request should have been replaced.
+        assertEquals(replaced, contextAdapter.request());
+    }
+
+    @Test
+    void shouldReplaceAdaptedResponse() {
+        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final Response response = mock(Response.class);
+
+        when(ctx.response()).thenReturn(response);
+
+        final ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(ctx);
+        final io.gravitee.gateway.api.Response adaptedResponse = contextAdapter.response();
+
+        assertNotNull(adaptedResponse);
+        assertTrue(adaptedResponse instanceof ResponseAdapter);
+
+        // Try to override the current response with another one.
+        final io.gravitee.gateway.api.Response replaced = mock(io.gravitee.gateway.api.Response.class);
+        contextAdapter.response(replaced);
+
+        // The adapted response should have been replaced.
+        assertEquals(replaced, contextAdapter.response());
     }
 }

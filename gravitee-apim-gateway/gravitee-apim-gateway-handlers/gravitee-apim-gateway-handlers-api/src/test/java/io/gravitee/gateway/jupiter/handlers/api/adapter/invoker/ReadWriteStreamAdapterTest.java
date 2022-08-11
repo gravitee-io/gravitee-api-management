@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.jupiter.api.context.HttpRequest;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
@@ -64,12 +64,17 @@ class ReadWriteStreamAdapterTest {
 
     @Test
     public void shouldSubscribeWhenInvokingResumeHandler() throws InterruptedException {
+        final Handler<Buffer> bodyHandler = mock(Handler.class);
+        final Handler<Void> endHandler = mock(Handler.class);
+
         final Buffer requestChunk1 = Buffer.buffer("chunk1");
         final Buffer requestChunk2 = Buffer.buffer("chunk2");
 
         when(ctx.request()).thenReturn(requestAdapter);
         when(ctx.getDelegate()).thenReturn(syncCtx);
         when(syncCtx.request()).thenReturn(request);
+        when(requestAdapter.getBodyHandler()).thenReturn(bodyHandler);
+        when(requestAdapter.getEndHandler()).thenReturn(endHandler);
 
         new ReadWriteStreamAdapter(ctx, nexEmitter);
 
@@ -87,13 +92,21 @@ class ReadWriteStreamAdapterTest {
         // Wait for subscription to complete and check no error happened on the emitter.
         assertTrue(latch.await(1, TimeUnit.SECONDS));
         verifyNoInteractions(nexEmitter);
+        verify(bodyHandler).handle(requestChunk1);
+        verify(bodyHandler).handle(requestChunk2);
+        verify(endHandler).handle(null);
     }
 
     @Test
-    public void shouldErrorWhenErrorOccurs() throws InterruptedException {
+    public void shouldErrorWhenErrorOccursWhileReadingChunks() throws InterruptedException {
+        final Handler<Buffer> bodyHandler = mock(Handler.class);
+        final Handler<Void> endHandler = mock(Handler.class);
+
         when(ctx.request()).thenReturn(requestAdapter);
         when(ctx.getDelegate()).thenReturn(syncCtx);
         when(syncCtx.request()).thenReturn(request);
+        when(requestAdapter.getBodyHandler()).thenReturn(bodyHandler);
+        when(requestAdapter.getEndHandler()).thenReturn(endHandler);
 
         new ReadWriteStreamAdapter(ctx, nexEmitter);
 
@@ -113,5 +126,7 @@ class ReadWriteStreamAdapterTest {
         // Wait for subscription to complete and check no error happened on the emitter.
         assertTrue(latch.await(1, TimeUnit.SECONDS));
         verify(nexEmitter).tryOnError(argThat(t -> t.getMessage().equals(MOCK_EXCEPTION_MESSAGE)));
+        verifyNoInteractions(bodyHandler);
+        verifyNoInteractions(endHandler);
     }
 }

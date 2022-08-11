@@ -466,8 +466,6 @@
                                 <exclude>**/Grpc*Test.java</exclude>
                                 <!-- TODO: https://github.com/gravitee-io/issues/issues/8075 -->
                                 <exclude>**/ClientConnectionResponseTemplateTest.java</exclude>
-                                <!-- TODO: https://github.com/gravitee-io/issues/issues/8086 -->
-                                <exclude>**/FailoverTest.java</exclude>
                             </excludes>
                         </configuration>
                     </execution>
