@@ -358,6 +358,7 @@ export interface GetApplicationsRequest {
     group?: string;
     query?: string;
     status?: string;
+    exclude?: Array<GetApplicationsExcludeEnum>;
     envId: string;
     orgId: string;
 }
@@ -369,6 +370,7 @@ export interface GetApplicationsPagedRequest {
     order?: string;
     size?: number;
     page?: number;
+    exclude?: Array<GetApplicationsPagedExcludeEnum>;
     envId: string;
     orgId: string;
 }
@@ -2143,6 +2145,10 @@ export class ApplicationsApi extends runtime.BaseAPI {
             queryParameters['status'] = requestParameters.status;
         }
 
+        if (requestParameters.exclude) {
+            queryParameters['exclude'] = requestParameters.exclude;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
@@ -2204,6 +2210,10 @@ export class ApplicationsApi extends runtime.BaseAPI {
 
         if (requestParameters.page !== undefined) {
             queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.exclude) {
+            queryParameters['exclude'] = requestParameters.exclude;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -2810,4 +2820,20 @@ export class ApplicationsApi extends runtime.BaseAPI {
 export enum GetApplicationSubscriptionsExpandEnum {
     Keys = 'keys',
     Security = 'security'
+}
+/**
+    * @export
+    * @enum {string}
+    */
+export enum GetApplicationsExcludeEnum {
+    PICTURE = 'PICTURE',
+    OWNER = 'OWNER'
+}
+/**
+    * @export
+    * @enum {string}
+    */
+export enum GetApplicationsPagedExcludeEnum {
+    PICTURE = 'PICTURE',
+    OWNER = 'OWNER'
 }

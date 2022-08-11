@@ -24,10 +24,7 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.application.ApplicationQuery;
-import io.gravitee.rest.api.model.application.ApplicationSettings;
-import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.application.*;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -44,6 +41,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -92,48 +90,14 @@ public class ApplicationsResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ) })
-    public List<ApplicationListItem> getApplications(
+    public Collection<ApplicationListItem> getApplications(
         @QueryParam("group") final String group,
         @QueryParam("query") final String query,
-        @QueryParam("status") @DefaultValue("ACTIVE") final String status
+        @QueryParam("status") @DefaultValue("ACTIVE") final String status,
+        @QueryParam("exclude") List<ApplicationExcludeFilter> excludeFilters
     ) {
-        Set<ApplicationListItem> applications;
-
-        if (!isAdmin() && ApplicationStatus.ARCHIVED.name().equalsIgnoreCase(status)) {
-            throw new ForbiddenAccessException();
-        }
-
-        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (query != null && !query.trim().isEmpty()) {
-            applications =
-                applicationService.findByUserAndNameAndStatus(executionContext, getAuthenticatedUser(), isAdmin(), query, status);
-        } else if (isAdmin()) {
-            applications =
-                group != null
-                    ? applicationService.findByGroupsAndStatus(executionContext, Collections.singletonList(group), status)
-                    : applicationService.findByStatus(executionContext, status);
-        } else {
-            applications = applicationService.findByUser(executionContext, getAuthenticatedUser());
-            if (group != null && !group.isEmpty()) {
-                applications =
-                    applications
-                        .stream()
-                        .filter(app -> app.getGroups() != null && app.getGroups().contains(group))
-                        .collect(Collectors.toSet());
-            }
-        }
-
-        applications.forEach(application -> this.addPictureUrl(application));
-
-        return applications
-            .stream()
-            .sorted(
-                (o1, o2) ->
-                    ApplicationStatus.ACTIVE.name().equalsIgnoreCase(status)
-                        ? String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName())
-                        : o2.getUpdatedAt().compareTo(o1.getUpdatedAt())
-            )
-            .collect(Collectors.toList());
+        ApplicationsOrderParam applicationsOrderParam = new ApplicationsOrderParam("ARCHIVED".equals(status) ? "updated_at" : "name");
+        return this.getApplicationsPaged(group, query, status, applicationsOrderParam, null, excludeFilters).getData();
     }
 
     @GET
@@ -152,7 +116,7 @@ public class ApplicationsResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ) })
-    public ApplicationListItemPagedResult getApplications(
+    public ApplicationListItemPagedResult getApplicationsPaged(
         @QueryParam("group") final String group,
         @QueryParam("query") final String query,
         @QueryParam("status") @DefaultValue("ACTIVE") final String status,
@@ -163,7 +127,8 @@ public class ApplicationsResource extends AbstractResource {
                 description = "By default, sort is ASC. If *field* starts with '-', the order sort is DESC. Currently, only **name** and **updated_at** are supported"
             )
         ) @QueryParam("order") @DefaultValue("name") final ApplicationsOrderParam applicationsOrderParam,
-        @Valid @BeanParam Pageable pageable
+        @Valid @BeanParam Pageable pageable,
+        @QueryParam("exclude") List<ApplicationExcludeFilter> excludeFilters
     ) {
         if (!isAdmin() && ApplicationStatus.ARCHIVED.name().equalsIgnoreCase(status)) {
             throw new ForbiddenAccessException();
@@ -171,6 +136,8 @@ public class ApplicationsResource extends AbstractResource {
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApplicationQuery applicationQuery = new ApplicationQuery();
+        applicationQuery.setExcludeFilters(excludeFilters);
+
         if (group != null) {
             applicationQuery.setGroups(Set.of(group));
         }
@@ -191,9 +158,12 @@ public class ApplicationsResource extends AbstractResource {
             executionContext,
             applicationQuery,
             sortable,
-            pageable.toPageable()
+            pageable != null ? pageable.toPageable() : null
         );
-        applications.getContent().forEach(this::addPictureUrl);
+
+        if (applicationQuery.includePicture()) {
+            applications.getContent().forEach(this::addPictureUrl);
+        }
 
         return new ApplicationListItemPagedResult(applications, (int) applications.getPageElements());
     }

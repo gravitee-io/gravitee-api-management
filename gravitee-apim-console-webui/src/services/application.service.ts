@@ -35,6 +35,8 @@ interface IMembership {
   role: string;
 }
 
+type ApplicationExcludeFilter = 'owner' | 'picture';
+
 class ApplicationService {
   constructor(private $http: ng.IHttpService, private Constants) {
     'ngInject';
@@ -68,8 +70,19 @@ class ApplicationService {
     return this.$http.post(`${this.applicationURL(applicationId)}` + '/members/transfer_ownership', ownership);
   }
 
-  list(status = 'active'): ng.IHttpPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/applications/?status=${status}`);
+  list(exclude: ApplicationExcludeFilter[] = [], query = '', status = 'active'): ng.IHttpPromise<any> {
+    let url = `${this.Constants.env.baseURL}/applications/?status=${status}`;
+
+    if (query.trim() !== '') {
+      url += `&query=${query}`;
+    }
+
+    if (exclude.length > 0) {
+      const excludeFilters = exclude.map((filter) => `exclude=${filter}`).join('&');
+      url += `&${excludeFilters}`;
+    }
+
+    return this.$http.get(url);
   }
 
   create(application): ng.IHttpPromise<any> {
@@ -96,7 +109,7 @@ class ApplicationService {
   }
 
   search(query) {
-    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + '?query=' + query);
+    return this.list(['picture'], query);
   }
 
   /*

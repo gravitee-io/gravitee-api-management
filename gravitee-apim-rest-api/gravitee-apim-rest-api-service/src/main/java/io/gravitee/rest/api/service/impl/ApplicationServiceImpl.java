@@ -1069,7 +1069,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Page<Application> applications = applicationRepository.search(searchCriteria, convert(pageable), convert(sortable));
 
             // An archived doesn't have owner
-            if (!ApplicationStatus.ARCHIVED.name().equals(applicationQuery.getStatus()) && applicationQuery.isWithOwner()) {
+            if (!ApplicationStatus.ARCHIVED.name().equals(applicationQuery.getStatus()) && applicationQuery.includeOwner()) {
                 return this.convertToList(executionContext, applications);
             }
             return this.convertToSimpleList(applications);
