@@ -56,7 +56,7 @@ class SupportTicketController {
             }
           }
         });
-      ApplicationService.list().then((response) => (this.applications = response.data));
+      ApplicationService.list(['picture']).then((response) => (this.applications = response.data));
     }
   }
 

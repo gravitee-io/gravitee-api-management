@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.application;
 
+import java.util.List;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -35,5 +36,17 @@ public class ApplicationQuery {
 
     private String name;
 
-    private boolean withOwner = true;
+    private List<ApplicationExcludeFilter> excludeFilters;
+
+    public boolean includePicture() {
+        return include(ApplicationExcludeFilter.PICTURE);
+    }
+
+    public boolean includeOwner() {
+        return include(ApplicationExcludeFilter.OWNER);
+    }
+
+    private boolean include(ApplicationExcludeFilter applicationExcludeFilter) {
+        return excludeFilters == null || !excludeFilters.contains(applicationExcludeFilter);
+    }
 }

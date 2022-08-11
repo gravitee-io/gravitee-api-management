@@ -47,7 +47,10 @@ describe('ApplicationService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/applications?status=active` });
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications?status=active&exclude=picture&exclude=owner`,
+      });
 
       req.flush(mockApplications);
     });
@@ -63,7 +66,7 @@ describe('ApplicationService', () => {
 
       const req = httpTestingController.expectOne({
         method: 'GET',
-        url: `${CONSTANTS_TESTING.org.baseURL}/environments/${environmentId}/applications?status=active`,
+        url: `${CONSTANTS_TESTING.org.baseURL}/environments/${environmentId}/applications?status=active&exclude=picture&exclude=owner`,
       });
 
       req.flush(mockApplications);

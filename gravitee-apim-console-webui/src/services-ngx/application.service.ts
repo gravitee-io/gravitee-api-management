@@ -41,6 +41,7 @@ export class ApplicationService {
     return this.http.get<any[]>(`${baseURL}/applications`, {
       params: {
         status: 'active',
+        exclude: ['picture', 'owner'],
       },
     });
   }
