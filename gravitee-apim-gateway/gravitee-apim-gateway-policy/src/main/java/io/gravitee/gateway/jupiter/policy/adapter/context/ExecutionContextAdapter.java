@@ -19,6 +19,9 @@ import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_ADAP
 import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE;
 
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
@@ -32,11 +35,11 @@ import java.util.Map;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ExecutionContextAdapter implements io.gravitee.gateway.api.ExecutionContext {
+public class ExecutionContextAdapter implements io.gravitee.gateway.api.ExecutionContext, MutableExecutionContext {
 
     private final RequestExecutionContext ctx;
-    private RequestAdapter adaptedRequest;
-    private ResponseAdapter adaptedResponse;
+    private Request adaptedRequest;
+    private Response adaptedResponse;
     private TemplateEngineAdapter adaptedTemplateEngine;
 
     private ExecutionContextAdapter(RequestExecutionContext ctx) {
@@ -66,7 +69,7 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
     }
 
     @Override
-    public RequestAdapter request() {
+    public Request request() {
         if (adaptedRequest == null) {
             adaptedRequest = new RequestAdapter(ctx.request());
         }
@@ -74,7 +77,7 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
     }
 
     @Override
-    public ResponseAdapter response() {
+    public Response response() {
         if (adaptedResponse == null) {
             adaptedResponse = new ResponseAdapter(ctx.response());
         }
@@ -145,5 +148,17 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
         if (adaptedTemplateEngine != null) {
             adaptedTemplateEngine.restore();
         }
+    }
+
+    @Override
+    public MutableExecutionContext request(Request request) {
+        adaptedRequest = request;
+        return this;
+    }
+
+    @Override
+    public MutableExecutionContext response(Response response) {
+        adaptedResponse = response;
+        return this;
     }
 }

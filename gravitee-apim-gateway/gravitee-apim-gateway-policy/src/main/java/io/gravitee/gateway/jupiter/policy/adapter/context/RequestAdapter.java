@@ -37,6 +37,8 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
     private final Request request;
 
     private Runnable onResumeHandler;
+    private Handler<Buffer> bodyHandler;
+    private Handler<Void> endHandler;
 
     public RequestAdapter(Request request) {
         this.request = request;
@@ -179,11 +181,25 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
 
     @Override
     public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
+        this.bodyHandler = bodyHandler;
         return this;
     }
 
     @Override
     public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
+        this.endHandler = endHandler;
         return this;
+    }
+
+    public Handler<Buffer> getBodyHandler() {
+        return bodyHandler;
+    }
+
+    public void setBodyHandler(Handler<Buffer> bodyHandler) {
+        this.bodyHandler = bodyHandler;
+    }
+
+    public Handler<Void> getEndHandler() {
+        return endHandler;
     }
 }

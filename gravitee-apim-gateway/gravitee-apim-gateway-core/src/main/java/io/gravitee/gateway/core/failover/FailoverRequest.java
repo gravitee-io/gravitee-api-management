@@ -49,7 +49,7 @@ class FailoverRequest extends RequestWrapper {
                     buffer = Buffer.buffer();
                 }
                 buffer.appendBuffer(result);
-                bodyHandler.handle(result);
+                handleBody(result);
             }
         );
 
@@ -76,11 +76,22 @@ class FailoverRequest extends RequestWrapper {
             resumed = true;
         } else {
             if (bodyHandler != null && buffer != null) {
-                bodyHandler.handle(buffer);
+                handleBody(buffer);
             }
-            endHandler.handle(null);
+            if (endHandler != null) {
+                endHandler.handle(null);
+            }
         }
 
         return this;
+    }
+
+    private void handleBody(Buffer result) {
+        try {
+            this.bodyHandler.handle(result);
+        } catch (Exception ignored) {
+            // Ignore eventual exception occurring when trying to handle body buffer.
+            // Some exception may occur when trying to write body to upstream while something goes wrong during connection.
+        }
     }
 }
