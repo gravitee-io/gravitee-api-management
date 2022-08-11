@@ -352,13 +352,10 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     private void updateAllAlertsBody(String organizationId, String type, String body, String subject) {
         ExecutionContext executionContext = new ExecutionContext(organizationId, null);
 
-        final List<String> ids = applicationService
-            .findByOrganization(organizationId)
-            .stream()
-            .map(ApplicationListItem::getId)
-            .collect(Collectors.toList());
+        Set<String> ids = applicationService.findIdsByOrganization(organizationId);
+
         alertService
-            .findByReferences(AlertReferenceType.APPLICATION, ids)
+            .findByReferences(AlertReferenceType.APPLICATION, List.copyOf(ids))
             .stream()
             .filter(alert -> alert.getType().equals(type))
             .forEach(

@@ -54,12 +54,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.AlertHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -461,15 +456,12 @@ public class ApplicationAlertServiceTest {
             notificationTemplateEvent
         );
 
-        ApplicationListItem app1 = new ApplicationListItem();
-        app1.setId("app1");
-        ApplicationListItem app2 = new ApplicationListItem();
-        app2.setId("app2");
-        when(applicationService.findByOrganization("org-id")).thenReturn(new HashSet<>(Arrays.asList(app1, app2)));
+        List<String> applicationIds = Arrays.asList("app1", "app2");
+        when(applicationService.findIdsByOrganization("org-id")).thenReturn(new LinkedHashSet<>(applicationIds));
 
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
         when(alertTrigger.getType()).thenReturn("METRICS_RATE");
-        when(alertService.findByReferences(AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
+        when(alertService.findByReferences(AlertReferenceType.APPLICATION, applicationIds))
             .thenReturn(Collections.singletonList(alertTrigger));
 
         Notification notification = new Notification();
@@ -508,15 +500,12 @@ public class ApplicationAlertServiceTest {
             notificationTemplateEvent
         );
 
-        ApplicationListItem app1 = new ApplicationListItem();
-        app1.setId("app1");
-        ApplicationListItem app2 = new ApplicationListItem();
-        app2.setId("app2");
-        when(applicationService.findByOrganization("org-id")).thenReturn(new HashSet<>(Arrays.asList(app1, app2)));
+        List<String> applicationIds = Arrays.asList("app1", "app2");
+        when(applicationService.findIdsByOrganization("org-id")).thenReturn(new LinkedHashSet<>(applicationIds));
 
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
         when(alertTrigger.getType()).thenReturn("METRICS_AGGREGATION");
-        when(alertService.findByReferences(AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
+        when(alertService.findByReferences(eq(AlertReferenceType.APPLICATION), eq(applicationIds)))
             .thenReturn(Collections.singletonList(alertTrigger));
 
         Notification notification = new Notification();
@@ -555,18 +544,7 @@ public class ApplicationAlertServiceTest {
             notificationTemplateEvent
         );
 
-        ApplicationListItem app1 = new ApplicationListItem();
-        app1.setId("app1");
-        ApplicationListItem app2 = new ApplicationListItem();
-        app2.setId("app2");
-        when(applicationService.findByOrganization("org-id")).thenReturn(new HashSet<>(Arrays.asList(app1, app2)));
-
-        final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
-        when(alertTrigger.getType()).thenReturn("METRICS_AGGREGATION");
-        when(alertService.findByReferences(AlertReferenceType.APPLICATION, Arrays.asList("app1", "app2")))
-            .thenReturn(Collections.singletonList(alertTrigger));
-
-        when(alertTrigger.getNotifications()).thenReturn(Collections.emptyList());
+        when(applicationService.findIdsByOrganization("org-id")).thenReturn(Set.of("app1", "app2"));
 
         cut.handleEvent(event);
 
