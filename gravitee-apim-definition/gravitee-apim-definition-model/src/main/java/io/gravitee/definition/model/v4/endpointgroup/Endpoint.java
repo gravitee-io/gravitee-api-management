@@ -51,7 +51,6 @@ public class Endpoint implements Serializable {
     private boolean inheritConfig;
 
     @Schema(implementation = Object.class)
-    @JsonRawValue
     private String configuration;
 
     private EndpointServices services;

@@ -255,7 +255,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                         apiComponentProvider
                     );
 
-                    final io.gravitee.gateway.jupiter.policy.PolicyChainFactory apiPolicyChainFactory = createPolicyChainFactory(
+                    final io.gravitee.gateway.jupiter.policy.PolicyChainFactory policyChainFactory = createPolicyChainFactory(
                         api,
                         policyManager,
                         configuration
@@ -263,7 +263,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
 
                     FlowChainFactory flowChainFactory = createFlowChainFactory(
                         platformPolicyChainFactory,
-                        apiPolicyChainFactory,
+                        policyChainFactory,
                         organizationManager,
                         configuration,
                         flowResolverFactory

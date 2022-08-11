@@ -15,9 +15,15 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler.context;
 
+import io.gravitee.el.TemplateContext;
+import io.gravitee.el.TemplateEngine;
+import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
+import io.gravitee.gateway.jupiter.api.el.EvaluableResponse;
 import io.gravitee.gateway.jupiter.core.context.MutableHttpExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableHttpRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableHttpResponse;
@@ -26,6 +32,7 @@ import io.gravitee.gateway.jupiter.core.context.MutableMessageResponse;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.reactivex.Completable;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +45,8 @@ abstract class AbstractExecutionContext<RQ extends MutableHttpRequest, RS extend
     private final Map<String, Object> attributes = new ContextAttributeMap();
     private final Map<String, Object> internalAttributes = new HashMap<>();
     protected ComponentProvider componentProvider;
+    protected TemplateEngine templateEngine;
+    protected Collection<TemplateVariableProvider> templateVariableProviders;
 
     AbstractExecutionContext(final RQ request, final RS response) {
         this.request = request;
@@ -129,8 +138,36 @@ abstract class AbstractExecutionContext<RQ extends MutableHttpRequest, RS extend
         return (Map<String, T>) internalAttributes;
     }
 
-    public MutableHttpExecutionContext componentProvider(final ComponentProvider componentProvider) {
+    public AbstractExecutionContext<RQ, RS> componentProvider(final ComponentProvider componentProvider) {
         this.componentProvider = componentProvider;
         return this;
+    }
+
+    public AbstractExecutionContext<RQ, RS> templateVariableProviders(
+        final Collection<TemplateVariableProvider> templateVariableProviders
+    ) {
+        this.templateVariableProviders = templateVariableProviders;
+        return this;
+    }
+
+    @Override
+    public TemplateEngine getTemplateEngine() {
+        if (templateEngine == null) {
+            templateEngine = TemplateEngine.templateEngine();
+
+            final TemplateContext templateContext = templateEngine.getTemplateContext();
+            final EvaluableRequest evaluableRequest = new EvaluableRequest(request());
+            final EvaluableResponse evaluableResponse = new EvaluableResponse(response());
+
+            templateContext.setVariable(RequestExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST, evaluableRequest);
+            templateContext.setVariable(RequestExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE, evaluableResponse);
+            templateContext.setVariable(RequestExecutionContext.TEMPLATE_ATTRIBUTE_CONTEXT, new EvaluableExecutionContext(this));
+
+            if (templateVariableProviders != null) {
+                templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide(this));
+            }
+        }
+
+        return templateEngine;
     }
 }

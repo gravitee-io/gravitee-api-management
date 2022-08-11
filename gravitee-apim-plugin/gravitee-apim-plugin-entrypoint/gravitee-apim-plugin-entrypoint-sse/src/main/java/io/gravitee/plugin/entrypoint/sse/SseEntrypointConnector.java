@@ -20,6 +20,8 @@ import static io.gravitee.common.http.MediaType.TEXT_EVENT_STREAM;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.jupiter.api.ApiType;
+import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.plugin.entrypoint.sse.model.SseEvent;
@@ -28,6 +30,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +42,19 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @Slf4j
 public class SseEntrypointConnector implements EntrypointAsyncConnector {
+
+    static final ApiType SUPPORTED_API = ApiType.ASYNC;
+    static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
+
+    @Override
+    public ApiType supportedApi() {
+        return SUPPORTED_API;
+    }
+
+    @Override
+    public Set<ConnectorMode> supportedModes() {
+        return SUPPORTED_MODES;
+    }
 
     @Override
     public int matchCriteriaCount() {

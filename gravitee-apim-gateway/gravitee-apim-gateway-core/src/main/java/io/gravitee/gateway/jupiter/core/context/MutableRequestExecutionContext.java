@@ -27,5 +27,4 @@ public interface MutableRequestExecutionContext extends MutableHttpExecutionCont
     MutableRequest request();
 
     MutableResponse response();
-    MutableRequestExecutionContext templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders);
 }
