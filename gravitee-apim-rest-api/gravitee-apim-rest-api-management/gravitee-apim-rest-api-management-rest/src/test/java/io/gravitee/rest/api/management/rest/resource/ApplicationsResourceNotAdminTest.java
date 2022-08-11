@@ -16,20 +16,8 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.management.rest.JerseySpringTest;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.NewApplicationEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.application.ApplicationQuery;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
@@ -46,7 +34,7 @@ public class ApplicationsResourceNotAdminTest extends AbstractResourceTest {
 
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
-        resourceConfig.register(ApiPagesResourceNotAdminTest.AuthenticationFilter.class);
+        resourceConfig.register(NotAdminAuthenticationFilter.class);
     }
 
     @Test

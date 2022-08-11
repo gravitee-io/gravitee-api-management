@@ -22,9 +22,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.management.rest.JerseySpringTest;
-import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
-import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.*;
@@ -39,9 +37,12 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.io.IOException;
+import java.security.Principal;
+import javax.annotation.Priority;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.SecurityContext;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -543,5 +544,36 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Before
     public void setUp() throws Exception {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+    }
+
+    @Priority(50)
+    public static class NotAdminAuthenticationFilter implements ContainerRequestFilter {
+
+        @Override
+        public void filter(final ContainerRequestContext requestContext) throws IOException {
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return () -> USER_NAME;
+                    }
+
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isSecure() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
+                }
+            );
+        }
     }
 }

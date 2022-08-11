@@ -31,14 +31,8 @@ import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.io.IOException;
-import java.security.Principal;
 import java.util.Collections;
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,7 +50,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
-        resourceConfig.register(EnvironmentAnalyticsResourceTest.AuthenticationFilter.class);
+        resourceConfig.register(NotAdminAuthenticationFilter.class);
     }
 
     @Before
@@ -268,36 +262,5 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         StatsAnalytics analytics = response.readEntity(StatsAnalytics.class);
         assertThat(analytics.getAvg()).isNull();
         assertThat(analytics.getCount()).isEqualTo(1);
-    }
-
-    @Priority(50)
-    public static class AuthenticationFilter implements ContainerRequestFilter {
-
-        @Override
-        public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(
-                new SecurityContext() {
-                    @Override
-                    public Principal getUserPrincipal() {
-                        return () -> USER_NAME;
-                    }
-
-                    @Override
-                    public boolean isUserInRole(String string) {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean isSecure() {
-                        return true;
-                    }
-
-                    @Override
-                    public String getAuthenticationScheme() {
-                        return "BASIC";
-                    }
-                }
-            );
-        }
     }
 }
