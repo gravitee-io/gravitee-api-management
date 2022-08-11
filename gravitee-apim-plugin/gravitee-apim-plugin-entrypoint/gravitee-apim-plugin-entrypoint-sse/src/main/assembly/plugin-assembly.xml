@@ -30,6 +30,14 @@
 		</file>
 	</files>
 
+	<!-- Include plugin schema configuration -->
+	<fileSets>
+		<fileSet>
+			<directory>src/main/resources/schemas</directory>
+			<outputDirectory>schemas</outputDirectory>
+		</fileSet>
+	</fileSets>
+
 	<!-- Finally include plugin dependencies -->
 	<dependencySets>
 		<dependencySet>

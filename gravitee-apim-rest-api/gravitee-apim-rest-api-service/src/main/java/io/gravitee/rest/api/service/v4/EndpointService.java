@@ -13,26 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.plugin.endpoint.mock.configuration;
+package io.gravitee.rest.api.service.v4;
 
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
-import lombok.Getter;
-import lombok.Setter;
-
-/**
- * @author GraviteeSource Team
- */
-@Getter
-@Setter
-public class MockEndpointConnectorConfiguration implements EndpointConnectorConfiguration {
-
-    /**
-     * Interval between mock messages publication, in milliseconds.
-     */
-    private Long messageInterval;
-
-    /**
-     * Content of mocked messages.
-     */
-    private String messageContent;
+public interface EndpointService {
+    String validateEndpointConfiguration(String endpointPluginId, String configuration);
 }
