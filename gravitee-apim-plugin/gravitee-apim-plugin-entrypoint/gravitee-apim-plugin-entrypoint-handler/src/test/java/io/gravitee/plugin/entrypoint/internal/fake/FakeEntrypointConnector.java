@@ -15,9 +15,12 @@
  */
 package io.gravitee.plugin.entrypoint.internal.fake;
 
+import io.gravitee.gateway.jupiter.api.ApiType;
+import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.entrypoint.EntrypointConnector;
 import io.reactivex.Completable;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -29,7 +32,20 @@ import lombok.Getter;
 @Getter
 public class FakeEntrypointConnector implements EntrypointConnector<RequestExecutionContext> {
 
+    static final ApiType SUPPORTED_API = ApiType.ASYNC;
+    static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
+
     private FakeEntrypointConnectorConfiguration configuration;
+
+    @Override
+    public ApiType supportedApi() {
+        return SUPPORTED_API;
+    }
+
+    @Override
+    public Set<ConnectorMode> supportedModes() {
+        return SUPPORTED_MODES;
+    }
 
     @Override
     public int matchCriteriaCount() {

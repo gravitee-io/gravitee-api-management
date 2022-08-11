@@ -26,10 +26,7 @@ import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.jupiter.api.context.HttpRequest;
-import io.gravitee.gateway.jupiter.api.context.Request;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.api.context.*;
 import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
 import io.gravitee.gateway.jupiter.api.el.EvaluableResponse;
 import java.util.Collections;
@@ -62,7 +59,11 @@ public class ContentTemplateVariableProvider implements TemplateVariableProvider
     }
 
     @Override
-    public void provide(RequestExecutionContext ctx) {
+    public <T extends HttpExecutionContext> void provide(T ctx) {
+        provide2((RequestExecutionContext) ctx);
+    }
+
+    public void provide2(RequestExecutionContext ctx) {
         final TemplateEngine templateEngine = ctx.getTemplateEngine();
         final TemplateContext templateContext = templateEngine.getTemplateContext();
         final EvaluableRequest evaluableRequest = (EvaluableRequest) templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST);

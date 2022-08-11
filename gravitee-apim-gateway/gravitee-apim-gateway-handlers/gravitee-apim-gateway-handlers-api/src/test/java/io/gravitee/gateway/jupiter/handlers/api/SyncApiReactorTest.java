@@ -44,6 +44,7 @@ import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
@@ -373,7 +374,7 @@ class SyncApiReactorTest {
         when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
         when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
         fillRequestExecutionContext();
-        when(invokerAdapter.invoke(any())).thenReturn(spyInvokerAdapterChain);
+        when(invokerAdapter.invoke(any(RequestExecutionContext.class))).thenReturn(spyInvokerAdapterChain);
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);
         ReflectionTestUtils.setField(cut, "securityChain", securityChain);
@@ -419,7 +420,7 @@ class SyncApiReactorTest {
         when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
         when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
         fillRequestExecutionContext();
-        when(invokerAdapter.invoke(any())).thenReturn(spyInvokerAdapterChain);
+        when(invokerAdapter.invoke(any(RequestExecutionContext.class))).thenReturn(spyInvokerAdapterChain);
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);
         ReflectionTestUtils.setField(cut, "securityChain", securityChain);
@@ -528,7 +529,7 @@ class SyncApiReactorTest {
         when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
         fillRequestExecutionContext();
 
-        when(invokerAdapter.invoke(any())).thenReturn(spyInvokerAdapterError);
+        when(invokerAdapter.invoke(any(RequestExecutionContext.class))).thenReturn(spyInvokerAdapterError);
 
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);
@@ -577,7 +578,7 @@ class SyncApiReactorTest {
         when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
         fillRequestExecutionContext();
 
-        when(invokerAdapter.invoke(any())).thenReturn(spyTimeout);
+        when(invokerAdapter.invoke(any(RequestExecutionContext.class))).thenReturn(spyTimeout);
 
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);

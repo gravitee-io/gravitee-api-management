@@ -39,6 +39,7 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
     public ApiPlanFlowResolver(Api api, ConditionFilter<Flow> filter) {
         super(filter);
         this.api = api;
+        api.getPlans();
     }
 
     @Override

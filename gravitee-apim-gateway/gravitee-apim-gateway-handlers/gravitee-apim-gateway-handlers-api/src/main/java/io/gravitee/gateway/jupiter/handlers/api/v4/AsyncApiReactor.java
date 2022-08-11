@@ -15,20 +15,25 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4;
 
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
+import static io.reactivex.Completable.defer;
+
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.entrypoint.async.EntrypointAsyncConnector;
-import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.gateway.jupiter.core.context.MutableMessageExecutionContext;
-import io.gravitee.gateway.jupiter.core.v4.entrypoint.HttpEntrypointResolver;
+import io.gravitee.gateway.jupiter.core.v4.entrypoint.HttpEntrypointConnectorResolver;
+import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
+import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain;
+import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.security.SecurityChain;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
@@ -36,10 +41,7 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,23 +54,31 @@ public class AsyncApiReactor
     implements ApiReactor<io.gravitee.definition.model.v4.Api, MutableMessageExecutionContext> {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncApiReactor.class);
+    private static final String ATTR_INVOKER_SKIP = "invoker.skip";
 
     private final Api api;
     private final CompositeComponentProvider componentProvider;
     private final PolicyManager policyManager;
-    private final HttpEntrypointResolver asyncEntrypointResolver;
+    private final HttpEntrypointConnectorResolver asyncEntrypointResolver;
+    private final Invoker defaultInvoker;
+    private final FlowChain platformFlowChain;
     private SecurityChain securityChain;
 
     public AsyncApiReactor(
         final Api api,
         final CompositeComponentProvider apiComponentProvider,
         final PolicyManager policyManager,
-        final HttpEntrypointResolver asyncEntrypointResolver
+        final HttpEntrypointConnectorResolver asyncEntrypointResolver,
+        final Invoker defaultInvoker,
+        final FlowChainFactory flowChainFactory
     ) {
         this.api = api;
         this.componentProvider = apiComponentProvider;
         this.policyManager = policyManager;
         this.asyncEntrypointResolver = asyncEntrypointResolver;
+        this.defaultInvoker = defaultInvoker;
+
+        this.platformFlowChain = flowChainFactory.createPlatformFlow(api);
     }
 
     @Override
@@ -90,62 +100,89 @@ public class AsyncApiReactor
         ctx.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, ctx.request().contextPath());
         ctx.setAttribute(ExecutionContext.ATTR_API, api.getId());
         ctx.setAttribute(ExecutionContext.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
+        ctx.setAttribute(ExecutionContext.ATTR_INVOKER, defaultInvoker);
         ctx.setAttribute(ExecutionContext.ATTR_ORGANIZATION, api.getOrganizationId());
         ctx.setAttribute(ExecutionContext.ATTR_ENVIRONMENT, api.getEnvironmentId());
+        ctx.setInternalAttribute(ExecutionContext.ATTR_API, api);
     }
 
     private Completable handleRequest(final MutableMessageExecutionContext ctx) {
-        EntrypointAsyncConnector entrypointAsyncConnector = asyncEntrypointResolver.resolve(ctx);
-        if (entrypointAsyncConnector == null) {
+        EntrypointAsyncConnector entrypointConnector = asyncEntrypointResolver.resolve(ctx);
+        if (entrypointConnector == null) {
             return Completable.defer(
                 () -> {
                     String noEntrypointMsg = "No entrypoint matches the incoming request";
                     log.debug(noEntrypointMsg);
-                    ctx.response().status(HttpResponseStatus.NOT_FOUND.code());
+                    ctx.response().status(HttpStatusCode.NOT_FOUND_404);
                     ctx.response().reason(noEntrypointMsg);
                     return ctx.response().end();
                 }
             );
         }
 
-        return securityChain
-            .execute(ctx)
-            .andThen(Completable.defer(() -> entrypointAsyncConnector.handleRequest(ctx)))
-            .andThen(sendDummyMessages(ctx))
-            .andThen(Completable.defer(() -> entrypointAsyncConnector.handleResponse(ctx)));
+        ctx.setInternalAttribute("entrypointConnector", entrypointConnector);
+
+        return platformFlowChain
+            .execute(ctx, REQUEST)
+            // Execute security chain.
+            .andThen(securityChain.execute(ctx))
+            .andThen(entrypointConnector.handleRequest(ctx))
+            .andThen(invokeBackend(ctx))
+            .andThen(entrypointConnector.handleResponse(ctx))
+            // Platform post flows must always be executed
+            .andThen(platformFlowChain.execute(ctx, RESPONSE))
+            // Catch all possible unexpected errors.
+            .onErrorResumeNext(t -> handleUnexpectedError(ctx, t));
     }
 
-    private Completable sendDummyMessages(final MutableMessageExecutionContext ctx) {
-        return Completable.defer(
+    private Completable invokeBackend(final MutableMessageExecutionContext ctx) {
+        return defer(
+                () -> {
+                    if (!Objects.equals(false, ctx.<Boolean>getAttribute(ATTR_INVOKER_SKIP))) {
+                        Invoker invoker = getInvoker(ctx);
+
+                        if (invoker != null) {
+                            return invoker.invoke(ctx);
+                        }
+                    }
+                    return Completable.complete();
+                }
+            )
+            .doOnSubscribe(disposable -> ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis()))
+            .doOnDispose(() -> setApiResponseTimeMetric(ctx))
+            .doOnTerminate(() -> setApiResponseTimeMetric(ctx));
+    }
+
+    private Invoker getInvoker(MutableMessageExecutionContext ctx) {
+        final Object invoker = ctx.getAttribute(ExecutionContext.ATTR_INVOKER);
+
+        if (invoker == null) {
+            return null;
+        }
+
+        if (!(invoker instanceof Invoker)) {
+            return new InvokerAdapter((io.gravitee.gateway.api.Invoker) invoker);
+        }
+
+        return (Invoker) invoker;
+    }
+
+    private Completable handleUnexpectedError(final HttpExecutionContext ctx, final Throwable throwable) {
+        return Completable.fromRunnable(
             () -> {
-                ctx
-                    .response()
-                    .messages(
-                        Flowable
-                            .interval(1, TimeUnit.SECONDS)
-                            .map(
-                                value ->
-                                    new Message() {
-                                        @Override
-                                        public HttpHeaders headers() {
-                                            return null;
-                                        }
+                log.error("Unexpected error while handling request", throwable);
+                setApiResponseTimeMetric(ctx);
 
-                                        @Override
-                                        public Map<String, Object> metadata() {
-                                            return Map.of("interval", value);
-                                        }
-
-                                        @Override
-                                        public Buffer content() {
-                                            return Buffer.buffer("test " + value);
-                                        }
-                                    }
-                            )
-                    );
-                return Completable.complete();
+                ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+                ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
             }
         );
+    }
+
+    private void setApiResponseTimeMetric(HttpExecutionContext ctx) {
+        if (ctx.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
+            ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
+        }
     }
 
     @Override

@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.reactor.handler.context;
 
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import java.util.Map;
 
@@ -24,9 +25,9 @@ import java.util.Map;
  */
 public class EvaluableExecutionContext {
 
-    private final RequestExecutionContext executionContext;
+    private final HttpExecutionContext executionContext;
 
-    public EvaluableExecutionContext(RequestExecutionContext executionContext) {
+    public EvaluableExecutionContext(HttpExecutionContext executionContext) {
         this.executionContext = executionContext;
     }
 

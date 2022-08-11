@@ -29,12 +29,12 @@ public class SseEntrypointConnectorFactory implements EntrypointAsyncConnectorFa
 
     @Override
     public ApiType supportedApi() {
-        return ApiType.ASYNC;
+        return SseEntrypointConnector.SUPPORTED_API;
     }
 
     @Override
     public Set<ConnectorMode> supportedModes() {
-        return Set.of(ConnectorMode.SUBSCRIBE);
+        return SseEntrypointConnector.SUPPORTED_MODES;
     }
 
     @Override
