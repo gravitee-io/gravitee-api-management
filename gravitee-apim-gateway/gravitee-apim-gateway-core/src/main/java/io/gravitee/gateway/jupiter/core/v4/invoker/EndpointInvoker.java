@@ -32,11 +32,11 @@ import io.reactivex.Completable;
  */
 public class EndpointInvoker implements Invoker {
 
-    private final Api api;
+    public static final String NO_ENDPOINT_FOUND_KEY = "NO_ENDPOINT_FOUND";
+
     private final DefaultEndpointConnectorResolver endpointResolver;
 
-    public EndpointInvoker(final Api api, final DefaultEndpointConnectorResolver endpointResolver) {
-        this.api = api;
+    public EndpointInvoker(final DefaultEndpointConnectorResolver endpointResolver) {
         this.endpointResolver = endpointResolver;
     }
 
@@ -59,7 +59,9 @@ public class EndpointInvoker implements Invoker {
         final EndpointConnector<HttpExecutionContext> endpointConnector = endpointResolver.resolve(ctx);
 
         if (endpointConnector == null) {
-            return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).message("No endpoint available"));
+            return ctx.interruptWith(
+                new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).key(NO_ENDPOINT_FOUND_KEY).message("No endpoint available")
+            );
         }
 
         return endpointConnector.connect(ctx);

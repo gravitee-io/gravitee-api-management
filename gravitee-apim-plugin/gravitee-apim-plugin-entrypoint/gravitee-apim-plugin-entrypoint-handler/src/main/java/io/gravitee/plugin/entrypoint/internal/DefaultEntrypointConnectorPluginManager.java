@@ -16,7 +16,9 @@
 package io.gravitee.plugin.entrypoint.internal;
 
 import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorClassLoaderFactory;
@@ -31,8 +33,9 @@ import org.slf4j.LoggerFactory;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuppressWarnings("unchecked")
 public class DefaultEntrypointConnectorPluginManager
-    extends AbstractConfigurablePluginManager<EntrypointConnectorPlugin>
+    extends AbstractConfigurablePluginManager<EntrypointConnectorPlugin<?>>
     implements EntrypointConnectorPluginManager {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultEntrypointConnectorPluginManager.class);
@@ -63,7 +66,9 @@ public class DefaultEntrypointConnectorPluginManager
     }
 
     @Override
-    public AbstractConnectorFactory<? extends EntrypointConnector<?>> getFactoryById(final String entrypointPluginId) {
-        return factories.get(entrypointPluginId);
+    public <T extends AbstractConnectorFactory<U>, U extends EntrypointConnector<V>, V extends ExecutionContext> T getFactoryById(
+        final String entrypointPluginId
+    ) {
+        return (T) factories.get(entrypointPluginId);
     }
 }

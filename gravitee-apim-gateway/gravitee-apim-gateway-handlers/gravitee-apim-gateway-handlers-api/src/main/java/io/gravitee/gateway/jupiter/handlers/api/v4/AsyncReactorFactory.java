@@ -155,10 +155,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
                     apiComponentProvider,
                     policyManager,
                     new HttpEntrypointConnectorResolver(api.getDefinition(), entrypointConnectorPluginManager),
-                    new EndpointInvoker(
-                        api.getDefinition(),
-                        new DefaultEndpointConnectorResolver(api.getDefinition(), endpointConnectorPluginManager)
-                    ),
+                    new EndpointInvoker(new DefaultEndpointConnectorResolver(api.getDefinition(), endpointConnectorPluginManager)),
                     flowChainFactory
                 );
             }

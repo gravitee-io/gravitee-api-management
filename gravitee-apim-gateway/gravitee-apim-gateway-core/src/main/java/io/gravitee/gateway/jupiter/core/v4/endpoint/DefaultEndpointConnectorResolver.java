@@ -37,6 +37,8 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unchecked")
 public class DefaultEndpointConnectorResolver {
 
+    public static final String INTERNAL_ATTR_ENTRYPOINT_CONNECTOR = ExecutionContext.ATTR_INTERNAL_PREFIX + ".entrypointConnector";
+
     private final Map<EndpointGroup, List<EndpointConnector<? extends ExecutionContext>>> connectorsByGroup;
 
     public DefaultEndpointConnectorResolver(final Api api, final EndpointConnectorPluginManager endpointConnectorPluginManager) {
@@ -50,12 +52,12 @@ public class DefaultEndpointConnectorResolver {
                             .getEndpoints()
                             .stream()
                             .map(
-                                entrypoint ->
+                                endpoint ->
                                     Map.<EndpointGroup, EndpointConnector<? extends ExecutionContext>>entry(
                                         endpointGroup,
                                         endpointConnectorPluginManager
-                                            .getFactoryById(entrypoint.getType())
-                                            .createConnector(entrypoint.getConfiguration())
+                                            .getFactoryById(endpoint.getType())
+                                            .createConnector(endpoint.getConfiguration())
                                     )
                             )
                 )
@@ -64,7 +66,7 @@ public class DefaultEndpointConnectorResolver {
     }
 
     public <T extends EndpointConnector<U>, U extends ExecutionContext> T resolve(final U ctx) {
-        EntrypointConnector<U> entrypointConnector = ctx.getInternalAttribute("entrypointConnector");
+        EntrypointConnector<U> entrypointConnector = ctx.getInternalAttribute(INTERNAL_ATTR_ENTRYPOINT_CONNECTOR);
 
         return (T) connectorsByGroup
             .entrySet()

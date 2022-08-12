@@ -17,6 +17,7 @@ package io.gravitee.plugin.endpoint.internal;
 
 import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.endpoint.EndpointConnectorClassLoaderFactory;
@@ -30,8 +31,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author GraviteeSource Team
  */
+@SuppressWarnings("unchecked")
 public class DefaultEndpointConnectorPluginManager
-    extends AbstractConfigurablePluginManager<EndpointConnectorPlugin>
+    extends AbstractConfigurablePluginManager<EndpointConnectorPlugin<?>>
     implements EndpointConnectorPluginManager {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultEndpointConnectorPluginManager.class);
@@ -62,7 +64,9 @@ public class DefaultEndpointConnectorPluginManager
     }
 
     @Override
-    public AbstractConnectorFactory<? extends EndpointConnector<?>> getFactoryById(final String endpointPluginId) {
-        return factories.get(endpointPluginId);
+    public <T extends AbstractConnectorFactory<U>, U extends EndpointConnector<V>, V extends ExecutionContext> T getFactoryById(
+        final String endpointPluginId
+    ) {
+        return (T) factories.get(endpointPluginId);
     }
 }
