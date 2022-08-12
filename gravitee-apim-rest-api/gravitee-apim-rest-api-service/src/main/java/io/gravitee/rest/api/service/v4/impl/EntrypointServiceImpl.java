@@ -39,7 +39,10 @@ public class EntrypointServiceImpl
     extends AbstractPluginService<EntrypointConnectorPlugin<?>, EntrypointPluginEntity>
     implements EntrypointService {
 
-    public EntrypointServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<EntrypointConnectorPlugin> pluginManager) {
+    public EntrypointServiceImpl(
+        JsonSchemaService jsonSchemaService,
+        ConfigurablePluginManager<EntrypointConnectorPlugin<?>> pluginManager
+    ) {
         super(jsonSchemaService, pluginManager);
     }
 

@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ResourceServiceImpl extends AbstractPluginService<ResourcePlugin<?>, PlatformPluginEntity> implements ResourceService {
 
-    public ResourceServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<ResourcePlugin> pluginManager) {
+    public ResourceServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<ResourcePlugin<?>> pluginManager) {
         super(jsonSchemaService, pluginManager);
     }
 

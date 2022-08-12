@@ -14,6 +14,11 @@
       "title": "Content of published messages",
       "description": "Content of published messages. Will be suffixed with message index.",
       "default": "mock message"
+    },
+    "messageCount": {
+      "type": "integer",
+      "title": "Count of published messages",
+      "description": "Count of published messages. If not specified, there is no limit."
     }
   },
   "required": [

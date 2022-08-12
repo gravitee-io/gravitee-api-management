@@ -60,7 +60,7 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
 
     public PolicyServiceImpl(
         JsonSchemaService jsonSchemaService,
-        ConfigurablePluginManager<PolicyPlugin> pluginManager,
+        ConfigurablePluginManager<PolicyPlugin<?>> pluginManager,
         PolicyClassLoaderFactory policyClassLoaderFactory
     ) {
         super(jsonSchemaService, pluginManager);
