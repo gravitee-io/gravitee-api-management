@@ -126,6 +126,16 @@ public class MembershipRepositoryMock extends AbstractRepositoryMock<MembershipR
             .thenReturn(singleton(m1));
 
         when(
+            membershipRepository.findRefIdByMemberAndRefTypeAndRoleIdIn(
+                eq("user1"),
+                eq(MembershipMemberType.USER),
+                eq(MembershipReferenceType.API),
+                argThat(roleIds -> roleIds.contains(API_OWNER_ROLE))
+            )
+        )
+            .thenReturn(singleton("api1"));
+
+        when(
             membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 "user1",
                 MembershipMemberType.USER,

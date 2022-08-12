@@ -301,6 +301,36 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     @Override
+    public Set<String> findRefIdByMemberAndRefTypeAndRoleIdIn(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        Collection<String> roleIds
+    ) throws TechnicalException {
+        logger.debug(
+            "Find membership by user and referenceType and referenceId and roleId in [{}, {}, {}, {}, {}]",
+            memberId,
+            memberType,
+            referenceType,
+            roleIds
+        );
+        Set<String> memberships = internalMembershipRepo
+            .findRefIdByMemberAndRefTypeAndRoleIdIn(memberId, memberType.name(), referenceType.name(), roleIds)
+            .stream()
+            .map(MembershipMongo::getReferenceId)
+            .collect(Collectors.toSet());
+        logger.debug(
+            "Find membership by user and referenceType and referenceId, roleId in [{}, {}, {}, {}, {}] = {}",
+            memberId,
+            memberType,
+            referenceType,
+            roleIds,
+            memberships
+        );
+        return memberships;
+    }
+
+    @Override
     public Set<Membership> findByMemberIdAndMemberType(String memberId, MembershipMemberType memberType) {
         logger.debug("Find membership by user [{}, {}]", memberId, memberType);
         Set<Membership> memberships = internalMembershipRepo

@@ -37,7 +37,6 @@ import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.Membership;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
@@ -1110,6 +1109,16 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);
+        }
+    }
+
+    @Override
+    public Set<String> getReferenceIdsByMemberAndReferenceAndRoleIn(MembershipMemberType memberType, String memberId, MembershipReferenceType referenceType, Collection<String> roleIds) {
+        try {
+            return membershipRepository.findRefIdByMemberAndRefTypeAndRoleIdIn(memberId, convert(memberType), convert(referenceType), roleIds);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
             throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);

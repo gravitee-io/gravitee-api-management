@@ -28,6 +28,8 @@ import lombok.ToString;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ApplicationQuery {
 
+    private Set<String> ids;
+
     private String user;
 
     private Set<String> groups;
