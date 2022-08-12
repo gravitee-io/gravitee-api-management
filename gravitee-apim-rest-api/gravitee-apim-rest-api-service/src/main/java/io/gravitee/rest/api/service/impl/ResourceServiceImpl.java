@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.definition.model.plugins.resources.Resource;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
@@ -31,10 +32,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ResourceServiceImpl extends AbstractPluginService<ResourcePlugin, PlatformPluginEntity> implements ResourceService {
 
-    private final JsonSchemaService jsonSchemaService;
-
-    public ResourceServiceImpl(JsonSchemaService jsonSchemaService) {
-        this.jsonSchemaService = jsonSchemaService;
+    public ResourceServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<ResourcePlugin> pluginManager) {
+        super(jsonSchemaService, pluginManager);
     }
 
     @Override
@@ -50,13 +49,11 @@ public class ResourceServiceImpl extends AbstractPluginService<ResourcePlugin, P
 
     @Override
     public void validateResourceConfiguration(Resource resource) {
-        String schema = getSchema(resource.getType());
-        jsonSchemaService.validate(schema, resource.getConfiguration());
+        validateConfiguration(resource.getType(), resource.getConfiguration());
     }
 
     @Override
     public void validateResourceConfiguration(io.gravitee.definition.model.v4.resource.Resource resource) {
-        String schema = getSchema(resource.getType());
-        jsonSchemaService.validate(schema, resource.getConfiguration());
+        validateConfiguration(resource.getType(), resource.getConfiguration());
     }
 }
