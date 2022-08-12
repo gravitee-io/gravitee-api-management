@@ -35,4 +35,10 @@ public class MockEndpointConnectorConfiguration implements EndpointConnectorConf
      * Content of mocked messages.
      */
     private String messageContent;
+
+    /**
+     * Count of published messages.
+     * If null, there is no limit.
+     */
+    private Long messageCount;
 }
