@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
@@ -52,13 +53,13 @@ public class DefaultEndpointConnectorResolver {
                             .getEndpoints()
                             .stream()
                             .map(
-                                endpoint ->
-                                    Map.<EndpointGroup, EndpointConnector<? extends ExecutionContext>>entry(
+                                endpoint -> {
+                                    String configuration = getEndpointConfiguration(endpointGroup, endpoint);
+                                    return Map.<EndpointGroup, EndpointConnector<? extends ExecutionContext>>entry(
                                         endpointGroup,
-                                        endpointConnectorPluginManager
-                                            .getFactoryById(endpoint.getType())
-                                            .createConnector(endpoint.getConfiguration())
-                                    )
+                                        endpointConnectorPluginManager.getFactoryById(endpoint.getType()).createConnector(configuration)
+                                    );
+                                }
                             )
                 )
                 .filter(e -> e.getValue() != null)
@@ -81,5 +82,9 @@ public class DefaultEndpointConnectorResolver {
             )
             .findFirst()
             .orElse(null);
+    }
+
+    private String getEndpointConfiguration(EndpointGroup endpointGroup, Endpoint endpoint) {
+        return endpoint.isInheritConfiguration() ? endpointGroup.getSharedConfiguration() : endpoint.getConfiguration();
     }
 }

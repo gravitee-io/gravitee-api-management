@@ -16,7 +16,6 @@
 package io.gravitee.definition.model.v4.endpointgroup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRawValue;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
@@ -49,7 +48,7 @@ public class Endpoint implements Serializable {
 
     private int weight = DEFAULT_WEIGHT;
 
-    private boolean inheritConfig;
+    private boolean inheritConfiguration;
 
     @Schema(implementation = Object.class)
     private String configuration;
