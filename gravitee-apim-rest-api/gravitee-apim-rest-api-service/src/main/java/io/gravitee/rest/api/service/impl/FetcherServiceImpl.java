@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FetcherServiceImpl extends AbstractPluginService<FetcherPlugin<?>, FetcherEntity> implements FetcherService {
 
-    public FetcherServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<FetcherPlugin> pluginManager) {
+    public FetcherServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<FetcherPlugin<?>> pluginManager) {
         super(jsonSchemaService, pluginManager);
     }
 

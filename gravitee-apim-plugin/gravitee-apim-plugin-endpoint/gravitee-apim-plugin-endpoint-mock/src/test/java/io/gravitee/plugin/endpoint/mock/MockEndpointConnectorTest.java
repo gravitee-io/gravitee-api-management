@@ -24,6 +24,7 @@ import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import io.reactivex.Flowable;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -44,18 +45,20 @@ class MockEndpointConnectorTest {
     @Mock
     private MessageResponse messageResponse;
 
+    private MockEndpointConnectorConfiguration configuration = new MockEndpointConnectorConfiguration();
+
     @BeforeEach
     public void setup() {
-        MockEndpointConnectorConfiguration configuration = new MockEndpointConnectorConfiguration();
         configuration.setMessageInterval(100L);
         configuration.setMessageContent("test mock endpoint");
         mockEndpointConnector = new MockEndpointConnector(configuration);
+
+        when(messageExecutionContext.response()).thenReturn(messageResponse);
     }
 
     @Test
-    public void shouldSendResponseMessages() {
-        when(messageExecutionContext.response()).thenReturn(messageResponse);
-
+    @DisplayName("Should generate messages flow")
+    public void shouldGenerateMessagesFlow() {
         mockEndpointConnector.connect(messageExecutionContext).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
@@ -69,5 +72,18 @@ class MockEndpointConnectorTest {
             .assertValueAt(0, message -> message.content().toString().equals("test mock endpoint 0"))
             .assertValueAt(1, message -> message.content().toString().equals("test mock endpoint 1"))
             .assertValueAt(2, message -> message.content().toString().equals("test mock endpoint 2"));
+    }
+
+    @Test
+    @DisplayName("Should generate messages flow with a limited count of messages")
+    public void shouldGenerateLimitedMessagesFlow() throws InterruptedException {
+        configuration.setMessageCount(5L);
+
+        mockEndpointConnector.connect(messageExecutionContext).test().assertComplete();
+
+        ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
+        verify(messageResponse).messages(messagesCaptor.capture());
+
+        messagesCaptor.getValue().test().await().assertValueCount(5);
     }
 }

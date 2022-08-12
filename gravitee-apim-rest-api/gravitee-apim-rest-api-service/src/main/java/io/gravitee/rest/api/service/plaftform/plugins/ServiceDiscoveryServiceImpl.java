@@ -36,7 +36,7 @@ public class ServiceDiscoveryServiceImpl
 
     public ServiceDiscoveryServiceImpl(
         JsonSchemaService jsonSchemaService,
-        ConfigurablePluginManager<ServiceDiscoveryPlugin> pluginManager
+        ConfigurablePluginManager<ServiceDiscoveryPlugin<?>> pluginManager
     ) {
         super(jsonSchemaService, pluginManager);
     }
