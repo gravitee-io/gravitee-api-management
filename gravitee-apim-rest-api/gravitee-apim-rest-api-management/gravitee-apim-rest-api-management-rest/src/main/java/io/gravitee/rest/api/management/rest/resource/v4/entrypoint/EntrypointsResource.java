@@ -19,12 +19,10 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ConnectorListItem;
-import io.gravitee.rest.api.model.ConnectorPluginEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.entrypoint.EntrypointExpandEntity;
 import io.gravitee.rest.api.model.v4.entrypoint.EntrypointPluginEntity;
-import io.gravitee.rest.api.service.ConnectorService;
 import io.gravitee.rest.api.service.v4.EntrypointService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -96,8 +94,8 @@ public class EntrypointsResource {
         return stream.sorted(Comparator.comparing(EntrypointExpandEntity::getName)).collect(Collectors.toList());
     }
 
-    @Path("{connector}")
-    public EntrypointResource getConnectorResource() {
+    @Path("{entrypoint}")
+    public EntrypointResource getEntrypointResource() {
         return resourceContext.getResource(EntrypointResource.class);
     }
 
