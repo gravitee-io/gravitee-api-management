@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 public class EntrypointConnectorPluginConfiguration {
 
     @Bean
-    public ConfigurablePluginManager<EntrypointConnectorPlugin> entrypointPluginManager(
+    public ConfigurablePluginManager<EntrypointConnectorPlugin<?>> entrypointPluginManager(
         final EntrypointConnectorClassLoaderFactory entrypointConnectorClassLoaderFactory
     ) {
         return new DefaultEntrypointConnectorPluginManager(entrypointConnectorClassLoaderFactory);

@@ -17,6 +17,7 @@ package io.gravitee.gateway.jupiter.handlers.api.v4;
 
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
+import static io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver.INTERNAL_ATTR_ENTRYPOINT_CONNECTOR;
 import static io.reactivex.Completable.defer;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
@@ -120,7 +121,8 @@ public class AsyncApiReactor
             );
         }
 
-        ctx.setInternalAttribute("entrypointConnector", entrypointConnector);
+        // Add the resolved entrypoint connector into the internal attributes, so it can be used later (ex: for endpoint connector resolution).
+        ctx.setInternalAttribute(INTERNAL_ATTR_ENTRYPOINT_CONNECTOR, entrypointConnector);
 
         return platformFlowChain
             .execute(ctx, REQUEST)

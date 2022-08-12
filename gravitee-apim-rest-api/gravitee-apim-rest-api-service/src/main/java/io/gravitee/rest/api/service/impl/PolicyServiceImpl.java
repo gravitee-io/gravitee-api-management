@@ -51,7 +51,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, PolicyEntity> implements PolicyService {
+public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, PolicyEntity> implements PolicyService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PolicyServiceImpl.class);
     private final Map<String, PolicyDevelopmentEntity> policies = new ConcurrentHashMap<>();
@@ -69,7 +69,7 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
 
     @Override
     public Set<PolicyEntity> findAll(Boolean withResource) {
-        Stream<PolicyPlugin> policies = super.list().stream();
+        Stream<PolicyPlugin<?>> policies = super.list().stream();
 
         if (Boolean.FALSE.equals(withResource)) {
             policies = policies.filter(policyPlugin -> !policyPlugin.policy().isAnnotationPresent(RequireResource.class));

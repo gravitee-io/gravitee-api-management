@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ServiceDiscoveryServiceImpl
-    extends AbstractPluginService<ServiceDiscoveryPlugin, PlatformPluginEntity>
+    extends AbstractPluginService<ServiceDiscoveryPlugin<?>, PlatformPluginEntity>
     implements ServiceDiscoveryService {
 
     public ServiceDiscoveryServiceImpl(
@@ -48,7 +48,7 @@ public class ServiceDiscoveryServiceImpl
 
     @Override
     public PlatformPluginEntity findById(String resource) {
-        ServiceDiscoveryPlugin sdDefinition = super.get(resource);
+        ServiceDiscoveryPlugin<?> sdDefinition = super.get(resource);
         return convert(sdDefinition);
     }
 }

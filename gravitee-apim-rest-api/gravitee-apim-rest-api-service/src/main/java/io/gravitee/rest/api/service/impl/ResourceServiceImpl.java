@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class ResourceServiceImpl extends AbstractPluginService<ResourcePlugin, PlatformPluginEntity> implements ResourceService {
+public class ResourceServiceImpl extends AbstractPluginService<ResourcePlugin<?>, PlatformPluginEntity> implements ResourceService {
 
     public ResourceServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<ResourcePlugin> pluginManager) {
         super(jsonSchemaService, pluginManager);
@@ -43,7 +43,7 @@ public class ResourceServiceImpl extends AbstractPluginService<ResourcePlugin, P
 
     @Override
     public PlatformPluginEntity findById(String resource) {
-        ResourcePlugin resourceDefinition = super.get(resource);
+        ResourcePlugin<?> resourceDefinition = super.get(resource);
         return convert(resourceDefinition);
     }
 

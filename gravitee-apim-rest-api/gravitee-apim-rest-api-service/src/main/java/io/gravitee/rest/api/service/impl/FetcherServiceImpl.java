@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class FetcherServiceImpl extends AbstractPluginService<FetcherPlugin, FetcherEntity> implements FetcherService {
+public class FetcherServiceImpl extends AbstractPluginService<FetcherPlugin<?>, FetcherEntity> implements FetcherService {
 
     public FetcherServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<FetcherPlugin> pluginManager) {
         super(jsonSchemaService, pluginManager);
@@ -48,7 +48,7 @@ public class FetcherServiceImpl extends AbstractPluginService<FetcherPlugin, Fet
     @Override
     public Set<FetcherEntity> findAll(boolean onlyFilesFetchers) {
         try {
-            Set<FetcherPlugin> fetcherDefinitions = super.list();
+            Set<FetcherPlugin<?>> fetcherDefinitions = super.list();
 
             if (onlyFilesFetchers) {
                 Class<?> filesFetcherClass = FilesFetcher.class;

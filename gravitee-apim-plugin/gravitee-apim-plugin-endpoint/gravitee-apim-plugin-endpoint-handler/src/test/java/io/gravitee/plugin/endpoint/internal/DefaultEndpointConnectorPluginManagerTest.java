@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnector;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorPlugin;
@@ -47,9 +48,9 @@ class DefaultEndpointConnectorPluginManagerTest {
             null
         );
         endpointConnectorPluginManager.register(endpointPlugin);
-        AbstractConnectorFactory<? extends EndpointConnector<?>> fake = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
+        final AbstractConnectorFactory<FakeEndpointConnector> fake = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
         assertThat(fake).isNotNull();
-        EndpointConnector fakeConnector = fake.createConnector(null);
+        final FakeEndpointConnector fakeConnector = fake.createConnector(null);
         assertThat(fakeConnector).isNotNull();
     }
 
@@ -61,17 +62,16 @@ class DefaultEndpointConnectorPluginManagerTest {
             EndpointConnectorConfiguration.class
         );
         endpointConnectorPluginManager.register(endpointPlugin);
-        AbstractConnectorFactory<? extends EndpointConnector<?>> fake = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
+        final AbstractConnectorFactory<FakeEndpointConnector> fake = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
         assertThat(fake).isNotNull();
-        EndpointConnector fakeConnector = fake.createConnector("{\"info\":\"test\"}");
+        final FakeEndpointConnector fakeConnector = fake.createConnector("{\"info\":\"test\"}");
         assertThat(fakeConnector).isNotNull();
-        assertThat(fakeConnector).isInstanceOf(FakeEndpointConnector.class);
-        FakeEndpointConnector fakeEndpointConnector = (FakeEndpointConnector) fakeConnector;
-        assertThat(fakeEndpointConnector.getConfiguration().getInfo()).isEqualTo("test");
+        assertThat(fakeConnector.getConfiguration().getInfo()).isEqualTo("test");
     }
 
     @Test
     public void shouldNotRetrieveUnRegisterPlugin() {
-        assertThat(endpointConnectorPluginManager.getFactoryById("fake-endpoint")).isNull();
+        final EndpointConnector<HttpExecutionContext> factoryById = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
+        assertThat(factoryById).isNull();
     }
 }

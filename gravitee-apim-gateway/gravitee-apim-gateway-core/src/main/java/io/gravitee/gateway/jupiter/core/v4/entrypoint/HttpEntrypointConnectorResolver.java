@@ -27,7 +27,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 /**
@@ -47,25 +46,27 @@ public class HttpEntrypointConnectorResolver {
                 .filter(listener -> listener.getType() == ListenerType.HTTP)
                 .map(ListenerHttp.class::cast)
                 .flatMap(listenerHttp -> listenerHttp.getEntrypoints().stream())
-                .map(entrypoint -> createConnector(entrypointConnectorPluginManager, entrypoint))
-                .filter(Objects::nonNull)
-                .sorted(
-                    Comparator.comparingInt(
-                        (ToIntFunction<EntrypointConnector<? extends HttpExecutionContext>>) EntrypointConnector::matchCriteriaCount
-                    )
+                .map(
+                    entrypoint ->
+                        this.<EntrypointConnector<HttpExecutionContext>, HttpExecutionContext>createConnector(
+                                entrypointConnectorPluginManager,
+                                entrypoint
+                            )
                 )
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparingInt(EntrypointConnector::matchCriteriaCount))
                 .collect(Collectors.toList());
     }
 
-    public <T extends EntrypointConnector<? extends HttpExecutionContext>> T resolve(final HttpExecutionContext ctx) {
-        Optional<EntrypointConnector<HttpExecutionContext>> asyncConnector = entrypointConnectors
+    public <T extends EntrypointConnector<U>, U extends HttpExecutionContext> T resolve(final U ctx) {
+        Optional<EntrypointConnector<HttpExecutionContext>> entrypointConnector = entrypointConnectors
             .stream()
-            .filter(entrypointAsyncConnector -> entrypointAsyncConnector.matches(ctx))
+            .filter(connector -> connector.matches(ctx))
             .findFirst();
-        return (T) asyncConnector.orElse(null);
+        return (T) entrypointConnector.orElse(null);
     }
 
-    private EntrypointConnector<HttpExecutionContext> createConnector(
+    private <T extends EntrypointConnector<U>, U extends HttpExecutionContext> T createConnector(
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         Entrypoint entrypoint
     ) {
@@ -74,7 +75,7 @@ public class HttpEntrypointConnectorResolver {
         );
 
         if (connectorFactory != null) {
-            return (EntrypointConnector<HttpExecutionContext>) connectorFactory.createConnector(entrypoint.getConfiguration());
+            return (T) connectorFactory.createConnector(entrypoint.getConfiguration());
         }
         return null;
     }

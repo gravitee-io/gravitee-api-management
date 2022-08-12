@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
  */
 @Component("EntrypointServiceImplV4")
 public class EntrypointServiceImpl
-    extends AbstractPluginService<EntrypointConnectorPlugin, EntrypointPluginEntity>
+    extends AbstractPluginService<EntrypointConnectorPlugin<?>, EntrypointPluginEntity>
     implements EntrypointService {
 
     public EntrypointServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<EntrypointConnectorPlugin> pluginManager) {
@@ -50,7 +50,7 @@ public class EntrypointServiceImpl
 
     @Override
     public EntrypointPluginEntity findById(String entrypointPluginId) {
-        EntrypointConnectorPlugin resourceDefinition = super.get(entrypointPluginId);
+        EntrypointConnectorPlugin<?> resourceDefinition = super.get(entrypointPluginId);
         return convert(resourceDefinition);
     }
 
