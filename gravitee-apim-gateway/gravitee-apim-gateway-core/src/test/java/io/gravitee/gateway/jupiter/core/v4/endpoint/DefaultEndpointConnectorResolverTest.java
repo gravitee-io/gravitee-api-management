@@ -47,6 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DefaultEndpointConnectorResolverTest {
 
     protected static final String ENDPOINT_TYPE = "test";
+    protected static final String ENDPOINT_GROUP_CONFIG = "{ \"groupSharedConfig\": \"something\"}";
     protected static final String ENDPOINT_CONFIG = "{ \"config\": \"something\"}";
     protected static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     protected static final ApiType SUPPORTED_API_TYPE = ApiType.ASYNC;
@@ -166,6 +167,28 @@ class DefaultEndpointConnectorResolverTest {
         assertNull(resolvedEndpointConnector);
     }
 
+    @Test
+    void shouldCreateConnectorUsingEndpointGroupSharedConfiguration() {
+        final Api api = buildApi();
+
+        final Endpoint endpoint2 = buildEndpoint();
+        endpoint2.setInheritConfiguration(true);
+
+        final Endpoint endpoint3 = buildEndpoint();
+
+        api.getEndpointGroups().get(0).getEndpoints().add(endpoint2);
+        api.getEndpointGroups().get(0).getEndpoints().add(endpoint3);
+
+        when(connectorFactory.createConnector(any())).thenReturn(mock(EndpointConnector.class));
+
+        new DefaultEndpointConnectorResolver(api, pluginManager).resolve(ctx);
+
+        // 2 connector has been created with endpoint configuration
+        verify(connectorFactory, times(2)).createConnector(ENDPOINT_CONFIG);
+        // 1 connector has been created with endpoint group configuration, cause endpoint2 inherits group configuration
+        verify(connectorFactory, times(1)).createConnector(ENDPOINT_GROUP_CONFIG);
+    }
+
     private Api buildApi() {
         final Api api = new Api();
         final ArrayList<EndpointGroup> endpointGroups = new ArrayList<>();
@@ -182,6 +205,7 @@ class DefaultEndpointConnectorResolverTest {
 
         endpointGroup.setType(ENDPOINT_TYPE);
         endpointGroup.setEndpoints(endpoints);
+        endpointGroup.setSharedConfiguration(ENDPOINT_GROUP_CONFIG);
 
         final Endpoint endpoint = buildEndpoint();
         endpoints.add(endpoint);
