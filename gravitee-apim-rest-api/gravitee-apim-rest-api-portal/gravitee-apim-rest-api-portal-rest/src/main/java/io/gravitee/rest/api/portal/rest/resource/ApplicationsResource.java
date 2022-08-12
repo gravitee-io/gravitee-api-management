@@ -47,6 +47,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.Hook;
+
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -88,7 +89,7 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.CREATE)})
     public Response createApplication(@Valid @NotNull(message = "Input must not be null.") ApplicationInput applicationInput) {
         NewApplicationEntity newApplicationEntity = new NewApplicationEntity();
         newApplicationEntity.setDescription(applicationInput.getDescription());
@@ -155,29 +156,17 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
         @QueryParam("forSubscription") final boolean forSubscription,
         @QueryParam("order") @DefaultValue("name") final ApplicationsOrderParam applicationsOrderParam
     ) {
+
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        Supplier<Stream<String>> appSupplier = () -> {
-            Stream<String> appStream = applicationService
-                .findIdsByUser(executionContext, getAuthenticatedUser(), applicationsOrderParam.toSortable())
-                .stream();
+        Collection<String> applicationIds;
+        if (forSubscription) {
+            applicationIds = applicationService
+                .findIdsByUserAndPermission(executionContext, getAuthenticatedUser(), applicationsOrderParam.toSortable(), RolePermission.APPLICATION_SUBSCRIPTION, RolePermissionAction.CREATE);
+        } else {
+            applicationIds = applicationService
+                .findIdsByUser(executionContext, getAuthenticatedUser(), applicationsOrderParam.toSortable());
+        }
 
-            if (forSubscription) {
-                appStream =
-                    appStream.filter(
-                        applicationId ->
-                            this.hasPermission(
-                                    executionContext,
-                                    RolePermission.APPLICATION_SUBSCRIPTION,
-                                    applicationId,
-                                    RolePermissionAction.CREATE
-                                )
-                    );
-            }
-
-            return appStream;
-        };
-
-        Collection<String> applicationIds = appSupplier.get().collect(Collectors.toList());
         if (NB_SUBSCRIPTIONS_DESC.equals(applicationsOrderParam.getValue()) || NB_SUBSCRIPTIONS.equals(applicationsOrderParam.getValue())) {
             applicationIds =
                 filteringService.getApplicationsOrderByNumberOfSubscriptions(

@@ -128,6 +128,16 @@ public class HttpMembershipRepository extends AbstractRepository implements Memb
     }
 
     @Override
+    public Set<String> findRefIdByMemberAndRefTypeAndRoleIdIn(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        Collection<String> roleIds
+    ) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
     public Set<Membership> findByMemberIdAndMemberType(String memberId, MembershipMemberType memberType) {
         throw new IllegalStateException();
     }

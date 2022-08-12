@@ -25,6 +25,8 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.List;
@@ -54,6 +56,8 @@ public interface ApplicationService {
     }
 
     Set<String> findIdsByUser(final ExecutionContext executionContext, String username, Sortable sortable);
+
+    Set<String> findIdsByUserAndPermission(ExecutionContext executionContext, String username, Sortable sortable, RolePermission rolePermission, RolePermissionAction... acl);
 
     Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable, Pageable pageable);
 

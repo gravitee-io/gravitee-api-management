@@ -34,6 +34,8 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -248,5 +250,71 @@ public class ApplicationService_FindByUserTest {
         Assert.assertNotNull(apps);
         Assert.assertFalse("should find app", apps.isEmpty());
         Assert.assertEquals(APPLICATION_ID, apps.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindIdsByUser() throws Exception {
+        GraviteeContext.setCurrentEnvironment("envId");
+
+        when(
+            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
+        )
+            .thenReturn(Collections.singleton(APPLICATION_ID));
+
+        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+            .ids(Set.of(APPLICATION_ID))
+            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
+            .status(ApplicationStatus.ACTIVE)
+            .build();
+        when(applicationRepository.searchIds(criteria, null)).thenReturn(Set.of(APPLICATION_ID));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USERNAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+
+        Set<String> apps = applicationService.findIdsByUser(GraviteeContext.getExecutionContext(), USERNAME);
+
+        Assert.assertNotNull(apps);
+        Assert.assertFalse("should find app", apps.isEmpty());
+        Assert.assertEquals(APPLICATION_ID, apps.iterator().next());
+    }
+
+    @Test
+    public void shouldFindIdsByUserAndPermission() throws Exception {
+        GraviteeContext.setCurrentEnvironment("envId");
+
+        when(
+            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
+        )
+            .thenReturn(Collections.singleton(APPLICATION_ID));
+
+        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+            .ids(Set.of(APPLICATION_ID))
+            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
+            .status(ApplicationStatus.ACTIVE)
+            .build();
+        when(applicationRepository.searchIds(criteria, null)).thenReturn(Set.of(APPLICATION_ID));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USERNAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+
+        Set<String> apps = applicationService.findIdsByUserAndPermission(
+            GraviteeContext.getExecutionContext(),
+            USERNAME,
+            null,
+            RolePermission.APPLICATION_SUBSCRIPTION,
+            RolePermissionAction.READ
+        );
+
+        Assert.assertNotNull(apps);
+        Assert.assertFalse("should find app", apps.isEmpty());
+        Assert.assertEquals(APPLICATION_ID, apps.iterator().next());
     }
 }

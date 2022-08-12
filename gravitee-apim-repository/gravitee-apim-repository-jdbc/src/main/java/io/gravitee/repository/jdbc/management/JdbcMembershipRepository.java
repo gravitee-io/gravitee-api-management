@@ -274,6 +274,57 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         }
     }
 
+    @Override
+    public Set<String> findRefIdByMemberAndRefTypeAndRoleIdIn(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        Collection<String> roleIds
+    ) throws TechnicalException {
+        LOGGER.debug(
+            "JdbcMembershipRepository.findReferenceIdByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn({}, {}, {}, [{}])",
+            memberId,
+            memberType,
+            referenceType,
+            roleIds
+        );
+        if (CollectionUtils.isEmpty(roleIds)) {
+            return Set.of();
+        }
+        try {
+            final StringBuilder queryBuilder = new StringBuilder("select m.reference_id from " + this.tableName + " m")
+                .append(WHERE_CLAUSE)
+                .append(" m.member_id = ? ")
+                .append(AND_CLAUSE)
+                .append(" m.member_type = ? ")
+                .append(AND_CLAUSE)
+                .append(" m.reference_type = ? ");
+
+            getOrm().buildInCondition(false, queryBuilder, "m.role_id", roleIds);
+
+            return jdbcTemplate.query(
+                queryBuilder.toString(),
+                (PreparedStatement ps) -> {
+                    ps.setString(1, memberId);
+                    ps.setString(2, memberType.name());
+                    ps.setString(3, referenceType.name());
+                    getOrm().setArguments(ps, roleIds, 4);
+                },
+                resultSet -> {
+                    Set<String> ids = new HashSet<>();
+                    while (resultSet.next()) {
+                        String id = resultSet.getString(1);
+                        ids.add(id);
+                    }
+                    return ids;
+                }
+            );
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find reference ids by references and membership type and member", ex);
+            throw new TechnicalException("Failed to find reference ids by references and membership type and member", ex);
+        }
+    }
+
     private Set<Membership> query(
         final String memberId,
         final MembershipMemberType memberType,

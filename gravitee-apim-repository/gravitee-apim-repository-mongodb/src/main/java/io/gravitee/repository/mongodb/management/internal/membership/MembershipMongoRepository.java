@@ -69,6 +69,14 @@ public interface MembershipMongoRepository extends MongoRepository<MembershipMon
         Collection<String> roleIds
     );
 
+    @Query(value = "{ 'memberId' : ?0, 'memberType' : ?1, 'referenceType' : ?2, 'roleId' : { $in: ?3 } }", fields = "{ 'referenceId' : 1 }")
+    Set<MembershipMongo> findRefIdByMemberAndRefTypeAndRoleIdIn(
+        String memberId,
+        String memberType,
+        String referenceType,
+        Collection<String> roleIds
+    );
+
     @Query("{ 'memberId' : ?0, 'memberType' : ?1, 'referenceType' : ?2, 'source' : ?3 }")
     Set<MembershipMongo> findByMemberIdAndMemberTypeAndReferenceTypeAndSource(
         String memberId,
