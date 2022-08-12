@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.plugin.connector.ConnectorPlugin;
 import io.gravitee.plugin.connector.ConnectorPluginManager;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.rest.api.model.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.ConnectorService;
@@ -34,8 +35,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConnectorServiceImpl extends AbstractPluginService<ConnectorPlugin, ConnectorPluginEntity> implements ConnectorService {
 
-    @Autowired
-    private JsonSchemaService jsonSchemaService;
+    public ConnectorServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<ConnectorPlugin> pluginManager) {
+        super(jsonSchemaService, pluginManager);
+    }
 
     @Override
     public Set<ConnectorPluginEntity> findAll() {
@@ -77,14 +79,6 @@ public class ConnectorServiceImpl extends AbstractPluginService<ConnectorPlugin,
         Optional<ConnectorPluginEntity> candidate = this.findBySupportedType(type);
         if (candidate.isPresent()) {
             return validateConfiguration(candidate.get(), configuration);
-        }
-        return configuration;
-    }
-
-    private String validateConfiguration(ConnectorPluginEntity plugin, String configuration) {
-        if (plugin != null && configuration != null) {
-            String schema = getSchema(plugin.getId());
-            return jsonSchemaService.validate(schema, configuration);
         }
         return configuration;
     }
