@@ -20,11 +20,16 @@ import io.github.classgraph.MethodInfoList;
 import io.github.classgraph.ScanResult;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.flow.Step;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.policy.api.annotations.*;
+import io.gravitee.policy.api.annotations.OnRequest;
+import io.gravitee.policy.api.annotations.OnRequestContent;
+import io.gravitee.policy.api.annotations.OnResponse;
+import io.gravitee.policy.api.annotations.OnResponseContent;
+import io.gravitee.policy.api.annotations.RequireResource;
 import io.gravitee.rest.api.model.PluginEntity;
 import io.gravitee.rest.api.model.PolicyDevelopmentEntity;
 import io.gravitee.rest.api.model.PolicyEntity;
@@ -39,7 +44,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,11 +56,16 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
     private static final Logger LOGGER = LoggerFactory.getLogger(PolicyServiceImpl.class);
     private final Map<String, PolicyDevelopmentEntity> policies = new ConcurrentHashMap<>();
 
-    @Autowired
-    private JsonSchemaService jsonSchemaService;
-
-    @Autowired
     private PolicyClassLoaderFactory policyClassLoaderFactory;
+
+    public PolicyServiceImpl(
+        JsonSchemaService jsonSchemaService,
+        ConfigurablePluginManager<PolicyPlugin> pluginManager,
+        PolicyClassLoaderFactory policyClassLoaderFactory
+    ) {
+        super(jsonSchemaService, pluginManager);
+        this.policyClassLoaderFactory = policyClassLoaderFactory;
+    }
 
     @Override
     public Set<PolicyEntity> findAll(Boolean withResource) {
@@ -82,11 +91,7 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
 
     @Override
     public String validatePolicyConfiguration(String policyName, String configuration) {
-        if (policyName != null && configuration != null) {
-            String schema = getSchema(policyName);
-            return jsonSchemaService.validate(schema, configuration);
-        }
-        return configuration;
+        return validateConfiguration(policyName, configuration);
     }
 
     @Override

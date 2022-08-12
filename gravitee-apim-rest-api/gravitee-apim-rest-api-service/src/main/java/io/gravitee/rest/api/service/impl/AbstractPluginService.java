@@ -19,6 +19,7 @@ import io.gravitee.plugin.core.api.ConfigurablePlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
+import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.PluginService;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -28,7 +29,6 @@ import java.util.HashSet;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -38,13 +38,16 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
     extends TransactionalService
     implements PluginService<E> {
 
-    /**
-     * Logger.
-     */
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
+    private final JsonSchemaService jsonSchemaService;
+
     protected ConfigurablePluginManager<T> pluginManager;
+
+    public AbstractPluginService(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<T> pluginManager) {
+        this.jsonSchemaService = jsonSchemaService;
+        this.pluginManager = pluginManager;
+    }
 
     protected Set<T> list() {
         try {
@@ -111,5 +114,17 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
         entity.setVersion(plugin.manifest().version());
 
         return entity;
+    }
+
+    protected String validateConfiguration(PlatformPluginEntity plugin, String configuration) {
+        return plugin != null ? validateConfiguration(plugin.getId(), configuration) : configuration;
+    }
+
+    protected String validateConfiguration(String pluginId, String configuration) {
+        if (pluginId != null && configuration != null) {
+            String schema = getSchema(pluginId);
+            return jsonSchemaService.validate(schema, configuration);
+        }
+        return configuration;
     }
 }

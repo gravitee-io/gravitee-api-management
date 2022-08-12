@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
@@ -30,10 +31,8 @@ import org.springframework.stereotype.Component;
 @Component("EndpointServiceImplV4")
 public class EndpointServiceImpl extends AbstractPluginService<EndpointConnectorPlugin, PlatformPluginEntity> implements EndpointService {
 
-    private final JsonSchemaService jsonSchemaService;
-
-    public EndpointServiceImpl(JsonSchemaService jsonSchemaService) {
-        this.jsonSchemaService = jsonSchemaService;
+    public EndpointServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<EndpointConnectorPlugin> pluginManager) {
+        super(jsonSchemaService, pluginManager);
     }
 
     @Override
@@ -51,13 +50,5 @@ public class EndpointServiceImpl extends AbstractPluginService<EndpointConnector
     public String validateEndpointConfiguration(final String endpointPluginId, final String configuration) {
         PlatformPluginEntity endpointPluginEntity = this.findById(endpointPluginId);
         return validateConfiguration(endpointPluginEntity, configuration);
-    }
-
-    private String validateConfiguration(PlatformPluginEntity plugin, String configuration) {
-        if (plugin != null && configuration != null) {
-            String schema = getSchema(plugin.getId());
-            return jsonSchemaService.validate(schema, configuration);
-        }
-        return configuration;
     }
 }

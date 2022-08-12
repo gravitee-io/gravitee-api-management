@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
@@ -38,10 +39,8 @@ public class EntrypointServiceImpl
     extends AbstractPluginService<EntrypointConnectorPlugin, EntrypointPluginEntity>
     implements EntrypointService {
 
-    private final JsonSchemaService jsonSchemaService;
-
-    public EntrypointServiceImpl(final JsonSchemaService jsonSchemaService) {
-        this.jsonSchemaService = jsonSchemaService;
+    public EntrypointServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<EntrypointConnectorPlugin> pluginManager) {
+        super(jsonSchemaService, pluginManager);
     }
 
     @Override
@@ -111,13 +110,5 @@ public class EntrypointServiceImpl
     public String validateEntrypointConfiguration(final String entrypointPluginId, final String configuration) {
         EntrypointPluginEntity entrypointPluginEntity = this.findById(entrypointPluginId);
         return validateConfiguration(entrypointPluginEntity, configuration);
-    }
-
-    private String validateConfiguration(EntrypointPluginEntity plugin, String configuration) {
-        if (plugin != null && configuration != null) {
-            String schema = getSchema(plugin.getId());
-            return jsonSchemaService.validate(schema, configuration);
-        }
-        return configuration;
     }
 }

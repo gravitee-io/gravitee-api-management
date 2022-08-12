@@ -31,9 +31,7 @@ import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
-import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
-import io.gravitee.rest.api.service.impl.PolicyServiceImpl;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Set;
@@ -53,7 +51,7 @@ public class PolicyServiceTest {
     private static final String POLICY_ID = "myPolicy";
 
     @InjectMocks
-    private PolicyService policyService = new PolicyServiceImpl();
+    private PolicyServiceImpl policyService;
 
     @Mock
     private ConfigurablePluginManager<PolicyPlugin> policyManager;
