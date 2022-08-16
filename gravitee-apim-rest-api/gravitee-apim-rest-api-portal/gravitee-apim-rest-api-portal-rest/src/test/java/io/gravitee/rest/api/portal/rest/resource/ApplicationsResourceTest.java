@@ -184,7 +184,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         ApplicationListItem applicationB = new ApplicationListItem();
         applicationB.setId("B");
         Collection<String> mockFilteredApp = Arrays.asList(applicationB.getId(), applicationA.getId());
-        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyList(), eq(Order.DESC));
+        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection(), eq(Order.DESC));
 
         final Response response = target().queryParam("order", "-nbSubscriptions").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -204,7 +204,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         ApplicationListItem applicationB = new ApplicationListItem();
         applicationB.setId("B");
         Collection<String> mockFilteredApp = Arrays.asList(applicationA.getId(), applicationB.getId());
-        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyList(), eq(Order.ASC));
+        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection(), eq(Order.ASC));
 
         final Response response = target().queryParam("order", "nbSubscriptions").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -262,6 +262,78 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(2, metadataSubscriptions.size());
         assertEquals(2, ((List) metadataSubscriptions.get("A")).size());
         assertEquals(1, ((List) metadataSubscriptions.get("B")).size());
+    }
+
+    @Test
+    public void shouldGetAllApplicationsWithoutSubscriptions() {
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(any(), eq(RolePermission.APPLICATION_SUBSCRIPTION), any(), eq(RolePermissionAction.READ));
+        List<SubscriptionEntity> subscriptions = new ArrayList<>();
+        SubscriptionEntity sub1 = createSubscriptionEntity("sub-1", "A");
+        SubscriptionEntity sub2 = createSubscriptionEntity("sub-2", "A");
+        SubscriptionEntity sub3 = createSubscriptionEntity("sub-3", "B");
+
+        subscriptions.addAll(Arrays.asList(sub1, sub2, sub3));
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setApplications(Arrays.asList("A", "B"));
+        query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
+        doReturn(subscriptions).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+
+        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub1);
+        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub2);
+        doReturn(new Subscription().application("B")).when(subscriptionMapper).convert(sub3);
+
+        ApplicationListItem appA = mock(ApplicationListItem.class);
+        ApplicationListItem appB = mock(ApplicationListItem.class);
+        Collection<ApplicationListItem> applications = new HashSet<>(Arrays.asList(appA, appB));
+        doReturn(applications).when(applicationService).findByUser(any(), any(), any());
+
+        final Response response = target().queryParam("size", -1).request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertEquals(2, applicationsResponse.getData().size());
+
+        Links links = applicationsResponse.getLinks();
+        assertNotNull(links);
+        assertNull(applicationsResponse.getMetadata());
+    }
+
+    @Test
+    public void shouldGetAllApplicationsForSubscription() {
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(any(), eq(RolePermission.APPLICATION_SUBSCRIPTION), any(), eq(RolePermissionAction.READ));
+        List<SubscriptionEntity> subscriptions = new ArrayList<>();
+        SubscriptionEntity sub1 = createSubscriptionEntity("sub-1", "A");
+        SubscriptionEntity sub2 = createSubscriptionEntity("sub-2", "A");
+        SubscriptionEntity sub3 = createSubscriptionEntity("sub-3", "B");
+
+        subscriptions.addAll(Arrays.asList(sub1, sub2, sub3));
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setApplications(Arrays.asList("A", "B"));
+        query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
+        doReturn(subscriptions).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+
+        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub1);
+        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub2);
+        doReturn(new Subscription().application("B")).when(subscriptionMapper).convert(sub3);
+
+        ApplicationListItem appA = mock(ApplicationListItem.class);
+        ApplicationListItem appB = mock(ApplicationListItem.class);
+        Collection<ApplicationListItem> applications = Arrays.asList(appA, appB);
+        doReturn(applications)
+            .when(applicationService)
+            .findByUserAndPermission(any(), any(), any(), eq(RolePermission.APPLICATION_SUBSCRIPTION), eq(RolePermissionAction.CREATE));
+
+        final Response response = target().queryParam("size", -1).queryParam("forSubscription", true).request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertEquals(2, applicationsResponse.getData().size());
+
+        Links links = applicationsResponse.getLinks();
+        assertNotNull(links);
+        assertNull(applicationsResponse.getMetadata());
     }
 
     @Test

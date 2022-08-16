@@ -57,13 +57,11 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.HookScope;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.bind.DatatypeConverter;
-
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -188,23 +186,59 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return searchIds(executionContext, applicationQuery, sortable);
     }
 
+    @Override
+    public Set<String> findIdsByUserAndPermission(
+        ExecutionContext executionContext,
+        String username,
+        Sortable sortable,
+        RolePermission rolePermission,
+        RolePermissionAction... acl
+    ) {
+        LOGGER.debug("Find applicationIds for user and permission {}, {}, {}", username, rolePermission, acl);
+        ApplicationQuery applicationQuery = buildApplicationQueryForUserAndPermission(executionContext, rolePermission, acl, username);
+        applicationQuery.setExcludeFilters(Arrays.asList(ApplicationExcludeFilter.OWNER));
+        return searchIds(executionContext, applicationQuery, sortable);
+    }
 
     @Override
-    public Set<String> findIdsByUserAndPermission(ExecutionContext executionContext, String username, Sortable sortable, RolePermission rolePermission, RolePermissionAction... acl) {
-        List<String> roleIdsWithPermission = roleService.findAllByOrganization(executionContext.getOrganizationId()).stream()
+    public List<ApplicationListItem> findByUserAndPermission(
+        ExecutionContext executionContext,
+        String username,
+        Sortable sortable,
+        RolePermission rolePermission,
+        RolePermissionAction... acl
+    ) {
+        LOGGER.debug("Find applications for user and permission {}, {}, {}", username, rolePermission, acl);
+        ApplicationQuery applicationQuery = buildApplicationQueryForUserAndPermission(executionContext, rolePermission, acl, username);
+        return search(executionContext, applicationQuery, sortable, null).getContent();
+    }
+
+    @NotNull
+    private ApplicationQuery buildApplicationQueryForUserAndPermission(
+        ExecutionContext executionContext,
+        RolePermission rolePermission,
+        RolePermissionAction[] acl,
+        String username
+    ) {
+        List<String> roleIdsWithPermission = roleService
+            .findAllByOrganization(executionContext.getOrganizationId())
+            .stream()
             .filter(roleEntity -> roleService.hasPermission(roleEntity.getPermissions(), rolePermission.getPermission(), acl))
             .map(RoleEntity::getId)
             .collect(toList());
 
-        Set<String> appIds = membershipService.getReferenceIdsByMemberAndReferenceAndRoleIn(MembershipMemberType.USER, username, MembershipReferenceType.APPLICATION, roleIdsWithPermission);
+        Set<String> appIds = membershipService.getReferenceIdsByMemberAndReferenceAndRoleIn(
+            MembershipMemberType.USER,
+            username,
+            MembershipReferenceType.APPLICATION,
+            roleIdsWithPermission
+        );
 
         ApplicationQuery applicationQuery = new ApplicationQuery();
         applicationQuery.setIds(appIds);
         applicationQuery.setUser(username);
         applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
-        applicationQuery.setExcludeFilters(Arrays.asList(ApplicationExcludeFilter.OWNER));
-
-        return searchIds(executionContext, applicationQuery, sortable);
+        return applicationQuery;
     }
 
     @Override
@@ -273,7 +307,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         // Check that shared API key mode is enabled
         if (
             newApplicationEntity.getApiKeyMode() == ApiKeyMode.SHARED &&
-                !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)
         ) {
             throw new InvalidApplicationApiKeyModeException(
                 "Can't create application with SHARED api key mode cause environment setting is disabled"
@@ -288,7 +322,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // If client registration is enabled, check that the simple type is allowed
             if (
                 isClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId()) &&
-                    !isApplicationTypeAllowed(executionContext, "simple", executionContext.getEnvironmentId())
+                !isApplicationTypeAllowed(executionContext, "simple", executionContext.getEnvironmentId())
             ) {
                 throw new IllegalStateException("Application type 'simple' is not allowed");
             }
@@ -402,11 +436,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             );
             throw new TechnicalManagementException(
                 "An error occurs while trying create " +
-                    application +
-                    " for user " +
-                    userId +
-                    " in environment " +
-                    executionContext.getEnvironmentId(),
+                application +
+                " for user " +
+                userId +
+                " in environment " +
+                executionContext.getEnvironmentId(),
                 ex
             );
         }
@@ -601,7 +635,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Check that the application can be updated with a new client secret
             if (
                 applicationEntity.getSettings().getoAuthClient() != null &&
-                    applicationEntity.getSettings().getoAuthClient().isRenewClientSecretSupported()
+                applicationEntity.getSettings().getoAuthClient().isRenewClientSecretSupported()
             ) {
                 ClientRegistrationResponse registrationResponse = clientRegistrationService.renewClientSecret(
                     executionContext,
@@ -1202,8 +1236,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             updateApplicationEntity.setApiKeyMode(ApiKeyMode.valueOf(applicationToUpdate.getApiKeyMode().name()));
         } else if (
             applicationToUpdate.getApiKeyMode() != null &&
-                !applicationToUpdate.getApiKeyMode().isUpdatable() &&
-                !applicationToUpdate.getApiKeyMode().name().equals(updateApplicationEntity.getApiKeyMode().name())
+            !applicationToUpdate.getApiKeyMode().isUpdatable() &&
+            !applicationToUpdate.getApiKeyMode().name().equals(updateApplicationEntity.getApiKeyMode().name())
         ) {
             throw new InvalidApplicationApiKeyModeException(
                 String.format(
@@ -1214,8 +1248,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             );
         } else if (
             updateApplicationEntity.getApiKeyMode() == ApiKeyMode.SHARED &&
-                applicationToUpdate.getApiKeyMode() != io.gravitee.repository.management.model.ApiKeyMode.SHARED &&
-                !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+            applicationToUpdate.getApiKeyMode() != io.gravitee.repository.management.model.ApiKeyMode.SHARED &&
+            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)
         ) {
             throw new InvalidApplicationApiKeyModeException(
                 String.format(

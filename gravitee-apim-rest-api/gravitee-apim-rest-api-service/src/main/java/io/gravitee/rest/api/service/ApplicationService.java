@@ -57,7 +57,21 @@ public interface ApplicationService {
 
     Set<String> findIdsByUser(final ExecutionContext executionContext, String username, Sortable sortable);
 
-    Set<String> findIdsByUserAndPermission(ExecutionContext executionContext, String username, Sortable sortable, RolePermission rolePermission, RolePermissionAction... acl);
+    Set<String> findIdsByUserAndPermission(
+        ExecutionContext executionContext,
+        String username,
+        Sortable sortable,
+        RolePermission rolePermission,
+        RolePermissionAction... acl
+    );
+
+    List<ApplicationListItem> findByUserAndPermission(
+        ExecutionContext executionContext,
+        String username,
+        Sortable sortable,
+        RolePermission rolePermission,
+        RolePermissionAction... acl
+    );
 
     Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable, Pageable pageable);
 
