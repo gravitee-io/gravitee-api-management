@@ -29,12 +29,12 @@ public class MockEndpointConnectorConfiguration implements EndpointConnectorConf
     /**
      * Interval between mock messages publication, in milliseconds.
      */
-    private Long messageInterval;
+    private Long messageInterval = 1000L;
 
     /**
      * Content of mocked messages.
      */
-    private String messageContent;
+    private String messageContent = "mock message";
 
     /**
      * Count of published messages.
