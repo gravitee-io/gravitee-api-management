@@ -25,10 +25,12 @@ import java.util.Set;
 /**
  * @author GraviteeSource Team
  */
-public class FakeEndpointFactory extends AbstractConnectorFactory<FakeEndpointConnector> {
+public class FakeEndpointConnectorFactory extends AbstractConnectorFactory<FakeEndpointConnector> {
 
-    public FakeEndpointFactory(Class<?> configurationClass) {
-        super(configurationClass);
+    private class FakeEndpointConnectorFactoryConfiguration {}
+
+    public FakeEndpointConnectorFactory() {
+        super(FakeEndpointConnectorFactoryConfiguration.class);
     }
 
     @Override

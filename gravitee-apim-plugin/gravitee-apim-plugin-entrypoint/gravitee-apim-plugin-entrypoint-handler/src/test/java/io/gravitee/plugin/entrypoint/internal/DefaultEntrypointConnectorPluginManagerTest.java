@@ -18,14 +18,13 @@ package io.gravitee.plugin.entrypoint.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnector;
+import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnectorFactory;
 import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnectorPlugin;
-import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -47,7 +46,7 @@ class DefaultEntrypointConnectorPluginManagerTest {
     public void shouldRegisterNewEntrypointPluginWithoutConfiguration() {
         DefaultEntrypointConnectorPlugin entrypointPlugin = new DefaultEntrypointConnectorPlugin(
             new FakeEntrypointConnectorPlugin(),
-            FakeEntrypointFactory.class,
+            FakeEntrypointConnectorFactory.class,
             null
         );
         entrypointConnectorPluginManager.register(entrypointPlugin);
@@ -63,7 +62,7 @@ class DefaultEntrypointConnectorPluginManagerTest {
     public void shouldRegisterNewEntrypointPluginWithConfiguration() {
         DefaultEntrypointConnectorPlugin entrypointPlugin = new DefaultEntrypointConnectorPlugin(
             new FakeEntrypointConnectorPlugin(),
-            FakeEntrypointFactory.class,
+            FakeEntrypointConnectorFactory.class,
             EntrypointConnectorConfiguration.class
         );
         entrypointConnectorPluginManager.register(entrypointPlugin);

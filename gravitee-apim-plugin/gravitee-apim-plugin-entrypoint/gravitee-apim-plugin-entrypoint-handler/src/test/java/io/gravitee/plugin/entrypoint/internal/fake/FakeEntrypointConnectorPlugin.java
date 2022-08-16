@@ -34,12 +34,12 @@ public class FakeEntrypointConnectorPlugin implements EntrypointConnectorPlugin 
 
     @Override
     public String clazz() {
-        return FakeEntrypointFactory.class.getCanonicalName();
+        return FakeEntrypointConnectorFactory.class.getCanonicalName();
     }
 
     @Override
     public Class<? extends AbstractConnectorFactory<?>> entrypointConnectorFactory() {
-        return FakeEntrypointFactory.class;
+        return FakeEntrypointConnectorFactory.class;
     }
 
     @Override

@@ -43,8 +43,7 @@ public class ResourceServiceImpl extends AbstractPluginService<ResourcePlugin<?>
 
     @Override
     public PlatformPluginEntity findById(String resource) {
-        ResourcePlugin<?> resourceDefinition = super.get(resource);
-        return convert(resourceDefinition);
+        return convert(super.get(resource));
     }
 
     @Override

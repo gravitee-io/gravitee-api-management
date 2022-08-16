@@ -44,8 +44,7 @@ public class EndpointServiceImpl
 
     @Override
     public PlatformPluginEntity findById(String endpointPluginId) {
-        EndpointConnectorPlugin resourceDefinition = super.get(endpointPluginId);
-        return convert(resourceDefinition);
+        return convert(super.get(endpointPluginId));
     }
 
     @Override
