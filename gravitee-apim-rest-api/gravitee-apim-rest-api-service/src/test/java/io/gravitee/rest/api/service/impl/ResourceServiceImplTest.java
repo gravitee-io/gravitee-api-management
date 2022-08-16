@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4.impl;
+package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.*;
 
+import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.plugin.core.api.PluginManifest;
-import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
-import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
+import io.gravitee.plugin.resource.ResourcePlugin;
+import io.gravitee.plugin.resource.internal.ResourcePluginManagerImpl;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
@@ -36,59 +38,56 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EndpointServiceImplTest {
+public class ResourceServiceImplTest {
 
     private static final String PLUGIN_ID = "my-test-plugin";
     private static final String CONFIGURATION = "my-test-configuration";
     private static final String SCHEMA = "my-test-schema";
 
     @InjectMocks
-    private EndpointServiceImpl endpointService;
+    private ResourceServiceImpl resourceService;
 
     @Mock
     private JsonSchemaService jsonSchemaService;
 
     @Mock
-    private EndpointConnectorPluginManager pluginManager;
+    private ResourcePluginManagerImpl pluginManager;
 
     @Mock
-    private EndpointConnectorPlugin mockPlugin;
+    private ResourcePlugin mockPlugin;
 
     @Mock
     private PluginManifest mockPluginManifest;
 
     @Before
     public void setup() {
-        ReflectionTestUtils.setField(endpointService, "pluginManager", pluginManager);
-        when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-        when(mockPlugin.id()).thenReturn(PLUGIN_ID);
+        ReflectionTestUtils.setField(resourceService, "pluginManager", pluginManager);
     }
 
     @Test
-    public void shouldValidateConfiguration() throws IOException {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
+    public void shouldValidateConfigurationFromV3resource() throws IOException {
         when(pluginManager.getSchema(PLUGIN_ID)).thenReturn(SCHEMA);
-        when(jsonSchemaService.validate(SCHEMA, CONFIGURATION)).thenReturn("fixed-configuration");
 
-        String resultConfiguration = endpointService.validateEndpointConfiguration(PLUGIN_ID, CONFIGURATION);
+        Resource resource = mock(Resource.class);
+        when(resource.getType()).thenReturn(PLUGIN_ID);
+        when(resource.getConfiguration()).thenReturn(CONFIGURATION);
 
-        assertEquals("fixed-configuration", resultConfiguration);
+        resourceService.validateResourceConfiguration(resource);
+
+        verify(jsonSchemaService).validate(SCHEMA, CONFIGURATION);
     }
 
     @Test
-    public void shouldValidateConfigurationWhenNullConfiguration() throws IOException {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
+    public void shouldValidateConfigurationFromV4resource() throws IOException {
+        when(pluginManager.getSchema(PLUGIN_ID)).thenReturn(SCHEMA);
 
-        String resultConfiguration = endpointService.validateEndpointConfiguration(PLUGIN_ID, null);
+        io.gravitee.definition.model.v4.resource.Resource resource = mock(io.gravitee.definition.model.v4.resource.Resource.class);
+        when(resource.getType()).thenReturn(PLUGIN_ID);
+        when(resource.getConfiguration()).thenReturn(CONFIGURATION);
 
-        assertNull(resultConfiguration);
-    }
+        resourceService.validateResourceConfiguration(resource);
 
-    @Test(expected = PluginNotFoundException.class)
-    public void shouldFailToValidateConfigurationWhenNoPlugin() {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
-
-        endpointService.validateEndpointConfiguration(PLUGIN_ID, CONFIGURATION);
+        verify(jsonSchemaService).validate(SCHEMA, CONFIGURATION);
     }
 
     @Test
@@ -97,7 +96,7 @@ public class EndpointServiceImplTest {
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
 
-        PlatformPluginEntity result = endpointService.findById(PLUGIN_ID);
+        PlatformPluginEntity result = resourceService.findById(PLUGIN_ID);
 
         assertNotNull(result);
         assertEquals(PLUGIN_ID, result.getId());
@@ -107,7 +106,7 @@ public class EndpointServiceImplTest {
     public void shouldNotFindById() {
         when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
 
-        endpointService.findById(PLUGIN_ID);
+        resourceService.findById(PLUGIN_ID);
     }
 
     @Test
@@ -116,7 +115,7 @@ public class EndpointServiceImplTest {
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
 
-        Set<PlatformPluginEntity> result = endpointService.findAll();
+        Set<PlatformPluginEntity> result = resourceService.findAll();
 
         assertNotNull(result);
         assertEquals(1, result.size());

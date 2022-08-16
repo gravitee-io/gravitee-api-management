@@ -15,6 +15,8 @@
  */
 package io.gravitee.plugin.entrypoint.internal.fake;
 
+import static org.mockito.Mockito.mock;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
@@ -26,10 +28,12 @@ import java.util.Set;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FakeEntrypointFactory extends AbstractConnectorFactory<FakeEntrypointConnector> {
+public class FakeEntrypointConnectorFactory extends AbstractConnectorFactory<FakeEntrypointConnector> {
 
-    public FakeEntrypointFactory(Class<?> configurationClass) {
-        super(configurationClass);
+    private class FakeEntrypointConnectorFactoryConfiguration {}
+
+    public FakeEntrypointConnectorFactory() {
+        super(FakeEntrypointConnectorFactoryConfiguration.class);
     }
 
     @Override

@@ -24,8 +24,8 @@ import static org.mockito.Mockito.when;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnectorFactory;
 import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnectorPlugin;
-import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -67,7 +67,7 @@ class EntrypointConnectorPluginHandlerTest {
     @Test
     public void shouldHandleNewPlugin() {
         FakeEntrypointConnectorPlugin plugin = new FakeEntrypointConnectorPlugin();
-        entrypointConnectorPluginHandler.handle(plugin, FakeEntrypointFactory.class);
+        entrypointConnectorPluginHandler.handle(plugin, FakeEntrypointConnectorFactory.class);
         verify(mockEntrypointConnectorPluginManager).register(any(EntrypointConnectorPlugin.class));
     }
 }

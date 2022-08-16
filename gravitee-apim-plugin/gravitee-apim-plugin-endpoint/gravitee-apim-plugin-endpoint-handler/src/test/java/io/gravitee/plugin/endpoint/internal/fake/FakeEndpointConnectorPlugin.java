@@ -33,12 +33,12 @@ public class FakeEndpointConnectorPlugin implements EndpointConnectorPlugin {
 
     @Override
     public String clazz() {
-        return FakeEndpointFactory.class.getCanonicalName();
+        return FakeEndpointConnectorFactory.class.getCanonicalName();
     }
 
     @Override
     public Class<? extends AbstractConnectorFactory<?>> endpointConnectorFactory() {
-        return FakeEndpointFactory.class;
+        return FakeEndpointConnectorFactory.class;
     }
 
     @Override

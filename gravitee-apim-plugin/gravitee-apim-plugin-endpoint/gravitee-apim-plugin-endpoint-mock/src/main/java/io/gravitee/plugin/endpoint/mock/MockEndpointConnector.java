@@ -36,7 +36,7 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     static final ApiType SUPPORTED_API = ApiType.ASYNC;
 
-    private final MockEndpointConnectorConfiguration configuration;
+    protected final MockEndpointConnectorConfiguration configuration;
 
     @Override
     public ApiType supportedApi() {

@@ -15,8 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.jupiter.api.ApiType;
@@ -24,9 +23,13 @@ import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
+import io.gravitee.rest.api.model.v4.entrypoint.EntrypointPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -94,5 +97,37 @@ public class EntrypointServiceImplTest {
         when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
 
         entrypointService.validateEntrypointConfiguration(PLUGIN_ID, CONFIGURATION);
+    }
+
+    @Test
+    public void shouldFindById() {
+        when(mockPlugin.id()).thenReturn(PLUGIN_ID);
+        when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
+        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
+
+        PlatformPluginEntity result = entrypointService.findById(PLUGIN_ID);
+
+        assertNotNull(result);
+        assertEquals(PLUGIN_ID, result.getId());
+    }
+
+    @Test(expected = PluginNotFoundException.class)
+    public void shouldNotFindById() {
+        when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
+
+        entrypointService.findById(PLUGIN_ID);
+    }
+
+    @Test
+    public void shouldFindAll() {
+        when(mockPlugin.id()).thenReturn(PLUGIN_ID);
+        when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
+        when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
+
+        Set<EntrypointPluginEntity> result = entrypointService.findAll();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(PLUGIN_ID, result.iterator().next().getId());
     }
 }

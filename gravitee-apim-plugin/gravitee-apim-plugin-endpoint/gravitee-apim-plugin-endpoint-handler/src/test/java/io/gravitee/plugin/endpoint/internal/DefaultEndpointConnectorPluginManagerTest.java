@@ -23,8 +23,8 @@ import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfi
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnector;
+import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorFactory;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorPlugin;
-import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +44,7 @@ class DefaultEndpointConnectorPluginManagerTest {
     public void shouldRegisterNewEndpointPluginWithoutConfiguration() {
         DefaultEndpointConnectorPlugin endpointPlugin = new DefaultEndpointConnectorPlugin(
             new FakeEndpointConnectorPlugin(),
-            FakeEndpointFactory.class,
+            FakeEndpointConnectorFactory.class,
             null
         );
         endpointConnectorPluginManager.register(endpointPlugin);
@@ -58,7 +58,7 @@ class DefaultEndpointConnectorPluginManagerTest {
     public void shouldRegisterNewEndpointPluginWithConfiguration() {
         DefaultEndpointConnectorPlugin endpointPlugin = new DefaultEndpointConnectorPlugin(
             new FakeEndpointConnectorPlugin(),
-            FakeEndpointFactory.class,
+            FakeEndpointConnectorFactory.class,
             EndpointConnectorConfiguration.class
         );
         endpointConnectorPluginManager.register(endpointPlugin);

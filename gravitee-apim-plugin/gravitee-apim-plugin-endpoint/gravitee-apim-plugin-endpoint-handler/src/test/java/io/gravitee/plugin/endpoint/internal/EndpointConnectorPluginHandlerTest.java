@@ -22,8 +22,8 @@ import static org.mockito.Mockito.*;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
+import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorFactory;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorPlugin;
-import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -64,7 +64,7 @@ class EndpointConnectorPluginHandlerTest {
     @Test
     public void shouldHandleNewPlugin() {
         FakeEndpointConnectorPlugin plugin = new FakeEndpointConnectorPlugin();
-        endpointPluginHandler.handle(plugin, FakeEndpointFactory.class);
+        endpointPluginHandler.handle(plugin, FakeEndpointConnectorFactory.class);
         verify(mockEndpointConnectorPluginManager).register(any(EndpointConnectorPlugin.class));
     }
 }

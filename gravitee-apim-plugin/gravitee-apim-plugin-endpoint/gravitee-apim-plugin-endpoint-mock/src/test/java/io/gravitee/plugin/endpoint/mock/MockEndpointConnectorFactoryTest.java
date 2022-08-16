@@ -47,15 +47,28 @@ class MockEndpointConnectorFactoryTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "wrong", "", "  " })
+    @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
     void shouldCreateConnectorWithWrongConfiguration(String configuration) {
         MockEndpointConnector connector = mockEndpointConnectorFactory.createConnector(configuration);
+        assertThat(connector).isNull();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "{}", "{\"messageContent\":\"my message content\"}" })
+    void shouldCreateConnectorWithRightConfiguration(String configuration) {
+        MockEndpointConnector connector = mockEndpointConnectorFactory.createConnector(configuration);
         assertThat(connector).isNotNull();
+        assertThat(connector.configuration).isNotNull();
+        assertThat(connector.configuration.getMessageContent()).isNotNull();
+        assertThat(connector.configuration.getMessageInterval()).isNotNull();
     }
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
         MockEndpointConnector connector = mockEndpointConnectorFactory.createConnector(null);
         assertThat(connector).isNotNull();
+        assertThat(connector.configuration).isNotNull();
+        assertThat(connector.configuration.getMessageContent()).isNotNull();
+        assertThat(connector.configuration.getMessageInterval()).isNotNull();
     }
 }

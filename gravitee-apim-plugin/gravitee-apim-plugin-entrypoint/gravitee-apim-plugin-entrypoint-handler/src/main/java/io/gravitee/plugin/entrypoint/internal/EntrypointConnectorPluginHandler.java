@@ -57,11 +57,11 @@ public class EntrypointConnectorPluginHandler extends AbstractSimplePluginHandle
 
         // Once registered, the classloader should be released
         // TODO: why do we need this here ?
-        URLClassLoader classLoader = (URLClassLoader) entrypointConnectorPlugin.entrypointConnectorFactory().getClassLoader();
         try {
+            URLClassLoader classLoader = (URLClassLoader) entrypointConnectorPlugin.entrypointConnectorFactory().getClassLoader();
             classLoader.close();
-        } catch (IOException e) {
-            logger.error("Unexpected exception while trying to release the policy classloader");
+        } catch (Exception e) {
+            logger.error("Unexpected exception while trying to release the connector classloader");
         }
     }
 
