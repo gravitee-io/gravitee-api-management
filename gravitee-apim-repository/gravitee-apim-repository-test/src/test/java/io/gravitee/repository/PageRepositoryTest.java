@@ -460,4 +460,12 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         Integer maxPortalPageOrder = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("DEFAULT", PageReferenceType.ENVIRONMENT);
         assertEquals(Integer.valueOf(20), maxPortalPageOrder);
     }
+
+    @Test
+    public void shouldHaveEmptyAccessControls() throws TechnicalException {
+        Optional<Page> homePage = pageRepository.findById("home");
+        assertTrue(homePage.isPresent());
+        assertNotNull(homePage.get().getAccessControls());
+        assertEquals(0, homePage.get().getAccessControls().size());
+    }
 }
