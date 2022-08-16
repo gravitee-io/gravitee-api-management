@@ -200,11 +200,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
 
     private Collection<String> getCurrentUserSubscribedApis(ExecutionContext executionContext, Set<String> apis, boolean excluded) {
         //get Current user applications
-        List<String> currentUserApplicationsId = applicationService
-            .findByUser(executionContext, getAuthenticatedUser().getUsername())
-            .stream()
-            .map(ApplicationListItem::getId)
-            .collect(Collectors.toList());
+        Set<String> currentUserApplicationsId = applicationService.findIdsByUser(executionContext, getAuthenticatedUser().getUsername());
 
         //find all subscribed apis for these applications
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();

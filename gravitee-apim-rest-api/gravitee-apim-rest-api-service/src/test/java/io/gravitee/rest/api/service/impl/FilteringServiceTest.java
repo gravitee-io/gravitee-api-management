@@ -155,15 +155,9 @@ public class FilteringServiceTest {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
 
-        ApplicationListItem appA = new ApplicationListItem();
-        appA.setId("A");
-        ApplicationListItem appB = new ApplicationListItem();
-        appB.setId("B");
-        ApplicationListItem appC = new ApplicationListItem();
-        appC.setId("C");
-        doReturn(new HashSet<ApplicationListItem>(Arrays.asList(appC, appB, appA)))
+        doReturn(new HashSet<>(Arrays.asList("C", "B", "A")))
             .when(applicationService)
-            .findByUser(eq(GraviteeContext.getExecutionContext()), any());
+            .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         SubscriptionEntity subA1 = new SubscriptionEntity();
         subA1.setApplication("A");
