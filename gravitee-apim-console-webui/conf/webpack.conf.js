@@ -166,7 +166,7 @@ module.exports = {
         secure: false,
         changeOrigin: true,
         onProxyReq: function (proxyReq, req, res) {
-          proxyReq.setHeader('origin', 'https://apim-master-console.team-apim.gravitee.xyz');
+          proxyReq.setHeader('origin', `https://${env}`);
         },
       },
     },
