@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.usersURL;
 
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
@@ -55,51 +56,7 @@ public class ApplicationMapper {
     private GroupService groupService;
 
     public Application convert(ExecutionContext executionContext, ApplicationListItem applicationListItem, UriInfo uriInfo) {
-        final Application application = new Application();
-        application.setApplicationType(applicationListItem.getType());
-        application.setCreatedAt(applicationListItem.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
-        application.setDescription(applicationListItem.getDescription());
-        application.setDomain(applicationListItem.getDomain());
-        Set<String> groupEntities = applicationListItem.getGroups();
-        if (groupEntities != null && !groupEntities.isEmpty()) {
-            List<Group> groups = groupEntities
-                .stream()
-                .map(groupId -> groupService.findById(executionContext, groupId))
-                .map(groupEntity -> new Group().id(groupEntity.getId()).name(groupEntity.getName()))
-                .collect(Collectors.toList());
-            application.setGroups(groups);
-        }
-        application.setId(applicationListItem.getId());
-        application.setName(applicationListItem.getName());
-
-        UserEntity primaryOwnerUserEntity = userService.findById(executionContext, applicationListItem.getPrimaryOwner().getId());
-        User owner = userMapper.convert(primaryOwnerUserEntity);
-        owner.setLinks(
-            userMapper.computeUserLinks(
-                usersURL(uriInfo.getBaseUriBuilder(), primaryOwnerUserEntity.getId()),
-                primaryOwnerUserEntity.getUpdatedAt()
-            )
-        );
-        application.setOwner(owner);
-        application.setUpdatedAt(applicationListItem.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
-        ApplicationSettings settings = applicationListItem.getSettings();
-        application.setHasClientId(
-            settings != null &&
-            (
-                (
-                    settings.getoAuthClient() != null &&
-                    settings.getoAuthClient().getClientId() != null &&
-                    !settings.getoAuthClient().getClientId().isEmpty()
-                ) ||
-                (settings.getApp() != null && settings.getApp().getClientId() != null && !settings.getApp().getClientId().isEmpty())
-            )
-        );
-        if (applicationListItem.getApiKeyMode() != null) {
-            application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationListItem.getApiKeyMode().name()));
-        } else {
-            application.setApiKeyMode(ApiKeyModeEnum.UNSPECIFIED);
-        }
-        return application;
+        return convert(executionContext, applicationListItem, uriInfo, true);
     }
 
     public ApplicationLinks computeApplicationLinks(String basePath, OffsetDateTime updateDate) {
@@ -181,6 +138,67 @@ public class ApplicationMapper {
 
         if (applicationEntity.getApiKeyMode() != null) {
             application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationEntity.getApiKeyMode().name()));
+        } else {
+            application.setApiKeyMode(ApiKeyModeEnum.UNSPECIFIED);
+        }
+        return application;
+    }
+
+    public Application convert(
+        ExecutionContext executionContext,
+        ApplicationListItem applicationListItem,
+        UriInfo uriInfo,
+        boolean withUserDetails
+    ) {
+        final Application application = new Application();
+        application.setApplicationType(applicationListItem.getType());
+        application.setCreatedAt(applicationListItem.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
+        application.setDescription(applicationListItem.getDescription());
+        application.setDomain(applicationListItem.getDomain());
+        Set<String> groupEntities = applicationListItem.getGroups();
+        if (groupEntities != null && !groupEntities.isEmpty()) {
+            List<Group> groups = groupEntities
+                .stream()
+                .map(groupId -> groupService.findById(executionContext, groupId))
+                .map(groupEntity -> new Group().id(groupEntity.getId()).name(groupEntity.getName()))
+                .collect(Collectors.toList());
+            application.setGroups(groups);
+        }
+        application.setId(applicationListItem.getId());
+        application.setName(applicationListItem.getName());
+
+        PrimaryOwnerEntity primaryOwner = applicationListItem.getPrimaryOwner();
+        User owner;
+        if (withUserDetails) {
+            UserEntity primaryOwnerUserEntity = userService.findById(executionContext, primaryOwner.getId());
+            owner = userMapper.convert(primaryOwnerUserEntity);
+            owner.setLinks(
+                userMapper.computeUserLinks(
+                    usersURL(uriInfo.getBaseUriBuilder(), primaryOwnerUserEntity.getId()),
+                    primaryOwnerUserEntity.getUpdatedAt()
+                )
+            );
+        } else {
+            owner = userMapper.convert(primaryOwner);
+            owner.setLinks(userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), primaryOwner.getId()), null));
+        }
+
+        application.setOwner(owner);
+        application.setUpdatedAt(applicationListItem.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
+        ApplicationSettings settings = applicationListItem.getSettings();
+        application.setHasClientId(
+            settings != null &&
+            (
+                (
+                    settings.getoAuthClient() != null &&
+                    settings.getoAuthClient().getClientId() != null &&
+                    !settings.getoAuthClient().getClientId().isEmpty()
+                ) ||
+                (settings.getApp() != null && settings.getApp().getClientId() != null && !settings.getApp().getClientId().isEmpty())
+            )
+        );
+        if (applicationListItem.getApiKeyMode() != null) {
+            application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationListItem.getApiKeyMode().name()));
         } else {
             application.setApiKeyMode(ApiKeyModeEnum.UNSPECIFIED);
         }
