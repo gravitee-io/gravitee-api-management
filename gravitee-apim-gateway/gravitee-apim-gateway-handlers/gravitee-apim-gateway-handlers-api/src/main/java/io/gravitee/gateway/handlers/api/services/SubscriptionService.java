@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.services;
 
+import static io.gravitee.gateway.jupiter.api.policy.SecurityToken.TokenType.API_KEY;
+import static io.gravitee.gateway.jupiter.api.policy.SecurityToken.TokenType.CLIENT_ID;
 import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 
 import io.gravitee.gateway.api.service.ApiKeyService;
@@ -43,13 +45,11 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
 
     @Override
     public Optional<Subscription> getByApiAndSecurityToken(String api, SecurityToken securityToken, String plan) {
-        switch (securityToken.getTokenType()) {
-            case API_KEY:
-                return apiKeyService
-                    .getByApiAndKey(api, securityToken.getTokenValue())
-                    .flatMap(apiKey -> getById(apiKey.getSubscription()));
-            case CLIENT_ID:
-                return getByApiAndClientIdAndPlan(api, securityToken.getTokenValue(), plan);
+        if (securityToken.getTokenType().equals(API_KEY.name())) {
+            return apiKeyService.getByApiAndKey(api, securityToken.getTokenValue()).flatMap(apiKey -> getById(apiKey.getSubscription()));
+        }
+        if (securityToken.getTokenType().equals(CLIENT_ID.name())) {
+            return getByApiAndClientIdAndPlan(api, securityToken.getTokenValue(), plan);
         }
         return Optional.empty();
     }
