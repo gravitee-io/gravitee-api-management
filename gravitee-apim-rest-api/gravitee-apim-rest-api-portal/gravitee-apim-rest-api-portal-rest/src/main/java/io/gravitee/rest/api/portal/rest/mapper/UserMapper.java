@@ -40,6 +40,14 @@ public class UserMapper {
 
     private ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+    public User convert(PrimaryOwnerEntity user) {
+        final User userItem = new User();
+        userItem.setEmail(user.getEmail());
+        userItem.setDisplayName(user.getDisplayName());
+        userItem.setId(user.getId());
+        return userItem;
+    }
+
     public User convert(UserEntity user) {
         final User userItem = new User();
         userItem.setEmail(user.getEmail());
