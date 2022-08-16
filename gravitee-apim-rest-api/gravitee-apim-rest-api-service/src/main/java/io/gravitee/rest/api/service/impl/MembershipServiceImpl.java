@@ -1116,9 +1116,19 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public Set<String> getReferenceIdsByMemberAndReferenceAndRoleIn(MembershipMemberType memberType, String memberId, MembershipReferenceType referenceType, Collection<String> roleIds) {
+    public Set<String> getReferenceIdsByMemberAndReferenceAndRoleIn(
+        MembershipMemberType memberType,
+        String memberId,
+        MembershipReferenceType referenceType,
+        Collection<String> roleIds
+    ) {
         try {
-            return membershipRepository.findRefIdByMemberAndRefTypeAndRoleIdIn(memberId, convert(memberType), convert(referenceType), roleIds);
+            return membershipRepository.findRefIdByMemberAndRefTypeAndRoleIdIn(
+                memberId,
+                convert(memberType),
+                convert(referenceType),
+                roleIds
+            );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
             throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);
