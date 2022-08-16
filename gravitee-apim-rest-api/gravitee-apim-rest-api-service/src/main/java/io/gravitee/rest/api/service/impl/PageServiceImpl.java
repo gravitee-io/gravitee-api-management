@@ -2257,12 +2257,16 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         pageEntity.setAccessControls(PageServiceImpl.convertToEntities(page.getAccessControls()));
 
         if (page.isExcludedAccessControls() && Visibility.PRIVATE.name().equals(page.getVisibility())) {
-            List<String> excludedGroups = page
-                .getAccessControls()
-                .stream()
-                .filter(accessControl -> AccessControlReferenceType.GROUP.name().equals(accessControl.getReferenceType()))
-                .map(accessControl -> accessControl.getReferenceId())
-                .collect(toList());
+            List<String> excludedGroups = emptyList();
+            if (page.getAccessControls() != null) {
+                excludedGroups =
+                    page
+                        .getAccessControls()
+                        .stream()
+                        .filter(accessControl -> AccessControlReferenceType.GROUP.name().equals(accessControl.getReferenceType()))
+                        .map(accessControl -> accessControl.getReferenceId())
+                        .collect(toList());
+            }
             pageEntity.setExcludedGroups(excludedGroups);
         }
 

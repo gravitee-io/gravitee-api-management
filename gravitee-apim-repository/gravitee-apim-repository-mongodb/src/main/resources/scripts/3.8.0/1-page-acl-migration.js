@@ -12,3 +12,11 @@ pages.find({ excluded_groups: { $exists: true, $not: { $size: 0 } } }).forEach((
     pages.replaceOne({ _id: page._id }, page);
   }
 );
+
+pages.updateMany(
+    { accessControls: { $exists: false } },
+    { $set: { excludedAccessControls: false, accessControls: [] } },
+    {
+        upsert: false,
+    }
+);
