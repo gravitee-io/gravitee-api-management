@@ -42,6 +42,6 @@ public class KeylessPolicy implements SecurityPolicy {
 
     @Override
     public Maybe<SecurityToken> extractSecurityToken(HttpExecutionContext ctx) {
-        return Maybe.just(SecurityToken.empty());
+        return Maybe.just(SecurityToken.none());
     }
 }
