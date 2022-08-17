@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { ApiApi } from '@portal-apis/ApiApi';
+import { ApiApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApiApi';
 import { forManagementAsApiUser, forManagementWithWrongPassword, forPortalAsApiUser, forPortalWithWrongPassword } from '@client-conf/*';
 import { describe } from '@jest/globals';
 import { fail, succeed } from '@lib/jest-utils';

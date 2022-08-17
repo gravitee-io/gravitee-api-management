@@ -20,7 +20,7 @@ import { PortalApi as PortalManagementApi } from '@gravitee/management-webclient
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
-import { ApiApi } from '@portal-apis/ApiApi';
+import { ApiApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApiApi';
 import { fail, notFound } from '@lib/jest-utils';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { RatingEntity } from '@gravitee/management-webclient-sdk/src/lib/models/RatingEntity';

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { describe, test } from '@jest/globals';
-import { PortalApi } from '@portal-apis/PortalApi';
+import { PortalApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/PortalApi';
 import { forPortalAsAdminUser } from '@client-conf/*';
 import { fail } from '@lib/jest-utils';
 const portalApiAsAdmin = new PortalApi(forPortalAsAdminUser());

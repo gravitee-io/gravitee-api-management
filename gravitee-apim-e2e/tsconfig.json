@@ -14,8 +14,6 @@
       "@commands/*": ["ui-test/commands/*"],
       "@management-fakers/*": ["lib/fixtures/management/*"],
       "@client-conf/*": ["lib/configuration"],
-      "@portal-apis/*": ["lib/portal-webclient-sdk/src/lib/apis/*"],
-      "@portal-models/*": ["lib/portal-webclient-sdk/src/lib/models/*"],
       "@api-test-resources/*": ["<rootDir>/api-test/resources/$1"],
       "@lib/jest-utils": ["lib/jest-utils"],
       "@lib/gateway": ["lib/gateway"],

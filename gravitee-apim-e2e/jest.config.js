@@ -80,8 +80,6 @@ module.exports = {
   moduleNameMapper: {
     '@client-conf/(.*)': '<rootDir>/lib/configuration',
     '@management-fakers/(.*)': '<rootDir>/lib/fixtures/management/$1',
-    '@portal-apis/(.*)': '<rootDir>/lib/portal-webclient-sdk/src/lib/apis/$1',
-    '@portal-models/(.*)': '<rootDir>/lib/portal-webclient-sdk/src/lib/models/$1',
     '@portal-fakers/(.*)': '<rootDir>/lib/fixtures/portal/$1',
     '@api-test-resources/(.*)': '<rootDir>/api-test/resources/$1',
     '@lib/jest-utils': '<rootDir>/lib/jest-utils',
@@ -182,7 +180,7 @@ module.exports = {
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   // transformIgnorePatterns: ["/node_modules/", "\\.pnp\\.[^\\\/]+$"],
-  transformIgnorePatterns: ["/node_modules/(?!(@gravitee)/)", "\\.pnp\\.[^\\\/]+$"],
+  transformIgnorePatterns: ['/node_modules/(?!(@gravitee)/)', '\\.pnp\\.[^\\/]+$'],
 
   // An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
   // unmockedModulePathPatterns: undefined,

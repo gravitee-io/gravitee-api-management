@@ -21,7 +21,7 @@ import { Proxy } from '@gravitee/management-webclient-sdk/src/lib/models/Proxy';
 import { NewApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewApiEntity';
 import faker from '@faker-js/faker';
 import { NewRatingEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewRatingEntity';
-import { RatingInput } from '@portal-models/RatingInput';
+import { RatingInput } from '@gravitee/portal-webclient-sdk/src/lib/models/RatingInput';
 import { PrimaryOwnerEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PrimaryOwnerEntity';
 import { ResponseTemplate } from '@gravitee/management-webclient-sdk/src/lib/models/ResponseTemplate';
 import { Flow } from '@gravitee/management-webclient-sdk/src/lib/models/Flow';

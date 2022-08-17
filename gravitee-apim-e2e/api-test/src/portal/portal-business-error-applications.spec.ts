@@ -21,7 +21,7 @@ import { fail, forbidden, notFound } from '@lib/jest-utils';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { forManagementAsAdminUser, forPortalAsAdminUser, forPortalAsSimpleUser } from '@client-conf/*';
 import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
-import { ApplicationApi, GetApplicationAnalyticsTypeEnum } from '@portal-apis/ApplicationApi';
+import { ApplicationApi, GetApplicationAnalyticsTypeEnum } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
 import { PortalApi as PortalManagementApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';
 import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
 import { RoleEntity } from '@gravitee/management-webclient-sdk/src/lib/models/RoleEntity';
