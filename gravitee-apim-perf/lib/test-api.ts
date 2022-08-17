@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiEntity } from '@management-models/ApiEntity';
-import { PlanEntity } from '@management-models/PlanEntity';
+
+import { ApiEntity, PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models';
 
 export interface GatewayTestData {
   api?: ApiEntity;

@@ -21,13 +21,7 @@
     "skipLibCheck": true,
     "strict": false,
     "target": "es5",
-    "types": ["./types", "node"],
-    "paths": {
-      "@management-fakers/*": ["lib/fixtures/management/*"],
-      "@management-apis/*": ["lib/management-webclient-sdk/src/lib/apis/*"],
-      "@client-conf/*": ["lib/configuration"],
-      "@management-models/*": ["lib/management-webclient-sdk/src/lib/models/*"]
-    }
+    "types": ["./types", "node"]
   },
   "include": ["**/*.ts"]
 }

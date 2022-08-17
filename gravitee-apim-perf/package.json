@@ -22,6 +22,9 @@
   },
   "dependencies": {
     "@faker-js/faker": "6.2.0",
+    "@gravitee/fixtures": "file:../gravitee-apim-e2e/lib/fixtures",
+    "@gravitee/management-webclient-sdk": "file:../gravitee-apim-e2e/lib/management-webclient-sdk",
+    "@gravitee/utils": "file:../gravitee-apim-e2e/lib/utils",
     "node-fetch": "2.6.7",
     "process": "^0.11.10"
   },

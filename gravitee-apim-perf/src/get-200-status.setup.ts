@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIsApi } from '@management-apis/APIsApi';
-import { forManagementAsApiUser } from '@client-conf/*';
-import { PlansFaker } from '@management-fakers/PlansFaker';
-import { PlanStatus } from '@management-models/PlanStatus';
-import { ApisFaker } from '@management-fakers/ApisFaker';
-import { LifecycleAction } from '@management-models/LifecycleAction';
 import { GatewayTestData, loadTestDataForSetup } from '../lib/test-api';
-import { UpdateApiEntityFromJSON } from "@management-models/UpdateApiEntity";
+import { forManagementAsApiUser } from '@gravitee/utils/configuration';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
+import { LifecycleAction, PlanStatus, UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -38,14 +36,14 @@ export async function init(): Promise<GatewayTestData> {
   });
   if (api && api.id) {
     const plan = await apiManagementApiAsApiUser.createApiPlan({ orgId, envId, api: api.id, newPlanEntity });
-    api.proxy.groups[0].ssl = {trustAll: true};
+    api.proxy.groups[0].ssl = { trustAll: true };
     api.proxy.groups[0].endpoints[0].inherit = true;
 
     await apiManagementApiAsApiUser.updateApi({
       orgId,
       envId,
       updateApiEntity: UpdateApiEntityFromJSON({ ...api }),
-      api: api.id
+      api: api.id,
     });
 
     await apiManagementApiAsApiUser.doApiLifecycleActionRaw({
