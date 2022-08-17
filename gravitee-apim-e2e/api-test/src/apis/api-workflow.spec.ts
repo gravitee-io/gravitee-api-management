@@ -15,7 +15,7 @@
  */
 import { describe, expect, test } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsAdminUser, forManagementAsSimpleUser } from '@client-conf/*';
+import { forManagementAsAdminUser, forManagementAsSimpleUser } from '@gravitee/utils/configuration';
 import { created, fail, forbidden, noContent, notFound, succeed } from '@lib/jest-utils';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { ApiEntity, ApiEntityStateEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';

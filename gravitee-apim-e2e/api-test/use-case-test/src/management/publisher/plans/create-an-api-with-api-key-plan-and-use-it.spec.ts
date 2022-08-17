@@ -25,9 +25,9 @@ import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/Pl
 import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
-import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@lib/gateway';
+import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '../../../../../../lib/utils/gateway';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsApiUser } from '@client-conf/*';
+import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ApplicationSubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationSubscriptionsApi';
 import { APISubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APISubscriptionsApi';

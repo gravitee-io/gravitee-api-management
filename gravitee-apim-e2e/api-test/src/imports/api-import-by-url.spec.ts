@@ -15,7 +15,7 @@
  */
 import { describe, expect, test } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsApiUser } from '@client-conf/*';
+import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { noContent, succeed } from '@lib/jest-utils';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 

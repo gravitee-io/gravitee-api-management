@@ -15,7 +15,7 @@
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 
-import { APP_USER, forManagementAsAdminUser, forPortalAsAnonymous, forPortalAsAppUser } from '@client-conf/*';
+import { APP_USER, forManagementAsAdminUser, forPortalAsAnonymous, forPortalAsAppUser } from '@gravitee/utils/configuration';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { fail } from '@lib/jest-utils';

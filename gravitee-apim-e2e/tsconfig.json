@@ -12,12 +12,8 @@
       "@keys/*": ["ui-test/fixtures/keys/*"],
       "@model/*": ["ui-test/model/*"],
       "@commands/*": ["ui-test/commands/*"],
-      "@client-conf/*": ["lib/configuration"],
       "@api-test-resources/*": ["<rootDir>/api-test/resources/$1"],
-      "@lib/jest-utils": ["lib/jest-utils"],
-      "@lib/gateway": ["lib/gateway"],
-      "@lib/management": ["lib/management"],
-      "@lib/wiremock": ["lib/wiremock"]
+      "@lib/jest-utils": ["lib/jest-utils"]
     }
   },
   "include": ["**/*.ts"]

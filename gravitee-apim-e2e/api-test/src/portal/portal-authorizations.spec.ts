@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ApiApi, GetPageByApiIdAndPageIdIncludeEnum } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApiApi';
-import { ANONYMOUS, forPortal, SIMPLE_USER } from '@client-conf/*';
+import { ANONYMOUS, forPortal, SIMPLE_USER } from '@gravitee/utils/configuration';
 import { authorized, unauthorized } from '@lib/jest-utils';
 import { describe, test } from '@jest/globals';
 import { ApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';

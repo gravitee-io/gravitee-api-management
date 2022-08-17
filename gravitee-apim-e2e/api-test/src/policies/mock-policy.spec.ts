@@ -15,7 +15,7 @@
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsApiUser } from '@client-conf/*';
+import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
@@ -24,7 +24,7 @@ import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/Pl
 import { RuleMethodsEnum } from '@gravitee/management-webclient-sdk/src/lib/models/Rule';
 import { describeIfV3, noContent, succeed } from '@lib/jest-utils';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { fetchGatewaySuccess } from '@lib/gateway';
+import { fetchGatewaySuccess } from '../../../lib/utils/gateway';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 

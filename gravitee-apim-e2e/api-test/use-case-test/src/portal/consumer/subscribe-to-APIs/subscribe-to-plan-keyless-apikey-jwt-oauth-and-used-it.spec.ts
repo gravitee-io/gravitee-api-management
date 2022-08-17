@@ -25,13 +25,13 @@ import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/mo
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { PortalApplicationFaker } from '@gravitee/fixtures/portal/PortalApplicationFaker';
 import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
-import { fetchGatewaySuccess } from '@lib/gateway';
+import { fetchGatewaySuccess } from '../../../../../../lib/utils/gateway';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsApiUser, forPortalAsAppUser } from '@client-conf/*';
+import { forManagementAsApiUser, forPortalAsAppUser } from '@gravitee/utils/configuration';
 import { ApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
 import * as jwt from 'jsonwebtoken';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
-import { teardownApisAndApplications } from '@lib/management';
+import { teardownApisAndApplications } from '../../../../../../lib/utils/management';
 import { describeIfV3 } from '@lib/jest-utils';
 import faker from '@faker-js/faker';
 

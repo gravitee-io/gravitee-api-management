@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { forManagementAsApiUser, forManagementAsAppUser } from '@client-conf/*';
+import { forManagementAsApiUser, forManagementAsAppUser } from '@gravitee/utils/configuration';
 import { afterAll, beforeAll, describe, test } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
@@ -28,7 +28,7 @@ import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/API
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@lib/gateway';
+import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '../../../lib/utils/gateway';
 import { ApplicationSubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationSubscriptionsApi';
 import { Subscription } from '@gravitee/management-webclient-sdk/src/lib/models/Subscription';
 import { ApiKeyEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiKeyEntity';

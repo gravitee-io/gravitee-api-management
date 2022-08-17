@@ -15,7 +15,12 @@
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
-import { forManagementAsAdminUser, forManagementAsApiUser, forPortalAsApplicationFrenchUser, forPortalAsSimpleUser } from '@client-conf/*';
+import {
+  forManagementAsAdminUser,
+  forManagementAsApiUser,
+  forPortalAsApplicationFrenchUser,
+  forPortalAsSimpleUser,
+} from '@gravitee/utils/configuration';
 import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
 import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';

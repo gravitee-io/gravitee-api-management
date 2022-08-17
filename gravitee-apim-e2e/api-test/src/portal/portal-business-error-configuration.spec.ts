@@ -15,7 +15,7 @@
  */
 import { describe } from '@jest/globals';
 import { PortalApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/PortalApi';
-import { forPortalAsAdminUser } from '@client-conf/*';
+import { forPortalAsAdminUser } from '@gravitee/utils/configuration';
 import { notFound } from '@lib/jest-utils';
 
 const portalApiAsAdmin = new PortalApi(forPortalAsAdminUser());

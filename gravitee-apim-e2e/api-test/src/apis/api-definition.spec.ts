@@ -24,7 +24,7 @@ import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
 import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
-import { forManagement } from '@client-conf/*';
+import { forManagement } from '@gravitee/utils/configuration';
 import faker from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
