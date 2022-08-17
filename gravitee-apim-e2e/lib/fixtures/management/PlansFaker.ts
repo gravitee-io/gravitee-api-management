@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import faker from '@faker-js/faker';
-import { PlanEntity } from '@management-models/PlanEntity';
-import { PlanValidationType } from '@management-models/PlanValidationType';
-import { PlanSecurityType } from '@management-models/PlanSecurityType';
-import { PlanType } from '@management-models/PlanType';
-import { PlanStatus } from '@management-models/PlanStatus';
-import { NewPlanEntity } from '@management-models/NewPlanEntity';
-import { Plan } from '@management-models/Plan';
+import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
+import { PlanValidationType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanValidationType';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { NewPlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewPlanEntity';
+import { Plan } from '@gravitee/management-webclient-sdk/src/lib/models/Plan';
 
 export class PlansFaker {
   static plan(attributes?: Partial<PlanEntity>): PlanEntity {

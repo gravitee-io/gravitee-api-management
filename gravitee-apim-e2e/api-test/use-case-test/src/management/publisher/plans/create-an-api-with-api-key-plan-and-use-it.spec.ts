@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe } from '@jest/globals';
-import { ApiEntity } from '@management-models/ApiEntity';
-import { ApplicationEntity } from '@management-models/ApplicationEntity';
-import { Subscription } from '@management-models/Subscription';
-import { ApiKeyEntity } from '@management-models/ApiKeyEntity';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
+import { Subscription } from '@gravitee/management-webclient-sdk/src/lib/models/Subscription';
+import { ApiKeyEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiKeyEntity';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { PlansFaker } from '@management-fakers/PlansFaker';
-import { PlanSecurityType } from '@management-models/PlanSecurityType';
-import { PlanStatus } from '@management-models/PlanStatus';
-import { ApiLifecycleState } from '@management-models/ApiLifecycleState';
-import { LifecycleAction } from '@management-models/LifecycleAction';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
 import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@lib/gateway';
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
-import { ApplicationsApi } from '@management-apis/ApplicationsApi';
-import { ApplicationSubscriptionsApi } from '@management-apis/ApplicationSubscriptionsApi';
-import { APISubscriptionsApi } from '@management-apis/APISubscriptionsApi';
-import { APIPlansApi } from '@management-apis/APIPlansApi';
+import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
+import { ApplicationSubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationSubscriptionsApi';
+import { APISubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APISubscriptionsApi';
+import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

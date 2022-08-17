@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
-import { ApiEntity } from '@management-models/ApiEntity';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { PlansFaker } from '@management-fakers/PlansFaker';
-import { PlanSecurityType } from '@management-models/PlanSecurityType';
-import { PlanStatus } from '@management-models/PlanStatus';
-import { LifecycleAction } from '@management-models/LifecycleAction';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { teardownApisAndApplications } from '@lib/management';
 import { fetchGatewayBadRequest, fetchGatewaySuccess } from '@lib/gateway';
-import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
+import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

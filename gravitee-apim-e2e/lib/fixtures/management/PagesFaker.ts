@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PageEntity } from '@management-models/PageEntity';
-import { Visibility } from '@management-models/Visibility';
+import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PageEntity';
+import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
 import faker from '@faker-js/faker';
-import { NewPageEntity } from '@management-models/NewPageEntity';
-import { PageType } from '@management-models/PageType';
+import { NewPageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewPageEntity';
+import { PageType } from '@gravitee/management-webclient-sdk/src/lib/models/PageType';
 
 export class PagesFaker {
   static page(attributes?: Partial<PageEntity>): PageEntity {

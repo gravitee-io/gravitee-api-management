@@ -6,8 +6,6 @@ module.exports = {
   moduleNameMapper: {
     '@client-conf/(.*)': '<rootDir>/dist/lib/configuration',
     '@management-fakers/(.*)': '<rootDir>/dist/lib/fixtures/management/$1',
-    '@management-apis/(.*)': '<rootDir>/dist/lib/management-webclient-sdk/src/lib/apis/$1',
-    '@management-models/(.*)': '<rootDir>/dist/lib/management-webclient-sdk/src/lib/models/$1',
     '@portal-apis/(.*)': '<rootDir>/dist/lib/portal-webclient-sdk/src/lib/apis/$1',
     '@portal-models/(.*)': '<rootDir>/dist/lib/portal-webclient-sdk/src/lib/models/$1',
     '@portal-fakers/(.*)': '<rootDir>/dist/lib/fixtures/portal/$1',
@@ -30,4 +28,6 @@ module.exports = {
   transform: {
     '^.+\\.xml$': '<rootDir>/lib/jest-raw-loader.js',
   },
+
+  transformIgnorePatterns: ["/node_modules/(?!(@gravitee)/)", "\\.pnp\\.[^\\\/]+$"],
 };

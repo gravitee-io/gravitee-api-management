@@ -16,16 +16,16 @@
 import { afterAll, beforeAll, describe, test, expect } from '@jest/globals';
 
 import { forManagementAsAdminUser, forPortalAsAdminUser } from '@client-conf/*';
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { ApisFaker } from '@management-fakers/ApisFaker';
-import { UpdateApiEntity, UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
+import { UpdateApiEntity, UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 import { ApiApi } from '@portal-apis/ApiApi';
 import { succeed } from '@lib/jest-utils';
-import { ApiEntity } from '@management-models/ApiEntity';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { FilterApiQuery } from '@portal-models/FilterApiQuery';
-import { ApiLifecycleState } from '@management-models/ApiLifecycleState';
-import { ConfigurationApi } from '@management-apis/ConfigurationApi';
-import { CategoryEntity } from '@management-models/CategoryEntity';
+import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import { CategoryEntity } from '@gravitee/management-webclient-sdk/src/lib/models/CategoryEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

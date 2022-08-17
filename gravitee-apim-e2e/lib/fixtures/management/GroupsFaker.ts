@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import faker from '@faker-js/faker';
-import { NewGroupEntity } from '@management-models/NewGroupEntity';
+import { NewGroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewGroupEntity';
 
 export class GroupsFaker {
   static newGroup(attributes?: Partial<NewGroupEntity>): NewGroupEntity {

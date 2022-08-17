@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { OrganizationEntityToJSON } from '@management-models/OrganizationEntity';
+import { OrganizationEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/OrganizationEntity';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { PlansFaker } from '@management-fakers/PlansFaker';
-import { PlanSecurityType } from '@management-models/PlanSecurityType';
-import { PlanStatus } from '@management-models/PlanStatus';
-import { APIsApi } from '@management-apis/APIsApi';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsApiUser } from '@client-conf/*';
-import { OrganizationApi } from '@management-apis/OrganizationApi';
-import { ApiEntity, ApiEntityToJSON } from '@management-models/ApiEntity';
-import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
+import { OrganizationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/OrganizationApi';
+import { ApiEntity, ApiEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { teardownApisAndApplications } from '@lib/management';
-import { DebugApiEntity, DebugApiEntityFromJSON } from '@management-models/DebugApiEntity';
+import { DebugApiEntity, DebugApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/DebugApiEntity';
 import { describeIfV3, succeed } from '@lib/jest-utils';
 import { delayWhen, from, Observable, switchMap, tap, timer, map, retryWhen, Subscription } from 'rxjs';
-import { EventEntity } from '@management-models/EventEntity';
+import { EventEntity } from '@gravitee/management-webclient-sdk/src/lib/models/EventEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

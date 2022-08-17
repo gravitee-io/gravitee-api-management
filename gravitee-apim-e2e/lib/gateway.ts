@@ -15,7 +15,6 @@
  */
 import 'dotenv/config';
 import fetchApi, { HeadersInit, Response } from 'node-fetch';
-import { sleep } from '@lib/jest-utils';
 
 export type HttpMethod = 'GET' | 'PUT' | 'POST' | 'DELETE' | 'OPTIONS';
 
@@ -97,4 +96,8 @@ async function _fetchGateway(request: Partial<GatewayRequest>): Promise<Response
   }
 
   return response;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

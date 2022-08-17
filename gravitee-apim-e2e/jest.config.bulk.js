@@ -9,8 +9,6 @@ module.exports = {
   moduleNameMapper: {
     '@client-conf/(.*)': '<rootDir>/lib/configuration',
     '@management-fakers/(.*)': '<rootDir>/lib/fixtures/management/$1',
-    '@management-apis/(.*)': '<rootDir>/lib/management-webclient-sdk/src/lib/apis/$1',
-    '@management-models/(.*)': '<rootDir>/lib/management-webclient-sdk/src/lib/models/$1',
     '@portal-apis/(.*)': '<rootDir>/lib/portal-webclient-sdk/src/lib/apis/$1',
     '@portal-models/(.*)': '<rootDir>/lib/portal-webclient-sdk/src/lib/models/$1',
     '@api-test-resources/(.*)': '<rootDir>/api-test/resources/$1',
@@ -29,6 +27,8 @@ module.exports = {
     '\\.(js|jsx|ts|tsx)$': '@sucrase/jest-plugin',
     '^.+\\.xml$': '<rootDir>/lib/jest-raw-loader.js',
   },
+
+  transformIgnorePatterns: ["/node_modules/(?!(@gravitee)/)", "\\.pnp\\.[^\\\/]+$"],
 
   testTimeout: 300000,
 

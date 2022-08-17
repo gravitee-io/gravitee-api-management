@@ -15,7 +15,7 @@
  */
 import { afterAll, describe, expect, test } from '@jest/globals';
 
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser } from '@client-conf/*';
 import { succeed } from '@lib/jest-utils';
 import { ApiMetadataFormat, ApisFaker } from '@management-fakers/ApisFaker';

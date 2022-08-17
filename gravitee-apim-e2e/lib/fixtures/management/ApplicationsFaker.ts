@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NewApiEntity } from '@management-models/NewApiEntity';
+import { NewApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewApiEntity';
 import faker from '@faker-js/faker';
-import { NewApplicationEntity } from '@management-models/NewApplicationEntity';
+import { NewApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewApplicationEntity';
 
 export class ApplicationsFaker {
   static newApplication(attributes?: Partial<NewApiEntity>): NewApplicationEntity {

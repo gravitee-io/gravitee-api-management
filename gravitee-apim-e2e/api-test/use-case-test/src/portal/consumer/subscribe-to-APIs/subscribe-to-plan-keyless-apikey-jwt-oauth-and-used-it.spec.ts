@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe } from '@jest/globals';
-import { ApiEntity, ApiEntityToJSON } from '@management-models/ApiEntity';
+import { ApiEntity, ApiEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { Application } from '@portal-models/Application';
 import { Subscription as PortalSubscription } from '@portal-models/Subscription';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { PlansFaker } from '@management-fakers/PlansFaker';
-import { PlanSecurityType } from '@management-models/PlanSecurityType';
-import { PlanStatus } from '@management-models/PlanStatus';
-import { ApiLifecycleState } from '@management-models/ApiLifecycleState';
-import { LifecycleAction } from '@management-models/LifecycleAction';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { PortalApplicationFaker } from '@portal-fakers/PortalApplicationFaker';
 import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '@portal-apis/SubscriptionApi';
 import { fetchGatewaySuccess } from '@lib/gateway';
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser, forPortalAsAppUser } from '@client-conf/*';
 import { ApplicationApi } from '@portal-apis/ApplicationApi';
 import * as jwt from 'jsonwebtoken';
-import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
+import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 import { teardownApisAndApplications } from '@lib/management';
 import { describeIfV3 } from '@lib/jest-utils';
 import faker from '@faker-js/faker';

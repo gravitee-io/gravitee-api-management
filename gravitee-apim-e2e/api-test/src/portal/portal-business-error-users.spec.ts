@@ -15,13 +15,13 @@
  */
 import { afterAll, beforeAll, describe, test } from '@jest/globals';
 import { forManagementAsAdminUser, forPortalAsAdminUser, forPortalAsSimpleUser } from '@client-conf/*';
-import { UsersApi as UsersManagementApi } from '@management-apis/UsersApi';
+import { UsersApi as UsersManagementApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
 import { UsersFaker } from '@management-fakers/UsersFaker';
-import { UserEntity } from '@management-models/UserEntity';
+import { UserEntity } from '@gravitee/management-webclient-sdk/src/lib/models/UserEntity';
 import { fail, notFound, unauthorized } from '@lib/jest-utils';
 import { UsersApi as UsersPortalApi } from '@portal-apis/UsersApi';
 import { UserApi as UserPortalApi } from '@portal-apis/UserApi';
-import { PortalApi as PortalManagementApi } from '@management-apis/PortalApi';
+import { PortalApi as PortalManagementApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';
 
 const portalManagementApi = new PortalManagementApi(forManagementAsAdminUser());
 const usersManagementApiAsAdmin = new UsersManagementApi(forManagementAsAdminUser());

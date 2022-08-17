@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser } from '@client-conf/*';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { PlansFaker } from '@management-fakers/PlansFaker';
-import { ApiEntity } from '@management-models/ApiEntity';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { succeed } from '@lib/jest-utils';
 import faker from '@faker-js/faker';
 

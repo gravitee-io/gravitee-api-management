@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
 import { ApiImportEntity, ApisFaker } from '@management-fakers/ApisFaker';
 import { fail, succeed } from '@lib/jest-utils';
-import { ApiEntity, ApiEntityStateEnum } from '@management-models/ApiEntity';
-import { Visibility } from '@management-models/Visibility';
-import { ApiLifecycleState } from '@management-models/ApiLifecycleState';
+import { ApiEntity, ApiEntityStateEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
+import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

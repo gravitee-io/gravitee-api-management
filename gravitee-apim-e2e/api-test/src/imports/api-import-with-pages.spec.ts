@@ -17,17 +17,17 @@ import { afterAll, afterEach, beforeAll, describe, expect, test } from '@jest/gl
 import * as swaggerv2 from '@api-test-resources/petstore_swaggerv2.json';
 import * as openapiv3 from '@api-test-resources/petstore_openapiv3.json';
 import { src as wsdlapi } from '@api-test-resources/wsdl.xml';
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsApiUser } from '@client-conf/*';
-import { ImportSwaggerDescriptorEntity } from '@management-models/ImportSwaggerDescriptorEntity';
-import { Format } from '@management-models/Format';
-import { Type } from '@management-models/Type';
-import { APIPagesApi } from '@management-apis/APIPagesApi';
+import { ImportSwaggerDescriptorEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ImportSwaggerDescriptorEntity';
+import { Format } from '@gravitee/management-webclient-sdk/src/lib/models/Format';
+import { Type } from '@gravitee/management-webclient-sdk/src/lib/models/Type';
+import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
 import { fail, succeed } from '@lib/jest-utils';
-import { ApiEntity, ApiEntityStateEnum } from '@management-models/ApiEntity';
-import { Visibility } from '@management-models/Visibility';
+import { ApiEntity, ApiEntityStateEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
 import { ApisFaker } from '@management-fakers/ApisFaker';
-import { PageEntity } from '@management-models/PageEntity';
+import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PageEntity';
 import { PagesFaker } from '@management-fakers/PagesFaker';
 
 const orgId = 'DEFAULT';

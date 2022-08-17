@@ -15,15 +15,15 @@
  */
 import { afterAll, describe, expect, test } from '@jest/globals';
 
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser } from '@client-conf/*';
 import { succeed } from '@lib/jest-utils';
 import { ApisFaker } from '@management-fakers/ApisFaker';
-import { PlanStatus } from '@management-models/PlanStatus';
-import { PlanSecurityType } from '@management-models/PlanSecurityType';
-import { PlanType } from '@management-models/PlanType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanType';
 import { PlansFaker } from '@management-fakers/PlansFaker';
-import { PlanValidationType } from '@management-models/PlanValidationType';
+import { PlanValidationType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanValidationType';
 
 const apisResource = new APIsApi(forManagementAsAdminUser());
 

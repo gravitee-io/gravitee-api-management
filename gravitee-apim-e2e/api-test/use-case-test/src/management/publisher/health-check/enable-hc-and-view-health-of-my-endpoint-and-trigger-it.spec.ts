@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { PlansFaker } from '@management-fakers/PlansFaker';
-import { PlanSecurityType } from '@management-models/PlanSecurityType';
-import { PlanStatus } from '@management-models/PlanStatus';
-import { ApiEntity } from '@management-models/ApiEntity';
-import { LoadBalancerTypeEnum } from '@management-models/LoadBalancer';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { LoadBalancerTypeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/LoadBalancer';
 import { teardownApisAndApplications } from '@lib/management';
 
-import { HealthCheckRequestMethodEnum } from '@management-models/HealthCheckRequest';
+import { HealthCheckRequestMethodEnum } from '@gravitee/management-webclient-sdk/src/lib/models/HealthCheckRequest';
 import { setWiremockState } from '@lib/wiremock';
-import { LifecycleAction } from '@management-models/LifecycleAction';
-import { HealthcheckType } from '@management-models/HealthcheckType';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
+import { HealthcheckType } from '@gravitee/management-webclient-sdk/src/lib/models/HealthcheckType';
 import { fetchGatewaySuccess } from '@lib/gateway';
 import { flakyRunner } from '@lib/jest-utils';
 

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { ApplicationsApi } from '@management-apis/ApplicationsApi';
+import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { forManagementAsAdminUser, forManagementAsAppUser, forPortalAsApiUser, forPortalAsSimpleUser } from '@client-conf/*';
 import { forbidden, succeed } from '@lib/jest-utils';
-import { ConfigurationApi } from '@management-apis/ConfigurationApi';
-import { UsersApi } from '@management-apis/UsersApi';
-import { RoleScope } from '@management-models/RoleScope';
+import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
+import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
 import { ApplicationApi } from '@portal-apis/ApplicationApi';
-import { ApplicationEntity } from '@management-models/ApplicationEntity';
-import { UpdateApplicationEntityFromJSON } from '@management-models/UpdateApplicationEntity';
-import { GroupEntity } from '@management-models/GroupEntity';
-import { SearchableUser } from '@management-models/SearchableUser';
+import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
+import { UpdateApplicationEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApplicationEntity';
+import { GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models/GroupEntity';
+import { SearchableUser } from '@gravitee/management-webclient-sdk/src/lib/models/SearchableUser';
 import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
 import { GroupsFaker } from '@management-fakers/GroupsFaker';
 
