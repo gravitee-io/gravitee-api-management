@@ -16,7 +16,7 @@
 import { afterAll, beforeAll, describe, test } from '@jest/globals';
 import { forManagementAsAdminUser, forPortalAsAdminUser, forPortalAsSimpleUser } from '@client-conf/*';
 import { UsersApi as UsersManagementApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
-import { UsersFaker } from '@management-fakers/UsersFaker';
+import { UsersFaker } from '@gravitee/fixtures/management/UsersFaker';
 import { UserEntity } from '@gravitee/management-webclient-sdk/src/lib/models/UserEntity';
 import { fail, notFound, unauthorized } from '@lib/jest-utils';
 import { UsersApi as UsersPortalApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/UsersApi';

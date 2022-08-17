@@ -19,7 +19,7 @@ import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi
 import { forManagementAsAdminUser } from '@client-conf/*';
 import { fail, succeed } from '@lib/jest-utils';
 import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
-import { ApisFaker } from '@management-fakers/ApisFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 
 const apisResource = new APIsApi(forManagementAsAdminUser());
 

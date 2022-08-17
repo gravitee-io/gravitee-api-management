@@ -19,7 +19,7 @@ import { forManagementAsAdminUser, forManagementAsApiUser, forPortalAsApplicatio
 import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
 import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { ApisFaker } from '@management-fakers/ApisFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
 import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
 import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';

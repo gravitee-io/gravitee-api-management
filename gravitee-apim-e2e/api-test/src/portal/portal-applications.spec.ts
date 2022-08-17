@@ -19,7 +19,7 @@ import { ANONYMOUS, forPortal, forPortalAsAdminUser, forPortalAsApiUser, forPort
 import { created, noContent, unauthorized } from '@lib/jest-utils';
 import { ApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
 import { Application } from '@gravitee/portal-webclient-sdk/src/lib/models/Application';
-import { PortalApplicationFaker } from '@portal-fakers/PortalApplicationFaker';
+import { PortalApplicationFaker } from '@gravitee/fixtures/portal/PortalApplicationFaker';
 
 const portalApplicationApiAsAdminUser = new ApplicationApi(forPortalAsAdminUser());
 const portalApplicationApiAsAppUser = new ApplicationApi(forPortalAsAppUser());

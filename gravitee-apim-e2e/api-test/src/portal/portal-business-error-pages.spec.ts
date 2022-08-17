@@ -17,10 +17,10 @@ import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 
 import { APP_USER, forManagementAsAdminUser, forPortalAsAnonymous, forPortalAsAppUser } from '@client-conf/*';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { ApisFaker } from '@management-fakers/ApisFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { fail } from '@lib/jest-utils';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
-import { PagesFaker } from '@management-fakers/PagesFaker';
+import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
 import { PortalApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/PortalApi';
 import { PortalApi as ManagementPortalApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';
 import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PageEntity';

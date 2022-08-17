@@ -16,7 +16,7 @@
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsApiUser } from '@client-conf/*';
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
-import { ApisFaker } from '@management-fakers/ApisFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { succeed } from '@lib/jest-utils';
 
 const orgId = 'DEFAULT';

@@ -8,7 +8,6 @@ module.exports = {
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   moduleNameMapper: {
     '@client-conf/(.*)': '<rootDir>/lib/configuration',
-    '@management-fakers/(.*)': '<rootDir>/lib/fixtures/management/$1',
     '@api-test-resources/(.*)': '<rootDir>/api-test/resources/$1',
     '@lib/gateway': '<rootDir>/lib/gateway',
     '@lib/management': '<rootDir>/lib/management',

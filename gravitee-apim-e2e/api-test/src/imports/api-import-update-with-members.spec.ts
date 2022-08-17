@@ -18,11 +18,11 @@ import { afterAll, describe, expect, test } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser } from '@client-conf/*';
 import { succeed } from '@lib/jest-utils';
-import { ApisFaker } from '@management-fakers/ApisFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
-import { UsersFaker } from '@management-fakers/UsersFaker';
+import { UsersFaker } from '@gravitee/fixtures/management/UsersFaker';
 import { RolesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/RolesApi';
-import { RoleFaker } from '@management-fakers/RoleFaker';
+import { RoleFaker } from '@gravitee/fixtures/management/RoleFaker';
 import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
 
 const apisResource = new APIsApi(forManagementAsAdminUser());

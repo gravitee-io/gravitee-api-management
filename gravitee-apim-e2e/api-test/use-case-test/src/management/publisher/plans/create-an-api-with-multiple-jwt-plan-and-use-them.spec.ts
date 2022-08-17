@@ -22,12 +22,12 @@ import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/Api
 import { ApplicationEntity, ApplicationEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
 import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
 import { Subscription } from '@gravitee/management-webclient-sdk/src/lib/models/Subscription';
-import { ApisFaker } from '@management-fakers/ApisFaker';
-import { PlansFaker } from '@management-fakers/PlansFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
+import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { UpdatePlanEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdatePlanEntity';
-import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
+import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@lib/gateway';
 import * as jwt from 'jsonwebtoken';
