@@ -18,7 +18,7 @@ import * as swaggerv2 from '@api-test-resources/petstore_swaggerv2.json';
 import * as openapiv3 from '@api-test-resources/petstore_openapiv3.json';
 import { src as wsdlapi } from '@api-test-resources/wsdl.xml';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsAdminUser, forManagementAsApiUser } from '@client-conf/*';
+import { forManagementAsAdminUser, forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { ImportSwaggerDescriptorEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ImportSwaggerDescriptorEntity';
 import { Format } from '@gravitee/management-webclient-sdk/src/lib/models/Format';
 import { Type } from '@gravitee/management-webclient-sdk/src/lib/models/Type';

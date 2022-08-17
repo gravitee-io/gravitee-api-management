@@ -15,7 +15,7 @@
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsApiUser } from '@client-conf/*';
+import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ApplicationSubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationSubscriptionsApi';
 import { ApiEntity, ApiEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
@@ -29,8 +29,8 @@ import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/Pl
 import { UpdatePlanEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdatePlanEntity';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@lib/gateway';
-import { teardownApisAndApplications } from '@lib/management';
+import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '../../../../../../lib/utils/gateway';
+import { teardownApisAndApplications } from '../../../../../../lib/utils/management';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 import { Resource } from '@gravitee/management-webclient-sdk/src/lib/models/Resource';

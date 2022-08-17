@@ -19,7 +19,7 @@ import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFak
 import { NotificationConfigType } from '@gravitee/management-webclient-sdk/src/lib/models/NotificationConfigType';
 import { fail, forbidden, notFound } from '@lib/jest-utils';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
-import { forManagementAsAdminUser, forPortalAsAdminUser, forPortalAsSimpleUser } from '@client-conf/*';
+import { forManagementAsAdminUser, forPortalAsAdminUser, forPortalAsSimpleUser } from '@gravitee/utils/configuration';
 import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
 import { ApplicationApi, GetApplicationAnalyticsTypeEnum } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
 import { PortalApi as PortalManagementApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';

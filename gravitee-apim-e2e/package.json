@@ -55,6 +55,7 @@
         "@gravitee/fixtures": "file:lib/fixtures",
         "@gravitee/management-webclient-sdk": "file:lib/management-webclient-sdk",
         "@gravitee/portal-webclient-sdk": "file:lib/portal-webclient-sdk",
+        "@gravitee/utils": "file:lib/utils",
         "jsonwebtoken": "8.5.1",
         "rxjs": "^7.5.5"
     }

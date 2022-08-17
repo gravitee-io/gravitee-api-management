@@ -22,7 +22,7 @@ import {
   forManagementAsAppUser,
   forPortalAsAdminUser,
   forPortalAsApiUser,
-} from '@client-conf/*';
+} from '@gravitee/utils/configuration';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { created, noContent, succeed, testif } from '../lib/jest-utils';

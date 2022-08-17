@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsApiUser } from '@client-conf/*';
+import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { ApiEntity, ApiEntityFlowModeEnum, ApiEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
@@ -29,14 +29,14 @@ import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFak
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ApplicationSubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationSubscriptionsApi';
-import { fetchGatewaySuccess } from '@lib/gateway';
+import { fetchGatewaySuccess } from '../../../../../../lib/utils/gateway';
 import { FlowMethodsEnum } from '@gravitee/management-webclient-sdk/src/lib/models/Flow';
 import { UpdatePlanEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdatePlanEntity';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { PlanEntity, PlanEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 import { succeed } from '@lib/jest-utils';
-import { teardownApisAndApplications } from '@lib/management';
+import { teardownApisAndApplications } from '../../../../../../lib/utils/management';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

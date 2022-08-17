@@ -22,7 +22,7 @@ import {
   forManagementAsApiUser,
   forManagementAsAppUser,
   forManagementAsSimpleUser,
-} from '@client-conf/*';
+} from '@gravitee/utils/configuration';
 import { created, noContent, unauthorized } from '@lib/jest-utils';
 import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';

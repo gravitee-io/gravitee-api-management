@@ -15,20 +15,20 @@
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsApiUser } from '@client-conf/*';
+import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { LoadBalancerTypeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/LoadBalancer';
-import { teardownApisAndApplications } from '@lib/management';
+import { teardownApisAndApplications } from '@gravitee/utils/management';
 
 import { HealthCheckRequestMethodEnum } from '@gravitee/management-webclient-sdk/src/lib/models/HealthCheckRequest';
-import { setWiremockState } from '@lib/wiremock';
+import { setWiremockState } from '@gravitee/utils/wiremock';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { HealthcheckType } from '@gravitee/management-webclient-sdk/src/lib/models/HealthcheckType';
-import { fetchGatewaySuccess } from '@lib/gateway';
+import { fetchGatewaySuccess } from '@gravitee/utils/gateway';
 import { flakyRunner } from '@lib/jest-utils';
 
 const orgId = 'DEFAULT';

@@ -15,7 +15,7 @@
  */
 import { afterAll, beforeAll, describe } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsApiUser } from '@client-conf/*';
+import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ApplicationSubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationSubscriptionsApi';
 import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
@@ -30,9 +30,9 @@ import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/Pl
 import { UpdatePlanEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdatePlanEntity';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@lib/gateway';
+import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '../../../../../../lib/utils/gateway';
 import * as jwt from 'jsonwebtoken';
-import { teardownApisAndApplications } from '@lib/management';
+import { teardownApisAndApplications } from '../../../../../../lib/utils/management';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

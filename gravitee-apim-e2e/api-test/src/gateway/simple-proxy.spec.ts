@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsApiUser } from '@client-conf/*';
+import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { succeed } from '@lib/jest-utils';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
@@ -22,7 +22,7 @@ import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/Api
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
-import { fetchGatewaySuccess } from '@lib/gateway';
+import { fetchGatewaySuccess } from '../../../lib/utils/gateway';
 import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
 import { LoadBalancerTypeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/LoadBalancer';
 

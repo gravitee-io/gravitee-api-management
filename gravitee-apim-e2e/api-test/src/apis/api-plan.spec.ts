@@ -19,7 +19,7 @@ import {
   forManagementAsAppUser,
   forPortalAsAppUser,
   forPortalAsSimpleUser,
-} from '@client-conf/*';
+} from '@gravitee/utils/configuration';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';

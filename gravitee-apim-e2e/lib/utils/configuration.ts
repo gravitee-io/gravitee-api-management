@@ -16,8 +16,8 @@
 import 'dotenv/config';
 import fetchApi from 'node-fetch';
 import { BasicAuthentication } from '@model/users';
-import { Configuration as ManagementConfiguration } from './management-webclient-sdk/src/lib/runtime';
-import { Configuration as PortalConfiguration, HTTPHeaders } from './portal-webclient-sdk/src/lib';
+import { Configuration as ManagementConfiguration } from '@gravitee/management-webclient-sdk/src/lib/runtime';
+import { Configuration as PortalConfiguration, HTTPHeaders } from '@gravitee/portal-webclient-sdk/src/lib';
 
 export const ADMIN_USER = {
   username: process.env.ADMIN_USERNAME,

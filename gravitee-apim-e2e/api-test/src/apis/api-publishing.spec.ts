@@ -21,7 +21,7 @@ import {
   forPortalAsApiUser,
   forPortalAsAppUser,
   forPortalAsSimpleUser,
-} from '@client-conf/*';
+} from '@gravitee/utils/configuration';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { ApiApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApiApi';

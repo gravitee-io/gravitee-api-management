@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { forManagementAsAdminUser, forManagementAsApiUser } from '@client-conf/*';
+import { forManagementAsAdminUser, forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { PortalApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsAdminUser, forManagementAsApiUser } from '@client-conf/*';
+import { forManagementAsAdminUser, forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
@@ -22,13 +22,13 @@ import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { fetchGatewaySuccess } from '@lib/gateway';
+import { fetchGatewaySuccess } from '../../../../../../lib/utils/gateway';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
 import { OrganizationEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/OrganizationEntity';
 import { OrganizationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/OrganizationApi';
 import { NewApiEntityFlowModeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/NewApiEntity';
-import { teardownApisAndApplications } from '@lib/management';
+import { teardownApisAndApplications } from '../../../../../../lib/utils/management';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

@@ -15,7 +15,7 @@
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
-import { forManagementAsAdminUser, forManagementAsAppUser, forPortalAsApiUser, forPortalAsSimpleUser } from '@client-conf/*';
+import { forManagementAsAdminUser, forManagementAsAppUser, forPortalAsApiUser, forPortalAsSimpleUser } from '@gravitee/utils/configuration';
 import { forbidden, succeed } from '@lib/jest-utils';
 import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
 import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';

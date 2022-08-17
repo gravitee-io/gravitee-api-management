@@ -15,7 +15,7 @@
  */
 import { afterAll, beforeAll, describe, test } from '@jest/globals';
 
-import { forManagementAsAdminUser, forPortalAsAdminUser, forPortalAsAppUser } from '@client-conf/*';
+import { forManagementAsAdminUser, forPortalAsAdminUser, forPortalAsAppUser } from '@gravitee/utils/configuration';
 import { PortalApi as PortalManagementApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
