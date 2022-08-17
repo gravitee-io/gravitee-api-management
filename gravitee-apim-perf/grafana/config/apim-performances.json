@@ -334,9 +334,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "count"
-          ],
+          "calcs": ["count"],
           "fields": "",
           "values": false
         },
@@ -986,9 +984,7 @@
               "id": "byNames",
               "options": {
                 "mode": "exclude",
-                "names": [
-                  "0.0.0.0:8082 (GET)"
-                ],
+                "names": ["0.0.0.0:8082 (GET)"],
                 "prefix": "All except:",
                 "readOnly": true
               }
@@ -1103,9 +1099,7 @@
               "id": "byNames",
               "options": {
                 "mode": "exclude",
-                "names": [
-                  "conn. 0.0.0.0:8082"
-                ],
+                "names": ["conn. 0.0.0.0:8082"],
                 "prefix": "All except:",
                 "readOnly": true
               }
@@ -1769,9 +1763,7 @@
               "id": "byNames",
               "options": {
                 "mode": "exclude",
-                "names": [
-                  "load-tests-echo-api.cloud.gravitee.io:443 (GET)"
-                ],
+                "names": ["load-tests-echo-api.cloud.gravitee.io:443 (GET)"],
                 "prefix": "All except:",
                 "readOnly": true
               }
@@ -1986,9 +1978,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -2174,9 +2164,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -2377,9 +2365,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -2565,9 +2551,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
