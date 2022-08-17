@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import faker from '@faker-js/faker';
-import { ConfigurationApi } from '@management-apis/ConfigurationApi';
+import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
 import { forManagementAsAdminUser, forManagementAsApiUser, forPortalAsApplicationFrenchUser, forPortalAsSimpleUser } from '@client-conf/*';
-import { UsersApi } from '@management-apis/UsersApi';
-import { RoleScope } from '@management-models/RoleScope';
-import { APIsApi } from '@management-apis/APIsApi';
+import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
+import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { ApisFaker } from '@management-fakers/ApisFaker';
-import { ApiLifecycleState } from '@management-models/ApiLifecycleState';
-import { Visibility } from '@management-models/Visibility';
-import { APIPagesApi } from '@management-apis/APIPagesApi';
+import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
+import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
 import { created, succeed, unauthorized } from '@lib/jest-utils';
-import { PageType } from '@management-models/PageType';
+import { PageType } from '@gravitee/management-webclient-sdk/src/lib/models/PageType';
 import { ApiApi, GetPageByApiIdAndPageIdIncludeEnum } from '@portal-apis/ApiApi';
-import { MetadataFormat } from '@management-models/MetadataFormat';
-import { APIMetadataApi } from '@management-apis/APIMetadataApi';
-import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
+import { MetadataFormat } from '@gravitee/management-webclient-sdk/src/lib/models/MetadataFormat';
+import { APIMetadataApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIMetadataApi';
+import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 import { GroupsFaker } from '@management-fakers/GroupsFaker';
 
 const orgId = 'DEFAULT';

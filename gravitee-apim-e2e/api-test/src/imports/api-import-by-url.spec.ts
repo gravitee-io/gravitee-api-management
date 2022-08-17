@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { describe, expect, test } from '@jest/globals';
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
 import { noContent, succeed } from '@lib/jest-utils';
-import { ApiEntity } from '@management-models/ApiEntity';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

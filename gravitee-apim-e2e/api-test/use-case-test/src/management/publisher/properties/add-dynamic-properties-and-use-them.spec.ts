@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
-import { ApiEntity, ApiEntityToJSON } from '@management-models/ApiEntity';
+import { ApiEntity, ApiEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { PlansFaker } from '@management-fakers/PlansFaker';
-import { PlanSecurityType } from '@management-models/PlanSecurityType';
-import { PlanStatus } from '@management-models/PlanStatus';
-import { LifecycleAction } from '@management-models/LifecycleAction';
-import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
+import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { teardownApisAndApplications } from '@lib/management';
-import { DynamicPropertyServiceProviderEnum } from '@management-models/DynamicPropertyService';
+import { DynamicPropertyServiceProviderEnum } from '@gravitee/management-webclient-sdk/src/lib/models/DynamicPropertyService';
 import { fetchGatewaySuccess } from '@lib/gateway';
 import { setWiremockState } from '@lib/wiremock';
-import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
+import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser } from '@client-conf/*';
-import { APIPlansApi } from '@management-apis/APIPlansApi';
-import { LifecycleAction } from '@management-models/LifecycleAction';
-import { ApplicationsApi } from '@management-apis/ApplicationsApi';
-import { ApiLifecycleState } from '@management-models/ApiLifecycleState';
-import { ApiEntityStateEnum } from '@management-models/ApiEntity';
+import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
+import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
+import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { ApiEntityStateEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 
 const apisResource = new APIsApi(forManagementAsAdminUser());
 const apiPlansResource = new APIPlansApi(forManagementAsAdminUser());

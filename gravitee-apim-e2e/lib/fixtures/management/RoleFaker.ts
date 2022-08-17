@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import faker from '@faker-js/faker';
-import { NewRoleEntity } from '@management-models/NewRoleEntity';
-import { RoleScope } from '@management-models/RoleScope';
+import { NewRoleEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewRoleEntity';
+import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
 
 export class RoleFaker {
   static newRoleEntity(attributes?: Partial<NewRoleEntity>): NewRoleEntity {

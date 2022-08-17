@@ -15,16 +15,16 @@
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { ApisFaker } from '@management-fakers/ApisFaker';
-import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
-import { ApiEntity, ApiEntityToJSON } from '@management-models/ApiEntity';
-import { APIsApi } from '@management-apis/APIsApi';
+import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
+import { ApiEntity, ApiEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
 import { PlansFaker } from '@management-fakers/PlansFaker';
-import { PlanSecurityType } from '@management-models/PlanSecurityType';
-import { PlanStatus } from '@management-models/PlanStatus';
-import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
-import { LoadBalancerTypeEnum } from '@management-models/LoadBalancer';
-import { LifecycleAction } from '@management-models/LifecycleAction';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
+import { LoadBalancerTypeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/LoadBalancer';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { fetchGatewaySuccess } from '@lib/gateway';
 import { teardownApisAndApplications } from '@lib/management';
 

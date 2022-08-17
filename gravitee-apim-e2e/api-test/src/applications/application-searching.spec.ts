@@ -15,10 +15,10 @@
  */
 import { afterAll, beforeAll, expect } from '@jest/globals';
 import faker from '@faker-js/faker';
-import { ApplicationsApi } from '@management-apis/ApplicationsApi';
+import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ADMIN_USER, APP_USER, forManagementAsAdminUser, forManagementAsApiUser, forManagementAsAppUser } from '@client-conf/*';
 import { succeed } from '@lib/jest-utils';
-import { ApplicationEntity } from '@management-models/ApplicationEntity';
+import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
 
 const applicationManagementApiAsAdminUser = new ApplicationsApi(forManagementAsAdminUser());
 const applicationManagementApiAsAppUser = new ApplicationsApi(forManagementAsAppUser());

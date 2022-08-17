@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, test, expect } from '@jest/globals';
-import { ApplicationEntity } from '@management-models/ApplicationEntity';
+import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
 import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
-import { NotificationConfigType } from '@management-models/NotificationConfigType';
+import { NotificationConfigType } from '@gravitee/management-webclient-sdk/src/lib/models/NotificationConfigType';
 import { fail, forbidden, notFound } from '@lib/jest-utils';
-import { ApplicationsApi } from '@management-apis/ApplicationsApi';
+import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { forManagementAsAdminUser, forPortalAsAdminUser, forPortalAsSimpleUser } from '@client-conf/*';
-import { ConfigurationApi } from '@management-apis/ConfigurationApi';
+import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
 import { ApplicationApi, GetApplicationAnalyticsTypeEnum } from '@portal-apis/ApplicationApi';
-import { PortalApi as PortalManagementApi } from '@management-apis/PortalApi';
-import { RoleScope } from '@management-models/RoleScope';
-import { RoleEntity } from '@management-models/RoleEntity';
-import { UpdateRoleEntityFromJSON } from '@management-models/UpdateRoleEntity';
+import { PortalApi as PortalManagementApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';
+import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
+import { RoleEntity } from '@gravitee/management-webclient-sdk/src/lib/models/RoleEntity';
+import { UpdateRoleEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateRoleEntity';
 import { ApiResponse } from '../../../lib/portal-webclient-sdk/src/lib';
 
 const orgId = 'DEFAULT';

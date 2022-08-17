@@ -15,14 +15,14 @@
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { fail, succeed } from '@lib/jest-utils';
-import { APIPlansApi } from '@management-apis/APIPlansApi';
-import { APIDefinitionApi } from '@management-apis/APIDefinitionApi';
-import { APIsApi } from '@management-apis/APIsApi';
-import { JsonPatchOperationEnum } from '@management-models/JsonPatch';
+import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
+import { APIDefinitionApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIDefinitionApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import { JsonPatchOperationEnum } from '@gravitee/management-webclient-sdk/src/lib/models/JsonPatch';
 import { ApiMetadataFormat, ApisFaker } from '@management-fakers/ApisFaker';
 import { PlansFaker } from '@management-fakers/PlansFaker';
-import { LifecycleAction } from '@management-models/LifecycleAction';
-import { APIPagesApi } from '@management-apis/APIPagesApi';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
+import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
 import { PagesFaker } from '@management-fakers/PagesFaker';
 import { forManagement } from '@client-conf/*';
 import faker from '@faker-js/faker';

@@ -16,19 +16,19 @@
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 
 import { APP_USER, forManagementAsAdminUser, forPortalAsAnonymous, forPortalAsAppUser } from '@client-conf/*';
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { fail } from '@lib/jest-utils';
-import { ApiEntity } from '@management-models/ApiEntity';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { PagesFaker } from '@management-fakers/PagesFaker';
 import { PortalApi } from '@portal-apis/PortalApi';
-import { PortalApi as ManagementPortalApi } from '@management-apis/PortalApi';
-import { PageEntity } from '@management-models/PageEntity';
-import { ConfigurationApi } from '@management-apis/ConfigurationApi';
-import { GroupEntity } from '@management-models/GroupEntity';
-import { UsersApi } from '@management-apis/UsersApi';
-import { SearchableUser } from '@management-models/SearchableUser';
-import { RoleScope } from '@management-models/RoleScope';
+import { PortalApi as ManagementPortalApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';
+import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PageEntity';
+import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import { GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models/GroupEntity';
+import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
+import { SearchableUser } from '@gravitee/management-webclient-sdk/src/lib/models/SearchableUser';
+import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
 import faker from '@faker-js/faker';
 
 const orgId = 'DEFAULT';

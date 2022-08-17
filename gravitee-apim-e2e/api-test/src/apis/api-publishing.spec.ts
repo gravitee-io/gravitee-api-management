@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import {
   forManagementAsApiUser,
   forPortalAsAdminUser,
@@ -25,10 +25,10 @@ import {
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { ApiApi } from '@portal-apis/ApiApi';
-import { ApiEntity } from '@management-models/ApiEntity';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { fail, succeed } from '@lib/jest-utils';
-import { ApiLifecycleState } from '@management-models/ApiLifecycleState';
-import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
+import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 import { ApiResponse } from '../../../lib/management-webclient-sdk/src/lib/runtime';
 
 const orgId = 'DEFAULT';

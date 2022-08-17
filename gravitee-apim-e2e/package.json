@@ -52,6 +52,7 @@
     },
     "dependencies": {
         "@faker-js/faker": "6.2.0",
+        "@gravitee/management-webclient-sdk": "file:lib/management-webclient-sdk",
         "jsonwebtoken": "8.5.1",
         "rxjs": "^7.5.5"
     }

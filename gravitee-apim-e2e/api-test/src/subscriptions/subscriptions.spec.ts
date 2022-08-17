@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIsApi } from '@management-apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsApiUser, forManagementAsAppUser, forPortalAsAppUser } from '@client-conf/*';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { ApisFaker } from '@management-fakers/ApisFaker';
-import { ApiEntity } from '@management-models/ApiEntity';
-import { ApiLifecycleState } from '@management-models/ApiLifecycleState';
-import { APIPlansApi } from '@management-apis/APIPlansApi';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
 import { ApplicationApi as PortalApplicationApi } from '@portal-apis/ApplicationApi';
-import { ApplicationsApi } from '@management-apis/ApplicationsApi';
+import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
 import fetchApi from 'node-fetch';
 import { PlansFaker } from '@management-fakers/PlansFaker';
-import { PlanValidationType } from '@management-models/PlanValidationType';
-import { PlanEntity } from '@management-models/PlanEntity';
+import { PlanValidationType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanValidationType';
+import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
 import { Api } from '@portal-models/Api';
-import { ApplicationEntity } from '@management-models/ApplicationEntity';
-import { PlanSecurityType } from '@management-models/PlanSecurityType';
+import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
 import { ApiApi } from '@portal-apis/ApiApi';
-import { Visibility } from '@management-models/Visibility';
+import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
 import { succeed } from '@lib/jest-utils';
 import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '@portal-apis/SubscriptionApi';
 import faker from '@faker-js/faker';
 import { Subscription } from '@portal-models/Subscription';
-import { APISubscriptionsApi } from '@management-apis/APISubscriptionsApi';
-import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
+import { APISubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APISubscriptionsApi';
+import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

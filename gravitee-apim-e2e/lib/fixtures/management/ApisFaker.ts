@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiEntity, ApiEntityFlowModeEnum } from '@management-models/ApiEntity';
-import { PageEntity } from '@management-models/PageEntity';
-import { Visibility } from '@management-models/Visibility';
-import { LoadBalancerTypeEnum } from '@management-models/LoadBalancer';
-import { Proxy } from '@management-models/Proxy';
-import { NewApiEntity } from '@management-models/NewApiEntity';
+import { ApiEntity, ApiEntityFlowModeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PageEntity';
+import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
+import { LoadBalancerTypeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/LoadBalancer';
+import { Proxy } from '@gravitee/management-webclient-sdk/src/lib/models/Proxy';
+import { NewApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewApiEntity';
 import faker from '@faker-js/faker';
-import { NewRatingEntity } from '@management-models/NewRatingEntity';
+import { NewRatingEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewRatingEntity';
 import { RatingInput } from '@portal-models/RatingInput';
-import { PrimaryOwnerEntity } from '@management-models/PrimaryOwnerEntity';
-import { ResponseTemplate } from '@management-models/ResponseTemplate';
-import { Flow } from '@management-models/Flow';
-import { PlanEntity } from '@management-models/PlanEntity';
+import { PrimaryOwnerEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PrimaryOwnerEntity';
+import { ResponseTemplate } from '@gravitee/management-webclient-sdk/src/lib/models/ResponseTemplate';
+import { Flow } from '@gravitee/management-webclient-sdk/src/lib/models/Flow';
+import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
 
 export interface ApiImportEntity {
   id?: string;

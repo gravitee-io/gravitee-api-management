@@ -15,23 +15,23 @@
  */
 import { forManagementAsApiUser, forManagementAsAppUser } from '@client-conf/*';
 import { afterAll, beforeAll, describe, test } from '@jest/globals';
-import { APIsApi } from '@management-apis/APIsApi';
-import { ApiEntity } from '@management-models/ApiEntity';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { ApisFaker } from '@management-fakers/ApisFaker';
-import { ApplicationsApi } from '@management-apis/ApplicationsApi';
+import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
-import { ApplicationEntity } from '@management-models/ApplicationEntity';
+import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
 import { succeed } from '@lib/jest-utils';
 import { PlansFaker } from '@management-fakers/PlansFaker';
-import { PlanEntity } from '@management-models/PlanEntity';
-import { APIPlansApi } from '@management-apis/APIPlansApi';
-import { PlanStatus } from '@management-models/PlanStatus';
-import { PlanSecurityType } from '@management-models/PlanSecurityType';
-import { LifecycleAction } from '@management-models/LifecycleAction';
+import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
+import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@lib/gateway';
-import { ApplicationSubscriptionsApi } from '@management-apis/ApplicationSubscriptionsApi';
-import { Subscription } from '@management-models/Subscription';
-import { ApiKeyEntity } from '@management-models/ApiKeyEntity';
+import { ApplicationSubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationSubscriptionsApi';
+import { Subscription } from '@gravitee/management-webclient-sdk/src/lib/models/Subscription';
+import { ApiKeyEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiKeyEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
