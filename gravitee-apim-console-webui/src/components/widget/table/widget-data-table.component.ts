@@ -93,7 +93,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
 
     this.isClickable = function (result) {
       return (
-        ($state.current.name === 'management.platform' || $state.current.name === 'management.home') &&
+        ($state.current.name === 'management.dashboard.analytics' || $state.current.name === 'management.dashboard.home') &&
         !result.metadata.unknown &&
         (this.widget.chart.request.field === 'api' || this.widget.chart.request.field === 'application')
       );
@@ -101,7 +101,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
 
     this.goto = function (key) {
       // only on platform analytics
-      if ($state.current.name === 'management.platform' || $state.current.name === 'management.home') {
+      if ($state.current.name === 'management.dashboard.analytics' || $state.current.name === 'management.dashboard.home') {
         if (this.widget.chart.request.field === 'api') {
           this.$state.go('management.apis.detail.analytics.overview', {
             apiId: key,
