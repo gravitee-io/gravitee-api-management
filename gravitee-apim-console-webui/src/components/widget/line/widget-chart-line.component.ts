@@ -79,10 +79,14 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
             visible: true,
           });
         } else {
+          let field = this.parent.widget.chart.request.field;
+          if (this.parent.widget.chart.request.aggs && this.parent.widget.chart.request.aggs.includes('field:')) {
+            field = this.parent.widget.chart.request.aggs.replace('field:', '');
+          }
+          const queryFilters = this.AnalyticsService.getQueryFilters();
           value.buckets.forEach((bucket) => {
             if (bucket) {
               let isFieldRequest = this.parent.widget.chart.request.aggs.split('%3B')[idx].includes('field:');
-              const query = this.parent.widget.chart.request.query;
               if (
                 bucket.name === '1' ||
                 bucket.name.match('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
@@ -98,7 +102,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
                 data: bucket.data,
                 labelPrefix: isFieldRequest ? label : '',
                 id: bucket.name,
-                visible: this.parent.widget.chart.selectable && query ? query.includes(bucket.name) : true,
+                visible: queryFilters && queryFilters[field] ? queryFilters[field].includes(bucket.name) : true,
               });
             }
           });
