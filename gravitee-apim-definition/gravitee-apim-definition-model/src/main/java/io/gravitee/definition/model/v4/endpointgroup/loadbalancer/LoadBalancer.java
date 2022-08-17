@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.v4.endpointgroup.loadbalancer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -31,6 +32,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@Schema(name = "LoadBalancerV4")
 public class LoadBalancer implements Serializable {
 
     @JsonProperty("type")

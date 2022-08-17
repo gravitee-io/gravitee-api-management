@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.definition.model.v4.listener.subscription.ListenerSubscription;
 import io.gravitee.definition.model.v4.listener.tcp.ListenerTcp;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -55,6 +56,7 @@ import lombok.experimental.FieldNameConstants;
         @JsonSubTypes.Type(value = ListenerTcp.class, name = TCP_LABEL),
     }
 )
+@Schema(name = "ListenerV4")
 public abstract class Listener implements Serializable {
 
     public static final String HTTP_LABEL = "http";

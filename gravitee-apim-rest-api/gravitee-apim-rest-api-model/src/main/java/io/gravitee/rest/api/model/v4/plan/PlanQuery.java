@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.v4.plan;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -24,6 +25,7 @@ import lombok.Getter;
  */
 @Builder
 @Getter
+@Schema(name = "PlanQueryV4")
 public class PlanQuery {
 
     private String api;

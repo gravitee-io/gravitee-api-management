@@ -35,6 +35,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@Schema(name = "ServiceV4")
 public class Service implements Serializable {
 
     private boolean enabled = true;

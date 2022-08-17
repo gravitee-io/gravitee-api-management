@@ -20,6 +20,7 @@ import static io.gravitee.definition.model.v4.listener.Listener.SUBSCRIPTION_LAB
 import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -29,6 +30,7 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @Getter
+@Schema(name = "ListenerTypeV4")
 public enum ListenerType {
     HTTP(HTTP_LABEL),
     SUBSCRIPTION(SUBSCRIPTION_LABEL),

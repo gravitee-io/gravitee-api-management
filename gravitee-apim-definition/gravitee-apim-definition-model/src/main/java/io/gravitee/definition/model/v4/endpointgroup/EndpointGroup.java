@@ -39,6 +39,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@Schema(name = "EndpointGroupV4")
 public class EndpointGroup implements Serializable {
 
     @NotBlank

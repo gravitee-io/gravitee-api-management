@@ -25,9 +25,9 @@ import lombok.RequiredArgsConstructor;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Schema(enumAsRef = true)
 @RequiredArgsConstructor
 @Getter
+@Schema(enumAsRef = true, name = "PlanSecurityTypeV4")
 public enum PlanSecurityType {
     /**
      * Plan which is using a key_less (ie. public) security authentication type for incoming HTTP requests.

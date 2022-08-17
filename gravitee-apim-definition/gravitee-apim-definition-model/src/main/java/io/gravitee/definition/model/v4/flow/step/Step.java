@@ -34,6 +34,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@Schema(name = "StepV4")
 public class Step implements Serializable {
 
     @NotEmpty

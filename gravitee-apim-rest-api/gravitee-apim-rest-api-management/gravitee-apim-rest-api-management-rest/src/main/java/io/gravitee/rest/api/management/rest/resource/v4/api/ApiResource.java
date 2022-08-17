@@ -74,7 +74,6 @@ import javax.ws.rs.core.UriBuilder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Hidden
 @Tag(name = "APIs")
 public class ApiResource extends AbstractResource {
 

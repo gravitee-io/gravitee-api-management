@@ -40,6 +40,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@Schema(name = "NewApiEntityV4")
 public class NewApiEntity {
 
     @NotBlank

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model.v4.api.properties;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.property.Property;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 /**
@@ -27,6 +28,7 @@ import lombok.*;
 @Getter
 @ToString
 @EqualsAndHashCode
+@Schema(name = "PropertyEntityV4")
 public class PropertyEntity extends Property {
 
     @JsonProperty(value = "encryptable")

@@ -33,6 +33,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@Schema(name = "PlanSecurityV4")
 public class PlanSecurity {
 
     @JsonProperty(required = true)

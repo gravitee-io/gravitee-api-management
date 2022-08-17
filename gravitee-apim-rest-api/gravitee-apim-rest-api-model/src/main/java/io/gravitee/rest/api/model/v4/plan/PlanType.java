@@ -24,9 +24,9 @@ import lombok.RequiredArgsConstructor;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Schema(enumAsRef = true)
 @RequiredArgsConstructor
 @Getter
+@Schema(enumAsRef = true, name = "PlanTypeV4")
 public enum PlanType {
     API("api"),
     CATALOG("catalog");
