@@ -12,24 +12,24 @@
  */
 
 /**
- * The visibility of the API regarding the portal.
+ * 
  * @export
  * @enum {string}
  */
-export enum Visibility {
-    PUBLIC = 'PUBLIC',
-    PRIVATE = 'PRIVATE'
+export enum PlanTypeV4 {
+    API = 'API',
+    CATALOG = 'CATALOG'
 }
 
-export function VisibilityFromJSON(json: any): Visibility {
-    return VisibilityFromJSONTyped(json, false);
+export function PlanTypeV4FromJSON(json: any): PlanTypeV4 {
+    return PlanTypeV4FromJSONTyped(json, false);
 }
 
-export function VisibilityFromJSONTyped(json: any, ignoreDiscriminator: boolean): Visibility {
-    return json as Visibility;
+export function PlanTypeV4FromJSONTyped(json: any, ignoreDiscriminator: boolean): PlanTypeV4 {
+    return json as PlanTypeV4;
 }
 
-export function VisibilityToJSON(value?: Visibility | null): any {
+export function PlanTypeV4ToJSON(value?: PlanTypeV4 | null): any {
     return value as any;
 }
 
