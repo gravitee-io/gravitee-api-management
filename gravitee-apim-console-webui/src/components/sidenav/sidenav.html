@@ -37,13 +37,12 @@
   <md-list class="sidenav-list">
     <md-list-item ng-repeat="menuItem in $ctrl.menuItems|orderBy:'data.menu.order' track by menuItem.name">
       <a
-        ui-sref="{{ :: menuItem.name}}"
-        ui-sref-opts="{inherit: false}"
-        title="{{ :: menuItem.data.menu.label}}"
+        ui-sref="{{ menuItem.name }}({inherit: false})"
+        title="{{ menuItem.data.menu.label }}"
         ng-class="{'sidenav-active': $ctrl.isActive(menuItem)}"
       >
-        <ng-md-icon icon="{{ :: menuItem.data.menu.icon }}"></ng-md-icon>
-        <span>{{ :: menuItem.data.menu.label }}</span>
+        <ng-md-icon icon="{{ menuItem.data.menu.icon }}"></ng-md-icon>
+        <span>{{ menuItem.data.menu.label }}</span>
       </a>
     </md-list-item>
 
