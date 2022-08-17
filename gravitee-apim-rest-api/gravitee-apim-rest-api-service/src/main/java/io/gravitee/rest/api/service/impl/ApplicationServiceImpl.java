@@ -156,6 +156,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         try {
             LOGGER.debug("Find application by IDs: {}", applicationIds);
 
+            if (applicationIds.isEmpty()) {
+                return Collections.emptySet();
+            }
+
             ApplicationCriteria criteria = new ApplicationCriteria.Builder()
                 .ids(applicationIds.toArray(new String[0]))
                 .environmentIds(executionContext.getEnvironmentId())

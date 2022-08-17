@@ -15,11 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.google.common.collect.Sets;
 import io.gravitee.common.data.domain.Page;
@@ -41,10 +39,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
@@ -134,6 +129,17 @@ public class ApplicationService_FindByIdsTest {
 
         assertNotNull(applications);
         assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void shouldFindByIdsWithEmptySet() throws TechnicalException {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
+        final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, Collections.emptySet());
+
+        assertNotNull(applications);
+        assertTrue(applications.isEmpty());
+        verify(applicationRepository, times(0)).search(any(), any());
     }
 
     @Test(expected = TechnicalManagementException.class)
