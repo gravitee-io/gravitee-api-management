@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.v4.responsetemplate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.Map;
 import lombok.EqualsAndHashCode;
@@ -33,6 +34,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@Schema(name = "ResponseTemplateV4")
 public class ResponseTemplate implements Serializable {
 
     private int statusCode;

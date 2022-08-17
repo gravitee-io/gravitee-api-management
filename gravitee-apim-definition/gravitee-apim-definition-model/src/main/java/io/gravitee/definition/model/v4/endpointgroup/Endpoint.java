@@ -35,6 +35,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@Schema(name = "EndpointV4")
 public class Endpoint implements Serializable {
 
     private static final int DEFAULT_WEIGHT = 1;

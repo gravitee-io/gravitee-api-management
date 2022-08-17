@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +40,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@Schema(name = "FlowV4")
 public class Flow implements Serializable {
 
     private String name;

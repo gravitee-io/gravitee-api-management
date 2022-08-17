@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -35,6 +36,7 @@ import lombok.ToString;
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
+@Schema(name = "EntrypointPluginEntityV4")
 public class EntrypointPluginEntity extends PlatformPluginEntity {
 
     private ApiType supportedApiType;

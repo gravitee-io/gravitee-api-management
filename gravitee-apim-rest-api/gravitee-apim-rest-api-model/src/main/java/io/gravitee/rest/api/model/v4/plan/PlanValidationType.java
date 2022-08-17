@@ -24,9 +24,9 @@ import lombok.RequiredArgsConstructor;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Schema(enumAsRef = true)
 @RequiredArgsConstructor
 @Getter
+@Schema(enumAsRef = true, name = "PlanValidationTypeV4")
 public enum PlanValidationType {
     /**
      * Subscription is automatically validated without any human action.

@@ -18,6 +18,7 @@ package io.gravitee.definition.model.v4.flow.selector;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Operator;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -35,6 +36,7 @@ import lombok.ToString;
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
+@Schema(name = "SelectorHttpV4")
 public class SelectorHttp extends Selector {
 
     @JsonProperty(required = true)

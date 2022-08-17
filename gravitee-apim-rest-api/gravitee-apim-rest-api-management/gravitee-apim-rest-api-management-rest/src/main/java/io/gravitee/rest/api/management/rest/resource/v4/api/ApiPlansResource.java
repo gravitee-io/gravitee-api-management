@@ -76,7 +76,6 @@ import javax.ws.rs.core.Response;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Hidden
 @Tag(name = "API Plans")
 public class ApiPlansResource extends AbstractResource {
 

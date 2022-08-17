@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.v4.plan;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @Getter
+@Schema(name = "PlanStatusV4")
 public enum PlanStatus {
     STAGING("staging"),
     PUBLISHED("published"),

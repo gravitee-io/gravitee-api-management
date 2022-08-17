@@ -35,6 +35,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@Schema(name = "EntrypointV4")
 public class Entrypoint implements Serializable {
 
     @JsonProperty(required = true)

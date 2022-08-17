@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4.resource;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import javax.validation.constraints.NotBlank;
 import lombok.EqualsAndHashCode;
@@ -34,6 +35,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@Schema(name = "ResourceV4")
 public class Resource implements Serializable {
 
     @JsonProperty(required = true)

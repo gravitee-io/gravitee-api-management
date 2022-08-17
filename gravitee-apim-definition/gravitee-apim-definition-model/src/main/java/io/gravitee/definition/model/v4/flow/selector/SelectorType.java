@@ -20,6 +20,7 @@ import static io.gravitee.definition.model.v4.flow.selector.Selector.CONDITION_L
 import static io.gravitee.definition.model.v4.flow.selector.Selector.HTTP_LABEL;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -29,6 +30,7 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @Getter
+@Schema(name = "SelectorTypeV4")
 public enum SelectorType {
     HTTP(HTTP_LABEL),
     CHANNEL(CHANNEL_LABEL),

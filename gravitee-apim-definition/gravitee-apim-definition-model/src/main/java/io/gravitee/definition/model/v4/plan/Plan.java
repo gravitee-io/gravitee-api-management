@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4.plan;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@Schema(name = "PlanV4")
 public class Plan implements Serializable {
 
     @JsonProperty(required = true)

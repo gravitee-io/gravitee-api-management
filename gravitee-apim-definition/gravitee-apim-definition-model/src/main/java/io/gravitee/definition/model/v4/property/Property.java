@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.v4.property;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -35,6 +36,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
+@Schema(name = "PropertyV4")
 public class Property implements Serializable {
 
     @JsonProperty(required = true)

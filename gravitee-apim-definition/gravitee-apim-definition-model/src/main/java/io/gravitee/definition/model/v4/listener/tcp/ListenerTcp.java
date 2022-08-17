@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import javax.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
@@ -35,6 +36,7 @@ import lombok.ToString;
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
+@Schema(name = "ListenerTcpV4")
 public class ListenerTcp extends Listener {
 
     @JsonProperty("entrypoints")

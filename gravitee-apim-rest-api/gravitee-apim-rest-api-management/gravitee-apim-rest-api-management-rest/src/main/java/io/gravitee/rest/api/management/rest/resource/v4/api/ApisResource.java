@@ -49,7 +49,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Tag(name = "APIs")
 @Slf4j
-@Hidden
 public class ApisResource extends AbstractResource {
 
     @Context
