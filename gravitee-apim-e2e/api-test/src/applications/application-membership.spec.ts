@@ -20,7 +20,7 @@ import { forbidden, succeed } from '@lib/jest-utils';
 import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
 import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
 import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
-import { ApplicationApi } from '@portal-apis/ApplicationApi';
+import { ApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis';
 import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
 import { UpdateApplicationEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApplicationEntity';
 import { GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models/GroupEntity';

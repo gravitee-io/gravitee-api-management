@@ -25,7 +25,7 @@ import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Vi
 import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
 import { created, succeed, unauthorized } from '@lib/jest-utils';
 import { PageType } from '@gravitee/management-webclient-sdk/src/lib/models/PageType';
-import { ApiApi, GetPageByApiIdAndPageIdIncludeEnum } from '@portal-apis/ApiApi';
+import { ApiApi, GetPageByApiIdAndPageIdIncludeEnum } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApiApi';
 import { MetadataFormat } from '@gravitee/management-webclient-sdk/src/lib/models/MetadataFormat';
 import { APIMetadataApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIMetadataApi';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';

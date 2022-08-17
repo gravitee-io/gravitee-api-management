@@ -28,7 +28,7 @@ import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/API
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
 import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
-import { SubscriptionApi as PortalSubscriptionApi } from '@portal-apis/SubscriptionApi';
+import { SubscriptionApi as PortalSubscriptionApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
 import { APISubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APISubscriptionsApi';
 import { Subscription } from '@gravitee/management-webclient-sdk/src/lib/models/Subscription';
 import { ApplicationSubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationSubscriptionsApi';

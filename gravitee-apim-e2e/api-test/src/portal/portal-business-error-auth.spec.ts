@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { describe } from '@jest/globals';
-import { AuthenticationApi } from '@portal-apis/AuthenticationApi';
+import { AuthenticationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/AuthenticationApi';
 import { forPortalAsAdminUser } from '@client-conf/*';
 import { notFound } from '@lib/jest-utils';
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import faker from '@faker-js/faker';
-import { RatingInput } from '@portal-models/RatingInput';
+import { RatingInput } from '@gravitee/portal-webclient-sdk/src/lib/models/RatingInput';
 
 export class PortalApiFaker {
   static newRatingInput(): RatingInput {

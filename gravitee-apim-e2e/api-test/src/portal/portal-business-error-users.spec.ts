@@ -19,8 +19,8 @@ import { UsersApi as UsersManagementApi } from '@gravitee/management-webclient-s
 import { UsersFaker } from '@management-fakers/UsersFaker';
 import { UserEntity } from '@gravitee/management-webclient-sdk/src/lib/models/UserEntity';
 import { fail, notFound, unauthorized } from '@lib/jest-utils';
-import { UsersApi as UsersPortalApi } from '@portal-apis/UsersApi';
-import { UserApi as UserPortalApi } from '@portal-apis/UserApi';
+import { UsersApi as UsersPortalApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/UsersApi';
+import { UserApi as UserPortalApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/UserApi';
 import { PortalApi as PortalManagementApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';
 
 const portalManagementApi = new PortalManagementApi(forManagementAsAdminUser());

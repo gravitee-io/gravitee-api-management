@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import faker from '@faker-js/faker';
-import { ApplicationInput } from '@portal-models/ApplicationInput';
+import { ApplicationInput } from '@gravitee/portal-webclient-sdk/src/lib/models/ApplicationInput';
 
 export class PortalApplicationFaker {
   static newApplicationInput(attributes?: Partial<ApplicationInput>): ApplicationInput {

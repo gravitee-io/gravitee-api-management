@@ -15,8 +15,8 @@
  */
 import { afterAll, beforeAll, describe } from '@jest/globals';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
-import { Application } from '@portal-models/Application';
-import { Subscription as PortalSubscription } from '@portal-models/Subscription';
+import { Application } from '@gravitee/portal-webclient-sdk/src/lib/models/Application';
+import { Subscription as PortalSubscription } from '@gravitee/portal-webclient-sdk/src/lib/models/Subscription';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { PlansFaker } from '@management-fakers/PlansFaker';
 import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
@@ -24,14 +24,14 @@ import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/Pl
 import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { PortalApplicationFaker } from '@portal-fakers/PortalApplicationFaker';
-import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '@portal-apis/SubscriptionApi';
+import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
 import { fetchGatewaySuccess } from '@lib/gateway';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsApiUser, forPortalAsAppUser } from '@client-conf/*';
 import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
-import { ApplicationApi } from '@portal-apis/ApplicationApi';
+import { ApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
 import { SettingsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/SettingsApi';
-import { ApiKeyModeEnum } from '@portal-models/ApiKeyModeEnum';
+import { ApiKeyModeEnum } from '@gravitee/portal-webclient-sdk/src/lib/models/ApiKeyModeEnum';
 import { PortalSettingsEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PortalSettingsEntity';
 
 const orgId = 'DEFAULT';
