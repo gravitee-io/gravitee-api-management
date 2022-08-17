@@ -645,6 +645,30 @@ jobs:
                       - gravitee-apim-e2e/dist
                       - gravitee-apim-e2e/node_modules
 
+    perf-lint-build:
+      executor:
+        name: node-lts
+        class: small
+      steps:
+        - checkout
+        - webui-install:
+            apim-ui-project: gravitee-apim-perf
+        - attach_workspace:
+            at: .
+        - run:
+            name: Check License
+            command: npm run lint:license
+            working_directory: gravitee-apim-perf
+        - run:
+            name: Run Prettier and ESLint
+            command: npm run lint
+            working_directory: gravitee-apim-perf
+        - run:
+            name: Build
+            command: npm run build
+            working_directory: gravitee-apim-perf
+        - notify-on-failure
+
     webui-lint-test:
         parameters:
             apim-ui-project:
@@ -1840,6 +1864,12 @@ workflows:
                               - master
                               - /.*-run-e2e.*/
                               - /^\d+\.\d+\.x$/
+
+            - perf-lint-build:
+                name: Lint & Build APIM perf
+                context: cicd-orchestrator
+                requires:
+                  - setup
 
     build_rpm_&_docker_images:
         when:

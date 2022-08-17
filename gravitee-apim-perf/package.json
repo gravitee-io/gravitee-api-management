@@ -25,14 +25,17 @@
     "@gravitee/fixtures": "file:../gravitee-apim-e2e/lib/fixtures",
     "@gravitee/management-webclient-sdk": "file:../gravitee-apim-e2e/lib/management-webclient-sdk",
     "@gravitee/utils": "file:../gravitee-apim-e2e/lib/utils",
+    "gravitee-apim-e2e": "file:../gravitee-apim-e2e",
     "node-fetch": "2.6.7",
     "process": "^0.11.10"
   },
   "scripts": {
-    "lint": "npm run prettier && npm run lzint:license",
+    "build": "tsc",
+    "lint": "npm run prettier && npm run lint:license",
     "lint:fix": "npm run prettier:fix && npm run lint:license:fix && tsc --noEmit",
     "lint:license": "license-check-and-add check -f license-check-config.json",
     "lint:license:fix": "license-check-and-add add -f license-check-config.json -r",
+    "preinstall": "sh ./scripts/preinstall.sh",
     "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",
     "prettier:fix": "prettier --write \"**/*.{js,ts,html,css,scss,json}\"",
     "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\""
