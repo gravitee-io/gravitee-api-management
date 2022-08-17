@@ -15,39 +15,39 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface Policy
+ * @interface PlanSecurityV4
  */
-export interface Policy {
-    /**
-     * 
-     * @type {string}
-     * @memberof Policy
-     */
-    name?: string;
+export interface PlanSecurityV4 {
     /**
      * 
      * @type {any}
-     * @memberof Policy
+     * @memberof PlanSecurityV4
      */
     configuration?: any;
+    /**
+     * 
+     * @type {string}
+     * @memberof PlanSecurityV4
+     */
+    type: string;
 }
 
-export function PolicyFromJSON(json: any): Policy {
-    return PolicyFromJSONTyped(json, false);
+export function PlanSecurityV4FromJSON(json: any): PlanSecurityV4 {
+    return PlanSecurityV4FromJSONTyped(json, false);
 }
 
-export function PolicyFromJSONTyped(json: any, ignoreDiscriminator: boolean): Policy {
+export function PlanSecurityV4FromJSONTyped(json: any, ignoreDiscriminator: boolean): PlanSecurityV4 {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'name': !exists(json, 'name') ? undefined : json['name'],
         'configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
+        'type': json['type'],
     };
 }
 
-export function PolicyToJSON(value?: Policy | null): any {
+export function PlanSecurityV4ToJSON(value?: PlanSecurityV4 | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -56,8 +56,8 @@ export function PolicyToJSON(value?: Policy | null): any {
     }
     return {
         
-        'name': value.name,
         'configuration': value.configuration,
+        'type': value.type,
     };
 }
 

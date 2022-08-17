@@ -21,6 +21,10 @@ import {
     ApiLifecycleStateFromJSON,
     ApiLifecycleStateFromJSONTyped,
     ApiLifecycleStateToJSON,
+    DefinitionContext,
+    DefinitionContextFromJSON,
+    DefinitionContextFromJSONTyped,
+    DefinitionContextToJSON,
     Flow,
     FlowFromJSON,
     FlowFromJSONTyped,
@@ -117,6 +121,12 @@ export interface DebugApiEntity {
      * @memberof DebugApiEntity
      */
     crossId?: string;
+    /**
+     * 
+     * @type {DefinitionContext}
+     * @memberof DebugApiEntity
+     */
+    definition_context?: DefinitionContext;
     /**
      * The last date (as timestamp) when the API was deployed.
      * @type {Date}
@@ -327,6 +337,7 @@ export function DebugApiEntityFromJSONTyped(json: any, ignoreDiscriminator: bool
         'context_path': !exists(json, 'context_path') ? undefined : json['context_path'],
         'created_at': !exists(json, 'created_at') ? undefined : (new Date(json['created_at'])),
         'crossId': !exists(json, 'crossId') ? undefined : json['crossId'],
+        'definition_context': !exists(json, 'definition_context') ? undefined : DefinitionContextFromJSON(json['definition_context']),
         'deployed_at': !exists(json, 'deployed_at') ? undefined : (new Date(json['deployed_at'])),
         'description': !exists(json, 'description') ? undefined : json['description'],
         'disable_membership_notifications': !exists(json, 'disable_membership_notifications') ? undefined : json['disable_membership_notifications'],
@@ -377,6 +388,7 @@ export function DebugApiEntityToJSON(value?: DebugApiEntity | null): any {
         'context_path': value.context_path,
         'created_at': value.created_at === undefined ? undefined : (value.created_at.toISOString()),
         'crossId': value.crossId,
+        'definition_context': DefinitionContextToJSON(value.definition_context),
         'deployed_at': value.deployed_at === undefined ? undefined : (value.deployed_at.toISOString()),
         'description': value.description,
         'disable_membership_notifications': value.disable_membership_notifications,
