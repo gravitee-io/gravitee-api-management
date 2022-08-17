@@ -15,14 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isNull;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -30,8 +24,6 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.GroupMemberEntity;
 import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -47,7 +39,6 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import io.gravitee.rest.api.service.v4.impl.ApiGroupServiceImpl;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -95,14 +86,7 @@ public class ApiService_GetGroupsWithMembersTest {
     public void setUp() throws Exception {
         GraviteeContext.cleanContext();
         apiGroupService =
-            new ApiGroupServiceImpl(
-                apiRepository,
-                apiNotificationService,
-                groupService,
-                membershipService,
-                primaryOwnerService,
-                roleService
-            );
+            new ApiGroupService(apiRepository, apiNotificationService, groupService, membershipService, primaryOwnerService, roleService);
 
         UserEntity user = new UserEntity();
         user.setId("random");

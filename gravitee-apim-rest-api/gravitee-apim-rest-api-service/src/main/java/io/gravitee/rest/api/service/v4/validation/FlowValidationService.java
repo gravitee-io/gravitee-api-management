@@ -16,12 +16,68 @@
 package io.gravitee.rest.api.service.v4.validation;
 
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.Selector;
+import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.v4.exception.FlowSelectorsDuplicatedException;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface FlowValidationService {
-    List<Flow> validateAndSanitize(List<Flow> flows);
+@Component
+public class FlowValidationService extends TransactionalService {
+
+    private final PolicyService policyService;
+
+    public FlowValidationService(final PolicyService policyService) {
+        this.policyService = policyService;
+    }
+
+    public List<Flow> validateAndSanitize(List<Flow> flows) {
+        if (flows != null) {
+            flows.forEach(
+                flow -> {
+                    // Check duplicated selectors
+                    checkDuplicatedSelectors(flow);
+
+                    // Validate policy
+                    checkPolicyConfiguration(flow);
+                }
+            );
+        }
+        return flows;
+    }
+
+    private void checkPolicyConfiguration(final Flow flow) {
+        Stream
+            .of(flow.getRequest(), flow.getResponse(), flow.getSubscribe(), flow.getPublish())
+            .filter(Objects::nonNull)
+            .flatMap(Collection::stream)
+            .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)
+            .forEach(step -> step.setConfiguration(policyService.validatePolicyConfiguration(step.getPolicy(), step.getConfiguration())));
+    }
+
+    private void checkDuplicatedSelectors(final Flow flow) {
+        if (flow.getSelectors() != null) {
+            Set<Selector> seenSelectors = new HashSet<>();
+            Set<String> duplicatedSelectors = flow
+                .getSelectors()
+                .stream()
+                .filter(e -> !seenSelectors.add(e))
+                .map(selector -> selector.getType().getLabel())
+                .collect(Collectors.toSet());
+            if (!duplicatedSelectors.isEmpty()) {
+                throw new FlowSelectorsDuplicatedException(flow.getName(), duplicatedSelectors);
+            }
+        }
+    }
 }

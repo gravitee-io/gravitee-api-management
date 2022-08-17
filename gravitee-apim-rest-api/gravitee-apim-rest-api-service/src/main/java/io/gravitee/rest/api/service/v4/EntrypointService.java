@@ -17,18 +17,93 @@ package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.rest.api.model.v4.entrypoint.EntrypointPluginEntity;
-import io.gravitee.rest.api.service.PluginService;
+import io.gravitee.rest.api.service.JsonSchemaService;
+import io.gravitee.rest.api.service.impl.AbstractPluginService;
+import io.gravitee.rest.api.service.v4.EntrypointService;
 import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EntrypointService extends PluginService<EntrypointPluginEntity> {
-    Set<EntrypointPluginEntity> findBySupportedApi(final ApiType apiType);
+@Component("EntrypointServiceV4")
+public class EntrypointService extends AbstractPluginService<EntrypointConnectorPlugin<?>, EntrypointPluginEntity> {
 
-    Set<EntrypointPluginEntity> findByConnectorMode(final ConnectorMode connectorMode);
+    public EntrypointService(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<EntrypointConnectorPlugin<?>> pluginManager) {
+        super(jsonSchemaService, pluginManager);
+    }
 
-    String validateEntrypointConfiguration(final String type, final String configuration);
+    @Override
+    public Set<EntrypointPluginEntity> findAll() {
+        return super.list().stream().map(this::convert).collect(Collectors.toSet());
+    }
+
+    @Override
+    public EntrypointPluginEntity findById(String entrypointPluginId) {
+        EntrypointConnectorPlugin<?> resourceDefinition = super.get(entrypointPluginId);
+        return convert(resourceDefinition);
+    }
+
+    @Override
+    protected EntrypointPluginEntity convert(Plugin plugin) {
+        EntrypointPluginEntity entity = new EntrypointPluginEntity();
+
+        entity.setId(plugin.id());
+        entity.setDescription(plugin.manifest().description());
+        entity.setName(plugin.manifest().name());
+        entity.setVersion(plugin.manifest().version());
+        AbstractConnectorFactory<?> connectorFactory = ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id());
+
+        entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
+        entity.setSupportedModes(
+            connectorFactory
+                .supportedModes()
+                .stream()
+                .map(connectorMode -> ConnectorMode.fromLabel(connectorMode.getLabel()))
+                .collect(Collectors.toSet())
+        );
+
+        return entity;
+    }
+
+    public Set<EntrypointPluginEntity> findBySupportedApi(final ApiType apiType) {
+        return super
+            .list()
+            .stream()
+            .filter(
+                plugin ->
+                    ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id())
+                        .supportedApi()
+                        .equals(io.gravitee.gateway.jupiter.api.ApiType.fromLabel(apiType.getLabel()))
+            )
+            .map(this::convert)
+            .collect(Collectors.toSet());
+    }
+
+    public Set<EntrypointPluginEntity> findByConnectorMode(final ConnectorMode connectorMode) {
+        return super
+            .list()
+            .stream()
+            .filter(
+                plugin ->
+                    ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id())
+                        .supportedModes()
+                        .contains(io.gravitee.gateway.jupiter.api.ConnectorMode.fromLabel(connectorMode.getLabel()))
+            )
+            .map(this::convert)
+            .collect(Collectors.toSet());
+    }
+
+    public String validateEntrypointConfiguration(final String entrypointPluginId, final String configuration) {
+        EntrypointPluginEntity entrypointPluginEntity = this.findById(entrypointPluginId);
+        return validateConfiguration(entrypointPluginEntity, configuration);
+    }
 }

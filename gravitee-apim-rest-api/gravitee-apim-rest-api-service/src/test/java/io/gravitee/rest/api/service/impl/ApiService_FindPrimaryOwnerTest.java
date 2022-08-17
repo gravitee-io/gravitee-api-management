@@ -36,7 +36,6 @@ import io.gravitee.rest.api.service.exceptions.NoPrimaryOwnerGroupForUserExcepti
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import io.gravitee.rest.api.service.v4.impl.PrimaryOwnerServiceImpl;
 import java.util.Arrays;
 import java.util.HashSet;
 import org.junit.Before;
@@ -79,12 +78,7 @@ public class ApiService_FindPrimaryOwnerTest {
 
     @Before
     public void before() {
-        PrimaryOwnerService primaryOwnerService = new PrimaryOwnerServiceImpl(
-            userService,
-            membershipService,
-            groupService,
-            parameterService
-        );
+        PrimaryOwnerService primaryOwnerService = new PrimaryOwnerService(userService, membershipService, groupService, parameterService);
         ReflectionTestUtils.setField(apiService, "primaryOwnerService", primaryOwnerService);
     }
 

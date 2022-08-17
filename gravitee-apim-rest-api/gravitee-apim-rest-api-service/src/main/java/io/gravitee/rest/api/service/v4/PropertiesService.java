@@ -15,13 +15,39 @@
  */
 package io.gravitee.rest.api.service.v4;
 
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
+import io.gravitee.rest.api.service.impl.TransactionalService;
+import java.security.GeneralSecurityException;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PropertiesService {
-    List<PropertyEntity> encryptProperties(List<PropertyEntity> properties);
+@Slf4j
+@Component
+public class PropertiesService extends TransactionalService {
+
+    private final DataEncryptor dataEncryptor;
+
+    public PropertiesService(final DataEncryptor dataEncryptor) {
+        this.dataEncryptor = dataEncryptor;
+    }
+
+    public List<PropertyEntity> encryptProperties(List<PropertyEntity> properties) {
+        for (PropertyEntity property : properties) {
+            if (property.isEncryptable() && !property.isEncrypted()) {
+                try {
+                    property.setValue(dataEncryptor.encrypt(property.getValue()));
+                    property.setEncrypted(true);
+                } catch (GeneralSecurityException e) {
+                    log.error("Error encrypting property value", e);
+                }
+            }
+        }
+        return properties;
+    }
 }

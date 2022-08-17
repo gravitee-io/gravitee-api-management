@@ -62,7 +62,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @Configuration
 @ComponentScan("io.gravitee.rest.api.service")
-@EnableTransactionManagement
+@EnableTransactionManagement(proxyTargetClass = true)
 @Import(
     {
         PolicyPluginConfiguration.class,

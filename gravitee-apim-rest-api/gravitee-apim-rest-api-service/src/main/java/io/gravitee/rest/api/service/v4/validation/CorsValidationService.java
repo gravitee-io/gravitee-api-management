@@ -16,11 +16,45 @@
 package io.gravitee.rest.api.service.v4.validation;
 
 import io.gravitee.definition.model.Cors;
+import io.gravitee.rest.api.service.exceptions.AllowOriginNotAllowedException;
+import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface CorsValidationService {
-    Cors validateAndSanitize(Cors cors);
+@Component
+public class CorsValidationService extends TransactionalService {
+
+    private static final Pattern CORS_REGEX_PATTERN = Pattern.compile("^((\\*)|(null)|(^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?))$");
+    private static final String[] CORS_REGEX_CHARS = new String[] { "{", "[", "(", "*" };
+
+    public Cors validateAndSanitize(Cors cors) {
+        if (cors != null) {
+            final Set<String> accessControlAllowOrigin = cors.getAccessControlAllowOrigin();
+            if (accessControlAllowOrigin != null && !accessControlAllowOrigin.isEmpty()) {
+                for (String allowOriginItem : accessControlAllowOrigin) {
+                    if (!CORS_REGEX_PATTERN.matcher(allowOriginItem).matches()) {
+                        if (StringUtils.indexOfAny(allowOriginItem, CORS_REGEX_CHARS) >= 0) {
+                            try {
+                                //the origin could be a regex
+                                Pattern.compile(allowOriginItem);
+                            } catch (PatternSyntaxException e) {
+                                throw new AllowOriginNotAllowedException(allowOriginItem);
+                            }
+                        } else {
+                            throw new AllowOriginNotAllowedException(allowOriginItem);
+                        }
+                    }
+                }
+            }
+        }
+        return cors;
+    }
 }

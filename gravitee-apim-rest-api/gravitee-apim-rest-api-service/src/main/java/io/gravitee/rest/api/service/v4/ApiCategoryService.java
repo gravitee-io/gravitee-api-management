@@ -15,14 +15,42 @@
  */
 package io.gravitee.rest.api.service.v4;
 
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collection;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiCategoryService {
-    Set<CategoryEntity> listCategories(Collection<String> apis, String environment);
+@Component
+@Slf4j
+public class ApiCategoryService {
+
+    private final ApiRepository apiRepository;
+    private final CategoryService categoryService;
+
+    public ApiCategoryService(@Lazy final ApiRepository apiRepository, final CategoryService categoryService) {
+        this.apiRepository = apiRepository;
+        this.categoryService = categoryService;
+    }
+
+    public Set<CategoryEntity> listCategories(Collection<String> apis, String environment) {
+        try {
+            ApiCriteria criteria = new ApiCriteria.Builder().ids(apis.toArray(new String[0])).build();
+            Set<String> categoryIds = apiRepository.listCategories(criteria);
+            return categoryService.findByIdIn(environment, categoryIds);
+        } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to list categories for APIs {}", apis, ex);
+            throw new TechnicalManagementException("An error occurs while trying to list categories for APIs {}" + apis, ex);
+        }
+    }
 }

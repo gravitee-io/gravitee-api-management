@@ -15,6 +15,38 @@
  */
 package io.gravitee.rest.api.service.v4;
 
-public interface EndpointService {
-    String validateEndpointConfiguration(String endpointPluginId, String configuration);
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
+import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
+import io.gravitee.rest.api.service.JsonSchemaService;
+import io.gravitee.rest.api.service.impl.AbstractPluginService;
+import io.gravitee.rest.api.service.v4.EndpointService;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
+
+/**
+ * @author GraviteeSource Team
+ */
+@Component("EndpointServiceV4")
+public class EndpointService extends AbstractPluginService<EndpointConnectorPlugin<?>, PlatformPluginEntity> {
+
+    public EndpointService(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<EndpointConnectorPlugin<?>> pluginManager) {
+        super(jsonSchemaService, pluginManager);
+    }
+
+    @Override
+    public Set<PlatformPluginEntity> findAll() {
+        return super.list().stream().map(this::convert).collect(Collectors.toSet());
+    }
+
+    @Override
+    public PlatformPluginEntity findById(String endpointPluginId) {
+        return convert(super.get(endpointPluginId));
+    }
+
+    public String validateEndpointConfiguration(final String endpointPluginId, final String configuration) {
+        PlatformPluginEntity endpointPluginEntity = this.findById(endpointPluginId);
+        return validateConfiguration(endpointPluginEntity, configuration);
+    }
 }

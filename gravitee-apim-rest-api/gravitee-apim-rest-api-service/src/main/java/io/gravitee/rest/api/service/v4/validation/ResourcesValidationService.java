@@ -16,12 +16,29 @@
 package io.gravitee.rest.api.service.v4.validation;
 
 import io.gravitee.definition.model.v4.resource.Resource;
+import io.gravitee.rest.api.service.ResourceService;
+import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import java.util.List;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ResourcesValidationService {
-    List<Resource> validateAndSanitize(List<Resource> resources);
+@Component
+public class ResourcesValidationService extends TransactionalService {
+
+    private final ResourceService resourceService;
+
+    public ResourcesValidationService(final ResourceService resourceService) {
+        this.resourceService = resourceService;
+    }
+
+    public List<Resource> validateAndSanitize(List<Resource> resources) {
+        if (resources != null) {
+            resources.stream().filter(Resource::isEnabled).forEach(resourceService::validateResourceConfiguration);
+        }
+        return resources;
+    }
 }

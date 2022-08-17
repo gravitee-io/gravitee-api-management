@@ -16,22 +16,73 @@
 package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.impl.AbstractService;
+import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
+import io.gravitee.rest.api.service.v4.mapper.IndexableApiMapper;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiNotificationService {
-    void triggerUpdateNotification(ExecutionContext executionContext, Api api);
-    void triggerUpdateNotification(ExecutionContext executionContext, IndexableApi api);
+@Component
+public class ApiNotificationService extends AbstractService {
 
-    void triggerDeprecatedNotification(ExecutionContext executionContext, IndexableApi indexableApi);
+    private final IndexableApiMapper indexableApiMapper;
+    private final NotifierService notifierService;
+    private final UserService userService;
 
-    void triggerDeployNotification(ExecutionContext executionContext, IndexableApi api);
+    public ApiNotificationService(
+        final IndexableApiMapper indexableApiMapper,
+        final NotifierService notifierService,
+        final UserService userService
+    ) {
+        this.indexableApiMapper = indexableApiMapper;
+        this.notifierService = notifierService;
+        this.userService = userService;
+    }
 
-    void triggerStartNotification(ExecutionContext executionContext, IndexableApi indexableApi);
+    public void triggerUpdateNotification(final ExecutionContext executionContext, final Api api) {
+        IndexableApi indexableApi = indexableApiMapper.toIndexableApi(api, null);
+        triggerUpdateNotification(executionContext, indexableApi);
+    }
 
-    void triggerStopNotification(ExecutionContext executionContext, IndexableApi indexableApi);
+    public void triggerUpdateNotification(final ExecutionContext executionContext, final IndexableApi indexableApi) {
+        triggerNotification(executionContext, ApiHook.API_UPDATED, indexableApi);
+    }
+
+    public void triggerDeprecatedNotification(final ExecutionContext executionContext, final IndexableApi indexableApi) {
+        triggerNotification(executionContext, ApiHook.API_DEPRECATED, indexableApi);
+    }
+
+    public void triggerDeployNotification(final ExecutionContext executionContext, final IndexableApi indexableApi) {
+        triggerNotification(executionContext, ApiHook.API_DEPLOYED, indexableApi);
+    }
+
+    public void triggerStartNotification(final ExecutionContext executionContext, final IndexableApi indexableApi) {
+        triggerNotification(executionContext, ApiHook.API_STARTED, indexableApi);
+    }
+
+    public void triggerStopNotification(final ExecutionContext executionContext, final IndexableApi indexableApi) {
+        triggerNotification(executionContext, ApiHook.API_STOPPED, indexableApi);
+    }
+
+    private void triggerNotification(final ExecutionContext executionContext, final ApiHook hook, final IndexableApi indexableApi) {
+        String userId = getAuthenticatedUsername();
+        if (userId != null && !getAuthenticatedUser().isSystem()) {
+            UserEntity userEntity = userService.findById(executionContext, userId);
+            notifierService.trigger(
+                executionContext,
+                hook,
+                indexableApi.getId(),
+                new NotificationParamsBuilder().api(indexableApi).user(userEntity).build()
+            );
+        }
+    }
 }
