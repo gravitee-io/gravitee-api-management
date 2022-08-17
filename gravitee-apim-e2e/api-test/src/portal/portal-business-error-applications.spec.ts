@@ -15,7 +15,7 @@
  */
 import { afterAll, beforeAll, describe, test, expect } from '@jest/globals';
 import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
-import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
+import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { NotificationConfigType } from '@gravitee/management-webclient-sdk/src/lib/models/NotificationConfigType';
 import { fail, forbidden, notFound } from '@lib/jest-utils';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';

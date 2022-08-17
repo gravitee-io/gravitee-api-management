@@ -15,8 +15,8 @@
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { OrganizationEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/OrganizationEntity';
-import { ApisFaker } from '@management-fakers/ApisFaker';
-import { PlansFaker } from '@management-fakers/PlansFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
+import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';

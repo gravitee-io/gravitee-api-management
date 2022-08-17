@@ -16,12 +16,12 @@
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsSimpleUser } from '@client-conf/*';
-import { ApisFaker } from '@management-fakers/ApisFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { CurrentUserApi } from '@gravitee/management-webclient-sdk/src/lib/apis/CurrentUserApi';
 import { UserDetails } from '@gravitee/management-webclient-sdk/src/lib/models/UserDetails';
 import { created, succeed } from '@lib/jest-utils';
 import { GroupsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupsApi';
-import { GroupsFaker } from '@management-fakers/GroupsFaker';
+import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
 import { GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models/GroupEntity';
 
 const orgId = 'DEFAULT';

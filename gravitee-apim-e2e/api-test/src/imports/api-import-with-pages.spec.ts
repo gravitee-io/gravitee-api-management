@@ -26,9 +26,9 @@ import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/API
 import { fail, succeed } from '@lib/jest-utils';
 import { ApiEntity, ApiEntityStateEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
-import { ApisFaker } from '@management-fakers/ApisFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PageEntity';
-import { PagesFaker } from '@management-fakers/PagesFaker';
+import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

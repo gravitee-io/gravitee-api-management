@@ -30,8 +30,8 @@ import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/mode
 import { ReviewAction } from '@gravitee/management-webclient-sdk/src/lib/models/ReviewAction';
 import { fail, succeed } from '@lib/jest-utils';
 import { CurrentUserApi } from '@gravitee/management-webclient-sdk/src/lib/apis/CurrentUserApi';
-import { ApisFaker } from '@management-fakers/ApisFaker';
-import { GroupsFaker } from '@management-fakers/GroupsFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
+import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
 import { find } from 'lodash';
 
 const orgId = 'DEFAULT';

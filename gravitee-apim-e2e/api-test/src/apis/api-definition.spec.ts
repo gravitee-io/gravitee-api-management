@@ -19,11 +19,11 @@ import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/API
 import { APIDefinitionApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIDefinitionApi';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { JsonPatchOperationEnum } from '@gravitee/management-webclient-sdk/src/lib/models/JsonPatch';
-import { ApiMetadataFormat, ApisFaker } from '@management-fakers/ApisFaker';
-import { PlansFaker } from '@management-fakers/PlansFaker';
+import { ApiMetadataFormat, ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
+import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
-import { PagesFaker } from '@management-fakers/PagesFaker';
+import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
 import { forManagement } from '@client-conf/*';
 import faker from '@faker-js/faker';
 

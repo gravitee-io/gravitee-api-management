@@ -16,7 +16,7 @@
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';
-import { ApiImportEntity, ApisFaker } from '@management-fakers/ApisFaker';
+import { ApiImportEntity, ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { fail, succeed } from '@lib/jest-utils';
 import { ApiEntity, ApiEntityStateEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';

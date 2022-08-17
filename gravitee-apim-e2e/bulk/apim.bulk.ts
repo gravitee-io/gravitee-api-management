@@ -23,15 +23,15 @@ import {
   forPortalAsAdminUser,
   forPortalAsApiUser,
 } from '@client-conf/*';
-import { ApisFaker } from '@management-fakers/ApisFaker';
-import { PlansFaker } from '@management-fakers/PlansFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
+import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { created, noContent, succeed, testif } from '../lib/jest-utils';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
-import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
+import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
 import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
 import { PortalApi as PortalManagementApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';

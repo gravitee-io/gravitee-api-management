@@ -16,9 +16,9 @@
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsApiUser } from '@client-conf/*';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { ApisFaker } from '@management-fakers/ApisFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
-import { PlansFaker } from '@management-fakers/PlansFaker';
+import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';

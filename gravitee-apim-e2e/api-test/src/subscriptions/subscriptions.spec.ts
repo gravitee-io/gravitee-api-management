@@ -16,15 +16,15 @@
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsApiUser, forManagementAsAppUser, forPortalAsAppUser } from '@client-conf/*';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { ApisFaker } from '@management-fakers/ApisFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
 import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
 import { ApplicationApi as PortalApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
-import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
+import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import fetchApi from 'node-fetch';
-import { PlansFaker } from '@management-fakers/PlansFaker';
+import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { PlanValidationType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanValidationType';
 import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
 import { Api } from '@gravitee/portal-webclient-sdk/src/lib/models/Api';

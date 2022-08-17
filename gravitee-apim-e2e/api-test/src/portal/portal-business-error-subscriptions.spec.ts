@@ -17,13 +17,13 @@ import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 
 import { forManagementAsAdminUser, forPortalAsAdminUser, forPortalAsSimpleUser } from '@client-conf/*';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { ApisFaker } from '@management-fakers/ApisFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { fail } from '@lib/jest-utils';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
 import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
-import { PlansFaker } from '@management-fakers/PlansFaker';
-import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
+import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
+import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';

@@ -18,13 +18,13 @@ import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/Api
 import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
 import { Subscription } from '@gravitee/management-webclient-sdk/src/lib/models/Subscription';
 import { ApiKeyEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiKeyEntity';
-import { ApisFaker } from '@management-fakers/ApisFaker';
-import { PlansFaker } from '@management-fakers/PlansFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
+import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
+import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@lib/gateway';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@client-conf/*';

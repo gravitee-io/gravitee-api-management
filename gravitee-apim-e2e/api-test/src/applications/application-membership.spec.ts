@@ -25,8 +25,8 @@ import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/mo
 import { UpdateApplicationEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApplicationEntity';
 import { GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models/GroupEntity';
 import { SearchableUser } from '@gravitee/management-webclient-sdk/src/lib/models/SearchableUser';
-import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
-import { GroupsFaker } from '@management-fakers/GroupsFaker';
+import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
+import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
 
 const applicationManagementApiAsAppUser = new ApplicationsApi(forManagementAsAppUser());
 const configurationManagementApiAsAdminUser = new ConfigurationApi(forManagementAsAdminUser());

@@ -18,9 +18,9 @@ import { afterAll, describe, expect, test } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser } from '@client-conf/*';
 import { created, succeed } from '@lib/jest-utils';
-import { ApisFaker } from '@management-fakers/ApisFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { GroupsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupsApi';
-import { GroupsFaker } from '@management-fakers/GroupsFaker';
+import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
 
 const apisResource = new APIsApi(forManagementAsAdminUser());
 const groupsResource = new GroupsApi(forManagementAsAdminUser());

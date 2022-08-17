@@ -18,8 +18,8 @@ import { afterAll, describe, expect, test } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser } from '@client-conf/*';
 import { succeed } from '@lib/jest-utils';
-import { ApisFaker } from '@management-fakers/ApisFaker';
-import { PagesFaker } from '@management-fakers/PagesFaker';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
+import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
 
 const apisResource = new APIsApi(forManagementAsAdminUser());
 

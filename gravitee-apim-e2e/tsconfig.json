@@ -12,14 +12,12 @@
       "@keys/*": ["ui-test/fixtures/keys/*"],
       "@model/*": ["ui-test/model/*"],
       "@commands/*": ["ui-test/commands/*"],
-      "@management-fakers/*": ["lib/fixtures/management/*"],
       "@client-conf/*": ["lib/configuration"],
       "@api-test-resources/*": ["<rootDir>/api-test/resources/$1"],
       "@lib/jest-utils": ["lib/jest-utils"],
       "@lib/gateway": ["lib/gateway"],
       "@lib/management": ["lib/management"],
-      "@lib/wiremock": ["lib/wiremock"],
-      "@portal-fakers/*": ["lib/fixtures/portal/*"]
+      "@lib/wiremock": ["lib/wiremock"]
     }
   },
   "include": ["**/*.ts"]
