@@ -26,8 +26,8 @@ const data = JSON.parse(open(__ENV.TEST_DATA_PATH));
 const url = `${__ENV.GATEWAY_BASE_URL}${data.api.context_path}`;
 
 export default () => {
- const res = http.get(url);
- check(res, {
+  const res = http.get(url);
+  check(res, {
     'status is 200': () => res.status === 200,
   });
 };

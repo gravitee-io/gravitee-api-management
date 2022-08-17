@@ -19,6 +19,18 @@
   "resolved" "https://registry.npmjs.org/@faker-js/faker/-/faker-6.2.0.tgz"
   "version" "6.2.0"
 
+"@gravitee/fixtures@file:../gravitee-apim-e2e/lib/fixtures":
+  "resolved" "file:../gravitee-apim-e2e/lib/fixtures"
+  "version" "1.0.0"
+
+"@gravitee/management-webclient-sdk@file:../gravitee-apim-e2e/lib/management-webclient-sdk":
+  "resolved" "file:../gravitee-apim-e2e/lib/management-webclient-sdk"
+  "version" "1.0.0"
+
+"@gravitee/utils@file:../gravitee-apim-e2e/lib/utils":
+  "resolved" "file:../gravitee-apim-e2e/lib/utils"
+  "version" "1.0.0"
+
 "@jridgewell/gen-mapping@^0.3.0":
   "integrity" "sha512-mh65xKQAzI6iBcFzwv28KVWSmCkdRBWoOh+bYQGW3+6OZvbbN3TqMGo5hqYxQniRcH9F2VZIoJCm4pa3BPDK/A=="
   "resolved" "https://registry.npmjs.org/@jridgewell/gen-mapping/-/gen-mapping-0.3.2.tgz"

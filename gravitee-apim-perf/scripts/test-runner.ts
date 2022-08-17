@@ -18,7 +18,7 @@
 import 'dotenv/config';
 import { $, fs, chalk, ProcessOutput } from 'zx';
 import { resolve } from 'path';
-import { fetchGatewaySuccess } from '../lib/gateway';
+import { fetchGatewaySuccess, Logger } from '@gravitee/utils/gateway';
 import { parse } from 'ts-command-line-args';
 import { GatewayTestData } from '../lib/test-api';
 
@@ -31,13 +31,18 @@ interface ScriptArgs {
   verbose?: boolean;
 }
 
+const fakeLogger: Logger = {
+  error(...data: any[]): void {},
+  info(...data: any[]): void {},
+};
+
 const K6_COMMAND = [
   `K6_PROMETHEUS_REMOTE_URL=${process.env.K6_PROMETHEUS_REMOTE_URL}`,
   './bin/k6',
   'run',
   `-e GATEWAY_BASE_URL=${process.env.GATEWAY_BASE_URL}`,
   `-e SKIP_TLS_VERIFY=${process.env.SKIP_TLS_VERIFY}`,
-  '-o output-prometheus-remote'
+  '-o output-prometheus-remote',
 ];
 
 let TEARDOWN_ENV_VAR = '';
@@ -76,7 +81,7 @@ void (async function () {
         throw err;
       }
       if (data.waitGateway) {
-        await fetchGatewaySuccess({ contextPath: data.waitGateway.contextPath });
+        await fetchGatewaySuccess({ contextPath: data.waitGateway.contextPath }, fakeLogger);
       }
       const testDataPath = writeTestData(test, dataAsString);
       const absoluteTestDataPath = resolve(testDataPath);
