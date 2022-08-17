@@ -29,19 +29,24 @@ interface GatewayRequest {
   maxRetries: number;
 }
 
-export async function fetchGatewaySuccess(request?: Partial<GatewayRequest>) {
-  return _fetchGatewayWithRetries({ expectedStatusCode: 200, ...request });
+export interface Logger {
+  error(...data: any[]): void;
+  info(...data: any[]): void;
 }
 
-export async function fetchGatewayUnauthorized(request?: Partial<GatewayRequest>) {
-  return _fetchGatewayWithRetries({ expectedStatusCode: 401, ...request });
+export async function fetchGatewaySuccess(request?: Partial<GatewayRequest>, logger: Logger = console) {
+  return _fetchGatewayWithRetries({ expectedStatusCode: 200, ...request }, logger);
 }
 
-export async function fetchGatewayBadRequest(request?: Partial<GatewayRequest>) {
-  return _fetchGatewayWithRetries({ expectedStatusCode: 400, ...request });
+export async function fetchGatewayUnauthorized(request?: Partial<GatewayRequest>, logger: Logger = console) {
+  return _fetchGatewayWithRetries({ expectedStatusCode: 401, ...request }, logger);
 }
 
-async function _fetchGatewayWithRetries(attributes: Partial<GatewayRequest>): Promise<Response> {
+export async function fetchGatewayBadRequest(request?: Partial<GatewayRequest>, logger: Logger = console) {
+  return _fetchGatewayWithRetries({ expectedStatusCode: 400, ...request }, logger);
+}
+
+async function _fetchGatewayWithRetries(attributes: Partial<GatewayRequest>, logger: Logger): Promise<Response> {
   const request = <GatewayRequest>{
     expectedStatusCode: 200,
     method: 'GET',
@@ -61,16 +66,16 @@ async function _fetchGatewayWithRetries(attributes: Partial<GatewayRequest>): Pr
     try {
       return await _fetchGateway(request);
     } catch (error) {
-      // console.info(error);
+      // logger.info(error);
       lastError = error;
       if (retries > 0) {
-        console.info(`Retrying in ${request.timeBetweenRetries} ms with ${retries} attempts`);
+        logger.info(`Retrying in ${request.timeBetweenRetries} ms with ${retries} attempts`);
         await sleep(request.timeBetweenRetries);
       }
     }
   }
 
-  console.info(
+  logger.info(
     `[${request.method}] [${process.env.GATEWAY_BASE_URL}${request.contextPath}] failed after ${request.maxRetries} retries with error`,
     lastError,
   );
