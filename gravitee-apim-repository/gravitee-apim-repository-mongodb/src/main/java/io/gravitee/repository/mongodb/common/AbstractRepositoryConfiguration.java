@@ -22,7 +22,6 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -41,8 +40,11 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractRepositoryConfiguration extends AbstractMongoClientConfiguration {
 
-    @Autowired
-    private Environment environment;
+    protected final Environment environment;
+
+    protected AbstractRepositoryConfiguration(Environment environment) {
+        this.environment = environment;
+    }
 
     @Override
     protected String getDatabaseName() {

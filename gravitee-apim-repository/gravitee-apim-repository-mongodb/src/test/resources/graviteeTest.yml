@@ -1,11 +1,8 @@
 management:
   type: mongodb
   mongodb:
-    prefix: test_
-    servers:
-      - host: ${ds.mongodb.host}
-        port: 27017
-    dbname: ${ds.mongodb.dbname}
+    prefix: test_prefix_
+    dbname: test
     username: gravitee
     password: gravitee
     authSource: admin
@@ -14,9 +11,3 @@ management:
     serverSelectionTimeout: 10000
     readPreference: secondary
     readPreferenceTags: dc:india, sc:prod
-
-ds:
-  mongodb:
-    dbname: gravitee
-    host: ${GRAVITEEIO_MONGODB_HOST:localhost}
-    port: ${GRAVITEEIO_MONGODB_PORT:27017}
