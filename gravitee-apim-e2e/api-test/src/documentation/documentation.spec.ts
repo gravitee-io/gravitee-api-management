@@ -30,6 +30,7 @@ import { ApiApi, GetPageByApiIdAndPageIdIncludeEnum } from '@portal-apis/ApiApi'
 import { MetadataFormat } from '@management-models/MetadataFormat';
 import { APIMetadataApi } from '@management-apis/APIMetadataApi';
 import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
+import { GroupsFaker } from '@management-fakers/GroupsFaker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -59,8 +60,7 @@ describe('Documentation', () => {
     createdReaderGroup = await configurationManagementApiAsAdminUser.createGroup({
       orgId,
       envId,
-      newGroupEntity: {
-        name: `E2e Doc Reader -${faker.random.word()}-${faker.datatype.uuid()}`,
+      newGroupEntity: GroupsFaker.newGroup({
         event_rules: [
           {
             event: 'API_CREATE',
@@ -69,7 +69,7 @@ describe('Documentation', () => {
         lock_api_role: false,
         lock_application_role: false,
         disable_membership_notifications: false,
-      },
+      }),
     });
 
     // Get user member
