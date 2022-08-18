@@ -34,6 +34,14 @@ executors:
         resource_class: <<parameters.resource_class>>
 
 commands:
+    install-jdk-17-for-machine:
+        description: Install JDK 17 on machine executor
+        steps:
+            - run:
+                  command: |
+                      sudo apt update
+                      sudo apt install -y openjdk-17-jdk
+
     prepare-env-var:
         description: Prepare env variables used in [version.properties] files
         steps:
@@ -506,9 +514,10 @@ jobs:
 
     test-repository:
         machine:
-            image: ubuntu-2004:current
+            image: ubuntu-2204:current
         resource_class: large
         steps:
+            - install-jdk-17-for-machine
             - checkout
             - attach_workspace:
                   at: .
@@ -1309,13 +1318,14 @@ jobs:
                 description: type and version of the database to test
                 default: ""
         machine:
-            image: ubuntu-2004:current
+            image: ubuntu-2204:current
             docker_layer_caching: true
         resource_class: large
         steps:
             - when:
                   condition: << parameters.version >>
                   steps:
+                      - install-jdk-17-for-machine
                       - checkout
                       - attach_workspace:
                             at: .
@@ -1352,12 +1362,13 @@ jobs:
                 description: version of the database to test
                 default: ""
         machine:
-            image: ubuntu-2004:current
+            image: ubuntu-2204:current
         resource_class: medium
         steps:
             - when:
                   condition: << parameters.version >>
                   steps:
+                      - install-jdk-17-for-machine
                       - checkout
                       - attach_workspace:
                             at: .
@@ -1389,7 +1400,7 @@ jobs:
 
     e2e-test:
         machine:
-            image: ubuntu-2004:202101-01
+            image: ubuntu-2204:current
         resource_class: large
         parameters:
             execution_mode:
@@ -1448,7 +1459,7 @@ jobs:
                   path: ~/test-results
     e2e-report:
         machine:
-            image: ubuntu-2004:202101-01
+            image: ubuntu-2204:current
         resource_class: small
         steps:
             - attach_workspace:
@@ -1525,7 +1536,7 @@ jobs:
                       gh pr edit --body "$CLEAN_BODY$PR_BODY_COVERAGE_SECTION"
     e2e-cypress:
         machine:
-            image: ubuntu-2004:202101-01
+            image: ubuntu-2204:current
         resource_class: medium
         steps:
             - checkout
@@ -1558,7 +1569,7 @@ jobs:
                 type: string
                 default: ""
         machine:
-            image: ubuntu-2004:202201-01
+            image: ubuntu-2204:current
         resource_class: medium
         steps:
             - keeper/env-export:
