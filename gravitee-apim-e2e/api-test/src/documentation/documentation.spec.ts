@@ -34,7 +34,7 @@ import { ApiApi, GetPageByApiIdAndPageIdIncludeEnum } from '@gravitee/portal-web
 import { MetadataFormat } from '@gravitee/management-webclient-sdk/src/lib/models/MetadataFormat';
 import { APIMetadataApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIMetadataApi';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
-import { GroupsFaker } from '@management-fakers/GroupsFaker';
+import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -134,10 +134,30 @@ describe('Documentation', () => {
       envId,
     });
     await configurationManagementApiAsAdminUser.deleteGroupRaw({ orgId, envId, group: createdReaderGroup.id });
-    await apiPagesManagementApiAsApiUser.deleteApiPageRaw({ orgId, envId, api: createdApi.id, page: createdPageMetadata.id });
-    await apiPagesManagementApiAsApiUser.deleteApiPageRaw({ orgId, envId, api: createdApi.id, page: pageOutsideFolder.id });
-    await apiPagesManagementApiAsApiUser.deleteApiPageRaw({ orgId, envId, api: createdApi.id, page: pageInFolder.id });
-    await apiPagesManagementApiAsApiUser.deleteApiPageRaw({ orgId, envId, api: createdApi.id, page: createdFolder.id });
+    await apiPagesManagementApiAsApiUser.deleteApiPageRaw({
+      orgId,
+      envId,
+      api: createdApi.id,
+      page: createdPageMetadata.id,
+    });
+    await apiPagesManagementApiAsApiUser.deleteApiPageRaw({
+      orgId,
+      envId,
+      api: createdApi.id,
+      page: pageOutsideFolder.id,
+    });
+    await apiPagesManagementApiAsApiUser.deleteApiPageRaw({
+      orgId,
+      envId,
+      api: createdApi.id,
+      page: pageInFolder.id,
+    });
+    await apiPagesManagementApiAsApiUser.deleteApiPageRaw({
+      orgId,
+      envId,
+      api: createdApi.id,
+      page: createdFolder.id,
+    });
     await apiPagesManagementApiAsApiUser.deleteApiPageRaw({ orgId, envId, api: createdApi.id, page: createdLink.id });
     await apiPagesManagementApiAsApiUser.deleteApiPageRaw({ orgId, envId, api: createdApi.id, page: createdPage.id });
     await apiPagesManagementApiAsApiUser.deleteApiPageRaw({ orgId, envId, api: createdApi.id, page: homepage.id });
@@ -186,12 +206,18 @@ describe('Documentation', () => {
 
     describe('Check documentation on portal', () => {
       test('Get homepage empty result', async () => {
-        const pages = await apiPortalAsApplicationFrenchUser.getPagesByApiId({ apiId: createdApi.id, homepage: true });
+        const pages = await apiPortalAsApplicationFrenchUser.getPagesByApiId({
+          apiId: createdApi.id,
+          homepage: true,
+        });
         expect(pages.data).toHaveLength(0);
       });
 
       test('Get pages empty result', async () => {
-        const pages = await apiPortalAsApplicationFrenchUser.getPagesByApiId({ apiId: createdApi.id, homepage: false });
+        const pages = await apiPortalAsApplicationFrenchUser.getPagesByApiId({
+          apiId: createdApi.id,
+          homepage: false,
+        });
         expect(pages.data).toHaveLength(0);
       });
     });
@@ -564,7 +590,12 @@ describe('Documentation', () => {
     let asideFolder;
     test('Get pages contains aside createdFolder', async () => {
       const systemFolders = await succeed(
-        apiPagesManagementApiAsApiUser.getApiPagesRaw({ orgId, envId, api: createdApi.id, type: PageType.SYSTEMFOLDER }),
+        apiPagesManagementApiAsApiUser.getApiPagesRaw({
+          orgId,
+          envId,
+          api: createdApi.id,
+          type: PageType.SYSTEMFOLDER,
+        }),
       );
       asideFolder = systemFolders.find((systemFolder) => systemFolder.name === 'Aside' && systemFolder.type === PageType.SYSTEMFOLDER);
       expect(asideFolder).toBeDefined();
