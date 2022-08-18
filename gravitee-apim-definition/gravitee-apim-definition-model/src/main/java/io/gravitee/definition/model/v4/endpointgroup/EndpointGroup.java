@@ -51,8 +51,6 @@ public class EndpointGroup implements Serializable {
 
     private LoadBalancer loadBalancer;
 
-    @Schema(implementation = Object.class)
-    @JsonRawValue
     private String sharedConfiguration;
 
     @Valid
