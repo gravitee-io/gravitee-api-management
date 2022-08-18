@@ -44,6 +44,10 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     @Qualifier("managementMongo")
     private MongoFactory mongoFactory;
 
+    public ManagementRepositoryConfiguration(Environment environment) {
+        super(environment);
+    }
+
     @Bean(name = "managementMongo")
     public MongoFactory mongoFactory(Environment environment) {
         return new MongoFactory(environment, Scope.MANAGEMENT.getName());
