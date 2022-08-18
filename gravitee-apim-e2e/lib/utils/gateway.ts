@@ -16,6 +16,8 @@
 import 'dotenv/config';
 import fetchApi, { HeadersInit, Response } from 'node-fetch';
 
+import { fetchEventSource } from './eventsource-fetch';
+
 export type HttpMethod = 'GET' | 'PUT' | 'POST' | 'DELETE' | 'OPTIONS';
 
 interface GatewayRequest {
@@ -103,6 +105,14 @@ async function _fetchGateway(request: Partial<GatewayRequest>): Promise<Response
   return response;
 }
 
-function sleep(ms: number) {
+export async function fetchEventSourceGateway(request: Partial<GatewayRequest>, onmessage, logger = console): Promise<unknown> {
+  return await fetchEventSource(`${process.env.GATEWAY_BASE_URL}${request.contextPath}`, {
+    onmessage,
+    timeBetweenRetries: 1500,
+    maxRetries: 5,
+  });
+}
+
+export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
