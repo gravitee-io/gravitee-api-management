@@ -30,7 +30,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "flows")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}flows")
 public class FlowMongo extends Auditable {
 
     /**

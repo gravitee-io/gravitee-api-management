@@ -23,7 +23,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "groups")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}groups")
 public class GroupMongo extends Auditable {
 
     @Id

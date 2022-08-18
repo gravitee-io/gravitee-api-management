@@ -24,7 +24,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "themes")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}themes")
 public class ThemeMongo {
 
     @Id

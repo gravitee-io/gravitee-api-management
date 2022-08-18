@@ -23,7 +23,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "dashboards")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}dashboards")
 public class DashboardMongo extends Auditable {
 
     @Id

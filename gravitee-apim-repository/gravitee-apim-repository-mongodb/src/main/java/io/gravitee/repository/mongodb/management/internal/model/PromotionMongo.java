@@ -19,7 +19,7 @@ import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "promotions")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}promotions")
 public class PromotionMongo extends Auditable {
 
     @Id

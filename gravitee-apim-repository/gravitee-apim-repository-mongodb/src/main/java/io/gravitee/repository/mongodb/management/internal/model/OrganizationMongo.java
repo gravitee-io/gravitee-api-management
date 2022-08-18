@@ -24,7 +24,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "organizations")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}organizations")
 public class OrganizationMongo {
 
     @Id

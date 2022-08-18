@@ -29,7 +29,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "applications")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}applications")
 public class ApplicationMongo extends Auditable {
 
     @Id
