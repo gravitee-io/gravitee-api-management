@@ -965,6 +965,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findByEnvironmentAndIdIn(final ExecutionContext executionContext, Set<String> ids) {
         LOGGER.debug("Find APIs by environment {} and ID in {}", executionContext.getEnvironmentId(), ids);
         try {
+            if (ids.isEmpty()) {
+                return Collections.emptySet();
+            }
             ApiCriteria criteria = getDefaultApiCriteriaBuilder().ids(ids).environmentId(executionContext.getEnvironmentId()).build();
             return new HashSet<>(convert(executionContext, apiRepository.search(criteria)));
         } catch (TechnicalException e) {

@@ -23,14 +23,8 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.model.CustomUserFieldEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.io.IOException;
-import java.security.Principal;
-import javax.annotation.Priority;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
@@ -47,38 +41,7 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
 
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
-        resourceConfig.register(CustomUserFieldsResourceNotAdminTest.AuthenticationFilter.class);
-    }
-
-    @Priority(50)
-    public static class AuthenticationFilter implements ContainerRequestFilter {
-
-        @Override
-        public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(
-                new SecurityContext() {
-                    @Override
-                    public Principal getUserPrincipal() {
-                        return () -> USER_NAME;
-                    }
-
-                    @Override
-                    public boolean isUserInRole(String string) {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean isSecure() {
-                        return true;
-                    }
-
-                    @Override
-                    public String getAuthenticationScheme() {
-                        return "BASIC";
-                    }
-                }
-            );
-        }
+        resourceConfig.register(NotAdminAuthenticationFilter.class);
     }
 
     @Test

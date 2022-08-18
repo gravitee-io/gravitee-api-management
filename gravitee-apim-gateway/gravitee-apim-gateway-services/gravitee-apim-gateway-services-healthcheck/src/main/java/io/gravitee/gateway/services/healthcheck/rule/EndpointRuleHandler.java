@@ -204,7 +204,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                 requestPreparationEvent -> {
                     HttpClientRequest healthRequest = requestPreparationEvent.result();
                     final EndpointStatus.Builder healthBuilder = EndpointStatus
-                        .forEndpoint(rule.api(), endpoint.getName())
+                        .forEndpoint(rule.api().getId(), endpoint.getName())
                         .on(currentTimeMillis());
 
                     long startTime = currentTimeMillis();
@@ -264,7 +264,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                 }
             );
         } catch (Exception ex) {
-            logger.error("An unexpected error has occurred while configuring Healthcheck for API : {}", rule.api(), ex);
+            logger.error("An unexpected error has occurred while configuring Healthcheck for API : {}", rule.api().getId(), ex);
         }
     }
 
@@ -395,7 +395,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                 .context(CONTEXT_NODE_HOSTNAME, node.hostname())
                 .context(CONTEXT_NODE_APPLICATION, node.application())
                 .type(EVENT_TYPE)
-                .property(PROP_API, rule.api())
+                .property(PROP_API, rule.api().getId())
                 .property(PROP_ENDPOINT_NAME, rule.endpoint().getName())
                 .property(PROP_STATUS_OLD, previousStatusName)
                 .property(PROP_STATUS_NEW, rule.endpoint().getStatus().name())
@@ -403,6 +403,8 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                 .property(PROP_TENANT, () -> node.metadata().get("tenant"))
                 .property(PROP_RESPONSE_TIME, responseTime)
                 .property(PROP_MESSAGE, endpointStatus.getSteps().get(0).getMessage())
+                .organization(rule.api().getOrganizationId())
+                .environment(rule.api().getEnvironmentId())
                 .build();
             alertEventProducer.send(event);
         }

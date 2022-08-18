@@ -83,6 +83,12 @@ import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorMa
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
+import java.io.IOException;
+import java.security.Principal;
+import javax.annotation.Priority;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.SecurityContext;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -279,11 +285,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected AuditService auditService;
-
-    @Before
-    public void setUp() throws Exception {
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
-    }
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -607,6 +608,42 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public AuditService auditService() {
             return mock(AuditService.class);
+        }
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+    }
+
+    @Priority(50)
+    public static class NotAdminAuthenticationFilter implements ContainerRequestFilter {
+
+        @Override
+        public void filter(final ContainerRequestContext requestContext) throws IOException {
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return () -> USER_NAME;
+                    }
+
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isSecure() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
+                }
+            );
         }
     }
 }

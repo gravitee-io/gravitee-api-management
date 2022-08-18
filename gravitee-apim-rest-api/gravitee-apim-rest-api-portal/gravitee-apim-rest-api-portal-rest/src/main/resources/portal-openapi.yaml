@@ -690,6 +690,10 @@ paths:
         List all the applications accessible to authenticated user.
 
         User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission.
+        For performance reasons, calling `/applications?size=-1` does not return the number of subscribers and the only information available in the owner of each application is:
+          - id
+          - displayName
+          - email
       operationId: getApplications
       responses:
         200:

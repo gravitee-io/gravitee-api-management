@@ -24,7 +24,7 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRule;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.vertx.core.json.JsonObject;
 import java.util.*;
 import org.junit.Before;
@@ -48,6 +48,9 @@ public class EndpointHealthcheckResolverTest {
     private Api mockApi;
 
     @Mock
+    private io.gravitee.definition.model.Api mockApiDefinition;
+
+    @Mock
     private Proxy mockProxy;
 
     @Mock
@@ -63,7 +66,8 @@ public class EndpointHealthcheckResolverTest {
     public void before() throws JsonProcessingException {
         reset();
         when(mockApi.getId()).thenReturn("api-id");
-        when(mockApi.getProxy()).thenReturn(mockProxy);
+        when(mockApiDefinition.getProxy()).thenReturn(mockProxy);
+        when(mockApi.getDefinition()).thenReturn(mockApiDefinition);
 
         when(mockProxy.getGroups()).thenReturn(Collections.singleton(mockEndpointGroup));
 
@@ -103,7 +107,7 @@ public class EndpointHealthcheckResolverTest {
     public void shouldNotResolveEndpointWithoutGlobalNorLocal() {
         Services services = new Services();
         services.set(Collections.emptyList());
-        when(mockApi.getServices()).thenReturn(services);
+        when(mockApiDefinition.getServices()).thenReturn(services);
 
         List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
 
@@ -117,7 +121,7 @@ public class EndpointHealthcheckResolverTest {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(false);
         services.set(Collections.singleton(healthCheckService));
-        when(mockApi.getServices()).thenReturn(services);
+        when(mockApiDefinition.getServices()).thenReturn(services);
 
         List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
 
@@ -131,7 +135,7 @@ public class EndpointHealthcheckResolverTest {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(false);
         services.set(Collections.singleton(healthCheckService));
-        when(mockApi.getServices()).thenReturn(services);
+        when(mockApiDefinition.getServices()).thenReturn(services);
         when(mockEndpoint.getConfiguration())
             .thenReturn(
                 "{\n" +
@@ -164,7 +168,7 @@ public class EndpointHealthcheckResolverTest {
     public void shouldNotResolveEndpointWithoutGlobalAndLocalDisabled() {
         Services services = new Services();
         services.set(Collections.emptyList());
-        when(mockApi.getServices()).thenReturn(services);
+        when(mockApiDefinition.getServices()).thenReturn(services);
         when(mockEndpoint.getConfiguration())
             .thenReturn(
                 "{\n" +
@@ -199,7 +203,7 @@ public class EndpointHealthcheckResolverTest {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(true);
         services.set(Collections.singleton(healthCheckService));
-        when(mockApi.getServices()).thenReturn(services);
+        when(mockApiDefinition.getServices()).thenReturn(services);
 
         when(mockEndpoint.getConfiguration())
             .thenReturn(
@@ -243,13 +247,14 @@ public class EndpointHealthcheckResolverTest {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(true);
         services.set(Collections.singleton(healthCheckService));
-        when(mockApi.getServices()).thenReturn(services);
+        when(mockApiDefinition.getServices()).thenReturn(services);
 
         List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
 
         assertNotNull(resolve);
         assertEquals(1, resolve.size());
-        assertEquals("api-id", resolve.get(0).api());
+        assertNotNull(resolve.get(0).api());
+        assertEquals("api-id", resolve.get(0).api().getId());
     }
 
     @Test
@@ -258,7 +263,7 @@ public class EndpointHealthcheckResolverTest {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(true);
         services.set(Collections.singleton(healthCheckService));
-        when(mockApi.getServices()).thenReturn(services);
+        when(mockApiDefinition.getServices()).thenReturn(services);
         when(mockEndpoint.getConfiguration())
             .thenReturn(
                 "{\n" +
@@ -290,7 +295,8 @@ public class EndpointHealthcheckResolverTest {
 
         assertNotNull(resolve);
         assertEquals(1, resolve.size());
-        assertEquals("api-id", resolve.get(0).api());
+        assertNotNull(resolve.get(0).api());
+        assertEquals("api-id", resolve.get(0).api().getId());
     }
 
     @Test
@@ -299,7 +305,7 @@ public class EndpointHealthcheckResolverTest {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(false);
         services.set(Collections.singleton(healthCheckService));
-        when(mockApi.getServices()).thenReturn(services);
+        when(mockApiDefinition.getServices()).thenReturn(services);
 
         when(mockEndpoint.getConfiguration())
             .thenReturn(
@@ -332,14 +338,15 @@ public class EndpointHealthcheckResolverTest {
 
         assertNotNull(resolve);
         assertEquals(1, resolve.size());
-        assertEquals("api-id", resolve.get(0).api());
+        assertNotNull(resolve.get(0).api());
+        assertEquals("api-id", resolve.get(0).api().getId());
     }
 
     @Test
     public void shouldResolveEndpointWithoutGlobalAndLocalEnabled() {
         Services services = new Services();
         services.set(Collections.emptyList());
-        when(mockApi.getServices()).thenReturn(services);
+        when(mockApiDefinition.getServices()).thenReturn(services);
 
         when(mockEndpoint.getConfiguration())
             .thenReturn(
@@ -378,7 +385,8 @@ public class EndpointHealthcheckResolverTest {
 
         assertNotNull(resolve);
         assertEquals(1, resolve.size());
-        assertEquals("api-id", resolve.get(0).api());
+        assertNotNull(resolve.get(0).api());
+        assertEquals("api-id", resolve.get(0).api().getId());
     }
 
     @Test
@@ -388,7 +396,7 @@ public class EndpointHealthcheckResolverTest {
         healthCheckService.setEnabled(true);
         services.set(Set.of(healthCheckService));
 
-        when(mockApi.getServices()).thenReturn(services);
+        when(mockApiDefinition.getServices()).thenReturn(services);
 
         HttpProxy groupProxy = new HttpProxy();
         groupProxy.setHost("localhost");

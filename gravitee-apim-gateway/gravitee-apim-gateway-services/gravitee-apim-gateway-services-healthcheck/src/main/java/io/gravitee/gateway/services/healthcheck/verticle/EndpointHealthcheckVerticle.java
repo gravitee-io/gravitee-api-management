@@ -23,7 +23,6 @@ import io.gravitee.common.util.ObservableSet;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.services.healthcheck.EndpointHealthcheckResolver;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
@@ -120,7 +119,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
             );
 
         // Configure handlers on resolved API endpoints
-        final List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api.getDefinition());
+        final List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api);
         if (!healthCheckEndpoints.isEmpty()) {
             LOGGER.debug("Health-check for API id[{}] name[{}] is enabled", api.getId(), api.getName());
             apiHandlers.put(api, new ArrayList<>());
@@ -203,7 +202,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
         @Override
         public boolean postAdd(Endpoint endpoint) {
-            EndpointRule rule = endpointResolver.resolve(api.getDefinition(), endpoint);
+            EndpointRule rule = endpointResolver.resolve(api, endpoint);
             if (rule != null) {
                 addHandler(api, rule);
             }

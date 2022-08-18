@@ -27,7 +27,6 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
-import io.gravitee.rest.api.service.v4.exception.InvalidPathNullHostException;
 import io.gravitee.rest.api.service.v4.exception.ListenerHttpPathMissingException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import io.gravitee.rest.api.service.v4.validation.PathValidationService;
@@ -83,23 +82,6 @@ public class PathValidationServiceImpl implements PathValidationService {
 
         // validate domain restrictions
         validateDomainRestrictions(sanitizedPaths, currentEnv.getDomainRestrictions());
-
-        // In virtual host mode, every vhost should have a host set
-        final boolean virtualHostModeEnabled =
-            sanitizedPaths.size() > 1 ||
-            sanitizedPaths.iterator().next().getHost() != null ||
-            currentEnv.getDomainRestrictions() != null &&
-            !currentEnv.getDomainRestrictions().isEmpty();
-        if (virtualHostModeEnabled) {
-            final List<String> nullHostPaths = sanitizedPaths
-                .stream()
-                .filter(path -> path.getHost() == null)
-                .map(Path::getPath)
-                .collect(Collectors.toList());
-            if (!nullHostPaths.isEmpty()) {
-                throw new InvalidPathNullHostException("In Virtual Host mode, all listening host have to be configured", nullHostPaths);
-            }
-        }
 
         // Get all the paths declared on all API of the currentEnvironment, except the one to update
         Set<Path> existingPaths = apiRepository

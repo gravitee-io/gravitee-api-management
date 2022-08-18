@@ -709,22 +709,24 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             final List<Page> apiPages = this.pageRepository.search(criteriaBuilder.build());
             for (Page page : apiPages) {
-                Set<AccessControl> accessControlsToRemove = page
-                    .getAccessControls()
-                    .stream()
-                    .filter(
-                        accessControl ->
-                            (
-                                AccessControlReferenceType.GROUP.name().equals(accessControl.getReferenceType()) &&
-                                accessControl.getReferenceId().equals(groupId)
-                            )
-                    )
-                    .collect(Collectors.toSet());
+                if (page.getAccessControls() != null) {
+                    Set<AccessControl> accessControlsToRemove = page
+                        .getAccessControls()
+                        .stream()
+                        .filter(
+                            accessControl ->
+                                (
+                                    AccessControlReferenceType.GROUP.name().equals(accessControl.getReferenceType()) &&
+                                    accessControl.getReferenceId().equals(groupId)
+                                )
+                        )
+                        .collect(Collectors.toSet());
 
-                if (!accessControlsToRemove.isEmpty()) {
-                    page.setUpdatedAt(updatedDate);
-                    page.getAccessControls().removeAll(accessControlsToRemove);
-                    this.pageRepository.update(page);
+                    if (!accessControlsToRemove.isEmpty()) {
+                        page.setUpdatedAt(updatedDate);
+                        page.getAccessControls().removeAll(accessControlsToRemove);
+                        this.pageRepository.update(page);
+                    }
                 }
             }
         } catch (TechnicalException ex) {

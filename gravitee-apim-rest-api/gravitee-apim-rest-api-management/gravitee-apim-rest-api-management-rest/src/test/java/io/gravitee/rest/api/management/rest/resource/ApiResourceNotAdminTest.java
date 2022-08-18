@@ -30,16 +30,10 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.io.IOException;
-import java.security.Principal;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.After;
 import org.junit.Before;
@@ -60,38 +54,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
-        resourceConfig.register(ApiResourceNotAdminTest.AuthenticationFilter.class);
-    }
-
-    @Priority(50)
-    public static class AuthenticationFilter implements ContainerRequestFilter {
-
-        @Override
-        public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(
-                new SecurityContext() {
-                    @Override
-                    public Principal getUserPrincipal() {
-                        return () -> USER_NAME;
-                    }
-
-                    @Override
-                    public boolean isUserInRole(String string) {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean isSecure() {
-                        return true;
-                    }
-
-                    @Override
-                    public String getAuthenticationScheme() {
-                        return "BASIC";
-                    }
-                }
-            );
-        }
+        resourceConfig.register(NotAdminAuthenticationFilter.class);
     }
 
     private ApiEntity mockApi;

@@ -29,6 +29,7 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
@@ -250,7 +251,11 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
 
     private EndpointRule createEndpointRule(String targetPath) {
         EndpointRule rule = mock(EndpointRule.class);
+        io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
+        apiDefinition.setId("an-api");
+        Api api = new Api(apiDefinition);
         when(rule.endpoint()).thenReturn(createEndpoint(targetPath));
+        when(rule.api()).thenReturn(api);
         when(rule.schedule()).thenReturn("*/5 * * * * *");
         return rule;
     }

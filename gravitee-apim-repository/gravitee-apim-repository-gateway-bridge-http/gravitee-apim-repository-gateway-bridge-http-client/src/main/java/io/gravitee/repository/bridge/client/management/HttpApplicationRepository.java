@@ -97,7 +97,13 @@ public class HttpApplicationRepository extends AbstractRepository implements App
     }
 
     @Override
-    public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) throws TechnicalException {
+    public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable, Sortable sortable)
+        throws TechnicalException {
+        throw new TechnicalException();
+    }
+
+    @Override
+    public Set<String> searchIds(ApplicationCriteria applicationCriteria, Sortable sortable) throws TechnicalException {
         throw new TechnicalException();
     }
 

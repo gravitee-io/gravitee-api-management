@@ -47,7 +47,7 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
     private MongoTemplate mongoTemplate;
 
     @Override
-    public Page<ApplicationMongo> search(final ApplicationCriteria criteria, final Pageable pageable) {
+    public Page<ApplicationMongo> search(final ApplicationCriteria criteria, final Pageable pageable, Sortable sortable) {
         final Query query = new Query();
 
         query.fields().exclude("background");
@@ -66,9 +66,20 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
             if (criteria.getStatus() != null) {
                 query.addCriteria(where("status").is(criteria.getStatus()));
             }
+            if (criteria.getGroups() != null && !criteria.getGroups().isEmpty()) {
+                query.addCriteria(where("groups").in(criteria.getGroups()));
+            }
         }
 
-        query.with(Sort.by(ASC, "name"));
+        Sort.Direction direction = toSortDirection(sortable);
+        Sort.Order order;
+        if (sortable == null) {
+            order = new Sort.Order(direction, "name");
+        } else {
+            order = new Sort.Order(direction, FieldUtils.toCamelCase(sortable.field()));
+        }
+
+        query.with(Sort.by(order));
 
         long total = mongoTemplate.count(query, ApplicationMongo.class);
 
@@ -79,6 +90,13 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
         List<ApplicationMongo> apps = mongoTemplate.find(query, ApplicationMongo.class);
 
         return new Page<>(apps, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
+    }
+
+    private Sort.Direction toSortDirection(Sortable sortable) {
+        if (sortable != null) {
+            return Order.DESC.equals(sortable.order()) ? Sort.Direction.DESC : ASC;
+        }
+        return Sort.Direction.ASC;
     }
 
     @Override

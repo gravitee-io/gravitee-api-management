@@ -178,12 +178,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.apim.gateway</groupId>
-            <artifactId>gravitee-apim-gateway-entrypoint</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>io.gravitee.apim.definition</groupId>
             <artifactId>gravitee-apim-definition-jackson</artifactId>
             <version>${project.version}</version>

@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApplicationsComponent: ng.IComponentOptions = {
-  bindings: {
-    applications: '<',
-  },
-  controller: 'ApplicationsController',
-  template: require('./applications.html'),
-};
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
-export default ApplicationsComponent;
+import { GioRoleDirective } from './gio-role.directive';
+import { GioRoleService } from './gio-role.service';
+
+@NgModule({
+  imports: [CommonModule],
+  declarations: [GioRoleDirective],
+  exports: [GioRoleDirective],
+  providers: [GioRoleService],
+})
+export class GioRoleModule {}

@@ -1061,6 +1061,24 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
+    public Set<String> getReferenceIdsByMemberAndReference(
+        MembershipMemberType memberType,
+        String memberId,
+        MembershipReferenceType referenceType
+    ) {
+        try {
+            return membershipRepository
+                .findByMemberIdAndMemberTypeAndReferenceType(memberId, convert(memberType), convert(referenceType))
+                .stream()
+                .map(io.gravitee.repository.management.model.Membership::getReferenceId)
+                .collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);
+        }
+    }
+
+    @Override
     public Set<MembershipEntity> getMembershipsByMemberAndReference(
         MembershipMemberType memberType,
         String memberId,
@@ -1110,6 +1128,26 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);
+        }
+    }
+
+    @Override
+    public Set<String> getReferenceIdsByMemberAndReferenceAndRoleIn(
+        MembershipMemberType memberType,
+        String memberId,
+        MembershipReferenceType referenceType,
+        Collection<String> roleIds
+    ) {
+        try {
+            return membershipRepository.findRefIdByMemberAndRefTypeAndRoleIdIn(
+                memberId,
+                convert(memberType),
+                convert(referenceType),
+                roleIds
+            );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
             throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);

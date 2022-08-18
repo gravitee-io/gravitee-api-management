@@ -219,6 +219,20 @@ public class MembershipRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldFindRefIdByMemberAndRefTypeAndRoleIdIn() throws TechnicalException {
+        Set<String> referenceIds = membershipRepository.findRefIdByMemberAndRefTypeAndRoleIdIn(
+            "user1",
+            MembershipMemberType.USER,
+            MembershipReferenceType.API,
+            Set.of("API_OWNER", "UNKNOWN_ROLE")
+        );
+        assertNotNull("result must not be null", referenceIds);
+        assertTrue(!referenceIds.isEmpty());
+        assertEquals(1, referenceIds.size());
+        assertTrue(referenceIds.containsAll(Set.of("api1")));
+    }
+
+    @Test
     public void shouldFindByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId() throws TechnicalException {
         Set<Membership> memberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
             "user1",

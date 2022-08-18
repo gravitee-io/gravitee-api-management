@@ -21,11 +21,12 @@ package io.gravitee.rest.api.model.common;
  */
 public class PageableImpl implements Pageable {
 
+    // must be > 0;
     private final int pageNumber;
     private final int pageSize;
 
     public PageableImpl(final int pageNumber, final int pageSize) {
-        this.pageNumber = pageNumber;
+        this.pageNumber = Math.max(1, pageNumber);
         this.pageSize = pageSize;
     }
 

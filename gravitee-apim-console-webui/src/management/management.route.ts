@@ -238,7 +238,7 @@ function managementRouterConfig($stateProvider) {
       },
       resolve: {
         apis: ($stateParams: StateParams, ApiService: ApiService) => ApiService.list(),
-        applications: ($stateParams: StateParams, ApplicationService: ApplicationService) => ApplicationService.list(),
+        applications: ($stateParams: StateParams, ApplicationService: ApplicationService) => ApplicationService.list(['owner', 'picture']),
       },
     })
     .state('management.log', {
