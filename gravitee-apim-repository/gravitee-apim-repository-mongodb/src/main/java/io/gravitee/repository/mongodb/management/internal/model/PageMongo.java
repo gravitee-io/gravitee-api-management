@@ -27,7 +27,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "pages")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}pages")
 public class PageMongo extends Auditable {
 
     @Id
