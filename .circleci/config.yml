@@ -258,7 +258,7 @@ parameters:
 jobs:
     setup:
         docker:
-            - image: cimg/openjdk:11.0
+            - image: cimg/openjdk:17.0
         resource_class: small
         steps:
             - checkout
@@ -339,7 +339,7 @@ jobs:
 
     validate:
         docker:
-            - image: cimg/openjdk:11.0
+            - image: cimg/openjdk:17.0
         resource_class: small
         steps:
             - checkout
@@ -395,7 +395,7 @@ jobs:
                   version: << pipeline.parameters.graviteeio_version >>-ee
     build:
         docker:
-            - image: cimg/openjdk:11.0
+            - image: cimg/openjdk:17.0
         resource_class: large
         steps:
             - checkout
@@ -432,7 +432,7 @@ jobs:
 
     build-images:
         docker:
-            - image: cimg/openjdk:11.0
+            - image: cimg/openjdk:17.0
         resource_class: medium
         steps:
             - checkout
@@ -450,7 +450,7 @@ jobs:
 
     community-build:
         docker:
-            - image: cimg/openjdk:11.0
+            - image: cimg/openjdk:17.0
         resource_class: medium
         steps:
             - checkout
@@ -470,7 +470,7 @@ jobs:
 
     test:
         docker:
-            - image: cimg/openjdk:11.0
+            - image: cimg/openjdk:17.0
         resource_class: medium+
         steps:
             - checkout
@@ -541,7 +541,7 @@ jobs:
 
     publish-on-artifactory:
         docker:
-            - image: cimg/openjdk:11.0
+            - image: cimg/openjdk:17.0
         resource_class: large
         environment:
             ALT_DEPLOYMENT_REPOSITORY: "artifactory-gravitee::default::https://odbxikk7vo-artifactory.services.clever-cloud.com/gravitee-snapshots"
@@ -561,7 +561,7 @@ jobs:
 
     publish-on-nexus:
         docker:
-            - image: cimg/openjdk:11.0
+            - image: cimg/openjdk:17.0
         resource_class: large
         steps:
             - checkout
@@ -579,7 +579,7 @@ jobs:
 
     publish-images-azure-registry:
         docker:
-            - image: cimg/openjdk:11.0
+            - image: cimg/openjdk:17.0
         resource_class: small
         steps:
             - checkout
@@ -800,7 +800,7 @@ jobs:
                 default: ""
                 description: the name of the docker image to create
         docker:
-            - image: cimg/openjdk:11.0
+            - image: cimg/openjdk:17.0
         resource_class: small
         steps:
             - checkout
@@ -1071,7 +1071,7 @@ jobs:
 
     backend-build-and-publish-artifactory:
         docker:
-            - image: cimg/openjdk:11.0.13
+            - image: cimg/openjdk:17.0
         resource_class: large
         steps:
             - checkout
@@ -1254,7 +1254,7 @@ jobs:
 
     nexus-staging:
         docker:
-            - image: cimg/openjdk:11.0
+            - image: cimg/openjdk:17.0
         resource_class: xlarge
         steps:
             - checkout
@@ -1581,7 +1581,7 @@ jobs:
 
     package-bundle:
         docker:
-            - image: cimg/openjdk:11.0-node
+            - image: cimg/openjdk:17.0-node
         resource_class: medium
         environment:
             RELEASE_VERSION: << pipeline.parameters.graviteeio_version >>
