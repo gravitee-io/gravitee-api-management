@@ -85,6 +85,44 @@ class ApplicationService {
     return this.$http.get(url);
   }
 
+  searchPage(query, page = 1, size = 100) {
+    return this.listPage(['picture'], query, page, size);
+  }
+
+  listPage(
+    exclude: ApplicationExcludeFilter[] = [],
+    query = '',
+    page?: number,
+    size?: number,
+    order?: string,
+    status = 'active',
+  ): ng.IHttpPromise<any> {
+    let url = `${this.Constants.env.baseURL}/applications/_paged?status=${status}`;
+
+    if (query.trim() !== '') {
+      url += `&query=${query}`;
+    }
+
+    if (page != null) {
+      url += `&page=${page}`;
+    }
+
+    if (size != null) {
+      url += `&size=${size}`;
+    }
+
+    if (order != null) {
+      url += `&order=${order}`;
+    }
+
+    if (exclude.length > 0) {
+      const excludeFilters = exclude.map((filter) => `exclude=${filter}`).join('&');
+      url += `&${excludeFilters}`;
+    }
+
+    return this.$http.get(url);
+  }
+
   create(application): ng.IHttpPromise<any> {
     return this.$http.post(`${this.Constants.env.baseURL}/applications/`, application);
   }
