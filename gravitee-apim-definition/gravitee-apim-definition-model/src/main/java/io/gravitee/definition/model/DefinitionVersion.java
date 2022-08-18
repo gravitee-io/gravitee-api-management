@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Getter
+@Getter(onMethod_ = @JsonValue)
 public enum DefinitionVersion {
     @JsonEnumDefaultValue
     V1("1.0.0"),
@@ -44,7 +44,6 @@ public enum DefinitionVersion {
         }
     }
 
-    @JsonValue
     private final String label;
 
     @JsonCreator

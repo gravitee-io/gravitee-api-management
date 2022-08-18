@@ -14,8 +14,8 @@
 import { exists, mapValues } from '../runtime';
 import {
      ListenerHttpV4FromJSONTyped,
-     ListenerSubscriptionV4FromJSONTyped,
-     ListenerTcpV4FromJSONTyped
+     ListenerTcpV4FromJSONTyped,
+     ListenerSubscriptionV4FromJSONTyped
 } from './';
 
 /**
@@ -41,14 +41,14 @@ export function ListenerV4FromJSONTyped(json: any, ignoreDiscriminator: boolean)
         return json;
     }
     if (!ignoreDiscriminator) {
-        if (json['type'] === 'ListenerHttpV4') {
+        if (json['type'] === 'http') {
             return ListenerHttpV4FromJSONTyped(json, true);
         }
-        if (json['type'] === 'ListenerSubscriptionV4') {
-            return ListenerSubscriptionV4FromJSONTyped(json, true);
-        }
-        if (json['type'] === 'ListenerTcpV4') {
+        if (json['type'] === 'tcp') {
             return ListenerTcpV4FromJSONTyped(json, true);
+        }
+        if (json['type'] === 'subscription') {
+            return ListenerSubscriptionV4FromJSONTyped(json, true);
         }
     }
     return {

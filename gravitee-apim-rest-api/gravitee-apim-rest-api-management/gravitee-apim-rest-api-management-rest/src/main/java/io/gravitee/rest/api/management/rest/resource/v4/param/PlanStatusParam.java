@@ -17,12 +17,14 @@ package io.gravitee.rest.api.management.rest.resource.v4.param;
 
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.management.rest.resource.param.AbstractListParam;
+import io.swagger.v3.oas.annotations.media.Schema;
 import javax.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Schema(name = "PlanStatusParamV4")
 public class PlanStatusParam extends AbstractListParam<PlanStatus> {
 
     public PlanStatusParam(String param) throws WebApplicationException {
