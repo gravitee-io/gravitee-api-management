@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "APIs")
+@Tag(name = "APIs V4")
 @Slf4j
 public class ApisResource extends AbstractResource {
 

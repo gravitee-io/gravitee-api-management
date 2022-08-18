@@ -321,9 +321,9 @@ export function UpdateApiEntityV4ToJSON(value?: UpdateApiEntityV4 | null): any {
 * @enum {string}
 */
 export enum UpdateApiEntityV4DefinitionVersionEnum {
-    V1 = 'V1',
-    V2 = 'V2',
-    V4 = 'V4'
+    _100 = '1.0.0',
+    _200 = '2.0.0',
+    _400 = '4.0.0'
 }
 /**
 * @export

@@ -17,12 +17,14 @@ package io.gravitee.rest.api.management.rest.resource.v4.param;
 
 import io.gravitee.rest.api.management.rest.resource.param.AbstractListParam;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import javax.ws.rs.WebApplicationException;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Schema(name = "PlanSecurityParamV4")
 public class PlanSecurityParam extends AbstractListParam<PlanSecurityType> {
 
     public PlanSecurityParam(String param) throws WebApplicationException {

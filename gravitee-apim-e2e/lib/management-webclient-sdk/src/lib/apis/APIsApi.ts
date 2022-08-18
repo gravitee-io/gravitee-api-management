@@ -38,9 +38,6 @@ import {
     ApiEntity,
     ApiEntityFromJSON,
     ApiEntityToJSON,
-    ApiEntityV4,
-    ApiEntityV4FromJSON,
-    ApiEntityV4ToJSON,
     ApiGroupsWithMembersMap,
     ApiGroupsWithMembersMapFromJSON,
     ApiGroupsWithMembersMapToJSON,
@@ -149,9 +146,6 @@ import {
     NewApiEntity,
     NewApiEntityFromJSON,
     NewApiEntityToJSON,
-    NewApiEntityV4,
-    NewApiEntityV4FromJSON,
-    NewApiEntityV4ToJSON,
     NewApiMetadataEntity,
     NewApiMetadataEntityFromJSON,
     NewApiMetadataEntityToJSON,
@@ -164,9 +158,6 @@ import {
     NewPlanEntity,
     NewPlanEntityFromJSON,
     NewPlanEntityToJSON,
-    NewPlanEntityV4,
-    NewPlanEntityV4FromJSON,
-    NewPlanEntityV4ToJSON,
     NewRatingAnswerEntity,
     NewRatingAnswerEntityFromJSON,
     NewRatingAnswerEntityToJSON,
@@ -188,15 +179,9 @@ import {
     PlanEntity,
     PlanEntityFromJSON,
     PlanEntityToJSON,
-    PlanEntityV4,
-    PlanEntityV4FromJSON,
-    PlanEntityV4ToJSON,
     PlanSecurityType,
     PlanSecurityTypeFromJSON,
     PlanSecurityTypeToJSON,
-    PlanSecurityTypeV4,
-    PlanSecurityTypeV4FromJSON,
-    PlanSecurityTypeV4ToJSON,
     PlanStatus,
     PlanStatusFromJSON,
     PlanStatusToJSON,
@@ -251,9 +236,6 @@ import {
     UpdateApiEntity,
     UpdateApiEntityFromJSON,
     UpdateApiEntityToJSON,
-    UpdateApiEntityV4,
-    UpdateApiEntityV4FromJSON,
-    UpdateApiEntityV4ToJSON,
     UpdateApiMetadataEntity,
     UpdateApiMetadataEntityFromJSON,
     UpdateApiMetadataEntityToJSON,
@@ -266,9 +248,6 @@ import {
     UpdatePlanEntity,
     UpdatePlanEntityFromJSON,
     UpdatePlanEntityToJSON,
-    UpdatePlanEntityV4,
-    UpdatePlanEntityV4FromJSON,
-    UpdatePlanEntityV4ToJSON,
     UpdateRatingEntity,
     UpdateRatingEntityFromJSON,
     UpdateRatingEntityToJSON,
@@ -311,23 +290,10 @@ export interface CloseApiPlanRequest {
     orgId: string;
 }
 
-export interface CloseApiPlan1Request {
-    plan: string;
-    api: string;
-    envId: string;
-    orgId: string;
-}
-
 export interface CreateApiRequest {
     envId: string;
     orgId: string;
     newApiEntity: NewApiEntity;
-}
-
-export interface CreateApi1Request {
-    envId: string;
-    orgId: string;
-    newApiEntityV4: NewApiEntityV4;
 }
 
 export interface CreateApiAlertRequest {
@@ -372,13 +338,6 @@ export interface CreateApiPlanRequest {
     newPlanEntity: NewPlanEntity;
 }
 
-export interface CreateApiPlan1Request {
-    api: string;
-    envId: string;
-    orgId: string;
-    newPlanEntityV4: NewPlanEntityV4;
-}
-
 export interface CreateApiQualityRuleRequest {
     api: string;
     envId: string;
@@ -418,12 +377,6 @@ export interface DebugAPIRequest {
 }
 
 export interface DeleteApiRequest {
-    api: string;
-    envId: string;
-    orgId: string;
-}
-
-export interface DeleteApi1Request {
     api: string;
     envId: string;
     orgId: string;
@@ -471,13 +424,6 @@ export interface DeleteApiPlanRequest {
     orgId: string;
 }
 
-export interface DeleteApiPlan1Request {
-    plan: string;
-    api: string;
-    envId: string;
-    orgId: string;
-}
-
 export interface DeleteApiRatingRequest {
     rating: string;
     api: string;
@@ -500,21 +446,7 @@ export interface DeployApiRequest {
     apiDeploymentEntity?: ApiDeploymentEntity;
 }
 
-export interface DeployApi1Request {
-    api: string;
-    envId: string;
-    orgId: string;
-    apiDeploymentEntity?: ApiDeploymentEntity;
-}
-
 export interface DeprecateApiPlanRequest {
-    plan: string;
-    api: string;
-    envId: string;
-    orgId: string;
-}
-
-export interface DeprecateApiPlan1Request {
     plan: string;
     api: string;
     envId: string;
@@ -542,21 +474,7 @@ export interface DepreciateApiPlanRequest {
     orgId: string;
 }
 
-export interface DepreciateApiPlan1Request {
-    plan: string;
-    api: string;
-    envId: string;
-    orgId: string;
-}
-
 export interface DoApiLifecycleActionRequest {
-    api: string;
-    action: LifecycleAction;
-    envId: string;
-    orgId: string;
-}
-
-export interface DoApiLifecycleAction1Request {
     api: string;
     action: LifecycleAction;
     envId: string;
@@ -625,12 +543,6 @@ export interface FetchApiPageRequest {
 }
 
 export interface GetApiRequest {
-    api: string;
-    envId: string;
-    orgId: string;
-}
-
-export interface GetApi1Request {
     api: string;
     envId: string;
     orgId: string;
@@ -890,24 +802,9 @@ export interface GetApiPlanRequest {
     orgId: string;
 }
 
-export interface GetApiPlan1Request {
-    plan: string;
-    api: string;
-    envId: string;
-    orgId: string;
-}
-
 export interface GetApiPlansRequest {
     status?: Array<PlanStatus>;
     security?: Array<PlanSecurityType>;
-    api: string;
-    envId: string;
-    orgId: string;
-}
-
-export interface GetApiPlans1Request {
-    status?: Array<GetApiPlans1StatusEnum>;
-    security?: Array<PlanSecurityTypeV4>;
     api: string;
     envId: string;
     orgId: string;
@@ -1116,13 +1013,6 @@ export interface PublishApiPlanRequest {
     orgId: string;
 }
 
-export interface PublishApiPlan1Request {
-    plan: string;
-    api: string;
-    envId: string;
-    orgId: string;
-}
-
 export interface ReactivateApiKeyForApiSubscriptionRequest {
     apikey: string;
     subscription: string;
@@ -1203,13 +1093,6 @@ export interface UpdateApiRequest {
     updateApiEntity: UpdateApiEntity;
 }
 
-export interface UpdateApi1Request {
-    api: string;
-    envId: string;
-    orgId: string;
-    updateApiEntityV4: UpdateApiEntityV4;
-}
-
 export interface UpdateApiAlertRequest {
     alert: string;
     api: string;
@@ -1264,14 +1147,6 @@ export interface UpdateApiPlanRequest {
     envId: string;
     orgId: string;
     updatePlanEntity: UpdatePlanEntity;
-}
-
-export interface UpdateApiPlan1Request {
-    plan: string;
-    api: string;
-    envId: string;
-    orgId: string;
-    updatePlanEntityV4: UpdatePlanEntityV4;
 }
 
 export interface UpdateApiPortalNotificationSettingsRequest {
@@ -1589,53 +1464,6 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * User must have the MANAGE_PLANS permission to use this service
-     * Close  a plan
-     */
-    async closeApiPlan1Raw(requestParameters: CloseApiPlan1Request): Promise<runtime.ApiResponse<PlanEntityV4>> {
-        if (requestParameters.plan === null || requestParameters.plan === undefined) {
-            throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling closeApiPlan1.');
-        }
-
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling closeApiPlan1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling closeApiPlan1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling closeApiPlan1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}/plans/{plan}/_close`.replace(`{${"plan"}}`, encodeURIComponent(String(requestParameters.plan))).replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityV4FromJSON(jsonValue));
-    }
-
-    /**
-     * User must have the MANAGE_PLANS permission to use this service
-     * Close  a plan
-     */
-    async closeApiPlan1(requestParameters: CloseApiPlan1Request): Promise<PlanEntityV4> {
-        const response = await this.closeApiPlan1Raw(requestParameters);
-        return await response.value();
-    }
-
-    /**
      * User must have API_PUBLISHER or ADMIN role to create an API.
      * Create an API
      */
@@ -1678,52 +1506,6 @@ export class APIsApi extends runtime.BaseAPI {
      */
     async createApi(requestParameters: CreateApiRequest): Promise<ApiEntity> {
         const response = await this.createApiRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * User must have API_PUBLISHER or ADMIN role to create an API.
-     * Create an API
-     */
-    async createApi1Raw(requestParameters: CreateApi1Request): Promise<runtime.ApiResponse<ApiEntityV4>> {
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createApi1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createApi1.');
-        }
-
-        if (requestParameters.newApiEntityV4 === null || requestParameters.newApiEntityV4 === undefined) {
-            throw new runtime.RequiredError('newApiEntityV4','Required parameter requestParameters.newApiEntityV4 was null or undefined when calling createApi1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis`.replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: NewApiEntityV4ToJSON(requestParameters.newApiEntityV4),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityV4FromJSON(jsonValue));
-    }
-
-    /**
-     * User must have API_PUBLISHER or ADMIN role to create an API.
-     * Create an API
-     */
-    async createApi1(requestParameters: CreateApi1Request): Promise<ApiEntityV4> {
-        const response = await this.createApi1Raw(requestParameters);
         return await response.value();
     }
 
@@ -2014,56 +1796,6 @@ export class APIsApi extends runtime.BaseAPI {
      */
     async createApiPlan(requestParameters: CreateApiPlanRequest): Promise<PlanEntity> {
         const response = await this.createApiPlanRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * User must have the MANAGE_PLANS permission to use this service
-     * Create a plan
-     */
-    async createApiPlan1Raw(requestParameters: CreateApiPlan1Request): Promise<runtime.ApiResponse<PlanEntityV4>> {
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling createApiPlan1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createApiPlan1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createApiPlan1.');
-        }
-
-        if (requestParameters.newPlanEntityV4 === null || requestParameters.newPlanEntityV4 === undefined) {
-            throw new runtime.RequiredError('newPlanEntityV4','Required parameter requestParameters.newPlanEntityV4 was null or undefined when calling createApiPlan1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}/plans`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: NewPlanEntityV4ToJSON(requestParameters.newPlanEntityV4),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityV4FromJSON(jsonValue));
-    }
-
-    /**
-     * User must have the MANAGE_PLANS permission to use this service
-     * Create a plan
-     */
-    async createApiPlan1(requestParameters: CreateApiPlan1Request): Promise<PlanEntityV4> {
-        const response = await this.createApiPlan1Raw(requestParameters);
         return await response.value();
     }
 
@@ -2373,48 +2105,6 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * User must have the DELETE permission to use this service
-     * Delete the API
-     */
-    async deleteApi1Raw(requestParameters: DeleteApi1Request): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling deleteApi1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling deleteApi1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApi1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * User must have the DELETE permission to use this service
-     * Delete the API
-     */
-    async deleteApi1(requestParameters: DeleteApi1Request): Promise<void> {
-        await this.deleteApi1Raw(requestParameters);
-    }
-
-    /**
      * User must have the API_ALERT[DELETE] permission to use this service
      * Delete an alert for an API
      */
@@ -2694,52 +2384,6 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * User must have the MANAGE_PLANS permission to use this service
-     * Delete a plan
-     */
-    async deleteApiPlan1Raw(requestParameters: DeleteApiPlan1Request): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.plan === null || requestParameters.plan === undefined) {
-            throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling deleteApiPlan1.');
-        }
-
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling deleteApiPlan1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling deleteApiPlan1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApiPlan1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}/plans/{plan}`.replace(`{${"plan"}}`, encodeURIComponent(String(requestParameters.plan))).replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * User must have the MANAGE_PLANS permission to use this service
-     * Delete a plan
-     */
-    async deleteApiPlan1(requestParameters: DeleteApiPlan1Request): Promise<void> {
-        await this.deleteApiPlan1Raw(requestParameters);
-    }
-
-    /**
      * User must have the API_RATING[DELETE] permission to use this service
      * Delete an existing rating for an API
      */
@@ -2882,52 +2526,6 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * User must have the MANAGE_LIFECYCLE permission to use this service
-     * Deploy API to gateway instances
-     */
-    async deployApi1Raw(requestParameters: DeployApi1Request): Promise<runtime.ApiResponse<ApiEntity>> {
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling deployApi1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling deployApi1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deployApi1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}/deploy`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: ApiDeploymentEntityToJSON(requestParameters.apiDeploymentEntity),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
-    }
-
-    /**
-     * User must have the MANAGE_LIFECYCLE permission to use this service
-     * Deploy API to gateway instances
-     */
-    async deployApi1(requestParameters: DeployApi1Request): Promise<ApiEntity> {
-        const response = await this.deployApi1Raw(requestParameters);
-        return await response.value();
-    }
-
-    /**
      * User must have the API_PLAN[UPDATE] permission to use this service
      * Deprecate a plan
      */
@@ -2971,53 +2569,6 @@ export class APIsApi extends runtime.BaseAPI {
      */
     async deprecateApiPlan(requestParameters: DeprecateApiPlanRequest): Promise<PlanEntity> {
         const response = await this.deprecateApiPlanRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * User must have the API_PLAN[UPDATE] permission to use this service
-     * Deprecate a plan
-     */
-    async deprecateApiPlan1Raw(requestParameters: DeprecateApiPlan1Request): Promise<runtime.ApiResponse<PlanEntityV4>> {
-        if (requestParameters.plan === null || requestParameters.plan === undefined) {
-            throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling deprecateApiPlan1.');
-        }
-
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling deprecateApiPlan1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling deprecateApiPlan1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deprecateApiPlan1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}/plans/{plan}/_deprecate`.replace(`{${"plan"}}`, encodeURIComponent(String(requestParameters.plan))).replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityV4FromJSON(jsonValue));
-    }
-
-    /**
-     * User must have the API_PLAN[UPDATE] permission to use this service
-     * Deprecate a plan
-     */
-    async deprecateApiPlan1(requestParameters: DeprecateApiPlan1Request): Promise<PlanEntityV4> {
-        const response = await this.deprecateApiPlan1Raw(requestParameters);
         return await response.value();
     }
 
@@ -3169,53 +2720,6 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * User must have the API_PLAN[UPDATE] permission to use this service
-     * Deprecated, use \'_deprecate\' instead. Deprecate a plan
-     */
-    async depreciateApiPlan1Raw(requestParameters: DepreciateApiPlan1Request): Promise<runtime.ApiResponse<PlanEntityV4>> {
-        if (requestParameters.plan === null || requestParameters.plan === undefined) {
-            throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling depreciateApiPlan1.');
-        }
-
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling depreciateApiPlan1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling depreciateApiPlan1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling depreciateApiPlan1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}/plans/{plan}/_depreciate`.replace(`{${"plan"}}`, encodeURIComponent(String(requestParameters.plan))).replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityV4FromJSON(jsonValue));
-    }
-
-    /**
-     * User must have the API_PLAN[UPDATE] permission to use this service
-     * Deprecated, use \'_deprecate\' instead. Deprecate a plan
-     */
-    async depreciateApiPlan1(requestParameters: DepreciateApiPlan1Request): Promise<PlanEntityV4> {
-        const response = await this.depreciateApiPlan1Raw(requestParameters);
-        return await response.value();
-    }
-
-    /**
      * User must have the MANAGE_LIFECYCLE permission to use this service
      * Manage the API\'s lifecycle
      */
@@ -3263,56 +2767,6 @@ export class APIsApi extends runtime.BaseAPI {
      */
     async doApiLifecycleAction(requestParameters: DoApiLifecycleActionRequest): Promise<void> {
         await this.doApiLifecycleActionRaw(requestParameters);
-    }
-
-    /**
-     * User must have the MANAGE_LIFECYCLE permission to use this service
-     * Manage the API\'s lifecycle
-     */
-    async doApiLifecycleAction1Raw(requestParameters: DoApiLifecycleAction1Request): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling doApiLifecycleAction1.');
-        }
-
-        if (requestParameters.action === null || requestParameters.action === undefined) {
-            throw new runtime.RequiredError('action','Required parameter requestParameters.action was null or undefined when calling doApiLifecycleAction1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling doApiLifecycleAction1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling doApiLifecycleAction1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        if (requestParameters.action !== undefined) {
-            queryParameters['action'] = requestParameters.action;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * User must have the MANAGE_LIFECYCLE permission to use this service
-     * Manage the API\'s lifecycle
-     */
-    async doApiLifecycleAction1(requestParameters: DoApiLifecycleAction1Request): Promise<void> {
-        await this.doApiLifecycleAction1Raw(requestParameters);
     }
 
     /**
@@ -3733,49 +3187,6 @@ export class APIsApi extends runtime.BaseAPI {
      */
     async getApi(requestParameters: GetApiRequest): Promise<ApiEntity> {
         const response = await this.getApiRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * User must have the READ permission on the API_DEFINITION to use this service on a private API.
-     * Get the API
-     */
-    async getApi1Raw(requestParameters: GetApi1Request): Promise<runtime.ApiResponse<ApiEntityV4>> {
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApi1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getApi1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApi1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityV4FromJSON(jsonValue));
-    }
-
-    /**
-     * User must have the READ permission on the API_DEFINITION to use this service on a private API.
-     * Get the API
-     */
-    async getApi1(requestParameters: GetApi1Request): Promise<ApiEntityV4> {
-        const response = await this.getApi1Raw(requestParameters);
         return await response.value();
     }
 
@@ -5388,53 +4799,6 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * User must have the READ permission to use this service
-     * Get a plan
-     */
-    async getApiPlan1Raw(requestParameters: GetApiPlan1Request): Promise<runtime.ApiResponse<PlanEntityV4>> {
-        if (requestParameters.plan === null || requestParameters.plan === undefined) {
-            throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling getApiPlan1.');
-        }
-
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiPlan1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getApiPlan1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiPlan1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}/plans/{plan}`.replace(`{${"plan"}}`, encodeURIComponent(String(requestParameters.plan))).replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityV4FromJSON(jsonValue));
-    }
-
-    /**
-     * User must have the READ permission to use this service
-     * Get a plan
-     */
-    async getApiPlan1(requestParameters: GetApiPlan1Request): Promise<PlanEntityV4> {
-        const response = await this.getApiPlan1Raw(requestParameters);
-        return await response.value();
-    }
-
-    /**
      * List all the plans accessible to the current user.
      * List plans for an API
      */
@@ -5482,57 +4846,6 @@ export class APIsApi extends runtime.BaseAPI {
      */
     async getApiPlans(requestParameters: GetApiPlansRequest): Promise<Array<PlanEntity>> {
         const response = await this.getApiPlansRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * List all the plans accessible to the current user.
-     * List plans for an API
-     */
-    async getApiPlans1Raw(requestParameters: GetApiPlans1Request): Promise<runtime.ApiResponse<Array<PlanEntityV4>>> {
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiPlans1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getApiPlans1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiPlans1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        if (requestParameters.status) {
-            queryParameters['status'] = requestParameters.status.join(runtime.COLLECTION_FORMATS["csv"]);
-        }
-
-        if (requestParameters.security) {
-            queryParameters['security'] = requestParameters.security.join(runtime.COLLECTION_FORMATS["csv"]);
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}/plans`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PlanEntityV4FromJSON));
-    }
-
-    /**
-     * List all the plans accessible to the current user.
-     * List plans for an API
-     */
-    async getApiPlans1(requestParameters: GetApiPlans1Request): Promise<Array<PlanEntityV4>> {
-        const response = await this.getApiPlans1Raw(requestParameters);
         return await response.value();
     }
 
@@ -6836,53 +6149,6 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * User must have the MANAGE_PLANS permission to use this service
-     * Publicly publish plan
-     */
-    async publishApiPlan1Raw(requestParameters: PublishApiPlan1Request): Promise<runtime.ApiResponse<PlanEntityV4>> {
-        if (requestParameters.plan === null || requestParameters.plan === undefined) {
-            throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling publishApiPlan1.');
-        }
-
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling publishApiPlan1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling publishApiPlan1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling publishApiPlan1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}/plans/{plan}/_publish`.replace(`{${"plan"}}`, encodeURIComponent(String(requestParameters.plan))).replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityV4FromJSON(jsonValue));
-    }
-
-    /**
-     * User must have the MANAGE_PLANS permission to use this service
-     * Publicly publish plan
-     */
-    async publishApiPlan1(requestParameters: PublishApiPlan1Request): Promise<PlanEntityV4> {
-        const response = await this.publishApiPlan1Raw(requestParameters);
-        return await response.value();
-    }
-
-    /**
      * User must have the API_SUBSCRIPTION permission to use this service
      * Reactivate an API key
      */
@@ -7406,56 +6672,6 @@ export class APIsApi extends runtime.BaseAPI {
     }
 
     /**
-     * User must have the MANAGE_API permission to use this service
-     * Update the API
-     */
-    async updateApi1Raw(requestParameters: UpdateApi1Request): Promise<runtime.ApiResponse<ApiEntity>> {
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling updateApi1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateApi1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateApi1.');
-        }
-
-        if (requestParameters.updateApiEntityV4 === null || requestParameters.updateApiEntityV4 === undefined) {
-            throw new runtime.RequiredError('updateApiEntityV4','Required parameter requestParameters.updateApiEntityV4 was null or undefined when calling updateApi1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: UpdateApiEntityV4ToJSON(requestParameters.updateApiEntityV4),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiEntityFromJSON(jsonValue));
-    }
-
-    /**
-     * User must have the MANAGE_API permission to use this service
-     * Update the API
-     */
-    async updateApi1(requestParameters: UpdateApi1Request): Promise<ApiEntity> {
-        const response = await this.updateApi1Raw(requestParameters);
-        return await response.value();
-    }
-
-    /**
      * User must have the API_ALERT[UPDATE] permission to use this service
      * Update an alert for an API
      */
@@ -7824,60 +7040,6 @@ export class APIsApi extends runtime.BaseAPI {
      */
     async updateApiPlan(requestParameters: UpdateApiPlanRequest): Promise<PlanEntity> {
         const response = await this.updateApiPlanRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * User must have the MANAGE_PLANS permission to use this service
-     * Update a plan
-     */
-    async updateApiPlan1Raw(requestParameters: UpdateApiPlan1Request): Promise<runtime.ApiResponse<PlanEntityV4>> {
-        if (requestParameters.plan === null || requestParameters.plan === undefined) {
-            throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling updateApiPlan1.');
-        }
-
-        if (requestParameters.api === null || requestParameters.api === undefined) {
-            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling updateApiPlan1.');
-        }
-
-        if (requestParameters.envId === null || requestParameters.envId === undefined) {
-            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateApiPlan1.');
-        }
-
-        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
-            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateApiPlan1.');
-        }
-
-        if (requestParameters.updatePlanEntityV4 === null || requestParameters.updatePlanEntityV4 === undefined) {
-            throw new runtime.RequiredError('updatePlanEntityV4','Required parameter requestParameters.updatePlanEntityV4 was null or undefined when calling updateApiPlan1.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/organizations/{orgId}/environments/{envId}/v4/apis/{api}/plans/{plan}`.replace(`{${"plan"}}`, encodeURIComponent(String(requestParameters.plan))).replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: UpdatePlanEntityV4ToJSON(requestParameters.updatePlanEntityV4),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityV4FromJSON(jsonValue));
-    }
-
-    /**
-     * User must have the MANAGE_PLANS permission to use this service
-     * Update a plan
-     */
-    async updateApiPlan1(requestParameters: UpdateApiPlan1Request): Promise<PlanEntityV4> {
-        const response = await this.updateApiPlan1Raw(requestParameters);
         return await response.value();
     }
 
@@ -8503,16 +7665,6 @@ export class APIsApi extends runtime.BaseAPI {
 
 }
 
-/**
-    * @export
-    * @enum {string}
-    */
-export enum GetApiPlans1StatusEnum {
-    STAGING = 'STAGING',
-    PUBLISHED = 'PUBLISHED',
-    DEPRECATED = 'DEPRECATED',
-    CLOSED = 'CLOSED'
-}
 /**
     * @export
     * @enum {string}
