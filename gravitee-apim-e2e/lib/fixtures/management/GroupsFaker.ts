@@ -18,7 +18,7 @@ import { NewGroupEntity } from '@management-models/NewGroupEntity';
 
 export class GroupsFaker {
   static newGroup(attributes?: Partial<NewGroupEntity>): NewGroupEntity {
-    const name = faker.commerce.productName();
+    const name = faker.commerce.productName().substring(0, 64);
 
     return {
       name,
