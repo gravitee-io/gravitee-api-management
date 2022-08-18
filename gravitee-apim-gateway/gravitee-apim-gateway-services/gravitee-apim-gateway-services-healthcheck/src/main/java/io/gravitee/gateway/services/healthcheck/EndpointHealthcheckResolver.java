@@ -20,12 +20,12 @@ import static io.gravitee.common.util.VertxProxyOptionsUtils.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.services.healthcheck.grpc.GrpcEndpointRule;
 import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRule;
 import io.gravitee.node.api.configuration.Configuration;
@@ -82,11 +82,12 @@ public class EndpointHealthcheckResolver implements InitializingBean {
      * @return
      */
     public List<EndpointRule> resolve(Api api) {
-        HealthCheckService rootHealthCheck = api.getServices().get(HealthCheckService.class);
+        HealthCheckService rootHealthCheck = api.getDefinition().getServices().get(HealthCheckService.class);
         boolean hcEnabled = (rootHealthCheck != null && rootHealthCheck.isEnabled());
 
         // Filter to check only HTTP endpoints
         Stream<HttpEndpoint> httpEndpoints = api
+            .getDefinition()
             .getProxy()
             .getGroups()
             .stream()
@@ -141,9 +142,9 @@ public class EndpointHealthcheckResolver implements InitializingBean {
                         : endpoint.getHealthCheck();
                     // The following has to be managed by the connector-api
                     if (endpoint.getType().equalsIgnoreCase("grpc")) {
-                        return new GrpcEndpointRule(api.getId(), endpoint, healthcheck, systemProxyOptions);
+                        return new GrpcEndpointRule(api, endpoint, healthcheck, systemProxyOptions);
                     } else {
-                        return new HttpEndpointRule(api.getId(), endpoint, healthcheck, systemProxyOptions);
+                        return new HttpEndpointRule(api, endpoint, healthcheck, systemProxyOptions);
                     }
                 }
             )
@@ -192,7 +193,7 @@ public class EndpointHealthcheckResolver implements InitializingBean {
     public <T extends Endpoint> EndpointRule resolve(Api api, T endpoint) {
         HttpEndpoint httpEndpoint = convertToHttpEndpoint(endpoint);
         if (httpEndpoint != null) {
-            HealthCheckService rootHealthCheck = api.getServices().get(HealthCheckService.class);
+            HealthCheckService rootHealthCheck = api.getDefinition().getServices().get(HealthCheckService.class);
             boolean hcEnabled = (rootHealthCheck != null && rootHealthCheck.isEnabled());
 
             if (hcEnabled || httpEndpoint.getHealthCheck() != null) {
@@ -200,9 +201,9 @@ public class EndpointHealthcheckResolver implements InitializingBean {
                     ? rootHealthCheck
                     : httpEndpoint.getHealthCheck();
                 if (endpoint.getType().equalsIgnoreCase("http")) {
-                    return new HttpEndpointRule(api.getId(), httpEndpoint, healthcheck, systemProxyOptions);
+                    return new HttpEndpointRule(api, httpEndpoint, healthcheck, systemProxyOptions);
                 } else if (endpoint.getType().equalsIgnoreCase("grpc")) {
-                    return new GrpcEndpointRule(api.getId(), httpEndpoint, healthcheck, systemProxyOptions);
+                    return new GrpcEndpointRule(api, httpEndpoint, healthcheck, systemProxyOptions);
                 }
             }
         }

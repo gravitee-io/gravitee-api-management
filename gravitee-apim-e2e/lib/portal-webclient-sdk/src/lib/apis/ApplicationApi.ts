@@ -1111,7 +1111,7 @@ export class ApplicationApi extends runtime.BaseAPI {
     }
 
     /**
-     * List all the applications accessible to authenticated user.  User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission. 
+     * List all the applications accessible to authenticated user.  User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission. For performance reasons, calling `/applications?size=-1` does not return the number of subscribers and the only information available in the owner of each application is:   - id   - displayName   - email 
      * List all the applications accessible to authenticated user. Default order is by *name* ASC.
      */
     async getApplicationsRaw(requestParameters: GetApplicationsRequest): Promise<runtime.ApiResponse<ApplicationsResponse>> {
@@ -1149,7 +1149,7 @@ export class ApplicationApi extends runtime.BaseAPI {
     }
 
     /**
-     * List all the applications accessible to authenticated user.  User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission. 
+     * List all the applications accessible to authenticated user.  User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission. For performance reasons, calling `/applications?size=-1` does not return the number of subscribers and the only information available in the owner of each application is:   - id   - displayName   - email 
      * List all the applications accessible to authenticated user. Default order is by *name* ASC.
      */
     async getApplications(requestParameters: GetApplicationsRequest): Promise<ApplicationsResponse> {

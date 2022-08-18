@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.healthcheck.grpc;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.rule.AbstractEndpointRule;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
@@ -31,7 +32,7 @@ import org.springframework.core.env.Environment;
  */
 public class GrpcEndpointRule extends AbstractEndpointRule<HttpEndpoint> {
 
-    public GrpcEndpointRule(String api, HttpEndpoint endpoint, HealthCheckService service, ProxyOptions systemProxyOptions) {
+    public GrpcEndpointRule(Api api, HttpEndpoint endpoint, HealthCheckService service, ProxyOptions systemProxyOptions) {
         super(api, endpoint, service, systemProxyOptions);
     }
 

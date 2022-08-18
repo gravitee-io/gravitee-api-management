@@ -166,6 +166,22 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
     ) throws TechnicalException;
 
     /**
+     * find all reference ids for a member, a referenceType and a list of roles
+     * @param memberId the member
+     * @param memberType the member type. Can be USER or GROUP.
+     * @param referenceType the referenceType
+     * @param roleIds the role id list
+     * @return the list of reference id, or an empty set
+     * @throws TechnicalException if something goes wrong, should never happen.
+     */
+    Set<String> findRefIdByMemberAndRefTypeAndRoleIdIn(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        Collection<String> roleIds
+    ) throws TechnicalException;
+
+    /**
      * find all memberships for a member, a referenceType, a referenceId and a role
      * => determine whether or not a user has a specific role for a specific ref
      * @param memberId the member

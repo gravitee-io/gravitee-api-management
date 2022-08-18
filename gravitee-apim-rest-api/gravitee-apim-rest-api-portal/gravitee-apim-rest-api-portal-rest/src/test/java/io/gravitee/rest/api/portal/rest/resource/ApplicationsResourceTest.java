@@ -34,6 +34,7 @@ import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -59,23 +60,35 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
     public void init() {
         resetAllMocks();
 
-        ApplicationListItem applicationListItem1 = new ApplicationListItem();
-        applicationListItem1.setId("A");
-        applicationListItem1.setName("A");
+        ApplicationListItem applicationA = new ApplicationListItem();
+        applicationA.setId("A");
+        applicationA.setName("A");
 
-        ApplicationListItem applicationListItem2 = new ApplicationListItem();
-        applicationListItem2.setId("B");
-        applicationListItem2.setName("B");
+        ApplicationListItem applicationB = new ApplicationListItem();
+        applicationB.setId("B");
+        applicationB.setName("B");
 
-        Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationListItem1, applicationListItem2));
-        doReturn(mockApplications).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doReturn(new HashSet<>(Arrays.asList("A", "B")))
+            .when(applicationService)
+            .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doReturn(new HashSet<>(Arrays.asList(applicationA, applicationB)))
+            .when(applicationService)
+            .findByIds(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("A", "B")));
+        doReturn(new HashSet<>(Arrays.asList(applicationB, applicationA)))
+            .when(applicationService)
+            .findByIds(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("B", "A")));
+
+        doReturn(new HashSet<>(Arrays.asList(applicationB)))
+            .when(applicationService)
+            .findByIds(eq(GraviteeContext.getExecutionContext()), eq(List.of("B")));
 
         doReturn(new Application().id("A").name("A"))
             .when(applicationMapper)
-            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationListItem1), any());
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationA), any());
+
         doReturn(new Application().id("B").name("B"))
             .when(applicationMapper)
-            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationListItem2), any());
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationB), any());
 
         ApplicationEntity createdEntity = mock(ApplicationEntity.class);
         doReturn("NEW").when(createdEntity).getId();
@@ -92,7 +105,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         Sortable sort = new SortableImpl("name", true);
-        Mockito.verify(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
+        Mockito.verify(applicationService).findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
 
         ArgumentCaptor<String> ac = ArgumentCaptor.forClass(String.class);
         Mockito.verify(applicationMapper, Mockito.times(2)).computeApplicationLinks(ac.capture(), eq(null));
@@ -113,40 +126,43 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApplicationsOrderByName() {
-        ApplicationListItem applicationListItem1 = new ApplicationListItem();
-        applicationListItem1.setId("A");
-        applicationListItem1.setName("A");
+        ApplicationListItem applicationA = new ApplicationListItem();
+        applicationA.setId("A");
+        applicationA.setName("A");
 
-        ApplicationListItem applicationListItem2 = new ApplicationListItem();
-        applicationListItem2.setId("B");
-        applicationListItem2.setName("b");
+        ApplicationListItem applicationB = new ApplicationListItem();
+        applicationB.setId("B");
+        applicationB.setName("b");
 
-        ApplicationListItem applicationListItem3 = new ApplicationListItem();
-        applicationListItem3.setId("C");
-        applicationListItem3.setName("C");
+        ApplicationListItem applicationC = new ApplicationListItem();
+        applicationC.setId("C");
+        applicationC.setName("C");
 
-        ApplicationListItem applicationListItem4 = new ApplicationListItem();
-        applicationListItem4.setId("D");
-        applicationListItem4.setName("d");
+        ApplicationListItem applicationD = new ApplicationListItem();
+        applicationD.setId("D");
+        applicationD.setName("d");
 
-        Set<ApplicationListItem> mockApplications = new HashSet<>(
-            Arrays.asList(applicationListItem1, applicationListItem2, applicationListItem3, applicationListItem4)
-        );
+        Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationA, applicationB, applicationC, applicationD));
         Sortable sort = new SortableImpl("name", true);
-        doReturn(mockApplications).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
+        doReturn(new HashSet<>(Arrays.asList("A", "B", "C", "D")))
+            .when(applicationService)
+            .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
+        doReturn(mockApplications)
+            .when(applicationService)
+            .findByIds(eq(GraviteeContext.getExecutionContext()), eq(Arrays.asList("A", "B", "C", "D")));
 
         doReturn(new Application().id("A").name("A"))
             .when(applicationMapper)
-            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationListItem1), any());
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationA), any());
         doReturn(new Application().id("B").name("b"))
             .when(applicationMapper)
-            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationListItem2), any());
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationB), any());
         doReturn(new Application().id("C").name("C"))
             .when(applicationMapper)
-            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationListItem3), any());
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationC), any());
         doReturn(new Application().id("D").name("d"))
             .when(applicationMapper)
-            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationListItem4), any());
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(applicationD), any());
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -163,12 +179,12 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApplicationsOrderByNbSubscriptionsDesc() {
-        ApplicationListItem applicationListItemA = new ApplicationListItem();
-        applicationListItemA.setId("A");
-        ApplicationListItem applicationListItemB = new ApplicationListItem();
-        applicationListItemB.setId("B");
-        Collection<String> mockFilteredApp = Arrays.asList(applicationListItemB.getId(), applicationListItemA.getId());
-        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyList(), eq(Order.DESC));
+        ApplicationListItem applicationA = new ApplicationListItem();
+        applicationA.setId("A");
+        ApplicationListItem applicationB = new ApplicationListItem();
+        applicationB.setId("B");
+        Collection<String> mockFilteredApp = Arrays.asList(applicationB.getId(), applicationA.getId());
+        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection(), eq(Order.DESC));
 
         final Response response = target().queryParam("order", "-nbSubscriptions").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -183,10 +199,12 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApplicationsOrderByNbSubscriptionsAsc() {
-        ApplicationListItem applicationListItemB = new ApplicationListItem();
-        applicationListItemB.setId("B");
-        Collection<String> mockFilteredApp = Arrays.asList(applicationListItemB.getId());
-        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyList(), eq(Order.ASC));
+        ApplicationListItem applicationA = new ApplicationListItem();
+        applicationA.setId("A");
+        ApplicationListItem applicationB = new ApplicationListItem();
+        applicationB.setId("B");
+        Collection<String> mockFilteredApp = Arrays.asList(applicationA.getId(), applicationB.getId());
+        doReturn(mockFilteredApp).when(filteringService).getApplicationsOrderByNumberOfSubscriptions(anyCollection(), eq(Order.ASC));
 
         final Response response = target().queryParam("order", "nbSubscriptions").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -247,6 +265,78 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldGetAllApplicationsWithoutSubscriptions() {
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(any(), eq(RolePermission.APPLICATION_SUBSCRIPTION), any(), eq(RolePermissionAction.READ));
+        List<SubscriptionEntity> subscriptions = new ArrayList<>();
+        SubscriptionEntity sub1 = createSubscriptionEntity("sub-1", "A");
+        SubscriptionEntity sub2 = createSubscriptionEntity("sub-2", "A");
+        SubscriptionEntity sub3 = createSubscriptionEntity("sub-3", "B");
+
+        subscriptions.addAll(Arrays.asList(sub1, sub2, sub3));
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setApplications(Arrays.asList("A", "B"));
+        query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
+        doReturn(subscriptions).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+
+        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub1);
+        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub2);
+        doReturn(new Subscription().application("B")).when(subscriptionMapper).convert(sub3);
+
+        ApplicationListItem appA = mock(ApplicationListItem.class);
+        ApplicationListItem appB = mock(ApplicationListItem.class);
+        Collection<ApplicationListItem> applications = new HashSet<>(Arrays.asList(appA, appB));
+        doReturn(applications).when(applicationService).findByUser(any(), any(), any());
+
+        final Response response = target().queryParam("size", -1).request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertEquals(2, applicationsResponse.getData().size());
+
+        Links links = applicationsResponse.getLinks();
+        assertNotNull(links);
+        assertNull(applicationsResponse.getMetadata());
+    }
+
+    @Test
+    public void shouldGetAllApplicationsForSubscription() {
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(any(), eq(RolePermission.APPLICATION_SUBSCRIPTION), any(), eq(RolePermissionAction.READ));
+        List<SubscriptionEntity> subscriptions = new ArrayList<>();
+        SubscriptionEntity sub1 = createSubscriptionEntity("sub-1", "A");
+        SubscriptionEntity sub2 = createSubscriptionEntity("sub-2", "A");
+        SubscriptionEntity sub3 = createSubscriptionEntity("sub-3", "B");
+
+        subscriptions.addAll(Arrays.asList(sub1, sub2, sub3));
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setApplications(Arrays.asList("A", "B"));
+        query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
+        doReturn(subscriptions).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+
+        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub1);
+        doReturn(new Subscription().application("A")).when(subscriptionMapper).convert(sub2);
+        doReturn(new Subscription().application("B")).when(subscriptionMapper).convert(sub3);
+
+        ApplicationListItem appA = mock(ApplicationListItem.class);
+        ApplicationListItem appB = mock(ApplicationListItem.class);
+        Collection<ApplicationListItem> applications = Arrays.asList(appA, appB);
+        doReturn(applications)
+            .when(applicationService)
+            .findByUserAndPermission(any(), any(), any(), eq(RolePermission.APPLICATION_SUBSCRIPTION), eq(RolePermissionAction.CREATE));
+
+        final Response response = target().queryParam("size", -1).queryParam("forSubscription", true).request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertEquals(2, applicationsResponse.getData().size());
+
+        Links links = applicationsResponse.getLinks();
+        assertNotNull(links);
+        assertNull(applicationsResponse.getMetadata());
+    }
+
+    @Test
     public void shouldGetNoApplication() {
         final Response response = target().queryParam("page", 10).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -265,7 +355,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNoApplicationAndNoLink() {
         Sortable sort = new SortableImpl("name", true);
-        doReturn(new HashSet<>()).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
+        doReturn(new HashSet<>()).when(applicationService).findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(sort));
 
         //Test with default limit
         final Response response = target().request().get();

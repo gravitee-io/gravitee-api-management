@@ -102,6 +102,7 @@
 
               <md-input-container class="md-block" flex-gt-sm>
                 <md-autocomplete
+                  ng-if="apiProxyCtrl.domainRestrictions.length > 0"
                   aria-label="Listening host"
                   class="gravitee-listening-host"
                   md-autoselect="true"
@@ -122,6 +123,14 @@
                 >
                   <span>{{computedHost}}</span>
                 </md-autocomplete>
+                <input
+                  ng-if="apiProxyCtrl.domainRestrictions.length === 0"
+                  aria-label="Listening host"
+                  class="gravitee-listening-host"
+                  ng-pattern="apiProxyCtrl.hostPattern"
+                  ng-model="vHost.host"
+                  placeholder="Listening host"
+                />
                 <div
                   class="hint"
                   ng-if="vHost.host === undefined || vHost.host === '' || apiProxyCtrl.formApi['vhost'+$index+'-host'].$dirty"

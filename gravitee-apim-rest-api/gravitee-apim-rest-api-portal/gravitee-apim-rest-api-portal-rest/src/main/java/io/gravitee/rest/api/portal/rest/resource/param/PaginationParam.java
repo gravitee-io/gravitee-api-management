@@ -51,6 +51,6 @@ public class PaginationParam {
     }
 
     public boolean hasPagination() {
-        return this.getSize() != null && this.getSize().equals(-1);
+        return this.getSize() != null && !this.getSize().equals(-1);
     }
 }

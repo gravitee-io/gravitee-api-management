@@ -18,11 +18,14 @@ package io.gravitee.repository.management;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
@@ -38,6 +41,9 @@ import org.junit.Test;
  * @author GraviteeSource Team
  */
 public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest {
+
+    public static final String APP_WITH_LONG_NAME =
+        "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012";
 
     @Override
     protected String getTestCasesPath() {
@@ -309,13 +315,13 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
-    public void shouldFindByName() throws Exception {
+    public void shouldSearchByName() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
             new ApplicationCriteria.Builder()
                 .name("SeArched-app")
                 .ids("searched-app1", "app-with-long-client-id", "app-with-long-name")
                 .status(ApplicationStatus.ACTIVE)
-                .environmentIds(singletonList("DEV"))
+                .environmentIds("DEV")
                 .build(),
             null
         );
@@ -329,9 +335,9 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
-    public void shouldFindByEnvironmentIds() throws Exception {
+    public void shouldSearchByEnvironmentIds() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
-            new ApplicationCriteria.Builder().environmentIds(Arrays.asList("DEV", "TEST", "PROD")).build(),
+            new ApplicationCriteria.Builder().environmentIds("DEV", "TEST", "PROD").build(),
             null
         );
 
@@ -340,5 +346,60 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         assertNotNull(apps);
         assertFalse(apps.isEmpty());
         assertEquals(5, apps.size());
+        List<String> names = apps.stream().map(Application::getName).collect(Collectors.toList());
+        assertEquals(List.of(APP_WITH_LONG_NAME, "app-with-client-id", "app-with-long-client-id", "searched-app1", "searched-app2"), names);
+    }
+
+    @Test
+    public void shouldSearchByEnvironmentIdsWithSort() throws Exception {
+        Sortable sortable = new SortableBuilder().field("updated_at").order(Order.ASC).build();
+        final Page<Application> appsPage = applicationRepository.search(
+            new ApplicationCriteria.Builder().environmentIds("DEV", "TEST", "PROD").build(),
+            null,
+            sortable
+        );
+
+        final List<Application> apps = appsPage.getContent();
+
+        assertNotNull(apps);
+        assertFalse(apps.isEmpty());
+        assertEquals(5, apps.size());
+        List<String> names = apps.stream().map(Application::getName).collect(Collectors.toList());
+
+        assertEquals(List.of("searched-app1", "searched-app2", "app-with-client-id", "app-with-long-client-id", APP_WITH_LONG_NAME), names);
+    }
+
+    @Test
+    public void shouldSearchWithPagination() throws Exception {
+        Pageable pageable = new PageableBuilder().pageSize(1).pageNumber(2).build();
+        final Page<Application> appsPage = applicationRepository.search(
+            new ApplicationCriteria.Builder().environmentIds("DEV", "TEST", "PROD").build(),
+            pageable
+        );
+
+        final List<Application> apps = appsPage.getContent();
+
+        assertNotNull(apps);
+        assertFalse(apps.isEmpty());
+        assertEquals(1, apps.size());
+        assertEquals(2, appsPage.getPageNumber());
+        assertEquals(1, appsPage.getPageElements());
+        assertEquals(5, appsPage.getTotalElements());
+    }
+
+    @Test
+    public void shouldSearchByGroups() throws Exception {
+        final Page<Application> appsPage = applicationRepository.search(
+            new ApplicationCriteria.Builder().groups("application-group").build(),
+            null
+        );
+
+        final List<Application> apps = appsPage.getContent();
+
+        assertNotNull(apps);
+        assertFalse(apps.isEmpty());
+        assertEquals(2, apps.size());
+        assertEquals("grouped-app1", apps.get(0).getName());
+        assertEquals("grouped-app2", apps.get(1).getName());
     }
 }

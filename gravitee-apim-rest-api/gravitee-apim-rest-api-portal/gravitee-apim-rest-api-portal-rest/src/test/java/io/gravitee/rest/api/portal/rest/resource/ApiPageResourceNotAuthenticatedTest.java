@@ -27,14 +27,8 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.io.IOException;
-import java.security.Principal;
 import java.util.*;
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,38 +45,7 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
-        resourceConfig.register(AuthenticationFilter.class);
-    }
-
-    @Priority(50)
-    public static class AuthenticationFilter implements ContainerRequestFilter {
-
-        @Override
-        public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(
-                new SecurityContext() {
-                    @Override
-                    public Principal getUserPrincipal() {
-                        return null;
-                    }
-
-                    @Override
-                    public boolean isUserInRole(String string) {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean isSecure() {
-                        return false;
-                    }
-
-                    @Override
-                    public String getAuthenticationScheme() {
-                        return "BASIC";
-                    }
-                }
-            );
-        }
+        resourceConfig.register(NotAuthenticatedAuthenticationFilter.class);
     }
 
     private static final String API = "my-api";

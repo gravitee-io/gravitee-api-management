@@ -29,7 +29,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApplicationMongoRepositoryCustom {
-    Page<ApplicationMongo> search(ApplicationCriteria applicationCriteria, final Pageable pageable);
+    Page<ApplicationMongo> search(ApplicationCriteria applicationCriteria, final Pageable pageable, final Sortable sortable);
 
     Set<ApplicationMongo> findByIds(Collection<String> ids, Sortable sortable);
 }

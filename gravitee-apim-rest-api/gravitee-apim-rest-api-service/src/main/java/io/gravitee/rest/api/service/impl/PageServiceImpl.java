@@ -430,11 +430,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         Objects.requireNonNull(pageable, "FindAll requires a pageable parameter");
         logger.debug("Find all pages with pageNumber {} and pageSize {}", pageable.getPageNumber(), pageable.getPageSize());
         try {
-            io.gravitee.repository.management.api.search.Pageable repoPageable = new PageableBuilder()
-                .pageSize(pageable.getPageSize())
-                .pageNumber(pageable.getPageNumber())
-                .build();
-            io.gravitee.common.data.domain.Page<Page> pages = this.pageRepository.findAll(repoPageable);
+            io.gravitee.common.data.domain.Page<Page> pages = this.pageRepository.findAll(convert(pageable));
             List<PageEntity> entities = pages.getContent().stream().map(this::convert).collect(toList());
 
             logger.debug("{} pages found", pages.getPageElements());
@@ -2263,12 +2259,16 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         pageEntity.setAccessControls(PageServiceImpl.convertToEntities(page.getAccessControls()));
 
         if (page.isExcludedAccessControls() && Visibility.PRIVATE.name().equals(page.getVisibility())) {
-            List<String> excludedGroups = page
-                .getAccessControls()
-                .stream()
-                .filter(accessControl -> AccessControlReferenceType.GROUP.name().equals(accessControl.getReferenceType()))
-                .map(accessControl -> accessControl.getReferenceId())
-                .collect(toList());
+            List<String> excludedGroups = emptyList();
+            if (page.getAccessControls() != null) {
+                excludedGroups =
+                    page
+                        .getAccessControls()
+                        .stream()
+                        .filter(accessControl -> AccessControlReferenceType.GROUP.name().equals(accessControl.getReferenceType()))
+                        .map(accessControl -> accessControl.getReferenceId())
+                        .collect(toList());
+            }
             pageEntity.setExcludedGroups(excludedGroups);
         }
 

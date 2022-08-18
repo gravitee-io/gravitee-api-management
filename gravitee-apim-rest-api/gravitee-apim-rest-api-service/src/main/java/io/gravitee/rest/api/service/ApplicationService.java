@@ -15,13 +15,18 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.List;
@@ -42,25 +47,39 @@ public interface ApplicationService {
         return findByUser(executionContext, username, null);
     }
 
-    Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable);
+    default Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable) {
+        return findByUser(executionContext, username, sortable, null);
+    }
 
-    Set<ApplicationListItem> findByUserAndNameAndStatus(
-        final ExecutionContext executionContext,
+    default Set<String> findIdsByUser(final ExecutionContext executionContext, String username) {
+        return findIdsByUser(executionContext, username, null);
+    }
+
+    Set<String> findIdsByUser(final ExecutionContext executionContext, String username, Sortable sortable);
+
+    Set<String> findIdsByUserAndPermission(
+        ExecutionContext executionContext,
         String username,
-        boolean isAdminUser,
-        String name,
-        String status
+        Sortable sortable,
+        RolePermission rolePermission,
+        RolePermissionAction... acl
     );
 
-    Set<ApplicationListItem> findByOrganization(String organizationId);
+    List<ApplicationListItem> findByUserAndPermission(
+        ExecutionContext executionContext,
+        String username,
+        Sortable sortable,
+        RolePermission rolePermission,
+        RolePermissionAction... acl
+    );
+
+    Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable, Pageable pageable);
+
+    Set<String> findIdsByOrganization(String organizationId);
 
     Set<ApplicationListItem> findByGroups(ExecutionContext executionContext, List<String> groupId);
 
     Set<ApplicationListItem> findByGroupsAndStatus(ExecutionContext executionContext, List<String> groupId, String status);
-
-    Set<ApplicationListItem> findAll(final ExecutionContext executionContext);
-
-    Set<ApplicationListItem> findByStatus(final ExecutionContext executionContext, String status);
 
     ApplicationEntity create(final ExecutionContext executionContext, NewApplicationEntity application, String username);
 
@@ -77,4 +96,13 @@ public interface ApplicationService {
     InlinePictureEntity getBackground(final ExecutionContext executionContext, String application);
 
     Map<String, Object> findByIdAsMap(String id) throws TechnicalException;
+
+    Page<ApplicationListItem> search(
+        final ExecutionContext executionContext,
+        ApplicationQuery applicationQuery,
+        Sortable sortable,
+        Pageable pageable
+    );
+
+    Set<String> searchIds(final ExecutionContext executionContext, ApplicationQuery applicationQuery, Sortable sortable);
 }

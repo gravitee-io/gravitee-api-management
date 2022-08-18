@@ -185,7 +185,7 @@ public class SubscriptionsResource extends AbstractResource {
     }
 
     private Collection<SubscriptionEntity> fetchSubscriptions(PaginationParam paginationParam, SubscriptionQuery query) {
-        if (paginationParam.hasPagination()) {
+        if (!paginationParam.hasPagination()) {
             return subscriptionService.search(GraviteeContext.getExecutionContext(), query);
         } else {
             final Page<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(

@@ -15,8 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +27,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -41,9 +41,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,6 +96,9 @@ public class ApiService_FindByIdTest {
 
     @Spy
     private ApiConverter apiConverter;
+
+    @Mock
+    private RoleService roleService;
 
     @Mock
     private PrimaryOwnerService primaryOwnerService;
@@ -171,5 +172,33 @@ public class ApiService_FindByIdTest {
         when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
 
         apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
+    }
+
+    @Test
+    public void shouldFindByEnvironmentAndIdIn() {
+        api = new Api();
+        api.setId(API_ID);
+        api.setEnvironmentId("DEFAULT");
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+
+        when(membershipService.getMembersByReferencesAndRole(any(), any(), any(), any())).thenReturn(Set.of(mock(MemberEntity.class)));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+        when(apiRepository.search(any())).thenReturn(Arrays.asList(api));
+
+        final Set<ApiEntity> apiEntities = apiService.findByEnvironmentAndIdIn(GraviteeContext.getExecutionContext(), Set.of(API_ID));
+
+        assertNotNull(apiEntities);
+        assertEquals(1, apiEntities.size());
+    }
+
+    @Test
+    public void shouldFindByEnvironmentAndEmptyIdIn() {
+        final Set<ApiEntity> apiEntities = apiService.findByEnvironmentAndIdIn(GraviteeContext.getExecutionContext(), Set.of());
+
+        assertNotNull(apiEntities);
+        assertEquals(0, apiEntities.size());
+        verify(apiRepository, times(0)).search(any());
     }
 }

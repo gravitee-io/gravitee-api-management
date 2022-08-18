@@ -28,10 +28,15 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.filtering.FilteringService;
+import java.io.IOException;
+import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Before;
+import javax.annotation.Priority;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.SecurityContext;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -641,6 +646,37 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public AccessControlService accessControlService() {
             return mock(AccessControlService.class);
+        }
+    }
+
+    @Priority(50)
+    public static class NotAuthenticatedAuthenticationFilter implements ContainerRequestFilter {
+
+        @Override
+        public void filter(final ContainerRequestContext requestContext) throws IOException {
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return null;
+                    }
+
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isSecure() {
+                        return false;
+                    }
+
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
+                }
+            );
         }
     }
 }
