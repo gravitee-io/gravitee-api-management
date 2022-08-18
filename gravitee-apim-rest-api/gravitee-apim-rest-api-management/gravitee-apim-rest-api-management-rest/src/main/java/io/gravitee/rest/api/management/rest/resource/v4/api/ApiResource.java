@@ -40,7 +40,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.v4.ApiStateService;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -74,7 +73,7 @@ import javax.ws.rs.core.UriBuilder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "APIs")
+@Tag(name = "APIs V4")
 public class ApiResource extends AbstractResource {
 
     @Context

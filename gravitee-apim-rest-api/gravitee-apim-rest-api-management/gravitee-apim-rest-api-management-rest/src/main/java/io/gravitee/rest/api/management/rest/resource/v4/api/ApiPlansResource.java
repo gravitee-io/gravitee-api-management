@@ -17,10 +17,7 @@ package io.gravitee.rest.api.management.rest.resource.v4.api;
 
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_GATEWAY_DEFINITION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_PLAN;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 import static java.util.Comparator.comparingInt;
 
 import io.gravitee.common.http.MediaType;
@@ -42,9 +39,7 @@ import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.PlanService;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
@@ -76,7 +71,7 @@ import javax.ws.rs.core.Response;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "API Plans")
+@Tag(name = "API Plans V4")
 public class ApiPlansResource extends AbstractResource {
 
     @Inject
