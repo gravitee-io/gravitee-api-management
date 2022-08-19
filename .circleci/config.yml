@@ -9,6 +9,30 @@ orbs:
     aws-s3: circleci/aws-s3@3.0
 
 executors:
+    ubuntu:
+        parameters:
+            class:
+                description: The resource class. Default is medium.
+                type: enum
+                enum: ["medium", "large", "xlarge", "2xlarge"]
+                default: "medium"
+            version:
+                description: the version of the machine. Default is 2204
+                type: string
+                default: "2204"
+            tag:
+                description: the tag of the machine. Default is current
+                type: string
+                default: "current"
+            with_docker_layer_caching:
+                description: should we use Docker Layer Caching mechanism. Default is false
+                type: boolean
+                default: false
+        machine:
+            image: ubuntu-<< parameters.version >>:<< parameters.tag >>
+            docker_layer_caching: << parameters.with_docker_layer_caching >>
+        resource_class: << parameters.class >>
+
     openjdk:
         parameters:
             class:
@@ -529,9 +553,9 @@ jobs:
                       - gravitee-apim-plugin/gravitee-apim-plugin-coverage/target/site/jacoco-aggregate/
 
     test-repository:
-        machine:
-            image: ubuntu-2204:current
-        resource_class: large
+        executor:
+            name: ubuntu
+            class: large
         steps:
             - install-jdk-17-for-machine
             - checkout
@@ -1333,10 +1357,10 @@ jobs:
                 type: string
                 description: type and version of the database to test
                 default: ""
-        machine:
-            image: ubuntu-2204:current
-            docker_layer_caching: true
-        resource_class: large
+        executor:
+            name: ubuntu
+            class: large
+            with_docker_layer_caching: true
         steps:
             - when:
                   condition: << parameters.version >>
@@ -1377,9 +1401,8 @@ jobs:
                 type: string
                 description: version of the database to test
                 default: ""
-        machine:
-            image: ubuntu-2204:current
-        resource_class: medium
+        executor:
+            name: ubuntu
         steps:
             - when:
                   condition: << parameters.version >>
@@ -1415,9 +1438,9 @@ jobs:
                             command: exit 0
 
     e2e-test:
-        machine:
-            image: ubuntu-2204:current
-        resource_class: large
+        executor:
+            name: ubuntu
+            class: large
         parameters:
             execution_mode:
                 type: string
@@ -1474,9 +1497,8 @@ jobs:
             - store_test_results:
                   path: ~/test-results
     e2e-report:
-        machine:
-            image: ubuntu-2204:current
-        resource_class: small
+        executor:
+            name: ubuntu
         steps:
             - attach_workspace:
                   at: .
@@ -1551,9 +1573,8 @@ jobs:
 
                       gh pr edit --body "$CLEAN_BODY$PR_BODY_COVERAGE_SECTION"
     e2e-cypress:
-        machine:
-            image: ubuntu-2204:current
-        resource_class: medium
+        executor:
+            name: ubuntu
         steps:
             - checkout
             - attach_workspace:
@@ -1584,9 +1605,8 @@ jobs:
             graviteeio_version:
                 type: string
                 default: ""
-        machine:
-            image: ubuntu-2204:current
-        resource_class: medium
+        executor:
+            name: ubuntu
         steps:
             - keeper/env-export:
                   secret-url: keeper://8CG6HxY5gYsl-85eJKuIoA/field/password
