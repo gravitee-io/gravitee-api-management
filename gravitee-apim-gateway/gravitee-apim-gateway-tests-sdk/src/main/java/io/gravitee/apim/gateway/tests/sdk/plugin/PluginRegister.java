@@ -18,6 +18,7 @@ package io.gravitee.apim.gateway.tests.sdk.plugin;
 import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.plugin.connector.ConnectorPlugin;
 import io.gravitee.plugin.core.api.PluginManifest;
+import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
@@ -89,6 +90,23 @@ public interface PluginRegister {
      * @param entrypoints is the map containing entrypoints to deploy
      */
     default void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?>> entrypoints) {}
+
+    /**
+     * Override this method to register an endpoint to be used by the gateway.
+     * This method is useful if you want to register a dummy endpoint.
+     * For example:
+     * <pre>
+     *     {@code
+     *     @Override
+     *     public void configureEndpoints(Map<String, EndpointPlugin> endpoints) {
+     *         endpoints.put("mock", EndpointBuilder.build("endpoint-dummy", DummyEndpointConnectorFactory.class));
+     *     }
+     *     }
+     * </pre>
+     * You can check {@link io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory} to know how to implement it.
+     * @param endpoints is the map containing endpoints to deploy
+     */
+    default void configureEndpoints(Map<String, EndpointConnectorPlugin<?>> endpoints) {}
 
     /**
      * Override this method to register a resource to be used by the gateway.
