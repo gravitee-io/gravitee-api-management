@@ -500,6 +500,7 @@ jobs:
     community-build:
         executor:
             name: openjdk
+            version: "11.0"
         steps:
             - checkout
             - restore-maven-job-cache:
