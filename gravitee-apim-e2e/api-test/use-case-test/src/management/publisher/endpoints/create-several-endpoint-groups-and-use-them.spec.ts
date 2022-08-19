@@ -25,8 +25,8 @@ import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/Pl
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 import { LoadBalancerTypeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/LoadBalancer';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { fetchGatewaySuccess } from '../../../../../../lib/utils/gateway';
-import { teardownApisAndApplications } from '../../../../../../lib/utils/management';
+import { fetchGatewaySuccess } from '@gravitee/utils/gateway';
+import { teardownApisAndApplications } from '@gravitee/utils/management';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

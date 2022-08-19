@@ -24,7 +24,7 @@ import { forManagementAsAdminUser, forManagementAsApiUser } from '@gravitee/util
 import { OrganizationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/OrganizationApi';
 import { ApiEntity, ApiEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
-import { teardownApisAndApplications } from '../../../../../../lib/utils/management';
+import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { DebugApiEntity, DebugApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/DebugApiEntity';
 import { describeIfV3, succeed } from '@lib/jest-utils';
 import { delayWhen, from, Observable, switchMap, tap, timer, map, retryWhen, Subscription } from 'rxjs';

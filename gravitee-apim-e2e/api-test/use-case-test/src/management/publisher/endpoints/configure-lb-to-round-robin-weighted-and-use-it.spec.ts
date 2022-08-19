@@ -22,9 +22,9 @@ import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/Api
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
-import { fetchGatewaySuccess } from '../../../../../../lib/utils/gateway';
+import { fetchGatewaySuccess } from '@gravitee/utils/gateway';
 import { LoadBalancerTypeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/LoadBalancer';
-import { teardownApisAndApplications } from '../../../../../../lib/utils/management';
+import { teardownApisAndApplications } from '@gravitee/utils/management';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
