@@ -17,7 +17,12 @@ import { GatewayTestData, loadTestDataForSetup } from '../lib/test-api';
 import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { LifecycleAction, PlanStatus, UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models';
+import {
+  ApiEntityExecutionModeEnum,
+  LifecycleAction,
+  PlanStatus,
+  UpdateApiEntityFromJSON,
+} from '@gravitee/management-webclient-sdk/src/lib/models';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 
 const orgId = 'DEFAULT';
@@ -31,13 +36,17 @@ export async function init(): Promise<GatewayTestData> {
     orgId,
     envId,
     newApiEntity: ApisFaker.newApi({
-      endpoint: 'https://load-tests-echo-api.cloud.gravitee.io/echo',
+      endpoint: process.env.API_ENDPOINT_URL,
     }),
   });
   if (api && api.id) {
     const plan = await apiManagementApiAsApiUser.createApiPlan({ orgId, envId, api: api.id, newPlanEntity });
     api.proxy.groups[0].ssl = { trustAll: true };
     api.proxy.groups[0].endpoints[0].inherit = true;
+    api.execution_mode =
+      process.env.API_EXECUTION_MODE === ApiEntityExecutionModeEnum.JUPITER
+        ? ApiEntityExecutionModeEnum.JUPITER
+        : ApiEntityExecutionModeEnum.V3;
 
     await apiManagementApiAsApiUser.updateApi({
       orgId,
