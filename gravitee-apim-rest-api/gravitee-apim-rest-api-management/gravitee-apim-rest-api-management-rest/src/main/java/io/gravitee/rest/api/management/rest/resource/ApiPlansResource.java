@@ -248,7 +248,7 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        PlanEntity closedPlan = planService.close(executionContext, plan, getAuthenticatedUser());
+        PlanEntity closedPlan = planService.close(executionContext, plan);
 
         return Response.ok(closedPlan).build();
     }

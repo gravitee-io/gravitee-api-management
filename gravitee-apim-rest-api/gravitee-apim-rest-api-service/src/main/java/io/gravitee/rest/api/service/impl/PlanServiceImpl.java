@@ -337,7 +337,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public PlanEntity close(final ExecutionContext executionContext, String planId, String userId) {
+    public PlanEntity close(final ExecutionContext executionContext, String planId) {
         try {
             logger.debug("Close plan {}", planId);
 
