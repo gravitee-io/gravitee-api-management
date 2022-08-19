@@ -80,7 +80,7 @@ public class PlanService_CloseTest {
     public void shouldNotCloseBecauseNotFound() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());
 
-        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test(expected = PlanAlreadyClosedException.class)
@@ -88,14 +88,14 @@ public class PlanService_CloseTest {
         when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCloseBecauseTechnicalException() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
-        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
     @Test
@@ -111,7 +111,7 @@ public class PlanService_CloseTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
         verify(planRepository, times(1)).update(plan);
@@ -132,7 +132,7 @@ public class PlanService_CloseTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
         verify(planRepository, times(1)).update(plan);
@@ -152,7 +152,7 @@ public class PlanService_CloseTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
         verify(planRepository, times(1)).update(plan);
@@ -172,7 +172,7 @@ public class PlanService_CloseTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID, USER);
+        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
         verify(planRepository, times(1)).update(plan);
