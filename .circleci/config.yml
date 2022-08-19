@@ -9,6 +9,24 @@ orbs:
     aws-s3: circleci/aws-s3@3.0
 
 executors:
+    openjdk:
+        parameters:
+            class:
+                description: The resource class. Default is medium.
+                type: enum
+                enum: ["small", "medium", "medium+", "large", "xlarge"]
+                default: "medium"
+            version:
+                description: the version of the JDK. Default is 17.0
+                type: string
+                default: "17.0"
+            with_node:
+                description: should we use the "node" version of the image
+                type: boolean
+                default: false
+        docker:
+            - image: cimg/openjdk:<< parameters.version >><<# parameters.with_node >>-node<</ parameters.with_node >>
+        resource_class: << parameters.class >>
     node-lts:
         parameters:
             class:
@@ -265,9 +283,9 @@ parameters:
 
 jobs:
     setup:
-        docker:
-            - image: cimg/openjdk:17.0
-        resource_class: small
+        executor:
+            name: openjdk
+            class: small
         steps:
             - checkout
             - keeper/env-export:
@@ -346,9 +364,9 @@ jobs:
                   when: always
 
     validate:
-        docker:
-            - image: cimg/openjdk:17.0
-        resource_class: small
+        executor:
+            name: openjdk
+            class: small
         steps:
             - checkout
             - attach_workspace:
@@ -402,9 +420,9 @@ jobs:
                   docker-image-name: apim-portal-ui
                   version: << pipeline.parameters.graviteeio_version >>-ee
     build:
-        docker:
-            - image: cimg/openjdk:17.0
-        resource_class: large
+        executor:
+            name: openjdk
+            class: large
         steps:
             - checkout
             - attach_workspace:
@@ -439,9 +457,8 @@ jobs:
                       - ./gateway-docker-context
 
     build-images:
-        docker:
-            - image: cimg/openjdk:17.0
-        resource_class: medium
+        executor:
+            name: openjdk
         steps:
             - checkout
             - attach_workspace:
@@ -457,9 +474,8 @@ jobs:
                       - ./docker-cache
 
     community-build:
-        docker:
-            - image: cimg/openjdk:17.0
-        resource_class: medium
+        executor:
+            name: openjdk
         steps:
             - checkout
             - restore-maven-job-cache:
@@ -477,9 +493,9 @@ jobs:
                   jobName: community-build
 
     test:
-        docker:
-            - image: cimg/openjdk:17.0
-        resource_class: medium+
+        executor:
+            name: openjdk
+            class: medium+
         steps:
             - checkout
             - attach_workspace:
@@ -549,9 +565,9 @@ jobs:
                       - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
 
     publish-on-artifactory:
-        docker:
-            - image: cimg/openjdk:17.0
-        resource_class: large
+        executor:
+            name: openjdk
+            class: large
         environment:
             ALT_DEPLOYMENT_REPOSITORY: "artifactory-gravitee::default::https://odbxikk7vo-artifactory.services.clever-cloud.com/gravitee-snapshots"
         steps:
@@ -569,9 +585,9 @@ jobs:
                   jobName: publish-on-artifactory
 
     publish-on-nexus:
-        docker:
-            - image: cimg/openjdk:17.0
-        resource_class: large
+        executor:
+            name: openjdk
+            class: large
         steps:
             - checkout
             - attach_workspace:
@@ -587,9 +603,9 @@ jobs:
                   jobName: publish-on-nexus
 
     publish-images-azure-registry:
-        docker:
-            - image: cimg/openjdk:17.0
-        resource_class: small
+        executor:
+            name: openjdk
+            class: small
         steps:
             - checkout
             - attach_workspace:
@@ -808,9 +824,9 @@ jobs:
                 type: string
                 default: ""
                 description: the name of the docker image to create
-        docker:
-            - image: cimg/openjdk:17.0
-        resource_class: small
+        executor:
+            name: openjdk
+            class: small
         steps:
             - checkout
             - attach_workspace:
@@ -1079,9 +1095,9 @@ jobs:
                                 }
 
     backend-build-and-publish-artifactory:
-        docker:
-            - image: cimg/openjdk:17.0
-        resource_class: large
+        executor:
+            name: openjdk
+            class: large
         steps:
             - checkout
             - restore-maven-job-cache:
@@ -1262,9 +1278,9 @@ jobs:
                       docker logout
 
     nexus-staging:
-        docker:
-            - image: cimg/openjdk:17.0
-        resource_class: xlarge
+        executor:
+            name: openjdk
+            class: xlarge
         steps:
             - checkout
             - run:
@@ -1591,9 +1607,9 @@ jobs:
                       fi;
 
     package-bundle:
-        docker:
-            - image: cimg/openjdk:17.0-node
-        resource_class: medium
+        executor:
+            name: openjdk
+            with_node: true
         environment:
             RELEASE_VERSION: << pipeline.parameters.graviteeio_version >>
             ARTIFACTORY_REPO_URL: "https://odbxikk7vo-artifactory.services.clever-cloud.com/external-dependencies-n-gravitee-all"
