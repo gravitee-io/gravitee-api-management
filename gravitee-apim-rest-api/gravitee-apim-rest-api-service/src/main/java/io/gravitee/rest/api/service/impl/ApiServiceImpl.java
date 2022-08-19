@@ -1923,7 +1923,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (DefinitionContext.isKubernetes(api.getOrigin())) {
                 // Quick win: when api is managed by Kubernetes, for now, just mark the api STOPPED, remove it from the search engine and mark it UNPUBLISHED from dev portal.
-                // This must be better handled with an higher concept such as 'archiving' or something close.
+                // This must be better handled with a higher concept such as 'archiving' or something close.
+
+                // Close all plans
+                // Quick win: Is intended to evolve with a flag in the query param depending on how the deletion will evolve
+                Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
+                plans
+                    .stream()
+                    .filter(plan -> plan.getStatus() != PlanStatus.CLOSED)
+                    .forEach(plan -> planService.close(executionContext, plan.getId()));
+
                 api.setLifecycleState(LifecycleState.STOPPED);
                 api.setApiLifecycleState(ApiLifecycleState.UNPUBLISHED);
                 api.setVisibility(Visibility.PRIVATE);
