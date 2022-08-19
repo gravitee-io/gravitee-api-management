@@ -42,6 +42,7 @@ const K6_COMMAND = [
   'run',
   `-e GATEWAY_BASE_URL=${process.env.GATEWAY_BASE_URL}`,
   `-e SKIP_TLS_VERIFY=${process.env.SKIP_TLS_VERIFY}`,
+  `-e API_ENDPOINT_URL=${process.env.API_ENDPOINT_URL}`,
   '-o output-prometheus-remote',
 ];
 

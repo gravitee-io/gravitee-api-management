@@ -13,21 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { check } from 'k6';
-import http from 'k6/http';
-
-export const options = {
+export const k6Options = {
   vus: 1,
   duration: '10s',
   insecureSkipTLSVerify: __ENV.SKIP_TLS_VERIFY === 'true',
-};
-
-const data = JSON.parse(open(__ENV.TEST_DATA_PATH));
-const url = `${__ENV.GATEWAY_BASE_URL}${data.api.context_path}`;
-
-export default () => {
-  const res = http.get(url);
-  check(res, {
-    'status is 200': () => res.status === 200,
-  });
 };

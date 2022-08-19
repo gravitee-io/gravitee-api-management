@@ -15,12 +15,15 @@
  */
 import { check } from 'k6';
 import http from 'k6/http';
-import { k6Options } from '../config/k6-dev-options.js';
+import { k6Options } from '../config/k6-options.js';
 
 export const options = k6Options;
 
+const data = JSON.parse(open(__ENV.TEST_DATA_PATH));
+const url = `${__ENV.GATEWAY_BASE_URL}${data.api.context_path}`;
+
 export default () => {
-  const res = http.get(__ENV.API_ENDPOINT_URL);
+  const res = http.get(url);
   check(res, {
     'status is 200': () => res.status === 200,
   });
