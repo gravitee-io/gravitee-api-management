@@ -23,8 +23,8 @@ import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/mod
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { LoadBalancerTypeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/LoadBalancer';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { teardownApisAndApplications } from '../../../../../../lib/utils/management';
-import { fetchGatewayBadRequest, fetchGatewaySuccess } from '../../../../../../lib/utils/gateway';
+import { teardownApisAndApplications } from '@gravitee/utils/management';
+import { fetchGatewayBadRequest, fetchGatewaySuccess } from '@gravitee/utils/gateway';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 
 const orgId = 'DEFAULT';

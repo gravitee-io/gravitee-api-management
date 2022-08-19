@@ -22,12 +22,12 @@ import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { fetchGatewaySuccess } from '../../../../../../lib/utils/gateway';
+import { fetchGatewaySuccess } from '@gravitee/utils/gateway';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
 import { OrganizationEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/OrganizationEntity';
 import { OrganizationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/OrganizationApi';
-import { teardownApisAndApplications } from '../../../../../../lib/utils/management';
+import { teardownApisAndApplications } from '@gravitee/utils/management';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
