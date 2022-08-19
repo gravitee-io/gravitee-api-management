@@ -21,6 +21,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.ConnectorBuilder;
+import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.container.GatewayTestContainer;
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginManifestLoader;
@@ -45,6 +46,9 @@ import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.core.internal.PluginEventListener;
 import io.gravitee.plugin.core.internal.PluginFactory;
 import io.gravitee.plugin.core.internal.PluginImpl;
+import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
+import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
+import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.sse.SseEntrypointConnectorFactory;
@@ -140,6 +144,8 @@ public class GatewayRunner {
             registerEntrypoints(gatewayContainer);
 
             registerConnectors(gatewayContainer);
+
+            registerEndpoints(gatewayContainer);
 
             registerPolicies(gatewayContainer);
 
@@ -473,6 +479,21 @@ public class GatewayRunner {
 
     private void ensureMinimalRequirementForEntrypoints(Map<String, EntrypointConnectorPlugin<?>> entrypoints) {
         entrypoints.putIfAbsent("sse", EntrypointBuilder.build("sse", SseEntrypointConnectorFactory.class));
+    }
+
+    private void registerEndpoints(GatewayTestContainer container) {
+        final EndpointConnectorPluginManager endpointPluginManager = container
+            .applicationContext()
+            .getBean(EndpointConnectorPluginManager.class);
+
+        Map<String, EndpointConnectorPlugin<?>> endpointsMap = new HashMap<>();
+        testInstance.configureEndpoints(endpointsMap);
+        ensureMinimalRequirementForEndpoints(endpointsMap);
+        endpointsMap.forEach((key, value) -> endpointPluginManager.register(value));
+    }
+
+    private void ensureMinimalRequirementForEndpoints(Map<String, EndpointConnectorPlugin<?>> endpoints) {
+        endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", MockEndpointConnectorFactory.class));
     }
 
     private Api loadApiDefinition(String apiDefinitionPath) throws IOException {
