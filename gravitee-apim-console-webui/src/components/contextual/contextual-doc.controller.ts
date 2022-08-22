@@ -25,6 +25,11 @@ class ContextualDocController implements IOnInit, IOnDestroy {
 
   constructor(private $transitions, private $http, public $state, private $window, private $rootScope) {
     'ngInject';
+    if (window.pendo && window.pendo.isReady()) {
+      // Do nothing, Pendo provide documentation
+      this.isOpen = false;
+      return;
+    }
 
     // init contextual page visibility
     if ($window.localStorage.getItem(this.contextualDocVisibilityKey) !== null) {
@@ -44,6 +49,12 @@ class ContextualDocController implements IOnInit, IOnDestroy {
   }
 
   $onInit(): void {
+    if (window.pendo && window.pendo.isReady()) {
+      // Do nothing, Pendo provide documentation
+      this.isOpen = false;
+      return;
+    }
+
     // watch for open documentation events
     this.openContextualDocumentationListener = this.$rootScope.$on('openContextualDocumentation', () => {
       this.openDocumentation();
