@@ -92,32 +92,37 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
 
     @Override
     public Collection<String> filterApis(final Set<String> apis, final FilterType filterType, final FilterType excludedFilterType) {
-        final FilterType filter = excludedFilterType == null ? filterType : excludedFilterType;
-        final boolean excluded = excludedFilterType != null;
-        if (filter != null) {
-            switch (filter) {
-                case MINE:
-                    if (isAuthenticated()) {
-                        return getCurrentUserSubscribedApis(apis, excluded);
-                    } else {
-                        return Collections.emptyList();
-                    }
-                case STARRED:
-                    if (ratingService.isEnabled()) {
-                        return getRatedApis(apis, excluded);
-                    } else {
-                        return Collections.emptyList();
-                    }
-                case TRENDINGS:
-                    return getApisOrderByNumberOfSubscriptions(apis, excluded);
-                case FEATURED:
-                    return getTopApis(apis, excluded);
-                case ALL:
-                default:
-                    break;
-            }
+        if (apis == null || apis.isEmpty()) {
+            return apis;
         }
 
+        final FilterType filter = excludedFilterType == null ? filterType : excludedFilterType;
+        if (filter == null) {
+            return apis;
+        }
+
+        final boolean excluded = excludedFilterType != null;
+        switch (filter) {
+            case MINE:
+                if (isAuthenticated()) {
+                    return getCurrentUserSubscribedApis(apis, excluded);
+                } else {
+                    return Collections.emptyList();
+                }
+            case STARRED:
+                if (ratingService.isEnabled()) {
+                    return getRatedApis(apis, excluded);
+                } else {
+                    return Collections.emptyList();
+                }
+            case TRENDINGS:
+                return getApisOrderByNumberOfSubscriptions(apis, excluded);
+            case FEATURED:
+                return getTopApis(apis, excluded);
+            case ALL:
+            default:
+                break;
+        }
         // Apis is already ordered
         return apis;
     }
