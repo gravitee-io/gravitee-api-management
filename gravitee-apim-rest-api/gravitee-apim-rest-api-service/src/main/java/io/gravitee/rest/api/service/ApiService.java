@@ -108,7 +108,7 @@ public interface ApiService {
         ImportSwaggerDescriptorEntity swaggerDescriptor
     );
 
-    void delete(ExecutionContext executionContext, String apiId);
+    void delete(ExecutionContext executionContext, String apiId, boolean closePlans);
 
     ApiEntity start(ExecutionContext executionContext, String apiId, String userId);
 

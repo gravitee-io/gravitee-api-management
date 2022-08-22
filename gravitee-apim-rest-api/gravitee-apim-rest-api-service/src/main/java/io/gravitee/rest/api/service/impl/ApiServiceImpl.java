@@ -1915,101 +1915,90 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public void delete(ExecutionContext executionContext, String apiId) {
+    public void delete(ExecutionContext executionContext, String apiId, boolean closePlans) {
         try {
             LOGGER.debug("Delete API {}", apiId);
 
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
-
-            if (DefinitionContext.isKubernetes(api.getOrigin())) {
-                // Quick win: when api is managed by Kubernetes, for now, just mark the api STOPPED, remove it from the search engine and mark it UNPUBLISHED from dev portal.
-                // This must be better handled with a higher concept such as 'archiving' or something close.
-
-                // Close all plans
-                // Quick win: Is intended to evolve with a flag in the query param depending on how the deletion will evolve
-                Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
-                plans
-                    .stream()
-                    .filter(plan -> plan.getStatus() != PlanStatus.CLOSED)
-                    .forEach(plan -> planService.close(executionContext, plan.getId()));
-
-                api.setLifecycleState(LifecycleState.STOPPED);
-                api.setApiLifecycleState(ApiLifecycleState.UNPUBLISHED);
-                api.setVisibility(Visibility.PRIVATE);
-                apiRepository.update(api);
-                searchEngineService.delete(executionContext, convert(executionContext, api));
-            } else {
-                if (api.getLifecycleState() == LifecycleState.STARTED) {
-                    throw new ApiRunningStateException(apiId);
-                } else {
-                    // Delete plans
-                    Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
-                    Set<String> plansNotClosed = plans
-                        .stream()
-                        .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
-                        .map(PlanEntity::getName)
-                        .collect(toSet());
-
-                    if (!plansNotClosed.isEmpty()) {
-                        throw new ApiNotDeletableException(plansNotClosed);
-                    }
-
-                    Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(executionContext, apiId);
-                    subscriptions.forEach(sub -> subscriptionService.delete(executionContext, sub.getId()));
-
-                    plans.forEach(plan -> planService.delete(executionContext, plan.getId()));
-
-                    // Delete flows
-                    flowService.save(FlowReferenceType.API, apiId, null);
-
-                    // Delete events
-                    final EventQuery query = new EventQuery();
-                    query.setApi(apiId);
-                    eventService.search(executionContext, query).forEach(event -> eventService.delete(event.getId()));
-
-                    // https://github.com/gravitee-io/issues/issues/4130
-                    // Ensure we are sending a last UNPUBLISH_API event because the gateway couldn't be aware that the API (and
-                    // all its relative events) have been deleted.
-                    Map<String, String> properties = new HashMap<>(2);
-                    properties.put(Event.EventProperties.API_ID.getValue(), apiId);
-                    if (getAuthenticatedUser() != null) {
-                        properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
-                    }
-                    eventService.createApiEvent(
-                        executionContext,
-                        singleton(executionContext.getEnvironmentId()),
-                        EventType.UNPUBLISH_API,
-                        null,
-                        properties
-                    );
-
-                    // Delete pages
-                    pageService.deleteAllByApi(executionContext, apiId);
-
-                    // Delete top API
-                    topApiService.delete(executionContext, apiId);
-                    // Delete API
-                    apiRepository.delete(apiId);
-                    // Delete memberships
-                    membershipService.deleteReference(executionContext, MembershipReferenceType.API, apiId);
-                    // Delete notifications
-                    genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
-                    portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
-                    // Delete alerts
-                    final List<AlertTriggerEntity> alerts = alertService.findByReferenceWithEventCounts(AlertReferenceType.API, apiId);
-                    alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
-                    // delete all reference on api quality rule
-                    apiQualityRuleRepository.deleteByApi(apiId);
-                    // Audit
-                    auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
-                    // remove from search engine
-                    searchEngineService.delete(executionContext, convert(executionContext, api));
-
-                    mediaService.deleteAllByApi(apiId);
-
-                    apiMetadataService.deleteAllByApi(executionContext, apiId);
-                }
+            if (DefinitionContext.isManagement(api.getOrigin()) && api.getLifecycleState() == LifecycleState.STARTED) {
+                throw new ApiRunningStateException(apiId);
             }
+
+            Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
+            if (closePlans) {
+                plans =
+                    plans
+                        .stream()
+                        .filter(plan -> plan.getStatus() != PlanStatus.CLOSED)
+                        .map(plan -> planService.close(executionContext, plan.getId()))
+                        .collect(Collectors.toSet());
+            }
+
+            Set<String> plansNotClosed = plans
+                .stream()
+                .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
+                .map(PlanEntity::getName)
+                .collect(toSet());
+
+            if (!plansNotClosed.isEmpty()) {
+                throw new ApiNotDeletableException(plansNotClosed);
+            }
+
+            Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(executionContext, apiId);
+            subscriptions.forEach(sub -> subscriptionService.delete(executionContext, sub.getId()));
+
+            // Delete plans
+            plans.forEach(plan -> planService.delete(executionContext, plan.getId()));
+
+            // Delete flows
+            flowService.save(FlowReferenceType.API, apiId, null);
+
+            // Delete events
+            final EventQuery query = new EventQuery();
+            query.setApi(apiId);
+            eventService.search(executionContext, query).forEach(event -> eventService.delete(event.getId()));
+
+            // https://github.com/gravitee-io/issues/issues/4130
+            // Ensure we are sending a last UNPUBLISH_API event because the gateway couldn't be aware that the API (and
+            // all its relative events) have been deleted.
+            Map<String, String> properties = new HashMap<>(2);
+            properties.put(Event.EventProperties.API_ID.getValue(), apiId);
+            if (getAuthenticatedUser() != null) {
+                properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
+            }
+            eventService.createApiEvent(
+                executionContext,
+                singleton(executionContext.getEnvironmentId()),
+                EventType.UNPUBLISH_API,
+                null,
+                properties
+            );
+
+            // Delete pages
+            pageService.deleteAllByApi(executionContext, apiId);
+
+            // Delete top API
+            topApiService.delete(executionContext, apiId);
+            // Delete API
+            apiRepository.delete(apiId);
+            // Delete memberships
+            membershipService.deleteReference(executionContext, MembershipReferenceType.API, apiId);
+            // Delete notifications
+            genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
+            portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
+            // Delete alerts
+            final List<AlertTriggerEntity> alerts = alertService.findByReferenceWithEventCounts(AlertReferenceType.API, apiId);
+            alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
+            // delete all reference on api quality rule
+            apiQualityRuleRepository.deleteByApi(apiId);
+            // Audit
+            auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
+            // remove from search engine
+            searchEngineService.delete(executionContext, convert(executionContext, api));
+
+            mediaService.deleteAllByApi(apiId);
+
+            apiMetadataService.deleteAllByApi(executionContext, apiId);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete API " + apiId, ex);

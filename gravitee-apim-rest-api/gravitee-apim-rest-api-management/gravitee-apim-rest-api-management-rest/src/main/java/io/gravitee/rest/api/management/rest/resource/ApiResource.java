@@ -310,8 +310,8 @@ public class ApiResource extends AbstractResource {
     @ApiResponse(responseCode = "204", description = "API successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApi() {
-        apiService.delete(GraviteeContext.getExecutionContext(), api);
+    public Response deleteApi(@QueryParam("closePlans") boolean closePlans) {
+        apiService.delete(GraviteeContext.getExecutionContext(), api, closePlans);
 
         return Response.noContent().build();
     }
