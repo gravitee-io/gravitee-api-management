@@ -34,12 +34,16 @@ import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
+import io.gravitee.gateway.reactor.handler.Acceptor;
+import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -435,4 +439,15 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
             return null;
         }
     };
+
+    @Override
+    public List<Acceptor<?>> acceptors() {
+        return reactable
+            .getDefinition()
+            .getProxy()
+            .getVirtualHosts()
+            .stream()
+            .map(virtualHost -> new DefaultHttpAcceptor(virtualHost.getHost(), virtualHost.getPath(), this))
+            .collect(Collectors.toList());
+    }
 }

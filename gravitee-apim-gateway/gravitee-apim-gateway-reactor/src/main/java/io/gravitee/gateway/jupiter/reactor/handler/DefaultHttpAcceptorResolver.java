@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler;
 
-import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
+import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 
 /**
@@ -31,10 +31,10 @@ public class DefaultHttpAcceptorResolver implements HttpAcceptorResolver {
     }
 
     @Override
-    public HttpAcceptorHandler resolve(String host, String path) {
-        for (HttpAcceptorHandler httpAcceptorHandler : handlerRegistry.getHttpAcceptorHandlers()) {
-            if (httpAcceptorHandler.accept(host, path)) {
-                return httpAcceptorHandler;
+    public HttpAcceptor resolve(String host, String path) {
+        for (HttpAcceptor httpAcceptor : handlerRegistry.getAcceptors(HttpAcceptor.class)) {
+            if (httpAcceptor.accept(host, path)) {
+                return httpAcceptor;
             }
         }
 

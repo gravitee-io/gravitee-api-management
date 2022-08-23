@@ -16,28 +16,11 @@
 package io.gravitee.gateway.jupiter.reactor;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
-import static org.mockito.Mockito.withSettings;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.IdGenerator;
-import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
@@ -51,7 +34,7 @@ import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
-import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
+import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
@@ -122,7 +105,7 @@ class DefaultHttpRequestDispatcherTest {
     private io.vertx.core.http.HttpServerResponse response;
 
     @Mock
-    private HttpAcceptorHandler handlerEntrypoint;
+    private HttpAcceptor handlerEntrypoint;
 
     @Mock
     private Environment environment;
@@ -392,18 +375,18 @@ class DefaultHttpRequestDispatcherTest {
         assertThat(ctxCaptorValue.request().metrics().getZone()).isEqualTo("ZONE");
     }
 
-    private void prepareJupiterMock(HttpAcceptorHandler handlerEntrypoint, ApiReactor apiReactor) {
+    private void prepareJupiterMock(HttpAcceptor handlerEntrypoint, ApiReactor apiReactor) {
         when(apiReactor.apiType()).thenReturn(ApiType.SYNC);
         when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(handlerEntrypoint);
         when(handlerEntrypoint.path()).thenReturn(PATH);
-        when(handlerEntrypoint.target()).thenReturn(apiReactor);
+        when(handlerEntrypoint.reactor()).thenReturn(apiReactor);
     }
 
-    private void prepareV3Mock(HttpAcceptorHandler handlerEntrypoint, ReactorHandler apiReactor) {
+    private void prepareV3Mock(HttpAcceptor handlerEntrypoint, ReactorHandler apiReactor) {
         when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(handlerEntrypoint);
 
         if (apiReactor != null) {
-            when(handlerEntrypoint.target()).thenReturn(apiReactor);
+            when(handlerEntrypoint.reactor()).thenReturn(apiReactor);
         }
     }
 

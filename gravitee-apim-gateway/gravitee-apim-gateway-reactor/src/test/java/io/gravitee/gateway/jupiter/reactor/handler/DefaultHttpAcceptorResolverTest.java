@@ -15,11 +15,12 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
+import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,34 +51,34 @@ class DefaultHttpAcceptorResolverTest {
 
     @Test
     public void shouldIteratorOverEntrypointToResolveHandler() {
-        final HttpAcceptorHandler handler1 = mock(HttpAcceptorHandler.class);
-        final HttpAcceptorHandler handler2 = mock(HttpAcceptorHandler.class);
-        final HttpAcceptorHandler handler3 = mock(HttpAcceptorHandler.class);
+        final HttpAcceptor handler1 = mock(HttpAcceptor.class);
+        final HttpAcceptor handler2 = mock(HttpAcceptor.class);
+        final HttpAcceptor handler3 = mock(HttpAcceptor.class);
 
         when(handler1.accept(HOST, PATH)).thenReturn(false);
         when(handler2.accept(HOST, PATH)).thenReturn(false);
         when(handler3.accept(HOST, PATH)).thenReturn(true);
 
-        when(handlerRegistry.getHttpAcceptorHandlers()).thenReturn(List.of(handler1, handler2, handler3));
+        when(handlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(List.of(handler1, handler2, handler3));
 
-        final HttpAcceptorHandler resolvedHandler = cut.resolve(HOST, PATH);
+        final HttpAcceptor resolvedHandler = cut.resolve(HOST, PATH);
 
         assertEquals(handler3, resolvedHandler);
     }
 
     @Test
     public void shouldReturnNullHanlderWhenNoHandlerCanHandleTheRequest() {
-        final HttpAcceptorHandler handler1 = mock(HttpAcceptorHandler.class);
-        final HttpAcceptorHandler handler2 = mock(HttpAcceptorHandler.class);
-        final HttpAcceptorHandler handler3 = mock(HttpAcceptorHandler.class);
+        final HttpAcceptor handler1 = mock(HttpAcceptor.class);
+        final HttpAcceptor handler2 = mock(HttpAcceptor.class);
+        final HttpAcceptor handler3 = mock(HttpAcceptor.class);
 
         when(handler1.accept(HOST, PATH)).thenReturn(false);
         when(handler2.accept(HOST, PATH)).thenReturn(false);
         when(handler3.accept(HOST, PATH)).thenReturn(false);
 
-        when(handlerRegistry.getHttpAcceptorHandlers()).thenReturn(List.of(handler1, handler2, handler3));
+        when(handlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(List.of(handler1, handler2, handler3));
 
-        final HttpAcceptorHandler resolvedHandler = cut.resolve(HOST, PATH);
+        final HttpAcceptor resolvedHandler = cut.resolve(HOST, PATH);
 
         assertNull(resolvedHandler);
     }

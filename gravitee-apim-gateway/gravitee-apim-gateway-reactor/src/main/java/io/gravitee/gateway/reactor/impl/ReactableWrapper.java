@@ -16,9 +16,7 @@
 package io.gravitee.gateway.reactor.impl;
 
 import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -45,10 +43,5 @@ public class ReactableWrapper<T> implements Reactable {
     @Override
     public <D> Set<D> dependencies(Class<D> type) {
         return Collections.emptySet();
-    }
-
-    @Override
-    public List<HttpAcceptor> httpAcceptors() {
-        return Collections.emptyList();
     }
 }

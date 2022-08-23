@@ -46,7 +46,7 @@ import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultMessageExecuti
 import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
-import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
+import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
@@ -133,8 +133,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     public Completable dispatch(HttpServerRequest httpServerRequest) {
         log.debug("Dispatching request on host {} and path {}", httpServerRequest.host(), httpServerRequest.path());
 
-        final HttpAcceptorHandler httpAcceptorHandler = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path());
-        if (httpAcceptorHandler == null || httpAcceptorHandler.target() == null) {
+        final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path());
+        if (httpAcceptor == null || httpAcceptor.reactor() == null) {
             MutableRequestExecutionContext mutableCtx = prepareRequestExecutionContext(httpServerRequest);
 
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
@@ -147,8 +147,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                     ExecutionPhase.REQUEST
                 )
                 .andThen(handleNotFound(mutableCtx));
-        } else if (httpAcceptorHandler.target() instanceof ApiReactor) {
-            ApiReactor<?, ?> apiReactor = httpAcceptorHandler.target();
+        } else if (httpAcceptor.reactor() instanceof ApiReactor) {
+            ApiReactor apiReactor = (ApiReactor) httpAcceptor.reactor();
             MutableHttpExecutionContext mutableCtx;
             if (apiReactor.apiType() == ApiType.SYNC) {
                 mutableCtx = prepareRequestExecutionContext(httpServerRequest);
@@ -173,7 +173,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                         () -> {
                             // Jupiter execution mode.
                             ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
-                            return handleJupiterRequest(finalMutableCtx, httpAcceptorHandler)
+                            return handleJupiterRequest(finalMutableCtx, httpAcceptor)
                                 .andThen(
                                     HookHelper.hook(
                                         () -> postProcessorChain.execute(finalMutableCtx, ExecutionPhase.RESPONSE),
@@ -188,7 +188,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                 );
         }
         // V3 execution mode.
-        return handleV3Request(httpServerRequest, httpAcceptorHandler);
+        return handleV3Request(httpServerRequest, httpAcceptor);
     }
 
     private MutableRequestExecutionContext prepareRequestExecutionContext(final HttpServerRequest httpServerRequest) {
@@ -233,14 +233,14 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         );
     }
 
-    private Completable handleJupiterRequest(final MutableHttpExecutionContext ctx, final HttpAcceptorHandler handlerEntrypoint) {
+    private Completable handleJupiterRequest(final MutableHttpExecutionContext ctx, final HttpAcceptor handlerEntrypoint) {
         ctx.request().contextPath(handlerEntrypoint.path());
-        final ApiReactor apiReactor = handlerEntrypoint.target();
+        final ApiReactor apiReactor = (ApiReactor) handlerEntrypoint.reactor();
         return apiReactor.handle(ctx);
     }
 
-    private Completable handleV3Request(final HttpServerRequest httpServerRequest, final HttpAcceptorHandler handlerEntrypoint) {
-        final ReactorHandler reactorHandler = handlerEntrypoint.target();
+    private Completable handleV3Request(final HttpServerRequest httpServerRequest, final HttpAcceptor handlerEntrypoint) {
+        final ReactorHandler reactorHandler = handlerEntrypoint.reactor();
 
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request = createV3Request(httpServerRequest, idGenerator);
 

@@ -22,5 +22,5 @@ import io.gravitee.gateway.api.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface AcceptorResolver {
-    HttpAcceptorHandler resolve(ExecutionContext context);
+    HttpAcceptor resolve(ExecutionContext context);
 }

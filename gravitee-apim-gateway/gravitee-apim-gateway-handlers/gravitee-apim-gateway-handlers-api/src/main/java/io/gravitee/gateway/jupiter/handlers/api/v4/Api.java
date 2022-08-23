@@ -23,13 +23,9 @@ import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
-import io.gravitee.definition.model.v4.listener.ListenerType;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
-import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -174,17 +170,6 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
                     return policy;
                 }
             )
-            .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<HttpAcceptor> httpAcceptors() {
-        return definition
-            .getListeners()
-            .stream()
-            .filter(listener -> listener.getType().equals(ListenerType.HTTP))
-            .flatMap(listener -> ((ListenerHttp) listener).getPaths().stream())
-            .map(path -> new DefaultHttpAcceptor(path.getHost(), path.getPath()))
             .collect(Collectors.toList());
     }
 }

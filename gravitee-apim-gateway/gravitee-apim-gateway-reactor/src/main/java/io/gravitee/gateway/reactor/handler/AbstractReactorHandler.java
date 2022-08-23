@@ -48,11 +48,6 @@ public abstract class AbstractReactorHandler<T extends Reactable>
     }
 
     @Override
-    public T reactable() {
-        return reactable;
-    }
-
-    @Override
     protected void doStart() throws Exception {
         // Nothing to do there
     }
@@ -89,7 +84,7 @@ public abstract class AbstractReactorHandler<T extends Reactable>
     }
 
     protected void dumpVirtualHosts() {
-        List<HttpAcceptor> httpAcceptors = reactable.httpAcceptors();
+        List<Acceptor<?>> httpAcceptors = acceptors();
         logger.debug("{} ready to accept requests on:", this);
         httpAcceptors.forEach(
             httpAcceptor -> {

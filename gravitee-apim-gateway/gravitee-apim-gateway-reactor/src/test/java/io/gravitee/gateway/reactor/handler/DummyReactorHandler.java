@@ -45,12 +45,13 @@ public class DummyReactorHandler extends AbstractReactorHandler<Reactable> {
                 public Set dependencies(Class type) {
                     return null;
                 }
-
-                public List<HttpAcceptor> httpAcceptors() {
-                    return null;
-                }
             }
         );
+    }
+
+    @Override
+    public List<Acceptor<?>> acceptors() {
+        return null;
     }
 
     @Override
