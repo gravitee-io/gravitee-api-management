@@ -42,4 +42,9 @@ public enum PlanSecurityType {
      * Plan which is using a JWT security authentication type for incoming HTTP requests.
      */
     JWT,
+
+    /**
+     * Plan which is use for the subscription type of APIs for which no particular authentication is required.
+     */
+    SUBSCRIPTION,
 }

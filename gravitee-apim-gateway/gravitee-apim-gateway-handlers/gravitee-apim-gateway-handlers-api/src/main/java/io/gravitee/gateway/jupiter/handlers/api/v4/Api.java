@@ -15,8 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4;
 
-import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
-import static io.gravitee.repository.management.model.Plan.PlanSecurityType.OAUTH2;
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.*;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Policy;
@@ -78,7 +77,8 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
                 plan ->
                     OAUTH2.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
                     API_KEY.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
-                    "api-key".equalsIgnoreCase(plan.getSecurity().getType())
+                    "api-key".equalsIgnoreCase(plan.getSecurity().getType()) ||
+                    SUBSCRIPTION.name().equalsIgnoreCase(plan.getSecurity().getType())
             )
             .map(Plan::getId)
             .collect(Collectors.toSet());

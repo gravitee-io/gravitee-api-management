@@ -22,7 +22,6 @@ import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
-import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.Map;
@@ -54,10 +53,6 @@ public class HttpListener extends Listener {
 
     @JsonIgnore
     private Map<String, Pattern> pathMappingsPattern;
-
-    @NotEmpty
-    @NotNull
-    private List<Entrypoint> entrypoints;
 
     private Cors cors;
 

@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -83,6 +84,12 @@ public class SubscriptionEntity {
      * Number of days before the expiration of this subscription when the last pre-expiration notification was sent
      */
     private Integer daysToExpirationOnLastNotification;
+
+    private String filter;
+
+    private String configuration;
+
+    private Map<String, String> metadata;
 
     public String getId() {
         return id;
@@ -242,6 +249,30 @@ public class SubscriptionEntity {
 
     public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
         this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
+    }
+
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setFilter(String filter) {
+        this.filter = filter;
+    }
+
+    public String getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
     }
 
     @Override

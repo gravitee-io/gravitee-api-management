@@ -19,7 +19,10 @@
     "generalConditionsContentPageId": "ref",
     "generalConditionsContentRevision": 2,
     "generalConditionsAccepted": true,
-    "daysToExpirationOnLastNotification": 30
+    "daysToExpirationOnLastNotification": 30,
+    "filter": "my-filter",
+    "configuration": "{}",
+    "type": "STANDARD"
   },
   {
     "id":"sub2",

@@ -96,7 +96,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             new PlanSecurityEntity("oauth2", "OAuth2", "oauth2"),
             new PlanSecurityEntity("jwt", "JWT", "'jwt'"),
             new PlanSecurityEntity("api_key", "API Key", "api-key"),
-            new PlanSecurityEntity("key_less", "Keyless (public)", "")
+            new PlanSecurityEntity("key_less", "Keyless (public)", ""),
+            new PlanSecurityEntity("subscription", "Subscription", "")
         )
     );
     private final Logger logger = LoggerFactory.getLogger(PlanServiceImpl.class);
@@ -605,6 +606,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 break;
             case KEY_LESS:
                 securityKey = Key.PLAN_SECURITY_KEYLESS_ENABLED;
+                break;
+            case SUBSCRIPTION:
+                securityKey = Key.PLAN_SECURITY_SUBSCRIPTION_ENABLED;
                 break;
             default:
                 return;

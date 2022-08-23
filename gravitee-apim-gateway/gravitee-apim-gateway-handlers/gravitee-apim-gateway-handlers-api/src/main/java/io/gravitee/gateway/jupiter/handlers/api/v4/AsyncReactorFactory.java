@@ -19,6 +19,7 @@ import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.CLASSLOA
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
@@ -64,15 +65,15 @@ import org.springframework.core.ResolvableType;
 public class AsyncReactorFactory implements ReactorFactory<Api> {
 
     private final Logger logger = LoggerFactory.getLogger(AsyncReactorFactory.class);
-    private final ApplicationContext applicationContext;
-    private final Configuration configuration;
-    private final PolicyFactory policyFactory;
+    protected final ApplicationContext applicationContext;
+    protected final Configuration configuration;
+    protected final PolicyFactory policyFactory;
 
-    private final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
-    private final EndpointConnectorPluginManager endpointConnectorPluginManager;
-    private final PolicyChainFactory platformPolicyChainFactory;
-    private final OrganizationManager organizationManager;
-    private final FlowResolverFactory flowResolverFactory;
+    protected final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
+    protected final EndpointConnectorPluginManager endpointConnectorPluginManager;
+    protected final PolicyChainFactory platformPolicyChainFactory;
+    protected final OrganizationManager organizationManager;
+    protected final FlowResolverFactory flowResolverFactory;
 
     public AsyncReactorFactory(
         final ApplicationContext applicationContext,
@@ -101,7 +102,12 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
 
     @Override
     public boolean canCreate(Api api) {
-        return api.getDefinitionVersion() == DefinitionVersion.V4 && api.getDefinition().getType() == ApiType.ASYNC;
+        // Check that the API contains at least one subscription listener.
+        return (
+            api.getDefinitionVersion() == DefinitionVersion.V4 &&
+            api.getDefinition().getType() == ApiType.ASYNC &&
+            api.getDefinition().getListeners().stream().anyMatch(listener -> listener.getType() == ListenerType.HTTP)
+        );
     }
 
     @Override
@@ -176,6 +182,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
             ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class)
         );
 
+        System.out.println(beanNamesForType[0]);
         ConfigurablePluginManager<ResourcePlugin<?>> cpm = (ConfigurablePluginManager<ResourcePlugin<?>>) applicationContext.getBean(
             beanNamesForType[0]
         );

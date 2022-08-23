@@ -17,6 +17,7 @@ package io.gravitee.repository.management.model;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -115,6 +116,14 @@ public class Subscription implements Serializable {
      */
     private Integer daysToExpirationOnLastNotification;
 
+    private String filter;
+
+    private String configuration;
+
+    private Map<String, String> metadata;
+
+    private Type type = Type.STANDARD;
+
     public Subscription() {}
 
     public Subscription(Subscription cloned) {
@@ -137,6 +146,10 @@ public class Subscription implements Serializable {
         this.generalConditionsContentRevision = cloned.generalConditionsContentRevision;
         this.generalConditionsContentPageId = cloned.generalConditionsContentPageId;
         this.daysToExpirationOnLastNotification = cloned.daysToExpirationOnLastNotification;
+        this.filter = cloned.filter;
+        this.configuration = cloned.configuration;
+        this.metadata = cloned.metadata;
+        this.type = cloned.type;
     }
 
     public String getId() {
@@ -307,6 +320,38 @@ public class Subscription implements Serializable {
         this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
     }
 
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setFilter(String filter) {
+        this.filter = filter;
+    }
+
+    public String getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -347,5 +392,18 @@ public class Subscription implements Serializable {
          * Subscription has been paused
          */
         PAUSED,
+    }
+
+    public enum Type {
+        /**
+         * <code>STANDARD</code> subscriptions are subscription used to manage calls in proxy mode (request/response)
+         */
+        STANDARD,
+
+        /**
+         * <code>SUBSCRIPTION</code> type of subscription are subscription used to manage subscription calls
+         * (the call from the gateway is initiated by the incoming subscription, a typical use-case is webhook).
+         */
+        SUBSCRIPTION,
     }
 }

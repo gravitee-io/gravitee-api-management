@@ -112,6 +112,11 @@ public enum Key {
     ),
     PLAN_SECURITY_APIKEY_SHARED_ALLOWED("plan.security.apikey.allowShared.enabled", "false", Set.of(ENVIRONMENT, SYSTEM)),
     PLAN_SECURITY_KEYLESS_ENABLED("plan.security.keyless.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PLAN_SECURITY_SUBSCRIPTION_ENABLED(
+        "plan.security.subscription.enabled",
+        "true",
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
+    ),
 
     OPEN_API_DOC_TYPE_SWAGGER_ENABLED(
         "open.api.doc.type.swagger.enabled",

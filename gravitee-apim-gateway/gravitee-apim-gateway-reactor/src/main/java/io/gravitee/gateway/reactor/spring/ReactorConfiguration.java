@@ -33,6 +33,7 @@ import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFacto
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactoryManager;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.*;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
 import io.gravitee.gateway.reactor.handler.ReactorEventListener;
@@ -160,6 +161,24 @@ public class ReactorConfiguration {
             httpRequestTimeoutConfiguration,
             vertx
         );
+    }
+
+    @Bean
+    public SubscriptionAcceptorResolver subscriptionAcceptorResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
+        return new DefaultSubscriptionAcceptorResolver(reactorHandlerRegistry);
+    }
+
+    @Bean
+    public SubscriptionExecutionRequestFactory subscriptionExecutionRequestFactory() {
+        return new SubscriptionExecutionRequestFactory();
+    }
+
+    @Bean
+    public SubscriptionDispatcher subscriptionDispatcher(
+        SubscriptionAcceptorResolver subscriptionAcceptorResolver,
+        SubscriptionExecutionRequestFactory subscriptionExecutionRequestFactory
+    ) {
+        return new DefaultSubscriptionDispatcher(subscriptionAcceptorResolver, subscriptionExecutionRequestFactory);
     }
 
     @Bean

@@ -61,6 +61,7 @@ public class HttpEntrypointConnectorResolver {
     public <T extends EntrypointConnector<U>, U extends HttpExecutionContext> T resolve(final U ctx) {
         Optional<EntrypointConnector<HttpExecutionContext>> entrypointConnector = entrypointConnectors
             .stream()
+            .filter(connector -> connector.supportedListenerType() == io.gravitee.gateway.jupiter.api.ListenerType.HTTP)
             .filter(connector -> connector.matches(ctx))
             .findFirst();
         return (T) entrypointConnector.orElse(null);

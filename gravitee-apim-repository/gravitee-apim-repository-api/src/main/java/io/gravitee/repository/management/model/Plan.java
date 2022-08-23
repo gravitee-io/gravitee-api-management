@@ -411,6 +411,11 @@ public class Plan {
          * Plan which is using a JWT security authentication type for incoming HTTP requests.
          */
         JWT,
+
+        /**
+         * Plan which is used for subscription-based APIs (webhook).
+         */
+        SUBSCRIPTION,
     }
 
     public enum PlanValidationType {

@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import org.junit.After;
 import org.junit.Before;
@@ -189,6 +190,35 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         verify(subscriptionService, times(1))
             .process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any());
         assertEquals(customApiKeyCaptor.getValue(), customApiKey);
+        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+        assertEquals(envTarget().path(FAKE_SUBSCRIPTION_ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+    }
+
+    @Test
+    public void shouldCreateSubscriptionWithConfiguration() {
+        NewSubscriptionConfigurationEntity configuration = mock(NewSubscriptionConfigurationEntity.class);
+        when(configuration.getConfiguration()).thenReturn("{}");
+        when(configuration.getFilter()).thenReturn("my-filter");
+
+        ArgumentCaptor<NewSubscriptionEntity> newSubscriptionEntityCaptor = ArgumentCaptor.forClass(NewSubscriptionEntity.class);
+
+        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), newSubscriptionEntityCaptor.capture(), any()))
+            .thenReturn(fakeSubscriptionEntity);
+        when(subscriptionService.process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any()))
+            .thenReturn(fakeSubscriptionEntity);
+
+        Response response = envTarget()
+            .queryParam("application", APP_NAME)
+            .queryParam("plan", PLAN_NAME)
+            .request()
+            .post(Entity.json(configuration));
+
+        verify(subscriptionService, times(1))
+            .create(eq(GraviteeContext.getExecutionContext()), newSubscriptionEntityCaptor.capture(), any());
+        verify(subscriptionService, times(1))
+            .process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any());
+        assertEquals(newSubscriptionEntityCaptor.getValue().getConfiguration(), "{}");
+        assertEquals(newSubscriptionEntityCaptor.getValue().getFilter(), "my-filter");
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(envTarget().path(FAKE_SUBSCRIPTION_ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }

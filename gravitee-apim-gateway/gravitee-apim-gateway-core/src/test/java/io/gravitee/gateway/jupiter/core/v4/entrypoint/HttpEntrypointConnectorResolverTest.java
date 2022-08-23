@@ -72,6 +72,7 @@ class HttpEntrypointConnectorResolverTest {
         final EntrypointConnector<HttpExecutionContext> entrypointConnector = mock(EntrypointConnector.class);
 
         when(connectorFactory.createConnector(ENTRYPOINT_CONFIG)).thenReturn(entrypointConnector);
+        when(entrypointConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
         when(entrypointConnector.matches(ctx)).thenReturn(true);
 
         final HttpEntrypointConnectorResolver cut = new HttpEntrypointConnectorResolver(api, pluginManager);
@@ -97,6 +98,7 @@ class HttpEntrypointConnectorResolverTest {
             .thenReturn(mock(EntrypointConnector.class));
 
         when(entrypointConnector.matches(ctx)).thenReturn(true);
+        when(entrypointConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
 
         final HttpEntrypointConnectorResolver cut = new HttpEntrypointConnectorResolver(api, pluginManager);
         final EntrypointConnector<HttpExecutionContext> resolvedEntrypointConnector = cut.resolve(ctx);
@@ -122,6 +124,7 @@ class HttpEntrypointConnectorResolverTest {
         final EntrypointConnector<HttpExecutionContext> entrypointConnector = mock(EntrypointConnector.class);
 
         when(connectorFactory.createConnector(ENTRYPOINT_CONFIG)).thenReturn(entrypointConnector);
+        when(entrypointConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
         when(entrypointConnector.matches(ctx)).thenReturn(false);
 
         final HttpEntrypointConnectorResolver cut = new HttpEntrypointConnectorResolver(api, pluginManager);

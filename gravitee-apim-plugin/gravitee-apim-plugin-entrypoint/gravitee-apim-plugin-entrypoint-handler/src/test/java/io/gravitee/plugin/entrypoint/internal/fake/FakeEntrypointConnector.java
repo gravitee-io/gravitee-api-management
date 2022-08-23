@@ -17,6 +17,7 @@ package io.gravitee.plugin.entrypoint.internal.fake;
 
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.reactivex.Completable;
@@ -40,6 +41,11 @@ public class FakeEntrypointConnector implements EntrypointConnector<RequestExecu
     @Override
     public ApiType supportedApi() {
         return SUPPORTED_API;
+    }
+
+    @Override
+    public ListenerType supportedListenerType() {
+        return ListenerType.HTTP;
     }
 
     @Override
