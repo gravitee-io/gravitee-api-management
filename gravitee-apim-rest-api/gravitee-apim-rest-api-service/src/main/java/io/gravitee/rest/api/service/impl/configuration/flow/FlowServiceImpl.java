@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.gravitee.definition.model.flow.*;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
@@ -143,7 +142,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                 return List.of();
             } else {
                 for (int order = 0; order < flows.size(); ++order) {
-                    flowRepository.create(flowConverter.toModel(flows.get(order), flowReferenceType, referenceId, order));
+                    flowRepository.create(flowConverter.toRepository(flows.get(order), flowReferenceType, referenceId, order));
                 }
                 return flows;
             }

@@ -31,6 +31,7 @@ import io.gravitee.plugin.fetcher.spring.FetcherPluginConfiguration;
 import io.gravitee.plugin.notifier.spring.NotifierPluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
 import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
+import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.rest.api.fetcher.spring.FetcherConfigurationConfiguration;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.PasswordValidator;
@@ -38,6 +39,7 @@ import io.gravitee.rest.api.service.impl.search.configuration.SearchEngineConfig
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.rest.api.service.jackson.ser.FlowStepSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
@@ -95,6 +97,7 @@ public class ServiceConfiguration {
         // register API serializer
         SimpleModule module = new SimpleModule();
         module.addSerializer(ApiEntity.class, apiSerializer());
+        module.addSerializer(FlowStep.class, new FlowStepSerializer(FlowStep.class));
 
         objectMapper.registerModule(module);
         return objectMapper;
