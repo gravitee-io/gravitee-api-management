@@ -92,6 +92,10 @@ Also, prometheus is automatically configured to scrap the gateway metrics every 
 
 Once the grafana stack is up and running, you can start visualize the Apim gateway metric directly through the following url: http://localhost:3001/d/evKJrjgVk/apim-performances?orgId=1
 
+### Generate PDF report
+
+Go to: http://localhost:8686/api/v5/report/evKJrjgVk?orgId=1&from=1660884060000&to=1660890060000, which will output the grafana-reporter PDF of the dashboard `evKJrjgVk` on the time interval specified with the parameters `from` and `to`.
+
 ## Running the test
 
 1. Start an APIM instance with `gravitee_services_sync_delay=1000` on Gateway.
