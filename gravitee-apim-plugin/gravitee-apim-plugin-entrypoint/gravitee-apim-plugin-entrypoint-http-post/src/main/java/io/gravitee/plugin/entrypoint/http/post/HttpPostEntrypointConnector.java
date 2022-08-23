@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
@@ -44,6 +45,11 @@ public class HttpPostEntrypointConnector implements EntrypointAsyncConnector {
     @Override
     public Set<ConnectorMode> supportedModes() {
         return SUPPORTED_MODES;
+    }
+
+    @Override
+    public ListenerType supportedListenerType() {
+        return ListenerType.HTTP;
     }
 
     @Override

@@ -22,6 +22,7 @@ import static io.gravitee.repository.management.model.Subscription.Status.ACCEPT
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheManager;
 import java.util.Optional;
@@ -35,12 +36,14 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
     private final Cache<String, Subscription> cacheByApiClientId;
     private final Cache<String, Subscription> cacheBySubscriptionId;
 
-    private ApiKeyService apiKeyService;
+    private final ApiKeyService apiKeyService;
+    private final SubscriptionDispatcher subscriptionDispatcher;
 
-    public SubscriptionService(CacheManager cacheManager, ApiKeyService apiKeyService) {
+    public SubscriptionService(CacheManager cacheManager, ApiKeyService apiKeyService, SubscriptionDispatcher subscriptionDispatcher) {
         cacheByApiClientId = cacheManager.getOrCreateCache(CACHE_NAME_BY_API_AND_CLIENT_ID);
         cacheBySubscriptionId = cacheManager.getOrCreateCache(CACHE_NAME_BY_SUBSCRIPTION_ID);
         this.apiKeyService = apiKeyService;
+        this.subscriptionDispatcher = subscriptionDispatcher;
     }
 
     @Override
@@ -66,10 +69,14 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
 
     @Override
     public void save(Subscription subscription) {
-        if (subscription.getClientId() != null) {
-            saveInCacheByApiAndClientId(subscription);
+        if (Subscription.Type.STANDARD == subscription.getType()) {
+            if (subscription.getClientId() != null) {
+                saveInCacheByApiAndClientId(subscription);
+            }
+            saveInCacheBySubscriptionId(subscription);
+        } else if (Subscription.Type.SUBSCRIPTION == subscription.getType()) {
+            subscriptionDispatcher.dispatch(subscription);
         }
-        saveInCacheBySubscriptionId(subscription);
     }
 
     private void saveInCacheBySubscriptionId(Subscription subscription) {

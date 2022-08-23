@@ -35,7 +35,6 @@ import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.nullable;
@@ -423,6 +422,38 @@ public class SubscriptionServiceTest {
         verify(subscriptionRepository, times(1)).create(any(Subscription.class));
         verify(subscriptionRepository, never()).update(any(Subscription.class));
         verify(apiKeyService, never()).generate(eq(GraviteeContext.getExecutionContext()), any(), any(), anyString());
+        assertNotNull(subscriptionEntity.getId());
+        assertNotNull(subscriptionEntity.getApplication());
+        assertNotNull(subscriptionEntity.getCreatedAt());
+    }
+
+    @Test
+    public void shouldCreateWithSubscriptionPlanWithoutProcess() throws Exception {
+        // Prepare data
+        planEntity.setValidation(PlanValidationType.MANUAL);
+        planEntity.setSecurity(PlanSecurityType.SUBSCRIPTION);
+
+        // Stub
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
+
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        ArgumentCaptor<Subscription> subscriptionCapture = ArgumentCaptor.forClass(Subscription.class);
+
+        // Run
+        final SubscriptionEntity subscriptionEntity = subscriptionService.create(
+            GraviteeContext.getExecutionContext(),
+            new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID)
+        );
+
+        // Verify
+        verify(subscriptionRepository, times(1)).create(subscriptionCapture.capture());
+        verify(subscriptionRepository, never()).update(any(Subscription.class));
+        verify(apiKeyService, never()).generate(eq(GraviteeContext.getExecutionContext()), any(), any(), anyString());
+        assertEquals(Subscription.Type.SUBSCRIPTION, subscriptionCapture.getValue().getType());
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
         assertNotNull(subscriptionEntity.getCreatedAt());

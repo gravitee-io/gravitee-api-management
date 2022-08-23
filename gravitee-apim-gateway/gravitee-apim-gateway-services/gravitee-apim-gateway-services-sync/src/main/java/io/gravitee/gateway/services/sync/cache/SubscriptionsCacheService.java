@@ -151,7 +151,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
     public void register(List<ReactableApi<?>> apis) {
         final Map<String, ReactableApi<?>> apisById = apis.stream().collect(Collectors.toMap(ReactableApi::getId, api -> api));
 
-        // Filters plans to update api_keys only for them
+        // Filter plans to update api_keys only for them
         final Map<String, Set<String>> plansByApi = apis
             .stream()
             .filter(ReactableApi::isEnabled)
@@ -163,7 +163,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
         if (!plansByApi.isEmpty()) {
             final Set<String> planIds = plansByApi.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
 
-            // If the node is not a master, we assume that the full refresh has been handle by an other node
+            // If the node is not a master, we assume that the full refresh has been handle by another node
             if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
                 final FullSubscriptionRefresher refresher = new FullSubscriptionRefresher(planIds);
                 refresher.setSubscriptionRepository(subscriptionRepository);

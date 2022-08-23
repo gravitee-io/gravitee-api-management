@@ -47,7 +47,12 @@ public enum PlanSecurityType {
     /**
      * Plan which is using a JWT security authentication type for incoming HTTP requests.
      */
-    JWT("jwt");
+    JWT("jwt"),
+
+    /**
+     * Plan which is use for the subscription type of APIs for which no particular authentication is required.
+     */
+    SUBSCRIPTION("subscription");
 
     private static final Map<String, PlanSecurityType> maps = Map.of(
         KEY_LESS.label,
@@ -57,7 +62,9 @@ public enum PlanSecurityType {
         OAUTH2.label,
         OAUTH2,
         JWT.label,
-        JWT
+        JWT,
+        SUBSCRIPTION.label,
+        SUBSCRIPTION
     );
 
     @JsonValue

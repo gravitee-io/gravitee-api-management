@@ -70,3 +70,24 @@ databaseChangeLog:
                   afterColumn: definition
                   constraints:
                     nullable: true
+        # ################
+        # Subscriptions Changes
+        # ################
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+              - column:
+                  name: configuration
+                  type: nclob
+                  constraints:
+                    nullable: true
+              - column:
+                  name: filter
+                  type: nvarchar(250)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: type
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true

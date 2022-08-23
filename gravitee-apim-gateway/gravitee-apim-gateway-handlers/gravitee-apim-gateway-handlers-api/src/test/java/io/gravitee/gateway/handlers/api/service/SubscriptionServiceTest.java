@@ -16,15 +16,18 @@
 package io.gravitee.gateway.handlers.api.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.handlers.api.services.ApiKeyService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionService;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.node.cache.standalone.StandaloneCacheManager;
 import java.util.Optional;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,11 +46,14 @@ public class SubscriptionServiceTest {
     @Mock
     private ApiKeyService apiKeyService;
 
+    @Mock
+    private SubscriptionDispatcher subscriptionDispatcher;
+
     private SubscriptionService subscriptionService;
 
     @BeforeEach
     public void setup() {
-        subscriptionService = new SubscriptionService(new StandaloneCacheManager(), apiKeyService);
+        subscriptionService = new SubscriptionService(new StandaloneCacheManager(), apiKeyService, subscriptionDispatcher);
     }
 
     @Test
@@ -150,6 +156,20 @@ public class SubscriptionServiceTest {
 
         // should not find it with its old client id
         assertFalse(subscriptionService.getByApiAndClientIdAndPlan(API_ID, "old-client-id", PLAN_ID).isPresent());
+    }
+
+    @Test
+    public void should_dispatch_subscription_to_dispatcher() {
+        Subscription subscription = mock(Subscription.class);
+        lenient().when(subscription.getId()).thenReturn("sub-id");
+        when(subscription.getType()).thenReturn(Subscription.Type.SUBSCRIPTION);
+
+        subscriptionService.save(subscription);
+
+        verify(subscriptionDispatcher).dispatch(subscription);
+
+        Optional<Subscription> optSubscription = subscriptionService.getById("sub-id");
+        assertTrue(optSubscription.isEmpty());
     }
 
     private Subscription buildAcceptedSubscription(String id, String api, String clientId, String plan) {

@@ -76,6 +76,9 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             .addColumn("general_conditions_content_revision", Types.INTEGER, Integer.class)
             .addColumn("general_conditions_accepted", Types.BOOLEAN, Boolean.class)
             .addColumn("days_to_expiration_on_last_notification", Types.INTEGER, Integer.class)
+            .addColumn("configuration", Types.NVARCHAR, String.class)
+            .addColumn("type", Types.NVARCHAR, Subscription.Type.class)
+            .addColumn("filter", Types.NVARCHAR, String.class)
             .build();
     }
 

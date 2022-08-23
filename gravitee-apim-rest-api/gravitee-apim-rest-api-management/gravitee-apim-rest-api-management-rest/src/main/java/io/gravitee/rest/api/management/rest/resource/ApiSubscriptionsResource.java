@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -145,6 +146,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Subscribe to a plan", description = "User must have the MANAGE_SUBSCRIPTIONS permission to use this service")
     @ApiResponse(
         responseCode = "201",
@@ -157,7 +159,8 @@ public class ApiSubscriptionsResource extends AbstractResource {
     public Response createSubscriptionToApi(
         @Parameter(name = "application", required = true) @NotNull @QueryParam("application") String application,
         @Parameter(name = "plan", required = true) @NotNull @QueryParam("plan") String plan,
-        @Parameter(name = "customApiKey") @CustomApiKey @QueryParam("customApiKey") String customApiKey
+        @Parameter(name = "customApiKey") @CustomApiKey @QueryParam("customApiKey") String customApiKey,
+        @Valid NewSubscriptionConfigurationEntity newSubscriptionConfigurationEntity
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
@@ -168,6 +171,12 @@ public class ApiSubscriptionsResource extends AbstractResource {
         }
 
         NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(plan, application);
+
+        if (newSubscriptionConfigurationEntity != null) {
+            newSubscriptionEntity.setFilter(newSubscriptionConfigurationEntity.getFilter());
+            newSubscriptionEntity.setConfiguration(newSubscriptionConfigurationEntity.getConfiguration());
+            newSubscriptionEntity.setMetadata(newSubscriptionConfigurationEntity.getMetadata());
+        }
 
         // Create subscription
         SubscriptionEntity subscription = subscriptionService.create(executionContext, newSubscriptionEntity, customApiKey);

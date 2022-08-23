@@ -21,6 +21,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.plugin.entrypoint.sse.configuration.SseEntrypointConnectorConfiguration;
@@ -56,6 +57,11 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
         }
         // Random doesn't require to be secured here and is only used for random retry time
         this.random = new Random();
+    }
+
+    @Override
+    public ListenerType supportedListenerType() {
+        return ListenerType.HTTP;
     }
 
     @Override

@@ -70,6 +70,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertTrue("Subscription GCU accepted", subscription.getGeneralConditionsAccepted());
         assertEquals("Subscription GCU content pageId", "ref", subscription.getGeneralConditionsContentPageId());
         assertEquals("Subscription GCU content revision", Integer.valueOf(2), subscription.getGeneralConditionsContentRevision());
+        assertEquals("Subscription filter", "my-filter", subscription.getFilter());
+        assertEquals("Subscription configuration", "{}", subscription.getConfiguration());
+        assertEquals("Subscription type", Subscription.Type.STANDARD, subscription.getType());
         assertEquals(
             "Subscription days to expiration on last notification",
             Integer.valueOf(30),

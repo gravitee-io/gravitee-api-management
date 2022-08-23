@@ -15,11 +15,19 @@
  */
 package io.gravitee.rest.api.model;
 
+import java.util.Map;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@Getter
+@Setter
 public class NewSubscriptionEntity {
 
     private String application;
@@ -28,50 +36,14 @@ public class NewSubscriptionEntity {
     private PageEntity.PageRevisionId generalConditionsContentRevision;
     private Boolean generalConditionsAccepted;
 
-    public NewSubscriptionEntity() {}
+    private String filter;
+
+    private String configuration;
+
+    private Map<String, String> metadata;
 
     public NewSubscriptionEntity(String plan, String application) {
         this.application = application;
         this.plan = plan;
-    }
-
-    public String getApplication() {
-        return application;
-    }
-
-    public void setApplication(String application) {
-        this.application = application;
-    }
-
-    public String getPlan() {
-        return plan;
-    }
-
-    public void setPlan(String plan) {
-        this.plan = plan;
-    }
-
-    public String getRequest() {
-        return request;
-    }
-
-    public void setRequest(String request) {
-        this.request = request;
-    }
-
-    public Boolean getGeneralConditionsAccepted() {
-        return generalConditionsAccepted;
-    }
-
-    public void setGeneralConditionsAccepted(Boolean generalConditionsAccepted) {
-        this.generalConditionsAccepted = generalConditionsAccepted;
-    }
-
-    public PageEntity.PageRevisionId getGeneralConditionsContentRevision() {
-        return generalConditionsContentRevision;
-    }
-
-    public void setGeneralConditionsContentRevision(PageEntity.PageRevisionId generalConditionsContentRevision) {
-        this.generalConditionsContentRevision = generalConditionsContentRevision;
     }
 }

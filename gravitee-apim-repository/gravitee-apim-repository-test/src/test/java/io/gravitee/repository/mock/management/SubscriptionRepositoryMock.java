@@ -66,6 +66,9 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
         sub1.setGeneralConditionsContentPageId("ref");
         sub1.setGeneralConditionsContentRevision(2);
         sub1.setDaysToExpirationOnLastNotification(30);
+        sub1.setFilter("my-filter");
+        sub1.setConfiguration("{}");
+        sub1.setType(Subscription.Type.STANDARD);
 
         final Subscription sub3 = new Subscription();
         sub3.setId("sub3");

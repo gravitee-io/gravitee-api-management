@@ -37,10 +37,12 @@ import io.gravitee.gateway.jupiter.flow.condition.evaluation.PathBasedConditionF
 import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.AsyncReactorFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.subscription.SubscriptionReactorFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
@@ -180,8 +182,12 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public SubscriptionService subscriptionService(CacheManager cacheManager, ApiKeyService apiKeyService) {
-        return new SubscriptionService(cacheManager, apiKeyService);
+    public SubscriptionService subscriptionService(
+        CacheManager cacheManager,
+        ApiKeyService apiKeyService,
+        SubscriptionDispatcher subscriptionDispatcher
+    ) {
+        return new SubscriptionService(cacheManager, apiKeyService, subscriptionDispatcher);
     }
 
     @Bean
@@ -194,6 +200,27 @@ public class ApiHandlerConfiguration {
         FlowResolverFactory flowResolverFactory
     ) {
         return new AsyncReactorFactory(
+            applicationContext,
+            configuration,
+            policyFactory,
+            entrypointConnectorPluginManager,
+            endpointConnectorPluginManager,
+            platformPolicyChainFactory,
+            organizationManager,
+            flowResolverFactory
+        );
+    }
+
+    @Bean
+    public ReactorFactory<io.gravitee.gateway.jupiter.handlers.api.v4.Api> subscriptionApiReactorFactory(
+        PolicyFactory policyFactory,
+        EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+        EndpointConnectorPluginManager endpointConnectorPluginManager,
+        @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
+        OrganizationManager organizationManager,
+        FlowResolverFactory flowResolverFactory
+    ) {
+        return new SubscriptionReactorFactory(
             applicationContext,
             configuration,
             policyFactory,

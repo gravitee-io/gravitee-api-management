@@ -15,13 +15,9 @@
  */
 package io.gravitee.definition.model.v4.listener.subscription;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
-import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.List;
-import javax.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,10 +33,6 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "SubscriptionListenerV4")
 public class SubscriptionListener extends Listener {
-
-    @JsonProperty("entrypoints")
-    @NotEmpty
-    private List<Entrypoint> entrypoints;
 
     public SubscriptionListener() {
         super(ListenerType.SUBSCRIPTION);
