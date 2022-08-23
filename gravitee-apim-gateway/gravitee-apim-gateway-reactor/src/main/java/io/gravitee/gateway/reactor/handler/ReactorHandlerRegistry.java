@@ -34,9 +34,11 @@ public interface ReactorHandlerRegistry {
     boolean contains(Reactable reactable);
 
     /**
-     * An ordered collection of registered http acceptor handlers.
+     * A collection of {@link Acceptor} based on the acceptorType parameter and ordered by natural comparison method.
      *
+     * @param acceptorType The type of acceptor
      * @return
+     * @param <T>
      */
-    Collection<HttpAcceptorHandler> getHttpAcceptorHandlers();
+    <T extends Acceptor<T>> Collection<T> getAcceptors(Class<T> acceptorType);
 }

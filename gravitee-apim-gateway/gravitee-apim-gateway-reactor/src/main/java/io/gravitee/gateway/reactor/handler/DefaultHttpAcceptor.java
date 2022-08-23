@@ -16,9 +16,15 @@
 package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.gateway.api.Request;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
+ * Comparator used to sort {@link HttpAcceptor} in a centralized acceptor collection.
+ *
+ * Http acceptors are first sorted by host (lower-cased), then in case of equality, by path and, in case of
+ * equality in path, the http acceptor priority is used (higher priority first).
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
@@ -39,6 +45,13 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
     private final String pathWithoutTrailingSlash;
 
     private final String path;
+
+    private ReactorHandler reactor;
+
+    public DefaultHttpAcceptor(String host, String path, ReactorHandler reactor) {
+        this(host, path);
+        this.reactor = reactor;
+    }
 
     public DefaultHttpAcceptor(String host, String path) {
         this.host = host;
@@ -107,5 +120,55 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
     @Override
     public String toString() {
         return "host[" + this.host + "] - path[" + this.path + "/*]";
+    }
+
+    public void reactor(ReactorHandler reactor) {
+        this.reactor = reactor;
+    }
+
+    @Override
+    public ReactorHandler reactor() {
+        return reactor;
+    }
+
+    @Override
+    public int compareTo(HttpAcceptor o2) {
+        if (this.equals(o2)) {
+            return 0;
+        }
+
+        final int hostCompare = Objects.compare(
+            toLower(this.host()),
+            toLower(o2.host()),
+            (host1, host2) -> {
+                if (host1 == null) {
+                    return 1;
+                } else if (host2 == null) {
+                    return -1;
+                }
+                return host1.compareTo(host2);
+            }
+        );
+
+        if (hostCompare == 0) {
+            final int pathCompare = this.path().compareTo(o2.path());
+
+            if (pathCompare == 0) {
+                if (this.priority() <= o2.priority()) {
+                    return 1;
+                }
+                return -1;
+            }
+
+            return pathCompare;
+        }
+        return hostCompare;
+    }
+
+    private String toLower(String value) {
+        if (value != null) {
+            return value.toLowerCase();
+        }
+        return value;
     }
 }

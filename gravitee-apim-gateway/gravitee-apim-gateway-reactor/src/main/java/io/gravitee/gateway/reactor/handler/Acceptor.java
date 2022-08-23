@@ -15,14 +15,10 @@
  */
 package io.gravitee.gateway.reactor.handler;
 
-import io.gravitee.definition.model.ExecutionMode;
-
 /**
- * This class represents a http acceptor link to a {@link ReactorHandler}.
- *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface HttpAcceptorHandler extends HttpAcceptor {
-    <T extends ReactorHandler> T target();
+public interface Acceptor<T extends Acceptor<T>> extends Comparable<T> {
+    ReactorHandler reactor();
 }

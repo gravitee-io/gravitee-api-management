@@ -35,7 +35,6 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
@@ -54,8 +53,8 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFacto
 import io.gravitee.gateway.jupiter.handlers.api.security.SecurityChain;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
-import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.gateway.reactor.handler.HttpAcceptor;
+import io.gravitee.gateway.reactor.handler.Acceptor;
+import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
@@ -65,10 +64,12 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -352,8 +353,18 @@ public class SyncApiReactor
     }
 
     @Override
-    public ReactableApi<io.gravitee.definition.model.Api> reactable() {
-        return api;
+    public List<Acceptor<?>> acceptors() {
+        try {
+            return api
+                .getDefinition()
+                .getProxy()
+                .getVirtualHosts()
+                .stream()
+                .map(virtualHost -> new DefaultHttpAcceptor(virtualHost.getHost(), virtualHost.getPath(), this))
+                .collect(Collectors.toList());
+        } catch (Exception ex) {
+            return Collections.emptyList();
+        }
     }
 
     @Override
@@ -433,8 +444,8 @@ public class SyncApiReactor
     }
 
     protected void dumpVirtualHosts() {
-        List<HttpAcceptor> httpAcceptors = api.httpAcceptors();
+        List<Acceptor<?>> acceptors = acceptors();
         log.debug("{} ready to accept requests on:", this);
-        httpAcceptors.forEach(httpAcceptor -> log.debug("\t{}", httpAcceptor));
+        acceptors.forEach(acceptor -> log.debug("\t{}", acceptor));
     }
 }

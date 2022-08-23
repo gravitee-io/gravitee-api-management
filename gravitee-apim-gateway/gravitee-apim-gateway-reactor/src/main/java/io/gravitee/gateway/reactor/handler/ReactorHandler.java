@@ -16,10 +16,9 @@
 package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.reactor.Reactable;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -27,9 +26,11 @@ import io.gravitee.gateway.reactor.Reactable;
  */
 public interface ReactorHandler extends LifecycleComponent<ReactorHandler> {
     /**
-     * A reactable element associated to the current handler.
+     * Provide the list of technical "entrypoint" to call this {@link ReactorHandler}
+     *
+     * @return
      */
-    Reactable reactable();
+    List<Acceptor<?>> acceptors();
 
     void handle(ExecutionContext context, Handler<ExecutionContext> endHandler);
 }

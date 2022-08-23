@@ -23,7 +23,7 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
-import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
+import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
@@ -77,11 +77,11 @@ public class DefaultReactor implements Reactor {
             .create()
             .handler(
                 ctx -> {
-                    HttpAcceptorHandler httpAcceptorHandler = acceptorResolver.resolve(ctx);
+                    HttpAcceptor httpAcceptorHandler = acceptorResolver.resolve(ctx);
 
                     if (httpAcceptorHandler != null) {
                         httpAcceptorHandler
-                            .target()
+                            .reactor()
                             .handle(
                                 ctx,
                                 context1 -> {

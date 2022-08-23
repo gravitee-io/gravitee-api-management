@@ -24,6 +24,8 @@ import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
@@ -38,11 +40,14 @@ import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.security.SecurityChain;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
-import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.gateway.reactor.handler.Acceptor;
+import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,8 +193,15 @@ public class AsyncApiReactor
     }
 
     @Override
-    public ReactableApi<io.gravitee.definition.model.v4.Api> reactable() {
-        return api;
+    public List<Acceptor<?>> acceptors() {
+        return api
+            .getDefinition()
+            .getListeners()
+            .stream()
+            .filter(listener -> ListenerType.HTTP == listener.getType())
+            .flatMap(listener -> ((ListenerHttp) listener).getPaths().stream())
+            .map(path -> new DefaultHttpAcceptor(path.getHost(), path.getPath(), this))
+            .collect(Collectors.toList());
     }
 
     @Override

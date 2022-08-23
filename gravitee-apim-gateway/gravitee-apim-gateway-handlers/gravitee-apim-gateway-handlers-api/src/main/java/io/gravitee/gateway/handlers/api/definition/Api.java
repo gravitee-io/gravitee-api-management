@@ -25,13 +25,7 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
-import io.gravitee.gateway.reactor.handler.HttpAcceptor;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -206,16 +200,6 @@ public class Api extends ReactableApi<io.gravitee.definition.model.Api> {
                     return policy;
                 }
             )
-            .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<HttpAcceptor> httpAcceptors() {
-        return definition
-            .getProxy()
-            .getVirtualHosts()
-            .stream()
-            .map(virtualHost -> new DefaultHttpAcceptor(virtualHost.getHost(), virtualHost.getPath()))
             .collect(Collectors.toList());
     }
 }

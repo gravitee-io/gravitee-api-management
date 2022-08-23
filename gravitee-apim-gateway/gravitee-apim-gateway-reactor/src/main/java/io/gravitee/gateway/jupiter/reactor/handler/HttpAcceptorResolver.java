@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler;
 
-import io.gravitee.gateway.reactor.handler.HttpAcceptorHandler;
+import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface HttpAcceptorResolver {
-    HttpAcceptorHandler resolve(String host, String path);
+    HttpAcceptor resolve(String host, String path);
 }
