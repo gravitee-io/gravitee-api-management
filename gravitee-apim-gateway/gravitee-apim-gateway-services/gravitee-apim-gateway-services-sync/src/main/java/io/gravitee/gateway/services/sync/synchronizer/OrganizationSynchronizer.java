@@ -24,6 +24,7 @@ import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Event;
@@ -100,7 +101,12 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
     private Maybe<io.gravitee.definition.model.Organization> toOrganization(Event event) {
         try {
             // Read organization definition from event
-            return Maybe.just(objectMapper.readValue(event.getPayload(), io.gravitee.definition.model.Organization.class));
+            io.gravitee.definition.model.Organization organization = objectMapper.readValue(
+                event.getPayload(),
+                io.gravitee.definition.model.Organization.class
+            );
+            organization.setUpdatedAt(event.getUpdatedAt());
+            return Maybe.just(organization);
         } catch (IOException ioe) {
             logger.error("Error while determining deployed organization into events payload", ioe);
         }
@@ -114,11 +120,26 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
             .parallel(PARALLELISM)
             .runOn(Schedulers.from(executor))
             .doOnNext(
-                organization -> {
+                organizationToDeploy -> {
                     try {
+                        Organization organizationDeployed = organizationManager.getCurrentOrganization();
+                        if (
+                            organizationDeployed != null &&
+                            organizationDeployed.getUpdatedAt() != null &&
+                            organizationToDeploy.getUpdatedAt() != null &&
+                            !organizationDeployed.getUpdatedAt().before(organizationToDeploy.getUpdatedAt())
+                        ) {
+                            logger.debug(
+                                "The organization deployment has been ignored because it is already up to date {} [{}].",
+                                organizationToDeploy.getName(),
+                                organizationToDeploy.getId()
+                            );
+                            return;
+                        }
+
                         List<String> shardingTags = gatewayConfiguration.shardingTags().orElse(null);
                         if (shardingTags != null && !shardingTags.isEmpty()) {
-                            List<Flow> filteredFlows = organization
+                            List<Flow> filteredFlows = organizationToDeploy
                                 .getFlows()
                                 .stream()
                                 .filter(
@@ -137,20 +158,18 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
                                 )
                                 .collect(Collectors.toList());
 
-                            organization.setFlows(filteredFlows);
+                            organizationToDeploy.setFlows(filteredFlows);
                         }
 
                         // Update definition with required information for deployment phase
-                        final io.gravitee.gateway.platform.Organization organizationPlatform = new io.gravitee.gateway.platform.Organization(
-                            organization
-                        );
-                        organizationPlatform.setUpdatedAt(organization.getUpdatedAt());
+                        final Organization organizationPlatform = new Organization(organizationToDeploy);
+                        organizationPlatform.setUpdatedAt(organizationToDeploy.getUpdatedAt());
                         organizationManager.register(organizationPlatform);
                     } catch (Exception e) {
                         logger.error(
-                            "An error occurred when trying to deploy organization {} [{}].",
-                            organization.getName(),
-                            organization.getId()
+                            "An error occurred when trying to deploy organizationToDeploy {} [{}].",
+                            organizationToDeploy.getName(),
+                            organizationToDeploy.getId()
                         );
                     }
                 }

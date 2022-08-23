@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.synchronizer;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Organization;
@@ -121,6 +122,36 @@ public class OrganizationSynchronizerTest extends TestCase {
         organizationSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
         verify(organizationManager).register(argThat(organizationPlatform -> organizationPlatform.getId().equals(ORGANISATION_TEST)));
+        verify(organizationManager, never()).unregister(anyString());
+    }
+
+    @Test
+    public void shouldNotDeployWhenAlreadyDeployed() throws Exception {
+        Organization organization = new Organization();
+        organization.setId(ORGANISATION_TEST);
+        organization.setUpdatedAt(new Date());
+
+        final Event mockEvent = mockEvent(organization, EventType.PUBLISH_ORGANIZATION);
+        mockEvent.setUpdatedAt(organization.getUpdatedAt());
+        when(
+            eventRepository.searchLatest(
+                argThat(
+                    criteria ->
+                        criteria != null &&
+                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
+                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                ),
+                eq(Event.EventProperties.ORGANIZATION_ID),
+                anyLong(),
+                anyLong()
+            )
+        )
+            .thenReturn(singletonList(mockEvent));
+        when(organizationManager.getCurrentOrganization()).thenReturn(new io.gravitee.gateway.platform.Organization(organization));
+
+        organizationSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
+
+        verify(organizationManager, never()).register(any());
         verify(organizationManager, never()).unregister(anyString());
     }
 
