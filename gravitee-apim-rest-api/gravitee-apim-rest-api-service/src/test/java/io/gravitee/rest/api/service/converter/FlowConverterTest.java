@@ -18,9 +18,15 @@ package io.gravitee.rest.api.service.converter;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.flow.*;
+import io.gravitee.definition.model.flow.Consumer;
+import io.gravitee.definition.model.flow.ConsumerType;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.PathOperator;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.repository.management.model.flow.FlowOperator;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.repository.management.model.flow.FlowStep;
+import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;
@@ -28,9 +34,9 @@ import org.junit.Test;
 /**
  * @author GraviteeSource Team
  */
-public class FLowConverterTest {
+public class FlowConverterTest {
 
-    private final FlowConverter converter = new FlowConverter();
+    private final FlowConverter converter = new FlowConverter(new ServiceConfiguration().objectMapper());
 
     @Test
     public void toModelShouldInitializeNonNullableFields() {
@@ -44,7 +50,7 @@ public class FLowConverterTest {
         flowDefinition.setPre(pre());
         flowDefinition.setPost(post());
 
-        var model = converter.toModel(flowDefinition, FlowReferenceType.ORGANIZATION, "DEFAULT", 0);
+        var model = converter.toRepository(flowDefinition, FlowReferenceType.ORGANIZATION, "DEFAULT", 0);
 
         assertNotNull(model.getId());
         assertNotNull(model.getCreatedAt());
@@ -101,5 +107,45 @@ public class FLowConverterTest {
         step.setPolicy("transform-headers");
         step.setConfiguration("{\"scope\":\"RESPONSE\",\"addHeaders\":[{\"name\":\"x-platform\",\"value\":\"true\"}]}");
         return List.of(step);
+    }
+
+    @Test
+    public void toDefinitionStepShouldMapAllStepData() {
+        FlowStep flowStep = new FlowStep();
+        flowStep.setPolicy("test-policy");
+        flowStep.setDescription("test-description");
+        flowStep.setCondition("test-condition");
+        flowStep.setEnabled(false);
+        flowStep.setName("test-name");
+        flowStep.setConfiguration("{}");
+
+        Step step = converter.toDefinitionStep(flowStep);
+
+        assertEquals(flowStep.getPolicy(), step.getPolicy());
+        assertEquals(flowStep.getDescription(), step.getDescription());
+        assertEquals(flowStep.getCondition(), step.getCondition());
+        assertEquals(flowStep.getName(), step.getName());
+        assertEquals(flowStep.isEnabled(), step.isEnabled());
+        assertEquals(flowStep.getConfiguration(), step.getConfiguration());
+    }
+
+    @Test
+    public void toDefinitionStepShouldMapConfiguration() {
+        FlowStep flowStep = new FlowStep();
+        flowStep.setPolicy("test-policy");
+        flowStep.setConfiguration("{\"key\": \"value\"}");
+
+        Step step = converter.toDefinitionStep(flowStep);
+        assertEquals("{\"key\":\"value\"}", step.getConfiguration());
+    }
+
+    @Test
+    public void toDefinitionStepShouldMapConfigurationWithEscapedValues() {
+        FlowStep flowStep = new FlowStep();
+        flowStep.setPolicy("test-policy");
+        flowStep.setConfiguration("{\"key\": \"<\\/value\\nvalue>\"}");
+
+        Step step = converter.toDefinitionStep(flowStep);
+        assertEquals("{\"key\":\"</value\\nvalue>\"}", step.getConfiguration());
     }
 }

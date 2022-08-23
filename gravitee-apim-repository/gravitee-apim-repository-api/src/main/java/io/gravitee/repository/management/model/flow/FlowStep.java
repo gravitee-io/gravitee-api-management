@@ -33,10 +33,12 @@ public class FlowStep {
      * Step description
      */
     private String description;
+
     /**
      * Step policy configuration
      */
     private String configuration;
+
     /**
      * Step state
      */
