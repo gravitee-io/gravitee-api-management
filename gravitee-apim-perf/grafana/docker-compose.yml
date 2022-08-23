@@ -52,8 +52,22 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_BASIC_ENABLED=false
       - GF_USERS_DEFAULT_THEME=light
+      - GF_RENDERING_SERVER_URL=http://renderer:8081/render
+      - GF_RENDERING_CALLBACK_URL=http://grafana:3000/
+      - GF_LOG_FILTERS=rendering:debug
     volumes:
       - ${PWD}/config/grafana.ini:/etc/grafana/grafana.ini
       - ${PWD}/config/provisioning-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
       - ${PWD}/config/provisioning-dashboards.yaml:/etc/grafana/provisioning/dashboards/provisioning-dashboards.yaml:ro
       - ${PWD}/config/apim-performances.json:/var/lib/grafana/dashboards/apim-performances.json:ro
+
+  renderer:
+    image: grafana/grafana-image-renderer:latest
+    ports:
+      - 8081
+
+  reporter:
+    image: izakmarais/grafana-reporter:latest
+    command: "-ip host.docker.internal:3001"
+    ports:
+      - "8686:8686"
