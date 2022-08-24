@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource.v4.api;
 
+import static io.gravitee.rest.api.management.rest.resource.param.LifecycleAction.START;
+import static io.gravitee.rest.api.management.rest.resource.param.LifecycleAction.STOP;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -22,6 +25,10 @@ import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.rest.resource.ApiMembersResource;
+import io.gravitee.rest.api.management.rest.resource.ApiMetadataResource;
+import io.gravitee.rest.api.management.rest.resource.ApiPagesResource;
+import io.gravitee.rest.api.management.rest.resource.ApiRatingResource;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -103,9 +110,9 @@ public class ApiResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getApi() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApiEntity apiEntity = apiServiceV4.findById(executionContext, api);
+        ApiEntity apiEntity = apiSearchService.findById(executionContext, api);
 
-        if (!canManageV4Api(apiEntity)) {
+        if (!canManageApi(apiEntity)) {
             throw new ForbiddenAccessException();
         }
 
@@ -291,15 +298,12 @@ public class ApiResource extends AbstractResource {
 
         final ApiEntity apiEntity = (ApiEntity) responseApi.getEntity();
         ApiEntity updatedApi = null;
-        switch (action) {
-            case START:
-                checkApiLifeCycle(apiEntity, action);
-                updatedApi = apiStateService.start(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser());
-                break;
-            case STOP:
-                checkApiLifeCycle(apiEntity, action);
-                updatedApi = apiStateService.stop(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser());
-                break;
+        if (action == START) {
+            checkApiLifeCycle(apiEntity, action);
+            updatedApi = apiStateService.start(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser());
+        } else if (action == STOP) {
+            checkApiLifeCycle(apiEntity, action);
+            updatedApi = apiStateService.stop(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser());
         }
 
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build(); //NOSONAR `updatedApi` can't be null
@@ -311,12 +315,12 @@ public class ApiResource extends AbstractResource {
         }
         switch (api.getState()) {
             case STARTED:
-                if (LifecycleAction.START.equals(action)) {
+                if (START.equals(action)) {
                     throw new BadRequestException("API is already started");
                 }
                 break;
             case STOPPED:
-                if (LifecycleAction.STOP.equals(action)) {
+                if (STOP.equals(action)) {
                     throw new BadRequestException("API is already stopped");
                 }
 
@@ -334,8 +338,28 @@ public class ApiResource extends AbstractResource {
         }
     }
 
+    @javax.ws.rs.Path("members")
+    public ApiMembersResource getApiMembersResource() {
+        return resourceContext.getResource(ApiMembersResource.class);
+    }
+
+    @javax.ws.rs.Path("metadata")
+    public ApiMetadataResource getApiMetadataResource() {
+        return resourceContext.getResource(ApiMetadataResource.class);
+    }
+
+    @javax.ws.rs.Path("pages")
+    public ApiPagesResource getApiPagesResource() {
+        return resourceContext.getResource(ApiPagesResource.class);
+    }
+
     @javax.ws.rs.Path("plans")
     public ApiPlansResource getApiPlansResource() {
         return resourceContext.getResource(ApiPlansResource.class);
+    }
+
+    @javax.ws.rs.Path("ratings")
+    public ApiRatingResource getRatingResource() {
+        return resourceContext.getResource(ApiRatingResource.class);
     }
 }

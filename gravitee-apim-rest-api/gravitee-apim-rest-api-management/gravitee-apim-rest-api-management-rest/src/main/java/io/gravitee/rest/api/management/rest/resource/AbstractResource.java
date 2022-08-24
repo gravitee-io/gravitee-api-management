@@ -22,15 +22,17 @@ import static io.gravitee.rest.api.model.MembershipReferenceType.GROUP;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -75,6 +77,12 @@ public abstract class AbstractResource {
 
     @Inject
     protected io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
+
+    @Inject
+    protected ApiSearchService apiSearchService;
+
+    @Inject
+    protected ApiAuthorizationService apiAuthorizationService;
 
     @Inject
     protected PermissionService permissionService;
@@ -139,11 +147,7 @@ public abstract class AbstractResource {
         return Stream.concat(streamUserMembership, streamGroupMembership);
     }
 
-    protected boolean canManageApi(final ApiEntity api) {
-        return isAdmin() || isDirectMember(api.getId()) || isMemberThroughGroup(api.getGroups());
-    }
-
-    protected boolean canManageV4Api(final io.gravitee.rest.api.model.v4.api.ApiEntity api) {
+    protected boolean canManageApi(final GenericApiEntity api) {
         return isAdmin() || isDirectMember(api.getId()) || isMemberThroughGroup(api.getGroups());
     }
 
@@ -156,7 +160,7 @@ public abstract class AbstractResource {
             .anyMatch(
                 membership -> {
                     RoleEntity role = roleService.findById(membership.getRoleId());
-                    return apiService.canManageApi(role);
+                    return apiAuthorizationService.canManageApi(role);
                 }
             );
     }
@@ -173,7 +177,7 @@ public abstract class AbstractResource {
             .filter(
                 membership -> {
                     RoleEntity role = roleService.findById(membership.getRoleId());
-                    return apiService.canManageApi(role);
+                    return apiAuthorizationService.canManageApi(role);
                 }
             )
             .map(MembershipEntity::getReferenceId)

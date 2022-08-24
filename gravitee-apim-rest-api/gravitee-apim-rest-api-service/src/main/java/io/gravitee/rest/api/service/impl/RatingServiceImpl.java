@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +80,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     private NotifierService notifierService;
 
     @Autowired
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Override
     public RatingEntity create(ExecutionContext executionContext, final NewRatingEntity ratingEntity) {
@@ -110,7 +111,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 executionContext,
                 ApiHook.NEW_RATING,
                 rating.getReferenceId(),
-                new NotificationParamsBuilder().api(apiService.findById(executionContext, rating.getReferenceId())).build()
+                new NotificationParamsBuilder().api(apiSearchService.findGenericById(executionContext, rating.getReferenceId())).build()
             );
 
             return convert(executionContext, rating);
@@ -149,7 +150,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 executionContext,
                 ApiHook.NEW_RATING_ANSWER,
                 rating.getReferenceId(),
-                new NotificationParamsBuilder().api(apiService.findById(executionContext, rating.getReferenceId())).build()
+                new NotificationParamsBuilder().api(apiSearchService.findGenericById(executionContext, rating.getReferenceId())).build()
             );
 
             return convert(executionContext, rating);

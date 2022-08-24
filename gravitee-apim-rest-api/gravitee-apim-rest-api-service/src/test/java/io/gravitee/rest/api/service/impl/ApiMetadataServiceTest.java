@@ -33,7 +33,6 @@ import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
@@ -41,7 +40,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateMetadataNameException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -79,7 +78,7 @@ public class ApiMetadataServiceTest {
     private MetadataService metadataService;
 
     @Mock
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Mock
     private AuditService auditService;
@@ -132,7 +131,7 @@ public class ApiMetadataServiceTest {
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
-        when(apiService.findIndexableApiById(any(), any())).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(any(), any())).thenReturn(apiEntity);
     }
 
     private void mockMetadata(Metadata apiMetadata, String key, MetadataReferenceType api, String apiId, String apiMetadataValue) {

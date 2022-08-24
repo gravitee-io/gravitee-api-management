@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
@@ -38,5 +38,5 @@ public interface ApiMetadataService {
 
     void deleteAllByApi(final ExecutionContext executionContext, String apiId);
 
-    IndexableApi fetchMetadataForApi(ExecutionContext executionContext, IndexableApi indexableApi);
+    GenericApiEntity fetchMetadataForApi(ExecutionContext executionContext, GenericApiEntity genericApiEntity);
 }

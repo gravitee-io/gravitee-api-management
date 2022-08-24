@@ -40,16 +40,13 @@ import javax.ws.rs.core.Response;
  */
 public class ApiPageResource extends AbstractResource {
 
+    private static final String INCLUDE_CONTENT = "content";
+
     @Inject
     private PageMapper pageMapper;
 
     @Inject
     private PageService pageService;
-
-    @Inject
-    private AccessControlService accessControlService;
-
-    private static final String INCLUDE_CONTENT = "content";
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -60,8 +57,6 @@ public class ApiPageResource extends AbstractResource {
         @PathParam("pageId") String pageId,
         @QueryParam("include") List<String> include
     ) {
-        final ApiQuery apiQuery = new ApiQuery();
-        apiQuery.setIds(Collections.singletonList(apiId));
         if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
 

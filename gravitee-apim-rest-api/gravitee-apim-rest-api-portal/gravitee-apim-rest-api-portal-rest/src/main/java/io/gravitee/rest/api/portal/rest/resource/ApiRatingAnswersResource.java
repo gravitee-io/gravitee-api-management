@@ -69,14 +69,7 @@ public class ApiRatingAnswersResource extends AbstractResource {
             throw new BadRequestException("Input must not be null.");
         }
 
-        final ApiQuery apiQuery = new ApiQuery();
-        apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
-            GraviteeContext.getExecutionContext(),
-            getAuthenticatedUserOrNull(),
-            apiQuery
-        );
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             RatingEntity ratingEntity = ratingService.findById(GraviteeContext.getExecutionContext(), ratingId);
             if (ratingEntity != null && ratingEntity.getApi().equals(apiId)) {
                 NewRatingAnswerEntity ratingAnswerEntity = new NewRatingAnswerEntity();

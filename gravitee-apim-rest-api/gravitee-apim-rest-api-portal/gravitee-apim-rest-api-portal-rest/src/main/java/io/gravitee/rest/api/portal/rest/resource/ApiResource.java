@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
@@ -49,6 +50,9 @@ import javax.ws.rs.core.Response;
  */
 public class ApiResource extends AbstractResource {
 
+    private static final String INCLUDE_PAGES = "pages";
+    private static final String INCLUDE_PLANS = "plans";
+
     @Context
     private ResourceContext resourceContext;
 
@@ -71,13 +75,7 @@ public class ApiResource extends AbstractResource {
     private GroupService groupService;
 
     @Inject
-    private AccessControlService accessControlService;
-
-    @Inject
     private ParameterService parameterService;
-
-    private static final String INCLUDE_PAGES = "pages";
-    private static final String INCLUDE_PLANS = "plans";
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
@@ -87,8 +85,8 @@ public class ApiResource extends AbstractResource {
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (accessControlService.canAccessApiFromPortal(executionContext, apiId)) {
-            ApiEntity apiEntity = apiService.findById(executionContext, apiId);
-            Api api = apiMapper.convert(executionContext, apiEntity);
+            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+            Api api = apiMapper.convert(executionContext, genericApiEntity);
 
             if (include.contains(INCLUDE_PAGES)) {
                 List<Page> pages = pageService
@@ -104,7 +102,7 @@ public class ApiResource extends AbstractResource {
                     .findByApi(executionContext, apiId)
                     .stream()
                     .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
-                    .filter(plan -> groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), username))
+                    .filter(plan -> groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), username))
                     .sorted(Comparator.comparingInt(PlanEntity::getOrder))
                     .map(p -> planMapper.convert(p))
                     .collect(Collectors.toList());
@@ -112,7 +110,10 @@ public class ApiResource extends AbstractResource {
             }
 
             api.links(
-                apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), apiEntity.getUpdatedAt())
+                apiMapper.computeApiLinks(
+                    PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()),
+                    genericApiEntity.getUpdatedAt()
+                )
             );
             if (
                 !parameterService.findAsBoolean(
@@ -163,14 +164,7 @@ public class ApiResource extends AbstractResource {
     @Path("background")
     @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
     public Response getBackgroundByApiId(@Context Request request, @PathParam("apiId") String apiId) {
-        final ApiQuery apiQuery = new ApiQuery();
-        apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
-            GraviteeContext.getExecutionContext(),
-            getAuthenticatedUserOrNull(),
-            apiQuery
-        );
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             InlinePictureEntity image = apiService.getBackground(GraviteeContext.getExecutionContext(), apiId);
 
             return createPictureResponse(request, image);

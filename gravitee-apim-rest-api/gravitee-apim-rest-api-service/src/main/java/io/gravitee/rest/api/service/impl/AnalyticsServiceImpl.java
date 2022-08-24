@@ -17,8 +17,14 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
-import io.gravitee.repository.analytics.query.*;
 import io.gravitee.repository.analytics.query.AggregationType;
+import io.gravitee.repository.analytics.query.DateHistogramQueryBuilder;
+import io.gravitee.repository.analytics.query.DateRangeBuilder;
+import io.gravitee.repository.analytics.query.IntervalBuilder;
+import io.gravitee.repository.analytics.query.Order;
+import io.gravitee.repository.analytics.query.QueryBuilders;
+import io.gravitee.repository.analytics.query.SortBuilder;
+import io.gravitee.repository.analytics.query.SortType;
 import io.gravitee.repository.analytics.query.count.CountResponse;
 import io.gravitee.repository.analytics.query.groupby.GroupByQueryBuilder;
 import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
@@ -30,15 +36,35 @@ import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.TenantEntity;
 import io.gravitee.rest.api.model.TenantReferenceType;
-import io.gravitee.rest.api.model.analytics.*;
-import io.gravitee.rest.api.model.analytics.query.*;
+import io.gravitee.rest.api.model.analytics.Bucket;
+import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
+import io.gravitee.rest.api.model.analytics.HitsAnalytics;
+import io.gravitee.rest.api.model.analytics.Timestamp;
+import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
+import io.gravitee.rest.api.model.analytics.query.CountQuery;
 import io.gravitee.rest.api.model.analytics.query.DateHistogramQuery;
-import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
+import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
+import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.AnalyticsService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.TenantService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.*;
-import java.util.*;
+import io.gravitee.rest.api.service.exceptions.AnalyticsCalculateException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TenantNotFoundException;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,14 +81,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class AnalyticsServiceImpl implements AnalyticsService {
 
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(AnalyticsServiceImpl.class);
-
     private static final String UNKNOWN_SERVICE = "1";
     private static final String UNKNOWN_SERVICE_MAPPED = "?";
-
     private static final String METADATA_NAME = "name";
     private static final String METADATA_DELETED = "deleted";
     private static final String METADATA_UNKNOWN = "unknown";
@@ -74,19 +94,22 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private static final String METADATA_DELETED_APPLICATION_NAME = "Deleted application";
     private static final String METADATA_DELETED_TENANT_NAME = "Deleted tenant";
     private static final String METADATA_DELETED_PLAN_NAME = "Deleted plan";
-
     private static final String FIELD_API = "api";
     private static final String FIELD_APPLICATION = "application";
     private static final String FIELD_TENANT = "tenant";
     private static final String FIELD_PLAN = "plan";
     private static final String FIELD_GEOIP_COUNTRY_ISO_CODE = "geoip.country_iso_code";
+    /**
+     * Logger.
+     */
+    private final Logger logger = LoggerFactory.getLogger(AnalyticsServiceImpl.class);
 
     @Lazy
     @Autowired
     private AnalyticsRepository analyticsRepository;
 
     @Autowired
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Autowired
     private ApplicationService applicationService;
@@ -363,10 +386,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
                 metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                ApiEntity apiEntity = apiService.findById(executionContext, api);
-                metadata.put(METADATA_NAME, apiEntity.getName());
-                metadata.put(METADATA_VERSION, apiEntity.getVersion());
-                if (ApiLifecycleState.ARCHIVED.equals(apiEntity.getLifecycleState())) {
+                GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api);
+                metadata.put(METADATA_NAME, genericApiEntity.getName());
+                metadata.put(METADATA_VERSION, genericApiEntity.getApiVersion());
+                if (ApiLifecycleState.ARCHIVED.equals(genericApiEntity.getLifecycleState())) {
                     metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
                 }
             }

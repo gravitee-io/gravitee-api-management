@@ -20,7 +20,12 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -35,13 +40,21 @@ import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.*;
-import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.ApiStateService;
+import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
+import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -101,7 +114,7 @@ public class ApiStateServiceImplTest {
     private ApiNotificationService apiNotificationService;
 
     @Mock
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     private Api api;
     private Api updatedApi;
@@ -129,13 +142,13 @@ public class ApiStateServiceImplTest {
             new ObjectMapper(),
             planService,
             flowService,
-            categoryService,
             parameterService,
-            workflowService
+            workflowService,
+            new CategoryMapper(categoryService)
         );
         apiStateService =
             new ApiStateServiceImpl(
-                apiService,
+                apiSearchService,
                 apiRepository,
                 apiMapper,
                 apiNotificationService,
@@ -161,7 +174,7 @@ public class ApiStateServiceImplTest {
     public void shouldStartApiForTheFirstTime() throws TechnicalException {
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(apiService.findApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
 
         final EventQuery query = new EventQuery();
         query.setApi(API_ID);

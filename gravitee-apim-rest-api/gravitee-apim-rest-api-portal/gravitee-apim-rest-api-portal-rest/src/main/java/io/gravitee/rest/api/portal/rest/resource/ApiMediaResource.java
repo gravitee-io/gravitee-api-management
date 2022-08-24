@@ -17,14 +17,9 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.MediaEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiQuery;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import java.util.Collection;
-import java.util.Collections;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -37,23 +32,13 @@ import javax.ws.rs.core.Response;
 public class ApiMediaResource extends AbstractResource {
 
     @Inject
-    private ApiService apiService;
-
-    @Inject
     private MediaService mediaService;
 
     @GET
     @Path("{mediaHash}")
     @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
     public Response getApiMedia(@Context Request request, @PathParam("apiId") String apiId, @PathParam("mediaHash") String mediaHash) {
-        final ApiQuery apiQuery = new ApiQuery();
-        apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
-            GraviteeContext.getExecutionContext(),
-            getAuthenticatedUserOrNull(),
-            apiQuery
-        );
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             MediaEntity mediaEntity = mediaService.findByHashAndApi(mediaHash, apiId, true);
 
             if (mediaEntity == null) {

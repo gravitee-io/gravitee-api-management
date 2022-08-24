@@ -17,10 +17,10 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.List;
@@ -172,7 +172,7 @@ public interface MembershipService {
         String referenceId,
         String userId
     );
-    Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, ApiEntity api, String userId);
+    Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, GenericApiEntity api, String userId);
     Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, ApplicationEntity application, String userId);
     Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, GroupEntity group, String userId);
     Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, EnvironmentEntity environment, String userId);

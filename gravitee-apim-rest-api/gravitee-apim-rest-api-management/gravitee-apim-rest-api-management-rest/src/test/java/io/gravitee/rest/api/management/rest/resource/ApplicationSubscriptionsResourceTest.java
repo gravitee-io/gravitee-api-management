@@ -58,7 +58,7 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCreateSubscription() {
-        reset(apiService, planService, subscriptionService, userService);
+        reset(apiSearchServiceV4, planService, subscriptionService, userService);
 
         NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
         newSubscriptionEntity.setApplication(APPLICATION);
@@ -74,7 +74,7 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
 
         ApiEntity foundApi = new ApiEntity();
         foundApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));
-        when(apiService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(foundApi);
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(foundApi);
 
         final Response response = envTarget()
             .path(APPLICATION)
@@ -91,7 +91,7 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetSubscriptions_expandingSecurity() {
-        reset(apiService, planService, subscriptionService, userService);
+        reset(apiSearchServiceV4, planService, subscriptionService, userService);
 
         when(subscriptionService.search(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false), eq(true)))
             .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
@@ -111,7 +111,7 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetSubscriptions_WithDefaultStatus() {
-        reset(apiService, planService, subscriptionService, userService);
+        reset(apiSearchServiceV4, planService, subscriptionService, userService);
 
         when(subscriptionService.search(any(ExecutionContext.class), any(), any(), anyBoolean(), anyBoolean()))
             .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
@@ -132,7 +132,7 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetSubscriptions_WithStatusFromQueryParams() {
-        reset(apiService, planService, subscriptionService, userService);
+        reset(apiSearchServiceV4, planService, subscriptionService, userService);
 
         when(subscriptionService.search(any(ExecutionContext.class), any(), any(), anyBoolean(), anyBoolean()))
             .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));

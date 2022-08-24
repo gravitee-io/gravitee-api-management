@@ -15,44 +15,22 @@
  */
 package io.gravitee.rest.api.model.v4.api;
 
-import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.model.Visibility;
-import io.gravitee.rest.api.model.search.Indexable;
-import java.util.Date;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface IndexableApi extends Indexable {
+public interface GenericApiModel {
     String getId();
-
     String getName();
-
-    String getDescription();
-
     String getApiVersion();
 
     DefinitionVersion getDefinitionVersion();
 
-    Date getDeployedAt();
+    PrimaryOwnerEntity getPrimaryOwner();
 
-    Date getCreatedAt();
-
-    Date getUpdatedAt();
-
-    boolean isDisableMembershipNotifications();
-
-    Map<String, Object> getMetadata();
-
-    void setMetadata(Map<String, Object> metadata);
-
-    Set<String> getGroups();
-
-    Lifecycle.State getState();
-
-    Visibility getVisibility();
+    Map<String, String> getMetadata();
 }

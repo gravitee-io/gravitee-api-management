@@ -35,6 +35,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.fetcher.api.Fetcher;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
@@ -47,7 +50,6 @@ import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AccessControl;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Page;
@@ -55,17 +57,60 @@ import io.gravitee.repository.management.model.PageMedia;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.AccessControlEntity;
+import io.gravitee.rest.api.model.AccessControlReferenceType;
+import io.gravitee.rest.api.model.ApiModel;
+import io.gravitee.rest.api.model.ApiPageEntity;
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.FetchablePageEntity;
+import io.gravitee.rest.api.model.ImportPageEntity;
+import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import io.gravitee.rest.api.model.MetadataEntity;
+import io.gravitee.rest.api.model.NewPageEntity;
+import io.gravitee.rest.api.model.PageConfigurationKeys;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageMediaEntity;
+import io.gravitee.rest.api.model.PageRevisionEntity;
+import io.gravitee.rest.api.model.PageSourceEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.SystemFolderType;
+import io.gravitee.rest.api.model.UpdatePageEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiModel;
+import io.gravitee.rest.api.service.AccessControlService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.GraviteeDescriptorService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.MetadataService;
+import io.gravitee.rest.api.service.PageRevisionService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.PageConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.NoFetcherDefinedException;
+import io.gravitee.rest.api.service.exceptions.PageActionException;
+import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
+import io.gravitee.rest.api.service.exceptions.PageFolderActionException;
+import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
+import io.gravitee.rest.api.service.exceptions.PageUsedAsGeneralConditionsException;
+import io.gravitee.rest.api.service.exceptions.PageUsedByCategoryException;
+import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.TemplateProcessingException;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.impl.swagger.transformer.SwaggerTransformer;
 import io.gravitee.rest.api.service.impl.swagger.transformer.entrypoints.EntrypointsOAITransformer;
@@ -77,11 +122,28 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
+import io.gravitee.rest.api.service.v4.ApiEntrypointService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
@@ -123,7 +185,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private PageRepository pageRepository;
 
     @Autowired
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Autowired
     private SwaggerService swaggerService;
@@ -178,6 +240,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     @Autowired
     private PageConverter pageConverter;
+
+    @Autowired
+    private ApiEntrypointService apiEntrypointService;
+
+    @Autowired
+    private ApiTemplateService apiTemplateService;
 
     private static Page convert(NewPageEntity newPageEntity) {
         Page page = new Page();
@@ -356,6 +424,34 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         pageMedia.setMediaName(pme.getMediaName());
         pageMedia.setAttachedAt(pme.getAttachedAt());
         return pageMedia;
+    }
+
+    private static Set<AccessControlEntity> convertToEntities(Set<AccessControl> accessControls) {
+        if (accessControls == null) {
+            return emptySet();
+        }
+        return accessControls.stream().map(accessControl -> convert(accessControl)).collect(Collectors.toSet());
+    }
+
+    private static AccessControlEntity convert(AccessControl accessControl) {
+        final AccessControlEntity accessControlEntity = new AccessControlEntity();
+        accessControlEntity.setReferenceId(accessControl.getReferenceId());
+        accessControlEntity.setReferenceType(accessControl.getReferenceType());
+        return accessControlEntity;
+    }
+
+    private static Set<AccessControl> convertACL(Set<AccessControlEntity> accessControlEntities) {
+        if (accessControlEntities == null) {
+            return emptySet();
+        }
+        return accessControlEntities.stream().map(PageServiceImpl::convert).collect(Collectors.toSet());
+    }
+
+    private static AccessControl convert(AccessControlEntity accessControlEntity) {
+        AccessControl accessControl = new AccessControl();
+        accessControl.setReferenceId(accessControlEntity.getReferenceId());
+        accessControl.setReferenceType(accessControlEntity.getReferenceType());
+        return accessControl;
     }
 
     private PageSituation getPageSituation(String pageId) throws TechnicalException {
@@ -543,8 +639,32 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             transformers.add(new PageConfigurationOAITransformer(pageEntity));
 
             if (apiId != null) {
-                ApiEntity api = apiService.findById(executionContext, apiId);
-                transformers.add(new EntrypointsOAITransformer(pageEntity, api));
+                List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, apiId);
+
+                GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+                String contextPath = null;
+                if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
+                    ApiEntity apiEntity = (ApiEntity) genericApiEntity;
+                    contextPath = apiEntity.getContextPath();
+                } else {
+                    io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
+                    Optional<String> firstPathOpt = apiEntity
+                        .getListeners()
+                        .stream()
+                        .filter(listener -> listener.getType() == ListenerType.HTTP)
+                        .findFirst()
+                        .map(
+                            listener -> {
+                                ListenerHttp listenerHttp = (ListenerHttp) listener;
+                                return listenerHttp.getPaths().get(0).getPath();
+                            }
+                        );
+                    if (firstPathOpt.isPresent()) {
+                        contextPath = firstPathOpt.get();
+                    }
+                }
+
+                transformers.add(new EntrypointsOAITransformer(pageEntity, apiEntrypoints, contextPath));
             }
 
             swaggerService.transform((OAIDescriptor) descriptor, transformers);
@@ -706,8 +826,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     model.put("metadata", mapMetadata);
                 }
             } else {
-                ApiModelEntity apiEntity = apiService.findByIdForTemplates(executionContext, api, true);
-                model.put("api", apiEntity);
+                GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, api, true);
+                model.put("api", genericApiModel);
             }
 
             try {
@@ -1584,9 +1704,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private List<PageEntity> executeAutoFetch(ExecutionContext executionContext, Page page) {
         try {
-            if (page.getType() != null && page.getType().toString().equals("ROOT")) {
+            if (page.getType() != null && page.getType().equals("ROOT")) {
                 final ImportPageEntity pageEntity = new ImportPageEntity();
-                pageEntity.setType(PageType.valueOf(page.getType().toString()));
+                pageEntity.setType(PageType.valueOf(page.getType()));
                 pageEntity.setSource(convert(page.getSource(), false));
                 pageEntity.setConfiguration(page.getConfiguration());
                 pageEntity.setPublished(page.isPublished());
@@ -1613,9 +1733,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 .filter(pageListItem -> pageListItem.getSource() != null)
                 .forEach(
                     pageListItem -> {
-                        if (pageListItem.getType() != null && pageListItem.getType().toString().equals("ROOT")) {
+                        if (pageListItem.getType() != null && pageListItem.getType().equals("ROOT")) {
                             final ImportPageEntity pageEntity = new ImportPageEntity();
-                            pageEntity.setType(PageType.valueOf(pageListItem.getType().toString()));
+                            pageEntity.setType(PageType.valueOf(pageListItem.getType()));
                             pageEntity.setSource(convert(pageListItem.getSource(), false));
                             pageEntity.setConfiguration(pageListItem.getConfiguration());
                             pageEntity.setPublished(pageListItem.isPublished());
@@ -1965,6 +2085,44 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         return new TechnicalManagementException("An error occurs while trying to fetch content. " + ex.getMessage(), ex);
     }
 
+    //    @Override
+    //    public boolean isDisplayable(ApiEntity api, boolean pageIsPublished, String username) {
+    //        boolean isDisplayable = false;
+    //        if (api.getVisibility() == Visibility.PUBLIC && pageIsPublished) {
+    //            isDisplayable = true;
+    //        } else if (username != null) {
+    //            MemberEntity member = membershipService.getUserMember(MembershipReferenceType.API, api.getId(), username);
+    //            if (member == null && api.getGroups() != null) {
+    //                Iterator<String> groupIdIterator = api.getGroups().iterator();
+    //                while (!isDisplayable && groupIdIterator.hasNext()) {
+    //                    String groupId = groupIdIterator.next();
+    //                    member = membershipService.getUserMember(MembershipReferenceType.GROUP, groupId, username);
+    //                    isDisplayable = isDisplayableForMember(member, pageIsPublished);
+    //                }
+    //            } else {
+    //                isDisplayable = isDisplayableForMember(member, pageIsPublished);
+    //            }
+    //        }
+    //        return isDisplayable;
+    //    }
+
+    //
+    //    private boolean isDisplayableForMember(MemberEntity member, boolean pageIsPublished) {
+    //        // if not member => not displayable
+    //        if (member == null) {
+    //            return false;
+    //        }
+    //        // if member && published page => displayable
+    //        if (pageIsPublished) {
+    //            return true;
+    //        }
+    //
+    //        // only members which could modify a page can see an unpublished page
+    //        return roleService.hasPermission(member.getPermissions(), ApiPermission.DOCUMENTATION,
+    //            new RolePermissionAction[]{RolePermissionAction.UPDATE, RolePermissionAction.CREATE,
+    //                RolePermissionAction.DELETE});
+    //    }
+
     @Override
     public void delete(ExecutionContext executionContext, String pageId) {
         try {
@@ -2096,44 +2254,6 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             throw new TechnicalManagementException("An error occured when searching max order portal ", ex);
         }
     }
-
-    //    @Override
-    //    public boolean isDisplayable(ApiEntity api, boolean pageIsPublished, String username) {
-    //        boolean isDisplayable = false;
-    //        if (api.getVisibility() == Visibility.PUBLIC && pageIsPublished) {
-    //            isDisplayable = true;
-    //        } else if (username != null) {
-    //            MemberEntity member = membershipService.getUserMember(MembershipReferenceType.API, api.getId(), username);
-    //            if (member == null && api.getGroups() != null) {
-    //                Iterator<String> groupIdIterator = api.getGroups().iterator();
-    //                while (!isDisplayable && groupIdIterator.hasNext()) {
-    //                    String groupId = groupIdIterator.next();
-    //                    member = membershipService.getUserMember(MembershipReferenceType.GROUP, groupId, username);
-    //                    isDisplayable = isDisplayableForMember(member, pageIsPublished);
-    //                }
-    //            } else {
-    //                isDisplayable = isDisplayableForMember(member, pageIsPublished);
-    //            }
-    //        }
-    //        return isDisplayable;
-    //    }
-
-    //
-    //    private boolean isDisplayableForMember(MemberEntity member, boolean pageIsPublished) {
-    //        // if not member => not displayable
-    //        if (member == null) {
-    //            return false;
-    //        }
-    //        // if member && published page => displayable
-    //        if (pageIsPublished) {
-    //            return true;
-    //        }
-    //
-    //        // only members which could modify a page can see an unpublished page
-    //        return roleService.hasPermission(member.getPermissions(), ApiPermission.DOCUMENTATION,
-    //            new RolePermissionAction[]{RolePermissionAction.UPDATE, RolePermissionAction.CREATE,
-    //                RolePermissionAction.DELETE});
-    //    }
 
     @Override
     public PageEntity fetch(final ExecutionContext executionContext, String pageId, String contributor) {
@@ -2335,34 +2455,6 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         updatePageEntity.setParentId("".equals(page.getParentId()) ? null : page.getParentId());
         updatePageEntity.setVisibility(Visibility.valueOf(page.getVisibility()));
         return updatePageEntity;
-    }
-
-    private static Set<AccessControlEntity> convertToEntities(Set<AccessControl> accessControls) {
-        if (accessControls == null) {
-            return emptySet();
-        }
-        return accessControls.stream().map(accessControl -> convert(accessControl)).collect(Collectors.toSet());
-    }
-
-    private static AccessControlEntity convert(AccessControl accessControl) {
-        final AccessControlEntity accessControlEntity = new AccessControlEntity();
-        accessControlEntity.setReferenceId(accessControl.getReferenceId());
-        accessControlEntity.setReferenceType(accessControl.getReferenceType());
-        return accessControlEntity;
-    }
-
-    private static Set<AccessControl> convertACL(Set<AccessControlEntity> accessControlEntities) {
-        if (accessControlEntities == null) {
-            return emptySet();
-        }
-        return accessControlEntities.stream().map(PageServiceImpl::convert).collect(Collectors.toSet());
-    }
-
-    private static AccessControl convert(AccessControlEntity accessControlEntity) {
-        AccessControl accessControl = new AccessControl();
-        accessControl.setReferenceId(accessControlEntity.getReferenceId());
-        accessControl.setReferenceType(accessControlEntity.getReferenceType());
-        return accessControl;
     }
 
     private PageSourceEntity convert(PageSource pageSource) {

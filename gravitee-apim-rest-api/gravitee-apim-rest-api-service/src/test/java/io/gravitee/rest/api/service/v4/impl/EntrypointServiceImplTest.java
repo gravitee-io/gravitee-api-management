@@ -46,7 +46,7 @@ public class EntrypointServiceImplTest {
     private static final String SCHEMA = "my-test-schema";
 
     @InjectMocks
-    private EntrypointServiceImpl entrypointService;
+    private EntrypointPluginServiceImpl entrypointService;
 
     @Mock
     private JsonSchemaService jsonSchemaService;

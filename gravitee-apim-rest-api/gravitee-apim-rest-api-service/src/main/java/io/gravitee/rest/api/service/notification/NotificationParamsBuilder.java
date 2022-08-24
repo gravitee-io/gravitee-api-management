@@ -18,7 +18,8 @@ package io.gravitee.rest.api.service.notification;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,7 +65,12 @@ public class NotificationParamsBuilder {
         return this;
     }
 
-    public NotificationParamsBuilder api(ApiModelEntity api) {
+    public NotificationParamsBuilder api(ApiModel api) {
+        this.params.put(PARAM_API, api);
+        return this;
+    }
+
+    public NotificationParamsBuilder api(GenericApiModel api) {
         this.params.put(PARAM_API, api);
         return this;
     }
@@ -74,7 +80,7 @@ public class NotificationParamsBuilder {
         return this;
     }
 
-    public NotificationParamsBuilder api(IndexableApi api) {
+    public NotificationParamsBuilder api(GenericApiEntity api) {
         this.params.put(PARAM_API, api);
         return this;
     }

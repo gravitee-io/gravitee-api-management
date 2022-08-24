@@ -21,9 +21,9 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ConnectorListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.entrypoint.EntrypointExpandEntity;
+import io.gravitee.rest.api.model.v4.entrypoint.EntrypointExpandPluginEntity;
 import io.gravitee.rest.api.model.v4.entrypoint.EntrypointPluginEntity;
-import io.gravitee.rest.api.service.v4.EntrypointService;
+import io.gravitee.rest.api.service.v4.EntrypointPluginService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -56,7 +56,7 @@ public class EntrypointsResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private EntrypointService entrypointService;
+    private EntrypointPluginService entrypointService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -71,8 +71,8 @@ public class EntrypointsResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public Collection<EntrypointExpandEntity> getEntrypoint(@QueryParam("expand") List<String> expand) {
-        Stream<EntrypointExpandEntity> stream = entrypointService.findAll().stream().map(this::convert);
+    public Collection<EntrypointExpandPluginEntity> getEntrypoint(@QueryParam("expand") List<String> expand) {
+        Stream<EntrypointExpandPluginEntity> stream = entrypointService.findAll().stream().map(this::convert);
 
         if (expand != null && !expand.isEmpty()) {
             for (String s : expand) {
@@ -91,7 +91,7 @@ public class EntrypointsResource {
             }
         }
 
-        return stream.sorted(Comparator.comparing(EntrypointExpandEntity::getName)).collect(Collectors.toList());
+        return stream.sorted(Comparator.comparing(EntrypointExpandPluginEntity::getName)).collect(Collectors.toList());
     }
 
     @Path("{entrypoint}")
@@ -99,8 +99,8 @@ public class EntrypointsResource {
         return resourceContext.getResource(EntrypointResource.class);
     }
 
-    private EntrypointExpandEntity convert(EntrypointPluginEntity entrypointPluginEntity) {
-        EntrypointExpandEntity entrypointExpandEntity = new EntrypointExpandEntity();
+    private EntrypointExpandPluginEntity convert(EntrypointPluginEntity entrypointPluginEntity) {
+        EntrypointExpandPluginEntity entrypointExpandEntity = new EntrypointExpandPluginEntity();
 
         entrypointExpandEntity.setId(entrypointPluginEntity.getId());
         entrypointExpandEntity.setName(entrypointPluginEntity.getName());

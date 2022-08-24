@@ -51,14 +51,13 @@ public class CategoryResourceTest extends AbstractResourceTest {
 
     private static final String CATEGORY_ID = "my-category-id";
     private static final String UNKNOWN_CATEGORY = "unknown";
+    private InlinePictureEntity mockImage;
+    private byte[] apiLogoContent;
 
     @Override
     protected String contextPath() {
         return "categories/";
     }
-
-    private InlinePictureEntity mockImage;
-    private byte[] apiLogoContent;
 
     @Before
     public void init() throws IOException, URISyntaxException {
@@ -68,9 +67,6 @@ public class CategoryResourceTest extends AbstractResourceTest {
         categoryEntity.setId(CATEGORY_ID);
         categoryEntity.setHidden(false);
         doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment());
-
-        Set<ApiEntity> mockApis = new HashSet<>();
-        doReturn(mockApis).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         doReturn(Map.of(CATEGORY_ID, 1L)).when(apiService).countPublishedByUserGroupedByCategories(USER_NAME);
 

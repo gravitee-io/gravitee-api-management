@@ -15,32 +15,66 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.repository.management.model.ApiKey.AuditEvent.*;
-import static io.gravitee.repository.management.model.Audit.AuditProperties.*;
-import static java.util.Comparator.*;
+import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_CREATED;
+import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_EXPIRED;
+import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_REACTIVATED;
+import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_RENEWED;
+import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_REVOKED;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.API_KEY;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
 import static java.util.Comparator.comparing;
+import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.nullsLast;
 import static java.util.Comparator.reverseOrder;
-import static java.util.stream.Collectors.*;
-import static org.apache.commons.lang3.StringUtils.*;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Audit;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.model.v4.api.GenericApiModel;
+import io.gravitee.rest.api.service.ApiKeyGenerator;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyActivatedException;
+import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
+import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExpiredException;
+import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
+import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionClosedException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotActiveException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
+import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +118,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     @Autowired
     private NotifierService notifierService;
+
+    @Autowired
+    private ApiTemplateService apiTemplateService;
 
     @Override
     public ApiKeyEntity generate(
@@ -717,10 +754,16 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         subscriptions.forEach(
             subscription -> {
                 PlanEntity plan = planService.findById(executionContext, subscription.getPlan());
-                ApiModelEntity api = apiService.findByIdForTemplates(executionContext, subscription.getApi());
+                GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, subscription.getApi());
                 PrimaryOwnerEntity owner = application.getPrimaryOwner();
-                Map<String, Object> params = paramsBuilder.application(application).plan(plan).api(api).owner(owner).apikey(key).build();
-                notifierService.trigger(executionContext, apiHook, api.getId(), params);
+                Map<String, Object> params = paramsBuilder
+                    .application(application)
+                    .plan(plan)
+                    .api(genericApiModel)
+                    .owner(owner)
+                    .apikey(key)
+                    .build();
+                notifierService.trigger(executionContext, apiHook, genericApiModel.getId(), params);
             }
         );
     }

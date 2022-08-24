@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.List;
 import java.util.function.Function;
@@ -56,7 +57,7 @@ public class TopApiServiceTest {
     private ParameterService parameterService;
 
     @Mock
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Test
     public void shouldFindAll() {

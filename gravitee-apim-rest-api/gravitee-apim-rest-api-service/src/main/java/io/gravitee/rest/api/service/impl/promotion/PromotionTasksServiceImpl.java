@@ -39,6 +39,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -61,20 +62,20 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
     private final PermissionService permissionService;
     private final ObjectMapper objectMapper;
     private final EnvironmentService environmentService;
-    private final ApiService apiService;
+    private final ApiSearchService apiSearchService;
 
     public PromotionTasksServiceImpl(
         PromotionService promotionService,
         PermissionService permissionService,
         EnvironmentService environmentService,
         ObjectMapper objectMapper,
-        ApiService apiService
+        ApiSearchService apiSearchService
     ) {
         this.promotionService = promotionService;
         this.permissionService = permissionService;
         this.environmentService = environmentService;
         this.objectMapper = objectMapper;
-        this.apiService = apiService;
+        this.apiSearchService = apiSearchService;
     }
 
     @Override
@@ -135,7 +136,7 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
                         .filter(StringUtils::hasText)
                         .findFirst();
 
-                    boolean isUpdate = foundTargetApiId.isPresent() && apiService.exists(foundTargetApiId.get());
+                    boolean isUpdate = foundTargetApiId.isPresent() && apiSearchService.exists(foundTargetApiId.get());
                     return convert(promotionEntity, isUpdate, foundTargetApiId);
                 }
             )

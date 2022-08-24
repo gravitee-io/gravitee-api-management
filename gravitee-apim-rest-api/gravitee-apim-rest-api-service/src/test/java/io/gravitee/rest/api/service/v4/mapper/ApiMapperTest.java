@@ -88,7 +88,8 @@ public class ApiMapperTest {
     @Before
     public void setUp() throws Exception {
         objectMapper = new ObjectMapper();
-        apiMapper = new ApiMapper(objectMapper, planService, flowService, categoryService, parameterService, workflowService);
+        apiMapper =
+            new ApiMapper(objectMapper, planService, flowService, parameterService, workflowService, new CategoryMapper(categoryService));
     }
 
     @Test

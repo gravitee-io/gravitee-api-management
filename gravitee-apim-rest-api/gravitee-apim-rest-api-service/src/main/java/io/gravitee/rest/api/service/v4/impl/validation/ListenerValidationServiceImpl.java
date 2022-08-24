@@ -18,11 +18,10 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
-import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
-import io.gravitee.rest.api.service.v4.EntrypointService;
+import io.gravitee.rest.api.service.v4.EntrypointPluginService;
 import io.gravitee.rest.api.service.v4.exception.ListenerHttpEntrypointMissingException;
 import io.gravitee.rest.api.service.v4.exception.ListenerHttpEntrypointMissingTypeException;
 import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
@@ -47,13 +46,13 @@ import org.springframework.stereotype.Component;
 public class ListenerValidationServiceImpl extends TransactionalService implements ListenerValidationService {
 
     private final PathValidationService pathValidationService;
-    private final EntrypointService entrypointService;
+    private final EntrypointPluginService entrypointService;
     private final CorsValidationService corsValidationService;
     private final LoggingValidationService loggingValidationService;
 
     public ListenerValidationServiceImpl(
         final PathValidationService pathValidationService,
-        final EntrypointService entrypointService,
+        final EntrypointPluginService entrypointService,
         final CorsValidationService corsValidationService,
         final LoggingValidationService loggingValidationService
     ) {
@@ -73,6 +72,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                         case HTTP:
                             // TODO this need to be improved when entrypoint connector are implemented in order to check the configuration schema
                             validateAndSanitizeHttpListener(executionContext, apiId, (ListenerHttp) listener);
+                            break;
                         case TCP:
                         case SUBSCRIPTION:
                         default:
@@ -122,7 +122,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                 }
                 String entrypointConfiguration = null;
                 if (entrypoint.getConfiguration() != null) {
-                    entrypointConfiguration = entrypoint.getConfiguration().toString();
+                    entrypointConfiguration = entrypoint.getConfiguration();
                 }
                 entrypoint.setConfiguration(
                     entrypointService.validateEntrypointConfiguration(entrypoint.getType(), entrypointConfiguration)

@@ -217,10 +217,9 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         ApiEntity api = new ApiEntity();
         api.setId("apiId");
 
-        when(apiService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false)))
+        when(apiAuthorizationServiceV4.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(false)))
             .thenReturn(Collections.singleton(api.getId()));
-        when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(API_ANALYTICS), eq(api.getId()), eq(READ)))
-            .thenReturn(true);
+        when(permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_ANALYTICS, api.getId(), READ)).thenReturn(true);
 
         Response response = envTarget()
             .queryParam("type", "count")

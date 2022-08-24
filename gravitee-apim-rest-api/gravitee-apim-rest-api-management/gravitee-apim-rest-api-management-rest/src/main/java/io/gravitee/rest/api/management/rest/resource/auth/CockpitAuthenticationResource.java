@@ -27,13 +27,12 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.nimbusds.jwt.proc.JWTProcessor;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
@@ -92,7 +91,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     private AuthoritiesProvider authoritiesProvider;
 
     @Autowired
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @PostConstruct
     public void afterPropertiesSet() {
@@ -153,7 +152,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             final String apiCrossId = jwtClaimsSet.getStringClaim(API_CLAIM);
             final String apiId = Optional
                 .ofNullable(apiCrossId)
-                .flatMap(crossId -> this.apiService.findApiIdByEnvironmentIdAndCrossId(environmentId, crossId))
+                .flatMap(crossId -> this.apiSearchService.findIdByEnvironmentIdAndCrossId(environmentId, crossId))
                 .orElse(null);
 
             String url = String.format(

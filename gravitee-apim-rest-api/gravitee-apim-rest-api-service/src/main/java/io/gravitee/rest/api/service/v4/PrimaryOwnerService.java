@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.v4;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -27,4 +29,6 @@ public interface PrimaryOwnerService {
     PrimaryOwnerEntity getPrimaryOwner(ExecutionContext executionContext, String apiId) throws TechnicalManagementException;
 
     PrimaryOwnerEntity getPrimaryOwner(ExecutionContext executionContext, String userId, PrimaryOwnerEntity currentPrimaryOwner);
+
+    Map<String, PrimaryOwnerEntity> getPrimaryOwners(ExecutionContext executionContext, List<String> apiIds);
 }

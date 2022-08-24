@@ -45,6 +45,8 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TicketNotFoundException;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.PortalHook;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -83,7 +85,10 @@ public class TicketServiceTest {
     private MetadataService metadataService;
 
     @Mock
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
+
+    @Mock
+    private ApiTemplateService apiTemplateService;
 
     @Mock
     private ApplicationService applicationService;
@@ -98,7 +103,7 @@ public class TicketServiceTest {
     private UserEntity user;
 
     @Mock
-    private ApiModelEntity api;
+    private ApiModel api;
 
     @Mock
     private ApplicationEntity application;
@@ -182,7 +187,7 @@ public class TicketServiceTest {
         when(userService.findById(GraviteeContext.getExecutionContext(), USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
-        when(apiService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
 
         ticketService.create(GraviteeContext.getExecutionContext(), USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
         verify(mockNotifierService, never())
@@ -204,7 +209,7 @@ public class TicketServiceTest {
 
         when(userService.findById(GraviteeContext.getExecutionContext(), USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
-        when(apiService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
 
         final Map<String, String> metadata = new HashMap<>();
         metadata.put(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY, DefaultMetadataUpgrader.DEFAULT_METADATA_EMAIL_SUPPORT);
@@ -236,7 +241,7 @@ public class TicketServiceTest {
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(user.getFirstname()).thenReturn(USER_FIRSTNAME);
         when(user.getLastname()).thenReturn(USER_LASTNAME);
-        when(apiService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
         when(ticketRepository.create(any())).thenThrow(new TechnicalException());
@@ -269,7 +274,7 @@ public class TicketServiceTest {
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(user.getFirstname()).thenReturn(USER_FIRSTNAME);
         when(user.getLastname()).thenReturn(USER_LASTNAME);
-        when(apiService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
         Ticket ticketToCreate = new Ticket();
@@ -354,7 +359,7 @@ public class TicketServiceTest {
 
         when(ticketRepository.search(any(TicketCriteria.class), any(Sortable.class), any(Pageable.class)))
             .thenReturn(new Page<>(ticketList, 0, 20, 20));
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(appEntity);
 
         TicketQuery query = new TicketQuery();
@@ -421,7 +426,7 @@ public class TicketServiceTest {
         appEntity.setName("appName");
 
         when(ticketRepository.findById("ticket1")).thenReturn(Optional.of(ticket));
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(appEntity);
 
         TicketEntity ticketEntity = ticketService.findById(GraviteeContext.getExecutionContext(), "ticket1");

@@ -27,7 +27,7 @@ import io.gravitee.rest.api.model.command.CommandSearchIndexerEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.model.command.NewCommandEntity;
 import io.gravitee.rest.api.model.search.Indexable;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.PageService;
@@ -41,7 +41,7 @@ import io.gravitee.rest.api.service.impl.search.lucene.SearchEngineIndexer;
 import io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
-import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
@@ -88,7 +88,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
     @Autowired
     @Lazy
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Autowired
     @Lazy
@@ -169,9 +169,9 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
     private Indexable getSource(final ExecutionContext executionContext, String clazz, String id) {
         try {
-            if (ApiEntity.class.getName().equals(clazz)) {
-                IndexableApi indexableApi = apiService.findIndexableApiById(executionContext, id);
-                return apiMetadataService.fetchMetadataForApi(executionContext, indexableApi);
+            if (ApiEntity.class.getName().equals(clazz) || io.gravitee.rest.api.model.v4.api.ApiEntity.class.getName().equals(clazz)) {
+                GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, id);
+                return apiMetadataService.fetchMetadataForApi(executionContext, genericApi);
             } else if (PageEntity.class.getName().equals(clazz) || ApiPageEntity.class.getName().equals(clazz)) {
                 return pageService.findById(id);
             } else if (UserEntity.class.getName().equals(clazz)) {

@@ -19,8 +19,10 @@ import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -49,11 +51,7 @@ public class PermissionsResourceTest extends AbstractResourceTest {
     @Before
     public void init() {
         resetAllMocks();
-
-        ApiEntity mockApi = new ApiEntity();
-        mockApi.setId(API);
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), any());
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
 
         ApplicationListItem mockAppListItem = new ApplicationListItem();
         mockAppListItem.setId(APPLICATION);

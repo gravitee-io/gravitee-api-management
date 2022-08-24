@@ -38,8 +38,7 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
-import io.gravitee.rest.api.model.search.Indexable;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,7 +72,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class ApiEntity implements IndexableApi {
+public class ApiEntity implements GenericApiEntity {
 
     @Schema(description = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     @EqualsAndHashCode.Include

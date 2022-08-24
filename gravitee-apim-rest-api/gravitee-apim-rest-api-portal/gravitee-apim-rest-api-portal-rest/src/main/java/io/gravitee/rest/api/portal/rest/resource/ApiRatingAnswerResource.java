@@ -55,11 +55,8 @@ public class ApiRatingAnswerResource extends AbstractResource {
         @PathParam("ratingId") String ratingId,
         @PathParam("answerId") String answerId
     ) {
-        final ApiQuery apiQuery = new ApiQuery();
-        apiQuery.setIds(Collections.singletonList(apiId));
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(executionContext, getAuthenticatedUserOrNull(), apiQuery);
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             RatingEntity ratingEntity = ratingService.findById(executionContext, ratingId);
             if (ratingEntity != null && ratingEntity.getApi().equals(apiId)) {
                 if (ratingEntity.getAnswers().stream().anyMatch(answer -> answer.getId().equals(answerId))) {

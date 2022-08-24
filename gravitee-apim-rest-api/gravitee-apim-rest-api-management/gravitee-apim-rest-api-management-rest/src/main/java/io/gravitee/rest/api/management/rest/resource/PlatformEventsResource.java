@@ -28,6 +28,7 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -58,9 +59,6 @@ public class PlatformEventsResource extends AbstractResource {
     @Inject
     private EventService eventService;
 
-    @Inject
-    private ApiService apiService;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
@@ -84,11 +82,10 @@ public class PlatformEventsResource extends AbstractResource {
         } else if (!isAdmin()) {
             properties.put(
                 Event.EventProperties.API_ID.getValue(),
-                apiService
-                    .findByUser(executionContext, getAuthenticatedUser(), null, false)
+                apiAuthorizationService
+                    .findIdsByUser(executionContext, getAuthenticatedUser(), false)
                     .stream()
-                    .filter(api -> permissionService.hasPermission(executionContext, API_ANALYTICS, api.getId(), READ))
-                    .map(ApiEntity::getId)
+                    .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
                     .collect(Collectors.joining(","))
             );
         }
@@ -117,9 +114,9 @@ public class PlatformEventsResource extends AbstractResource {
                         // Retrieve additional data
                         String apiId = properties1.get(Event.EventProperties.API_ID.getValue());
                         try {
-                            ApiEntity api = apiService.findById(executionContext, apiId);
-                            properties1.put("api_name", api.getName());
-                            properties1.put("api_version", api.getVersion());
+                            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+                            properties1.put("api_name", genericApiEntity.getName());
+                            properties1.put("api_version", genericApiEntity.getApiVersion());
                         } catch (ApiNotFoundException anfe) {
                             properties1.put("deleted", Boolean.TRUE.toString());
                             properties1.put("api_name", "Deleted API");

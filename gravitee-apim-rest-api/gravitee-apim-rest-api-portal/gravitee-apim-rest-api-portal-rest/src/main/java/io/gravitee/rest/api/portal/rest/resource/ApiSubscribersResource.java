@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
@@ -67,19 +68,15 @@ public class ApiSubscribersResource extends AbstractResource {
         @QueryParam("statuses") List<SubscriptionStatus> statuses
     ) {
         String currentUser = getAuthenticatedUserOrNull();
-        final ApiQuery apiQuery = new ApiQuery();
-        apiQuery.setIds(Collections.singletonList(apiId));
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(executionContext, currentUser, apiQuery);
-        Optional<ApiEntity> optionalApi = userApis.stream().filter(a -> a.getId().equals(apiId)).findFirst();
-        if (optionalApi.isPresent()) {
+        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
             subscriptionQuery.setApi(apiId);
 
             subscriptionQuery.setStatuses(statuses);
 
-            ApiEntity api = optionalApi.get();
-            if (!api.getPrimaryOwner().getId().equals(currentUser)) {
+            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+            if (!genericApiEntity.getPrimaryOwner().getId().equals(currentUser)) {
                 Set<ApplicationListItem> userApplications = this.applicationService.findByUser(executionContext, currentUser);
                 if (userApplications == null || userApplications.isEmpty()) {
                     return createListResponse(executionContext, Collections.emptyList(), paginationParam);

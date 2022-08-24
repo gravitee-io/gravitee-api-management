@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -90,10 +91,10 @@ public class ApiPageResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final ApiEntity apiEntity = apiService.findById(executionContext, api);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api);
 
         if (
-            Visibility.PUBLIC.equals(apiEntity.getVisibility()) ||
+            Visibility.PUBLIC.equals(genericApiEntity.getVisibility()) ||
             hasPermission(executionContext, RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)
         ) {
             PageEntity pageEntity = pageService.findById(page, translated ? acceptedLocale : null);
@@ -108,7 +109,7 @@ public class ApiPageResource extends AbstractResource {
                     pageEntity.getMetadata().clear();
                 }
             }
-            if (isDisplayable(apiEntity, pageEntity)) {
+            if (isDisplayable(genericApiEntity, pageEntity)) {
                 if (pageEntity.getContentType() != null) {
                     String content = pageEntity.getContent();
                     try {
@@ -242,10 +243,10 @@ public class ApiPageResource extends AbstractResource {
         pageService.delete(GraviteeContext.getExecutionContext(), page);
     }
 
-    private boolean isDisplayable(ApiEntity api, PageEntity pageEntity) {
+    private boolean isDisplayable(GenericApiEntity genericApiEntity, PageEntity pageEntity) {
         return (
             (isAuthenticated() && isAdmin()) ||
-            accessControlService.canAccessPageFromConsole(GraviteeContext.getExecutionContext(), api, pageEntity)
+            accessControlService.canAccessPageFromConsole(GraviteeContext.getExecutionContext(), genericApiEntity, pageEntity)
         );
     }
 

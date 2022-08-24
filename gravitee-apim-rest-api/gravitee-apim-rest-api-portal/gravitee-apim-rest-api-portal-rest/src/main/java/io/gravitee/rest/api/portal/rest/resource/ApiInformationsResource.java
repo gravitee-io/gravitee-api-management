@@ -16,20 +16,14 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.portal.rest.model.ApiInformation;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -43,18 +37,12 @@ import javax.ws.rs.core.Response;
  */
 public class ApiInformationsResource extends AbstractResource {
 
-    @Inject
-    private ApiService apiService;
-
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     @RequirePortalAuth
     public Response getApiInformations(@Context Request request, @PathParam("apiId") String apiId) {
-        final ApiQuery apiQuery = new ApiQuery();
-        apiQuery.setIds(Collections.singletonList(apiId));
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(executionContext, getAuthenticatedUserOrNull(), apiQuery);
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             List<ApiHeaderEntity> all = apiService.getPortalHeaders(executionContext, apiId);
             List<ApiInformation> information = all
                 .stream()

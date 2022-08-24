@@ -17,12 +17,20 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
-import static io.gravitee.repository.management.model.Subscription.AuditEvent.*;
+import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_CLOSED;
+import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_CREATED;
+import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_DELETED;
+import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_PAUSED;
+import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_RESUMED;
+import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_UPDATED;
 import static io.gravitee.rest.api.model.ApiKeyMode.EXCLUSIVE;
 import static io.gravitee.rest.api.model.ApiKeyMode.UNSPECIFIED;
 import static io.gravitee.rest.api.model.PlanSecurityType.API_KEY;
 import static java.lang.System.lineSeparator;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -30,9 +38,28 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.ApplicationType;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApiModel;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.PlanValidationType;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.TransferSubscriptionEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
@@ -40,15 +67,54 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiModel;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApplicationConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApplicationArchivedException;
+import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
+import io.gravitee.rest.api.service.exceptions.PlanAlreadySubscribedException;
+import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionAcceptedException;
+import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionRevisionException;
+import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableException;
+import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithSharedApiKeyException;
+import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
+import io.gravitee.rest.api.service.exceptions.PlanOAuth2OrJWTAlreadySubscribedException;
+import io.gravitee.rest.api.service.exceptions.PlanRestrictedException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionAlreadyProcessedException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosedException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotPausableException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotPausedException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotUpdatableException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.TransferNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
-import java.util.*;
+import io.gravitee.rest.api.service.v4.ApiEntrypointService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.ApiTemplateService;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -67,15 +133,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class SubscriptionServiceImpl extends AbstractService implements SubscriptionService {
 
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(SubscriptionServiceImpl.class);
-
     private static final String SUBSCRIPTION_SYSTEM_VALIDATOR = "system";
     private static final String RFC_3339_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private static final FastDateFormat dateFormatter = FastDateFormat.getInstance(RFC_3339_DATE_FORMAT);
     private static final char separator = ';';
+    /**
+     * Logger.
+     */
+    private final Logger logger = LoggerFactory.getLogger(SubscriptionServiceImpl.class);
 
     @Autowired
     private PlanService planService;
@@ -91,7 +156,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     private ApplicationService applicationService;
 
     @Autowired
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Autowired
     private AuditService auditService;
@@ -113,6 +178,12 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Autowired
     private ApplicationConverter applicationConverter;
+
+    @Autowired
+    private ApiEntrypointService apiEntrypointService;
+
+    @Autowired
+    private ApiTemplateService apiTemplateService;
 
     @Override
     public SubscriptionEntity findById(String subscriptionId) {
@@ -225,7 +296,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             if (planEntity.getExcludedGroups() != null && !planEntity.getExcludedGroups().isEmpty()) {
                 final boolean userAuthorizedToAccessApiData = groupService.isUserAuthorizedToAccessApiData(
-                    apiService.findById(executionContext, planEntity.getApi()),
+                    apiSearchService.findGenericById(executionContext, planEntity.getApi()),
                     planEntity.getExcludedGroups(),
                     getAuthenticatedUsername()
                 );
@@ -360,7 +431,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             createAudit(executionContext, apiId, application, SUBSCRIPTION_CREATED, subscription.getCreatedAt(), null, subscription);
 
-            final ApiModelEntity api = apiService.findByIdForTemplates(executionContext, apiId);
+            final GenericApiModel api = apiTemplateService.findByIdForTemplates(executionContext, apiId);
             final PrimaryOwnerEntity apiOwner = api.getPrimaryOwner();
             //final PrimaryOwnerEntity appOwner = applicationEntity.getPrimaryOwner();
 
@@ -563,7 +634,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
 
             final String apiId = plan.getApi();
-            final ApiModelEntity api = apiService.findByIdForTemplates(executionContext, apiId);
+            final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
 
             ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
 
@@ -588,7 +659,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             final Map<String, Object> params = new NotificationParamsBuilder()
                 .owner(owner)
                 .application(application)
-                .api(api)
+                .api(genericApiModel)
                 .plan(plan)
                 .subscription(subscriptionEntity)
                 .build();
@@ -689,11 +760,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
                     final PlanEntity plan = planService.findById(executionContext, subscription.getPlan());
                     String apiId = plan.getApi();
-                    final ApiModelEntity api = apiService.findByIdForTemplates(executionContext, apiId);
+                    final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
                     final PrimaryOwnerEntity owner = application.getPrimaryOwner();
                     final Map<String, Object> params = new NotificationParamsBuilder()
                         .owner(owner)
-                        .api(api)
+                        .api(genericApiModel)
                         .plan(plan)
                         .application(application)
                         .build();
@@ -757,11 +828,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
                 final PlanEntity plan = planService.findById(executionContext, subscription.getPlan());
                 String apiId = plan.getApi();
-                final ApiModelEntity api = apiService.findByIdForTemplates(executionContext, apiId);
+                final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
                 final Map<String, Object> params = new NotificationParamsBuilder()
                     .owner(owner)
-                    .api(api)
+                    .api(genericApiModel)
                     .plan(plan)
                     .application(application)
                     .build();
@@ -824,11 +895,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
                 final PlanEntity plan = planService.findById(executionContext, subscription.getPlan());
                 String apiId = plan.getApi();
-                final ApiModelEntity api = apiService.findByIdForTemplates(executionContext, apiId);
+                final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
                 final Map<String, Object> params = new NotificationParamsBuilder()
                     .owner(owner)
-                    .api(api)
+                    .api(genericApiModel)
                     .plan(plan)
                     .application(application)
                     .build();
@@ -1129,7 +1200,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
             final PlanEntity plan = planService.findById(executionContext, subscription.getPlan());
             final String apiId = plan.getApi();
-            final ApiModelEntity api = apiService.findByIdForTemplates(executionContext, apiId);
+            final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
             createAudit(
                 executionContext,
@@ -1146,7 +1217,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             final Map<String, Object> params = new NotificationParamsBuilder()
                 .owner(owner)
                 .application(application)
-                .api(api)
+                .api(genericApiModel)
                 .plan(plan)
                 .subscription(subscriptionEntity)
                 .build();
@@ -1240,7 +1311,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     public Metadata getMetadata(ExecutionContext executionContext, SubscriptionMetadataQuery query) {
         Metadata metadata = new Metadata();
         Collection<SubscriptionEntity> subscriptions = query.getSubscriptions();
-        String environment = query.getEnvironment();
 
         final Optional<Map<String, ApplicationListItem>> applicationsById = query
             .ifApplications()
@@ -1254,15 +1324,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
             );
 
-        final Optional<Map<String, ApiEntity>> apisById = query
+        final Optional<Map<String, GenericApiEntity>> apisById = query
             .ifApis()
             .map(
                 withApis -> {
                     Set<String> apiIds = subscriptions.stream().map(SubscriptionEntity::getApi).collect(toSet());
-                    return apiService
+                    return apiSearchService
                         .findByEnvironmentAndIdIn(executionContext, apiIds)
                         .stream()
-                        .collect(toMap(ApiEntity::getId, Function.identity()));
+                        .collect(toMap(GenericApiEntity::getId, Function.identity()));
                 }
             );
 
@@ -1325,19 +1395,20 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     private Metadata fillApiMetadata(
         ExecutionContext executionContext,
-        Map<String, ApiEntity> apis,
+        Map<String, GenericApiEntity> apis,
         Metadata metadata,
         SubscriptionEntity subscription,
         SubscriptionMetadataQuery query
     ) {
         if (apis.containsKey(subscription.getApi())) {
-            ApiEntity api = apis.get(subscription.getApi());
+            GenericApiEntity api = apis.get(subscription.getApi());
             metadata.put(api.getId(), "name", api.getName());
             if (query.hasDetails()) {
                 metadata.put(api.getId(), "state", api.getLifecycleState());
-                metadata.put(api.getId(), "version", api.getVersion());
-                apiService.calculateEntrypoints(executionContext, api);
-                metadata.put(api.getId(), "entrypoints", api.getEntrypoints());
+                metadata.put(api.getId(), "version", api.getApiVersion());
+
+                List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, api.getId());
+                metadata.put(api.getId(), "entrypoints", apiEntrypoints);
             }
             query.getApiDelegate().forEach(delegate -> delegate.apply(metadata, api));
         }

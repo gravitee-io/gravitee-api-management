@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -88,6 +89,9 @@ public class PageService_UpdateTest {
 
     @Mock
     private NotificationTemplateService notificationTemplateService;
+
+    @Mock
+    private ApiTemplateService apiTemplateService;
 
     @Before
     public void setUp() {

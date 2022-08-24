@@ -26,7 +26,7 @@ import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Ticket;
-import io.gravitee.rest.api.model.ApiModelEntity;
+import io.gravitee.rest.api.model.ApiModel;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.MetadataEntity;
 import io.gravitee.rest.api.model.NewTicketEntity;
@@ -38,6 +38,8 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.EmailService;
@@ -58,6 +60,8 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.notification.PortalHook;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -86,7 +90,10 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     private MetadataService metadataService;
 
     @Inject
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
+
+    @Inject
+    private ApiTemplateService apiTemplateService;
 
     @Inject
     private ApplicationService applicationService;
@@ -134,7 +141,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
             parameters.put("user", user);
 
             final String emailTo;
-            final ApiModelEntity api;
+            final GenericApiModel api;
             final ApplicationEntity applicationEntity;
             if (ticketEntity.getApi() == null || ticketEntity.getApi().isEmpty()) {
                 api = null;
@@ -144,7 +151,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
                 }
                 emailTo = emailMetadata.getValue();
             } else {
-                api = apiService.findByIdForTemplates(executionContext, ticketEntity.getApi(), true);
+                api = apiTemplateService.findByIdForTemplates(executionContext, ticketEntity.getApi(), true);
                 final String apiMetadataEmailSupport = api.getMetadata().get(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY);
                 if (apiMetadataEmailSupport == null) {
                     throw new IllegalStateException("The support email API metadata has not been found");
@@ -240,21 +247,21 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     private void sendUserNotification(
         ExecutionContext executionContext,
         final UserEntity user,
-        final ApiModelEntity api,
+        final GenericApiModel genericApiModel,
         final ApplicationEntity application
     ) {
         notifierService.trigger(
             executionContext,
             PortalHook.NEW_SUPPORT_TICKET,
-            new NotificationParamsBuilder().user(user).api(api).application(application).build()
+            new NotificationParamsBuilder().user(user).api(genericApiModel).application(application).build()
         );
 
-        if (api != null) {
+        if (genericApiModel != null) {
             notifierService.trigger(
                 executionContext,
                 ApiHook.NEW_SUPPORT_TICKET,
-                api.getId(),
-                new NotificationParamsBuilder().user(user).api(api).application(application).build()
+                genericApiModel.getId(),
+                new NotificationParamsBuilder().user(user).api(genericApiModel).application(application).build()
             );
         }
 
@@ -263,7 +270,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
                 executionContext,
                 ApplicationHook.NEW_SUPPORT_TICKET,
                 application.getId(),
-                new NotificationParamsBuilder().user(user).api(api).application(application).build()
+                new NotificationParamsBuilder().user(user).api(genericApiModel).application(application).build()
             );
         }
     }
@@ -308,7 +315,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
 
         //Retrieve api name
         if (StringUtils.isNotEmpty(ticket.getApi())) {
-            ApiEntity api = apiService.findById(executionContext, ticket.getApi());
+            GenericApiEntity api = apiSearchService.findGenericById(executionContext, ticket.getApi());
             ticket.setApi(api.getName());
         }
 

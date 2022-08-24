@@ -55,19 +55,13 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
     @Before
     public void init() throws IOException {
         resetAllMocks();
-
-        ApiEntity mockApi = new ApiEntity();
-        mockApi.setId(API);
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis)
-            .when(apiService)
-            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
 
         RatingEntity rating1 = new RatingEntity();
         RatingEntity rating2 = new RatingEntity();
 
         List<RatingEntity> ratingEntityPage = Arrays.asList(rating1, rating2);
-        doReturn(ratingEntityPage).when(ratingService).findByApi(eq(GraviteeContext.getExecutionContext()), eq(API));
+        doReturn(ratingEntityPage).when(ratingService).findByApi(GraviteeContext.getExecutionContext(), API);
 
         Rating rating = new Rating();
         rating.setId(RATING);
@@ -87,11 +81,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotFoundWhileGettingApiRatings() {
         //init
-        ApiEntity userApi = new ApiEntity();
-        userApi.setId("1");
-        doReturn(emptySet())
-            .when(apiService)
-            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
 
         //test
         final Response response = target(API).path("ratings").request().get();
@@ -171,11 +161,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotFoundWhileCreatingApiRatings() {
         //init
-        ApiEntity userApi = new ApiEntity();
-        userApi.setId("1");
-        doReturn(emptySet())
-            .when(apiService)
-            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
 
         //test
         RatingInput ratingInput = new RatingInput().comment(RATING).value(1);
@@ -200,8 +186,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         //init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any());
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), userApi.getId())).thenReturn(true);
 
         //test
 

@@ -48,14 +48,13 @@ import org.junit.Test;
 public class ApiPlansResourceTest extends AbstractResourceTest {
 
     private static final String API = "my-api";
+    protected PlanEntity plan1;
+    protected PlanEntity plan2;
+    protected PlanEntity planWrongStatus;
 
     protected String contextPath() {
         return "apis/";
     }
-
-    protected PlanEntity plan1;
-    protected PlanEntity plan2;
-    protected PlanEntity planWrongStatus;
 
     @Before
     public void init() throws IOException {
@@ -65,10 +64,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         mockApi.setId(API);
         mockApi.setVisibility(Visibility.PUBLIC);
         doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis)
-            .when(apiService)
-            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
 
         plan1 = new PlanEntity();
         plan1.setId("A");
@@ -100,9 +96,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         //init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        doReturn(emptySet())
-            .when(apiService)
-            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
 
         //test
         final Response response = target(API).path("plans").request().get();
@@ -193,14 +187,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyListPrivateAPIAndNoReadPermission() {
-        doReturn(false).when(permissionService).hasPermission(any(), any(), any());
+        when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setVisibility(Visibility.PRIVATE);
         doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any());
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
 
         final Response response = target(API).path("plans").request().get();
         assertEquals(OK_200, response.getStatus());

@@ -38,7 +38,7 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
-import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,7 +63,7 @@ public class PromotionTasksServiceImplTest {
     private EnvironmentService environmentService;
 
     @Mock
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -72,7 +72,7 @@ public class PromotionTasksServiceImplTest {
 
     @Before
     public void setUp() {
-        cut = new PromotionTasksServiceImpl(promotionService, permissionService, environmentService, objectMapper, apiService);
+        cut = new PromotionTasksServiceImpl(promotionService, permissionService, environmentService, objectMapper, apiSearchService);
     }
 
     @Test
@@ -172,7 +172,7 @@ public class PromotionTasksServiceImplTest {
 
         when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
 
-        when(apiService.exists("api#target")).thenReturn(true);
+        when(apiSearchService.exists("api#target")).thenReturn(true);
 
         final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).hasSize(1);
@@ -287,7 +287,7 @@ public class PromotionTasksServiceImplTest {
             .thenReturn(false);
         when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
 
-        when(apiService.exists("api#target")).thenReturn(false);
+        when(apiSearchService.exists("api#target")).thenReturn(false);
 
         final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).hasSize(1);
@@ -348,7 +348,7 @@ public class PromotionTasksServiceImplTest {
         when(objectMapper.readValue(promotionEntity1.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
         when(objectMapper.readValue(promotionEntity2.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
 
-        when(apiService.exists("api#target")).thenReturn(true);
+        when(apiSearchService.exists("api#target")).thenReturn(true);
 
         final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).hasSize(2);

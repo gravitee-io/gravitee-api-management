@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.Visibility;
@@ -38,6 +39,13 @@ import org.junit.Test;
  */
 public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
 
+    private static final String API = "my-api";
+    private static final String PAGE = "my-page";
+    private static final String ANOTHER_PAGE = "another-page";
+    private ApiEntity mockApi;
+    private PageEntity mockPage;
+    private PageEntity mockAnotherPage;
+
     @Override
     protected String contextPath() {
         return "apis/";
@@ -48,14 +56,6 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
         resourceConfig.register(NotAuthenticatedAuthenticationFilter.class);
     }
 
-    private static final String API = "my-api";
-    private static final String PAGE = "my-page";
-    private static final String ANOTHER_PAGE = "another-page";
-
-    private ApiEntity mockApi;
-    private PageEntity mockPage;
-    private PageEntity mockAnotherPage;
-
     @Before
     public void init() {
         resetAllMocks();
@@ -63,10 +63,7 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
         mockApi = new ApiEntity();
         mockApi.setId(API);
         doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis)
-            .when(apiService)
-            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), isNull(), argThat(q -> singletonList(API).equals(q.getIds())));
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
 
         mockPage = new PageEntity();
         mockPage.setPublished(true);
@@ -86,10 +83,8 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveMetadataCleared() {
-        doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
-        doReturn(true)
-            .when(accessControlService)
-            .canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), eq(API), any(PageEntity.class));
+        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), eq(API), any(PageEntity.class)))
+            .thenReturn(true);
 
         Response anotherResponse = target(API).path("pages").path(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, anotherResponse.getStatus());

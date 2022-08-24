@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.notification.PortalHook;
+import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -83,7 +85,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     EmailService emailService;
 
     @Autowired
-    ApiService apiService;
+    ApiTemplateService apiTemplateService;
 
     @Autowired
     ApplicationService applicationService;
@@ -98,10 +100,10 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     HttpClientService httpClientService;
 
     @Autowired
-    private NotificationTemplateService notificationTemplateService;
+    SubscriptionService subscriptionService;
 
     @Autowired
-    SubscriptionService subscriptionService;
+    private NotificationTemplateService notificationTemplateService;
 
     @Value("${notifiers.webhook.enabled:true}")
     private boolean httpEnabled;
@@ -122,10 +124,6 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             httpWhitelist.add(whitelistUrl);
             i++;
         }
-    }
-
-    public enum MessageEvent implements Audit.AuditEvent {
-        MESSAGE_SENT,
     }
 
     @Override
@@ -393,9 +391,9 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             return message.getText();
         }
 
-        ApiModelEntity apiEntity = apiService.findByIdForTemplates(executionContext, api.getId());
+        GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, api.getId());
         Map<String, Object> model = new HashMap<>();
-        model.put("api", apiEntity);
+        model.put("api", genericApiModel);
 
         return this.notificationTemplateService.resolveInlineTemplateWithParam(
                 organizationId,
@@ -403,5 +401,9 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                 message.getText(),
                 model
             );
+    }
+
+    public enum MessageEvent implements Audit.AuditEvent {
+        MESSAGE_SENT,
     }
 }

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl.swagger.transformer.entrypoints;
 
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.service.impl.swagger.SwaggerProperties;
 import io.gravitee.rest.api.service.impl.swagger.transformer.page.AbstractPageConfigurationSwaggerTransformer;
@@ -36,10 +35,10 @@ public class EntrypointsOAITransformer extends AbstractPageConfigurationSwaggerT
     private final List<ApiEntrypointEntity> entrypoints;
     private final String contextPath;
 
-    public EntrypointsOAITransformer(final PageEntity page, final ApiEntity api) {
+    public EntrypointsOAITransformer(final PageEntity page, final List<ApiEntrypointEntity> entrypoints, final String contextPath) {
         super(page);
-        this.entrypoints = api.getEntrypoints();
-        contextPath = api.getContextPath();
+        this.entrypoints = entrypoints;
+        this.contextPath = contextPath;
     }
 
     @Override

@@ -24,6 +24,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -32,8 +33,11 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.impl.PrimaryOwnerServiceImpl;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Test;
@@ -61,31 +65,19 @@ public class ApiService_DeleteTagsTest {
     AuditService auditService;
 
     @Mock
-    RoleService roleService;
-
-    @Mock
-    MembershipService membershipService;
-
-    @Mock
     CategoryService categoryService;
 
     @Mock
     ApiConverter apiConverter;
 
     @Mock
-    PlanService planService;
-
-    @Mock
-    FlowService flowService;
-
-    @Mock
-    ParameterService parameterService;
-
-    @Mock
     ApiNotificationService apiNotificationService;
 
     @Mock
     ObjectMapper objectMapper;
+
+    @Mock
+    PrimaryOwnerService primaryOwnerService;
 
     @Test
     public void shouldDeleteTags() throws TechnicalException, JsonProcessingException {
@@ -109,11 +101,8 @@ public class ApiService_DeleteTagsTest {
         when(apiRepository.search(any())).thenReturn(List.of(api));
         when(apiRepository.findById(any())).thenReturn(Optional.of(api));
 
-        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any(RoleScope.class))).thenReturn(new RoleEntity());
-        when(membershipService.getMembersByReferencesAndRole(any(), any(), anyList(), any())).thenReturn(Set.of(new MemberEntity()));
-
-        when(apiConverter.toApiEntity(any(), any())).thenReturn(apiEntity);
-        when(apiConverter.toApiEntity(any(), any())).thenReturn(apiEntity);
+        when(primaryOwnerService.getPrimaryOwners(any(), anyList())).thenReturn(Map.of(api.getId(), new PrimaryOwnerEntity()));
+        when(apiConverter.toApiEntity(any(), any(), any(), any(), anyBoolean())).thenReturn(apiEntity);
 
         when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
         when(objectMapper.writeValueAsString(any())).thenReturn("{}");

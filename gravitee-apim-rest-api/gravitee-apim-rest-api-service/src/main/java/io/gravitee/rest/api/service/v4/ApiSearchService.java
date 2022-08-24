@@ -15,20 +15,27 @@
  */
 package io.gravitee.rest.api.service.v4;
 
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.ConnectorMode;
-import io.gravitee.rest.api.model.v4.entrypoint.EntrypointPluginEntity;
-import io.gravitee.rest.api.service.PluginService;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Optional;
 import java.util.Set;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EntrypointService extends PluginService<EntrypointPluginEntity> {
-    Set<EntrypointPluginEntity> findBySupportedApi(final ApiType apiType);
+public interface ApiSearchService {
+    ApiEntity findById(ExecutionContext executionContext, String apiId);
 
-    Set<EntrypointPluginEntity> findByConnectorMode(final ConnectorMode connectorMode);
+    GenericApiEntity findGenericById(final ExecutionContext executionContext, final String apiId);
 
-    String validateEntrypointConfiguration(final String type, final String configuration);
+    Api findRepositoryApiById(ExecutionContext executionContext, String apiId);
+
+    Optional<String> findIdByEnvironmentIdAndCrossId(final String environment, final String crossId);
+
+    boolean exists(final String apiId);
+
+    Set<GenericApiEntity> findByEnvironmentAndIdIn(ExecutionContext executionContext, Set<String> apiIds);
 }

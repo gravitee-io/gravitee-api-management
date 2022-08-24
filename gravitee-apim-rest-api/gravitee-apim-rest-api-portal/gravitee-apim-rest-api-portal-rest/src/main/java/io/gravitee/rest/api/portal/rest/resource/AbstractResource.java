@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
@@ -31,6 +32,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -87,6 +89,12 @@ public abstract class AbstractResource<T, K> {
 
     @Inject
     protected ApiService apiService;
+
+    @Inject
+    protected ApiSearchService apiSearchService;
+
+    @Inject
+    protected AccessControlService accessControlService;
 
     protected String getAuthenticatedUser() {
         return securityContext.getUserPrincipal().getName();

@@ -27,7 +27,6 @@ import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
 
 /**
@@ -41,8 +40,6 @@ public interface ApiService {
     Optional<ApiEntity> findByEnvironmentIdAndCrossId(String environment, String crossId);
 
     Set<ApiEntity> findAllByEnvironment(ExecutionContext executionContext);
-
-    Set<ApiEntity> findByEnvironmentAndIdIn(ExecutionContext executionContext, Set<String> ids);
 
     default Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext) {
         return findAllLightByEnvironment(executionContext, true);
@@ -62,30 +59,6 @@ public interface ApiService {
     );
 
     Set<ApiEntity> findByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal);
-
-    Page<ApiEntity> findPublishedByUser(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQuery apiQuery,
-        Sortable sortable,
-        Pageable pageable
-    );
-
-    Set<ApiEntity> findPublishedByUser(ExecutionContext executionContext, String userId);
-
-    default Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal) {
-        return findIdsByUser(executionContext, userId, apiQuery, null, portal);
-    }
-
-    Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, Sortable sortable, boolean portal);
-
-    Set<ApiEntity> findPublishedByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery);
-
-    Set<String> findPublishedIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery);
-
-    default Set<String> findPublishedIdsByUser(ExecutionContext executionContext, String userId) {
-        return findPublishedIdsByUser(executionContext, userId, null);
-    }
 
     Set<ApiEntity> findByVisibility(ExecutionContext executionContext, Visibility visibility);
 
@@ -144,12 +117,6 @@ public interface ApiService {
 
     void deleteTagFromAPIs(ExecutionContext executionContext, String tagId);
 
-    ApiModelEntity findByIdForTemplates(ExecutionContext executionContext, String apiId, boolean decodeTemplate);
-
-    default ApiModelEntity findByIdForTemplates(ExecutionContext executionContext, String apiId) {
-        return findByIdForTemplates(executionContext, apiId, false);
-    }
-
     ApiEntity importPathMappingsFromPage(
         ExecutionContext executionContext,
         ApiEntity apiEntity,
@@ -193,13 +160,9 @@ public interface ApiService {
 
     boolean hasHealthCheckEnabled(ApiEntity api, boolean mustBeEnabledOnAllEndpoints);
 
-    boolean canManageApi(RoleEntity role);
-
     void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, Set<PlanEntity> plans);
 
     Map<String, Long> countPublishedByUserGroupedByCategories(String userId);
-
-    void calculateEntrypoints(ExecutionContext executionContext, ApiEntity api);
 
     Map<String, Object> findByIdAsMap(String api) throws TechnicalException;
 }

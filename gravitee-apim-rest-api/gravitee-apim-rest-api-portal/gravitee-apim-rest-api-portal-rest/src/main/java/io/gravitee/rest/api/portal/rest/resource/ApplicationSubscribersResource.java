@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -58,6 +59,9 @@ public class ApplicationSubscribersResource extends AbstractResource {
     @Inject
     private ApplicationService applicationService;
 
+    @Inject
+    private ApiAuthorizationService apiAuthorizationService;
+
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getSubscriberApisByApplicationId(
@@ -80,11 +84,11 @@ public class ApplicationSubscribersResource extends AbstractResource {
 
             ApplicationListItem application = optionalApplication.get();
             if (!application.getPrimaryOwner().getId().equals(currentUser)) {
-                Set<ApiEntity> userApis = this.apiService.findPublishedByUser(executionContext, currentUser);
+                Set<String> userApis = this.apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, currentUser);
                 if (userApis == null || userApis.isEmpty()) {
                     return createListResponse(executionContext, Collections.emptyList(), paginationParam);
                 }
-                subscriptionQuery.setApis(userApis.stream().map(ApiEntity::getId).collect(Collectors.toList()));
+                subscriptionQuery.setApis(userApis);
             }
 
             Map<String, Long> nbHitsByApp = getNbHitsByApplication(applicationId);
@@ -94,7 +98,7 @@ public class ApplicationSubscribersResource extends AbstractResource {
                 .stream()
                 .map(SubscriptionEntity::getApi)
                 .distinct()
-                .map(api -> apiService.findById(executionContext, api))
+                .map(api -> apiSearchService.findGenericById(executionContext, api))
                 .map(api1 -> apiMapper.convert(executionContext, api1))
                 .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
                 .collect(Collectors.toList());

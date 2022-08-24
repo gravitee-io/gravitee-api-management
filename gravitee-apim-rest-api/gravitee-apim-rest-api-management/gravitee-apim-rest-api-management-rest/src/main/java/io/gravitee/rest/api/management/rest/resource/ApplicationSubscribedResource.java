@@ -53,9 +53,6 @@ public class ApplicationSubscribedResource extends AbstractResource {
     @Inject
     private SubscriptionService subscriptionService;
 
-    @Inject
-    private ApiService apiService;
-
     @Context
     private ResourceContext resourceContext;
 
@@ -90,7 +87,7 @@ public class ApplicationSubscribedResource extends AbstractResource {
             .stream()
             .map(SubscriptionEntity::getApi)
             .distinct()
-            .map(api -> apiService.findById(executionContext, api))
+            .map(api -> apiSearchService.findGenericById(executionContext, api))
             .map(apiEntity -> new SubscribedApi(apiEntity.getId(), apiEntity.getName()))
             .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
             .collect(Collectors.toList());

@@ -71,12 +71,6 @@ public class SubscriptionsResource extends AbstractResource {
     private ApplicationService applicationService;
 
     @Inject
-    private PlanService planService;
-
-    @Inject
-    private UserService userService;
-
-    @Inject
     private ApiKeyService apiKeyService;
 
     @Inject

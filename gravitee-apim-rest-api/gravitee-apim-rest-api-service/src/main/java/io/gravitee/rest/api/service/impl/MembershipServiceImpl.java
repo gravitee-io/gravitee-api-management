@@ -47,7 +47,7 @@ import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.providers.User;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ApplicationAlertService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
@@ -64,7 +64,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
-import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -110,7 +110,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private ApplicationAlertService applicationAlertService;
 
     @Autowired
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Autowired
     private ApiGroupService apiGroupService;
@@ -264,7 +264,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                             final GroupEntity group = groupService.findById(executionContext, reference.getId());
                             shouldNotify = !group.isDisableMembershipNotifications();
                         } else if (MembershipReferenceType.API.equals(reference.getType())) {
-                            final IndexableApi api = apiService.findIndexableApiById(executionContext, reference.getId());
+                            final GenericApiEntity api = apiSearchService.findGenericById(executionContext, reference.getId());
                             shouldNotify = !api.isDisableMembershipNotifications();
                         } else if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
                             final ApplicationEntity application = applicationService.findById(executionContext, reference.getId());
@@ -376,7 +376,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 params = paramsBuilder.application(applicationEntity).user(user).build();
                 break;
             case API:
-                IndexableApi indexableApi = apiService.findIndexableApiById(executionContext, referenceId);
+                GenericApiEntity indexableApi = apiSearchService.findGenericById(executionContext, referenceId);
                 template = EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_API_MEMBER_SUBSCRIPTION;
                 params = paramsBuilder.api(indexableApi).user(user).build();
                 break;
@@ -1313,7 +1313,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             Set<String> entityGroups = new HashSet<>();
             switch (referenceType) {
                 case API:
-                    entityGroups = apiService.findIndexableApiById(executionContext, referenceId).getGroups();
+                    entityGroups = apiSearchService.findGenericById(executionContext, referenceId).getGroups();
                     break;
                 case APPLICATION:
                     entityGroups = applicationService.findById(executionContext, referenceId).getGroups();
@@ -1452,7 +1452,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, ApiEntity api, String userId) {
+    public Map<String, char[]> getUserMemberPermissions(ExecutionContext executionContext, GenericApiEntity api, String userId) {
         return getUserMemberPermissions(executionContext, MembershipReferenceType.API, api.getId(), userId);
     }
 

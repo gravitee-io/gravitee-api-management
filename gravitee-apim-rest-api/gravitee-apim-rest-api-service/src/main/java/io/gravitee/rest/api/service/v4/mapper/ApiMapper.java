@@ -39,7 +39,6 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -49,7 +48,11 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -65,24 +68,24 @@ public class ApiMapper {
     private final ObjectMapper objectMapper;
     private final PlanService planService;
     private final FlowService flowService;
-    private final CategoryService categoryService;
     private final ParameterService parameterService;
     private final WorkflowService workflowService;
+    private final CategoryMapper categoryMapper;
 
     public ApiMapper(
         final ObjectMapper objectMapper,
         final PlanService planService,
         final FlowService flowService,
-        final CategoryService categoryService,
         final ParameterService parameterService,
-        final WorkflowService workflowService
+        final WorkflowService workflowService,
+        final CategoryMapper categoryMapper
     ) {
         this.objectMapper = objectMapper;
         this.planService = planService;
         this.flowService = flowService;
-        this.categoryService = categoryService;
         this.parameterService = parameterService;
         this.workflowService = workflowService;
+        this.categoryMapper = categoryMapper;
     }
 
     public ApiEntity toEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
@@ -163,19 +166,7 @@ public class ApiMapper {
             apiEntity.setFlows(flows);
         }
 
-        // TODO: extract calls to external service from convert method
-        final Set<String> apiCategories = api.getCategories();
-        if (apiCategories != null) {
-            if (categories == null) {
-                categories = categoryService.findAll(executionContext.getEnvironmentId());
-            }
-            final Set<String> newApiCategories = new HashSet<>(apiCategories.size());
-            for (final String apiView : apiCategories) {
-                final Optional<CategoryEntity> optionalView = categories.stream().filter(c -> apiView.equals(c.getId())).findAny();
-                optionalView.ifPresent(category -> newApiCategories.add(category.getKey()));
-            }
-            apiEntity.setCategories(newApiCategories);
-        }
+        apiEntity.setCategories(categoryMapper.toIdentifier(executionContext, api.getCategories(), categories));
 
         if (
             parameterService.findAsBoolean(
@@ -264,19 +255,7 @@ public class ApiMapper {
         repoApi.setDefinitionVersion(updateApiEntity.getDefinitionVersion());
         repoApi.setDefinition(toApiDefinition(updateApiEntity));
 
-        final Set<String> apiCategories = updateApiEntity.getCategories();
-        if (apiCategories != null) {
-            final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
-            final Set<String> newApiCategories = new HashSet<>(apiCategories.size());
-            for (final String apiCategory : apiCategories) {
-                final Optional<CategoryEntity> optionalCategory = categories
-                    .stream()
-                    .filter(c -> apiCategory.equals(c.getKey()) || apiCategory.equals(c.getId()))
-                    .findAny();
-                optionalCategory.ifPresent(category -> newApiCategories.add(category.getId()));
-            }
-            repoApi.setCategories(newApiCategories);
-        }
+        repoApi.setCategories(categoryMapper.toIdentifier(executionContext, updateApiEntity.getCategories(), null));
 
         if (updateApiEntity.getLabels() != null) {
             repoApi.setLabels(new ArrayList<>(new HashSet<>(updateApiEntity.getLabels())));

@@ -33,7 +33,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,7 +64,7 @@ public class MembershipService_GetMemberPermissionsTest {
     private UserService userService;
 
     @Mock
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Mock
     private RoleService roleService;
@@ -74,7 +74,7 @@ public class MembershipService_GetMemberPermissionsTest {
         ApiEntity api = mock(ApiEntity.class);
         doReturn(API_ID).when(api).getId();
         doReturn(Collections.emptySet()).when(api).getGroups();
-        doReturn(api).when(apiService).findIndexableApiById(GraviteeContext.getExecutionContext(), API_ID);
+        doReturn(api).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
 
         doReturn(Collections.emptySet())
             .when(membershipRepository)
@@ -96,7 +96,7 @@ public class MembershipService_GetMemberPermissionsTest {
                 MembershipReferenceType.API,
                 API_ID
             );
-        verify(apiService, times(1)).findIndexableApiById(GraviteeContext.getExecutionContext(), API_ID);
+        verify(apiSearchService, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
     }
 
     @Test
@@ -104,7 +104,7 @@ public class MembershipService_GetMemberPermissionsTest {
         ApiEntity api = mock(ApiEntity.class);
         doReturn(API_ID).when(api).getId();
         doReturn(Collections.emptySet()).when(api).getGroups();
-        when(apiService.findIndexableApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
 
         Membership membership = mock(Membership.class);
         doReturn("API_" + ROLENAME).when(membership).getRoleId();
@@ -147,7 +147,7 @@ public class MembershipService_GetMemberPermissionsTest {
                 MembershipReferenceType.GROUP,
                 GROUP_ID1
             );
-        verify(apiService, times(1)).findIndexableApiById(GraviteeContext.getExecutionContext(), API_ID);
+        verify(apiSearchService, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
         verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USERNAME);
         verify(roleService, times(1)).findById("API_" + ROLENAME);
     }
@@ -157,7 +157,7 @@ public class MembershipService_GetMemberPermissionsTest {
         ApiEntity api = mock(ApiEntity.class);
         doReturn(API_ID).when(api).getId();
         doReturn(Collections.singleton(GROUP_ID1)).when(api).getGroups();
-        when(apiService.findIndexableApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
 
         doReturn(Collections.emptySet())
             .when(membershipRepository)
@@ -210,7 +210,7 @@ public class MembershipService_GetMemberPermissionsTest {
                 MembershipReferenceType.GROUP,
                 GROUP_ID1
             );
-        verify(apiService, times(1)).findIndexableApiById(GraviteeContext.getExecutionContext(), API_ID);
+        verify(apiSearchService, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
         verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USERNAME);
         verify(roleService, times(1)).findById("API_" + ROLENAME);
     }
@@ -220,7 +220,7 @@ public class MembershipService_GetMemberPermissionsTest {
         ApiEntity api = mock(ApiEntity.class);
         doReturn(API_ID).when(api).getId();
         doReturn(Collections.singleton(GROUP_ID1)).when(api).getGroups();
-        when(apiService.findIndexableApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
 
         Membership membershipUser = mock(Membership.class);
         doReturn("API_" + ROLENAME).when(membershipUser).getRoleId();
@@ -296,7 +296,7 @@ public class MembershipService_GetMemberPermissionsTest {
                 MembershipReferenceType.GROUP,
                 GROUP_ID1
             );
-        verify(apiService, times(1)).findIndexableApiById(GraviteeContext.getExecutionContext(), API_ID);
+        verify(apiSearchService, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
         verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USERNAME);
         verify(roleService, times(1)).findById("API_" + ROLENAME);
         verify(roleService, times(1)).findById("API_" + ROLENAME2);

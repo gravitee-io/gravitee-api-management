@@ -28,6 +28,9 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.filtering.FilteringService;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiEntrypointService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
@@ -56,97 +59,20 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class)
 public abstract class AbstractResourceTest extends JerseySpringTest {
 
-    protected void resetAllMocks() {
-        reset(apiService);
-        reset(applicationService);
-        reset(policyService);
-        reset(userService);
-        reset(fetcherService);
-        reset(swaggerService);
-        reset(membershipService);
-        reset(roleService);
-        reset(pageService);
-        reset(groupService);
-        reset(ratingService);
-        reset(permissionService);
-        reset(notifierService);
-        reset(qualityMetricsService);
-        reset(messageService);
-        reset(socialIdentityProviderService);
-        reset(tagService);
-        reset(parameterService);
-        reset(metadataService);
-        reset(planService);
-        reset(subscriptionService);
-        reset(entrypointService);
-        reset(apiKeyService);
-        reset(taskService);
-        reset(logsService);
-        reset(analyticsService);
-        reset(portalNotificationConfigService);
-        reset(portalNotificationService);
-        reset(genericNotificationConfigService);
-        reset(topApiService);
-        reset(categoryService);
-        reset(ticketService);
-        reset(configService);
-        reset(authenticationProvider);
-        reset(cookieGenerator);
-        reset(apiMapper);
-        reset(pageMapper);
-        reset(planMapper);
-        reset(ratingMapper);
-        reset(subscriptionMapper);
-        reset(keyMapper);
-        reset(subscriptionMapper);
-        reset(applicationMapper);
-        reset(memberMapper);
-        reset(userMapper);
-        reset(logMapper);
-        reset(analyticsMapper);
-        reset(portalNotificationMapper);
-        reset(categoryMapper);
-        reset(ticketMapper);
-        reset(configMapper);
-        reset(identityProviderMapper);
-        reset(healthCheckService);
-        reset(applicationTypeService);
-        reset(identityService);
-        reset(filteringService);
-        reset(applicationMetadataService);
-        reset(referenceMetadataMapper);
-        reset(customUserFieldService);
-        reset(identityProviderActivationService);
-        reset(authenticationProvider);
-        reset(environmentService);
-        reset(accessControlService);
-    }
-
-    public AbstractResourceTest() {
-        super(
-            new AuthenticationProviderManager() {
-                @Override
-                public List<AuthenticationProvider> getIdentityProviders() {
-                    return Collections.emptyList();
-                }
-
-                @Override
-                public Optional<AuthenticationProvider> findIdentityProviderByType(String type) {
-                    return Optional.empty();
-                }
-            }
-        );
-    }
-
-    public AbstractResourceTest(AuthenticationProviderManager authenticationProviderManager) {
-        super(authenticationProviderManager);
-    }
-
     @Autowired
     protected CustomUserFieldService customUserFieldService;
 
     @Autowired
     protected ApiService apiService;
+
+    @Autowired
+    protected ApiSearchService apiSearchService;
+
+    @Autowired
+    protected ApiEntrypointService apiEntrypointService;
+
+    @Autowired
+    protected ApiAuthorizationService apiAuthorizationService;
 
     @Autowired
     protected ApplicationService applicationService;
@@ -321,13 +247,102 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected IdentityProviderActivationService identityProviderActivationService;
 
     @Autowired
-    private AuthoritiesProvider authoritiesProvider;
-
-    @Autowired
     protected EnvironmentService environmentService;
 
     @Autowired
     protected AccessControlService accessControlService;
+
+    @Autowired
+    private AuthoritiesProvider authoritiesProvider;
+
+    public AbstractResourceTest() {
+        super(
+            new AuthenticationProviderManager() {
+                @Override
+                public List<AuthenticationProvider> getIdentityProviders() {
+                    return Collections.emptyList();
+                }
+
+                @Override
+                public Optional<AuthenticationProvider> findIdentityProviderByType(String type) {
+                    return Optional.empty();
+                }
+            }
+        );
+    }
+
+    public AbstractResourceTest(AuthenticationProviderManager authenticationProviderManager) {
+        super(authenticationProviderManager);
+    }
+
+    protected void resetAllMocks() {
+        reset(apiService);
+        reset(apiSearchService);
+        reset(apiAuthorizationService);
+        reset(apiEntrypointService);
+        reset(applicationService);
+        reset(policyService);
+        reset(userService);
+        reset(fetcherService);
+        reset(swaggerService);
+        reset(membershipService);
+        reset(roleService);
+        reset(pageService);
+        reset(groupService);
+        reset(ratingService);
+        reset(permissionService);
+        reset(notifierService);
+        reset(qualityMetricsService);
+        reset(messageService);
+        reset(socialIdentityProviderService);
+        reset(tagService);
+        reset(parameterService);
+        reset(metadataService);
+        reset(planService);
+        reset(subscriptionService);
+        reset(entrypointService);
+        reset(apiKeyService);
+        reset(taskService);
+        reset(logsService);
+        reset(analyticsService);
+        reset(portalNotificationConfigService);
+        reset(portalNotificationService);
+        reset(genericNotificationConfigService);
+        reset(topApiService);
+        reset(categoryService);
+        reset(ticketService);
+        reset(configService);
+        reset(authenticationProvider);
+        reset(cookieGenerator);
+        reset(apiMapper);
+        reset(pageMapper);
+        reset(planMapper);
+        reset(ratingMapper);
+        reset(subscriptionMapper);
+        reset(keyMapper);
+        reset(subscriptionMapper);
+        reset(applicationMapper);
+        reset(memberMapper);
+        reset(userMapper);
+        reset(logMapper);
+        reset(analyticsMapper);
+        reset(portalNotificationMapper);
+        reset(categoryMapper);
+        reset(ticketMapper);
+        reset(configMapper);
+        reset(identityProviderMapper);
+        reset(healthCheckService);
+        reset(applicationTypeService);
+        reset(identityService);
+        reset(filteringService);
+        reset(applicationMetadataService);
+        reset(referenceMetadataMapper);
+        reset(customUserFieldService);
+        reset(identityProviderActivationService);
+        reset(authenticationProvider);
+        reset(environmentService);
+        reset(accessControlService);
+    }
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/portal/rest/resource/jwt.properties")
@@ -336,6 +351,21 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public ApiService apiService() {
             return mock(ApiService.class);
+        }
+
+        @Bean
+        public ApiSearchService apiSearchService() {
+            return mock(ApiSearchService.class);
+        }
+
+        @Bean
+        public ApiAuthorizationService apiAuthorizationService() {
+            return mock(ApiAuthorizationService.class);
+        }
+
+        @Bean
+        public ApiEntrypointService apiEntrypointService() {
+            return mock(ApiEntrypointService.class);
         }
 
         @Bean
