@@ -33,6 +33,7 @@ import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -70,6 +71,7 @@ public class KubernetesSyncService extends AbstractService<KubernetesSyncService
     }
 
     private void startWatch() {
+        logger.info("Kubernetes synchronization started at {}", Instant.now().toString());
         this.disposable =
             watch()
                 .flatMapCompletable(this::handleConfigMapEvent)
