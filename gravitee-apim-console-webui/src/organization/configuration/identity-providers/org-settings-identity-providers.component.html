@@ -41,7 +41,7 @@
     <button (click)="onAddIdpClicked()" mat-raised-button color="primary"><mat-icon>add</mat-icon>Add an identity provider</button>
   </div>
 
-  <gio-table-wrapper [length]="tableData.length" (filtersChange)="onFiltersChanged($event)">
+  <gio-table-wrapper [length]="tableUnpaginatedLength" (filtersChange)="onFiltersChanged($event)">
     <table
       mat-table
       [dataSource]="filteredTableData"

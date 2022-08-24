@@ -30,7 +30,7 @@
       </button>
     </div>
 
-    <gio-table-wrapper [length]="memberships.length" (filtersChange)="onMembershipFiltersChanged($event)">
+    <gio-table-wrapper [length]="membershipsTableUnpaginatedLength" (filtersChange)="onMembershipFiltersChanged($event)">
       <table mat-table [dataSource]="filteredMemberships" class="memberships-table" id="membershipsTable" aria-label="Members table">
         <!-- Display Name Column -->
         <ng-container matColumnDef="displayName">
