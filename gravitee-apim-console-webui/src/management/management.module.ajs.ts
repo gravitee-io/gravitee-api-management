@@ -545,6 +545,7 @@ import ApiKeysController from '../management/api-key/api-keys.controller';
 import { OrgSettingsAuditComponent } from '../organization/configuration/audit/org-settings-audit.component';
 import { EnvAuditComponent } from './audit/env-audit.component';
 import { EnvApplicationListComponent } from './application/list/env-application-list.component';
+import { ApiListComponent } from './api/list/api-list.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -665,6 +666,9 @@ graviteeManagementModule.config(($mdThemingProvider: angular.material.IThemingPr
   $mdThemingProvider.theme('toast-error');
 });
 graviteeManagementModule.run(runBlock);
+
+// Apis
+graviteeManagementModule.directive('ngApiList', downgradeComponent({ component: ApiListComponent }));
 
 // Pendo Analytics
 graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPendoService));

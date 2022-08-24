@@ -181,5 +181,18 @@ function apisRouterConfig($stateProvider: StateProvider) {
           dynamic: true,
         },
       },
+    })
+    .state('management.apis.ng-list', {
+      url: '/list',
+      component: 'ngApiList',
+      data: {
+        useAngularMaterial: true,
+        docs: {
+          page: 'management-apis',
+        },
+        ncyBreadcrumb: {
+          label: 'APIs',
+        },
+      },
     });
 }
