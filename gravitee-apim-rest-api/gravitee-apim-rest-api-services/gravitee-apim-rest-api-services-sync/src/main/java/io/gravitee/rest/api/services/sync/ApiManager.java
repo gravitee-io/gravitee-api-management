@@ -17,9 +17,7 @@ package io.gravitee.rest.api.services.sync;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.search.Indexable;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,12 +33,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ApiManager {
 
     private final Logger logger = LoggerFactory.getLogger(ApiManager.class);
-    private final Map<String, IndexableApi> apis = new HashMap<>();
+    private final Map<String, GenericApiEntity> apis = new HashMap<>();
 
     @Autowired
     private EventManager eventManager;
 
-    public void deploy(IndexableApi api) {
+    public void deploy(GenericApiEntity api) {
         logger.info("Deployment of {}", api);
 
         apis.put(api.getId(), api);
@@ -52,13 +50,13 @@ public class ApiManager {
         }
     }
 
-    public void update(IndexableApi api) {
+    public void update(GenericApiEntity api) {
         apis.put(api.getId(), api);
         eventManager.publishEvent(ApiEvent.UPDATE, api);
     }
 
     public void undeploy(String apiId) {
-        IndexableApi currentApi = apis.remove(apiId);
+        GenericApiEntity currentApi = apis.remove(apiId);
         if (currentApi != null) {
             logger.info("Undeployment of {}", currentApi);
 
@@ -67,11 +65,11 @@ public class ApiManager {
         }
     }
 
-    public Collection<IndexableApi> apis() {
+    public Collection<GenericApiEntity> apis() {
         return apis.values();
     }
 
-    public IndexableApi get(String name) {
+    public GenericApiEntity get(String name) {
         return apis.get(name);
     }
 

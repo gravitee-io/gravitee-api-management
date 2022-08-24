@@ -23,7 +23,7 @@ import io.gravitee.rest.api.model.NewApiMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -39,7 +39,14 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
 /**
@@ -117,8 +124,11 @@ public class ApiMetadataResource extends AbstractResource {
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApiMetadataEntity apiMetadataEntity = apiMetadataService.create(executionContext, metadata);
-        IndexableApi indexableApi = apiMetadataService.fetchMetadataForApi(executionContext, apiService.findById(executionContext, api));
-        searchEngineService.index(executionContext, indexableApi, false);
+        GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(
+            executionContext,
+            apiService.findById(executionContext, api)
+        );
+        searchEngineService.index(executionContext, genericApiEntity, false);
         return Response.created(this.getLocationHeader(apiMetadataEntity.getKey())).entity(apiMetadataEntity).build();
     }
 
@@ -152,11 +162,11 @@ public class ApiMetadataResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.DELETE) })
     public Response deleteApiMetadata(@PathParam("metadata") String metadata) {
         apiMetadataService.delete(GraviteeContext.getExecutionContext(), metadata, api);
-        IndexableApi indexableApi = apiMetadataService.fetchMetadataForApi(
+        GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(
             GraviteeContext.getExecutionContext(),
-            apiServiceV4.findIndexableApiById(GraviteeContext.getExecutionContext(), api)
+            apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), api)
         );
-        searchEngineService.index(GraviteeContext.getExecutionContext(), indexableApi, false);
+        searchEngineService.index(GraviteeContext.getExecutionContext(), genericApiEntity, false);
         return Response.noContent().build();
     }
 }

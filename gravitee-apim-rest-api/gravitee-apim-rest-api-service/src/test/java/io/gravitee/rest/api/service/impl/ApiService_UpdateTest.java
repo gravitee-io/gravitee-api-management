@@ -43,6 +43,7 @@ import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -60,11 +61,15 @@ import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -152,6 +157,9 @@ public class ApiService_UpdateTest {
     private ApiServiceImpl apiService = new ApiServiceImpl();
 
     @Mock
+    private ApiEntrypointService apiEntrypointService;
+
+    @Mock
     private ApiRepository apiRepository;
 
     @Mock
@@ -225,8 +233,11 @@ public class ApiService_UpdateTest {
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
+    @Spy
+    private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
+
     @InjectMocks
-    private ApiConverter apiConverter;
+    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
 
     @Mock
     private ApiNotificationService apiNotificationService;
@@ -461,19 +472,6 @@ public class ApiService_UpdateTest {
         updateApiEntity.setProxy(proxy);
         updateApiEntity.setLifecycleState(CREATED);
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
-
-        RoleEntity poRoleEntity = new RoleEntity();
-        poRoleEntity.setName(SystemRole.PRIMARY_OWNER.name());
-        poRoleEntity.setScope(RoleScope.API);
-
-        MemberEntity po = new MemberEntity();
-        po.setId(USER_NAME);
-        po.setReferenceId(API_ID);
-        po.setReferenceType(MembershipReferenceType.API);
-        po.setRoles(Collections.singletonList(poRoleEntity));
-        when(membershipService.getMembersByReferencesAndRole(eq(GraviteeContext.getExecutionContext()), any(), any(), any()))
-            .thenReturn(Collections.singleton(po));
-        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRoleEntity);
     }
 
     @Test
@@ -523,7 +521,7 @@ public class ApiService_UpdateTest {
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(GraviteeContext.getExecutionContext(), apiEntity);
     }
 
     @Test
@@ -905,23 +903,19 @@ public class ApiService_UpdateTest {
         api.setId(API_ID);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        final MembershipEntity membership = new MembershipEntity();
-        membership.setMemberId(USER_NAME);
         when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(mock(UserEntity.class));
 
         final Workflow workflow = new Workflow();
         workflow.setState(WorkflowState.REQUEST_FOR_CHANGES.name());
         when(workflowService.create(any(), any(), any(), any(), any(), any())).thenReturn(workflow);
 
-        when(
-            parameterService.find(
-                GraviteeContext.getExecutionContext(),
-                Key.PORTAL_ENTRYPOINT,
-                GraviteeContext.getExecutionContext().getEnvironmentId(),
-                ParameterReferenceType.ENVIRONMENT
-            )
-        )
-            .thenReturn(Key.PORTAL_ENTRYPOINT.defaultValue());
+        try {
+            URL defaultEntrypoint = new URL(Key.PORTAL_ENTRYPOINT.defaultValue());
+            when(apiEntrypointService.getApiEntrypoints(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(List.of(new ApiEntrypointEntity(defaultEntrypoint.getPath(), defaultEntrypoint.getHost())));
+        } catch (MalformedURLException e) {
+            // Ignore this anyway
+        }
     }
 
     @Test

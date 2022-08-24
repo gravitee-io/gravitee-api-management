@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
@@ -57,9 +58,6 @@ import javax.ws.rs.core.Response;
  */
 @Tag(name = "API Pages")
 public class ApiPagesResource extends AbstractResource {
-
-    @Inject
-    private ApiService apiService;
 
     @Inject
     private PageService pageService;
@@ -99,10 +97,10 @@ public class ApiPagesResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final ApiEntity apiEntity = apiService.findById(executionContext, api);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api);
 
         if (
-            Visibility.PUBLIC.equals(apiEntity.getVisibility()) ||
+            Visibility.PUBLIC.equals(genericApiEntity.getVisibility()) ||
             hasPermission(executionContext, RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)
         ) {
             return pageService
@@ -112,7 +110,7 @@ public class ApiPagesResource extends AbstractResource {
                     translated ? acceptedLocale : null
                 )
                 .stream()
-                .filter(page -> isDisplayable(apiEntity, page))
+                .filter(page -> isDisplayable(genericApiEntity, page))
                 .map(
                     page -> {
                         // check if the page is used as GeneralCondition by an active Plan
@@ -216,10 +214,10 @@ public class ApiPagesResource extends AbstractResource {
         return pageService.importFiles(GraviteeContext.getExecutionContext(), api, pageEntity);
     }
 
-    private boolean isDisplayable(ApiEntity api, PageEntity page) {
+    private boolean isDisplayable(GenericApiEntity genericApiEntity, PageEntity page) {
         return (
             (isAuthenticated() && isAdmin()) ||
-            accessControlService.canAccessPageFromConsole(GraviteeContext.getExecutionContext(), api, page)
+            accessControlService.canAccessPageFromConsole(GraviteeContext.getExecutionContext(), genericApiEntity, page)
         );
     }
 }

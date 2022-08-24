@@ -47,7 +47,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.InvitationService;
@@ -736,7 +736,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
-    public boolean isUserAuthorizedToAccessApiData(IndexableApi api, List<String> excludedGroups, String username) {
+    public boolean isUserAuthorizedToAccessApiData(GenericApiEntity api, List<String> excludedGroups, String username) {
         // in anonymous mode
         if (username == null) {
             // only public API without restrictions are authorized

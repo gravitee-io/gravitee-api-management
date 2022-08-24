@@ -22,6 +22,7 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
@@ -58,22 +59,14 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
-        doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
-
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis)
-            .when(apiService)
-            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(mockApi);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
     }
 
     @Test
     public void shouldNotFoundApiWhileGettingApiMetrics() {
         // init
-        ApiEntity userApi = new ApiEntity();
-        userApi.setId("1");
-        doReturn(emptySet())
-            .when(apiService)
-            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
 
         // test
         final Response response = target(API).path("metrics").request().get();

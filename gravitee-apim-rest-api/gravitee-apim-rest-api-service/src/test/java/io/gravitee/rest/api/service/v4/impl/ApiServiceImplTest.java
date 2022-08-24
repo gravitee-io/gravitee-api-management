@@ -26,7 +26,6 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.same;
@@ -37,7 +36,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -62,7 +60,6 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.EventEntity;
-import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -77,7 +74,6 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -116,6 +112,7 @@ import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.FlowService;
@@ -123,7 +120,8 @@ import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.PropertiesService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
-import io.gravitee.rest.api.service.v4.mapper.IndexableApiMapper;
+import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.util.Collections;
 import java.util.Date;
@@ -250,6 +248,7 @@ public class ApiServiceImplTest {
     private ApiNotificationService apiNotificationService;
 
     private ApiService apiService;
+    private ApiSearchService apiSearchService;
     private UpdateApiEntity updateApiEntity;
     private Api api;
     private Api updatedApi;
@@ -277,15 +276,16 @@ public class ApiServiceImplTest {
             new ObjectMapper(),
             planService,
             flowService,
-            categoryService,
             parameterService,
-            workflowService
+            workflowService,
+            new CategoryMapper(categoryService)
         );
+        GenericApiMapper genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
         apiService =
             new ApiServiceImpl(
                 apiRepository,
                 apiMapper,
-                new IndexableApiMapper(apiMapper, apiConverter),
+                genericApiMapper,
                 primaryOwnerService,
                 apiValidationService,
                 parameterService,
@@ -308,9 +308,10 @@ public class ApiServiceImplTest {
                 propertiesService,
                 apiNotificationService
             );
+        apiSearchService = new ApiSearchServiceImpl(apiRepository, apiMapper, genericApiMapper, primaryOwnerService, categoryService);
         apiStateService =
             new ApiStateServiceImpl(
-                apiService,
+                apiSearchService,
                 apiRepository,
                 apiMapper,
                 apiNotificationService,
@@ -478,166 +479,6 @@ public class ApiServiceImplTest {
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
             );
         verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, apiFlows);
-    }
-
-    @Test
-    public void shouldFindById() throws TechnicalException {
-        Api api = new Api();
-        api.setId(API_ID);
-        api.setDefinitionVersion(DefinitionVersion.V4);
-        api.setType(ApiType.ASYNC);
-        api.setDefinition(
-            "{\"definitionVersion\" : \"4.0.0\", " +
-            "\"type\": \"async\", " +
-            "\"listeners\" : " +
-            "   [{ \"type\" : \"http\", \"paths\" : [{ \"path\": \"/context\"}]" +
-            "}] }"
-        );
-        api.setEnvironmentId("DEFAULT");
-
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId("user");
-        when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(new PrimaryOwnerEntity(userEntity));
-
-        final ApiEntity apiEntity = apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
-
-        assertThat(apiEntity).isNotNull();
-        assertThat(apiEntity.getId()).isEqualTo(API_ID);
-        assertThat(apiEntity.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
-        assertThat(apiEntity.getType()).isEqualTo(ApiType.ASYNC);
-        assertThat(apiEntity.getListeners()).isNotNull();
-        assertThat(apiEntity.getListeners().size()).isEqualTo(1);
-        assertThat(apiEntity.getListeners().get(0)).isInstanceOf(ListenerHttp.class);
-        ListenerHttp listenerHttpCreated = (ListenerHttp) apiEntity.getListeners().get(0);
-        assertThat(listenerHttpCreated.getPaths().size()).isEqualTo(1);
-        assertThat(listenerHttpCreated.getPaths().get(0).getHost()).isNull();
-        assertThat(listenerHttpCreated.getPaths().get(0).getPath()).isEqualTo("/context");
-    }
-
-    @Test
-    public void shouldFindByIdWithFlows() throws TechnicalException {
-        Api api = new Api();
-        api.setId(API_ID);
-        api.setDefinitionVersion(DefinitionVersion.V4);
-        api.setType(ApiType.ASYNC);
-        api.setDefinition(
-            "{\"definitionVersion\" : \"4.0.0\", " +
-            "\"type\": \"async\", " +
-            "\"listeners\" : " +
-            "   [{ \"type\" : \"http\", \"paths\" : [{ \"path\": \"/context\"}]" +
-            "}] }"
-        );
-        api.setEnvironmentId("DEFAULT");
-
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-
-        Flow flow1 = new Flow();
-        flow1.setName("flow1");
-        Flow flow2 = new Flow();
-        flow1.setName("flow2");
-        List<Flow> apiFlows = List.of(flow1, flow2);
-        when(flowService.findByReference(FlowReferenceType.API, API_ID)).thenReturn(apiFlows);
-
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId("user");
-        when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(new PrimaryOwnerEntity(userEntity));
-
-        final ApiEntity apiEntity = apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
-
-        assertThat(apiEntity).isNotNull();
-        assertThat(apiEntity.getId()).isEqualTo(API_ID);
-        assertThat(apiEntity.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
-        assertThat(apiEntity.getType()).isEqualTo(ApiType.ASYNC);
-        assertThat(apiEntity.getListeners()).isNotNull();
-        assertThat(apiEntity.getListeners().size()).isEqualTo(1);
-        assertThat(apiEntity.getListeners().get(0)).isInstanceOf(ListenerHttp.class);
-        ListenerHttp listenerHttpCreated = (ListenerHttp) apiEntity.getListeners().get(0);
-        assertThat(listenerHttpCreated.getPaths().size()).isEqualTo(1);
-        assertThat(listenerHttpCreated.getPaths().get(0).getHost()).isNull();
-        assertThat(listenerHttpCreated.getPaths().get(0).getPath()).isEqualTo("/context");
-        assertSame(apiFlows, apiEntity.getFlows());
-        verify(flowService, times(1)).findByReference(FlowReferenceType.API, API_ID);
-        verifyNoMoreInteractions(flowService);
-    }
-
-    @Test
-    public void shouldFindV4IndexableApiWithDefinitionVersionV4() throws TechnicalException {
-        Api api = new Api();
-        api.setId(API_ID);
-        api.setDefinitionVersion(DefinitionVersion.V4);
-        api.setEnvironmentId("DEFAULT");
-
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId("user");
-        when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(new PrimaryOwnerEntity(userEntity));
-
-        final IndexableApi indexableApi = apiService.findIndexableApiById(GraviteeContext.getExecutionContext(), API_ID);
-
-        assertThat(indexableApi).isNotNull();
-        assertThat(indexableApi).isInstanceOf(ApiEntity.class);
-    }
-
-    @Test
-    public void shouldFindV2IndexableApiWithNoDefinitionVersion() throws TechnicalException {
-        Api api = new Api();
-        api.setId(API_ID);
-        api.setEnvironmentId("DEFAULT");
-        api.setDefinitionVersion(null);
-
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId("user");
-        when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(new PrimaryOwnerEntity(userEntity));
-
-        final IndexableApi indexableApi = apiService.findIndexableApiById(GraviteeContext.getExecutionContext(), API_ID);
-
-        assertThat(indexableApi).isNotNull();
-        assertThat(indexableApi).isInstanceOf(io.gravitee.rest.api.model.api.ApiEntity.class);
-    }
-
-    @Test
-    public void shouldFindV2IndexableApiWithV2DefinitionVersion() throws TechnicalException {
-        Api api = new Api();
-        api.setId(API_ID);
-        api.setEnvironmentId("DEFAULT");
-        api.setDefinitionVersion(DefinitionVersion.V2);
-
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId("user");
-        when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(new PrimaryOwnerEntity(userEntity));
-
-        final IndexableApi indexableApi = apiService.findIndexableApiById(GraviteeContext.getExecutionContext(), API_ID);
-
-        assertThat(indexableApi).isNotNull();
-        assertThat(indexableApi).isInstanceOf(io.gravitee.rest.api.model.api.ApiEntity.class);
-    }
-
-    @Test(expected = ApiNotFoundException.class)
-    public void shouldNotFindBecauseNotExists() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
-
-        apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
-    }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void shouldNotFindBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
-
-        apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
-    }
-
-    @Test
-    public void shouldExists() throws TechnicalException {
-        Api api = new Api();
-        api.setId(API_ID);
-
-        when(apiRepository.existById(API_ID)).thenReturn(true);
-
-        boolean exists = apiService.exists(API_ID);
-        assertThat(exists).isTrue();
     }
 
     @Test(expected = ApiRunningStateException.class)

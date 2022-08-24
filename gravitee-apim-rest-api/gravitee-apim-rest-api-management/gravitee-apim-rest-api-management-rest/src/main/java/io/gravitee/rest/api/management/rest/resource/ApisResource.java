@@ -37,12 +37,23 @@ import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
-import io.gravitee.rest.api.model.api.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.api.ApiListItem;
+import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.api.NewApiEntity;
+import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiDuplicatorService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
@@ -59,11 +70,24 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -76,6 +100,9 @@ import javax.ws.rs.core.UriBuilder;
  */
 @Tag(name = "APIs")
 public class ApisResource extends AbstractResource {
+
+    @Inject
+    protected ApiDuplicatorService apiDuplicatorService;
 
     @Context
     private ResourceContext resourceContext;
@@ -100,9 +127,6 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private FlowService flowService;
-
-    @Inject
-    protected ApiDuplicatorService apiDuplicatorService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -432,7 +456,6 @@ public class ApisResource extends AbstractResource {
         ) @QueryParam("order") @DefaultValue("name") final ApisOrderParam apisOrderParam,
         @Valid @BeanParam Pageable pageable
     ) {
-        final ApiQuery apiQuery = new ApiQuery();
         Map<String, Object> filters = new HashMap<>();
 
         io.gravitee.rest.api.model.common.Pageable commonPageable = null;
@@ -443,7 +466,7 @@ public class ApisResource extends AbstractResource {
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (!isAdmin()) {
-            filters.put("api", apiService.findIdsByUser(executionContext, getAuthenticatedUser(), apiQuery, false));
+            filters.put("api", apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), false));
         }
 
         final boolean isRatingServiceEnabled = ratingService.isEnabled(executionContext);

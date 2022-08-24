@@ -19,11 +19,11 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.Visibility;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.RatingSummary;
@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
+import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import java.math.BigDecimal;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -58,11 +59,14 @@ public class ApiMapper {
     @Autowired
     private ParameterService parameterService;
 
-    public Api convert(ExecutionContext executionContext, ApiEntity api) {
+    @Autowired
+    private ApiEntrypointService apiEntrypointService;
+
+    public Api convert(ExecutionContext executionContext, GenericApiEntity api) {
         final Api apiItem = new Api();
         apiItem.setDescription(api.getDescription());
 
-        List<ApiEntrypointEntity> apiEntrypoints = api.getEntrypoints();
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, api.getId());
         if (apiEntrypoints != null) {
             List<String> entrypoints = apiEntrypoints.stream().map(ApiEntrypointEntity::getTarget).collect(Collectors.toList());
             apiItem.setEntrypoints(entrypoints);
@@ -108,7 +112,7 @@ public class ApiMapper {
             apiItem.setUpdatedAt(api.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         }
 
-        apiItem.setVersion(api.getVersion());
+        apiItem.setVersion(api.getApiVersion());
 
         boolean isCategoryModeEnabled =
             this.parameterService.findAsBoolean(executionContext, Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);

@@ -17,14 +17,25 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.Visibility.PUBLIC;
 
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.AccessControlEntity;
+import io.gravitee.rest.api.model.AccessControlReferenceType;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.AccessControlService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Collections;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Iterator;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -48,38 +59,36 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
     private GroupService groupService;
 
     @Autowired
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
+
+    @Autowired
+    private ApiAuthorizationService apiAuthorizationService;
 
     @Autowired
     private RoleService roleService;
 
-    @Autowired
-    private PermissionService permissionService;
-
     @Override
-    public boolean canAccessApiFromPortal(ExecutionContext executionContext, ApiEntity apiEntity) {
-        if (PUBLIC.equals(apiEntity.getVisibility())) {
+    public boolean canAccessApiFromPortal(ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
+        if (PUBLIC.equals(genericApiEntity.getVisibility())) {
             return true;
         } else if (isAuthenticated()) {
-            final ApiQuery apiQuery = new ApiQuery();
-            apiQuery.setIds(Collections.singletonList(apiEntity.getId()));
-            Set<ApiEntity> publishedByUser = apiService.findPublishedByUser(
+            Set<String> publishedByUser = apiAuthorizationService.findAccessibleApiIdsForUser(
                 executionContext,
                 getAuthenticatedUser().getUsername(),
-                apiQuery
+                Set.of(genericApiEntity.getId())
             );
-            return publishedByUser.contains(apiEntity);
+            return publishedByUser.contains(genericApiEntity.getId());
         }
         return false;
     }
 
     @Override
     public boolean canAccessApiFromPortal(ExecutionContext executionContext, String apiId) {
-        ApiEntity apiEntity = apiService.findById(executionContext, apiId);
-        return canAccessApiFromPortal(executionContext, apiEntity);
+        GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, apiId);
+        return canAccessApiFromPortal(executionContext, genericApi);
     }
 
-    private boolean canAccessPage(final ExecutionContext executionContext, ApiEntity apiEntity, PageEntity pageEntity) {
+    private boolean canAccessPage(final ExecutionContext executionContext, GenericApiEntity genericApiEntity, PageEntity pageEntity) {
         if (!pageEntity.isPublished()) {
             return false;
         }
@@ -99,7 +108,11 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
             return true;
         } else {
             Set<GroupEntity> userGroups = groupService.findByUser(getAuthenticatedUsername());
-            Set<RoleEntity> contextualUserRoles = getContextualUserRoles(executionContext, apiEntity, executionContext.getEnvironmentId());
+            Set<RoleEntity> contextualUserRoles = getContextualUserRoles(
+                executionContext,
+                genericApiEntity,
+                executionContext.getEnvironmentId()
+            );
 
             return accessControls
                 .stream()
@@ -107,10 +120,10 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
                     acl -> {
                         if (AccessControlReferenceType.ROLE.name().equals(acl.getReferenceType())) {
                             boolean roleMatched = contextualUserRoles.stream().anyMatch(role -> role.getId().equals(acl.getReferenceId()));
-                            return pageEntity.isExcludedAccessControls() ? !roleMatched : roleMatched;
+                            return pageEntity.isExcludedAccessControls() != roleMatched;
                         } else if (AccessControlReferenceType.GROUP.name().equals(acl.getReferenceType())) {
                             boolean groupMatched = userGroups.stream().anyMatch(group -> group.getId().equals(acl.getReferenceId()));
-                            return pageEntity.isExcludedAccessControls() ? !groupMatched : groupMatched;
+                            return pageEntity.isExcludedAccessControls() != groupMatched;
                         } else {
                             logger.warn("ACL reference type [{}] not found", acl.getReferenceType());
                         }
@@ -131,34 +144,38 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
             return false;
         }
         if (apiId != null) {
-            final ApiEntity apiEntity = apiService.findById(executionContext, apiId);
-            return canAccessPage(executionContext, apiEntity, pageEntity);
+            final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+            return canAccessPage(executionContext, genericApiEntity, pageEntity);
         }
         return canAccessPage(executionContext, null, pageEntity);
     }
 
     @Override
-    public boolean canAccessPageFromConsole(final ExecutionContext executionContext, ApiEntity apiEntity, PageEntity pageEntity) {
-        if (canAccessPage(executionContext, apiEntity, pageEntity)) {
+    public boolean canAccessPageFromConsole(
+        final ExecutionContext executionContext,
+        GenericApiEntity genericApiEntity,
+        PageEntity pageEntity
+    ) {
+        if (canAccessPage(executionContext, genericApiEntity, pageEntity)) {
             return true;
         } else {
-            return canEditApiPage(executionContext, apiEntity);
+            return canEditApiPage(executionContext, genericApiEntity);
         }
     }
 
-    private boolean canEditApiPage(final ExecutionContext executionContext, ApiEntity api) {
-        if (api == null) {
+    private boolean canEditApiPage(final ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
+        if (genericApiEntity == null) {
             return false;
         }
         boolean canEditApiPage = false;
         MemberEntity member = membershipService.getUserMember(
             executionContext,
             MembershipReferenceType.API,
-            api.getId(),
+            genericApiEntity.getId(),
             getAuthenticatedUsername()
         );
-        if (member == null && api.getGroups() != null) {
-            Iterator<String> groupIdIterator = api.getGroups().iterator();
+        if (member == null && genericApiEntity.getGroups() != null) {
+            Iterator<String> groupIdIterator = genericApiEntity.getGroups().iterator();
             while (!canEditApiPage && groupIdIterator.hasNext()) {
                 String groupId = groupIdIterator.next();
                 member =
@@ -185,18 +202,22 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
         );
     }
 
-    private Set<RoleEntity> getContextualUserRoles(final ExecutionContext executionContext, ApiEntity api, final String environmentId) {
-        if (api != null) {
+    private Set<RoleEntity> getContextualUserRoles(
+        final ExecutionContext executionContext,
+        GenericApiEntity genericApiEntity,
+        final String environmentId
+    ) {
+        if (genericApiEntity != null) {
             Set<RoleEntity> roles =
                 this.membershipService.getRoles(
                         MembershipReferenceType.API,
-                        api.getId(),
+                        genericApiEntity.getId(),
                         MembershipMemberType.USER,
                         getAuthenticatedUsername()
                     );
 
-            if (api.getGroups() != null && !api.getGroups().isEmpty()) {
-                api
+            if (genericApiEntity.getGroups() != null && !genericApiEntity.getGroups().isEmpty()) {
+                genericApiEntity
                     .getGroups()
                     .forEach(
                         groupId -> {

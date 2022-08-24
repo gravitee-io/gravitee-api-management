@@ -30,7 +30,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
-import io.gravitee.rest.api.service.v4.mapper.IndexableApiMapper;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +48,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ApiNotificationServiceImplTest {
 
     @Mock
-    private IndexableApiMapper indexableApiMapper;
+    private GenericApiMapper indexableApiMapper;
 
     @Mock
     private NotifierService notifierService;
@@ -62,7 +62,7 @@ public class ApiNotificationServiceImplTest {
     public void before() {
         apiNotificationService = new ApiNotificationServiceImpl(indexableApiMapper, notifierService, userService);
 
-        when(indexableApiMapper.toIndexableApi(any(), any())).thenReturn(new ApiEntity());
+        when(indexableApiMapper.toGenericApi(any(), any())).thenReturn(new ApiEntity());
         when(userService.findById(any(), any())).thenReturn(new UserEntity());
     }
 

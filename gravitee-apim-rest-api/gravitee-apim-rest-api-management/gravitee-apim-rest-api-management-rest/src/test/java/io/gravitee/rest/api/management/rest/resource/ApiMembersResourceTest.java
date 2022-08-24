@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.rest.model.ApiMembership;
@@ -50,6 +51,7 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
     public void init() {
         Mockito.reset(membershipService);
         GraviteeContext.cleanContext();
+        when(apiSearchServiceV4.exists(API)).thenReturn(true);
     }
 
     @After

@@ -32,7 +32,7 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "EntrypointExpandEntityV4")
-public class EntrypointExpandEntity extends EntrypointPluginEntity {
+public class EntrypointExpandPluginEntity extends EntrypointPluginEntity {
 
     private String schema;
     private String icon;

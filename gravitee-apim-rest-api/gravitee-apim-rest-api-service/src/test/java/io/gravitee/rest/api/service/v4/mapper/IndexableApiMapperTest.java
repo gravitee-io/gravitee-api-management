@@ -39,11 +39,11 @@ public class IndexableApiMapperTest {
     @Mock
     private ApiConverter apiConverter;
 
-    private IndexableApiMapper indexableApiMapper;
+    private GenericApiMapper genericApiMapper;
 
     @Before
     public void before() {
-        indexableApiMapper = new IndexableApiMapper(apiMapper, apiConverter);
+        genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
     }
 
     @Test
@@ -51,7 +51,7 @@ public class IndexableApiMapperTest {
         Api api = new Api();
         api.setDefinitionVersion(DefinitionVersion.V4);
 
-        indexableApiMapper.toIndexableApi(api, null);
+        genericApiMapper.toGenericApi(api, null);
         verify(apiMapper).toEntity(api, null);
     }
 
@@ -60,7 +60,7 @@ public class IndexableApiMapperTest {
         Api api = new Api();
         api.setDefinitionVersion(DefinitionVersion.V2);
 
-        indexableApiMapper.toIndexableApi(api, null);
+        genericApiMapper.toGenericApi(api, null);
         verify(apiConverter).toApiEntity(api, null);
     }
 
@@ -69,7 +69,7 @@ public class IndexableApiMapperTest {
         Api api = new Api();
         api.setDefinitionVersion(DefinitionVersion.V1);
 
-        indexableApiMapper.toIndexableApi(api, null);
+        genericApiMapper.toGenericApi(api, null);
         verify(apiConverter).toApiEntity(api, null);
     }
 
@@ -77,7 +77,7 @@ public class IndexableApiMapperTest {
     public void shouldCallV2ApiMapperWhenNoDefinitionVersion() {
         Api api = new Api();
 
-        indexableApiMapper.toIndexableApi(api, null);
+        genericApiMapper.toGenericApi(api, null);
         verify(apiConverter).toApiEntity(api, null);
     }
 }

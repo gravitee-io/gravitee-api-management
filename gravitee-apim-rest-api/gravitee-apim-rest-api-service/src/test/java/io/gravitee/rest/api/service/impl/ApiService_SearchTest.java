@@ -16,12 +16,14 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
@@ -33,12 +35,25 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -46,16 +61,20 @@ import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -110,7 +129,10 @@ public class ApiService_SearchTest {
     private CategoryService categoryService;
 
     @Spy
-    private ApiConverter apiConverter;
+    private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
+
+    @InjectMocks
+    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
 
     @Mock
     private SearchEngineService searchEngineService;
@@ -120,6 +142,9 @@ public class ApiService_SearchTest {
 
     @Mock
     private FlowService flowService;
+
+    @Mock
+    private PrimaryOwnerService primaryOwnerService;
 
     @Before
     public void setUp() {
@@ -139,22 +164,6 @@ public class ApiService_SearchTest {
         api2.setId("api2");
         api2.setName("api2");
 
-        MembershipEntity membership1 = new MembershipEntity();
-        membership1.setId("id1");
-        membership1.setMemberId(USER_NAME);
-        membership1.setMemberType(MembershipMemberType.USER);
-        membership1.setReferenceId(api1.getId());
-        membership1.setReferenceType(MembershipReferenceType.API);
-        membership1.setRoleId("API_USER");
-
-        MembershipEntity membership2 = new MembershipEntity();
-        membership2.setId("id2");
-        membership2.setMemberId(USER_NAME);
-        membership2.setMemberType(MembershipMemberType.USER);
-        membership2.setReferenceId("api2");
-        membership2.setReferenceType(MembershipReferenceType.API);
-        membership2.setRoleId("API_USER");
-
         Page<Api> page = new Page<>(Arrays.asList(api1), 2, 1, 2);
         when(
             apiRepository.search(
@@ -166,22 +175,9 @@ public class ApiService_SearchTest {
         )
             .thenReturn(page);
 
-        RoleEntity poRole = new RoleEntity();
-        poRole.setId("API_PRIMARY_OWNER");
-        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
-
-        MemberEntity poMember = new MemberEntity();
-        poMember.setId("admin");
-        poMember.setRoles(Collections.singletonList(poRole));
-        when(
-            membershipService.getMembersByReferencesAndRole(
-                GraviteeContext.getExecutionContext(),
-                MembershipReferenceType.API,
-                Collections.singletonList(api1.getId()),
-                "API_PRIMARY_OWNER"
-            )
-        )
-            .thenReturn(new HashSet<>(singletonList(poMember)));
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of(api1.getId(), new PrimaryOwnerEntity(admin)));
 
         final ApiQuery apiQuery = new ApiQuery();
         final Page<ApiEntity> apiPage = apiService.search(
@@ -224,28 +220,23 @@ public class ApiService_SearchTest {
         )
             .thenReturn(Arrays.asList(api3, api1, api2));
 
-        RoleEntity poRole = new RoleEntity();
-        poRole.setId("API_PRIMARY_OWNER");
-        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
-
-        MemberEntity poMember = new MemberEntity();
-        poMember.setId("admin");
-        poMember.setRoles(Collections.singletonList(poRole));
-
-        MemberEntity poMember2 = new MemberEntity();
-        poMember2.setId("user 2");
-
-        MemberEntity poMember3 = new MemberEntity();
-        poMember3.setId("user 3");
-        when(
-            membershipService.getMembersByReferencesAndRole(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(MembershipReferenceType.API),
-                anyList(),
-                eq("API_PRIMARY_OWNER")
-            )
-        )
-            .thenReturn(new HashSet<>(Arrays.asList(poMember, poMember2, poMember3)));
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        UserEntity user2 = new UserEntity();
+        admin.setId("user 2");
+        UserEntity user3 = new UserEntity();
+        admin.setId("user 3");
+        when(primaryOwnerService.getPrimaryOwners(any(), any()))
+            .thenReturn(
+                Map.of(
+                    api1.getId(),
+                    new PrimaryOwnerEntity(admin),
+                    api2.getId(),
+                    new PrimaryOwnerEntity(user2),
+                    api3.getId(),
+                    new PrimaryOwnerEntity(user3)
+                )
+            );
 
         final Page<ApiEntity> apiPage = apiService.search(
             GraviteeContext.getExecutionContext(),

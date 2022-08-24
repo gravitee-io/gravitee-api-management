@@ -15,31 +15,35 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.FlowRepository;
-import io.gravitee.repository.management.model.flow.Flow;
-import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
-import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import io.gravitee.rest.api.service.v4.mapper.FlowMapper;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,29 +71,85 @@ public class PrimaryOwnerServiceImplTest {
     @Mock
     private ParameterService parameterService;
 
+    @Mock
+    private RoleService roleService;
+
     @Before
     public void setUp() {
-        this.primaryOwnerService = new PrimaryOwnerServiceImpl(userService, membershipService, groupService, parameterService);
+        this.primaryOwnerService = new PrimaryOwnerServiceImpl(userService, membershipService, groupService, parameterService, roleService);
     }
 
-    @Test(expected = PrimaryOwnerNotFoundException.class)
+    @Test
     public void getPrimaryOwner_should_throw_PrimaryOwnerNotFoundException_if_no_membership_found() {
-        try {
-            when(
-                membershipService.getPrimaryOwner(
-                    GraviteeContext.getExecutionContext().getOrganizationId(),
-                    MembershipReferenceType.API,
-                    "my-api"
-                )
+        when(
+            membershipService.getPrimaryOwner(
+                GraviteeContext.getExecutionContext().getOrganizationId(),
+                MembershipReferenceType.API,
+                "my-api"
             )
-                .thenReturn(null);
-            primaryOwnerService.getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api");
-        } catch (PrimaryOwnerNotFoundException e) {
-            assertEquals("Primary owner not found for API [my-api]", e.getMessage());
-            assertEquals("primaryOwner.notFound", e.getTechnicalCode());
-            assertEquals(500, e.getHttpStatusCode());
-            assertEquals(Map.of("api", "my-api"), e.getParameters());
-            throw e;
-        }
+        )
+            .thenReturn(null);
+        PrimaryOwnerNotFoundException exception = assertThrows(
+            PrimaryOwnerNotFoundException.class,
+            () -> primaryOwnerService.getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api")
+        );
+        assertEquals("Primary owner not found for API [my-api]", exception.getMessage());
+        assertEquals("primaryOwner.notFound", exception.getTechnicalCode());
+        assertEquals(500, exception.getHttpStatusCode());
+        assertEquals(Map.of("api", "my-api"), exception.getParameters());
+    }
+
+    @Test
+    public void shouldReturnPrimaryOwners() {
+        List<String> apiIds = List.of("api1", "api2", "api3");
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId("API_PRIMARY_OWNER");
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
+
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        UserEntity user = new UserEntity();
+        user.setId("user");
+        GroupEntity group = new GroupEntity();
+        group.setId("group");
+
+        MemberEntity poMember = new MemberEntity();
+        poMember.setId(admin.getId());
+        poMember.setReferenceId("api1");
+        poMember.setRoles(Collections.singletonList(poRole));
+        poMember.setType(MembershipMemberType.USER);
+
+        MemberEntity poMember2 = new MemberEntity();
+        poMember2.setId(user.getId());
+        poMember2.setReferenceId("api2");
+        poMember2.setType(MembershipMemberType.USER);
+
+        MemberEntity poMember3 = new MemberEntity();
+        poMember3.setId(group.getId());
+        poMember3.setReferenceId("api3");
+        poMember3.setType(MembershipMemberType.GROUP);
+        when(
+            membershipService.getMembersByReferencesAndRole(
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.API,
+                apiIds,
+                "API_PRIMARY_OWNER"
+            )
+        )
+            .thenReturn(new LinkedHashSet<>(Arrays.asList(poMember, poMember2, poMember3)));
+
+        when(
+            userService.findByIds(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(argument -> argument.containsAll(Set.of(admin.getId(), user.getId())))
+            )
+        )
+            .thenReturn(new LinkedHashSet<>(List.of(admin, user)));
+        when(groupService.findByIds(new LinkedHashSet<>(List.of(group.getId())))).thenReturn(new LinkedHashSet<>(List.of(group)));
+
+        Map<String, PrimaryOwnerEntity> primaryOwners = primaryOwnerService.getPrimaryOwners(GraviteeContext.getExecutionContext(), apiIds);
+        assertNotNull(primaryOwners);
+        assertEquals(3, primaryOwners.size());
     }
 }

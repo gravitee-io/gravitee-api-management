@@ -52,11 +52,11 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetPublicApiPublishedPage() {
-        reset(apiService, pageService, membershipService, accessControlService);
+        reset(apiSearchServiceV4, pageService, membershipService, accessControlService);
         final ApiEntity apiMock = mock(ApiEntity.class);
         when(apiMock.getVisibility()).thenReturn(Visibility.PUBLIC);
         when(apiMock.getName()).thenReturn(API_NAME);
-        doReturn(apiMock).when(apiService).findById(GraviteeContext.getExecutionContext(), API_NAME);
+        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME);
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
@@ -71,18 +71,18 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         assertNotNull(responsePage);
         assertEquals(PAGE_NAME, responsePage.getName());
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
-        verify(apiService, times(1)).findById(GraviteeContext.getExecutionContext(), API_NAME);
+        verify(apiSearchServiceV4, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
     }
 
     @Test
     public void shouldNotGetPrivateApiPublishedPage() {
-        reset(apiService, pageService, membershipService);
+        reset(apiSearchServiceV4, pageService, membershipService);
 
         final ApiEntity apiMock = mock(ApiEntity.class);
         when(apiMock.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(apiMock.getName()).thenReturn(API_NAME);
-        doReturn(apiMock).when(apiService).findById(GraviteeContext.getExecutionContext(), API_NAME);
+        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME);
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
@@ -95,7 +95,7 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         final Response response = envTarget().request().get();
 
         assertEquals(UNAUTHORIZED_401, response.getStatus());
-        verify(apiService, atLeastOnce()).findById(GraviteeContext.getExecutionContext(), API_NAME);
+        verify(apiSearchServiceV4, atLeastOnce()).findGenericById(GraviteeContext.getExecutionContext(), API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
     }
 }

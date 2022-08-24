@@ -41,6 +41,7 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
@@ -93,6 +94,9 @@ public class PageService_CreateTest {
 
     @Mock
     private NotificationTemplateService notificationTemplateService;
+
+    @Mock
+    private ApiTemplateService apiTemplateService;
 
     private PageEntity getPage(String resource, String contentType) throws IOException {
         URL url = Resources.getResource(resource);

@@ -32,7 +32,7 @@ import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
 import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.reactivex.Single;
 import java.util.List;
 import java.util.Optional;
@@ -49,20 +49,20 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
 
     private final Logger logger = LoggerFactory.getLogger(DeployModelCommandHandler.class);
 
-    private final ApiService apiService;
+    private final ApiSearchService apiSearchService;
     private final ApiServiceCockpit cockpitApiService;
     private final CockpitApiPermissionChecker permissionChecker;
     private final UserService userService;
     private final EnvironmentService environmentService;
 
     public DeployModelCommandHandler(
-        ApiService apiService,
+        ApiSearchService apiSearchService,
         ApiServiceCockpit cockpitApiService,
         CockpitApiPermissionChecker permissionChecker,
         UserService userService,
         EnvironmentService environmentService
     ) {
-        this.apiService = apiService;
+        this.apiSearchService = apiSearchService;
         this.cockpitApiService = cockpitApiService;
         this.permissionChecker = permissionChecker;
         this.userService = userService;
@@ -95,7 +95,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
 
             ApiEntityResult result;
 
-            final Optional<String> optApiId = apiService.findApiIdByEnvironmentIdAndCrossId(environment.getId(), apiCrossId);
+            final Optional<String> optApiId = apiSearchService.findIdByEnvironmentIdAndCrossId(environment.getId(), apiCrossId);
             if (optApiId.isPresent()) {
                 final String apiId = optApiId.get();
                 var message = permissionChecker.checkUpdatePermission(

@@ -21,6 +21,8 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notifiers.WebNotifierService;
 import io.gravitee.rest.api.service.notifiers.WebhookNotifierService;
@@ -73,11 +75,14 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
             Object api = params.get(PARAM_API);
             if (api != null) {
                 JsonObject jsonApi = new JsonObject();
-                jsonApi.put("id", api instanceof ApiModelEntity ? ((ApiModelEntity) api).getId() : ((ApiEntity) api).getId());
-                jsonApi.put("name", api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName());
+                jsonApi.put("id", api instanceof GenericApiModel ? ((GenericApiModel) api).getId() : ((GenericApiEntity) api).getId());
+                jsonApi.put(
+                    "name",
+                    api instanceof GenericApiModel ? ((GenericApiModel) api).getName() : ((GenericApiEntity) api).getName()
+                );
                 jsonApi.put(
                     "version",
-                    api instanceof ApiModelEntity ? ((ApiModelEntity) api).getVersion() : ((ApiEntity) api).getVersion()
+                    api instanceof GenericApiModel ? ((GenericApiModel) api).getApiVersion() : ((GenericApiEntity) api).getApiVersion()
                 );
                 content.put("api", jsonApi);
             }

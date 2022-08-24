@@ -75,6 +75,7 @@ import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.io.Reader;
@@ -151,9 +152,6 @@ public class ApiService_CreateTest {
     private VirtualHostService virtualHostService;
 
     @Mock
-    private CategoryService categoryService;
-
-    @Mock
     private AlertService alertService;
 
     @Mock
@@ -173,6 +171,9 @@ public class ApiService_CreateTest {
 
     @Mock
     private FlowService flowService;
+
+    @Spy
+    private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
 
     @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(new ApiConverter());

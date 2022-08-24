@@ -24,11 +24,11 @@ import io.gravitee.rest.api.model.NewTopApiEntity;
 import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.UpdateTopApiEntity;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
@@ -49,22 +49,22 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
     private ParameterService parameterService;
 
     @Inject
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Override
     public List<TopApiEntity> findAll(final ExecutionContext executionContext) {
         LOGGER.debug("Find all top APIs");
-        final List<IndexableApi> apis = parameterService.findAll(
+        final List<GenericApiEntity> apis = parameterService.findAll(
             executionContext,
             PORTAL_TOP_APIS,
-            apiId -> apiService.findIndexableApiById(executionContext, apiId),
-            apiService::exists,
+            apiId -> apiSearchService.findGenericById(executionContext, apiId),
+            apiSearchService::exists,
             ParameterReferenceType.ENVIRONMENT
         );
         if (!apis.isEmpty()) {
             final List<TopApiEntity> topApis = new ArrayList<>(apis.size());
             for (int i = 0; i < apis.size(); i++) {
-                final IndexableApi api = apis.get(i);
+                final GenericApiEntity api = apis.get(i);
 
                 final TopApiEntity topApiEntity = new TopApiEntity();
                 topApiEntity.setApi(api.getId());

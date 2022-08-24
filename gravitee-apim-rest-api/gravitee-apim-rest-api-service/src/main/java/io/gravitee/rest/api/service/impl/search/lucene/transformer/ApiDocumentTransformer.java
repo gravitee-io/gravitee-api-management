@@ -15,11 +15,20 @@
  */
 package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import java.util.regex.Pattern;
-import org.apache.lucene.document.*;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.stereotype.Component;
@@ -29,9 +38,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
-
-    private static final Pattern SPECIAL_CHARS = Pattern.compile("[|\\-+!(){}^\"~*?:&\\/]");
+public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEntity> {
 
     public static final String FIELD_ID = "id";
     public static final String FIELD_TYPE = "type";
@@ -62,9 +69,10 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
     public static final String FIELD_TAGS_SPLIT = "tags_split";
     public static final String FIELD_METADATA = "metadata";
     public static final String FIELD_METADATA_SPLIT = "metadata_split";
+    private static final Pattern SPECIAL_CHARS = Pattern.compile("[|\\-+!(){}^\"~*?:&\\/]");
 
     @Override
-    public Document transform(ApiEntity api) {
+    public Document transform(GenericApiEntity api) {
         Document doc = new Document();
 
         doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
@@ -94,24 +102,35 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
             }
         }
 
-        if (api.getProxy() != null) {
-            final int[] pathIndex = { 0 };
-            api
-                .getProxy()
-                .getVirtualHosts()
-                .forEach(
-                    virtualHost -> {
-                        doc.add(new StringField(FIELD_PATHS, virtualHost.getPath(), Field.Store.NO));
-                        doc.add(new TextField(FIELD_PATHS_SPLIT, virtualHost.getPath(), Field.Store.NO));
-                        if (virtualHost.getHost() != null && !virtualHost.getHost().isEmpty()) {
-                            doc.add(new StringField(FIELD_HOSTS, virtualHost.getHost(), Field.Store.NO));
-                            doc.add(new TextField(FIELD_HOSTS_SPLIT, virtualHost.getHost(), Field.Store.NO));
+        if (api.getDefinitionVersion() != DefinitionVersion.V4) {
+            ApiEntity apiEntity = (ApiEntity) api;
+            if (apiEntity.getProxy() != null) {
+                final int[] pathIndex = { 0 };
+                apiEntity
+                    .getProxy()
+                    .getVirtualHosts()
+                    .forEach(
+                        virtualHost -> {
+                            appendPath(doc, pathIndex, virtualHost.getHost(), virtualHost.getPath());
                         }
-                        if (pathIndex[0]++ == 0) {
-                            doc.add(new SortedDocValuesField(FIELD_PATHS_SORTED, new BytesRef(QueryParser.escape(virtualHost.getPath()))));
+                    );
+            }
+        } else {
+            io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.v4.api.ApiEntity) api;
+            if (apiEntity.getListeners() != null) {
+                final int[] pathIndex = { 0 };
+                apiEntity
+                    .getListeners()
+                    .stream()
+                    .filter(listener -> listener.getType() == ListenerType.HTTP)
+                    .flatMap(
+                        listener -> {
+                            ListenerHttp listenerHttp = (ListenerHttp) listener;
+                            return listenerHttp.getPaths().stream();
                         }
-                    }
-                );
+                    )
+                    .forEach(path -> appendPath(doc, pathIndex, path.getHost(), path.getPath()));
+            }
         }
 
         // labels
@@ -162,12 +181,24 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
         return doc;
     }
 
+    private void appendPath(final Document doc, final int[] pathIndex, final String host, final String path) {
+        doc.add(new StringField(FIELD_PATHS, path, Field.Store.NO));
+        doc.add(new TextField(FIELD_PATHS_SPLIT, path, Field.Store.NO));
+        if (host != null && !host.isEmpty()) {
+            doc.add(new StringField(FIELD_HOSTS, host, Field.Store.NO));
+            doc.add(new TextField(FIELD_HOSTS_SPLIT, host, Field.Store.NO));
+        }
+        if (pathIndex[0]++ == 0) {
+            doc.add(new SortedDocValuesField(FIELD_PATHS_SORTED, new BytesRef(QueryParser.escape(path))));
+        }
+    }
+
     private BytesRef toSortedValue(String value) {
         return new BytesRef(SPECIAL_CHARS.matcher(value).replaceAll("").toLowerCase());
     }
 
     @Override
     public boolean handle(Class<? extends Indexable> source) {
-        return ApiEntity.class.isAssignableFrom(source);
+        return GenericApiEntity.class.isAssignableFrom(source);
     }
 }

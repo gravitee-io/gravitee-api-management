@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.impl.AbstractService;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import java.util.Arrays;
 import java.util.Collection;
@@ -73,6 +74,9 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
 
     @Autowired
     PermissionService permissionService;
+
+    @Autowired
+    ApiAuthorizationService apiAuthorizationService;
 
     @Override
     public Collection<String> getApisOrderByNumberOfSubscriptions(Collection<String> apis, boolean excluded) {
@@ -151,13 +155,13 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         FilterType excludedFilterType,
         ApiQuery apiQuery
     ) {
-        Set<String> apis = this.apiService.findPublishedIdsByUser(executionContext, userId, apiQuery);
+        Set<String> apis = this.apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, userId, apiQuery);
         return this.filterApis(executionContext, apis, filterType, excludedFilterType);
     }
 
     @Override
     public Collection<String> searchApis(ExecutionContext executionContext, String userId, String query) throws TechnicalException {
-        Set<String> apis = apiService.findPublishedIdsByUser(executionContext, userId);
+        Set<String> apis = apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, userId);
 
         Map<String, Object> filters = new HashMap<>();
         filters.put("api", apis);
@@ -172,7 +176,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         FilterType filterType,
         FilterType excludedFilterType
     ) {
-        Set<String> apisForUser = this.apiService.findPublishedIdsByUser(executionContext, userId);
+        Set<String> apisForUser = this.apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, userId);
         Collection<String> apis = this.filterApis(executionContext, apisForUser, filterType, excludedFilterType);
         return this.apiCategoryService.listCategories(apis, executionContext.getEnvironmentId());
     }

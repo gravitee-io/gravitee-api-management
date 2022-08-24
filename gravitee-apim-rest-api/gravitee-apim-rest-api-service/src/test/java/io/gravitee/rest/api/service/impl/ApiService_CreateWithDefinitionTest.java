@@ -53,6 +53,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_CreateWithDefinitionTest {
 
+    private static final ExecutionContext EXECUTION_CONTEXT = GraviteeContext.getExecutionContext();
+    private static final ObjectMapper MAPPER = new GraviteeMapper();
+
+    @InjectMocks
+    private final ApiService apiService = new ApiServiceImpl();
+
     @Mock
     private ApiRepository apiRepository;
 
@@ -110,13 +116,6 @@ public class ApiService_CreateWithDefinitionTest {
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
-    @InjectMocks
-    private final ApiService apiService = new ApiServiceImpl();
-
-    private static final ExecutionContext EXECUTION_CONTEXT = GraviteeContext.getExecutionContext();
-
-    private static final ObjectMapper MAPPER = new GraviteeMapper();
-
     @Test
     public void shouldStartApiIfManagedByKubernetes() throws Exception {
         JsonNode definition = readDefinition("/io/gravitee/rest/api/management/service/import-new-kubernetes-api.definition.json");
@@ -140,7 +139,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any())).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), any(), anyBoolean())).thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
@@ -172,7 +171,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any())).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), any(), anyBoolean())).thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 

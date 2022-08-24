@@ -15,16 +15,16 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static io.gravitee.repository.management.model.Api.AuditEvent.*;
-import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_DELETED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
 import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
-import static java.util.Collections.*;
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.*;
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
-import io.gravitee.definition.model.DefinitionContext;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.v4.listener.Listener;
@@ -40,7 +40,6 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -52,14 +51,13 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.WorkflowReferenceType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
-import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -77,20 +75,39 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.*;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.PropertiesService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
-import io.gravitee.rest.api.service.v4.mapper.IndexableApiMapper;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -104,7 +121,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private final ApiRepository apiRepository;
     private final ApiMapper apiMapper;
-    private final IndexableApiMapper indexableApiMapper;
+    private final GenericApiMapper indexableApiMapper;
     private final PrimaryOwnerService primaryOwnerService;
     private final ApiValidationService apiValidationService;
     private final ParameterService parameterService;
@@ -130,7 +147,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public ApiServiceImpl(
         @Lazy final ApiRepository apiRepository,
         final ApiMapper apiMapper,
-        final IndexableApiMapper indexableApiMapper,
+        final GenericApiMapper genericApiMapper,
         final PrimaryOwnerService primaryOwnerService,
         final ApiValidationService apiValidationService,
         final ParameterService parameterService,
@@ -155,7 +172,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
-        this.indexableApiMapper = indexableApiMapper;
+        this.indexableApiMapper = genericApiMapper;
         this.primaryOwnerService = primaryOwnerService;
         this.apiValidationService = apiValidationService;
         this.parameterService = parameterService;
@@ -177,34 +194,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.mediaService = mediaService;
         this.propertiesService = propertiesService;
         this.apiNotificationService = apiNotificationService;
-    }
-
-    @Override
-    public ApiEntity findById(final ExecutionContext executionContext, final String apiId) {
-        final Api api = this.findApiById(executionContext, apiId);
-
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
-
-        return apiMapper.toEntity(executionContext, api, primaryOwner, null, true);
-    }
-
-    @Override
-    public IndexableApi findIndexableApiById(final ExecutionContext executionContext, final String apiId) {
-        final Api api = this.findApiById(executionContext, apiId, false);
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
-        return indexableApiMapper.toIndexableApi(api, primaryOwner);
-    }
-
-    @Override
-    public Optional<String> findApiIdByEnvironmentIdAndCrossId(final String environment, final String crossId) {
-        try {
-            return apiRepository.findIdByEnvironmentIdAndCrossId(environment, crossId);
-        } catch (TechnicalException e) {
-            throw new TechnicalManagementException(
-                "An error occurred while finding API by environment " + environment + " and crossId " + crossId,
-                e
-            );
-        }
     }
 
     @Override
@@ -267,7 +256,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             //TODO add membership log
             ApiEntity apiEntity = apiMapper.toEntity(executionContext, createdApi, primaryOwner, null, true);
-            IndexableApi apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
+            GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
             searchEngineService.index(executionContext, apiWithMetadata, false);
             return apiEntity;
@@ -446,7 +435,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             ApiEntity apiEntity = apiMapper.toEntity(executionContext, updatedApi, primaryOwner, null, true);
-            IndexableApi apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
+            GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
             apiNotificationService.triggerUpdateNotification(executionContext, apiEntity);
 
@@ -541,47 +530,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             String errorMsg = String.format("An error occurs while trying to delete API '%s'", apiId);
             log.error(errorMsg, apiId, ex);
             throw new TechnicalManagementException(errorMsg, ex);
-        }
-    }
-
-    @Override
-    public boolean exists(final String apiId) {
-        try {
-            return apiRepository.existById(apiId);
-        } catch (final TechnicalException te) {
-            final String msg = "An error occurs while checking if the API exists: " + apiId;
-            log.error(msg, te);
-            throw new TechnicalManagementException(msg, te);
-        }
-    }
-
-    @Override
-    public Api findApiById(final ExecutionContext executionContext, final String apiId) {
-        return this.findApiById(executionContext, apiId, true);
-    }
-
-    private Api findApiById(final ExecutionContext executionContext, final String apiId, boolean throwWhenNotV4) {
-        try {
-            log.debug("Find API by ID: {}", apiId);
-
-            Optional<Api> optApi = apiRepository.findById(apiId);
-
-            if (executionContext.hasEnvironmentId()) {
-                optApi = optApi.filter(result -> result.getEnvironmentId().equals(executionContext.getEnvironmentId()));
-            }
-
-            final Api api = optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
-
-            if (throwWhenNotV4 && api.getDefinitionVersion() != DefinitionVersion.V4) {
-                throw new IllegalArgumentException(
-                    String.format("Api found doesn't support v%s definition model.", DefinitionVersion.V4.getLabel())
-                );
-            }
-
-            return api;
-        } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
     }
 

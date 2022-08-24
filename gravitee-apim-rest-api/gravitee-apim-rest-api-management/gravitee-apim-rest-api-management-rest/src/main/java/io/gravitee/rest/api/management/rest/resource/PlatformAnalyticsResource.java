@@ -58,9 +58,6 @@ import javax.ws.rs.core.Response;
 public class PlatformAnalyticsResource extends AbstractResource {
 
     @Inject
-    private AnalyticsService analyticsService;
-
-    @Inject
     ApiService apiService;
 
     @Inject
@@ -68,6 +65,9 @@ public class PlatformAnalyticsResource extends AbstractResource {
 
     @Inject
     ApplicationService applicationService;
+
+    @Inject
+    private AnalyticsService analyticsService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -104,8 +104,8 @@ public class PlatformAnalyticsResource extends AbstractResource {
             } else {
                 fieldName = "api";
                 ids =
-                    apiService
-                        .findIdsByUser(executionContext, getAuthenticatedUser(), null, false)
+                    apiAuthorizationService
+                        .findIdsByUser(executionContext, getAuthenticatedUser(), false)
                         .stream()
                         .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
                         .collect(Collectors.toList());

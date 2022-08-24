@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.model.ApiMetrics;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
+import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -67,15 +68,7 @@ public class ApiMetricsResource extends AbstractResource {
     @Produces({ MediaType.APPLICATION_JSON })
     @RequirePortalAuth
     public Response getApiMetricsByApiId(@Context Request request, @PathParam("apiId") String apiId) {
-        final ApiQuery apiQuery = new ApiQuery();
-        apiQuery.setIds(Collections.singletonList(apiId));
-
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
-            GraviteeContext.getExecutionContext(),
-            getAuthenticatedUserOrNull(),
-            apiQuery
-        );
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             Number healthRatio = getHealthRatio(apiId);
             Number nbHits = getNbHits(apiId);
             Number subscribers = getApiNbSubscribers(apiId);

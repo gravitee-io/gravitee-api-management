@@ -40,14 +40,22 @@ import io.gravitee.rest.api.model.analytics.Timestamp;
 import io.gravitee.rest.api.model.analytics.query.DateHistogramQuery;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.healthcheck.*;
+import io.gravitee.rest.api.model.healthcheck.ApiMetrics;
+import io.gravitee.rest.api.model.healthcheck.Log;
+import io.gravitee.rest.api.model.healthcheck.Request;
+import io.gravitee.rest.api.model.healthcheck.Response;
+import io.gravitee.rest.api.model.healthcheck.SearchLogResponse;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.AnalyticsCalculateException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -276,13 +284,10 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         Map<String, Map<String, T>> buckets = new HashMap<>();
 
         response.forEach(
-            new Consumer<FieldBucket<T>>() {
-                @Override
-                public void accept(FieldBucket<T> bucket) {
-                    Map<String, T> bucketMetrics = bucket.getValues().stream().collect(Collectors.toMap(Bucket::getKey, Bucket::getValue));
+            bucket -> {
+                Map<String, T> bucketMetrics = bucket.getValues().stream().collect(Collectors.toMap(Bucket::getKey, Bucket::getValue));
 
-                    buckets.put(bucket.getName(), bucketMetrics);
-                }
+                buckets.put(bucket.getName(), bucketMetrics);
             }
         );
         apiMetrics.setBuckets(buckets);
@@ -294,45 +299,30 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 .getBuckets()
                 .values()
                 .forEach(
-                    new Consumer<Map<String, T>>() {
-                        @Override
-                        public void accept(Map<String, T> stringTMap) {
-                            stringTMap
-                                .entrySet()
-                                .forEach(
-                                    new Consumer<Map.Entry<String, T>>() {
-                                        @Override
-                                        public void accept(Map.Entry<String, T> stringTEntry) {
-                                            Number value = stringTEntry.getValue();
-                                            if (value.intValue() >= 0) {
-                                                Double total = values.getOrDefault(stringTEntry.getKey(), 0d);
-                                                total += value.doubleValue();
-                                                values.put(stringTEntry.getKey(), total);
-                                            }
-                                        }
-                                    }
-                                );
-                        }
-                    }
+                    stringTMap ->
+                        stringTMap.forEach(
+                            (key, value) -> {
+                                if (value.intValue() >= 0) {
+                                    Double total = values.getOrDefault(key, 0d);
+                                    total += value.doubleValue();
+                                    values.put(key, total);
+                                }
+                            }
+                        )
                 );
 
-            values
-                .entrySet()
-                .forEach(
-                    new Consumer<Map.Entry<String, Double>>() {
-                        @Override
-                        public void accept(Map.Entry<String, Double> stringDoubleEntry) {
-                            long availableBuckets = apiMetrics
-                                .getBuckets()
-                                .values()
-                                .stream()
-                                .filter(stringTMap -> stringTMap.get(stringDoubleEntry.getKey()).intValue() >= 0)
-                                .count();
+            values.forEach(
+                (key, value) -> {
+                    long availableBuckets = apiMetrics
+                        .getBuckets()
+                        .values()
+                        .stream()
+                        .filter(stringTMap -> stringTMap.get(key).intValue() >= 0)
+                        .count();
 
-                            values.put(stringDoubleEntry.getKey(), stringDoubleEntry.getValue() / availableBuckets);
-                        }
-                    }
-                );
+                    values.put(key, value / availableBuckets);
+                }
+            );
 
             apiMetrics.setGlobal(values);
         }
@@ -344,14 +334,11 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             .getBuckets()
             .keySet()
             .forEach(
-                new Consumer<String>() {
-                    @Override
-                    public void accept(String name) {
-                        if (field.equalsIgnoreCase("endpoint")) {
-                            metadata.put(name, getEndpointMetadata(api, name));
-                        } else if (field.equalsIgnoreCase("gateway")) {
-                            metadata.put(name, getGatewayMetadata(executionContext, name));
-                        }
+                name -> {
+                    if (field.equalsIgnoreCase("endpoint")) {
+                        metadata.put(name, getEndpointMetadata(api, name));
+                    } else if (field.equalsIgnoreCase("gateway")) {
+                        metadata.put(name, getGatewayMetadata(executionContext, name));
                     }
                 }
             );

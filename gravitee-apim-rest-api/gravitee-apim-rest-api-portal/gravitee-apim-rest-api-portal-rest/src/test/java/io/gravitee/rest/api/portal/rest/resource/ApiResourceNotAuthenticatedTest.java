@@ -44,6 +44,9 @@ import org.junit.Test;
  */
 public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
 
+    private static final String API = "my-api";
+    private ApiEntity mockApi;
+
     @Override
     protected String contextPath() {
         return "apis/";
@@ -54,17 +57,13 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         resourceConfig.register(NotAuthenticatedAuthenticationFilter.class);
     }
 
-    private static final String API = "my-api";
-
-    private ApiEntity mockApi;
-
     @Before
     public void init() {
         resetAllMocks();
 
         mockApi = new ApiEntity();
         mockApi.setId(API);
-        doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
+        doReturn(mockApi).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API);
 
         when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
         when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), mockApi)).thenReturn(true);

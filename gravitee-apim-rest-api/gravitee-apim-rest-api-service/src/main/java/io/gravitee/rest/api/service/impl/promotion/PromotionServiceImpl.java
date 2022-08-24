@@ -27,10 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
-import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.PromotionCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.management.model.PromotionAuthor;
 import io.gravitee.repository.management.model.PromotionStatus;
@@ -66,7 +63,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.promotion.PromotionService;
-import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
@@ -89,7 +86,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
     private final Logger LOGGER = LoggerFactory.getLogger(PromotionServiceImpl.class);
 
-    private final ApiService apiService;
+    private final ApiSearchService apiSearchService;
     private final ApiDuplicatorService apiDuplicatorService;
     private final ApiExportService apiExportService;
     private final CockpitPromotionService cockpitPromotionService;
@@ -102,7 +99,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     private final ObjectMapper objectMapper;
 
     public PromotionServiceImpl(
-        ApiService apiService,
+        ApiSearchService apiSearchService,
         ApiDuplicatorService apiDuplicatorService,
         ApiExportService apiExportService,
         CockpitPromotionService cockpitPromotionService,
@@ -113,7 +110,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         AuditService auditService,
         ObjectMapper objectMapper
     ) {
-        this.apiService = apiService;
+        this.apiSearchService = apiSearchService;
         this.apiDuplicatorService = apiDuplicatorService;
         this.apiExportService = apiExportService;
         this.cockpitPromotionService = cockpitPromotionService;
@@ -449,7 +446,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
     private Optional<String> findAlreadyPromotedApiByCrossId(EnvironmentEntity environment, JsonNode apiDefinition) {
         return apiDefinition.hasNonNull("crossId")
-            ? apiService.findApiIdByEnvironmentIdAndCrossId(environment.getId(), apiDefinition.get("crossId").asText())
+            ? apiSearchService.findIdByEnvironmentIdAndCrossId(environment.getId(), apiDefinition.get("crossId").asText())
             : Optional.empty();
     }
 
@@ -462,8 +459,8 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         List<PromotionEntity> previousPromotions = search(promotionQuery, new SortableImpl("created_at", false), null).getContent();
         if (!CollectionUtils.isEmpty(previousPromotions)) {
             PromotionEntity lastAcceptedPromotion = previousPromotions.get(0);
-            return apiService.exists(lastAcceptedPromotion.getTargetApiId())
-                ? apiService.findIndexableApiById(executionContext, lastAcceptedPromotion.getTargetApiId()).getId()
+            return apiSearchService.exists(lastAcceptedPromotion.getTargetApiId())
+                ? apiSearchService.findGenericById(executionContext, lastAcceptedPromotion.getTargetApiId()).getId()
                 : null;
         }
         return null;

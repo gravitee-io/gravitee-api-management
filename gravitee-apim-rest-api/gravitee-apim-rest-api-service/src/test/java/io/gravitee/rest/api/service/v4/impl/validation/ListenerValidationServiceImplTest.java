@@ -30,7 +30,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.EntrypointService;
+import io.gravitee.rest.api.service.v4.EntrypointPluginService;
 import io.gravitee.rest.api.service.v4.exception.ListenerHttpEntrypointMissingException;
 import io.gravitee.rest.api.service.v4.exception.ListenerHttpEntrypointMissingTypeException;
 import io.gravitee.rest.api.service.v4.exception.ListenerHttpPathMissingException;
@@ -67,7 +67,7 @@ public class ListenerValidationServiceImplTest {
     private LoggingValidationService loggingValidationService;
 
     @Mock
-    private EntrypointService entrypointService;
+    private EntrypointPluginService entrypointService;
 
     private ListenerValidationServiceImpl listenerValidationService;
 

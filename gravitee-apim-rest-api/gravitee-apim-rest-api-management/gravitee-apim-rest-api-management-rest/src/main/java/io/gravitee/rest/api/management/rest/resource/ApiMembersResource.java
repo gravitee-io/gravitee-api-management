@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 
 import io.gravitee.common.http.MediaType;
@@ -23,15 +26,20 @@ import io.gravitee.rest.api.management.rest.model.ApiMembership;
 import io.gravitee.rest.api.management.rest.model.TransferOwnership;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipListItem;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,13 +49,22 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 /**
@@ -80,7 +97,7 @@ public class ApiMembersResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getApiMembersPermissions() {
-        final ApiEntity apiEntity = apiService.findById(GraviteeContext.getExecutionContext(), api);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), api);
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
             final String userId = getAuthenticatedUser();
@@ -90,7 +107,7 @@ public class ApiMembersResource extends AbstractResource {
                     permissions.put(perm.getName(), rights);
                 }
             } else {
-                permissions = membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), apiEntity, userId);
+                permissions = membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), genericApiEntity, userId);
             }
         }
         return Response.ok(permissions).build();
@@ -110,7 +127,7 @@ public class ApiMembersResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.READ) })
     public List<MembershipListItem> getApiMembers() {
-        apiService.findById(GraviteeContext.getExecutionContext(), api);
+        isExistingApi();
         return membershipService
             .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, api)
             .stream()
@@ -136,7 +153,7 @@ public class ApiMembersResource extends AbstractResource {
             throw new SinglePrimaryOwnerException(RoleScope.API);
         }
 
-        apiService.findById(GraviteeContext.getExecutionContext(), api);
+        isExistingApi();
 
         MembershipService.MembershipReference reference = new MembershipService.MembershipReference(MembershipReferenceType.API, api);
         MembershipService.MembershipMember member = new MembershipService.MembershipMember(
@@ -184,7 +201,7 @@ public class ApiMembersResource extends AbstractResource {
                 .ifPresent(newRoles::add);
         }
 
-        apiService.findById(GraviteeContext.getExecutionContext(), api);
+        isExistingApi();
 
         membershipService.transferApiOwnership(
             GraviteeContext.getExecutionContext(),
@@ -206,7 +223,7 @@ public class ApiMembersResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.DELETE) })
     public Response deleteApiMember(@Parameter(name = "user", required = true) @NotNull @QueryParam("user") String userId) {
-        apiService.findById(GraviteeContext.getExecutionContext(), api);
+        isExistingApi();
         try {
             userService.findById(GraviteeContext.getExecutionContext(), userId);
         } catch (UserNotFoundException unfe) {
@@ -221,5 +238,11 @@ public class ApiMembersResource extends AbstractResource {
             userId
         );
         return Response.ok().build();
+    }
+
+    private void isExistingApi() {
+        if (!apiSearchService.exists(api)) {
+            throw new ApiNotFoundException(api);
+        }
     }
 }

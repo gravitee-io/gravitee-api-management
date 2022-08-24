@@ -15,28 +15,35 @@
  */
 package io.gravitee.rest.api.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
-import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.*;
+import io.gravitee.rest.api.model.v4.api.GenericApiModel;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiModelEntity {
+public class ApiModel implements GenericApiModel {
 
     private String id;
     private String name;
     private String version;
     private String description;
+    private DefinitionVersion definitionVersion;
     private ExecutionMode executionMode;
     private Set<String> groups;
     private ProxyModelEntity proxy;
@@ -63,6 +70,15 @@ public class ApiModelEntity {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public DefinitionVersion getDefinitionVersion() {
+        return definitionVersion;
+    }
+
+    public ApiModel setDefinitionVersion(final DefinitionVersion definitionVersion) {
+        this.definitionVersion = definitionVersion;
+        return this;
     }
 
     public Date getCreatedAt() {
@@ -103,6 +119,11 @@ public class ApiModelEntity {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    @Override
+    public String getApiVersion() {
+        return version;
     }
 
     public String getDescription() {
@@ -237,7 +258,7 @@ public class ApiModelEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ApiModelEntity api = (ApiModelEntity) o;
+        ApiModel api = (ApiModel) o;
         return Objects.equals(id, api.id) && Objects.equals(version, api.version);
     }
 

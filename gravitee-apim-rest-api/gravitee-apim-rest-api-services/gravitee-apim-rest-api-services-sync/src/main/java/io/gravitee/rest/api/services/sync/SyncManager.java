@@ -27,7 +27,7 @@ import io.gravitee.repository.management.model.EventType;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -181,7 +181,7 @@ public class SyncManager {
                     Api payloadApi = objectMapper.readValue(apiEvent.getPayload(), Api.class);
 
                     // API to deploy
-                    IndexableApi indexableApiToDeploy;
+                    GenericApiEntity indexableApiToDeploy;
                     if (payloadApi.getDefinitionVersion() == null || payloadApi.getDefinitionVersion() != DefinitionVersion.V4) {
                         indexableApiToDeploy = convert(payloadApi);
                     } else {
@@ -190,7 +190,7 @@ public class SyncManager {
 
                     if (indexableApiToDeploy != null) {
                         // Get deployed API
-                        IndexableApi deployedApi = apiManager.get(indexableApiToDeploy.getId());
+                        GenericApiEntity deployedApi = apiManager.get(indexableApiToDeploy.getId());
 
                         // API is not yet deployed, so let's do it !
                         if (deployedApi == null) {

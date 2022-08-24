@@ -15,8 +15,12 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -33,7 +37,14 @@ import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -129,7 +140,8 @@ public class ApisResourceTest extends AbstractResourceTest {
         doReturn(Arrays.asList(publishedApi2)).when(apiService).search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(publishedApi5, publishedApi2, publishedApi1, publishedApi3, publishedApi4));
-        doReturn(mockApis).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), any());
+        when(apiAuthorizationService.findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), any(), any(Set.class)))
+            .thenReturn(mockApis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
 
         doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
 
@@ -277,8 +289,9 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoPublishedApiAndNoLink() {
-        doReturn(Collections.emptySet()).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), any());
-        doReturn(Collections.emptyList()).when(filteringService).filterApis(any(), any(), any(), any(), any());
+        when(apiAuthorizationService.findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), any(), any(Set.class)))
+            .thenReturn(Collections.emptySet());
+        when(filteringService.filterApis(any(), any(), any(), any(), any())).thenReturn(Collections.emptySet());
 
         // Test with default limit
         final Response response = target().request().get();

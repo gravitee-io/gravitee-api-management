@@ -46,6 +46,8 @@ import org.mockito.internal.util.collections.Sets;
 public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
     private static final String API = "my-api";
+    private ApiEntity mockApi;
+    private UpdateApiEntity updateApiEntity;
 
     @Override
     protected String contextPath() {
@@ -56,9 +58,6 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(NotAdminAuthenticationFilter.class);
     }
-
-    private ApiEntity mockApi;
-    private UpdateApiEntity updateApiEntity;
 
     @Before
     public void init() {
@@ -95,7 +94,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
         when(roleService.findById(userRoleId)).thenReturn(userRole);
 
-        when(apiService.canManageApi(userRole)).thenReturn(true);
+        when(apiAuthorizationServiceV4.canManageApi(userRole)).thenReturn(true);
 
         MembershipEntity userMembership = mock(MembershipEntity.class);
         when(userMembership.getReferenceId()).thenReturn(API);
@@ -152,7 +151,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
         when(role.getScope()).thenReturn(RoleScope.API);
         when(roleService.findById(eq(roleId))).thenReturn(role);
 
-        when(apiService.canManageApi(role)).thenReturn(true);
+        when(apiAuthorizationServiceV4.canManageApi(role)).thenReturn(true);
 
         mockApi.setGroups(Collections.singleton(groupId));
 

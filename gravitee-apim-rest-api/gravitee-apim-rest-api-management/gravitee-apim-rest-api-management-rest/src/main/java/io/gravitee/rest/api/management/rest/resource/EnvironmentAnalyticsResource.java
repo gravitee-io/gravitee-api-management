@@ -74,9 +74,6 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
     public static final String LIFECYCLE_STATE_FIELD = "lifecycle_state";
 
     @Inject
-    private AnalyticsService analyticsService;
-
-    @Inject
     ApiService apiService;
 
     @Inject
@@ -84,6 +81,9 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
 
     @Inject
     ApplicationService applicationService;
+
+    @Inject
+    private AnalyticsService analyticsService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -147,7 +147,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                 if (isAdmin()) {
                     return buildCountStat(apiService.searchIds(executionContext, new ApiQuery()).size());
                 } else {
-                    return buildCountStat(apiService.findIdsByUser(executionContext, getAuthenticatedUser(), new ApiQuery(), false).size());
+                    return buildCountStat(apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), false).size());
                 }
             case APPLICATION_FIELD:
                 if (isAdmin()) {
@@ -246,8 +246,8 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         } else {
             fieldName = API_FIELD;
             ids =
-                apiService
-                    .findIdsByUser(executionContext, getAuthenticatedUser(), null, false)
+                apiAuthorizationService
+                    .findIdsByUser(executionContext, getAuthenticatedUser(), false)
                     .stream()
                     .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
                     .collect(Collectors.toList());

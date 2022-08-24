@@ -22,7 +22,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.model.v4.entrypoint.EntrypointPluginEntity;
-import io.gravitee.rest.api.service.v4.EntrypointService;
+import io.gravitee.rest.api.service.v4.EntrypointPluginService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -49,7 +49,7 @@ public class EntrypointResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private EntrypointService entrypointService;
+    private EntrypointPluginService entrypointService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

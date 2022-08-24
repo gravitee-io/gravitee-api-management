@@ -49,7 +49,7 @@ import io.gravitee.rest.api.model.promotion.PromotionEntityAuthor;
 import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
 import io.gravitee.rest.api.model.promotion.PromotionRequestEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiExportService;
 import io.gravitee.rest.api.service.AuditService;
@@ -65,7 +65,7 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.PromotionAlreadyInProgressException;
 import io.gravitee.rest.api.service.exceptions.PromotionNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -101,7 +101,7 @@ public class PromotionServiceTest {
     private EnvironmentService environmentService;
 
     @Mock
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Mock
     private ApiDuplicatorService apiDuplicatorService;
@@ -265,11 +265,11 @@ public class PromotionServiceTest {
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         when(apiDuplicatorService.updateWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
-        when(apiService.exists(any())).thenReturn(true);
+        when(apiSearchService.exists(any())).thenReturn(true);
 
         ApiEntity existingApi = new ApiEntity();
         existingApi.setId("api#existing");
-        when(apiService.findIndexableApiById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingApi);
+        when(apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingApi);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
         when(
@@ -331,8 +331,8 @@ public class PromotionServiceTest {
         when(objectMapper.readTree(anyString())).thenReturn(mock(ObjectNode.class));
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
-        when(apiService.exists(any())).thenReturn(true);
-        when(apiService.findIndexableApiById(any(), any())).thenReturn(mock(IndexableApi.class));
+        when(apiSearchService.exists(any())).thenReturn(true);
+        when(apiSearchService.findGenericById(any(), any())).thenReturn(mock(GenericApiEntity.class));
         Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
@@ -355,12 +355,12 @@ public class PromotionServiceTest {
         Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
-        when(apiService.exists(any())).thenReturn(true);
+        when(apiSearchService.exists(any())).thenReturn(true);
         when(apiDuplicatorService.updateWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
 
         ApiEntity existingApi = new ApiEntity();
         existingApi.setId("api#existing");
-        when(apiService.findIndexableApiById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingApi);
+        when(apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingApi);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.ERROR);
 
@@ -458,7 +458,7 @@ public class PromotionServiceTest {
 
         // API is found by crossId
         String apiIdFoundByCrossId = UUID.randomUUID().toString();
-        when(apiService.findApiIdByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.of(apiIdFoundByCrossId));
+        when(apiSearchService.findIdByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.of(apiIdFoundByCrossId));
 
         String resultApiId = promotionService.findAlreadyPromotedTargetApi(
             GraviteeContext.getExecutionContext(),
@@ -478,7 +478,7 @@ public class PromotionServiceTest {
         environment.setId("env-id");
 
         // API is not found by crossId
-        when(apiService.findApiIdByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
+        when(apiSearchService.findIdByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
 
         // Last promotions of this API are found
         Promotion aPromotion = getAPromotion();
@@ -486,10 +486,10 @@ public class PromotionServiceTest {
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         // Target API of last promotion is found
-        IndexableApi apiFromLastPromotion = mock(IndexableApi.class);
+        GenericApiEntity apiFromLastPromotion = mock(GenericApiEntity.class);
         when(apiFromLastPromotion.getId()).thenReturn(aPromotion.getApiId());
-        when(apiService.exists(aPromotion.getTargetApiId())).thenReturn(true);
-        when(apiService.findIndexableApiById(GraviteeContext.getExecutionContext(), "api#1-Promoted")).thenReturn(apiFromLastPromotion);
+        when(apiSearchService.exists(aPromotion.getTargetApiId())).thenReturn(true);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), "api#1-Promoted")).thenReturn(apiFromLastPromotion);
 
         String resultApi = promotionService.findAlreadyPromotedTargetApi(
             GraviteeContext.getExecutionContext(),
@@ -509,7 +509,7 @@ public class PromotionServiceTest {
         environment.setId("env-id");
 
         // API is not found by crossId
-        when(apiService.findApiIdByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
+        when(apiSearchService.findIdByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
 
         // Searching for previous promotions of this API returns an empty list
         Page<Promotion> promotionPage = new Page<>(emptyList(), 0, 0, 0);
@@ -533,7 +533,7 @@ public class PromotionServiceTest {
         environment.setId("env-id");
 
         // API is not found by crossId
-        when(apiService.findApiIdByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
+        when(apiSearchService.findIdByEnvironmentIdAndCrossId("env-id", "test-cross-id")).thenReturn(Optional.empty());
 
         // Last promotions of this API are found
         Promotion aPromotion = getAPromotion();
@@ -541,7 +541,7 @@ public class PromotionServiceTest {
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         // Target API of last promotion is not found
-        when(apiService.exists(aPromotion.getTargetApiId())).thenReturn(false);
+        when(apiSearchService.exists(aPromotion.getTargetApiId())).thenReturn(false);
 
         String resultApiId = promotionService.findAlreadyPromotedTargetApi(
             GraviteeContext.getExecutionContext(),

@@ -20,9 +20,11 @@ import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
@@ -46,9 +48,6 @@ public class PermissionsResource extends AbstractResource {
     private MembershipService membershipService;
 
     @Inject
-    private ApiService apiService;
-
-    @Inject
     private ApplicationService applicationService;
 
     @GET
@@ -56,20 +55,13 @@ public class PermissionsResource extends AbstractResource {
     public Response getCurrentUserPermissions(@QueryParam("apiId") String apiId, @QueryParam("applicationId") String applicationId) {
         final String userId = getAuthenticatedUser();
         if (apiId != null) {
-            ApiQuery apiQuery = new ApiQuery();
-            apiQuery.setIds(Collections.singletonList(apiId));
-            Set<ApiEntity> publishedByUser = apiService.findPublishedByUser(
-                GraviteeContext.getExecutionContext(),
-                getAuthenticatedUserOrNull(),
-                apiQuery
-            );
-            ApiEntity apiEntity = publishedByUser
-                .stream()
-                .filter(a -> a.getId().equals(apiId))
-                .findFirst()
-                .orElseThrow(() -> new ApiNotFoundException(apiId));
+            ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+            if (!accessControlService.canAccessApiFromPortal(executionContext, apiId)) {
+                throw new ApiNotFoundException(apiId);
+            }
             Map<String, char[]> permissions;
-            permissions = membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), apiEntity, userId);
+            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+            permissions = membershipService.getUserMemberPermissions(executionContext, genericApiEntity, userId);
 
             return Response.ok(permissions).build();
         } else if (applicationId != null) {

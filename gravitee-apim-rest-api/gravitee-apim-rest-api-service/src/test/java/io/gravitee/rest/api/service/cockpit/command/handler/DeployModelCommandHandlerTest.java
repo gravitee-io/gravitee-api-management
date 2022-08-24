@@ -38,9 +38,8 @@ import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
 import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.reactivex.observers.TestObserver;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
@@ -61,12 +60,13 @@ public class DeployModelCommandHandlerTest {
 
     public static final String ENVIRONMENT_ID = "environment#id";
     public static final String ORGANIZATION_ID = "organization#id";
+    MockedStatic<GraviteeContext> mockedStaticGraviteeContext;
 
     @Mock
     private UserService userService;
 
     @Mock
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Mock
     private ApiServiceCockpit cockpitApiService;
@@ -79,11 +79,9 @@ public class DeployModelCommandHandlerTest {
 
     private DeployModelCommandHandler cut;
 
-    MockedStatic<GraviteeContext> mockedStaticGraviteeContext;
-
     @Before
     public void setUp() throws Exception {
-        cut = new DeployModelCommandHandler(apiService, cockpitApiService, permissionChecker, userService, environmentService);
+        cut = new DeployModelCommandHandler(apiSearchService, cockpitApiService, permissionChecker, userService, environmentService);
         mockedStaticGraviteeContext = mockStatic(GraviteeContext.class);
     }
 
@@ -279,7 +277,7 @@ public class DeployModelCommandHandlerTest {
         DeployModelCommand command = new DeployModelCommand(payload);
 
         String apiId = "api#id";
-        when(apiService.findApiIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
+        when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
@@ -339,7 +337,7 @@ public class DeployModelCommandHandlerTest {
         DeployModelCommand command = new DeployModelCommand(payload);
 
         String apiId = "api#id";
-        when(apiService.findApiIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
+        when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
@@ -399,7 +397,7 @@ public class DeployModelCommandHandlerTest {
         DeployModelCommand command = new DeployModelCommand(payload);
 
         String apiId = "api#id";
-        when(apiService.findApiIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
+        when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");
@@ -602,7 +600,7 @@ public class DeployModelCommandHandlerTest {
         DeployModelCommand command = new DeployModelCommand(payload);
 
         String apiId = "api#id";
-        when(apiService.findApiIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
+        when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
 
         UserEntity user = new UserEntity();
         user.setId("user#id");

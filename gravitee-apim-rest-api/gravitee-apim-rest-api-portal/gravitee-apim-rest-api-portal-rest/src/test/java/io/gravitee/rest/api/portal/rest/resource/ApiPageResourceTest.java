@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.Visibility;
@@ -61,11 +62,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
-
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis)
-            .when(apiService)
-            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
         doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
         PageEntity page1 = new PageEntity();
         page1.setPublished(true);
@@ -81,9 +78,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotFoundApiWhileGettingApiPage() {
         // init
-        ApiEntity userApi = new ApiEntity();
-        userApi.setId("1");
-        doReturn(false).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
 
         // test
         final Response response = target(API).path("pages").path(PAGE).request().get();

@@ -25,7 +25,7 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.rest.api.model.v4.entrypoint.EntrypointPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.impl.AbstractPluginService;
-import io.gravitee.rest.api.service.v4.EntrypointService;
+import io.gravitee.rest.api.service.v4.EntrypointPluginService;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -34,12 +34,12 @@ import org.springframework.stereotype.Component;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Component("EntrypointServiceImplV4")
-public class EntrypointServiceImpl
+@Component("EntrypointPluginServiceImplV4")
+public class EntrypointPluginServiceImpl
     extends AbstractPluginService<EntrypointConnectorPlugin<?>, EntrypointPluginEntity>
-    implements EntrypointService {
+    implements EntrypointPluginService {
 
-    public EntrypointServiceImpl(
+    public EntrypointPluginServiceImpl(
         JsonSchemaService jsonSchemaService,
         ConfigurablePluginManager<EntrypointConnectorPlugin<?>> pluginManager
     ) {

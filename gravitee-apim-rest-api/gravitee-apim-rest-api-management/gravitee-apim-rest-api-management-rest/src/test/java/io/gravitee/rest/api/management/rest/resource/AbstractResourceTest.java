@@ -71,6 +71,7 @@ import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.VirtualHostService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
@@ -82,7 +83,10 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
+import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import java.io.IOException;
 import java.security.Principal;
 import javax.annotation.Priority;
@@ -115,7 +119,13 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
 
     @Autowired
+    protected io.gravitee.rest.api.service.v4.ApiSearchService apiSearchServiceV4;
+
+    @Autowired
     protected io.gravitee.rest.api.service.v4.ApiStateService apiStateServiceV4;
+
+    @Autowired
+    protected io.gravitee.rest.api.service.v4.ApiAuthorizationService apiAuthorizationServiceV4;
 
     @Autowired
     protected ApiGroupService apiGroupService;
@@ -272,6 +282,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected ApiConverter apiConverter;
 
     @Autowired
+    protected CategoryMapper categoryMapper;
+
+    @Autowired
     protected AlertService alertService;
 
     @Autowired
@@ -285,6 +298,17 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected AuditService auditService;
+
+    @Autowired
+    protected WorkflowService workflowService;
+
+    @Autowired
+    protected ApiEntrypointService apiEntrypointService;
+
+    @Before
+    public void setUp() throws Exception {
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+    }
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -301,8 +325,23 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
+        public io.gravitee.rest.api.service.v4.ApiSearchService apiSearchServiceV4() {
+            return mock(io.gravitee.rest.api.service.v4.ApiSearchService.class);
+        }
+
+        @Bean
         public io.gravitee.rest.api.service.v4.ApiStateService apiStateServiceV4() {
             return mock(io.gravitee.rest.api.service.v4.ApiStateService.class);
+        }
+
+        @Bean
+        public io.gravitee.rest.api.service.v4.ApiAuthorizationService apiAuthorizationServiceV4() {
+            return mock(io.gravitee.rest.api.service.v4.ApiAuthorizationService.class);
+        }
+
+        @Bean
+        public io.gravitee.rest.api.service.v4.ApiEntrypointService apiEntrypointService() {
+            return mock(io.gravitee.rest.api.service.v4.ApiEntrypointService.class);
         }
 
         @Bean
@@ -586,6 +625,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
+        public CategoryMapper categoryMapper() {
+            return mock(CategoryMapper.class);
+        }
+
+        @Bean
         public AlertService alertService() {
             return mock(AlertService.class);
         }
@@ -609,11 +653,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         public AuditService auditService() {
             return mock(AuditService.class);
         }
-    }
 
-    @Before
-    public void setUp() throws Exception {
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+        @Bean
+        public WorkflowService workflowService() {
+            return mock(WorkflowService.class);
+        }
     }
 
     @Priority(50)

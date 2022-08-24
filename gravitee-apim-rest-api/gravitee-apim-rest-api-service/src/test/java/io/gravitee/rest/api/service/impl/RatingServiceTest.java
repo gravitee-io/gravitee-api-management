@@ -41,6 +41,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.RatingAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Date;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -106,10 +107,26 @@ public class RatingServiceTest {
     private ParameterService mockParameterService;
 
     @Mock
-    private ApiService mockApiService;
+    private ApiSearchService mockApiSearchService;
 
     @Mock
     private NotifierService mockNotifierService;
+
+    @AfterClass
+    public static void cleanSecurityContextHolder() {
+        // reset authentication to avoid side effect during test executions.
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(Authentication authentication) {}
+            }
+        );
+    }
 
     @Before
     public void init() {
@@ -137,22 +154,6 @@ public class RatingServiceTest {
             )
         )
             .thenReturn(Boolean.TRUE);
-    }
-
-    @AfterClass
-    public static void cleanSecurityContextHolder() {
-        // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
-            }
-        );
     }
 
     @Test(expected = RatingAlreadyExistsException.class)

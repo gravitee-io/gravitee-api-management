@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -53,9 +54,6 @@ public class ApplicationSubscriptionResource extends AbstractResource {
 
     @Inject
     private PlanService planService;
-
-    @Inject
-    private ApiService apiService;
 
     @Inject
     private UserService userService;
@@ -135,13 +133,13 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
         subscription.getPlan().setSecurity(plan.getSecurity());
 
-        ApiEntity api = apiService.findById(executionContext, subscriptionEntity.getApi());
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, subscriptionEntity.getApi());
         subscription.setApi(
             new Subscription.Api(
-                api.getId(),
-                api.getName(),
-                api.getVersion(),
-                new Subscription.User(api.getPrimaryOwner().getId(), api.getPrimaryOwner().getDisplayName())
+                genericApiEntity.getId(),
+                genericApiEntity.getName(),
+                genericApiEntity.getApiVersion(),
+                new Subscription.User(genericApiEntity.getPrimaryOwner().getId(), genericApiEntity.getPrimaryOwner().getDisplayName())
             )
         );
 

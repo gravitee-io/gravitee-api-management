@@ -15,9 +15,16 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -39,9 +46,17 @@ import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
+import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -83,6 +98,9 @@ public class ApiMapperTest {
     @Mock
     private CategoryService categoryService;
 
+    @Mock
+    private ApiEntrypointService apiEntrypointService;
+
     @InjectMocks
     private ApiMapper apiMapper;
 
@@ -103,7 +121,8 @@ public class ApiMapperTest {
 
         apiEntity.setCategories(new HashSet<>(Arrays.asList(API_CATEGORY, API_CATEGORY_HIDDEN)));
 
-        apiEntity.setEntrypoints(Arrays.asList(new ApiEntrypointEntity(API_ENTRYPOINT_1), new ApiEntrypointEntity(API + "/foo")));
+        when(apiEntrypointService.getApiEntrypoints(any(), eq(API_ID)))
+            .thenReturn(Arrays.asList(new ApiEntrypointEntity(API_ENTRYPOINT_1), new ApiEntrypointEntity(API + "/foo")));
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("meta", API);
@@ -206,7 +225,7 @@ public class ApiMapperTest {
         assertTrue(responseApi.getDraft());
 
         List<String> entrypoints = responseApi.getEntrypoints();
-        assertNull(entrypoints);
+        assertEquals(0, entrypoints.size());
 
         List<String> labels = responseApi.getLabels();
         assertNotNull(labels);

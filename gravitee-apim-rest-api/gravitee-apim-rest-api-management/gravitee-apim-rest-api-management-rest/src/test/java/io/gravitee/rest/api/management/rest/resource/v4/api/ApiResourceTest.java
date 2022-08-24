@@ -97,8 +97,8 @@ public class ApiResourceTest extends AbstractResourceTest {
         apiEntity.setResources(List.of(new Resource()));
         apiEntity.setResponseTemplates(Map.of("key", new HashMap<>()));
         apiEntity.setUpdatedAt(new Date());
-        doReturn(apiEntity).when(apiServiceV4).findById(GraviteeContext.getExecutionContext(), API);
-        doThrow(ApiNotFoundException.class).when(apiServiceV4).findById(GraviteeContext.getExecutionContext(), UNKNOWN_API);
+        doReturn(apiEntity).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), API);
+        doThrow(ApiNotFoundException.class).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), UNKNOWN_API);
         doThrow(ApiNotFoundException.class).when(apiServiceV4).delete(GraviteeContext.getExecutionContext(), UNKNOWN_API);
     }
 

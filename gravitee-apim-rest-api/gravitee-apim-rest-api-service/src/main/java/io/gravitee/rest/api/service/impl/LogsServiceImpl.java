@@ -35,9 +35,11 @@ import io.gravitee.rest.api.model.log.extended.Request;
 import io.gravitee.rest.api.model.log.extended.Response;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import java.util.*;
 import java.util.function.Function;
@@ -57,11 +59,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class LogsServiceImpl implements LogsService {
 
-    private final Logger logger = LoggerFactory.getLogger(LogsServiceImpl.class);
-
     private static final String UNKNOWN_SERVICE = "1";
     private static final String UNKNOWN_SERVICE_MAPPED = "?";
-
     private static final String METADATA_NAME = "name";
     private static final String METADATA_DELETED = "deleted";
     private static final String METADATA_UNKNOWN = "unknown";
@@ -72,17 +71,17 @@ public class LogsServiceImpl implements LogsService {
     private static final String METADATA_DELETED_API_NAME = "Deleted API";
     private static final String METADATA_DELETED_APPLICATION_NAME = "Deleted application";
     private static final String METADATA_DELETED_PLAN_NAME = "Deleted plan";
-
     private static final String RFC_3339_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private static final FastDateFormat dateFormatter = FastDateFormat.getInstance(RFC_3339_DATE_FORMAT);
     private static final char separator = ';';
+    private final Logger logger = LoggerFactory.getLogger(LogsServiceImpl.class);
 
     @Lazy
     @Autowired
     private LogRepository logRepository;
 
     @Autowired
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Autowired
     private ApplicationService applicationService;
@@ -310,10 +309,10 @@ public class LogsServiceImpl implements LogsService {
                     metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
                     metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
                 } else {
-                    ApiEntity apiEntity = apiService.findById(executionContext, api);
-                    metadata.put(METADATA_NAME, apiEntity.getName());
-                    metadata.put(METADATA_VERSION, apiEntity.getVersion());
-                    if (ApiLifecycleState.ARCHIVED.equals(apiEntity.getLifecycleState())) {
+                    GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api);
+                    metadata.put(METADATA_NAME, genericApiEntity.getName());
+                    metadata.put(METADATA_VERSION, genericApiEntity.getApiVersion());
+                    if (ApiLifecycleState.ARCHIVED.equals(genericApiEntity.getLifecycleState())) {
                         metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
                     }
                 }

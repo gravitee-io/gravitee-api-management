@@ -63,9 +63,6 @@ public class CategoryResourceNotAuthenticatedTest extends AbstractResourceTest {
         categoryEntity.setHidden(false);
         doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment());
 
-        Set<ApiEntity> mockApis = new HashSet<>();
-        doReturn(mockApis).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any());
-
         doReturn(Map.of(CATEGORY_ID, 5L)).when(apiService).countPublishedByUserGroupedByCategories(null);
 
         Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();

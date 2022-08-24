@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
@@ -26,11 +27,11 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 public interface AccessControlService {
     boolean canAccessApiFromPortal(ExecutionContext executionContext, String apiId);
 
-    boolean canAccessApiFromPortal(ExecutionContext executionContext, ApiEntity apiEntity);
+    boolean canAccessApiFromPortal(ExecutionContext executionContext, GenericApiEntity apiEntity);
 
     boolean canAccessPageFromPortal(final ExecutionContext executionContext, PageEntity pageEntity);
 
     boolean canAccessPageFromPortal(final ExecutionContext executionContext, String apiId, PageEntity pageEntity);
 
-    boolean canAccessPageFromConsole(final ExecutionContext executionContext, ApiEntity apiEntity, PageEntity pageEntity);
+    boolean canAccessPageFromConsole(final ExecutionContext executionContext, GenericApiEntity genericApiEntity, PageEntity pageEntity);
 }

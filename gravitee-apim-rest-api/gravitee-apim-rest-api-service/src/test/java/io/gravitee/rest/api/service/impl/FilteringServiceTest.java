@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.impl.filtering.FilteringServiceImpl;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import java.util.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -54,8 +55,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @RunWith(MockitoJUnitRunner.class)
 public class FilteringServiceTest {
 
-    @InjectMocks
-    private FilteringServiceImpl filteringService = new FilteringServiceImpl();
+    private static Set<String> mockApis;
 
     @Mock
     SubscriptionService subscriptionService;
@@ -70,9 +70,13 @@ public class FilteringServiceTest {
     ApiService apiService;
 
     @Mock
+    ApiAuthorizationService apiAuthorizationService;
+
+    @Mock
     ApplicationService applicationService;
 
-    private static Set<String> mockApis;
+    @InjectMocks
+    private FilteringServiceImpl filteringService = new FilteringServiceImpl();
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -332,8 +336,8 @@ public class FilteringServiceTest {
         String aQuery = "a Query";
 
         doReturn(Set.of("api-#1", "api-#2", "api-#3"))
-            .when(apiService)
-            .findPublishedIdsByUser(eq(GraviteeContext.getExecutionContext()), eq("user-#1"));
+            .when(apiAuthorizationService)
+            .findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), eq("user-#1"));
         doReturn(List.of("api-#3"))
             .when(apiService)
             .searchIds(eq(GraviteeContext.getExecutionContext()), eq(aQuery), eq(Map.of("api", Set.of("api-#1", "api-#2", "api-#3"))));

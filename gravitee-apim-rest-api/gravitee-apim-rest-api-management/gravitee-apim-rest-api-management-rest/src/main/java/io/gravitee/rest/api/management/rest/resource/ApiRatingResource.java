@@ -20,14 +20,17 @@ import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.NewRatingAnswerEntity;
+import io.gravitee.rest.api.model.NewRatingEntity;
+import io.gravitee.rest.api.model.RatingEntity;
+import io.gravitee.rest.api.model.RatingSummaryEntity;
+import io.gravitee.rest.api.model.UpdateRatingEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -40,7 +43,15 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -62,9 +73,9 @@ public class ApiRatingResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Page<RatingEntity> getApiRating(@Min(1) @QueryParam("pageNumber") int pageNumber, @QueryParam("pageSize") int pageSize) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final ApiEntity apiEntity = apiService.findById(executionContext, api);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api);
         if (
-            PUBLIC.equals(apiEntity.getVisibility()) ||
+            PUBLIC.equals(genericApiEntity.getVisibility()) ||
             hasPermission(executionContext, RolePermission.API_RATING, api, RolePermissionAction.READ)
         ) {
             final Page<RatingEntity> ratingEntityPage = ratingService.findByApi(
@@ -97,9 +108,9 @@ public class ApiRatingResource extends AbstractResource {
             return null;
         }
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final ApiEntity apiEntity = apiService.findById(executionContext, api);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api);
         if (
-            PUBLIC.equals(apiEntity.getVisibility()) ||
+            PUBLIC.equals(genericApiEntity.getVisibility()) ||
             hasPermission(executionContext, RolePermission.API_RATING, api, RolePermissionAction.READ)
         ) {
             return filterPermission(executionContext, api, ratingService.findByApiForConnectedUser(executionContext, api));
@@ -114,9 +125,9 @@ public class ApiRatingResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public RatingSummaryEntity getApiRatingSummaryByApi() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final ApiEntity apiEntity = apiService.findById(executionContext, api);
+        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api);
         if (
-            PUBLIC.equals(apiEntity.getVisibility()) ||
+            PUBLIC.equals(genericApiEntity.getVisibility()) ||
             hasPermission(executionContext, RolePermission.API_RATING, api, RolePermissionAction.READ)
         ) {
             return ratingService.findSummaryByApi(executionContext, api);

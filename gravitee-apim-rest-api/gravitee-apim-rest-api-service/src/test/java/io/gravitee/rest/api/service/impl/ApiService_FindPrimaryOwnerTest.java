@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
@@ -77,13 +78,17 @@ public class ApiService_FindPrimaryOwnerTest {
     @Mock
     private UserService userService;
 
+    @Mock
+    private RoleService roleService;
+
     @Before
     public void before() {
         PrimaryOwnerService primaryOwnerService = new PrimaryOwnerServiceImpl(
             userService,
             membershipService,
             groupService,
-            parameterService
+            parameterService,
+            roleService
         );
         ReflectionTestUtils.setField(apiService, "primaryOwnerService", primaryOwnerService);
     }

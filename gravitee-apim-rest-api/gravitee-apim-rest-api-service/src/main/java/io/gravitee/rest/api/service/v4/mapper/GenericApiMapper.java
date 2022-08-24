@@ -17,9 +17,12 @@ package io.gravitee.rest.api.service.v4.mapper;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,21 +30,34 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class IndexableApiMapper {
+public class GenericApiMapper {
 
     private final ApiMapper apiMapper;
     private final ApiConverter apiConverter;
 
-    public IndexableApiMapper(final ApiMapper apiMapper, final ApiConverter apiConverter) {
+    public GenericApiMapper(final ApiMapper apiMapper, final ApiConverter apiConverter) {
         this.apiMapper = apiMapper;
         this.apiConverter = apiConverter;
     }
 
-    public IndexableApi toIndexableApi(final Api api, final PrimaryOwnerEntity primaryOwner) {
+    public GenericApiEntity toGenericApi(final Api api, final PrimaryOwnerEntity primaryOwner) {
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
             return apiMapper.toEntity(api, primaryOwner);
         } else {
             return apiConverter.toApiEntity(api, primaryOwner);
+        }
+    }
+
+    public GenericApiEntity toGenericApi(
+        final ExecutionContext executionContext,
+        final Api api,
+        final PrimaryOwnerEntity primaryOwner,
+        final List<CategoryEntity> categories
+    ) {
+        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+            return apiMapper.toEntity(executionContext, api, primaryOwner, categories, true);
+        } else {
+            return apiConverter.toApiEntity(executionContext, api, primaryOwner, categories, true);
         }
     }
 }

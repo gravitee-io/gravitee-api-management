@@ -25,9 +25,9 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -39,10 +39,18 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 
@@ -109,10 +117,10 @@ public class ApiEventsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ) })
     public EventEntityPage searchApiEvents(@Parameter @BeanParam EventSearchParam eventSearchParam) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApiEntity apiEntity = apiService.findById(executionContext, api);
+        GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, api);
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put(Event.EventProperties.API_ID.getValue(), Arrays.asList(api));
+        properties.put(Event.EventProperties.API_ID.getValue(), List.of(api));
         final Page<EventEntity> apiEvents = eventService.search(
             executionContext,
             eventSearchParam.getEventTypeListParam(),
@@ -132,8 +140,8 @@ public class ApiEventsResource extends AbstractResource {
                     // Remove payload content from response since it's not required anymore
                     event.setPayload(null);
                     // complete event with API info
-                    properties1.put("api_name", apiEntity.getName());
-                    properties1.put("api_version", apiEntity.getVersion());
+                    properties1.put("api_name", genericApi.getName());
+                    properties1.put("api_version", genericApi.getApiVersion());
                 }
             );
 

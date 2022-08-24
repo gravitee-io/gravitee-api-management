@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.model.v4.api.IndexableApi;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
@@ -25,13 +25,13 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  */
 public interface ApiNotificationService {
     void triggerUpdateNotification(ExecutionContext executionContext, Api api);
-    void triggerUpdateNotification(ExecutionContext executionContext, IndexableApi api);
+    void triggerUpdateNotification(ExecutionContext executionContext, GenericApiEntity api);
 
-    void triggerDeprecatedNotification(ExecutionContext executionContext, IndexableApi indexableApi);
+    void triggerDeprecatedNotification(ExecutionContext executionContext, GenericApiEntity indexableApi);
 
-    void triggerDeployNotification(ExecutionContext executionContext, IndexableApi api);
+    void triggerDeployNotification(ExecutionContext executionContext, GenericApiEntity api);
 
-    void triggerStartNotification(ExecutionContext executionContext, IndexableApi indexableApi);
+    void triggerStartNotification(ExecutionContext executionContext, GenericApiEntity indexableApi);
 
-    void triggerStopNotification(ExecutionContext executionContext, IndexableApi indexableApi);
+    void triggerStopNotification(ExecutionContext executionContext, GenericApiEntity indexableApi);
 }

@@ -41,6 +41,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
@@ -63,7 +64,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiStateServiceImpl implements ApiStateService {
 
-    private final ApiService apiService;
+    private final ApiSearchService apiSearchService;
     private final ApiRepository apiRepository;
     private final ApiMapper apiMapper;
     private final ApiNotificationService apiNotificationService;
@@ -73,7 +74,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final ObjectMapper objectMapper;
 
     public ApiStateServiceImpl(
-        final ApiService apiService,
+        final ApiSearchService apiSearchService,
         @Lazy final ApiRepository apiRepository,
         final ApiMapper apiMapper,
         final ApiNotificationService apiNotificationService,
@@ -82,7 +83,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         final EventService eventService,
         final ObjectMapper objectMapper
     ) {
-        this.apiService = apiService;
+        this.apiSearchService = apiSearchService;
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
         this.apiNotificationService = apiNotificationService;
@@ -102,7 +103,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         log.debug("Deploy API: {}", apiId);
 
         try {
-            Api api = apiService.findApiById(executionContext, apiId);
+            Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
 
             if (DefinitionContext.isKubernetes(api.getOrigin())) {
                 throw new ApiNotManagedException("The api is managed externally (" + api.getOrigin() + "). Unable to deploy it.");
