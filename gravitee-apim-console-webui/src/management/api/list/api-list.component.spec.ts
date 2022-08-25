@@ -14,25 +14,51 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { ApiListComponent } from './api-list.component';
 import { ApiListModule } from './api-list.module';
+import { ApiListComponent } from './api-list.component';
+
+import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
+import { CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
+import { User as DeprecatedUser } from '../../../entities/user';
 
 describe('ApisListComponent', () => {
+  const fakeUiRouter = { go: jest.fn() };
+
   let fixture: ComponentFixture<ApiListComponent>;
-  let apiListComponent: ApiListComponent;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [ApiListModule],
+  beforeEach(async () => {
+    const currentUser = new DeprecatedUser();
+    currentUser.userPermissions = ['environment-api-c'];
+
+    await TestBed.configureTestingModule({
+      imports: [ApiListModule, MatIconTestingModule, GioUiRouterTestingModule],
+      providers: [
+        { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: CurrentUserService, useValue: { currentUser } },
+      ],
     }).compileComponents();
-
     fixture = TestBed.createComponent(ApiListComponent);
-    apiListComponent = fixture.componentInstance;
   });
 
-  it('should create', () => {
-    expect(fixture).toBeTruthy();
-    expect(apiListComponent).toBeTruthy();
+  describe('onAddApiClick', () => {
+    let loader: HarnessLoader;
+
+    beforeEach(async () => {
+      fixture.detectChanges();
+      loader = TestbedHarnessEnvironment.loader(fixture);
+    });
+
+    it('should navigate to new apis page on click to add button', async () => {
+      const routerSpy = jest.spyOn(fakeUiRouter, 'go');
+
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="add-api"]' })).then((button) => button.click());
+
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.new');
+    });
   });
 });

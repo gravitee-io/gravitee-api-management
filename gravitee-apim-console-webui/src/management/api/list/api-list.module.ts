@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { ApiListComponent } from './api-list.component';
+
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   declarations: [ApiListComponent],
   exports: [ApiListComponent],
-  entryComponents: [ApiListComponent],
+  imports: [CommonModule, MatButtonModule, GioIconsModule, GioPermissionModule],
 })
 export class ApiListModule {}

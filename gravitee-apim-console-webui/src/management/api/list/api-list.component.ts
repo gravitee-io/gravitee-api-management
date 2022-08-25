@@ -13,11 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
+import { StateService } from '@uirouter/core';
+
+import { UIRouterState } from '../../../ajs-upgraded-providers';
 
 @Component({
   selector: 'api-list',
   template: require('./api-list.component.html'),
   styles: [require('./api-list.component.scss')],
 })
-export class ApiListComponent {}
+export class ApiListComponent {
+  constructor(@Inject(UIRouterState) private readonly $state: StateService) {}
+
+  onAddApiClick() {
+    this.$state.go('management.apis.new');
+  }
+}
