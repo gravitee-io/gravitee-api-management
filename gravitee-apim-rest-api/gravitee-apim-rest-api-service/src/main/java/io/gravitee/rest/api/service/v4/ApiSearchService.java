@@ -31,11 +31,13 @@ public interface ApiSearchService {
 
     GenericApiEntity findGenericById(final ExecutionContext executionContext, final String apiId);
 
+    Set<GenericApiEntity> findAllGenericByEnvironment(ExecutionContext executionContext);
+
     Api findRepositoryApiById(ExecutionContext executionContext, String apiId);
 
     Optional<String> findIdByEnvironmentIdAndCrossId(final String environment, final String crossId);
 
     boolean exists(final String apiId);
 
-    Set<GenericApiEntity> findByEnvironmentAndIdIn(ExecutionContext executionContext, Set<String> apiIds);
+    Set<GenericApiEntity> findGenericByEnvironmentAndIdIn(ExecutionContext executionContext, Set<String> apiIds);
 }

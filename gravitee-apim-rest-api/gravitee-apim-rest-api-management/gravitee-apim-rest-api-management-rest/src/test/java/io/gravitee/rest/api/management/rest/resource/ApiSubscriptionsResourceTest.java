@@ -65,7 +65,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
     public void setUp() {
         reset(subscriptionService);
         reset(userService);
-        reset(planService);
+        reset(planSearchService);
         reset(applicationService);
         reset(parameterService);
         reset(apiKeyService);
@@ -92,7 +92,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         fakeApplicationEntity.setApiKeyMode(ApiKeyMode.EXCLUSIVE);
 
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakeUserEntity);
-        when(planService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakePlanEntity);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakePlanEntity);
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakeApplicationEntity);
 
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);

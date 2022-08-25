@@ -37,5 +37,5 @@ public interface ApiService {
         final String userId
     );
 
-    void delete(final ExecutionContext executionContext, final String apiId);
+    void delete(final ExecutionContext executionContext, final String apiId, boolean closePlans);
 }

@@ -13,17 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4;
+package io.gravitee.rest.api.model.v4.plan;
 
-import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
+import java.util.Date;
 import java.util.List;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiEntrypointService {
-    List<ApiEntrypointEntity> getApiEntrypoints(final ExecutionContext executionContext, final GenericApiEntity genericApiEntity);
+public interface GenericPlanEntity {
+    String getId();
+
+    String getName();
+
+    String getApiId();
+
+    List<String> getExcludedGroups();
+
+    String getGeneralConditions();
+
+    //Those following methods need to be prefix by `Plan` in order to avoid collision with v2 model
+    PlanSecurity getPlanSecurity();
+
+    PlanStatus getPlanStatus();
+
+    PlanValidationType getPlanValidation();
+
+    Date getNeedRedeployAt();
 }

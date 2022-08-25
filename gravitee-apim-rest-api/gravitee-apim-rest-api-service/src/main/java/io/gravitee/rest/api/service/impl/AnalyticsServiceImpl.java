@@ -48,6 +48,7 @@ import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PlanService;
@@ -59,6 +60,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TenantNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -115,7 +117,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private ApplicationService applicationService;
 
     @Autowired
-    private PlanService planService;
+    private PlanSearchService planSearchService;
 
     @Autowired
     private TenantService tenantService;
@@ -430,8 +432,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 metadata.put(METADATA_NAME, METADATA_UNKNOWN_PLAN_NAME);
                 metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                PlanEntity planEntity = planService.findById(executionContext, plan);
-                metadata.put(METADATA_NAME, planEntity.getName());
+                GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, plan);
+                metadata.put(METADATA_NAME, genericPlanEntity.getName());
             }
         } catch (PlanNotFoundException anfe) {
             metadata.put(METADATA_DELETED, Boolean.TRUE.toString());

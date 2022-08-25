@@ -113,10 +113,6 @@ public interface ApiService {
 
     InlinePictureEntity getPicture(ExecutionContext executionContext, String apiId);
 
-    void deleteCategoryFromAPIs(ExecutionContext executionContext, String categoryId);
-
-    void deleteTagFromAPIs(ExecutionContext executionContext, String tagId);
-
     ApiEntity importPathMappingsFromPage(
         ExecutionContext executionContext,
         ApiEntity apiEntity,

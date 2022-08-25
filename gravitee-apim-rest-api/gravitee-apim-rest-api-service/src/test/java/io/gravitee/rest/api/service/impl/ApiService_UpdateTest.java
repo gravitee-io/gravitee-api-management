@@ -51,6 +51,7 @@ import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -911,7 +912,7 @@ public class ApiService_UpdateTest {
 
         try {
             URL defaultEntrypoint = new URL(Key.PORTAL_ENTRYPOINT.defaultValue());
-            when(apiEntrypointService.getApiEntrypoints(eq(GraviteeContext.getExecutionContext()), any()))
+            when(apiEntrypointService.getApiEntrypoints(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
                 .thenReturn(List.of(new ApiEntrypointEntity(defaultEntrypoint.getPath(), defaultEntrypoint.getHost())));
         } catch (MalformedURLException e) {
             // Ignore this anyway

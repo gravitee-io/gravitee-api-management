@@ -126,7 +126,7 @@ public class ApiMetadataResource extends AbstractResource {
         final ApiMetadataEntity apiMetadataEntity = apiMetadataService.create(executionContext, metadata);
         GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(
             executionContext,
-            apiService.findById(executionContext, api)
+            apiSearchService.findGenericById(executionContext, api)
         );
         searchEngineService.index(executionContext, genericApiEntity, false);
         return Response.created(this.getLocationHeader(apiMetadataEntity.getKey())).entity(apiMetadataEntity).build();

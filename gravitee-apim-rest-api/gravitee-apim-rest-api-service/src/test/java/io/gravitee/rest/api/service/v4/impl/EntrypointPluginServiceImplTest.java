@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
@@ -39,7 +40,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EntrypointServiceImplTest {
+public class EntrypointPluginServiceImplTest {
 
     private static final String PLUGIN_ID = "my-test-plugin";
     private static final String CONFIGURATION = "my-test-configuration";
@@ -69,12 +70,13 @@ public class EntrypointServiceImplTest {
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
+        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
         when(mockFactory.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(mockFactory.supportedModes()).thenReturn(Set.of(io.gravitee.gateway.jupiter.api.ConnectorMode.REQUEST_RESPONSE));
     }
 
     @Test
     public void shouldValidateConfiguration() throws IOException {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
         when(pluginManager.getSchema(PLUGIN_ID)).thenReturn(SCHEMA);
         when(jsonSchemaService.validate(SCHEMA, CONFIGURATION)).thenReturn("fixed-configuration");
 
@@ -84,9 +86,7 @@ public class EntrypointServiceImplTest {
     }
 
     @Test
-    public void shouldValidateConfigurationWhenNullConfiguration() throws IOException {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
-
+    public void shouldValidateConfigurationWhenNullConfiguration() {
         String resultConfiguration = entrypointService.validateEntrypointConfiguration(PLUGIN_ID, null);
 
         assertNull(resultConfiguration);
@@ -101,10 +101,6 @@ public class EntrypointServiceImplTest {
 
     @Test
     public void shouldFindById() {
-        when(mockPlugin.id()).thenReturn(PLUGIN_ID);
-        when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
-
         PlatformPluginEntity result = entrypointService.findById(PLUGIN_ID);
 
         assertNotNull(result);
@@ -120,11 +116,38 @@ public class EntrypointServiceImplTest {
 
     @Test
     public void shouldFindAll() {
-        when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
 
         Set<EntrypointPluginEntity> result = entrypointService.findAll();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(PLUGIN_ID, result.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindBySupportedApi() {
+        when(mockPlugin.id()).thenReturn(PLUGIN_ID);
+        when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
+        when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
+        when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
+
+        Set<EntrypointPluginEntity> result = entrypointService.findBySupportedApi(io.gravitee.definition.model.v4.ApiType.ASYNC);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(PLUGIN_ID, result.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindByConnectorMode() {
+        when(mockPlugin.id()).thenReturn(PLUGIN_ID);
+        when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
+        when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
+        when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
+
+        Set<EntrypointPluginEntity> result = entrypointService.findByConnectorMode(ConnectorMode.REQUEST_RESPONSE);
 
         assertNotNull(result);
         assertEquals(1, result.size());

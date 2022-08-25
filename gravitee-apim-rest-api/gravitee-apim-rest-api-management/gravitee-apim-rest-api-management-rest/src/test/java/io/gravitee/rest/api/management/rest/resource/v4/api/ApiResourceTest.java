@@ -25,6 +25,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
@@ -99,7 +100,6 @@ public class ApiResourceTest extends AbstractResourceTest {
         apiEntity.setUpdatedAt(new Date());
         doReturn(apiEntity).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), API);
         doThrow(ApiNotFoundException.class).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), UNKNOWN_API);
-        doThrow(ApiNotFoundException.class).when(apiServiceV4).delete(GraviteeContext.getExecutionContext(), UNKNOWN_API);
     }
 
     @After
@@ -237,16 +237,18 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldDeleteApi() {
-        final Response response = envTarget(UNKNOWN_API).request().delete();
+        doNothing().when(apiServiceV4).delete(GraviteeContext.getExecutionContext(), API, false);
+        final Response response = envTarget(API).request().delete();
 
-        assertEquals(NOT_FOUND_404, response.getStatus());
+        assertEquals(NO_CONTENT_204, response.getStatus());
     }
 
     @Test
     public void shouldNotDeleteApiBecauseNotfound() {
-        final Response response = envTarget(API).request().delete();
+        doThrow(ApiNotFoundException.class).when(apiServiceV4).delete(GraviteeContext.getExecutionContext(), UNKNOWN_API, false);
 
-        assertEquals(NO_CONTENT_204, response.getStatus());
+        final Response response = envTarget(UNKNOWN_API).request().delete();
+        assertEquals(NOT_FOUND_404, response.getStatus());
     }
 
     @NotNull

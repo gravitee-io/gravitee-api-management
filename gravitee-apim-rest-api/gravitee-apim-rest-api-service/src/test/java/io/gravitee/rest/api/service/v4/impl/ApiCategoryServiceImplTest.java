@@ -17,16 +17,27 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.Before;
@@ -50,9 +61,15 @@ public class ApiCategoryServiceImplTest {
     @Mock
     private CategoryService categoryService;
 
+    @Mock
+    private ApiNotificationService apiNotificationService;
+
+    @Mock
+    private AuditService auditService;
+
     @Before
     public void before() {
-        apiCategoryService = new ApiCategoryServiceImpl(apiRepository, categoryService);
+        apiCategoryService = new ApiCategoryServiceImpl(apiRepository, categoryService, apiNotificationService, auditService);
     }
 
     @Test
@@ -73,5 +90,27 @@ public class ApiCategoryServiceImplTest {
         when(apiRepository.listCategories(any())).thenThrow(new TechnicalException());
         assertThatExceptionOfType(TechnicalManagementException.class)
             .isThrownBy(() -> apiCategoryService.listCategories(List.of("api1"), "DEFAULT"));
+    }
+
+    @Test
+    public void shouldDeleteCategoryFromApis() throws TechnicalException {
+        final String categoryId = UuidString.generateRandom();
+
+        Api firstOrphan = new Api();
+        firstOrphan.setId(UuidString.generateRandom());
+        firstOrphan.setCategories(new HashSet<>(Set.of(categoryId)));
+
+        Api secondOrphan = new Api();
+        secondOrphan.setId(UuidString.generateRandom());
+        secondOrphan.setCategories(new HashSet<>(Set.of(UuidString.generateRandom(), categoryId)));
+
+        when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build())).thenReturn(List.of(firstOrphan, secondOrphan));
+        apiCategoryService.deleteCategoryFromAPIs(GraviteeContext.getExecutionContext(), categoryId);
+
+        verify(apiRepository, times(1)).update(firstOrphan);
+        verify(apiRepository, times(1)).update(secondOrphan);
+
+        assertEquals(0, firstOrphan.getCategories().size());
+        assertEquals(1, secondOrphan.getCategories().size());
     }
 }

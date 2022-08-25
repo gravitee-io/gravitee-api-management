@@ -15,15 +15,12 @@
  */
 package io.gravitee.rest.api.service.v4;
 
-import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.List;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiEntrypointService {
-    List<ApiEntrypointEntity> getApiEntrypoints(final ExecutionContext executionContext, final GenericApiEntity genericApiEntity);
+public interface ApiTagService {
+    void deleteTagFromAPIs(ExecutionContext executionContext, String tagId);
 }

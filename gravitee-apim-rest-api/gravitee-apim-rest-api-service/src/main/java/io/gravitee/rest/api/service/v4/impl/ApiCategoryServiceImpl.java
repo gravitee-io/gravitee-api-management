@@ -15,14 +15,22 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -38,10 +46,19 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
 
     private final ApiRepository apiRepository;
     private final CategoryService categoryService;
+    private final ApiNotificationService apiNotificationService;
+    private final AuditService auditService;
 
-    public ApiCategoryServiceImpl(@Lazy final ApiRepository apiRepository, final CategoryService categoryService) {
+    public ApiCategoryServiceImpl(
+        @Lazy final ApiRepository apiRepository,
+        final CategoryService categoryService,
+        final ApiNotificationService apiNotificationService,
+        final AuditService auditService
+    ) {
         this.apiRepository = apiRepository;
         this.categoryService = categoryService;
+        this.apiNotificationService = apiNotificationService;
+        this.auditService = auditService;
     }
 
     @Override
@@ -53,6 +70,37 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to list categories for APIs {}", apis, ex);
             throw new TechnicalManagementException("An error occurs while trying to list categories for APIs {}" + apis, ex);
+        }
+    }
+
+    @Override
+    public void deleteCategoryFromAPIs(ExecutionContext executionContext, final String categoryId) {
+        apiRepository
+            .search(new ApiCriteria.Builder().category(categoryId).build())
+            .forEach(api -> removeCategory(executionContext, api, categoryId));
+    }
+
+    private void removeCategory(ExecutionContext executionContext, Api api, String categoryId) {
+        try {
+            Api apiSnapshot = new Api(api);
+            api.getCategories().remove(categoryId);
+            api.setUpdatedAt(new Date());
+            apiRepository.update(api);
+            apiNotificationService.triggerUpdateNotification(executionContext, api);
+            auditService.createApiAuditLog(
+                executionContext,
+                api.getId(),
+                Collections.emptyMap(),
+                API_UPDATED,
+                api.getUpdatedAt(),
+                apiSnapshot,
+                api
+            );
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error has occurred while removing category " + categoryId + " from API " + api.getId(),
+                e
+            );
         }
     }
 }

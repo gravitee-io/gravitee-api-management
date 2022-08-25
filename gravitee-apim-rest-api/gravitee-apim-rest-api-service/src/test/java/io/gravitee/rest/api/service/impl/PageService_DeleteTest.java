@@ -16,7 +16,13 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -33,18 +39,21 @@ import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.PageRevisionService;
-import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PageActionException;
 import io.gravitee.rest.api.service.exceptions.PageUsedAsGeneralConditionsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -64,9 +73,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @RunWith(MockitoJUnitRunner.class)
 public class PageService_DeleteTest {
 
+    public static final String API_ID = "some-api-id";
+    public static final String PLAN_ID = "some-plan-id";
     private static final String PAGE_ID = "ba01aef0-e3da-4499-81ae-f0e3daa4995a";
     public static final String TRANSLATE_PAGE_ID = "TRANSLATE_" + PAGE_ID;
-    public static final String API_ID = "some-api-id";
+
+    @Captor
+    ArgumentCaptor<String> idCaptor;
 
     @InjectMocks
     private PageServiceImpl pageService = new PageServiceImpl();
@@ -87,7 +100,10 @@ public class PageService_DeleteTest {
     private PageRevisionService pageRevisionService;
 
     @Mock
-    private PlanService planService;
+    private PlanSearchService planSearchService;
+
+    private Page page;
+    private PlanEntity planEntity;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -105,14 +121,21 @@ public class PageService_DeleteTest {
         );
     }
 
+    @Before
+    public void before() throws TechnicalException {
+        page = new Page();
+        page.setId(PAGE_ID);
+        lenient().when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
+
+        planEntity = new PlanEntity();
+        planEntity.setId(PLAN_ID);
+    }
+
     @Test
     public void shouldDeletePage() throws TechnicalException {
-        Page page = mock(Page.class);
-        when(page.getId()).thenReturn(PAGE_ID);
-        when(page.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
-        when(page.getReferenceId()).thenReturn("envId");
-        when(page.getVisibility()).thenReturn("PUBLIC");
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
+        page.setReferenceType(PageReferenceType.ENVIRONMENT);
+        page.setReferenceId("envId");
+        page.setVisibility("PUBLIC");
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
 
@@ -121,8 +144,6 @@ public class PageService_DeleteTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotDeletePageBecauseTechnicalException() throws TechnicalException {
-        Page page = mock(Page.class);
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
         doThrow(TechnicalException.class).when(pageRepository).delete(PAGE_ID);
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
@@ -130,9 +151,7 @@ public class PageService_DeleteTest {
 
     @Test(expected = PageActionException.class)
     public void shouldNotDeletePageBecauseUsedInCategory() throws TechnicalException {
-        Page page = mock(Page.class);
-        when(page.getType()).thenReturn(PageType.MARKDOWN.name());
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
+        page.setType(PageType.MARKDOWN.name());
 
         CategoryEntity category1 = new CategoryEntity();
         category1.setKey("cat_1");
@@ -145,14 +164,11 @@ public class PageService_DeleteTest {
 
     @Test
     public void shouldDeletePage_NotUsedByPlan() throws TechnicalException {
-        Page page = mock(Page.class);
-        when(page.getId()).thenReturn(PAGE_ID);
-        when(page.getReferenceType()).thenReturn(PageReferenceType.API);
-        when(page.getReferenceId()).thenReturn(API_ID);
-        when(page.getVisibility()).thenReturn("PUBLIC");
+        page.setReferenceType(PageReferenceType.API);
+        page.setReferenceId(API_ID);
+        page.setVisibility("PUBLIC");
 
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.emptySet());
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.emptySet());
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
 
@@ -161,18 +177,14 @@ public class PageService_DeleteTest {
 
     @Test
     public void shouldDeletePage_UsedBy_CLOSED_Plan() throws TechnicalException {
-        Page page = mock(Page.class);
-        when(page.getId()).thenReturn(PAGE_ID);
-        when(page.getReferenceType()).thenReturn(PageReferenceType.API);
-        when(page.getReferenceId()).thenReturn(API_ID);
-        when(page.getVisibility()).thenReturn("PUBLIC");
+        page.setReferenceType(PageReferenceType.API);
+        page.setReferenceId(API_ID);
+        page.setVisibility("PUBLIC");
 
-        PlanEntity plan = mock(PlanEntity.class);
-        when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
-        when(plan.getStatus()).thenReturn(PlanStatus.CLOSED);
+        planEntity.setGeneralConditions(PAGE_ID);
+        planEntity.setStatus(PlanStatus.CLOSED);
 
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newHashSet(plan));
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
 
@@ -180,76 +192,60 @@ public class PageService_DeleteTest {
     }
 
     @Test(expected = PageUsedAsGeneralConditionsException.class)
-    public void shouldNotDeletePage_UsedBy_PUBLISHED_Plan() throws TechnicalException {
-        Page page = mock(Page.class);
-        when(page.getId()).thenReturn(PAGE_ID);
-        when(page.getReferenceType()).thenReturn(PageReferenceType.API);
-        when(page.getReferenceId()).thenReturn(API_ID);
+    public void shouldNotDeletePage_UsedBy_PUBLISHED_Plan() {
+        page.setReferenceType(PageReferenceType.API);
+        page.setReferenceId(API_ID);
 
-        PlanEntity plan = mock(PlanEntity.class);
-        when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
-        when(plan.getStatus()).thenReturn(PlanStatus.PUBLISHED);
+        planEntity.setGeneralConditions(PAGE_ID);
+        planEntity.setStatus(PlanStatus.PUBLISHED);
 
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newHashSet(plan));
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
     }
 
     @Test(expected = PageUsedAsGeneralConditionsException.class)
     public void shouldNotDeleteTranslationPage_UsedBy_PUBLISHED_Plan() throws TechnicalException {
-        Page translationPage = mock(Page.class);
-        when(translationPage.getType()).thenReturn(PageType.TRANSLATION.name());
-        when(translationPage.getParentId()).thenReturn(PAGE_ID);
-        when(translationPage.getReferenceType()).thenReturn(PageReferenceType.API);
-        when(translationPage.getReferenceId()).thenReturn(API_ID);
+        Page translationPage = new Page();
+        translationPage.setType(PageType.TRANSLATION.name());
+        translationPage.setParentId(PAGE_ID);
+        translationPage.setReferenceType(PageReferenceType.API);
+        translationPage.setReferenceId(API_ID);
 
-        PlanEntity plan = mock(PlanEntity.class);
-        when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
-        when(plan.getStatus()).thenReturn(PlanStatus.PUBLISHED);
+        planEntity.setGeneralConditions(PAGE_ID);
+        planEntity.setStatus(PlanStatus.PUBLISHED);
 
         when(pageRepository.findById(TRANSLATE_PAGE_ID)).thenReturn(Optional.of(translationPage));
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newHashSet(plan));
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
 
         pageService.delete(GraviteeContext.getExecutionContext(), TRANSLATE_PAGE_ID);
     }
 
     @Test(expected = PageUsedAsGeneralConditionsException.class)
     public void shouldNotDeletePage_UsedBy_DEPRECATED_Plan() throws TechnicalException {
-        Page page = mock(Page.class);
-        when(page.getId()).thenReturn(PAGE_ID);
-        when(page.getReferenceType()).thenReturn(PageReferenceType.API);
-        when(page.getReferenceId()).thenReturn(API_ID);
+        page.setReferenceType(PageReferenceType.API);
+        page.setReferenceId(API_ID);
 
-        PlanEntity plan = mock(PlanEntity.class);
-        when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
-        when(plan.getStatus()).thenReturn(PlanStatus.DEPRECATED);
+        planEntity.setGeneralConditions(PAGE_ID);
+        planEntity.setStatus(PlanStatus.DEPRECATED);
 
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newHashSet(plan));
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
     }
 
     @Test(expected = PageUsedAsGeneralConditionsException.class)
     public void shouldNotDeletePage_UsedBy_STAGING_Plan() throws TechnicalException {
-        Page page = mock(Page.class);
-        when(page.getId()).thenReturn(PAGE_ID);
-        when(page.getReferenceType()).thenReturn(PageReferenceType.API);
-        when(page.getReferenceId()).thenReturn(API_ID);
+        page.setReferenceType(PageReferenceType.API);
+        page.setReferenceId(API_ID);
 
-        PlanEntity plan = mock(PlanEntity.class);
-        when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
-        when(plan.getStatus()).thenReturn(PlanStatus.STAGING);
+        planEntity.setGeneralConditions(PAGE_ID);
+        planEntity.setStatus(PlanStatus.STAGING);
 
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newHashSet(plan));
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
     }
-
-    @Captor
-    ArgumentCaptor<String> idCaptor;
 
     @Test
     public void shouldDeleteAllByApi() throws TechnicalException {
@@ -259,60 +255,60 @@ public class PageService_DeleteTest {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
 
-        Page folder = mock(Page.class);
+        Page folder = new Page();
         String folderId = "folder";
-        when(folder.getId()).thenReturn(folderId);
-        when(folder.getType()).thenReturn(PageType.FOLDER.toString());
+        folder.setId(folderId);
+        folder.setType(PageType.FOLDER.toString());
         String refId = "refId";
-        when(folder.getReferenceId()).thenReturn(refId);
-        when(folder.getOrder()).thenReturn(1);
-        when(folder.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
-        when(folder.getVisibility()).thenReturn("PUBLIC");
+        folder.setReferenceId(refId);
+        folder.setOrder(1);
+        folder.setReferenceType(PageReferenceType.ENVIRONMENT);
+        folder.setVisibility("PUBLIC");
         when(pageRepository.findById(folderId)).thenReturn(Optional.of(folder));
 
-        Page child = mock(Page.class);
+        Page child = new Page();
         String childId = "child";
-        when(child.getId()).thenReturn(childId);
-        when(child.getOrder()).thenReturn(2);
-        when(child.getType()).thenReturn(PageType.FOLDER.toString());
-        when(child.getReferenceId()).thenReturn(refId);
-        when(child.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
-        when(child.getVisibility()).thenReturn("PUBLIC");
+        child.setId(childId);
+        child.setOrder(2);
+        child.setType(PageType.FOLDER.toString());
+        child.setReferenceId(refId);
+        child.setReferenceType(PageReferenceType.ENVIRONMENT);
+        child.setVisibility("PUBLIC");
         when(pageRepository.findById(childId)).thenReturn(Optional.of(child));
 
-        Page childPage = mock(Page.class);
+        Page childPage = new Page();
         String childPageId = "childPageId";
-        when(childPage.getId()).thenReturn(childPageId);
-        when(childPage.getType()).thenReturn(PageType.SWAGGER.toString());
-        when(childPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
-        when(childPage.getReferenceId()).thenReturn(refId);
-        when(childPage.getVisibility()).thenReturn("PUBLIC");
+        childPage.setId(childPageId);
+        childPage.setType(PageType.SWAGGER.toString());
+        childPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+        childPage.setReferenceId(refId);
+        childPage.setVisibility("PUBLIC");
         when(pageRepository.findById(childPageId)).thenReturn(Optional.of(childPage));
 
-        Page link = mock(Page.class);
+        Page link = new Page();
         String linkId = "link";
-        when(link.getId()).thenReturn(linkId);
-        when(link.getContent()).thenReturn(PAGE_ID);
-        when(pageRepository.search(new PageCriteria.Builder().type("LINK").build())).thenReturn(Arrays.asList(link));
+        link.setId(linkId);
+        link.setContent(PAGE_ID);
+        when(pageRepository.search(new PageCriteria.Builder().type("LINK").build())).thenReturn(List.of(link));
 
-        Page page = mock(Page.class);
-        when(page.getId()).thenReturn(PAGE_ID);
-        when(page.getType()).thenReturn(PageType.MARKDOWN.toString());
-        when(page.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
-        when(page.getReferenceId()).thenReturn(refId);
-        when(page.getVisibility()).thenReturn("PUBLIC");
+        Page page = new Page();
+        page.setId(PAGE_ID);
+        page.setType(PageType.MARKDOWN.toString());
+        page.setReferenceType(PageReferenceType.ENVIRONMENT);
+        page.setReferenceId(refId);
+        page.setVisibility("PUBLIC");
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
 
-        Page translation = mock(Page.class);
+        Page translation = new Page();
         String translationId = "translation";
-        when(translation.getId()).thenReturn(translationId);
+        translation.setId(translationId);
         Map<String, String> configuration = new HashMap<>();
         configuration.put(PageConfigurationKeys.TRANSLATION_LANG, "EN");
-        when(translation.getConfiguration()).thenReturn(configuration);
-        when(translation.getType()).thenReturn(PageType.TRANSLATION.toString());
-        when(translation.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
-        when(translation.getReferenceId()).thenReturn(refId);
-        when(translation.getVisibility()).thenReturn("PUBLIC");
+        translation.setConfiguration(configuration);
+        translation.setType(PageType.TRANSLATION.toString());
+        translation.setReferenceType(PageReferenceType.ENVIRONMENT);
+        translation.setReferenceId(refId);
+        translation.setVisibility("PUBLIC");
         when(pageRepository.search(new PageCriteria.Builder().parent(PAGE_ID).type(PageType.TRANSLATION.name()).build()))
             .thenReturn(Arrays.asList(translation));
 

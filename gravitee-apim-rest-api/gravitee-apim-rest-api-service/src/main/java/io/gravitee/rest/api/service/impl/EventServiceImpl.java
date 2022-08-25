@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 import static io.gravitee.repository.management.model.Event.EventProperties.ID;
-import static io.gravitee.rest.api.model.PlanStatus.CLOSED;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -53,6 +52,7 @@ import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.FlowMapper;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import java.net.InetAddress;
@@ -93,19 +93,16 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     private PlanService planService;
 
     @Autowired
-    private FlowService flowService;
+    private io.gravitee.rest.api.service.v4.PlanService planServiceV4;
 
     @Autowired
-    private io.gravitee.rest.api.service.v4.PlanService planServiceV4;
+    private FlowService flowService;
 
     @Autowired
     private PlanMapper planMapper;
 
     @Autowired
     private io.gravitee.rest.api.service.v4.FlowService flowServiceV4;
-
-    @Autowired
-    private FlowMapper flowMapper;
 
     @Autowired
     private PlanConverter planConverter;
@@ -431,7 +428,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         Set<PlanEntity> plans = planService
             .findByApi(executionContext, api.getId())
             .stream()
-            .filter(p -> p.getStatus() != CLOSED)
+            .filter(p -> p.getStatus() != io.gravitee.rest.api.model.PlanStatus.CLOSED)
             .collect(toSet());
 
         apiDefinition.setPlans(planConverter.toPlansDefinitions(plans));
@@ -457,7 +454,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         Set<io.gravitee.rest.api.model.v4.plan.PlanEntity> plans = planServiceV4
             .findByApi(executionContext, api.getId())
             .stream()
-            .filter(p -> p.getStatus() != PlanStatus.CLOSED)
+            .filter(p -> p.getPlanStatus() != PlanStatus.CLOSED)
             .collect(toSet());
 
         apiDefinitionV4.setPlans(planMapper.toDefinitions(plans));

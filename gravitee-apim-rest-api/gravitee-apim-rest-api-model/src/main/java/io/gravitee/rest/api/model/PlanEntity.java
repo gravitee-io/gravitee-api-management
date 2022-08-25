@@ -19,6 +19,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.*;
 import javax.validation.constraints.NotNull;
 
@@ -27,7 +30,7 @@ import javax.validation.constraints.NotNull;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PlanEntity {
+public class PlanEntity implements GenericPlanEntity {
 
     private String id;
 
@@ -329,6 +332,41 @@ public class PlanEntity {
 
     public void setCrossId(String crossId) {
         this.crossId = crossId;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getApiId() {
+        return api;
+    }
+
+    @Override
+    @JsonIgnore
+    public PlanSecurity getPlanSecurity() {
+        PlanSecurity planSecurity = new PlanSecurity();
+        if (security != null) {
+            planSecurity.setType(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(security.name()).getLabel());
+        }
+        planSecurity.setConfiguration(securityDefinition);
+        return planSecurity;
+    }
+
+    @Override
+    @JsonIgnore
+    public io.gravitee.definition.model.v4.plan.PlanStatus getPlanStatus() {
+        if (status != null) {
+            return io.gravitee.definition.model.v4.plan.PlanStatus.valueOfLabel(status.name());
+        }
+        return null;
+    }
+
+    @Override
+    @JsonIgnore
+    public io.gravitee.rest.api.model.v4.plan.PlanValidationType getPlanValidation() {
+        if (validation != null) {
+            return io.gravitee.rest.api.model.v4.plan.PlanValidationType.valueOfLabel(validation.name());
+        }
+        return null;
     }
 
     @Override

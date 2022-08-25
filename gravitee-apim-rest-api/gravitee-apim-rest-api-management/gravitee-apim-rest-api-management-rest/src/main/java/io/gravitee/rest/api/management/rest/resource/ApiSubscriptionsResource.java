@@ -33,9 +33,12 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.validator.CustomApiKey;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -72,7 +75,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     private ApplicationService applicationService;
 
     @Inject
-    private PlanService planService;
+    private PlanSearchService planSearchService;
 
     @Context
     private ResourceContext resourceContext;
@@ -257,7 +260,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             )
         );
 
-        PlanEntity plan = planService.findById(executionContext, subscriptionEntity.getPlan());
+        GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
 
         ApplicationEntity application = applicationService.findById(executionContext, subscriptionEntity.getApplication());

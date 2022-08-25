@@ -28,7 +28,6 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewCategoryEntity;
 import io.gravitee.rest.api.model.UpdateCategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -37,6 +36,8 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import io.gravitee.rest.api.service.exceptions.DuplicateCategoryNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
+import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.bind.DatatypeConverter;
@@ -61,7 +62,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     private CategoryRepository categoryRepository;
 
     @Autowired
-    private ApiService apiService;
+    private ApiCategoryService apiCategoryService;
 
     @Autowired
     private AuditService auditService;
@@ -277,7 +278,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                 );
 
                 // delete all reference on APIs
-                apiService.deleteCategoryFromAPIs(executionContext, categoryId);
+                apiCategoryService.deleteCategoryFromAPIs(executionContext, categoryId);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete category {}", categoryId, ex);

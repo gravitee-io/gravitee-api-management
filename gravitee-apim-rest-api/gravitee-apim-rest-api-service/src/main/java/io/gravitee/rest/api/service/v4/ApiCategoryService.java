@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
 import java.util.Set;
 
@@ -25,4 +26,6 @@ import java.util.Set;
  */
 public interface ApiCategoryService {
     Set<CategoryEntity> listCategories(Collection<String> apis, String environment);
+
+    void deleteCategoryFromAPIs(ExecutionContext executionContext, String categoryId);
 }

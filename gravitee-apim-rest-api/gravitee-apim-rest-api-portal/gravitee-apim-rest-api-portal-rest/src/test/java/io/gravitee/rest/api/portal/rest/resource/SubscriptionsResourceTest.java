@@ -52,16 +52,16 @@ import org.mockito.Mockito;
  */
 public class SubscriptionsResourceTest extends AbstractResourceTest {
 
-    @Override
-    protected String contextPath() {
-        return "subscriptions";
-    }
-
     private static final String SUBSCRIPTION = "my-subscription";
     private static final String ANOTHER_SUBSCRIPTION = "my-other-subscription";
     private static final String API = "my-api";
     private static final String APPLICATION = "my-application";
     private static final String PLAN = "my-plan";
+
+    @Override
+    protected String contextPath() {
+        return "subscriptions";
+    }
 
     @Before
     public void init() {
@@ -90,7 +90,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
         PlanEntity planEntity = new PlanEntity();
         planEntity.setApi(API);
-        doReturn(planEntity).when(planService).findById(GraviteeContext.getExecutionContext(), PLAN);
+        doReturn(planEntity).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN);
     }
 
     @Test

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model.v4.plan;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +39,23 @@ public enum PlanValidationType {
      */
     MANUAL("manual");
 
+    private static final Map<String, PlanValidationType> maps = Map.of(AUTO.label, AUTO, MANUAL.label, MANUAL);
+
     @JsonValue
     private final String label;
+
+    public static PlanValidationType valueOfLabel(final String label) {
+        if (label != null) {
+            PlanValidationType planValidationType = maps.get(label);
+            if (planValidationType == null) {
+                try {
+                    planValidationType = valueOf(label);
+                } catch (IllegalArgumentException e) {
+                    // Ignore this and return null
+                }
+            }
+            return planValidationType;
+        }
+        return null;
+    }
 }

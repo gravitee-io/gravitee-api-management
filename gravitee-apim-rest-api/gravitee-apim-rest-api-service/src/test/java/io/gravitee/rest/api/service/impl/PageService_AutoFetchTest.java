@@ -40,6 +40,7 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -72,7 +73,7 @@ public class PageService_AutoFetchTest {
     private AuditService auditService;
 
     @Mock
-    private PlanService planService;
+    private PlanSearchService planSearchService;
 
     @Mock
     private SearchEngineService searchEngineService;
@@ -101,7 +102,7 @@ public class PageService_AutoFetchTest {
     @Mock
     private Page mockRootPage;
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
     public void shouldNotFetch_NoSourcePage() throws Exception {

@@ -271,6 +271,9 @@ public class ApiEntity implements GenericApiEntity {
     @Override
     @JsonIgnore
     public DefinitionVersion getDefinitionVersion() {
-        return DefinitionVersion.valueOfLabel(graviteeDefinitionVersion);
+        if (graviteeDefinitionVersion != null) {
+            return DefinitionVersion.valueOfLabel(graviteeDefinitionVersion);
+        }
+        return null;
     }
 }

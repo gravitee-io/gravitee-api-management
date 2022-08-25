@@ -38,6 +38,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.fetcher.api.Fetcher;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
@@ -59,7 +60,6 @@ import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.AccessControlEntity;
 import io.gravitee.rest.api.model.AccessControlReferenceType;
-import io.gravitee.rest.api.model.ApiModel;
 import io.gravitee.rest.api.model.ApiPageEntity;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.FetchablePageEntity;
@@ -73,8 +73,6 @@ import io.gravitee.rest.api.model.PageMediaEntity;
 import io.gravitee.rest.api.model.PageRevisionEntity;
 import io.gravitee.rest.api.model.PageSourceEntity;
 import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.SystemFolderType;
 import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.Visibility;
@@ -86,16 +84,13 @@ import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
-import io.gravitee.rest.api.service.AccessControlService;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.GraviteeDescriptorService;
-import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -125,6 +120,7 @@ import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -203,12 +199,6 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private ApplicationContext applicationContext;
 
     @Autowired
-    private MembershipService membershipService;
-
-    @Autowired
-    private RoleService roleService;
-
-    @Autowired
     private AuditService auditService;
 
     @Autowired
@@ -233,10 +223,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private ObjectMapper objectMapper;
 
     @Autowired
-    private PlanService planService;
-
-    @Autowired
-    private AccessControlService accessControlService;
+    private PlanSearchService planSearchService;
 
     @Autowired
     private PageConverter pageConverter;
@@ -509,11 +496,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     public boolean isPageUsedAsGeneralConditions(ExecutionContext executionContext, PageEntity page, String apiId) {
         boolean result = false;
         if (PageType.MARKDOWN.name().equals(page.getType())) {
-            Optional<PlanEntity> optPlan = planService
+            Optional<GenericPlanEntity> optPlan = planSearchService
                 .findByApi(executionContext, apiId)
                 .stream()
                 .filter(p -> p.getGeneralConditions() != null)
-                .filter(p -> !(PlanStatus.CLOSED.equals(p.getStatus()) || PlanStatus.STAGING.equals(p.getStatus())))
+                .filter(p -> !(PlanStatus.CLOSED == p.getPlanStatus() || PlanStatus.STAGING == p.getPlanStatus()))
                 .filter(p -> page.getId().equals(p.getGeneralConditions()))
                 .findFirst();
             result = optPlan.isPresent();
@@ -639,9 +626,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             transformers.add(new PageConfigurationOAITransformer(pageEntity));
 
             if (apiId != null) {
-                List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, apiId);
-
                 GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+                List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, genericApiEntity);
+
                 String contextPath = null;
                 if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
                     ApiEntity apiEntity = (ApiEntity) genericApiEntity;
@@ -1308,12 +1295,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             // we can't unpublish it until the plan is closed
             if (PageReferenceType.API.equals(pageToUpdate.getReferenceType())) {
                 if (updatePageEntity.isPublished() != null && !updatePageEntity.isPublished()) {
-                    Optional<PlanEntity> activePlan = planService
+                    Optional<GenericPlanEntity> activePlan = planSearchService
                         .findByApi(executionContext, pageToUpdate.getReferenceId())
                         .stream()
                         .filter(plan -> plan.getGeneralConditions() != null)
                         .filter(plan -> pageToUpdate.getId().equals(plan.getGeneralConditions()))
-                        .filter(plan -> !(PlanStatus.CLOSED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())))
+                        .filter(p -> !(PlanStatus.CLOSED == p.getPlanStatus() || PlanStatus.STAGING == p.getPlanStatus()))
                         .findFirst();
                     if (activePlan.isPresent()) {
                         throw new PageUsedAsGeneralConditionsException(pageId, page.getName(), "unpublish", activePlan.get().getName());
@@ -2160,7 +2147,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             // if the page is used as general condition for a plan,
             // we can't remove it until the plan is closed
             if (page.getReferenceType() != null && page.getReferenceType().equals(PageReferenceType.API)) {
-                Optional<PlanEntity> activePlan = planService
+                Optional<GenericPlanEntity> activePlan = planSearchService
                     .findByApi(executionContext, page.getReferenceId())
                     .stream()
                     .filter(plan -> plan.getGeneralConditions() != null)
@@ -2171,7 +2158,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                             ) ||
                             plan.getGeneralConditions().equals(page.getId())
                     )
-                    .filter(plan -> !PlanStatus.CLOSED.equals(plan.getStatus()))
+                    .filter(p -> PlanStatus.CLOSED != p.getPlanStatus())
                     .findFirst();
 
                 if (activePlan.isPresent()) {

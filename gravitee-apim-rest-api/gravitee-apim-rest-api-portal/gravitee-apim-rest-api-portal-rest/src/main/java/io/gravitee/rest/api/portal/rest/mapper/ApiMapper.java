@@ -66,7 +66,7 @@ public class ApiMapper {
         final Api apiItem = new Api();
         apiItem.setDescription(api.getDescription());
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, api.getId());
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, api);
         if (apiEntrypoints != null) {
             List<String> entrypoints = apiEntrypoints.stream().map(ApiEntrypointEntity::getTarget).collect(Collectors.toList());
             apiItem.setEntrypoints(entrypoints);

@@ -118,7 +118,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
     public boolean canManageApi(final RoleEntity role) {
         return (
             role != null &&
-            role.getScope().equals(RoleScope.API) &&
+            role.getScope() == RoleScope.API &&
             role
                 .getPermissions()
                 .entrySet()

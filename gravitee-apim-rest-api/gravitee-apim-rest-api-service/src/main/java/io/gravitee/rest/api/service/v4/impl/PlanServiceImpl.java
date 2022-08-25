@@ -22,7 +22,6 @@ import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DELET
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DEPRECATED;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_PUBLISHED;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDATED;
-import static java.util.Collections.emptySet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -40,7 +39,6 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.service.AuditService;
@@ -66,6 +64,7 @@ import io.gravitee.rest.api.service.exceptions.UnauthorizedPlanSecurityTypeExcep
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import java.util.Arrays;
@@ -89,7 +88,7 @@ import org.springframework.stereotype.Component;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Component("PlanServiceImplImplV4")
+@Component("PlanServiceImplV4")
 public class PlanServiceImpl extends TransactionalService implements PlanService {
 
     private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST = Collections.unmodifiableList(
@@ -105,6 +104,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Lazy
     @Autowired
     private PlanRepository planRepository;
+
+    @Autowired
+    private PlanSearchService planSearchService;
 
     @Autowired
     private SubscriptionService subscriptionService;
@@ -135,61 +137,13 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     private FlowService flowService;
 
     @Override
-    public PlanEntity findById(final ExecutionContext executionContext, String plan) {
-        try {
-            logger.debug("Find plan by id : {}", plan);
-            return planRepository.findById(plan).map(this::mapToEntity).orElseThrow(() -> new PlanNotFoundException(plan));
-        } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find a plan by id: {}", plan, ex);
-            throw new TechnicalManagementException(String.format("An error occurs while trying to find a plan by id: %s", plan), ex);
-        }
+    public PlanEntity findById(final ExecutionContext executionContext, final String planId) {
+        return (PlanEntity) planSearchService.findById(executionContext, planId);
     }
 
     @Override
-    public Set<PlanEntity> findByIdIn(final ExecutionContext executionContext, Set<String> ids) {
-        try {
-            return planRepository.findByIdIn(ids).stream().map(this::mapToEntity).collect(Collectors.toSet());
-        } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error has occurred retrieving plans by ids", e);
-        }
-    }
-
-    @Override
-    public Set<PlanEntity> findByApi(final ExecutionContext executionContext, String apiId) {
-        try {
-            logger.debug("Find plan by api : {}", apiId);
-            return planRepository.findByApi(apiId).stream().map(this::mapToEntity).collect(Collectors.toSet());
-        } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find a plan by api: {}", apiId, ex);
-            throw new TechnicalManagementException(String.format("An error occurs while trying to find a plan by api: %s", apiId), ex);
-        }
-    }
-
-    @Override
-    public List<PlanEntity> search(final ExecutionContext executionContext, final PlanQuery query) {
-        Set<PlanEntity> planEntities;
-        if (query.getApi() != null) {
-            planEntities = findByApi(executionContext, query.getApi());
-        } else {
-            planEntities = emptySet();
-        }
-
-        return planEntities
-            .stream()
-            .filter(
-                p -> {
-                    boolean filtered = true;
-                    if (query.getName() != null) {
-                        filtered = query.getName().equals(p.getName());
-                    }
-                    if (filtered && query.getSecurityType() != null) {
-                        PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getSecurity().getType());
-                        filtered = planSecurityType.equals(query.getSecurityType());
-                    }
-                    return filtered;
-                }
-            )
-            .collect(Collectors.toList());
+    public Set<PlanEntity> findByApi(final ExecutionContext executionContext, final String api) {
+        return planSearchService.findByApi(executionContext, api).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
     }
 
     @Override
@@ -241,7 +195,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             if (planEntity.getId() == null) {
                 resultPlanEntity = create(executionContext, planMapper.toNewPlanEntity(planEntity));
             } else {
-                findById(executionContext, planEntity.getId());
+                planSearchService.findById(executionContext, planEntity.getId());
                 resultPlanEntity = update(executionContext, planMapper.toUpdatePlanEntity(planEntity));
             }
         } catch (PlanNotFoundException npe) {
@@ -362,7 +316,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public PlanEntity close(final ExecutionContext executionContext, String planId, String userId) {
+    public PlanEntity close(final ExecutionContext executionContext, String planId) {
         try {
             logger.debug("Close plan {}", planId);
 

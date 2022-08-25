@@ -21,10 +21,14 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -41,9 +45,13 @@ import org.springframework.scheduling.support.CronTrigger;
 public class ScheduledSubscriptionPreExpirationNotificationService extends AbstractService implements Runnable {
 
     private final Logger logger = LoggerFactory.getLogger(ScheduledSubscriptionPreExpirationNotificationService.class);
+    // For debugging purposes you can change the trigger to "0 */1 * * * *" and the cronPeriodInMs to 60 * 1000
+    private final String cronTrigger = "0 0 */1 * * *";
+    private final int cronPeriodInMs = 60 * 60 * 1000;
+    private final AtomicLong counter = new AtomicLong(0);
 
     @Autowired
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Autowired
     private ApiKeyService apiKeyService;
@@ -55,7 +63,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
     private EmailService emailService;
 
     @Autowired
-    private PlanService planService;
+    private PlanSearchService planSearchService;
 
     @Autowired
     private SubscriptionService subscriptionService;
@@ -72,13 +80,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
     @Value("${services.subscription.enabled:true}")
     private boolean enabled;
 
-    // For debugging purposes you can change the trigger to "0 */1 * * * *" and the cronPeriodInMs to 60 * 1000
-    private final String cronTrigger = "0 0 */1 * * *";
-    private final int cronPeriodInMs = 60 * 60 * 1000;
-
     private List<Integer> notificationDays;
-
-    private final AtomicLong counter = new AtomicLong(0);
 
     @Override
     protected String name() {
@@ -135,8 +137,8 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
             .filter(subscription -> !notifiedSubscriptionIds.contains(subscription.getId()))
             .forEach(
                 subscription -> {
-                    ApiEntity api = apiService.findById(GraviteeContext.getExecutionContext(), subscription.getApi());
-                    PlanEntity plan = planService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());
+                    GenericApiEntity api = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), subscription.getApi());
+                    GenericPlanEntity plan = planSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());
 
                     findEmailsToNotify(subscription, application)
                         .forEach(email -> this.sendEmail(email, daysToExpiration, api, plan, application, apiKey));
@@ -151,8 +153,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
 
         findSubscriptionExpirationsToNotify(now, daysToExpiration)
             .stream()
-            .filter(
-                // Remove the ones for which an email has already been sent (could happen in case of restart or concurrent processing with multiple instance of APIM)
+            .filter( // Remove the ones for which an email has already been sent (could happen in case of restart or concurrent processing with multiple instance of APIM)
                 subscription ->
                     subscription.getDaysToExpirationOnLastNotification() == null ||
                     subscription.getDaysToExpirationOnLastNotification() > daysToExpiration
@@ -163,8 +164,8 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
     }
 
     private void notifySubscriptionExpiration(Integer daysToExpiration, SubscriptionEntity subscription) {
-        ApiEntity api = apiService.findById(GraviteeContext.getExecutionContext(), subscription.getApi());
-        PlanEntity plan = planService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());
+        GenericApiEntity api = apiSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getApi());
+        GenericPlanEntity plan = planSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());
 
         ApplicationEntity application = applicationService.findById(GraviteeContext.getExecutionContext(), subscription.getApplication());
 
@@ -230,7 +231,14 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
     }
 
     @VisibleForTesting
-    void sendEmail(String subscriberEmail, int day, ApiEntity api, PlanEntity plan, ApplicationEntity application, ApiKeyEntity apiKey) {
+    void sendEmail(
+        String subscriberEmail,
+        int day,
+        GenericApiEntity api,
+        GenericPlanEntity plan,
+        ApplicationEntity application,
+        ApiKeyEntity apiKey
+    ) {
         GraviteeContext.ReferenceContext context = new GraviteeContext.ReferenceContext(
             api.getReferenceId(),
             GraviteeContext.ReferenceContextType.ENVIRONMENT

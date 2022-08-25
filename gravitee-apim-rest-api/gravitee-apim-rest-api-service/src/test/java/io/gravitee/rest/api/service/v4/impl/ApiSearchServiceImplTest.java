@@ -345,7 +345,7 @@ public class ApiSearchServiceImplTest {
         when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of(API_ID, mock(PrimaryOwnerEntity.class)));
         when(apiRepository.search(any())).thenReturn(Arrays.asList(api));
 
-        final Set<GenericApiEntity> apiEntities = apiSearchService.findByEnvironmentAndIdIn(
+        final Set<GenericApiEntity> apiEntities = apiSearchService.findGenericByEnvironmentAndIdIn(
             GraviteeContext.getExecutionContext(),
             Set.of(API_ID)
         );
@@ -356,7 +356,7 @@ public class ApiSearchServiceImplTest {
 
     @Test
     public void shouldFindByEnvironmentAndEmptyIdIn() {
-        final Set<GenericApiEntity> apiEntities = apiSearchService.findByEnvironmentAndIdIn(
+        final Set<GenericApiEntity> apiEntities = apiSearchService.findGenericByEnvironmentAndIdIn(
             GraviteeContext.getExecutionContext(),
             Set.of()
         );

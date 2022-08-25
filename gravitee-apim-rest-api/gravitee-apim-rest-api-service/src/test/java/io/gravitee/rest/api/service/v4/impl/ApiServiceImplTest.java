@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
+import static io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
@@ -58,6 +59,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventType;
@@ -67,6 +69,7 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -116,6 +119,7 @@ import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.PropertiesService;
@@ -152,6 +156,7 @@ public class ApiServiceImplTest {
     private static final String API_NAME = "myAPI";
     private static final String USER_NAME = "myUser";
     private static final String PLAN_ID = "my-plan";
+    private static final String SUBSCRIPTION_ID = "my-subscription";
     private final ObjectMapper objectMapper = new GraviteeMapper();
 
     @Mock
@@ -207,6 +212,9 @@ public class ApiServiceImplTest {
 
     @Mock
     private PlanService planService;
+
+    @Mock
+    private PlanSearchService planSearchService;
 
     @Mock
     private SubscriptionService subscriptionService;
@@ -285,7 +293,6 @@ public class ApiServiceImplTest {
             new ApiServiceImpl(
                 apiRepository,
                 apiMapper,
-                genericApiMapper,
                 primaryOwnerService,
                 apiValidationService,
                 parameterService,
@@ -297,6 +304,7 @@ public class ApiServiceImplTest {
                 flowService,
                 searchEngineService,
                 planService,
+                planSearchService,
                 subscriptionService,
                 eventService,
                 pageService,
@@ -486,9 +494,10 @@ public class ApiServiceImplTest {
         Api api = new Api();
         api.setId(API_ID);
         api.setLifecycleState(LifecycleState.STARTED);
+        api.setOrigin(ORIGIN_MANAGEMENT);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        apiService.delete(GraviteeContext.getExecutionContext(), API_ID);
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
     }
 
     @Test
@@ -500,7 +509,7 @@ public class ApiServiceImplTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.emptySet());
 
-        apiService.delete(GraviteeContext.getExecutionContext(), API_ID);
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
@@ -520,7 +529,7 @@ public class ApiServiceImplTest {
         planEntity.setStatus(PlanStatus.PUBLISHED);
         when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
 
-        apiService.delete(GraviteeContext.getExecutionContext(), API_ID);
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
     }
 
@@ -536,7 +545,7 @@ public class ApiServiceImplTest {
         planEntity.setStatus(PlanStatus.CLOSED);
         when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
 
-        apiService.delete(GraviteeContext.getExecutionContext(), API_ID);
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
         verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN_ID);
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
@@ -555,7 +564,7 @@ public class ApiServiceImplTest {
         planEntity.setStatus(PlanStatus.STAGING);
         when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
 
-        apiService.delete(GraviteeContext.getExecutionContext(), API_ID);
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
         verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN_ID);
         verify(apiQualityRuleRepository, times(1)).deleteByApi(API_ID);
@@ -563,6 +572,64 @@ public class ApiServiceImplTest {
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
+    }
+
+    @Test
+    public void shouldDeleteStoppedApiWithKubernetesOrigin() throws Exception {
+        api.setOrigin(Api.ORIGIN_KUBERNETES);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        verify(apiRepository).findById(eq(API_ID));
+        verify(apiRepository).delete(eq(API_ID));
+        verify(pageService).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
+        verify(topApiService).delete(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
+        verify(searchEngineService).delete(eq(GraviteeContext.getExecutionContext()), argThat(_api -> _api.getId().equals(API_ID)));
+        verify(membershipService).deleteReference(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), eq(API_ID));
+        verify(genericNotificationConfigService).deleteReference(eq(NotificationReferenceType.API), eq(API_ID));
+        verify(portalNotificationConfigService).deleteReference(eq(NotificationReferenceType.API), eq(API_ID));
+        verify(apiQualityRuleRepository).deleteByApi(eq(API_ID));
+        verify(mediaService).deleteAllByApi(eq(API_ID));
+        verify(apiMetadataService).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
+    }
+
+    @Test
+    public void shouldCloseAndDeletePlansForApiWithKubernetesOrigin() throws Exception {
+        api.setOrigin(Api.ORIGIN_KUBERNETES);
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        final PlanEntity planEntity = new PlanEntity();
+        planEntity.setId(PLAN_ID);
+        planEntity.setStatus(PlanStatus.PUBLISHED);
+        final PlanEntity closedPlan = new PlanEntity();
+        closedPlan.setId(PLAN_ID);
+        closedPlan.setStatus(PlanStatus.CLOSED);
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(planEntity));
+        when(planService.close(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(closedPlan);
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, true);
+
+        verify(planService).close(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID));
+        verify(planService).delete(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID));
+        verify(apiRepository).delete(eq(API_ID));
+    }
+
+    @Test
+    public void shouldDeleteSubscriptionsAndApiWithKubernetesOrigin() throws Exception {
+        api.setOrigin(Api.ORIGIN_KUBERNETES);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION_ID);
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(subscription));
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        verify(subscriptionService).findByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
+        verify(subscriptionService).delete(eq(GraviteeContext.getExecutionContext()), eq(SUBSCRIPTION_ID));
+        verify(apiRepository).delete(eq(API_ID));
     }
 
     /*

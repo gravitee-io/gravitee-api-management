@@ -65,7 +65,15 @@ public enum PlanSecurityType {
 
     public static PlanSecurityType valueOfLabel(final String label) {
         if (label != null) {
-            return maps.get(label);
+            PlanSecurityType planSecurityType = maps.get(label);
+            if (planSecurityType == null) {
+                try {
+                    planSecurityType = valueOf(label);
+                } catch (IllegalArgumentException e) {
+                    // Ignore this and return null
+                }
+            }
+            return planSecurityType;
         }
         return null;
     }
