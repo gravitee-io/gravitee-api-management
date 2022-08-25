@@ -38,6 +38,15 @@ export interface EmailProperties {
     startTlsEnable?: boolean;
 }
 
+/**
+ * Check if a given object implements the EmailProperties interface.
+ */
+export function instanceOfEmailProperties(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function EmailPropertiesFromJSON(json: any): EmailProperties {
     return EmailPropertiesFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function EmailPropertiesToJSON(value?: EmailProperties | null): any {
         'startTlsEnable': value.startTlsEnable,
     };
 }
-
 

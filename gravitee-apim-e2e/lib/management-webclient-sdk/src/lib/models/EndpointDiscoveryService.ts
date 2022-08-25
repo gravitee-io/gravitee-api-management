@@ -38,6 +38,15 @@ export interface EndpointDiscoveryService {
     provider?: string;
 }
 
+/**
+ * Check if a given object implements the EndpointDiscoveryService interface.
+ */
+export function instanceOfEndpointDiscoveryService(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function EndpointDiscoveryServiceFromJSON(json: any): EndpointDiscoveryService {
     return EndpointDiscoveryServiceFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function EndpointDiscoveryServiceToJSON(value?: EndpointDiscoveryService 
         'provider': value.provider,
     };
 }
-
 

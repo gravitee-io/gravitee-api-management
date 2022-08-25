@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  EventEntity,
+  EventEntityPage,
+  EventType,
+} from '../models';
 import {
-    EventEntity,
     EventEntityFromJSON,
     EventEntityToJSON,
-    EventEntityPage,
     EventEntityPageFromJSON,
     EventEntityPageToJSON,
-    EventType,
     EventTypeFromJSON,
     EventTypeToJSON,
 } from '../models';
@@ -60,7 +62,7 @@ export class APIEventsApi extends runtime.BaseAPI {
      * User must have the MANAGE_LIFECYCLE permission to use this service
      * Get API\'s events
      */
-    async getApiEventsEventsRaw(requestParameters: GetApiEventsEventsRequest): Promise<runtime.ApiResponse<Array<EventEntity>>> {
+    async getApiEventsEventsRaw(requestParameters: GetApiEventsEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<EventEntity>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiEventsEvents.');
         }
@@ -73,7 +75,7 @@ export class APIEventsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiEventsEvents.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.type) {
             queryParameters['type'] = requestParameters.type.join(runtime.COLLECTION_FORMATS["csv"]);
@@ -89,7 +91,7 @@ export class APIEventsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(EventEntityFromJSON));
     }
@@ -98,8 +100,8 @@ export class APIEventsApi extends runtime.BaseAPI {
      * User must have the MANAGE_LIFECYCLE permission to use this service
      * Get API\'s events
      */
-    async getApiEventsEvents(requestParameters: GetApiEventsEventsRequest): Promise<Array<EventEntity>> {
-        const response = await this.getApiEventsEventsRaw(requestParameters);
+    async getApiEventsEvents(requestParameters: GetApiEventsEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<EventEntity>> {
+        const response = await this.getApiEventsEventsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -107,7 +109,7 @@ export class APIEventsApi extends runtime.BaseAPI {
      * User must have the READ API_EVENT permission to use this service
      * Get an API event with its id
      */
-    async getEventRaw(requestParameters: GetEventRequest): Promise<runtime.ApiResponse<EventEntity>> {
+    async getEventRaw(requestParameters: GetEventRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EventEntity>> {
         if (requestParameters.eventId === null || requestParameters.eventId === undefined) {
             throw new runtime.RequiredError('eventId','Required parameter requestParameters.eventId was null or undefined when calling getEvent.');
         }
@@ -124,7 +126,7 @@ export class APIEventsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEvent.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -136,7 +138,7 @@ export class APIEventsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EventEntityFromJSON(jsonValue));
     }
@@ -145,8 +147,8 @@ export class APIEventsApi extends runtime.BaseAPI {
      * User must have the READ API_EVENT permission to use this service
      * Get an API event with its id
      */
-    async getEvent(requestParameters: GetEventRequest): Promise<EventEntity> {
-        const response = await this.getEventRaw(requestParameters);
+    async getEvent(requestParameters: GetEventRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EventEntity> {
+        const response = await this.getEventRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -154,7 +156,7 @@ export class APIEventsApi extends runtime.BaseAPI {
      * User must have the API_EVENT[READ] permission to use this service
      * Get API\'s events
      */
-    async searchApiEventsRaw(requestParameters: SearchApiEventsRequest): Promise<runtime.ApiResponse<EventEntityPage>> {
+    async searchApiEventsRaw(requestParameters: SearchApiEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EventEntityPage>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling searchApiEvents.');
         }
@@ -167,7 +169,7 @@ export class APIEventsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling searchApiEvents.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.type) {
             queryParameters['type'] = requestParameters.type.join(runtime.COLLECTION_FORMATS["csv"]);
@@ -203,7 +205,7 @@ export class APIEventsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EventEntityPageFromJSON(jsonValue));
     }
@@ -212,8 +214,8 @@ export class APIEventsApi extends runtime.BaseAPI {
      * User must have the API_EVENT[READ] permission to use this service
      * Get API\'s events
      */
-    async searchApiEvents(requestParameters: SearchApiEventsRequest): Promise<EventEntityPage> {
-        const response = await this.searchApiEventsRaw(requestParameters);
+    async searchApiEvents(requestParameters: SearchApiEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EventEntityPage> {
+        const response = await this.searchApiEventsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

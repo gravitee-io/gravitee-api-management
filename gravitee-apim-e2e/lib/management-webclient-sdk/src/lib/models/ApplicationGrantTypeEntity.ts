@@ -38,6 +38,15 @@ export interface ApplicationGrantTypeEntity {
     type?: string;
 }
 
+/**
+ * Check if a given object implements the ApplicationGrantTypeEntity interface.
+ */
+export function instanceOfApplicationGrantTypeEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApplicationGrantTypeEntityFromJSON(json: any): ApplicationGrantTypeEntity {
     return ApplicationGrantTypeEntityFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function ApplicationGrantTypeEntityToJSON(value?: ApplicationGrantTypeEnt
         'type': value.type,
     };
 }
-
 

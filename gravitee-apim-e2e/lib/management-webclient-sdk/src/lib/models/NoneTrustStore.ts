@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { TrustStore } from './TrustStore';
 import {
-    TrustStore,
     TrustStoreFromJSON,
     TrustStoreFromJSONTyped,
     TrustStoreToJSON,
-} from './';
+} from './TrustStore';
 
 /**
  * 
@@ -25,6 +25,17 @@ import {
  * @interface NoneTrustStore
  */
 export interface NoneTrustStore extends TrustStore {
+}
+
+
+
+/**
+ * Check if a given object implements the NoneTrustStore interface.
+ */
+export function instanceOfNoneTrustStore(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function NoneTrustStoreFromJSON(json: any): NoneTrustStore {
@@ -38,6 +49,4 @@ export function NoneTrustStoreFromJSONTyped(json: any, ignoreDiscriminator: bool
 export function NoneTrustStoreToJSON(value?: NoneTrustStore | null): any {
     return value;
 }
-
-
 

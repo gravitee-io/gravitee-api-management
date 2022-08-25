@@ -13,20 +13,22 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  AlertEventPage,
+  AlertStatusEntity,
+  AlertTriggerEntity,
+  NewAlertTriggerEntity,
+  UpdateAlertTriggerEntity,
+} from '../models';
 import {
-    AlertEventPage,
     AlertEventPageFromJSON,
     AlertEventPageToJSON,
-    AlertStatusEntity,
     AlertStatusEntityFromJSON,
     AlertStatusEntityToJSON,
-    AlertTriggerEntity,
     AlertTriggerEntityFromJSON,
     AlertTriggerEntityToJSON,
-    NewAlertTriggerEntity,
     NewAlertTriggerEntityFromJSON,
     NewAlertTriggerEntityToJSON,
-    UpdateAlertTriggerEntity,
     UpdateAlertTriggerEntityFromJSON,
     UpdateAlertTriggerEntityToJSON,
 } from '../models';
@@ -94,7 +96,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the API_ALERT[CREATE] permission to use this service
      * Create an alert for an API
      */
-    async createApiAlertRaw(requestParameters: CreateApiAlertRequest): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
+    async createApiAlertRaw(requestParameters: CreateApiAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling createApiAlert.');
         }
@@ -111,7 +113,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newAlertTriggerEntity','Required parameter requestParameters.newAlertTriggerEntity was null or undefined when calling createApiAlert.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -126,7 +128,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewAlertTriggerEntityToJSON(requestParameters.newAlertTriggerEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AlertTriggerEntityFromJSON(jsonValue));
     }
@@ -135,8 +137,8 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the API_ALERT[CREATE] permission to use this service
      * Create an alert for an API
      */
-    async createApiAlert(requestParameters: CreateApiAlertRequest): Promise<AlertTriggerEntity> {
-        const response = await this.createApiAlertRaw(requestParameters);
+    async createApiAlert(requestParameters: CreateApiAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AlertTriggerEntity> {
+        const response = await this.createApiAlertRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -144,7 +146,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the API_ALERT[DELETE] permission to use this service
      * Delete an alert for an API
      */
-    async deleteApiAlertRaw(requestParameters: DeleteApiAlertRequest): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
+    async deleteApiAlertRaw(requestParameters: DeleteApiAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
         if (requestParameters.alert === null || requestParameters.alert === undefined) {
             throw new runtime.RequiredError('alert','Required parameter requestParameters.alert was null or undefined when calling deleteApiAlert.');
         }
@@ -161,7 +163,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApiAlert.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -173,7 +175,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AlertTriggerEntityFromJSON(jsonValue));
     }
@@ -182,8 +184,8 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the API_ALERT[DELETE] permission to use this service
      * Delete an alert for an API
      */
-    async deleteApiAlert(requestParameters: DeleteApiAlertRequest): Promise<AlertTriggerEntity> {
-        const response = await this.deleteApiAlertRaw(requestParameters);
+    async deleteApiAlert(requestParameters: DeleteApiAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AlertTriggerEntity> {
+        const response = await this.deleteApiAlertRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -191,7 +193,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * Retrieve the list of events for an alert
      */
-    async getApiAlertEventsRaw(requestParameters: GetApiAlertEventsRequest): Promise<runtime.ApiResponse<AlertEventPage>> {
+    async getApiAlertEventsRaw(requestParameters: GetApiAlertEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AlertEventPage>> {
         if (requestParameters.alert === null || requestParameters.alert === undefined) {
             throw new runtime.RequiredError('alert','Required parameter requestParameters.alert was null or undefined when calling getApiAlertEvents.');
         }
@@ -208,7 +210,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiAlertEvents.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -236,7 +238,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AlertEventPageFromJSON(jsonValue));
     }
@@ -245,8 +247,8 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * Retrieve the list of events for an alert
      */
-    async getApiAlertEvents(requestParameters: GetApiAlertEventsRequest): Promise<AlertEventPage> {
-        const response = await this.getApiAlertEventsRaw(requestParameters);
+    async getApiAlertEvents(requestParameters: GetApiAlertEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AlertEventPage> {
+        const response = await this.getApiAlertEventsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -254,7 +256,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the API_ALERT[READ] permission to use this service
      * List alerts of an API
      */
-    async getApiAlertsRaw(requestParameters: GetApiAlertsRequest): Promise<runtime.ApiResponse<Array<AlertTriggerEntity>>> {
+    async getApiAlertsRaw(requestParameters: GetApiAlertsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AlertTriggerEntity>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiAlerts.');
         }
@@ -267,7 +269,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiAlerts.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.eventCounts !== undefined) {
             queryParameters['event_counts'] = requestParameters.eventCounts;
@@ -283,7 +285,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(AlertTriggerEntityFromJSON));
     }
@@ -292,8 +294,8 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the API_ALERT[READ] permission to use this service
      * List alerts of an API
      */
-    async getApiAlerts(requestParameters: GetApiAlertsRequest): Promise<Array<AlertTriggerEntity>> {
-        const response = await this.getApiAlertsRaw(requestParameters);
+    async getApiAlerts(requestParameters: GetApiAlertsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<AlertTriggerEntity>> {
+        const response = await this.getApiAlertsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -301,7 +303,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * Get alerting status
      */
-    async getApiAlertsStatusRaw(requestParameters: GetApiAlertsStatusRequest): Promise<runtime.ApiResponse<AlertStatusEntity>> {
+    async getApiAlertsStatusRaw(requestParameters: GetApiAlertsStatusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AlertStatusEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiAlertsStatus.');
         }
@@ -314,7 +316,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiAlertsStatus.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -326,7 +328,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AlertStatusEntityFromJSON(jsonValue));
     }
@@ -335,8 +337,8 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * Get alerting status
      */
-    async getApiAlertsStatus(requestParameters: GetApiAlertsStatusRequest): Promise<AlertStatusEntity> {
-        const response = await this.getApiAlertsStatusRaw(requestParameters);
+    async getApiAlertsStatus(requestParameters: GetApiAlertsStatusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AlertStatusEntity> {
+        const response = await this.getApiAlertsStatusRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -344,7 +346,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the API_ALERT[READ] permission to use this service
      * List configured alerts of the API
      */
-    async getPlatformAlertsAnalyticsRaw(requestParameters: GetPlatformAlertsAnalyticsRequest): Promise<runtime.ApiResponse<Array<AlertTriggerEntity>>> {
+    async getPlatformAlertsAnalyticsRaw(requestParameters: GetPlatformAlertsAnalyticsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AlertTriggerEntity>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getPlatformAlertsAnalytics.');
         }
@@ -357,7 +359,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPlatformAlertsAnalytics.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -377,7 +379,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(AlertTriggerEntityFromJSON));
     }
@@ -386,8 +388,8 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the API_ALERT[READ] permission to use this service
      * List configured alerts of the API
      */
-    async getPlatformAlertsAnalytics(requestParameters: GetPlatformAlertsAnalyticsRequest): Promise<Array<AlertTriggerEntity>> {
-        const response = await this.getPlatformAlertsAnalyticsRaw(requestParameters);
+    async getPlatformAlertsAnalytics(requestParameters: GetPlatformAlertsAnalyticsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<AlertTriggerEntity>> {
+        const response = await this.getPlatformAlertsAnalyticsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -395,7 +397,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the API_ALERT[UPDATE] permission to use this service
      * Update an alert for an API
      */
-    async updateApiAlertRaw(requestParameters: UpdateApiAlertRequest): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
+    async updateApiAlertRaw(requestParameters: UpdateApiAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
         if (requestParameters.alert === null || requestParameters.alert === undefined) {
             throw new runtime.RequiredError('alert','Required parameter requestParameters.alert was null or undefined when calling updateApiAlert.');
         }
@@ -416,7 +418,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateAlertTriggerEntity','Required parameter requestParameters.updateAlertTriggerEntity was null or undefined when calling updateApiAlert.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -431,7 +433,7 @@ export class APIAlertsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateAlertTriggerEntityToJSON(requestParameters.updateAlertTriggerEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AlertTriggerEntityFromJSON(jsonValue));
     }
@@ -440,8 +442,8 @@ export class APIAlertsApi extends runtime.BaseAPI {
      * User must have the API_ALERT[UPDATE] permission to use this service
      * Update an alert for an API
      */
-    async updateApiAlert(requestParameters: UpdateApiAlertRequest): Promise<AlertTriggerEntity> {
-        const response = await this.updateApiAlertRaw(requestParameters);
+    async updateApiAlert(requestParameters: UpdateApiAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AlertTriggerEntity> {
+        const response = await this.updateApiAlertRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

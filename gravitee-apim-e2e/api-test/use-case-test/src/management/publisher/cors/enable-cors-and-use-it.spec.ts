@@ -46,13 +46,13 @@ describe('Enable CORS on an API and use it', () => {
         envId,
         orgId,
         body: ApisFaker.apiImport({
-          plans: [PlansFaker.plan({ security: PlanSecurityType.KEYLESS, status: PlanStatus.PUBLISHED })],
+          plans: [PlansFaker.plan({ security: PlanSecurityType.KEY_LESS, status: PlanStatus.PUBLISHED })],
           flows: [
             {
               name: '',
               path_operator: {
                 path: '/',
-                operator: PathOperatorOperatorEnum.STARTSWITH,
+                operator: PathOperatorOperatorEnum.STARTS_WITH,
               },
               condition: '',
               consumers: [],
@@ -93,7 +93,7 @@ describe('Enable CORS on an API and use it', () => {
                   },
                 ],
                 load_balancing: {
-                  type: LoadBalancerTypeEnum.ROUNDROBIN,
+                  type: LoadBalancerTypeEnum.ROUND_ROBIN,
                 },
                 http: {
                   connectTimeout: 5000,
@@ -204,7 +204,7 @@ describe('Enable CORS on an API and use it', () => {
         envId,
         orgId,
         body: ApisFaker.apiImport({
-          plans: [PlansFaker.plan({ security: PlanSecurityType.KEYLESS, status: PlanStatus.PUBLISHED })],
+          plans: [PlansFaker.plan({ security: PlanSecurityType.KEY_LESS, status: PlanStatus.PUBLISHED })],
           proxy: ApisFaker.proxy({
             groups: [
               {
@@ -220,7 +220,7 @@ describe('Enable CORS on an API and use it', () => {
                   },
                 ],
                 load_balancing: {
-                  type: LoadBalancerTypeEnum.ROUNDROBIN,
+                  type: LoadBalancerTypeEnum.ROUND_ROBIN,
                 },
                 http: {
                   connectTimeout: 5000,

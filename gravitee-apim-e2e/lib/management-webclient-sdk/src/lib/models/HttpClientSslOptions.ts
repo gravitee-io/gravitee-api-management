@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { KeyStore } from './KeyStore';
 import {
-    KeyStore,
     KeyStoreFromJSON,
     KeyStoreFromJSONTyped,
     KeyStoreToJSON,
-    TrustStore,
+} from './KeyStore';
+import type { TrustStore } from './TrustStore';
+import {
     TrustStoreFromJSON,
     TrustStoreFromJSONTyped,
     TrustStoreToJSON,
-} from './';
+} from './TrustStore';
 
 /**
  * 
@@ -53,6 +55,15 @@ export interface HttpClientSslOptions {
      * @memberof HttpClientSslOptions
      */
     trustStore?: TrustStore;
+}
+
+/**
+ * Check if a given object implements the HttpClientSslOptions interface.
+ */
+export function instanceOfHttpClientSslOptions(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function HttpClientSslOptionsFromJSON(json: any): HttpClientSslOptions {
@@ -87,5 +98,4 @@ export function HttpClientSslOptionsToJSON(value?: HttpClientSslOptions | null):
         'trustStore': TrustStoreToJSON(value.trustStore),
     };
 }
-
 

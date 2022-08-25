@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Projection } from './Projection';
 import {
-    Projection,
     ProjectionFromJSON,
     ProjectionFromJSONTyped,
     ProjectionToJSON,
-} from './';
+} from './Projection';
 
 import {
      AggregationConditionFromJSONTyped,
@@ -48,6 +48,33 @@ export interface Condition {
      * @memberof Condition
      */
     type?: ConditionTypeEnum;
+}
+
+
+/**
+ * @export
+ */
+export const ConditionTypeEnum = {
+    STRING: 'STRING',
+    THRESHOLD: 'THRESHOLD',
+    THRESHOLD_RANGE: 'THRESHOLD_RANGE',
+    RATE: 'RATE',
+    FREQUENCY: 'FREQUENCY',
+    AGGREGATION: 'AGGREGATION',
+    COMPARE: 'COMPARE',
+    STRING_COMPARE: 'STRING_COMPARE',
+    MISSING_DATA: 'MISSING_DATA'
+} as const;
+export type ConditionTypeEnum = typeof ConditionTypeEnum[keyof typeof ConditionTypeEnum];
+
+
+/**
+ * Check if a given object implements the Condition interface.
+ */
+export function instanceOfCondition(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function ConditionFromJSON(json: any): Condition {
@@ -104,21 +131,4 @@ export function ConditionToJSON(value?: Condition | null): any {
         'type': value.type,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ConditionTypeEnum {
-    STRING = 'STRING',
-    THRESHOLD = 'THRESHOLD',
-    THRESHOLDRANGE = 'THRESHOLD_RANGE',
-    RATE = 'RATE',
-    FREQUENCY = 'FREQUENCY',
-    AGGREGATION = 'AGGREGATION',
-    COMPARE = 'COMPARE',
-    STRINGCOMPARE = 'STRING_COMPARE',
-    MISSINGDATA = 'MISSING_DATA'
-}
-
 

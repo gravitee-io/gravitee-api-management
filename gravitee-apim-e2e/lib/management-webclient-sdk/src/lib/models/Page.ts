@@ -50,6 +50,15 @@ export interface Page {
     total_pages?: number;
 }
 
+/**
+ * Check if a given object implements the Page interface.
+ */
+export function instanceOfPage(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PageFromJSON(json: any): Page {
     return PageFromJSONTyped(json, false);
 }
@@ -84,5 +93,4 @@ export function PageToJSON(value?: Page | null): any {
         'total_pages': value.total_pages,
     };
 }
-
 

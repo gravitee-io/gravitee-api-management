@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { MemberRoleEntity } from './MemberRoleEntity';
 import {
-    MemberRoleEntity,
     MemberRoleEntityFromJSON,
     MemberRoleEntityFromJSONTyped,
     MemberRoleEntityToJSON,
-} from './';
+} from './MemberRoleEntity';
 
 /**
  * 
@@ -43,6 +43,15 @@ export interface GroupMembership {
      * @memberof GroupMembership
      */
     roles?: Array<MemberRoleEntity>;
+}
+
+/**
+ * Check if a given object implements the GroupMembership interface.
+ */
+export function instanceOfGroupMembership(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function GroupMembershipFromJSON(json: any): GroupMembership {
@@ -75,5 +84,4 @@ export function GroupMembershipToJSON(value?: GroupMembership | null): any {
         'roles': value.roles === undefined ? undefined : ((value.roles as Array<any>).map(MemberRoleEntityToJSON)),
     };
 }
-
 

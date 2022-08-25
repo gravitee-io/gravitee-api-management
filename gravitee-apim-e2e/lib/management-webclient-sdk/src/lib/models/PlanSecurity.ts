@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Enabled } from './Enabled';
 import {
-    Enabled,
     EnabledFromJSON,
     EnabledFromJSONTyped,
     EnabledToJSON,
-} from './';
+} from './Enabled';
 
 /**
  * 
@@ -63,6 +63,15 @@ export interface PlanSecurity {
     sharedApiKey?: Enabled;
 }
 
+/**
+ * Check if a given object implements the PlanSecurity interface.
+ */
+export function instanceOfPlanSecurity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PlanSecurityFromJSON(json: any): PlanSecurity {
     return PlanSecurityFromJSONTyped(json, false);
 }
@@ -99,5 +108,4 @@ export function PlanSecurityToJSON(value?: PlanSecurity | null): any {
         'sharedApiKey': EnabledToJSON(value.sharedApiKey),
     };
 }
-
 

@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { EndpointGroupV4 } from './EndpointGroupV4';
 import {
-    EndpointGroupV4,
     EndpointGroupV4FromJSON,
     EndpointGroupV4FromJSONTyped,
     EndpointGroupV4ToJSON,
-    FlowV4,
+} from './EndpointGroupV4';
+import type { FlowV4 } from './FlowV4';
+import {
     FlowV4FromJSON,
     FlowV4FromJSONTyped,
     FlowV4ToJSON,
-    ListenerV4,
+} from './FlowV4';
+import type { ListenerV4 } from './ListenerV4';
+import {
     ListenerV4FromJSON,
     ListenerV4FromJSONTyped,
     ListenerV4ToJSON,
-} from './';
+} from './ListenerV4';
 
 /**
  * 
@@ -101,6 +105,52 @@ export interface NewApiEntityV4 {
     type: NewApiEntityV4TypeEnum;
 }
 
+
+/**
+ * @export
+ */
+export const NewApiEntityV4DefinitionVersionEnum = {
+    _1_0_0: '1.0.0',
+    _2_0_0: '2.0.0',
+    _4_0_0: '4.0.0'
+} as const;
+export type NewApiEntityV4DefinitionVersionEnum = typeof NewApiEntityV4DefinitionVersionEnum[keyof typeof NewApiEntityV4DefinitionVersionEnum];
+
+/**
+ * @export
+ */
+export const NewApiEntityV4FlowModeEnum = {
+    DEFAULT: 'DEFAULT',
+    BEST_MATCH: 'BEST_MATCH'
+} as const;
+export type NewApiEntityV4FlowModeEnum = typeof NewApiEntityV4FlowModeEnum[keyof typeof NewApiEntityV4FlowModeEnum];
+
+/**
+ * @export
+ */
+export const NewApiEntityV4TypeEnum = {
+    SYNC: 'SYNC',
+    ASYNC: 'ASYNC'
+} as const;
+export type NewApiEntityV4TypeEnum = typeof NewApiEntityV4TypeEnum[keyof typeof NewApiEntityV4TypeEnum];
+
+
+/**
+ * Check if a given object implements the NewApiEntityV4 interface.
+ */
+export function instanceOfNewApiEntityV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "apiVersion" in value;
+    isInstance = isInstance && "definitionVersion" in value;
+    isInstance = isInstance && "description" in value;
+    isInstance = isInstance && "endpointGroups" in value;
+    isInstance = isInstance && "listeners" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "type" in value;
+
+    return isInstance;
+}
+
 export function NewApiEntityV4FromJSON(json: any): NewApiEntityV4 {
     return NewApiEntityV4FromJSONTyped(json, false);
 }
@@ -147,31 +197,4 @@ export function NewApiEntityV4ToJSON(value?: NewApiEntityV4 | null): any {
         'type': value.type,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum NewApiEntityV4DefinitionVersionEnum {
-    _100 = '1.0.0',
-    _200 = '2.0.0',
-    _400 = '4.0.0'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum NewApiEntityV4FlowModeEnum {
-    DEFAULT = 'DEFAULT',
-    BESTMATCH = 'BEST_MATCH'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum NewApiEntityV4TypeEnum {
-    SYNC = 'SYNC',
-    ASYNC = 'ASYNC'
-}
-
 

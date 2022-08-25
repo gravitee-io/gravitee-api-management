@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { DictionaryType } from './DictionaryType';
 import {
-    DictionaryType,
     DictionaryTypeFromJSON,
     DictionaryTypeFromJSONTyped,
     DictionaryTypeToJSON,
-} from './';
+} from './DictionaryType';
 
 /**
  * 
@@ -87,6 +87,29 @@ export interface DictionaryListItem {
     updated_at?: Date;
 }
 
+
+/**
+ * @export
+ */
+export const DictionaryListItemStateEnum = {
+    INITIALIZED: 'INITIALIZED',
+    STOPPED: 'STOPPED',
+    STOPPING: 'STOPPING',
+    STARTED: 'STARTED',
+    CLOSED: 'CLOSED'
+} as const;
+export type DictionaryListItemStateEnum = typeof DictionaryListItemStateEnum[keyof typeof DictionaryListItemStateEnum];
+
+
+/**
+ * Check if a given object implements the DictionaryListItem interface.
+ */
+export function instanceOfDictionaryListItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function DictionaryListItemFromJSON(json: any): DictionaryListItem {
     return DictionaryListItemFromJSONTyped(json, false);
 }
@@ -131,17 +154,4 @@ export function DictionaryListItemToJSON(value?: DictionaryListItem | null): any
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum DictionaryListItemStateEnum {
-    INITIALIZED = 'INITIALIZED',
-    STOPPED = 'STOPPED',
-    STOPPING = 'STOPPING',
-    STARTED = 'STARTED',
-    CLOSED = 'CLOSED'
-}
-
 

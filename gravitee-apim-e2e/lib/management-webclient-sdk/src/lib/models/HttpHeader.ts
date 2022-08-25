@@ -32,6 +32,15 @@ export interface HttpHeader {
     value?: string;
 }
 
+/**
+ * Check if a given object implements the HttpHeader interface.
+ */
+export function instanceOfHttpHeader(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function HttpHeaderFromJSON(json: any): HttpHeader {
     return HttpHeaderFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function HttpHeaderToJSON(value?: HttpHeader | null): any {
         'value': value.value,
     };
 }
-
 

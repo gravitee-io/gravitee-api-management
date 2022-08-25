@@ -50,6 +50,15 @@ export interface ConsoleCors {
     maxAge?: number;
 }
 
+/**
+ * Check if a given object implements the ConsoleCors interface.
+ */
+export function instanceOfConsoleCors(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ConsoleCorsFromJSON(json: any): ConsoleCors {
     return ConsoleCorsFromJSONTyped(json, false);
 }
@@ -84,5 +93,4 @@ export function ConsoleCorsToJSON(value?: ConsoleCors | null): any {
         'maxAge': value.maxAge,
     };
 }
-
 

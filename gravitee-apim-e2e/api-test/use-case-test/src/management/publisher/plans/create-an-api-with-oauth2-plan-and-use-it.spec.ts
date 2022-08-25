@@ -81,7 +81,7 @@ describe('Create an API with OAuth2 plan and use it', () => {
             name: '',
             path_operator: {
               path: '',
-              operator: PathOperatorOperatorEnum.STARTSWITH,
+              operator: PathOperatorOperatorEnum.STARTS_WITH,
             },
             condition: '',
             consumers: [],

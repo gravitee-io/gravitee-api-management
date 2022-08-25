@@ -12,28 +12,36 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { MonitoringCPU } from './MonitoringCPU';
 import {
-    MonitoringCPU,
     MonitoringCPUFromJSON,
     MonitoringCPUFromJSONTyped,
     MonitoringCPUToJSON,
-    MonitoringGC,
+} from './MonitoringCPU';
+import type { MonitoringGC } from './MonitoringGC';
+import {
     MonitoringGCFromJSON,
     MonitoringGCFromJSONTyped,
     MonitoringGCToJSON,
-    MonitoringJVM,
+} from './MonitoringGC';
+import type { MonitoringJVM } from './MonitoringJVM';
+import {
     MonitoringJVMFromJSON,
     MonitoringJVMFromJSONTyped,
     MonitoringJVMToJSON,
-    MonitoringProcess,
+} from './MonitoringJVM';
+import type { MonitoringProcess } from './MonitoringProcess';
+import {
     MonitoringProcessFromJSON,
     MonitoringProcessFromJSONTyped,
     MonitoringProcessToJSON,
-    MonitoringThread,
+} from './MonitoringProcess';
+import type { MonitoringThread } from './MonitoringThread';
+import {
     MonitoringThreadFromJSON,
     MonitoringThreadFromJSONTyped,
     MonitoringThreadToJSON,
-} from './';
+} from './MonitoringThread';
 
 /**
  * 
@@ -73,6 +81,15 @@ export interface MonitoringData {
     thread?: MonitoringThread;
 }
 
+/**
+ * Check if a given object implements the MonitoringData interface.
+ */
+export function instanceOfMonitoringData(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MonitoringDataFromJSON(json: any): MonitoringData {
     return MonitoringDataFromJSONTyped(json, false);
 }
@@ -107,5 +124,4 @@ export function MonitoringDataToJSON(value?: MonitoringData | null): any {
         'thread': MonitoringThreadToJSON(value.thread),
     };
 }
-
 

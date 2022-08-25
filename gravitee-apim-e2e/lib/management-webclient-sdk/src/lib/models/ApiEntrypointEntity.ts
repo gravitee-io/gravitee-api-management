@@ -38,6 +38,15 @@ export interface ApiEntrypointEntity {
     target?: string;
 }
 
+/**
+ * Check if a given object implements the ApiEntrypointEntity interface.
+ */
+export function instanceOfApiEntrypointEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiEntrypointEntityFromJSON(json: any): ApiEntrypointEntity {
     return ApiEntrypointEntityFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function ApiEntrypointEntityToJSON(value?: ApiEntrypointEntity | null): a
         'target': value.target,
     };
 }
-
 

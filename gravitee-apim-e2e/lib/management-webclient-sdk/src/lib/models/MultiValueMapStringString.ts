@@ -33,6 +33,15 @@ export interface MultiValueMapStringString {
     empty?: boolean;
 }
 
+/**
+ * Check if a given object implements the MultiValueMapStringString interface.
+ */
+export function instanceOfMultiValueMapStringString(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MultiValueMapStringStringFromJSON(json: any): MultiValueMapStringString {
     return MultiValueMapStringStringFromJSONTyped(json, false);
 }
@@ -63,5 +72,4 @@ export function MultiValueMapStringStringToJSON(value?: MultiValueMapStringStrin
         'empty': value.empty,
     };
 }
-
 

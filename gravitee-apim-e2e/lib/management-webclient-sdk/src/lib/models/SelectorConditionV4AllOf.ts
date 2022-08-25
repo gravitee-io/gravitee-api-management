@@ -26,6 +26,15 @@ export interface SelectorConditionV4AllOf {
     condition?: string;
 }
 
+/**
+ * Check if a given object implements the SelectorConditionV4AllOf interface.
+ */
+export function instanceOfSelectorConditionV4AllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function SelectorConditionV4AllOfFromJSON(json: any): SelectorConditionV4AllOf {
     return SelectorConditionV4AllOfFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function SelectorConditionV4AllOfToJSON(value?: SelectorConditionV4AllOf 
         'condition': value.condition,
     };
 }
-
 

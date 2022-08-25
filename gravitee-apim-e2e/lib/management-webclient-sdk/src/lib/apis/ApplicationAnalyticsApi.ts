@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  Analytics,
+  AnalyticsType,
+} from '../models';
 import {
-    Analytics,
     AnalyticsFromJSON,
     AnalyticsToJSON,
-    AnalyticsType,
     AnalyticsTypeFromJSON,
     AnalyticsTypeToJSON,
 } from '../models';
@@ -46,7 +48,7 @@ export class ApplicationAnalyticsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_ANALYTICS[READ] permission to use this service
      * Get application analytics
      */
-    async getApplicationAnalyticsHitsRaw(requestParameters: GetApplicationAnalyticsHitsRequest): Promise<runtime.ApiResponse<Analytics>> {
+    async getApplicationAnalyticsHitsRaw(requestParameters: GetApplicationAnalyticsHitsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Analytics>> {
         if (requestParameters.type === null || requestParameters.type === undefined) {
             throw new runtime.RequiredError('type','Required parameter requestParameters.type was null or undefined when calling getApplicationAnalyticsHits.');
         }
@@ -63,7 +65,7 @@ export class ApplicationAnalyticsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationAnalyticsHits.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -111,7 +113,7 @@ export class ApplicationAnalyticsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AnalyticsFromJSON(jsonValue));
     }
@@ -120,8 +122,8 @@ export class ApplicationAnalyticsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_ANALYTICS[READ] permission to use this service
      * Get application analytics
      */
-    async getApplicationAnalyticsHits(requestParameters: GetApplicationAnalyticsHitsRequest): Promise<Analytics> {
-        const response = await this.getApplicationAnalyticsHitsRaw(requestParameters);
+    async getApplicationAnalyticsHits(requestParameters: GetApplicationAnalyticsHitsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Analytics> {
+        const response = await this.getApplicationAnalyticsHitsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

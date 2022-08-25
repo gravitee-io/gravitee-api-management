@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { DictionaryProviderEntity } from './DictionaryProviderEntity';
 import {
-    DictionaryProviderEntity,
     DictionaryProviderEntityFromJSON,
     DictionaryProviderEntityFromJSONTyped,
     DictionaryProviderEntityToJSON,
-    DictionaryTriggerEntity,
+} from './DictionaryProviderEntity';
+import type { DictionaryTriggerEntity } from './DictionaryTriggerEntity';
+import {
     DictionaryTriggerEntityFromJSON,
     DictionaryTriggerEntityFromJSONTyped,
     DictionaryTriggerEntityToJSON,
-    DictionaryType,
+} from './DictionaryTriggerEntity';
+import type { DictionaryType } from './DictionaryType';
+import {
     DictionaryTypeFromJSON,
     DictionaryTypeFromJSONTyped,
     DictionaryTypeToJSON,
-} from './';
+} from './DictionaryType';
 
 /**
  * 
@@ -71,6 +75,17 @@ export interface NewDictionaryEntity {
     type: DictionaryType;
 }
 
+/**
+ * Check if a given object implements the NewDictionaryEntity interface.
+ */
+export function instanceOfNewDictionaryEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "type" in value;
+
+    return isInstance;
+}
+
 export function NewDictionaryEntityFromJSON(json: any): NewDictionaryEntity {
     return NewDictionaryEntityFromJSONTyped(json, false);
 }
@@ -107,5 +122,4 @@ export function NewDictionaryEntityToJSON(value?: NewDictionaryEntity | null): a
         'type': DictionaryTypeToJSON(value.type),
     };
 }
-
 

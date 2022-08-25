@@ -62,6 +62,36 @@ export interface EntrypointPluginEntityV4 {
     version?: string;
 }
 
+
+/**
+ * @export
+ */
+export const EntrypointPluginEntityV4SupportedApiTypeEnum = {
+    SYNC: 'SYNC',
+    ASYNC: 'ASYNC'
+} as const;
+export type EntrypointPluginEntityV4SupportedApiTypeEnum = typeof EntrypointPluginEntityV4SupportedApiTypeEnum[keyof typeof EntrypointPluginEntityV4SupportedApiTypeEnum];
+
+/**
+ * @export
+ */
+export const EntrypointPluginEntityV4SupportedModesEnum = {
+    SUBSCRIBE: 'SUBSCRIBE',
+    PUBLISH: 'PUBLISH',
+    REQUEST_RESPONSE: 'REQUEST_RESPONSE'
+} as const;
+export type EntrypointPluginEntityV4SupportedModesEnum = typeof EntrypointPluginEntityV4SupportedModesEnum[keyof typeof EntrypointPluginEntityV4SupportedModesEnum];
+
+
+/**
+ * Check if a given object implements the EntrypointPluginEntityV4 interface.
+ */
+export function instanceOfEntrypointPluginEntityV4(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function EntrypointPluginEntityV4FromJSON(json: any): EntrypointPluginEntityV4 {
     return EntrypointPluginEntityV4FromJSONTyped(json, false);
 }
@@ -100,23 +130,4 @@ export function EntrypointPluginEntityV4ToJSON(value?: EntrypointPluginEntityV4 
         'version': value.version,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum EntrypointPluginEntityV4SupportedApiTypeEnum {
-    SYNC = 'SYNC',
-    ASYNC = 'ASYNC'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum EntrypointPluginEntityV4SupportedModesEnum {
-    SUBSCRIBE = 'SUBSCRIBE',
-    PUBLISH = 'PUBLISH',
-    REQUESTRESPONSE = 'REQUEST_RESPONSE'
-}
-
 

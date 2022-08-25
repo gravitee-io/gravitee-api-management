@@ -50,6 +50,17 @@ export interface PropertyEntity {
     value: string;
 }
 
+/**
+ * Check if a given object implements the PropertyEntity interface.
+ */
+export function instanceOfPropertyEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "key" in value;
+    isInstance = isInstance && "value" in value;
+
+    return isInstance;
+}
+
 export function PropertyEntityFromJSON(json: any): PropertyEntity {
     return PropertyEntityFromJSONTyped(json, false);
 }
@@ -84,5 +95,4 @@ export function PropertyEntityToJSON(value?: PropertyEntity | null): any {
         'value': value.value,
     };
 }
-
 

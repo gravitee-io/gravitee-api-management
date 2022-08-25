@@ -11,17 +11,19 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum ThemeCssType {
-    Color = 'color',
-    Length = 'length',
-    String = 'string',
-    Image = 'image'
-}
+export const ThemeCssType = {
+    COLOR: 'color',
+    LENGTH: 'length',
+    STRING: 'string',
+    IMAGE: 'image'
+} as const;
+export type ThemeCssType = typeof ThemeCssType[keyof typeof ThemeCssType];
+
 
 export function ThemeCssTypeFromJSON(json: any): ThemeCssType {
     return ThemeCssTypeFromJSONTyped(json, false);

@@ -38,6 +38,16 @@ export interface ServiceV4 {
     type: string;
 }
 
+/**
+ * Check if a given object implements the ServiceV4 interface.
+ */
+export function instanceOfServiceV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "type" in value;
+
+    return isInstance;
+}
+
 export function ServiceV4FromJSON(json: any): ServiceV4 {
     return ServiceV4FromJSONTyped(json, false);
 }
@@ -68,5 +78,4 @@ export function ServiceV4ToJSON(value?: ServiceV4 | null): any {
         'type': value.type,
     };
 }
-
 

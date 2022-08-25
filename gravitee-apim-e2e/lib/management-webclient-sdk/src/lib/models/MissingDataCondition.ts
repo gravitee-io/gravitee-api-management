@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Condition } from './Condition';
 import {
-    Condition,
     ConditionFromJSON,
     ConditionFromJSONTyped,
     ConditionToJSON,
-    MissingDataConditionAllOf,
+} from './Condition';
+import type { MissingDataConditionAllOf } from './MissingDataConditionAllOf';
+import {
     MissingDataConditionAllOfFromJSON,
     MissingDataConditionAllOfFromJSONTyped,
     MissingDataConditionAllOfToJSON,
-    Projection,
+} from './MissingDataConditionAllOf';
+import type { Projection } from './Projection';
+import {
     ProjectionFromJSON,
     ProjectionFromJSONTyped,
     ProjectionToJSON,
-} from './';
+} from './Projection';
 
 /**
  * 
@@ -45,6 +49,32 @@ export interface MissingDataCondition extends Condition {
      * @memberof MissingDataCondition
      */
     timeUnit?: MissingDataConditionTimeUnitEnum;
+}
+
+
+/**
+ * @export
+ */
+export const MissingDataConditionTimeUnitEnum = {
+    NANOSECONDS: 'NANOSECONDS',
+    MICROSECONDS: 'MICROSECONDS',
+    MILLISECONDS: 'MILLISECONDS',
+    SECONDS: 'SECONDS',
+    MINUTES: 'MINUTES',
+    HOURS: 'HOURS',
+    DAYS: 'DAYS'
+} as const;
+export type MissingDataConditionTimeUnitEnum = typeof MissingDataConditionTimeUnitEnum[keyof typeof MissingDataConditionTimeUnitEnum];
+
+
+/**
+ * Check if a given object implements the MissingDataCondition interface.
+ */
+export function instanceOfMissingDataCondition(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "duration" in value;
+
+    return isInstance;
 }
 
 export function MissingDataConditionFromJSON(json: any): MissingDataCondition {
@@ -75,19 +105,4 @@ export function MissingDataConditionToJSON(value?: MissingDataCondition | null):
         'timeUnit': value.timeUnit,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum MissingDataConditionTimeUnitEnum {
-    NANOSECONDS = 'NANOSECONDS',
-    MICROSECONDS = 'MICROSECONDS',
-    MILLISECONDS = 'MILLISECONDS',
-    SECONDS = 'SECONDS',
-    MINUTES = 'MINUTES',
-    HOURS = 'HOURS',
-    DAYS = 'DAYS'
-}
-
 

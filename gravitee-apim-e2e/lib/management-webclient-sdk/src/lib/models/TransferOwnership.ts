@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { MembershipMemberType } from './MembershipMemberType';
 import {
-    MembershipMemberType,
     MembershipMemberTypeFromJSON,
     MembershipMemberTypeFromJSONTyped,
     MembershipMemberTypeToJSON,
-} from './';
+} from './MembershipMemberType';
 
 /**
  * 
@@ -49,6 +49,17 @@ export interface TransferOwnership {
      * @memberof TransferOwnership
      */
     type: MembershipMemberType;
+}
+
+/**
+ * Check if a given object implements the TransferOwnership interface.
+ */
+export function instanceOfTransferOwnership(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "role" in value;
+    isInstance = isInstance && "type" in value;
+
+    return isInstance;
 }
 
 export function TransferOwnershipFromJSON(json: any): TransferOwnership {
@@ -83,5 +94,4 @@ export function TransferOwnershipToJSON(value?: TransferOwnership | null): any {
         'type': MembershipMemberTypeToJSON(value.type),
     };
 }
-
 

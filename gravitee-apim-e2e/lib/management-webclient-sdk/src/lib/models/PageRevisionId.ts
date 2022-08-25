@@ -32,6 +32,15 @@ export interface PageRevisionId {
     revision?: number;
 }
 
+/**
+ * Check if a given object implements the PageRevisionId interface.
+ */
+export function instanceOfPageRevisionId(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PageRevisionIdFromJSON(json: any): PageRevisionId {
     return PageRevisionIdFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function PageRevisionIdToJSON(value?: PageRevisionId | null): any {
         'revision': value.revision,
     };
 }
-
 

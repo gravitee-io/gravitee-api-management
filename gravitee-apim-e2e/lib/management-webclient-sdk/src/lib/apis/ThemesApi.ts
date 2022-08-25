@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  NewThemeEntity,
+  ThemeEntity,
+  UpdateThemeEntity,
+} from '../models';
 import {
-    NewThemeEntity,
     NewThemeEntityFromJSON,
     NewThemeEntityToJSON,
-    ThemeEntity,
     ThemeEntityFromJSON,
     ThemeEntityToJSON,
-    UpdateThemeEntity,
     UpdateThemeEntityFromJSON,
     UpdateThemeEntityToJSON,
 } from '../models';
@@ -87,7 +89,7 @@ export class ThemesApi extends runtime.BaseAPI {
 
     /**
      */
-    async createThemeRaw(requestParameters: CreateThemeRequest): Promise<runtime.ApiResponse<ThemeEntity>> {
+    async createThemeRaw(requestParameters: CreateThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ThemeEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createTheme.');
         }
@@ -100,7 +102,7 @@ export class ThemesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newThemeEntity','Required parameter requestParameters.newThemeEntity was null or undefined when calling createTheme.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -115,21 +117,21 @@ export class ThemesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewThemeEntityToJSON(requestParameters.newThemeEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ThemeEntityFromJSON(jsonValue));
     }
 
     /**
      */
-    async createTheme(requestParameters: CreateThemeRequest): Promise<ThemeEntity> {
-        const response = await this.createThemeRaw(requestParameters);
+    async createTheme(requestParameters: CreateThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ThemeEntity> {
+        const response = await this.createThemeRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async deleteThemeRaw(requestParameters: DeleteThemeRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteThemeRaw(requestParameters: DeleteThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling deleteTheme.');
         }
@@ -142,7 +144,7 @@ export class ThemesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteTheme.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -154,20 +156,20 @@ export class ThemesApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async deleteTheme(requestParameters: DeleteThemeRequest): Promise<void> {
-        await this.deleteThemeRaw(requestParameters);
+    async deleteTheme(requestParameters: DeleteThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteThemeRaw(requestParameters, initOverrides);
     }
 
     /**
      */
-    async getFaviconRaw(requestParameters: GetFaviconRequest): Promise<runtime.ApiResponse<void>> {
+    async getFaviconRaw(requestParameters: GetFaviconRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling getFavicon.');
         }
@@ -180,7 +182,7 @@ export class ThemesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getFavicon.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -192,20 +194,20 @@ export class ThemesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async getFavicon(requestParameters: GetFaviconRequest): Promise<void> {
-        await this.getFaviconRaw(requestParameters);
+    async getFavicon(requestParameters: GetFaviconRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getFaviconRaw(requestParameters, initOverrides);
     }
 
     /**
      */
-    async getLogoLightRaw(requestParameters: GetLogoLightRequest): Promise<runtime.ApiResponse<void>> {
+    async getLogoLightRaw(requestParameters: GetLogoLightRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling getLogoLight.');
         }
@@ -218,7 +220,7 @@ export class ThemesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getLogoLight.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -230,20 +232,20 @@ export class ThemesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async getLogoLight(requestParameters: GetLogoLightRequest): Promise<void> {
-        await this.getLogoLightRaw(requestParameters);
+    async getLogoLight(requestParameters: GetLogoLightRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getLogoLightRaw(requestParameters, initOverrides);
     }
 
     /**
      */
-    async getThemeRaw(requestParameters: GetThemeRequest): Promise<runtime.ApiResponse<ThemeEntity>> {
+    async getThemeRaw(requestParameters: GetThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ThemeEntity>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling getTheme.');
         }
@@ -256,7 +258,7 @@ export class ThemesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTheme.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -268,21 +270,21 @@ export class ThemesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ThemeEntityFromJSON(jsonValue));
     }
 
     /**
      */
-    async getTheme(requestParameters: GetThemeRequest): Promise<ThemeEntity> {
-        const response = await this.getThemeRaw(requestParameters);
+    async getTheme(requestParameters: GetThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ThemeEntity> {
+        const response = await this.getThemeRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async getThemeBackgroundRaw(requestParameters: GetThemeBackgroundRequest): Promise<runtime.ApiResponse<void>> {
+    async getThemeBackgroundRaw(requestParameters: GetThemeBackgroundRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling getThemeBackground.');
         }
@@ -295,7 +297,7 @@ export class ThemesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getThemeBackground.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -307,20 +309,20 @@ export class ThemesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async getThemeBackground(requestParameters: GetThemeBackgroundRequest): Promise<void> {
-        await this.getThemeBackgroundRaw(requestParameters);
+    async getThemeBackground(requestParameters: GetThemeBackgroundRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getThemeBackgroundRaw(requestParameters, initOverrides);
     }
 
     /**
      */
-    async getThemeLogoRaw(requestParameters: GetThemeLogoRequest): Promise<runtime.ApiResponse<void>> {
+    async getThemeLogoRaw(requestParameters: GetThemeLogoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling getThemeLogo.');
         }
@@ -333,7 +335,7 @@ export class ThemesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getThemeLogo.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -345,20 +347,20 @@ export class ThemesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async getThemeLogo(requestParameters: GetThemeLogoRequest): Promise<void> {
-        await this.getThemeLogoRaw(requestParameters);
+    async getThemeLogo(requestParameters: GetThemeLogoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getThemeLogoRaw(requestParameters, initOverrides);
     }
 
     /**
      */
-    async resetThemeRaw(requestParameters: ResetThemeRequest): Promise<runtime.ApiResponse<ThemeEntity>> {
+    async resetThemeRaw(requestParameters: ResetThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ThemeEntity>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling resetTheme.');
         }
@@ -371,7 +373,7 @@ export class ThemesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling resetTheme.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -383,21 +385,21 @@ export class ThemesApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ThemeEntityFromJSON(jsonValue));
     }
 
     /**
      */
-    async resetTheme(requestParameters: ResetThemeRequest): Promise<ThemeEntity> {
-        const response = await this.resetThemeRaw(requestParameters);
+    async resetTheme(requestParameters: ResetThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ThemeEntity> {
+        const response = await this.resetThemeRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async updateThemeRaw(requestParameters: UpdateThemeRequest): Promise<runtime.ApiResponse<ThemeEntity>> {
+    async updateThemeRaw(requestParameters: UpdateThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ThemeEntity>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling updateTheme.');
         }
@@ -414,7 +416,7 @@ export class ThemesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateThemeEntity','Required parameter requestParameters.updateThemeEntity was null or undefined when calling updateTheme.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -429,15 +431,15 @@ export class ThemesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateThemeEntityToJSON(requestParameters.updateThemeEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ThemeEntityFromJSON(jsonValue));
     }
 
     /**
      */
-    async updateTheme(requestParameters: UpdateThemeRequest): Promise<ThemeEntity> {
-        const response = await this.updateThemeRaw(requestParameters);
+    async updateTheme(requestParameters: UpdateThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ThemeEntity> {
+        const response = await this.updateThemeRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

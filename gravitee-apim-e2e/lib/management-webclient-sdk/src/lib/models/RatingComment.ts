@@ -26,6 +26,15 @@ export interface RatingComment {
     mandatory?: boolean;
 }
 
+/**
+ * Check if a given object implements the RatingComment interface.
+ */
+export function instanceOfRatingComment(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function RatingCommentFromJSON(json: any): RatingComment {
     return RatingCommentFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function RatingCommentToJSON(value?: RatingComment | null): any {
         'mandatory': value.mandatory,
     };
 }
-
 

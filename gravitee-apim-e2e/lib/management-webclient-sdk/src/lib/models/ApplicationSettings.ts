@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { OAuthClientSettings } from './OAuthClientSettings';
 import {
-    OAuthClientSettings,
     OAuthClientSettingsFromJSON,
     OAuthClientSettingsFromJSONTyped,
     OAuthClientSettingsToJSON,
-    SimpleApplicationSettings,
+} from './OAuthClientSettings';
+import type { SimpleApplicationSettings } from './SimpleApplicationSettings';
+import {
     SimpleApplicationSettingsFromJSON,
     SimpleApplicationSettingsFromJSONTyped,
     SimpleApplicationSettingsToJSON,
-} from './';
+} from './SimpleApplicationSettings';
 
 /**
  * 
@@ -41,6 +43,15 @@ export interface ApplicationSettings {
      * @memberof ApplicationSettings
      */
     oauth?: OAuthClientSettings;
+}
+
+/**
+ * Check if a given object implements the ApplicationSettings interface.
+ */
+export function instanceOfApplicationSettings(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function ApplicationSettingsFromJSON(json: any): ApplicationSettings {
@@ -71,5 +82,4 @@ export function ApplicationSettingsToJSON(value?: ApplicationSettings | null): a
         'oauth': OAuthClientSettingsToJSON(value.oauth),
     };
 }
-
 

@@ -32,6 +32,15 @@ export interface MonitoringCPU {
     percent_use?: number;
 }
 
+/**
+ * Check if a given object implements the MonitoringCPU interface.
+ */
+export function instanceOfMonitoringCPU(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MonitoringCPUFromJSON(json: any): MonitoringCPU {
     return MonitoringCPUFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function MonitoringCPUToJSON(value?: MonitoringCPU | null): any {
         'percent_use': value.percent_use,
     };
 }
-
 

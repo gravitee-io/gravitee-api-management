@@ -32,6 +32,15 @@ export interface PortalReCaptcha {
     siteKey?: string;
 }
 
+/**
+ * Check if a given object implements the PortalReCaptcha interface.
+ */
+export function instanceOfPortalReCaptcha(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PortalReCaptchaFromJSON(json: any): PortalReCaptcha {
     return PortalReCaptchaFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function PortalReCaptchaToJSON(value?: PortalReCaptcha | null): any {
         'siteKey': value.siteKey,
     };
 }
-
 

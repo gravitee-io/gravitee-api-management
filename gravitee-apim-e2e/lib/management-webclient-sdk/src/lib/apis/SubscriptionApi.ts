@@ -13,8 +13,10 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  Subscription,
+} from '../models';
 import {
-    Subscription,
     SubscriptionFromJSON,
     SubscriptionToJSON,
 } from '../models';
@@ -34,7 +36,7 @@ export class SubscriptionApi extends runtime.BaseAPI {
     /**
      * List subscriptions for authenticated user
      */
-    async getUserSubscriptionsRaw(requestParameters: GetUserSubscriptionsRequest): Promise<runtime.ApiResponse<Array<Subscription>>> {
+    async getUserSubscriptionsRaw(requestParameters: GetUserSubscriptionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<Subscription>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getUserSubscriptions.');
         }
@@ -43,7 +45,7 @@ export class SubscriptionApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserSubscriptions.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.application !== undefined) {
             queryParameters['application'] = requestParameters.application;
@@ -63,7 +65,7 @@ export class SubscriptionApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SubscriptionFromJSON));
     }
@@ -71,8 +73,8 @@ export class SubscriptionApi extends runtime.BaseAPI {
     /**
      * List subscriptions for authenticated user
      */
-    async getUserSubscriptions(requestParameters: GetUserSubscriptionsRequest): Promise<Array<Subscription>> {
-        const response = await this.getUserSubscriptionsRaw(requestParameters);
+    async getUserSubscriptions(requestParameters: GetUserSubscriptionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Subscription>> {
+        const response = await this.getUserSubscriptionsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

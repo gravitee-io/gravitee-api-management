@@ -32,6 +32,15 @@ export interface PortalUploadMedia {
     maxSizeInOctet?: number;
 }
 
+/**
+ * Check if a given object implements the PortalUploadMedia interface.
+ */
+export function instanceOfPortalUploadMedia(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PortalUploadMediaFromJSON(json: any): PortalUploadMedia {
     return PortalUploadMediaFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function PortalUploadMediaToJSON(value?: PortalUploadMedia | null): any {
         'maxSizeInOctet': value.maxSizeInOctet,
     };
 }
-
 

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { IdentityProviderType } from './IdentityProviderType';
 import {
-    IdentityProviderType,
     IdentityProviderTypeFromJSON,
     IdentityProviderTypeFromJSONTyped,
     IdentityProviderTypeToJSON,
-} from './';
+} from './IdentityProviderType';
 
 /**
  * 
@@ -75,6 +75,18 @@ export interface NewIdentityProviderEntity {
     userProfileMapping?: { [key: string]: string; };
 }
 
+/**
+ * Check if a given object implements the NewIdentityProviderEntity interface.
+ */
+export function instanceOfNewIdentityProviderEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "configuration" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "type" in value;
+
+    return isInstance;
+}
+
 export function NewIdentityProviderEntityFromJSON(json: any): NewIdentityProviderEntity {
     return NewIdentityProviderEntityFromJSONTyped(json, false);
 }
@@ -115,5 +127,4 @@ export function NewIdentityProviderEntityToJSON(value?: NewIdentityProviderEntit
         'userProfileMapping': value.userProfileMapping,
     };
 }
-
 

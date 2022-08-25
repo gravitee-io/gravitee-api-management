@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { PlanSecurity } from './PlanSecurity';
 import {
-    PlanSecurity,
     PlanSecurityFromJSON,
     PlanSecurityFromJSONTyped,
     PlanSecurityToJSON,
-} from './';
+} from './PlanSecurity';
 
 /**
  * 
@@ -31,6 +31,15 @@ export interface PlanSettings {
      * @memberof PlanSettings
      */
     security?: PlanSecurity;
+}
+
+/**
+ * Check if a given object implements the PlanSettings interface.
+ */
+export function instanceOfPlanSettings(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PlanSettingsFromJSON(json: any): PlanSettings {
@@ -59,5 +68,4 @@ export function PlanSettingsToJSON(value?: PlanSettings | null): any {
         'security': PlanSecurityToJSON(value.security),
     };
 }
-
 

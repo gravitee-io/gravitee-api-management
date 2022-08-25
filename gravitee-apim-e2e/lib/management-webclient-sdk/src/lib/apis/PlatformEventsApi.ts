@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  EventEntityPage,
+  EventType,
+} from '../models';
 import {
-    EventEntityPage,
     EventEntityPageFromJSON,
     EventEntityPageToJSON,
-    EventType,
     EventTypeFromJSON,
     EventTypeToJSON,
 } from '../models';
@@ -42,7 +44,7 @@ export class PlatformEventsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_PLATFORM[READ] permission to use this service
      * List platform events
      */
-    async getPlatformEventsRaw(requestParameters: GetPlatformEventsRequest): Promise<runtime.ApiResponse<EventEntityPage>> {
+    async getPlatformEventsRaw(requestParameters: GetPlatformEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EventEntityPage>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPlatformEvents.');
         }
@@ -51,7 +53,7 @@ export class PlatformEventsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPlatformEvents.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.type) {
             queryParameters['type'] = requestParameters.type.join(runtime.COLLECTION_FORMATS["csv"]);
@@ -87,7 +89,7 @@ export class PlatformEventsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EventEntityPageFromJSON(jsonValue));
     }
@@ -96,8 +98,8 @@ export class PlatformEventsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_PLATFORM[READ] permission to use this service
      * List platform events
      */
-    async getPlatformEvents(requestParameters: GetPlatformEventsRequest): Promise<EventEntityPage> {
-        const response = await this.getPlatformEventsRaw(requestParameters);
+    async getPlatformEvents(requestParameters: GetPlatformEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EventEntityPage> {
+        const response = await this.getPlatformEventsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -12,28 +12,36 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Api } from './Api';
 import {
-    Api,
     ApiFromJSON,
     ApiFromJSONTyped,
     ApiToJSON,
-    Application,
+} from './Api';
+import type { Application } from './Application';
+import {
     ApplicationFromJSON,
     ApplicationFromJSONTyped,
     ApplicationToJSON,
-    Plan,
+} from './Application';
+import type { Plan } from './Plan';
+import {
     PlanFromJSON,
     PlanFromJSONTyped,
     PlanToJSON,
-    SubscriptionStatus,
+} from './Plan';
+import type { SubscriptionStatus } from './SubscriptionStatus';
+import {
     SubscriptionStatusFromJSON,
     SubscriptionStatusFromJSONTyped,
     SubscriptionStatusToJSON,
-    User,
+} from './SubscriptionStatus';
+import type { User } from './User';
+import {
     UserFromJSON,
     UserFromJSONTyped,
     UserToJSON,
-} from './';
+} from './User';
 
 /**
  * 
@@ -145,6 +153,15 @@ export interface Subscription {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the Subscription interface.
+ */
+export function instanceOfSubscription(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function SubscriptionFromJSON(json: any): Subscription {
     return SubscriptionFromJSONTyped(json, false);
 }
@@ -203,5 +220,4 @@ export function SubscriptionToJSON(value?: Subscription | null): any {
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

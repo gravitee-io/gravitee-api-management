@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApplicationRequestItem } from './ApplicationRequestItem';
 import {
-    ApplicationRequestItem,
     ApplicationRequestItemFromJSON,
     ApplicationRequestItemFromJSONTyped,
     ApplicationRequestItemToJSON,
-} from './';
+} from './ApplicationRequestItem';
 
 /**
  * 
@@ -43,6 +43,15 @@ export interface SearchLogResponseApplicationRequestItem {
      * @memberof SearchLogResponseApplicationRequestItem
      */
     total?: number;
+}
+
+/**
+ * Check if a given object implements the SearchLogResponseApplicationRequestItem interface.
+ */
+export function instanceOfSearchLogResponseApplicationRequestItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function SearchLogResponseApplicationRequestItemFromJSON(json: any): SearchLogResponseApplicationRequestItem {
@@ -75,5 +84,4 @@ export function SearchLogResponseApplicationRequestItemToJSON(value?: SearchLogR
         'total': value.total,
     };
 }
-
 

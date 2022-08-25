@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { FlowV4 } from './FlowV4';
 import {
-    FlowV4,
     FlowV4FromJSON,
     FlowV4FromJSONTyped,
     FlowV4ToJSON,
-    PlanSecurityV4,
+} from './FlowV4';
+import type { PlanSecurityV4 } from './PlanSecurityV4';
+import {
     PlanSecurityV4FromJSON,
     PlanSecurityV4FromJSONTyped,
     PlanSecurityV4ToJSON,
-    PlanValidationTypeV4,
+} from './PlanSecurityV4';
+import type { PlanValidationTypeV4 } from './PlanValidationTypeV4';
+import {
     PlanValidationTypeV4FromJSON,
     PlanValidationTypeV4FromJSONTyped,
     PlanValidationTypeV4ToJSON,
-} from './';
+} from './PlanValidationTypeV4';
 
 /**
  * 
@@ -125,6 +129,19 @@ export interface UpdatePlanEntityV4 {
     validation: PlanValidationTypeV4;
 }
 
+/**
+ * Check if a given object implements the UpdatePlanEntityV4 interface.
+ */
+export function instanceOfUpdatePlanEntityV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "description" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "order" in value;
+    isInstance = isInstance && "validation" in value;
+
+    return isInstance;
+}
+
 export function UpdatePlanEntityV4FromJSON(json: any): UpdatePlanEntityV4 {
     return UpdatePlanEntityV4FromJSONTyped(json, false);
 }
@@ -179,5 +196,4 @@ export function UpdatePlanEntityV4ToJSON(value?: UpdatePlanEntityV4 | null): any
         'validation': PlanValidationTypeV4ToJSON(value.validation),
     };
 }
-
 

@@ -32,6 +32,15 @@ export interface ApiQualityMetricsEntity {
     score?: number;
 }
 
+/**
+ * Check if a given object implements the ApiQualityMetricsEntity interface.
+ */
+export function instanceOfApiQualityMetricsEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiQualityMetricsEntityFromJSON(json: any): ApiQualityMetricsEntity {
     return ApiQualityMetricsEntityFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function ApiQualityMetricsEntityToJSON(value?: ApiQualityMetricsEntity | 
         'score': value.score,
     };
 }
-
 

@@ -56,6 +56,16 @@ export interface ProcessSubscriptionEntity {
     starting_at?: Date;
 }
 
+/**
+ * Check if a given object implements the ProcessSubscriptionEntity interface.
+ */
+export function instanceOfProcessSubscriptionEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "accepted" in value;
+
+    return isInstance;
+}
+
 export function ProcessSubscriptionEntityFromJSON(json: any): ProcessSubscriptionEntity {
     return ProcessSubscriptionEntityFromJSONTyped(json, false);
 }
@@ -92,5 +102,4 @@ export function ProcessSubscriptionEntityToJSON(value?: ProcessSubscriptionEntit
         'starting_at': value.starting_at === undefined ? undefined : (value.starting_at.toISOString()),
     };
 }
-
 

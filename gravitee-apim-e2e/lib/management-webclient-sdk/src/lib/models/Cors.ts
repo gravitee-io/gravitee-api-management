@@ -68,6 +68,15 @@ export interface Cors {
     runPolicies?: boolean;
 }
 
+/**
+ * Check if a given object implements the Cors interface.
+ */
+export function instanceOfCors(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function CorsFromJSON(json: any): Cors {
     return CorsFromJSONTyped(json, false);
 }
@@ -108,5 +117,4 @@ export function CorsToJSON(value?: Cors | null): any {
         'runPolicies': value.runPolicies,
     };
 }
-
 

@@ -26,6 +26,28 @@ export interface LoadBalancer {
     type?: LoadBalancerTypeEnum;
 }
 
+
+/**
+ * @export
+ */
+export const LoadBalancerTypeEnum = {
+    ROUND_ROBIN: 'ROUND_ROBIN',
+    RANDOM: 'RANDOM',
+    WEIGHTED_ROUND_ROBIN: 'WEIGHTED_ROUND_ROBIN',
+    WEIGHTED_RANDOM: 'WEIGHTED_RANDOM'
+} as const;
+export type LoadBalancerTypeEnum = typeof LoadBalancerTypeEnum[keyof typeof LoadBalancerTypeEnum];
+
+
+/**
+ * Check if a given object implements the LoadBalancer interface.
+ */
+export function instanceOfLoadBalancer(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function LoadBalancerFromJSON(json: any): LoadBalancer {
     return LoadBalancerFromJSONTyped(json, false);
 }
@@ -52,16 +74,4 @@ export function LoadBalancerToJSON(value?: LoadBalancer | null): any {
         'type': value.type,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum LoadBalancerTypeEnum {
-    ROUNDROBIN = 'ROUND_ROBIN',
-    RANDOM = 'RANDOM',
-    WEIGHTEDROUNDROBIN = 'WEIGHTED_ROUND_ROBIN',
-    WEIGHTEDRANDOM = 'WEIGHTED_RANDOM'
-}
-
 

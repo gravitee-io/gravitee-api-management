@@ -90,7 +90,7 @@ describe.each([PlanValidationType.AUTO, PlanValidationType.MANUAL])('Subscriptio
       envId,
       orgId,
       api: createdApi.id,
-      newPlanEntity: PlansFaker.newPlan({ security: PlanSecurityType.APIKEY, validation: planValidationType }),
+      newPlanEntity: PlansFaker.newPlan({ security: PlanSecurityType.API_KEY, validation: planValidationType }),
     });
 
     // publish the api plan

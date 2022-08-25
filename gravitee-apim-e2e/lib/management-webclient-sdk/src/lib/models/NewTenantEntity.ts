@@ -32,6 +32,16 @@ export interface NewTenantEntity {
     name: string;
 }
 
+/**
+ * Check if a given object implements the NewTenantEntity interface.
+ */
+export function instanceOfNewTenantEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function NewTenantEntityFromJSON(json: any): NewTenantEntity {
     return NewTenantEntityFromJSONTyped(json, false);
 }
@@ -60,5 +70,4 @@ export function NewTenantEntityToJSON(value?: NewTenantEntity | null): any {
         'name': value.name,
     };
 }
-
 

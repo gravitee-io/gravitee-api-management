@@ -32,6 +32,28 @@ export interface Selector {
     type: SelectorTypeEnum;
 }
 
+
+/**
+ * @export
+ */
+export const SelectorTypeEnum = {
+    HTTP: 'HTTP',
+    CHANNEL: 'CHANNEL',
+    CONDITION: 'CONDITION'
+} as const;
+export type SelectorTypeEnum = typeof SelectorTypeEnum[keyof typeof SelectorTypeEnum];
+
+
+/**
+ * Check if a given object implements the Selector interface.
+ */
+export function instanceOfSelector(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "type" in value;
+
+    return isInstance;
+}
+
 export function SelectorFromJSON(json: any): Selector {
     return SelectorFromJSONTyped(json, false);
 }
@@ -69,15 +91,4 @@ export function SelectorToJSON(value?: Selector | null): any {
         'type': value.type,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum SelectorTypeEnum {
-    HTTP = 'HTTP',
-    CHANNEL = 'CHANNEL',
-    CONDITION = 'CONDITION'
-}
-
 

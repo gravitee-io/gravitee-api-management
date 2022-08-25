@@ -13,8 +13,10 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  PortalNotificationPageResult,
+} from '../models';
 import {
-    PortalNotificationPageResult,
     PortalNotificationPageResultFromJSON,
     PortalNotificationPageResultToJSON,
 } from '../models';
@@ -56,12 +58,12 @@ export class UserNotificationsApi extends runtime.BaseAPI {
     /**
      * Delete all user\'s notifications
      */
-    async deleteAllUserNotificationsRaw(requestParameters: DeleteAllUserNotificationsRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteAllUserNotificationsRaw(requestParameters: DeleteAllUserNotificationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteAllUserNotifications.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -73,7 +75,7 @@ export class UserNotificationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -81,14 +83,14 @@ export class UserNotificationsApi extends runtime.BaseAPI {
     /**
      * Delete all user\'s notifications
      */
-    async deleteAllUserNotifications(requestParameters: DeleteAllUserNotificationsRequest): Promise<void> {
-        await this.deleteAllUserNotificationsRaw(requestParameters);
+    async deleteAllUserNotifications(requestParameters: DeleteAllUserNotificationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteAllUserNotificationsRaw(requestParameters, initOverrides);
     }
 
     /**
      * Delete all user\'s notifications
      */
-    async deleteAllUserNotifications1Raw(requestParameters: DeleteAllUserNotifications1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteAllUserNotifications1Raw(requestParameters: DeleteAllUserNotifications1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling deleteAllUserNotifications1.');
         }
@@ -97,7 +99,7 @@ export class UserNotificationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteAllUserNotifications1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -109,7 +111,7 @@ export class UserNotificationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -117,14 +119,14 @@ export class UserNotificationsApi extends runtime.BaseAPI {
     /**
      * Delete all user\'s notifications
      */
-    async deleteAllUserNotifications1(requestParameters: DeleteAllUserNotifications1Request): Promise<void> {
-        await this.deleteAllUserNotifications1Raw(requestParameters);
+    async deleteAllUserNotifications1(requestParameters: DeleteAllUserNotifications1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteAllUserNotifications1Raw(requestParameters, initOverrides);
     }
 
     /**
      * Delete a single user\'s notification
      */
-    async deleteUserNotificationRaw(requestParameters: DeleteUserNotificationRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteUserNotificationRaw(requestParameters: DeleteUserNotificationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.notification === null || requestParameters.notification === undefined) {
             throw new runtime.RequiredError('notification','Required parameter requestParameters.notification was null or undefined when calling deleteUserNotification.');
         }
@@ -133,7 +135,7 @@ export class UserNotificationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteUserNotification.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -145,7 +147,7 @@ export class UserNotificationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -153,14 +155,14 @@ export class UserNotificationsApi extends runtime.BaseAPI {
     /**
      * Delete a single user\'s notification
      */
-    async deleteUserNotification(requestParameters: DeleteUserNotificationRequest): Promise<void> {
-        await this.deleteUserNotificationRaw(requestParameters);
+    async deleteUserNotification(requestParameters: DeleteUserNotificationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteUserNotificationRaw(requestParameters, initOverrides);
     }
 
     /**
      * Delete a single user\'s notification
      */
-    async deleteUserNotification1Raw(requestParameters: DeleteUserNotification1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteUserNotification1Raw(requestParameters: DeleteUserNotification1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.notification === null || requestParameters.notification === undefined) {
             throw new runtime.RequiredError('notification','Required parameter requestParameters.notification was null or undefined when calling deleteUserNotification1.');
         }
@@ -173,7 +175,7 @@ export class UserNotificationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteUserNotification1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -185,7 +187,7 @@ export class UserNotificationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -193,19 +195,19 @@ export class UserNotificationsApi extends runtime.BaseAPI {
     /**
      * Delete a single user\'s notification
      */
-    async deleteUserNotification1(requestParameters: DeleteUserNotification1Request): Promise<void> {
-        await this.deleteUserNotification1Raw(requestParameters);
+    async deleteUserNotification1(requestParameters: DeleteUserNotification1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteUserNotification1Raw(requestParameters, initOverrides);
     }
 
     /**
      * List user\'s notifications
      */
-    async getUserNotificationsRaw(requestParameters: GetUserNotificationsRequest): Promise<runtime.ApiResponse<PortalNotificationPageResult>> {
+    async getUserNotificationsRaw(requestParameters: GetUserNotificationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PortalNotificationPageResult>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserNotifications.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -217,7 +219,7 @@ export class UserNotificationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PortalNotificationPageResultFromJSON(jsonValue));
     }
@@ -225,15 +227,15 @@ export class UserNotificationsApi extends runtime.BaseAPI {
     /**
      * List user\'s notifications
      */
-    async getUserNotifications(requestParameters: GetUserNotificationsRequest): Promise<PortalNotificationPageResult> {
-        const response = await this.getUserNotificationsRaw(requestParameters);
+    async getUserNotifications(requestParameters: GetUserNotificationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PortalNotificationPageResult> {
+        const response = await this.getUserNotificationsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List user\'s notifications
      */
-    async getUserNotifications1Raw(requestParameters: GetUserNotifications1Request): Promise<runtime.ApiResponse<PortalNotificationPageResult>> {
+    async getUserNotifications1Raw(requestParameters: GetUserNotifications1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PortalNotificationPageResult>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getUserNotifications1.');
         }
@@ -242,7 +244,7 @@ export class UserNotificationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserNotifications1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -254,7 +256,7 @@ export class UserNotificationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PortalNotificationPageResultFromJSON(jsonValue));
     }
@@ -262,8 +264,8 @@ export class UserNotificationsApi extends runtime.BaseAPI {
     /**
      * List user\'s notifications
      */
-    async getUserNotifications1(requestParameters: GetUserNotifications1Request): Promise<PortalNotificationPageResult> {
-        const response = await this.getUserNotifications1Raw(requestParameters);
+    async getUserNotifications1(requestParameters: GetUserNotifications1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PortalNotificationPageResult> {
+        const response = await this.getUserNotifications1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

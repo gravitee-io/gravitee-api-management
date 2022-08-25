@@ -32,6 +32,16 @@ export interface EntrypointV4 {
     type: string;
 }
 
+/**
+ * Check if a given object implements the EntrypointV4 interface.
+ */
+export function instanceOfEntrypointV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "type" in value;
+
+    return isInstance;
+}
+
 export function EntrypointV4FromJSON(json: any): EntrypointV4 {
     return EntrypointV4FromJSONTyped(json, false);
 }
@@ -60,5 +70,4 @@ export function EntrypointV4ToJSON(value?: EntrypointV4 | null): any {
         'type': value.type,
     };
 }
-
 

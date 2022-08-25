@@ -38,6 +38,15 @@ export interface HttpResponse {
     statusCode?: number;
 }
 
+/**
+ * Check if a given object implements the HttpResponse interface.
+ */
+export function instanceOfHttpResponse(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function HttpResponseFromJSON(json: any): HttpResponse {
     return HttpResponseFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function HttpResponseToJSON(value?: HttpResponse | null): any {
         'statusCode': value.statusCode,
     };
 }
-
 

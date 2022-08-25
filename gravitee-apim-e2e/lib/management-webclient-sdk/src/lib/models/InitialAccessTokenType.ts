@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum InitialAccessTokenType {
-    INITIALACCESSTOKEN = 'INITIAL_ACCESS_TOKEN',
-    CLIENTCREDENTIALS = 'CLIENT_CREDENTIALS'
-}
+export const InitialAccessTokenType = {
+    INITIAL_ACCESS_TOKEN: 'INITIAL_ACCESS_TOKEN',
+    CLIENT_CREDENTIALS: 'CLIENT_CREDENTIALS'
+} as const;
+export type InitialAccessTokenType = typeof InitialAccessTokenType[keyof typeof InitialAccessTokenType];
+
 
 export function InitialAccessTokenTypeFromJSON(json: any): InitialAccessTokenType {
     return InitialAccessTokenTypeFromJSONTyped(json, false);

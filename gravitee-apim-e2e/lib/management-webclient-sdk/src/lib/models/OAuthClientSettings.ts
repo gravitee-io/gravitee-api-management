@@ -74,6 +74,15 @@ export interface OAuthClientSettings {
     response_types?: Array<string>;
 }
 
+/**
+ * Check if a given object implements the OAuthClientSettings interface.
+ */
+export function instanceOfOAuthClientSettings(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function OAuthClientSettingsFromJSON(json: any): OAuthClientSettings {
     return OAuthClientSettingsFromJSONTyped(json, false);
 }
@@ -116,5 +125,4 @@ export function OAuthClientSettingsToJSON(value?: OAuthClientSettings | null): a
         'response_types': value.response_types,
     };
 }
-
 

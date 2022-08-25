@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum PlanValidationType {
-    AUTO = 'AUTO',
-    MANUAL = 'MANUAL'
-}
+export const PlanValidationType = {
+    AUTO: 'AUTO',
+    MANUAL: 'MANUAL'
+} as const;
+export type PlanValidationType = typeof PlanValidationType[keyof typeof PlanValidationType];
+
 
 export function PlanValidationTypeFromJSON(json: any): PlanValidationType {
     return PlanValidationTypeFromJSONTyped(json, false);

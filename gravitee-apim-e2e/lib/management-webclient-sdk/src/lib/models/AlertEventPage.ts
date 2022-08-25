@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AlertEventEntity } from './AlertEventEntity';
 import {
-    AlertEventEntity,
     AlertEventEntityFromJSON,
     AlertEventEntityFromJSONTyped,
     AlertEventEntityToJSON,
-} from './';
+} from './AlertEventEntity';
 
 /**
  * 
@@ -49,6 +49,15 @@ export interface AlertEventPage {
      * @memberof AlertEventPage
      */
     totalElements?: number;
+}
+
+/**
+ * Check if a given object implements the AlertEventPage interface.
+ */
+export function instanceOfAlertEventPage(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function AlertEventPageFromJSON(json: any): AlertEventPage {
@@ -83,5 +92,4 @@ export function AlertEventPageToJSON(value?: AlertEventPage | null): any {
         'totalElements': value.totalElements,
     };
 }
-
 

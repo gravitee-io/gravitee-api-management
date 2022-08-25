@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { UserMembership } from './UserMembership';
 import {
-    UserMembership,
     UserMembershipFromJSON,
     UserMembershipFromJSONTyped,
     UserMembershipToJSON,
-} from './';
+} from './UserMembership';
 
 /**
  * 
@@ -37,6 +37,15 @@ export interface UserMembershipList {
      * @memberof UserMembershipList
      */
     metadata?: { [key: string]: { [key: string]: any; }; };
+}
+
+/**
+ * Check if a given object implements the UserMembershipList interface.
+ */
+export function instanceOfUserMembershipList(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function UserMembershipListFromJSON(json: any): UserMembershipList {
@@ -67,5 +76,4 @@ export function UserMembershipListToJSON(value?: UserMembershipList | null): any
         'metadata': value.metadata,
     };
 }
-
 

@@ -13,20 +13,22 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  IdentityProviderEntity,
+  IdentityProviderListItem,
+  NewIdentityProviderEntity,
+  SocialIdentityProviderEntity,
+  UpdateIdentityProviderEntity,
+} from '../models';
 import {
-    IdentityProviderEntity,
     IdentityProviderEntityFromJSON,
     IdentityProviderEntityToJSON,
-    IdentityProviderListItem,
     IdentityProviderListItemFromJSON,
     IdentityProviderListItemToJSON,
-    NewIdentityProviderEntity,
     NewIdentityProviderEntityFromJSON,
     NewIdentityProviderEntityToJSON,
-    SocialIdentityProviderEntity,
     SocialIdentityProviderEntityFromJSON,
     SocialIdentityProviderEntityToJSON,
-    UpdateIdentityProviderEntity,
     UpdateIdentityProviderEntityFromJSON,
     UpdateIdentityProviderEntityToJSON,
 } from '../models';
@@ -104,7 +106,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service
      * Create an identity provider
      */
-    async createIdentityProviderRaw(requestParameters: CreateIdentityProviderRequest): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
+    async createIdentityProviderRaw(requestParameters: CreateIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createIdentityProvider.');
         }
@@ -113,7 +115,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newIdentityProviderEntity','Required parameter requestParameters.newIdentityProviderEntity was null or undefined when calling createIdentityProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -128,7 +130,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewIdentityProviderEntityToJSON(requestParameters.newIdentityProviderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => IdentityProviderEntityFromJSON(jsonValue));
     }
@@ -137,8 +139,8 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service
      * Create an identity provider
      */
-    async createIdentityProvider(requestParameters: CreateIdentityProviderRequest): Promise<IdentityProviderEntity> {
-        const response = await this.createIdentityProviderRaw(requestParameters);
+    async createIdentityProvider(requestParameters: CreateIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IdentityProviderEntity> {
+        const response = await this.createIdentityProviderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -146,7 +148,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service
      * Create an identity provider
      */
-    async createIdentityProvider1Raw(requestParameters: CreateIdentityProvider1Request): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
+    async createIdentityProvider1Raw(requestParameters: CreateIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createIdentityProvider1.');
         }
@@ -159,7 +161,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newIdentityProviderEntity','Required parameter requestParameters.newIdentityProviderEntity was null or undefined when calling createIdentityProvider1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -174,7 +176,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewIdentityProviderEntityToJSON(requestParameters.newIdentityProviderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => IdentityProviderEntityFromJSON(jsonValue));
     }
@@ -183,8 +185,8 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service
      * Create an identity provider
      */
-    async createIdentityProvider1(requestParameters: CreateIdentityProvider1Request): Promise<IdentityProviderEntity> {
-        const response = await this.createIdentityProvider1Raw(requestParameters);
+    async createIdentityProvider1(requestParameters: CreateIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IdentityProviderEntity> {
+        const response = await this.createIdentityProvider1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -192,7 +194,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[DELETE] permission to use this service
      * Delete an identity provider
      */
-    async deleteIdentityProviderRaw(requestParameters: DeleteIdentityProviderRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteIdentityProviderRaw(requestParameters: DeleteIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.identityProvider === null || requestParameters.identityProvider === undefined) {
             throw new runtime.RequiredError('identityProvider','Required parameter requestParameters.identityProvider was null or undefined when calling deleteIdentityProvider.');
         }
@@ -201,7 +203,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteIdentityProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -213,7 +215,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -222,15 +224,15 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[DELETE] permission to use this service
      * Delete an identity provider
      */
-    async deleteIdentityProvider(requestParameters: DeleteIdentityProviderRequest): Promise<void> {
-        await this.deleteIdentityProviderRaw(requestParameters);
+    async deleteIdentityProvider(requestParameters: DeleteIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteIdentityProviderRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[DELETE] permission to use this service
      * Delete an identity provider
      */
-    async deleteIdentityProvider1Raw(requestParameters: DeleteIdentityProvider1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteIdentityProvider1Raw(requestParameters: DeleteIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.identityProvider === null || requestParameters.identityProvider === undefined) {
             throw new runtime.RequiredError('identityProvider','Required parameter requestParameters.identityProvider was null or undefined when calling deleteIdentityProvider1.');
         }
@@ -243,7 +245,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteIdentityProvider1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -255,7 +257,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -264,15 +266,15 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[DELETE] permission to use this service
      * Delete an identity provider
      */
-    async deleteIdentityProvider1(requestParameters: DeleteIdentityProvider1Request): Promise<void> {
-        await this.deleteIdentityProvider1Raw(requestParameters);
+    async deleteIdentityProvider1(requestParameters: DeleteIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteIdentityProvider1Raw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get an identity provider
      */
-    async getIdentityProviderRaw(requestParameters: GetIdentityProviderRequest): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
+    async getIdentityProviderRaw(requestParameters: GetIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
         if (requestParameters.identityProvider === null || requestParameters.identityProvider === undefined) {
             throw new runtime.RequiredError('identityProvider','Required parameter requestParameters.identityProvider was null or undefined when calling getIdentityProvider.');
         }
@@ -281,7 +283,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getIdentityProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -293,7 +295,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => IdentityProviderEntityFromJSON(jsonValue));
     }
@@ -302,8 +304,8 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get an identity provider
      */
-    async getIdentityProvider(requestParameters: GetIdentityProviderRequest): Promise<IdentityProviderEntity> {
-        const response = await this.getIdentityProviderRaw(requestParameters);
+    async getIdentityProvider(requestParameters: GetIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IdentityProviderEntity> {
+        const response = await this.getIdentityProviderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -311,7 +313,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get an identity provider
      */
-    async getIdentityProvider1Raw(requestParameters: GetIdentityProvider1Request): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
+    async getIdentityProvider1Raw(requestParameters: GetIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
         if (requestParameters.identityProvider === null || requestParameters.identityProvider === undefined) {
             throw new runtime.RequiredError('identityProvider','Required parameter requestParameters.identityProvider was null or undefined when calling getIdentityProvider1.');
         }
@@ -324,7 +326,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getIdentityProvider1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -336,7 +338,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => IdentityProviderEntityFromJSON(jsonValue));
     }
@@ -345,8 +347,8 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get an identity provider
      */
-    async getIdentityProvider1(requestParameters: GetIdentityProvider1Request): Promise<IdentityProviderEntity> {
-        const response = await this.getIdentityProvider1Raw(requestParameters);
+    async getIdentityProvider1(requestParameters: GetIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IdentityProviderEntity> {
+        const response = await this.getIdentityProvider1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -354,12 +356,12 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get the list of identity providers
      */
-    async getIdentityProvidersRaw(requestParameters: GetIdentityProvidersRequest): Promise<runtime.ApiResponse<Array<IdentityProviderListItem>>> {
+    async getIdentityProvidersRaw(requestParameters: GetIdentityProvidersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<IdentityProviderListItem>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getIdentityProviders.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -371,7 +373,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(IdentityProviderListItemFromJSON));
     }
@@ -380,8 +382,8 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get the list of identity providers
      */
-    async getIdentityProviders(requestParameters: GetIdentityProvidersRequest): Promise<Array<IdentityProviderListItem>> {
-        const response = await this.getIdentityProvidersRaw(requestParameters);
+    async getIdentityProviders(requestParameters: GetIdentityProvidersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<IdentityProviderListItem>> {
+        const response = await this.getIdentityProvidersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -389,7 +391,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get the list of identity providers
      */
-    async getIdentityProviders1Raw(requestParameters: GetIdentityProviders1Request): Promise<runtime.ApiResponse<Array<IdentityProviderListItem>>> {
+    async getIdentityProviders1Raw(requestParameters: GetIdentityProviders1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<IdentityProviderListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getIdentityProviders1.');
         }
@@ -398,7 +400,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getIdentityProviders1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -410,7 +412,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(IdentityProviderListItemFromJSON));
     }
@@ -419,15 +421,15 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get the list of identity providers
      */
-    async getIdentityProviders1(requestParameters: GetIdentityProviders1Request): Promise<Array<IdentityProviderListItem>> {
-        const response = await this.getIdentityProviders1Raw(requestParameters);
+    async getIdentityProviders1(requestParameters: GetIdentityProviders1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<IdentityProviderListItem>> {
+        const response = await this.getIdentityProviders1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the list of social identity providers
      */
-    async getSocialIdentityProvidersRaw(requestParameters: GetSocialIdentityProvidersRequest): Promise<runtime.ApiResponse<Array<SocialIdentityProviderEntity>>> {
+    async getSocialIdentityProvidersRaw(requestParameters: GetSocialIdentityProvidersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<SocialIdentityProviderEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getSocialIdentityProviders.');
         }
@@ -436,7 +438,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getSocialIdentityProviders.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -448,7 +450,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SocialIdentityProviderEntityFromJSON));
     }
@@ -456,20 +458,20 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
     /**
      * Get the list of social identity providers
      */
-    async getSocialIdentityProviders(requestParameters: GetSocialIdentityProvidersRequest): Promise<Array<SocialIdentityProviderEntity>> {
-        const response = await this.getSocialIdentityProvidersRaw(requestParameters);
+    async getSocialIdentityProviders(requestParameters: GetSocialIdentityProvidersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<SocialIdentityProviderEntity>> {
+        const response = await this.getSocialIdentityProvidersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the list of social identity providers
      */
-    async getSocialIdentityProviders1Raw(requestParameters: GetSocialIdentityProviders1Request): Promise<runtime.ApiResponse<Array<SocialIdentityProviderEntity>>> {
+    async getSocialIdentityProviders1Raw(requestParameters: GetSocialIdentityProviders1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<SocialIdentityProviderEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getSocialIdentityProviders1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -481,7 +483,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SocialIdentityProviderEntityFromJSON));
     }
@@ -489,8 +491,8 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
     /**
      * Get the list of social identity providers
      */
-    async getSocialIdentityProviders1(requestParameters: GetSocialIdentityProviders1Request): Promise<Array<SocialIdentityProviderEntity>> {
-        const response = await this.getSocialIdentityProviders1Raw(requestParameters);
+    async getSocialIdentityProviders1(requestParameters: GetSocialIdentityProviders1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<SocialIdentityProviderEntity>> {
+        const response = await this.getSocialIdentityProviders1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -498,7 +500,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[UPDATE] permission to use this service
      * Update an identity provider
      */
-    async updateIdentityProviderRaw(requestParameters: UpdateIdentityProviderRequest): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
+    async updateIdentityProviderRaw(requestParameters: UpdateIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
         if (requestParameters.identityProvider === null || requestParameters.identityProvider === undefined) {
             throw new runtime.RequiredError('identityProvider','Required parameter requestParameters.identityProvider was null or undefined when calling updateIdentityProvider.');
         }
@@ -511,7 +513,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateIdentityProviderEntity','Required parameter requestParameters.updateIdentityProviderEntity was null or undefined when calling updateIdentityProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -526,7 +528,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateIdentityProviderEntityToJSON(requestParameters.updateIdentityProviderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => IdentityProviderEntityFromJSON(jsonValue));
     }
@@ -535,8 +537,8 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[UPDATE] permission to use this service
      * Update an identity provider
      */
-    async updateIdentityProvider(requestParameters: UpdateIdentityProviderRequest): Promise<IdentityProviderEntity> {
-        const response = await this.updateIdentityProviderRaw(requestParameters);
+    async updateIdentityProvider(requestParameters: UpdateIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IdentityProviderEntity> {
+        const response = await this.updateIdentityProviderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -544,7 +546,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[UPDATE] permission to use this service
      * Update an identity provider
      */
-    async updateIdentityProvider1Raw(requestParameters: UpdateIdentityProvider1Request): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
+    async updateIdentityProvider1Raw(requestParameters: UpdateIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
         if (requestParameters.identityProvider === null || requestParameters.identityProvider === undefined) {
             throw new runtime.RequiredError('identityProvider','Required parameter requestParameters.identityProvider was null or undefined when calling updateIdentityProvider1.');
         }
@@ -561,7 +563,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateIdentityProviderEntity','Required parameter requestParameters.updateIdentityProviderEntity was null or undefined when calling updateIdentityProvider1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -576,7 +578,7 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateIdentityProviderEntityToJSON(requestParameters.updateIdentityProviderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => IdentityProviderEntityFromJSON(jsonValue));
     }
@@ -585,8 +587,8 @@ export class IdentityProvidersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[UPDATE] permission to use this service
      * Update an identity provider
      */
-    async updateIdentityProvider1(requestParameters: UpdateIdentityProvider1Request): Promise<IdentityProviderEntity> {
-        const response = await this.updateIdentityProvider1Raw(requestParameters);
+    async updateIdentityProvider1(requestParameters: UpdateIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IdentityProviderEntity> {
+        const response = await this.updateIdentityProvider1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

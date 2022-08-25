@@ -11,16 +11,18 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum InvitationReferenceType {
-    API = 'API',
-    APPLICATION = 'APPLICATION',
-    GROUP = 'GROUP'
-}
+export const InvitationReferenceType = {
+    API: 'API',
+    APPLICATION: 'APPLICATION',
+    GROUP: 'GROUP'
+} as const;
+export type InvitationReferenceType = typeof InvitationReferenceType[keyof typeof InvitationReferenceType];
+
 
 export function InvitationReferenceTypeFromJSON(json: any): InvitationReferenceType {
     return InvitationReferenceTypeFromJSONTyped(json, false);

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { PageRevisionId } from './PageRevisionId';
 import {
-    PageRevisionId,
     PageRevisionIdFromJSON,
     PageRevisionIdFromJSONTyped,
     PageRevisionIdToJSON,
-} from './';
+} from './PageRevisionId';
 
 /**
  * 
@@ -57,6 +57,15 @@ export interface NewSubscriptionEntity {
     request?: string;
 }
 
+/**
+ * Check if a given object implements the NewSubscriptionEntity interface.
+ */
+export function instanceOfNewSubscriptionEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function NewSubscriptionEntityFromJSON(json: any): NewSubscriptionEntity {
     return NewSubscriptionEntityFromJSONTyped(json, false);
 }
@@ -91,5 +100,4 @@ export function NewSubscriptionEntityToJSON(value?: NewSubscriptionEntity | null
         'request': value.request,
     };
 }
-
 

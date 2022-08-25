@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { KeyStore } from './KeyStore';
 import {
-    KeyStore,
     KeyStoreFromJSON,
     KeyStoreFromJSONTyped,
     KeyStoreToJSON,
-} from './';
+} from './KeyStore';
 
 /**
  * 
@@ -25,6 +25,17 @@ import {
  * @interface NoneKeyStore
  */
 export interface NoneKeyStore extends KeyStore {
+}
+
+
+
+/**
+ * Check if a given object implements the NoneKeyStore interface.
+ */
+export function instanceOfNoneKeyStore(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function NoneKeyStoreFromJSON(json: any): NoneKeyStore {
@@ -38,6 +49,4 @@ export function NoneKeyStoreFromJSONTyped(json: any, ignoreDiscriminator: boolea
 export function NoneKeyStoreToJSON(value?: NoneKeyStore | null): any {
     return value;
 }
-
-
 

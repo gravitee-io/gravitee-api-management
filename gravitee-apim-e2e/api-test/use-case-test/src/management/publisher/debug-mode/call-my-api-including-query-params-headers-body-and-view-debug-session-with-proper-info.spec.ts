@@ -52,7 +52,7 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
               name: `[Testing flow] Platform`,
               path_operator: {
                 path: '/',
-                operator: PathOperatorOperatorEnum.STARTSWITH,
+                operator: PathOperatorOperatorEnum.STARTS_WITH,
               },
               consumers: [],
               methods: [],
@@ -76,7 +76,7 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
               name: `[Testing flow] API`,
               path_operator: {
                 path: '/',
-                operator: PathOperatorOperatorEnum.STARTSWITH,
+                operator: PathOperatorOperatorEnum.STARTS_WITH,
               },
               consumers: [],
               methods: [],
@@ -130,7 +130,7 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
         envId,
         api: apiEntity.id,
         newPlanEntity: PlansFaker.newPlan({
-          security: PlanSecurityType.KEYLESS,
+          security: PlanSecurityType.KEY_LESS,
           status: PlanStatus.PUBLISHED,
         }),
       });

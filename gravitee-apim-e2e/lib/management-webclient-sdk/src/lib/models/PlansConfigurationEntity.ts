@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { PlanSecurityEntity } from './PlanSecurityEntity';
 import {
-    PlanSecurityEntity,
     PlanSecurityEntityFromJSON,
     PlanSecurityEntityFromJSONTyped,
     PlanSecurityEntityToJSON,
-} from './';
+} from './PlanSecurityEntity';
 
 /**
  * 
@@ -31,6 +31,15 @@ export interface PlansConfigurationEntity {
      * @memberof PlansConfigurationEntity
      */
     security?: Array<PlanSecurityEntity>;
+}
+
+/**
+ * Check if a given object implements the PlansConfigurationEntity interface.
+ */
+export function instanceOfPlansConfigurationEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PlansConfigurationEntityFromJSON(json: any): PlansConfigurationEntity {
@@ -59,5 +68,4 @@ export function PlansConfigurationEntityToJSON(value?: PlansConfigurationEntity 
         'security': value.security === undefined ? undefined : ((value.security as Array<any>).map(PlanSecurityEntityToJSON)),
     };
 }
-
 

@@ -38,6 +38,15 @@ export interface MonitoringProcess {
     open_file_descriptors?: number;
 }
 
+/**
+ * Check if a given object implements the MonitoringProcess interface.
+ */
+export function instanceOfMonitoringProcess(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MonitoringProcessFromJSON(json: any): MonitoringProcess {
     return MonitoringProcessFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function MonitoringProcessToJSON(value?: MonitoringProcess | null): any {
         'open_file_descriptors': value.open_file_descriptors,
     };
 }
-
 

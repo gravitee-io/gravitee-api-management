@@ -110,6 +110,16 @@ export interface CategoryEntity {
     updatedAt?: Date;
 }
 
+/**
+ * Check if a given object implements the CategoryEntity interface.
+ */
+export function instanceOfCategoryEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function CategoryEntityFromJSON(json: any): CategoryEntity {
     return CategoryEntityFromJSONTyped(json, false);
 }
@@ -164,5 +174,4 @@ export function CategoryEntityToJSON(value?: CategoryEntity | null): any {
         'updatedAt': value.updatedAt === undefined ? undefined : (value.updatedAt.toISOString()),
     };
 }
-
 

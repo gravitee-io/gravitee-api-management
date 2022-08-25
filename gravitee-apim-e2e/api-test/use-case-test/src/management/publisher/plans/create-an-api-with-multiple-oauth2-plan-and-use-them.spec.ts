@@ -65,7 +65,7 @@ describeIfJupiter('Create an API with mutiple OAuth2 plans and use them', () => 
             name: '',
             path_operator: {
               path: '/',
-              operator: PathOperatorOperatorEnum.STARTSWITH,
+              operator: PathOperatorOperatorEnum.STARTS_WITH,
             },
             condition: '',
             consumers: [],

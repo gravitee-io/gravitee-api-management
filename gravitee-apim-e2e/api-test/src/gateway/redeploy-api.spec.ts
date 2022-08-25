@@ -48,7 +48,7 @@ describe('Redeploy Api', () => {
               name: '',
               path_operator: {
                 path: '/',
-                operator: PathOperatorOperatorEnum.STARTSWITH,
+                operator: PathOperatorOperatorEnum.STARTS_WITH,
               },
               condition: '',
               consumers: [],

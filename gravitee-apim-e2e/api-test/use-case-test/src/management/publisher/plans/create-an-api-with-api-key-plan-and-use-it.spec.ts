@@ -57,7 +57,7 @@ describe('Create an API with API-Key plan and use it', () => {
       envId,
       orgId,
       body: ApisFaker.apiImport({
-        plans: [PlansFaker.plan({ security: PlanSecurityType.APIKEY, status: PlanStatus.PUBLISHED })],
+        plans: [PlansFaker.plan({ security: PlanSecurityType.API_KEY, status: PlanStatus.PUBLISHED })],
       }),
     });
 

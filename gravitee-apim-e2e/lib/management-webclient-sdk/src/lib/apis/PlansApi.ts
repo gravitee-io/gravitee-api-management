@@ -13,8 +13,10 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  PlansConfigurationEntity,
+} from '../models';
 import {
-    PlansConfigurationEntity,
     PlansConfigurationEntityFromJSON,
     PlansConfigurationEntityToJSON,
 } from '../models';
@@ -32,7 +34,7 @@ export class PlansApi extends runtime.BaseAPI {
     /**
      * List of available plan\'s type
      */
-    async getPlansConfigurationRaw(requestParameters: GetPlansConfigurationRequest): Promise<runtime.ApiResponse<PlansConfigurationEntity>> {
+    async getPlansConfigurationRaw(requestParameters: GetPlansConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlansConfigurationEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPlansConfiguration.');
         }
@@ -41,7 +43,7 @@ export class PlansApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPlansConfiguration.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -53,7 +55,7 @@ export class PlansApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlansConfigurationEntityFromJSON(jsonValue));
     }
@@ -61,8 +63,8 @@ export class PlansApi extends runtime.BaseAPI {
     /**
      * List of available plan\'s type
      */
-    async getPlansConfiguration(requestParameters: GetPlansConfigurationRequest): Promise<PlansConfigurationEntity> {
-        const response = await this.getPlansConfigurationRaw(requestParameters);
+    async getPlansConfiguration(requestParameters: GetPlansConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlansConfigurationEntity> {
+        const response = await this.getPlansConfigurationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

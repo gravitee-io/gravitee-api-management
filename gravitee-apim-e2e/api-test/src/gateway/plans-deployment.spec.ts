@@ -56,7 +56,7 @@ describe.skip('Gateway - Plans deployment', () => {
     createdApi = await apisResource.importApiDefinition({
       envId,
       orgId,
-      body: ApisFaker.apiImport({ plans: [PlansFaker.plan({ security: PlanSecurityType.APIKEY, status: PlanStatus.PUBLISHED })] }),
+      body: ApisFaker.apiImport({ plans: [PlansFaker.plan({ security: PlanSecurityType.API_KEY, status: PlanStatus.PUBLISHED })] }),
     });
 
     // start it
@@ -135,7 +135,7 @@ describe.skip('Gateway - Plans deployment', () => {
         envId,
         orgId,
         api: createdApi.id,
-        newPlanEntity: PlansFaker.newPlan({ security: PlanSecurityType.APIKEY, status: PlanStatus.PUBLISHED }),
+        newPlanEntity: PlansFaker.newPlan({ security: PlanSecurityType.API_KEY, status: PlanStatus.PUBLISHED }),
       });
 
       // create an application

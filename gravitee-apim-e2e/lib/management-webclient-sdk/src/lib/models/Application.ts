@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApiKeyMode } from './ApiKeyMode';
 import {
-    ApiKeyMode,
     ApiKeyModeFromJSON,
     ApiKeyModeFromJSONTyped,
     ApiKeyModeToJSON,
-    User,
+} from './ApiKeyMode';
+import type { User } from './User';
+import {
     UserFromJSON,
     UserFromJSONTyped,
     UserToJSON,
-} from './';
+} from './User';
 
 /**
  * 
@@ -73,6 +75,15 @@ export interface Application {
     type?: string;
 }
 
+/**
+ * Check if a given object implements the Application interface.
+ */
+export function instanceOfApplication(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApplicationFromJSON(json: any): Application {
     return ApplicationFromJSONTyped(json, false);
 }
@@ -111,5 +122,4 @@ export function ApplicationToJSON(value?: Application | null): any {
         'type': value.type,
     };
 }
-
 

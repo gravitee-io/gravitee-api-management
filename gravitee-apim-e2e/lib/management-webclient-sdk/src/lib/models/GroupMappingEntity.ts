@@ -32,6 +32,16 @@ export interface GroupMappingEntity {
     groups: Array<string>;
 }
 
+/**
+ * Check if a given object implements the GroupMappingEntity interface.
+ */
+export function instanceOfGroupMappingEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "groups" in value;
+
+    return isInstance;
+}
+
 export function GroupMappingEntityFromJSON(json: any): GroupMappingEntity {
     return GroupMappingEntityFromJSONTyped(json, false);
 }
@@ -60,5 +70,4 @@ export function GroupMappingEntityToJSON(value?: GroupMappingEntity | null): any
         'groups': value.groups,
     };
 }
-
 

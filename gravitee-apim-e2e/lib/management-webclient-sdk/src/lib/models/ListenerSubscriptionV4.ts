@@ -12,33 +12,48 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { EntrypointV4 } from './EntrypointV4';
 import {
-    EntrypointV4,
     EntrypointV4FromJSON,
     EntrypointV4FromJSONTyped,
     EntrypointV4ToJSON,
-    ListenerSubscriptionV4AllOf,
+} from './EntrypointV4';
+import type { ListenerSubscriptionV4AllOf } from './ListenerSubscriptionV4AllOf';
+import {
     ListenerSubscriptionV4AllOfFromJSON,
     ListenerSubscriptionV4AllOfFromJSONTyped,
     ListenerSubscriptionV4AllOfToJSON,
-    ListenerV4,
-    ListenerV4FromJSON,
-    ListenerV4FromJSONTyped,
-    ListenerV4ToJSON,
-} from './';
+} from './ListenerSubscriptionV4AllOf';
 
 /**
  * 
  * @export
  * @interface ListenerSubscriptionV4
  */
-export interface ListenerSubscriptionV4 extends ListenerV4 {
+export interface ListenerSubscriptionV4 {
+    /**
+     * 
+     * @type {string}
+     * @memberof ListenerSubscriptionV4
+     */
+    type: string;
     /**
      * 
      * @type {Array<EntrypointV4>}
      * @memberof ListenerSubscriptionV4
      */
     entrypoints: Array<EntrypointV4>;
+}
+
+/**
+ * Check if a given object implements the ListenerSubscriptionV4 interface.
+ */
+export function instanceOfListenerSubscriptionV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "type" in value;
+    isInstance = isInstance && "entrypoints" in value;
+
+    return isInstance;
 }
 
 export function ListenerSubscriptionV4FromJSON(json: any): ListenerSubscriptionV4 {
@@ -50,7 +65,8 @@ export function ListenerSubscriptionV4FromJSONTyped(json: any, ignoreDiscriminat
         return json;
     }
     return {
-        ...ListenerV4FromJSONTyped(json, ignoreDiscriminator),
+        
+        'type': json['type'],
         'entrypoints': ((json['entrypoints'] as Array<any>).map(EntrypointV4FromJSON)),
     };
 }
@@ -63,10 +79,9 @@ export function ListenerSubscriptionV4ToJSON(value?: ListenerSubscriptionV4 | nu
         return null;
     }
     return {
-        ...ListenerV4ToJSON(value),
+        
+        'type': value.type,
         'entrypoints': ((value.entrypoints as Array<any>).map(EntrypointV4ToJSON)),
     };
 }
-
-
 

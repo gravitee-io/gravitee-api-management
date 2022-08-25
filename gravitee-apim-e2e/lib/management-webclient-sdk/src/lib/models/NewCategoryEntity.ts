@@ -68,6 +68,16 @@ export interface NewCategoryEntity {
     picture?: string;
 }
 
+/**
+ * Check if a given object implements the NewCategoryEntity interface.
+ */
+export function instanceOfNewCategoryEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function NewCategoryEntityFromJSON(json: any): NewCategoryEntity {
     return NewCategoryEntityFromJSONTyped(json, false);
 }
@@ -108,5 +118,4 @@ export function NewCategoryEntityToJSON(value?: NewCategoryEntity | null): any {
         'picture': value.picture,
     };
 }
-
 

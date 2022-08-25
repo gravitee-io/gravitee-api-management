@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { GrantedAuthority } from './GrantedAuthority';
 import {
-    GrantedAuthority,
     GrantedAuthorityFromJSON,
     GrantedAuthorityFromJSONTyped,
     GrantedAuthorityToJSON,
-    UserDetailRole,
+} from './GrantedAuthority';
+import type { UserDetailRole } from './UserDetailRole';
+import {
     UserDetailRoleFromJSON,
     UserDetailRoleFromJSONTyped,
     UserDetailRoleToJSON,
-} from './';
+} from './UserDetailRole';
 
 /**
  * 
@@ -151,6 +153,15 @@ export interface UserDetails {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the UserDetails interface.
+ */
+export function instanceOfUserDetails(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function UserDetailsFromJSON(json: any): UserDetails {
     return UserDetailsFromJSONTyped(json, false);
 }
@@ -215,5 +226,4 @@ export function UserDetailsToJSON(value?: UserDetails | null): any {
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

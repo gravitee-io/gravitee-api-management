@@ -12,24 +12,30 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Enabled } from './Enabled';
 import {
-    Enabled,
     EnabledFromJSON,
     EnabledFromJSONTyped,
     EnabledToJSON,
-    GithubAuthentication,
+} from './Enabled';
+import type { GithubAuthentication } from './GithubAuthentication';
+import {
     GithubAuthenticationFromJSON,
     GithubAuthenticationFromJSONTyped,
     GithubAuthenticationToJSON,
-    GoogleAuthentication,
+} from './GithubAuthentication';
+import type { GoogleAuthentication } from './GoogleAuthentication';
+import {
     GoogleAuthenticationFromJSON,
     GoogleAuthenticationFromJSONTyped,
     GoogleAuthenticationToJSON,
-    OAuth2Authentication,
+} from './GoogleAuthentication';
+import type { OAuth2Authentication } from './OAuth2Authentication';
+import {
     OAuth2AuthenticationFromJSON,
     OAuth2AuthenticationFromJSONTyped,
     OAuth2AuthenticationToJSON,
-} from './';
+} from './OAuth2Authentication';
 
 /**
  * 
@@ -69,6 +75,15 @@ export interface PortalAuthentication {
     oauth2?: OAuth2Authentication;
 }
 
+/**
+ * Check if a given object implements the PortalAuthentication interface.
+ */
+export function instanceOfPortalAuthentication(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PortalAuthenticationFromJSON(json: any): PortalAuthentication {
     return PortalAuthenticationFromJSONTyped(json, false);
 }
@@ -103,5 +118,4 @@ export function PortalAuthenticationToJSON(value?: PortalAuthentication | null):
         'oauth2': OAuth2AuthenticationToJSON(value.oauth2),
     };
 }
-
 

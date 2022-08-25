@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { InstanceState } from './InstanceState';
 import {
-    InstanceState,
     InstanceStateFromJSON,
     InstanceStateFromJSONTyped,
     InstanceStateToJSON,
-} from './';
+} from './InstanceState';
 
 /**
  * 
@@ -105,6 +105,15 @@ export interface InstanceListItem {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the InstanceListItem interface.
+ */
+export function instanceOfInstanceListItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function InstanceListItemFromJSON(json: any): InstanceListItem {
     return InstanceListItemFromJSONTyped(json, false);
 }
@@ -155,5 +164,4 @@ export function InstanceListItemToJSON(value?: InstanceListItem | null): any {
         'version': value.version,
     };
 }
-
 

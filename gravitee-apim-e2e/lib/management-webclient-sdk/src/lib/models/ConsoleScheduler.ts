@@ -32,6 +32,15 @@ export interface ConsoleScheduler {
     tasks?: number;
 }
 
+/**
+ * Check if a given object implements the ConsoleScheduler interface.
+ */
+export function instanceOfConsoleScheduler(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ConsoleSchedulerFromJSON(json: any): ConsoleScheduler {
     return ConsoleSchedulerFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function ConsoleSchedulerToJSON(value?: ConsoleScheduler | null): any {
         'tasks': value.tasks,
     };
 }
-
 

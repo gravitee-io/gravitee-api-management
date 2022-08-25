@@ -13,8 +13,10 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  NotificationTemplateEntity,
+} from '../models';
 import {
-    NotificationTemplateEntity,
     NotificationTemplateEntityFromJSON,
     NotificationTemplateEntityToJSON,
 } from '../models';
@@ -50,12 +52,12 @@ export class NotificationsApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[CREATE] permission to use this service
      * Create a notification template
      */
-    async createNotificationTemplateRaw(requestParameters: CreateNotificationTemplateRequest): Promise<runtime.ApiResponse<NotificationTemplateEntity>> {
+    async createNotificationTemplateRaw(requestParameters: CreateNotificationTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NotificationTemplateEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createNotificationTemplate.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -70,7 +72,7 @@ export class NotificationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NotificationTemplateEntityToJSON(requestParameters.notificationTemplateEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => NotificationTemplateEntityFromJSON(jsonValue));
     }
@@ -79,8 +81,8 @@ export class NotificationsApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[CREATE] permission to use this service
      * Create a notification template
      */
-    async createNotificationTemplate(requestParameters: CreateNotificationTemplateRequest): Promise<NotificationTemplateEntity> {
-        const response = await this.createNotificationTemplateRaw(requestParameters);
+    async createNotificationTemplate(requestParameters: CreateNotificationTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NotificationTemplateEntity> {
+        const response = await this.createNotificationTemplateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -88,7 +90,7 @@ export class NotificationsApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[READ] permission to use this service
      * Get a specific notification template.
      */
-    async getNotificationTemplateRaw(requestParameters: GetNotificationTemplateRequest): Promise<runtime.ApiResponse<NotificationTemplateEntity>> {
+    async getNotificationTemplateRaw(requestParameters: GetNotificationTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NotificationTemplateEntity>> {
         if (requestParameters.notificationTemplateId === null || requestParameters.notificationTemplateId === undefined) {
             throw new runtime.RequiredError('notificationTemplateId','Required parameter requestParameters.notificationTemplateId was null or undefined when calling getNotificationTemplate.');
         }
@@ -97,7 +99,7 @@ export class NotificationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getNotificationTemplate.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -109,7 +111,7 @@ export class NotificationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => NotificationTemplateEntityFromJSON(jsonValue));
     }
@@ -118,8 +120,8 @@ export class NotificationsApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[READ] permission to use this service
      * Get a specific notification template.
      */
-    async getNotificationTemplate(requestParameters: GetNotificationTemplateRequest): Promise<NotificationTemplateEntity> {
-        const response = await this.getNotificationTemplateRaw(requestParameters);
+    async getNotificationTemplate(requestParameters: GetNotificationTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NotificationTemplateEntity> {
+        const response = await this.getNotificationTemplateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -127,12 +129,12 @@ export class NotificationsApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[READ] permission to use this service
      * List all notification templates.
      */
-    async getNotificationTemplatesRaw(requestParameters: GetNotificationTemplatesRequest): Promise<runtime.ApiResponse<Array<NotificationTemplateEntity>>> {
+    async getNotificationTemplatesRaw(requestParameters: GetNotificationTemplatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<NotificationTemplateEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getNotificationTemplates.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.scope !== undefined) {
             queryParameters['scope'] = requestParameters.scope;
@@ -152,7 +154,7 @@ export class NotificationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(NotificationTemplateEntityFromJSON));
     }
@@ -161,8 +163,8 @@ export class NotificationsApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[READ] permission to use this service
      * List all notification templates.
      */
-    async getNotificationTemplates(requestParameters: GetNotificationTemplatesRequest): Promise<Array<NotificationTemplateEntity>> {
-        const response = await this.getNotificationTemplatesRaw(requestParameters);
+    async getNotificationTemplates(requestParameters: GetNotificationTemplatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<NotificationTemplateEntity>> {
+        const response = await this.getNotificationTemplatesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -170,7 +172,7 @@ export class NotificationsApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[UPDATE] permission to use this service
      * Update an existing notification template
      */
-    async updateNotificationTemplateRaw(requestParameters: UpdateNotificationTemplateRequest): Promise<runtime.ApiResponse<NotificationTemplateEntity>> {
+    async updateNotificationTemplateRaw(requestParameters: UpdateNotificationTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NotificationTemplateEntity>> {
         if (requestParameters.notificationTemplateId === null || requestParameters.notificationTemplateId === undefined) {
             throw new runtime.RequiredError('notificationTemplateId','Required parameter requestParameters.notificationTemplateId was null or undefined when calling updateNotificationTemplate.');
         }
@@ -179,7 +181,7 @@ export class NotificationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateNotificationTemplate.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -194,7 +196,7 @@ export class NotificationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NotificationTemplateEntityToJSON(requestParameters.notificationTemplateEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => NotificationTemplateEntityFromJSON(jsonValue));
     }
@@ -203,8 +205,8 @@ export class NotificationsApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[UPDATE] permission to use this service
      * Update an existing notification template
      */
-    async updateNotificationTemplate(requestParameters: UpdateNotificationTemplateRequest): Promise<NotificationTemplateEntity> {
-        const response = await this.updateNotificationTemplateRaw(requestParameters);
+    async updateNotificationTemplate(requestParameters: UpdateNotificationTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NotificationTemplateEntity> {
+        const response = await this.updateNotificationTemplateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

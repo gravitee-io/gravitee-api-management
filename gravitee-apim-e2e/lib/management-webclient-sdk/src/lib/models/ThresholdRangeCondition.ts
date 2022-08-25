@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Condition } from './Condition';
 import {
-    Condition,
     ConditionFromJSON,
     ConditionFromJSONTyped,
     ConditionToJSON,
-    Projection,
+} from './Condition';
+import type { Projection } from './Projection';
+import {
     ProjectionFromJSON,
     ProjectionFromJSONTyped,
     ProjectionToJSON,
-    ThresholdRangeConditionAllOf,
+} from './Projection';
+import type { ThresholdRangeConditionAllOf } from './ThresholdRangeConditionAllOf';
+import {
     ThresholdRangeConditionAllOfFromJSON,
     ThresholdRangeConditionAllOfFromJSONTyped,
     ThresholdRangeConditionAllOfToJSON,
-} from './';
+} from './ThresholdRangeConditionAllOf';
 
 /**
  * 
@@ -65,6 +69,40 @@ export interface ThresholdRangeCondition extends Condition {
     thresholdHigh: number;
 }
 
+
+/**
+ * @export
+ */
+export const ThresholdRangeConditionOperatorLowEnum = {
+    INCLUSIVE: 'INCLUSIVE',
+    EXCLUSIVE: 'EXCLUSIVE'
+} as const;
+export type ThresholdRangeConditionOperatorLowEnum = typeof ThresholdRangeConditionOperatorLowEnum[keyof typeof ThresholdRangeConditionOperatorLowEnum];
+
+/**
+ * @export
+ */
+export const ThresholdRangeConditionOperatorHighEnum = {
+    INCLUSIVE: 'INCLUSIVE',
+    EXCLUSIVE: 'EXCLUSIVE'
+} as const;
+export type ThresholdRangeConditionOperatorHighEnum = typeof ThresholdRangeConditionOperatorHighEnum[keyof typeof ThresholdRangeConditionOperatorHighEnum];
+
+
+/**
+ * Check if a given object implements the ThresholdRangeCondition interface.
+ */
+export function instanceOfThresholdRangeCondition(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "property" in value;
+    isInstance = isInstance && "operatorLow" in value;
+    isInstance = isInstance && "thresholdLow" in value;
+    isInstance = isInstance && "operatorHigh" in value;
+    isInstance = isInstance && "thresholdHigh" in value;
+
+    return isInstance;
+}
+
 export function ThresholdRangeConditionFromJSON(json: any): ThresholdRangeCondition {
     return ThresholdRangeConditionFromJSONTyped(json, false);
 }
@@ -99,22 +137,4 @@ export function ThresholdRangeConditionToJSON(value?: ThresholdRangeCondition | 
         'thresholdHigh': value.thresholdHigh,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ThresholdRangeConditionOperatorLowEnum {
-    INCLUSIVE = 'INCLUSIVE',
-    EXCLUSIVE = 'EXCLUSIVE'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum ThresholdRangeConditionOperatorHighEnum {
-    INCLUSIVE = 'INCLUSIVE',
-    EXCLUSIVE = 'EXCLUSIVE'
-}
-
 

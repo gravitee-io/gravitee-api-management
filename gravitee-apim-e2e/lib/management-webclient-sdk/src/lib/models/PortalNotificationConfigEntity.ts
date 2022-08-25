@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { NotificationConfigType } from './NotificationConfigType';
 import {
-    NotificationConfigType,
     NotificationConfigTypeFromJSON,
     NotificationConfigTypeFromJSONTyped,
     NotificationConfigTypeToJSON,
-} from './';
+} from './NotificationConfigType';
 
 /**
  * 
@@ -63,6 +63,15 @@ export interface PortalNotificationConfigEntity {
     user?: string;
 }
 
+/**
+ * Check if a given object implements the PortalNotificationConfigEntity interface.
+ */
+export function instanceOfPortalNotificationConfigEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PortalNotificationConfigEntityFromJSON(json: any): PortalNotificationConfigEntity {
     return PortalNotificationConfigEntityFromJSONTyped(json, false);
 }
@@ -99,5 +108,4 @@ export function PortalNotificationConfigEntityToJSON(value?: PortalNotificationC
         'user': value.user,
     };
 }
-
 

@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  NewTagEntity,
+  TagEntity,
+  UpdateTagEntity,
+} from '../models';
 import {
-    NewTagEntity,
     NewTagEntityFromJSON,
     NewTagEntityToJSON,
-    TagEntity,
     TagEntityFromJSON,
     TagEntityToJSON,
-    UpdateTagEntity,
     UpdateTagEntityFromJSON,
     UpdateTagEntityToJSON,
 } from '../models';
@@ -89,7 +91,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[CREATE] permission to use this service
      * Create a sharding tag
      */
-    async createTagRaw(requestParameters: CreateTagRequest): Promise<runtime.ApiResponse<TagEntity>> {
+    async createTagRaw(requestParameters: CreateTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TagEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createTag.');
         }
@@ -98,7 +100,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTagEntity','Required parameter requestParameters.newTagEntity was null or undefined when calling createTag.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -113,7 +115,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewTagEntityToJSON(requestParameters.newTagEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TagEntityFromJSON(jsonValue));
     }
@@ -122,8 +124,8 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[CREATE] permission to use this service
      * Create a sharding tag
      */
-    async createTag(requestParameters: CreateTagRequest): Promise<TagEntity> {
-        const response = await this.createTagRaw(requestParameters);
+    async createTag(requestParameters: CreateTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TagEntity> {
+        const response = await this.createTagRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -131,7 +133,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[CREATE] permission to use this service
      * Create a sharding tag
      */
-    async createTag1Raw(requestParameters: CreateTag1Request): Promise<runtime.ApiResponse<TagEntity>> {
+    async createTag1Raw(requestParameters: CreateTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TagEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createTag1.');
         }
@@ -144,7 +146,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTagEntity','Required parameter requestParameters.newTagEntity was null or undefined when calling createTag1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -159,7 +161,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewTagEntityToJSON(requestParameters.newTagEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TagEntityFromJSON(jsonValue));
     }
@@ -168,8 +170,8 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[CREATE] permission to use this service
      * Create a sharding tag
      */
-    async createTag1(requestParameters: CreateTag1Request): Promise<TagEntity> {
-        const response = await this.createTag1Raw(requestParameters);
+    async createTag1(requestParameters: CreateTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TagEntity> {
+        const response = await this.createTag1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -177,7 +179,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[DELETE] permission to use this service
      * Delete an existing sharding tag
      */
-    async deleteTagRaw(requestParameters: DeleteTagRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteTagRaw(requestParameters: DeleteTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.tag === null || requestParameters.tag === undefined) {
             throw new runtime.RequiredError('tag','Required parameter requestParameters.tag was null or undefined when calling deleteTag.');
         }
@@ -186,7 +188,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteTag.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -198,7 +200,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -207,15 +209,15 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[DELETE] permission to use this service
      * Delete an existing sharding tag
      */
-    async deleteTag(requestParameters: DeleteTagRequest): Promise<void> {
-        await this.deleteTagRaw(requestParameters);
+    async deleteTag(requestParameters: DeleteTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteTagRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_TAG[DELETE] permission to use this service
      * Delete an existing sharding tag
      */
-    async deleteTag1Raw(requestParameters: DeleteTag1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteTag1Raw(requestParameters: DeleteTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.tag === null || requestParameters.tag === undefined) {
             throw new runtime.RequiredError('tag','Required parameter requestParameters.tag was null or undefined when calling deleteTag1.');
         }
@@ -228,7 +230,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteTag1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -240,7 +242,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -249,15 +251,15 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[DELETE] permission to use this service
      * Delete an existing sharding tag
      */
-    async deleteTag1(requestParameters: DeleteTag1Request): Promise<void> {
-        await this.deleteTag1Raw(requestParameters);
+    async deleteTag1(requestParameters: DeleteTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteTag1Raw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_TAG[READ] permission to use this service
      * Get a sharding tag
      */
-    async getTagRaw(requestParameters: GetTagRequest): Promise<runtime.ApiResponse<TagEntity>> {
+    async getTagRaw(requestParameters: GetTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TagEntity>> {
         if (requestParameters.tag === null || requestParameters.tag === undefined) {
             throw new runtime.RequiredError('tag','Required parameter requestParameters.tag was null or undefined when calling getTag.');
         }
@@ -266,7 +268,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTag.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -278,7 +280,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TagEntityFromJSON(jsonValue));
     }
@@ -287,8 +289,8 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[READ] permission to use this service
      * Get a sharding tag
      */
-    async getTag(requestParameters: GetTagRequest): Promise<TagEntity> {
-        const response = await this.getTagRaw(requestParameters);
+    async getTag(requestParameters: GetTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TagEntity> {
+        const response = await this.getTagRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -296,7 +298,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[READ] permission to use this service
      * Get a sharding tag
      */
-    async getTag1Raw(requestParameters: GetTag1Request): Promise<runtime.ApiResponse<TagEntity>> {
+    async getTag1Raw(requestParameters: GetTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TagEntity>> {
         if (requestParameters.tag === null || requestParameters.tag === undefined) {
             throw new runtime.RequiredError('tag','Required parameter requestParameters.tag was null or undefined when calling getTag1.');
         }
@@ -309,7 +311,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTag1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -321,7 +323,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TagEntityFromJSON(jsonValue));
     }
@@ -330,20 +332,20 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[READ] permission to use this service
      * Get a sharding tag
      */
-    async getTag1(requestParameters: GetTag1Request): Promise<TagEntity> {
-        const response = await this.getTag1Raw(requestParameters);
+    async getTag1(requestParameters: GetTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TagEntity> {
+        const response = await this.getTag1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List sharding tags
      */
-    async getTagsRaw(requestParameters: GetTagsRequest): Promise<runtime.ApiResponse<Array<TagEntity>>> {
+    async getTagsRaw(requestParameters: GetTagsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TagEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTags.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -355,7 +357,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TagEntityFromJSON));
     }
@@ -363,15 +365,15 @@ export class ShardingTagsApi extends runtime.BaseAPI {
     /**
      * List sharding tags
      */
-    async getTags(requestParameters: GetTagsRequest): Promise<Array<TagEntity>> {
-        const response = await this.getTagsRaw(requestParameters);
+    async getTags(requestParameters: GetTagsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TagEntity>> {
+        const response = await this.getTagsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List sharding tags
      */
-    async getTags1Raw(requestParameters: GetTags1Request): Promise<runtime.ApiResponse<Array<TagEntity>>> {
+    async getTags1Raw(requestParameters: GetTags1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TagEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getTags1.');
         }
@@ -380,7 +382,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTags1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -392,7 +394,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TagEntityFromJSON));
     }
@@ -400,8 +402,8 @@ export class ShardingTagsApi extends runtime.BaseAPI {
     /**
      * List sharding tags
      */
-    async getTags1(requestParameters: GetTags1Request): Promise<Array<TagEntity>> {
-        const response = await this.getTags1Raw(requestParameters);
+    async getTags1(requestParameters: GetTags1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TagEntity>> {
+        const response = await this.getTags1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -409,7 +411,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[UPDATE] permission to use this service
      * Update an existing sharding tag
      */
-    async updateTagRaw(requestParameters: UpdateTagRequest): Promise<runtime.ApiResponse<TagEntity>> {
+    async updateTagRaw(requestParameters: UpdateTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TagEntity>> {
         if (requestParameters.tag === null || requestParameters.tag === undefined) {
             throw new runtime.RequiredError('tag','Required parameter requestParameters.tag was null or undefined when calling updateTag.');
         }
@@ -422,7 +424,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateTagEntity','Required parameter requestParameters.updateTagEntity was null or undefined when calling updateTag.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -437,7 +439,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateTagEntityToJSON(requestParameters.updateTagEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TagEntityFromJSON(jsonValue));
     }
@@ -446,8 +448,8 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[UPDATE] permission to use this service
      * Update an existing sharding tag
      */
-    async updateTag(requestParameters: UpdateTagRequest): Promise<TagEntity> {
-        const response = await this.updateTagRaw(requestParameters);
+    async updateTag(requestParameters: UpdateTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TagEntity> {
+        const response = await this.updateTagRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -455,7 +457,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[UPDATE] permission to use this service
      * Update an existing sharding tag
      */
-    async updateTag1Raw(requestParameters: UpdateTag1Request): Promise<runtime.ApiResponse<TagEntity>> {
+    async updateTag1Raw(requestParameters: UpdateTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TagEntity>> {
         if (requestParameters.tag === null || requestParameters.tag === undefined) {
             throw new runtime.RequiredError('tag','Required parameter requestParameters.tag was null or undefined when calling updateTag1.');
         }
@@ -472,7 +474,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateTagEntity','Required parameter requestParameters.updateTagEntity was null or undefined when calling updateTag1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -487,7 +489,7 @@ export class ShardingTagsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateTagEntityToJSON(requestParameters.updateTagEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TagEntityFromJSON(jsonValue));
     }
@@ -496,8 +498,8 @@ export class ShardingTagsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[UPDATE] permission to use this service
      * Update an existing sharding tag
      */
-    async updateTag1(requestParameters: UpdateTag1Request): Promise<TagEntity> {
-        const response = await this.updateTag1Raw(requestParameters);
+    async updateTag1(requestParameters: UpdateTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TagEntity> {
+        const response = await this.updateTag1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

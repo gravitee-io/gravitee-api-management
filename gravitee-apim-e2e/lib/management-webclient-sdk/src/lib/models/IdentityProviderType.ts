@@ -11,17 +11,19 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum IdentityProviderType {
-    GOOGLE = 'GOOGLE',
-    GITHUB = 'GITHUB',
-    GRAVITEEIOAM = 'GRAVITEEIO_AM',
-    OIDC = 'OIDC'
-}
+export const IdentityProviderType = {
+    GOOGLE: 'GOOGLE',
+    GITHUB: 'GITHUB',
+    GRAVITEEIO_AM: 'GRAVITEEIO_AM',
+    OIDC: 'OIDC'
+} as const;
+export type IdentityProviderType = typeof IdentityProviderType[keyof typeof IdentityProviderType];
+
 
 export function IdentityProviderTypeFromJSON(json: any): IdentityProviderType {
     return IdentityProviderTypeFromJSONTyped(json, false);

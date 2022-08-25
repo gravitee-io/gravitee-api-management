@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { GroupMappingEntity } from './GroupMappingEntity';
 import {
-    GroupMappingEntity,
     GroupMappingEntityFromJSON,
     GroupMappingEntityFromJSONTyped,
     GroupMappingEntityToJSON,
-    RoleMappingEntity,
+} from './GroupMappingEntity';
+import type { RoleMappingEntity } from './RoleMappingEntity';
+import {
     RoleMappingEntityFromJSON,
     RoleMappingEntityFromJSONTyped,
     RoleMappingEntityToJSON,
-} from './';
+} from './RoleMappingEntity';
 
 /**
  * 
@@ -85,6 +87,18 @@ export interface UpdateIdentityProviderEntity {
     userProfileMapping?: { [key: string]: string; };
 }
 
+/**
+ * Check if a given object implements the UpdateIdentityProviderEntity interface.
+ */
+export function instanceOfUpdateIdentityProviderEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "configuration" in value;
+    isInstance = isInstance && "enabled" in value;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function UpdateIdentityProviderEntityFromJSON(json: any): UpdateIdentityProviderEntity {
     return UpdateIdentityProviderEntityFromJSONTyped(json, false);
 }
@@ -127,5 +141,4 @@ export function UpdateIdentityProviderEntityToJSON(value?: UpdateIdentityProvide
         'userProfileMapping': value.userProfileMapping,
     };
 }
-
 

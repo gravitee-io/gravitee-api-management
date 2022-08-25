@@ -50,6 +50,15 @@ export interface PlatformPluginEntity {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the PlatformPluginEntity interface.
+ */
+export function instanceOfPlatformPluginEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PlatformPluginEntityFromJSON(json: any): PlatformPluginEntity {
     return PlatformPluginEntityFromJSONTyped(json, false);
 }
@@ -84,5 +93,4 @@ export function PlatformPluginEntityToJSON(value?: PlatformPluginEntity | null):
         'version': value.version,
     };
 }
-
 

@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  Payload,
+  SocialIdentityProviderEntity,
+} from '../models';
 import {
-    Payload,
     PayloadFromJSON,
     PayloadToJSON,
-    SocialIdentityProviderEntity,
     SocialIdentityProviderEntityFromJSON,
     SocialIdentityProviderEntityToJSON,
 } from '../models';
@@ -64,7 +66,7 @@ export class AuthenticationApi extends runtime.BaseAPI {
 
     /**
      */
-    async exchangeAuthorizationCodeRaw(requestParameters: ExchangeAuthorizationCodeRequest): Promise<runtime.ApiResponse<void>> {
+    async exchangeAuthorizationCodeRaw(requestParameters: ExchangeAuthorizationCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.identity === null || requestParameters.identity === undefined) {
             throw new runtime.RequiredError('identity','Required parameter requestParameters.identity was null or undefined when calling exchangeAuthorizationCode.');
         }
@@ -81,7 +83,7 @@ export class AuthenticationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('payload','Required parameter requestParameters.payload was null or undefined when calling exchangeAuthorizationCode.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -96,20 +98,20 @@ export class AuthenticationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: PayloadToJSON(requestParameters.payload),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async exchangeAuthorizationCode(requestParameters: ExchangeAuthorizationCodeRequest): Promise<void> {
-        await this.exchangeAuthorizationCodeRaw(requestParameters);
+    async exchangeAuthorizationCode(requestParameters: ExchangeAuthorizationCodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.exchangeAuthorizationCodeRaw(requestParameters, initOverrides);
     }
 
     /**
      */
-    async exchangeAuthorizationCode1Raw(requestParameters: ExchangeAuthorizationCode1Request): Promise<runtime.ApiResponse<void>> {
+    async exchangeAuthorizationCode1Raw(requestParameters: ExchangeAuthorizationCode1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.identity === null || requestParameters.identity === undefined) {
             throw new runtime.RequiredError('identity','Required parameter requestParameters.identity was null or undefined when calling exchangeAuthorizationCode1.');
         }
@@ -122,7 +124,7 @@ export class AuthenticationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('payload','Required parameter requestParameters.payload was null or undefined when calling exchangeAuthorizationCode1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -137,21 +139,21 @@ export class AuthenticationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: PayloadToJSON(requestParameters.payload),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async exchangeAuthorizationCode1(requestParameters: ExchangeAuthorizationCode1Request): Promise<void> {
-        await this.exchangeAuthorizationCode1Raw(requestParameters);
+    async exchangeAuthorizationCode1(requestParameters: ExchangeAuthorizationCode1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.exchangeAuthorizationCode1Raw(requestParameters, initOverrides);
     }
 
     /**
      * Get the list of social identity providers
      */
-    async getSocialIdentityProvidersRaw(requestParameters: GetSocialIdentityProvidersRequest): Promise<runtime.ApiResponse<Array<SocialIdentityProviderEntity>>> {
+    async getSocialIdentityProvidersRaw(requestParameters: GetSocialIdentityProvidersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<SocialIdentityProviderEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getSocialIdentityProviders.');
         }
@@ -160,7 +162,7 @@ export class AuthenticationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getSocialIdentityProviders.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -172,7 +174,7 @@ export class AuthenticationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SocialIdentityProviderEntityFromJSON));
     }
@@ -180,20 +182,20 @@ export class AuthenticationApi extends runtime.BaseAPI {
     /**
      * Get the list of social identity providers
      */
-    async getSocialIdentityProviders(requestParameters: GetSocialIdentityProvidersRequest): Promise<Array<SocialIdentityProviderEntity>> {
-        const response = await this.getSocialIdentityProvidersRaw(requestParameters);
+    async getSocialIdentityProviders(requestParameters: GetSocialIdentityProvidersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<SocialIdentityProviderEntity>> {
+        const response = await this.getSocialIdentityProvidersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the list of social identity providers
      */
-    async getSocialIdentityProviders1Raw(requestParameters: GetSocialIdentityProviders1Request): Promise<runtime.ApiResponse<Array<SocialIdentityProviderEntity>>> {
+    async getSocialIdentityProviders1Raw(requestParameters: GetSocialIdentityProviders1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<SocialIdentityProviderEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getSocialIdentityProviders1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -205,7 +207,7 @@ export class AuthenticationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SocialIdentityProviderEntityFromJSON));
     }
@@ -213,14 +215,14 @@ export class AuthenticationApi extends runtime.BaseAPI {
     /**
      * Get the list of social identity providers
      */
-    async getSocialIdentityProviders1(requestParameters: GetSocialIdentityProviders1Request): Promise<Array<SocialIdentityProviderEntity>> {
-        const response = await this.getSocialIdentityProviders1Raw(requestParameters);
+    async getSocialIdentityProviders1(requestParameters: GetSocialIdentityProviders1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<SocialIdentityProviderEntity>> {
+        const response = await this.getSocialIdentityProviders1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async tokenExchange1Raw(requestParameters: TokenExchange1Request): Promise<runtime.ApiResponse<void>> {
+    async tokenExchange1Raw(requestParameters: TokenExchange1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.identity === null || requestParameters.identity === undefined) {
             throw new runtime.RequiredError('identity','Required parameter requestParameters.identity was null or undefined when calling tokenExchange1.');
         }
@@ -233,7 +235,7 @@ export class AuthenticationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling tokenExchange1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.token !== undefined) {
             queryParameters['token'] = requestParameters.token;
@@ -249,20 +251,20 @@ export class AuthenticationApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async tokenExchange1(requestParameters: TokenExchange1Request): Promise<void> {
-        await this.tokenExchange1Raw(requestParameters);
+    async tokenExchange1(requestParameters: TokenExchange1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.tokenExchange1Raw(requestParameters, initOverrides);
     }
 
     /**
      */
-    async tokenExchange2Raw(requestParameters: TokenExchange2Request): Promise<runtime.ApiResponse<void>> {
+    async tokenExchange2Raw(requestParameters: TokenExchange2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.identity === null || requestParameters.identity === undefined) {
             throw new runtime.RequiredError('identity','Required parameter requestParameters.identity was null or undefined when calling tokenExchange2.');
         }
@@ -271,7 +273,7 @@ export class AuthenticationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling tokenExchange2.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.token !== undefined) {
             queryParameters['token'] = requestParameters.token;
@@ -287,15 +289,15 @@ export class AuthenticationApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async tokenExchange2(requestParameters: TokenExchange2Request): Promise<void> {
-        await this.tokenExchange2Raw(requestParameters);
+    async tokenExchange2(requestParameters: TokenExchange2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.tokenExchange2Raw(requestParameters, initOverrides);
     }
 
 }

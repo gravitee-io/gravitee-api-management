@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { RatingEntity } from './RatingEntity';
 import {
-    RatingEntity,
     RatingEntityFromJSON,
     RatingEntityFromJSONTyped,
     RatingEntityToJSON,
-} from './';
+} from './RatingEntity';
 
 /**
  * 
@@ -49,6 +49,15 @@ export interface PageRatingEntity {
      * @memberof PageRatingEntity
      */
     totalElements?: number;
+}
+
+/**
+ * Check if a given object implements the PageRatingEntity interface.
+ */
+export function instanceOfPageRatingEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PageRatingEntityFromJSON(json: any): PageRatingEntity {
@@ -83,5 +92,4 @@ export function PageRatingEntityToJSON(value?: PageRatingEntity | null): any {
         'totalElements': value.totalElements,
     };
 }
-
 

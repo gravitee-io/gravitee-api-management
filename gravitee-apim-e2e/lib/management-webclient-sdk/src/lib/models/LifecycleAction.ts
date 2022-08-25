@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum LifecycleAction {
-    START = 'START',
-    STOP = 'STOP'
-}
+export const LifecycleAction = {
+    START: 'START',
+    STOP: 'STOP'
+} as const;
+export type LifecycleAction = typeof LifecycleAction[keyof typeof LifecycleAction];
+
 
 export function LifecycleActionFromJSON(json: any): LifecycleAction {
     return LifecycleActionFromJSONTyped(json, false);

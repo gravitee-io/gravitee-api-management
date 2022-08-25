@@ -26,6 +26,15 @@ export interface GoogleAuthentication {
     clientId?: string;
 }
 
+/**
+ * Check if a given object implements the GoogleAuthentication interface.
+ */
+export function instanceOfGoogleAuthentication(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function GoogleAuthenticationFromJSON(json: any): GoogleAuthentication {
     return GoogleAuthenticationFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function GoogleAuthenticationToJSON(value?: GoogleAuthentication | null):
         'clientId': value.clientId,
     };
 }
-
 

@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum AnalyticsAverageType {
-    AVAILABILITY = 'AVAILABILITY',
-    RESPONSETIME = 'RESPONSE_TIME'
-}
+export const AnalyticsAverageType = {
+    AVAILABILITY: 'AVAILABILITY',
+    RESPONSE_TIME: 'RESPONSE_TIME'
+} as const;
+export type AnalyticsAverageType = typeof AnalyticsAverageType[keyof typeof AnalyticsAverageType];
+
 
 export function AnalyticsAverageTypeFromJSON(json: any): AnalyticsAverageType {
     return AnalyticsAverageTypeFromJSONTyped(json, false);

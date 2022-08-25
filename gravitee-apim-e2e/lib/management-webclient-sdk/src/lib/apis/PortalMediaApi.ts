@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  FormDataBodyPart,
+  PageEntity,
+} from '../models';
 import {
-    FormDataBodyPart,
     FormDataBodyPartFromJSON,
     FormDataBodyPartToJSON,
-    PageEntity,
     PageEntityFromJSON,
     PageEntityToJSON,
 } from '../models';
@@ -57,7 +59,7 @@ export class PortalMediaApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service
      * Attach a media to a portal page 
      */
-    async attachPortalPageMediaRaw(requestParameters: AttachPortalPageMediaRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async attachPortalPageMediaRaw(requestParameters: AttachPortalPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling attachPortalPageMedia.');
         }
@@ -70,7 +72,7 @@ export class PortalMediaApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling attachPortalPageMedia.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -92,8 +94,8 @@ export class PortalMediaApi extends runtime.BaseAPI {
         }
 
         if (requestParameters.file !== undefined) {
-            formParams.append('file', requestParameters.file as any);
-        }
+            formParams.append('file', new Blob([JSON.stringify(FormDataBodyPartToJSON(requestParameters.file))], { type: "application/json", }));
+                    }
 
         if (requestParameters.fileName !== undefined) {
             formParams.append('fileName', requestParameters.fileName as any);
@@ -105,7 +107,7 @@ export class PortalMediaApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: formParams,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -114,15 +116,15 @@ export class PortalMediaApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service
      * Attach a media to a portal page 
      */
-    async attachPortalPageMedia(requestParameters: AttachPortalPageMediaRequest): Promise<PageEntity> {
-        const response = await this.attachPortalPageMediaRaw(requestParameters);
+    async attachPortalPageMedia(requestParameters: AttachPortalPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.attachPortalPageMediaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Retrieve a media
      */
-    async getPortalMediaRaw(requestParameters: GetPortalMediaRequest): Promise<runtime.ApiResponse<Blob>> {
+    async getPortalMediaRaw(requestParameters: GetPortalMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters.hash === null || requestParameters.hash === undefined) {
             throw new runtime.RequiredError('hash','Required parameter requestParameters.hash was null or undefined when calling getPortalMedia.');
         }
@@ -135,7 +137,7 @@ export class PortalMediaApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPortalMedia.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -147,7 +149,7 @@ export class PortalMediaApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.BlobApiResponse(response);
     }
@@ -155,8 +157,8 @@ export class PortalMediaApi extends runtime.BaseAPI {
     /**
      * Retrieve a media
      */
-    async getPortalMedia(requestParameters: GetPortalMediaRequest): Promise<Blob> {
-        const response = await this.getPortalMediaRaw(requestParameters);
+    async getPortalMedia(requestParameters: GetPortalMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getPortalMediaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -164,7 +166,7 @@ export class PortalMediaApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[READ] permission to use this service
      * Retrieve all media for a Portal page
      */
-    async getPortalPageMediaRaw(requestParameters: GetPortalPageMediaRequest): Promise<runtime.ApiResponse<void>> {
+    async getPortalPageMediaRaw(requestParameters: GetPortalPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling getPortalPageMedia.');
         }
@@ -177,7 +179,7 @@ export class PortalMediaApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPortalPageMedia.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -189,7 +191,7 @@ export class PortalMediaApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -198,15 +200,15 @@ export class PortalMediaApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[READ] permission to use this service
      * Retrieve all media for a Portal page
      */
-    async getPortalPageMedia(requestParameters: GetPortalPageMediaRequest): Promise<void> {
-        await this.getPortalPageMediaRaw(requestParameters);
+    async getPortalPageMedia(requestParameters: GetPortalPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getPortalPageMediaRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the PORTAL_DOCUMENTATION[CREATE] permission to use this service
      * Create a media for the portal
      */
-    async uploadPortalMediaRaw(requestParameters: UploadPortalMediaRequest): Promise<runtime.ApiResponse<string>> {
+    async uploadPortalMediaRaw(requestParameters: UploadPortalMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling uploadPortalMedia.');
         }
@@ -215,7 +217,7 @@ export class PortalMediaApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling uploadPortalMedia.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -237,8 +239,8 @@ export class PortalMediaApi extends runtime.BaseAPI {
         }
 
         if (requestParameters.file !== undefined) {
-            formParams.append('file', requestParameters.file as any);
-        }
+            formParams.append('file', new Blob([JSON.stringify(FormDataBodyPartToJSON(requestParameters.file))], { type: "application/json", }));
+                    }
 
         const response = await this.request({
             path: `/organizations/{orgId}/environments/{envId}/portal/media/upload`.replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
@@ -246,7 +248,7 @@ export class PortalMediaApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: formParams,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -255,8 +257,8 @@ export class PortalMediaApi extends runtime.BaseAPI {
      * User must have the PORTAL_DOCUMENTATION[CREATE] permission to use this service
      * Create a media for the portal
      */
-    async uploadPortalMedia(requestParameters: UploadPortalMediaRequest): Promise<string> {
-        const response = await this.uploadPortalMediaRaw(requestParameters);
+    async uploadPortalMedia(requestParameters: UploadPortalMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.uploadPortalMediaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -92,6 +92,34 @@ export interface PlatformRequestItem {
     user?: string;
 }
 
+
+/**
+ * @export
+ */
+export const PlatformRequestItemMethodEnum = {
+    CONNECT: 'CONNECT',
+    DELETE: 'DELETE',
+    GET: 'GET',
+    HEAD: 'HEAD',
+    OPTIONS: 'OPTIONS',
+    PATCH: 'PATCH',
+    POST: 'POST',
+    PUT: 'PUT',
+    TRACE: 'TRACE',
+    OTHER: 'OTHER'
+} as const;
+export type PlatformRequestItemMethodEnum = typeof PlatformRequestItemMethodEnum[keyof typeof PlatformRequestItemMethodEnum];
+
+
+/**
+ * Check if a given object implements the PlatformRequestItem interface.
+ */
+export function instanceOfPlatformRequestItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PlatformRequestItemFromJSON(json: any): PlatformRequestItem {
     return PlatformRequestItemFromJSONTyped(json, false);
 }
@@ -140,22 +168,4 @@ export function PlatformRequestItemToJSON(value?: PlatformRequestItem | null): a
         'user': value.user,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum PlatformRequestItemMethodEnum {
-    CONNECT = 'CONNECT',
-    DELETE = 'DELETE',
-    GET = 'GET',
-    HEAD = 'HEAD',
-    OPTIONS = 'OPTIONS',
-    PATCH = 'PATCH',
-    POST = 'POST',
-    PUT = 'PUT',
-    TRACE = 'TRACE',
-    OTHER = 'OTHER'
-}
-
 

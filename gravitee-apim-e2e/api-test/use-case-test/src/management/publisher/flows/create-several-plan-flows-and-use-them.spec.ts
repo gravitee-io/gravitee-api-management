@@ -67,7 +67,7 @@ describe('Create several plan flows and use them', () => {
             name: '',
             path_operator: {
               path: '/plan',
-              operator: PathOperatorOperatorEnum.STARTSWITH,
+              operator: PathOperatorOperatorEnum.STARTS_WITH,
             },
             condition: '',
             consumers: [],
@@ -101,7 +101,7 @@ describe('Create several plan flows and use them', () => {
       envId,
       api: createdApi.id,
       newPlanEntity: PlansFaker.newPlan({
-        security: PlanSecurityType.KEYLESS,
+        security: PlanSecurityType.KEY_LESS,
         status: PlanStatus.PUBLISHED,
         flows: [
           // With static path flow and mock policy
@@ -109,7 +109,7 @@ describe('Create several plan flows and use them', () => {
             name: '',
             path_operator: {
               path: '/plan/keyless/foo',
-              operator: PathOperatorOperatorEnum.STARTSWITH,
+              operator: PathOperatorOperatorEnum.STARTS_WITH,
             },
             condition: '',
             consumers: [],
@@ -134,7 +134,7 @@ describe('Create several plan flows and use them', () => {
             name: '',
             path_operator: {
               path: '/plan/keyless/:planName',
-              operator: PathOperatorOperatorEnum.STARTSWITH,
+              operator: PathOperatorOperatorEnum.STARTS_WITH,
             },
             condition: '',
             consumers: [],
@@ -163,7 +163,7 @@ describe('Create several plan flows and use them', () => {
       orgId,
       envId,
       api: createdApi.id,
-      newPlanEntity: PlansFaker.newPlan({ security: PlanSecurityType.APIKEY, status: PlanStatus.PUBLISHED }),
+      newPlanEntity: PlansFaker.newPlan({ security: PlanSecurityType.API_KEY, status: PlanStatus.PUBLISHED }),
     });
 
     // Update it to add flow and mock policy
@@ -173,7 +173,7 @@ describe('Create several plan flows and use them', () => {
         name: '',
         path_operator: {
           path: '/plan/apikey/foo',
-          operator: PathOperatorOperatorEnum.STARTSWITH,
+          operator: PathOperatorOperatorEnum.STARTS_WITH,
         },
         condition: '',
         consumers: [],
@@ -273,7 +273,7 @@ describe('Create several plan flows and use them', () => {
   describe('With `Best Match` Flow Mode', function () {
     beforeAll(async () => {
       // Set flow mode to Best Match and update api
-      createdApi.flow_mode = ApiEntityFlowModeEnum.BESTMATCH;
+      createdApi.flow_mode = ApiEntityFlowModeEnum.BEST_MATCH;
       createdApi.flows[0].post[0].configuration.addHeaders = [
         { name: 'X-Test', value: 'api-root-flow-ok' },
         { name: 'X-Flow-Mode', value: 'BEST_MATCH' },

@@ -13,92 +13,94 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  AlertStatusEntity,
+  AlertTriggerEntity,
+  Analytics,
+  AnalyticsType,
+  ApiKeyEntity,
+  ApplicationEntity,
+  ApplicationListItemPagedResult,
+  ApplicationMembership,
+  ApplicationMetadataEntity,
+  ApplicationRequest,
+  ApplicationRequestItemSearchLogResponse,
+  ApplicationTypeEntity,
+  GenericNotificationConfigEntity,
+  Hook,
+  MemberEntity,
+  MembershipListItem,
+  NewAlertTriggerEntity,
+  NewApplicationEntity,
+  NewApplicationMetadataEntity,
+  NewSubscriptionEntity,
+  NotifierEntity,
+  PortalNotificationConfigEntity,
+  Subscription,
+  SubscriptionEntityPageResult,
+  SubscriptionStatus,
+  TransferOwnership,
+  UpdateAlertTriggerEntity,
+  UpdateApplicationEntity,
+  UpdateApplicationMetadataEntity,
+} from '../models';
 import {
-    AlertStatusEntity,
     AlertStatusEntityFromJSON,
     AlertStatusEntityToJSON,
-    AlertTriggerEntity,
     AlertTriggerEntityFromJSON,
     AlertTriggerEntityToJSON,
-    Analytics,
     AnalyticsFromJSON,
     AnalyticsToJSON,
-    AnalyticsType,
     AnalyticsTypeFromJSON,
     AnalyticsTypeToJSON,
-    ApiKeyEntity,
     ApiKeyEntityFromJSON,
     ApiKeyEntityToJSON,
-    ApplicationEntity,
     ApplicationEntityFromJSON,
     ApplicationEntityToJSON,
-    ApplicationListItemPagedResult,
     ApplicationListItemPagedResultFromJSON,
     ApplicationListItemPagedResultToJSON,
-    ApplicationMembership,
     ApplicationMembershipFromJSON,
     ApplicationMembershipToJSON,
-    ApplicationMetadataEntity,
     ApplicationMetadataEntityFromJSON,
     ApplicationMetadataEntityToJSON,
-    ApplicationRequest,
     ApplicationRequestFromJSON,
     ApplicationRequestToJSON,
-    ApplicationRequestItemSearchLogResponse,
     ApplicationRequestItemSearchLogResponseFromJSON,
     ApplicationRequestItemSearchLogResponseToJSON,
-    ApplicationTypeEntity,
     ApplicationTypeEntityFromJSON,
     ApplicationTypeEntityToJSON,
-    GenericNotificationConfigEntity,
     GenericNotificationConfigEntityFromJSON,
     GenericNotificationConfigEntityToJSON,
-    Hook,
     HookFromJSON,
     HookToJSON,
-    MemberEntity,
     MemberEntityFromJSON,
     MemberEntityToJSON,
-    MembershipListItem,
     MembershipListItemFromJSON,
     MembershipListItemToJSON,
-    NewAlertTriggerEntity,
     NewAlertTriggerEntityFromJSON,
     NewAlertTriggerEntityToJSON,
-    NewApplicationEntity,
     NewApplicationEntityFromJSON,
     NewApplicationEntityToJSON,
-    NewApplicationMetadataEntity,
     NewApplicationMetadataEntityFromJSON,
     NewApplicationMetadataEntityToJSON,
-    NewSubscriptionEntity,
     NewSubscriptionEntityFromJSON,
     NewSubscriptionEntityToJSON,
-    NotifierEntity,
     NotifierEntityFromJSON,
     NotifierEntityToJSON,
-    PortalNotificationConfigEntity,
     PortalNotificationConfigEntityFromJSON,
     PortalNotificationConfigEntityToJSON,
-    Subscription,
     SubscriptionFromJSON,
     SubscriptionToJSON,
-    SubscriptionEntityPageResult,
     SubscriptionEntityPageResultFromJSON,
     SubscriptionEntityPageResultToJSON,
-    SubscriptionStatus,
     SubscriptionStatusFromJSON,
     SubscriptionStatusToJSON,
-    TransferOwnership,
     TransferOwnershipFromJSON,
     TransferOwnershipToJSON,
-    UpdateAlertTriggerEntity,
     UpdateAlertTriggerEntityFromJSON,
     UpdateAlertTriggerEntityToJSON,
-    UpdateApplicationEntity,
     UpdateApplicationEntityFromJSON,
     UpdateApplicationEntityToJSON,
-    UpdateApplicationMetadataEntity,
     UpdateApplicationMetadataEntityFromJSON,
     UpdateApplicationMetadataEntityToJSON,
 } from '../models';
@@ -469,7 +471,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGE_MEMBERS permission to use this service
      * Add or update an application member
      */
-    async addOrUpdateApplicationMemberRaw(requestParameters: AddOrUpdateApplicationMemberRequest): Promise<runtime.ApiResponse<void>> {
+    async addOrUpdateApplicationMemberRaw(requestParameters: AddOrUpdateApplicationMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling addOrUpdateApplicationMember.');
         }
@@ -486,7 +488,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('applicationMembership','Required parameter requestParameters.applicationMembership was null or undefined when calling addOrUpdateApplicationMember.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -501,7 +503,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: ApplicationMembershipToJSON(requestParameters.applicationMembership),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -510,15 +512,15 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGE_MEMBERS permission to use this service
      * Add or update an application member
      */
-    async addOrUpdateApplicationMember(requestParameters: AddOrUpdateApplicationMemberRequest): Promise<void> {
-        await this.addOrUpdateApplicationMemberRaw(requestParameters);
+    async addOrUpdateApplicationMember(requestParameters: AddOrUpdateApplicationMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.addOrUpdateApplicationMemberRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the APPLICATION_SUBSCRIPTION[DELETE] permission to use this service
      * Close the subscription
      */
-    async closeApplicationSubscriptionRaw(requestParameters: CloseApplicationSubscriptionRequest): Promise<runtime.ApiResponse<Subscription>> {
+    async closeApplicationSubscriptionRaw(requestParameters: CloseApplicationSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
         if (requestParameters.subscription === null || requestParameters.subscription === undefined) {
             throw new runtime.RequiredError('subscription','Required parameter requestParameters.subscription was null or undefined when calling closeApplicationSubscription.');
         }
@@ -535,7 +537,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling closeApplicationSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -547,7 +549,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionFromJSON(jsonValue));
     }
@@ -556,8 +558,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_SUBSCRIPTION[DELETE] permission to use this service
      * Close the subscription
      */
-    async closeApplicationSubscription(requestParameters: CloseApplicationSubscriptionRequest): Promise<Subscription> {
-        const response = await this.closeApplicationSubscriptionRaw(requestParameters);
+    async closeApplicationSubscription(requestParameters: CloseApplicationSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.closeApplicationSubscriptionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -565,7 +567,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have MANAGEMENT_APPLICATION[CREATE] permission to create an application.
      * Create an application
      */
-    async createApplicationRaw(requestParameters: CreateApplicationRequest): Promise<runtime.ApiResponse<ApplicationEntity>> {
+    async createApplicationRaw(requestParameters: CreateApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createApplication.');
         }
@@ -578,7 +580,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newApplicationEntity','Required parameter requestParameters.newApplicationEntity was null or undefined when calling createApplication.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -593,7 +595,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewApplicationEntityToJSON(requestParameters.newApplicationEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationEntityFromJSON(jsonValue));
     }
@@ -602,8 +604,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have MANAGEMENT_APPLICATION[CREATE] permission to create an application.
      * Create an application
      */
-    async createApplication(requestParameters: CreateApplicationRequest): Promise<ApplicationEntity> {
-        const response = await this.createApplicationRaw(requestParameters);
+    async createApplication(requestParameters: CreateApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationEntity> {
+        const response = await this.createApplicationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -611,7 +613,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_ALERT[CREATE] permission to use this service
      * Create an alert for an application
      */
-    async createApplicationAlertRaw(requestParameters: CreateApplicationAlertRequest): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
+    async createApplicationAlertRaw(requestParameters: CreateApplicationAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling createApplicationAlert.');
         }
@@ -628,7 +630,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newAlertTriggerEntity','Required parameter requestParameters.newAlertTriggerEntity was null or undefined when calling createApplicationAlert.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -643,7 +645,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewAlertTriggerEntityToJSON(requestParameters.newAlertTriggerEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AlertTriggerEntityFromJSON(jsonValue));
     }
@@ -652,8 +654,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_ALERT[CREATE] permission to use this service
      * Create an alert for an application
      */
-    async createApplicationAlert(requestParameters: CreateApplicationAlertRequest): Promise<AlertTriggerEntity> {
-        const response = await this.createApplicationAlertRaw(requestParameters);
+    async createApplicationAlert(requestParameters: CreateApplicationAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AlertTriggerEntity> {
+        const response = await this.createApplicationAlertRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -661,7 +663,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[CREATE] permission to use this service
      * Create an application metadata
      */
-    async createApplicationMetadataRaw(requestParameters: CreateApplicationMetadataRequest): Promise<runtime.ApiResponse<ApplicationMetadataEntity>> {
+    async createApplicationMetadataRaw(requestParameters: CreateApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationMetadataEntity>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling createApplicationMetadata.');
         }
@@ -678,7 +680,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newApplicationMetadataEntity','Required parameter requestParameters.newApplicationMetadataEntity was null or undefined when calling createApplicationMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -693,7 +695,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewApplicationMetadataEntityToJSON(requestParameters.newApplicationMetadataEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationMetadataEntityFromJSON(jsonValue));
     }
@@ -702,15 +704,15 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[CREATE] permission to use this service
      * Create an application metadata
      */
-    async createApplicationMetadata(requestParameters: CreateApplicationMetadataRequest): Promise<ApplicationMetadataEntity> {
-        const response = await this.createApplicationMetadataRaw(requestParameters);
+    async createApplicationMetadata(requestParameters: CreateApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationMetadataEntity> {
+        const response = await this.createApplicationMetadataRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Create notification settings
      */
-    async createApplicationNotificationSettingsRaw(requestParameters: CreateApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<any>> {
+    async createApplicationNotificationSettingsRaw(requestParameters: CreateApplicationNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling createApplicationNotificationSettings.');
         }
@@ -723,7 +725,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createApplicationNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -738,7 +740,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: GenericNotificationConfigEntityToJSON(requestParameters.genericNotificationConfigEntity),
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -746,8 +748,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
     /**
      * Create notification settings
      */
-    async createApplicationNotificationSettings(requestParameters: CreateApplicationNotificationSettingsRequest): Promise<any> {
-        const response = await this.createApplicationNotificationSettingsRaw(requestParameters);
+    async createApplicationNotificationSettings(requestParameters: CreateApplicationNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<any> {
+        const response = await this.createApplicationNotificationSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -755,7 +757,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGE_SUBSCRIPTIONS permission to use this service
      * Subscribe to a plan
      */
-    async createSubscriptionWithApplicationRaw(requestParameters: CreateSubscriptionWithApplicationRequest): Promise<runtime.ApiResponse<Subscription>> {
+    async createSubscriptionWithApplicationRaw(requestParameters: CreateSubscriptionWithApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
         if (requestParameters.plan === null || requestParameters.plan === undefined) {
             throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling createSubscriptionWithApplication.');
         }
@@ -772,7 +774,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createSubscriptionWithApplication.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.plan !== undefined) {
             queryParameters['plan'] = requestParameters.plan;
@@ -791,7 +793,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewSubscriptionEntityToJSON(requestParameters.newSubscriptionEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionFromJSON(jsonValue));
     }
@@ -800,8 +802,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGE_SUBSCRIPTIONS permission to use this service
      * Subscribe to a plan
      */
-    async createSubscriptionWithApplication(requestParameters: CreateSubscriptionWithApplicationRequest): Promise<Subscription> {
-        const response = await this.createSubscriptionWithApplicationRaw(requestParameters);
+    async createSubscriptionWithApplication(requestParameters: CreateSubscriptionWithApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.createSubscriptionWithApplicationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -809,7 +811,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the DELETE permission to use this service
      * Delete an application
      */
-    async deleteApplicationRaw(requestParameters: DeleteApplicationRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteApplicationRaw(requestParameters: DeleteApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling deleteApplication.');
         }
@@ -822,7 +824,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApplication.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -834,7 +836,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -843,15 +845,15 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the DELETE permission to use this service
      * Delete an application
      */
-    async deleteApplication(requestParameters: DeleteApplicationRequest): Promise<void> {
-        await this.deleteApplicationRaw(requestParameters);
+    async deleteApplication(requestParameters: DeleteApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteApplicationRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the APPLICATION_ALERT[DELETE] permission to use this service
      * Delete an alert for an application
      */
-    async deleteApplicationAlertRaw(requestParameters: DeleteApplicationAlertRequest): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
+    async deleteApplicationAlertRaw(requestParameters: DeleteApplicationAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
         if (requestParameters.alert === null || requestParameters.alert === undefined) {
             throw new runtime.RequiredError('alert','Required parameter requestParameters.alert was null or undefined when calling deleteApplicationAlert.');
         }
@@ -868,7 +870,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApplicationAlert.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -880,7 +882,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AlertTriggerEntityFromJSON(jsonValue));
     }
@@ -889,8 +891,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_ALERT[DELETE] permission to use this service
      * Delete an alert for an application
      */
-    async deleteApplicationAlert(requestParameters: DeleteApplicationAlertRequest): Promise<AlertTriggerEntity> {
-        const response = await this.deleteApplicationAlertRaw(requestParameters);
+    async deleteApplicationAlert(requestParameters: DeleteApplicationAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AlertTriggerEntity> {
+        const response = await this.deleteApplicationAlertRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -898,7 +900,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGE_MEMBERS permission to use this service
      * Remove an application member
      */
-    async deleteApplicationMemberRaw(requestParameters: DeleteApplicationMemberRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteApplicationMemberRaw(requestParameters: DeleteApplicationMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.user === null || requestParameters.user === undefined) {
             throw new runtime.RequiredError('user','Required parameter requestParameters.user was null or undefined when calling deleteApplicationMember.');
         }
@@ -915,7 +917,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApplicationMember.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.user !== undefined) {
             queryParameters['user'] = requestParameters.user;
@@ -931,7 +933,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -940,15 +942,15 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGE_MEMBERS permission to use this service
      * Remove an application member
      */
-    async deleteApplicationMember(requestParameters: DeleteApplicationMemberRequest): Promise<void> {
-        await this.deleteApplicationMemberRaw(requestParameters);
+    async deleteApplicationMember(requestParameters: DeleteApplicationMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteApplicationMemberRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the APPLICATION_METADATA[DELETE] permission to use this service
      * Delete a metadata
      */
-    async deleteApplicationMetadataRaw(requestParameters: DeleteApplicationMetadataRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteApplicationMetadataRaw(requestParameters: DeleteApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.metadata === null || requestParameters.metadata === undefined) {
             throw new runtime.RequiredError('metadata','Required parameter requestParameters.metadata was null or undefined when calling deleteApplicationMetadata.');
         }
@@ -965,7 +967,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApplicationMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -977,7 +979,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -986,14 +988,14 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[DELETE] permission to use this service
      * Delete a metadata
      */
-    async deleteApplicationMetadata(requestParameters: DeleteApplicationMetadataRequest): Promise<void> {
-        await this.deleteApplicationMetadataRaw(requestParameters);
+    async deleteApplicationMetadata(requestParameters: DeleteApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteApplicationMetadataRaw(requestParameters, initOverrides);
     }
 
     /**
      * Delete notification settings
      */
-    async deleteApplicationNotificationSettingsRaw(requestParameters: DeleteApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteApplicationNotificationSettingsRaw(requestParameters: DeleteApplicationNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.notificationId === null || requestParameters.notificationId === undefined) {
             throw new runtime.RequiredError('notificationId','Required parameter requestParameters.notificationId was null or undefined when calling deleteApplicationNotificationSettings.');
         }
@@ -1010,7 +1012,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApplicationNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1022,7 +1024,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1030,14 +1032,14 @@ export class ApplicationsApi extends runtime.BaseAPI {
     /**
      * Delete notification settings
      */
-    async deleteApplicationNotificationSettings(requestParameters: DeleteApplicationNotificationSettingsRequest): Promise<void> {
-        await this.deleteApplicationNotificationSettingsRaw(requestParameters);
+    async deleteApplicationNotificationSettings(requestParameters: DeleteApplicationNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteApplicationNotificationSettingsRaw(requestParameters, initOverrides);
     }
 
     /**
      * Export application logs as CSV
      */
-    async exportApplicationLogsAsCSVRaw(requestParameters: ExportApplicationLogsAsCSVRequest): Promise<runtime.ApiResponse<string>> {
+    async exportApplicationLogsAsCSVRaw(requestParameters: ExportApplicationLogsAsCSVRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling exportApplicationLogsAsCSV.');
         }
@@ -1050,7 +1052,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling exportApplicationLogsAsCSV.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -1090,7 +1092,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -1098,8 +1100,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
     /**
      * Export application logs as CSV
      */
-    async exportApplicationLogsAsCSV(requestParameters: ExportApplicationLogsAsCSVRequest): Promise<string> {
-        const response = await this.exportApplicationLogsAsCSVRaw(requestParameters);
+    async exportApplicationLogsAsCSV(requestParameters: ExportApplicationLogsAsCSVRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.exportApplicationLogsAsCSVRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1107,7 +1109,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * List all API Keys for an application
      */
-    async getApiKeysForApplicationRaw(requestParameters: GetApiKeysForApplicationRequest): Promise<runtime.ApiResponse<Array<ApiKeyEntity>>> {
+    async getApiKeysForApplicationRaw(requestParameters: GetApiKeysForApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApiKeyEntity>>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApiKeysForApplication.');
         }
@@ -1120,7 +1122,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiKeysForApplication.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1132,7 +1134,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApiKeyEntityFromJSON));
     }
@@ -1141,8 +1143,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * List all API Keys for an application
      */
-    async getApiKeysForApplication(requestParameters: GetApiKeysForApplicationRequest): Promise<Array<ApiKeyEntity>> {
-        const response = await this.getApiKeysForApplicationRaw(requestParameters);
+    async getApiKeysForApplication(requestParameters: GetApiKeysForApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApiKeyEntity>> {
+        const response = await this.getApiKeysForApplicationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1150,7 +1152,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * List all API Keys for a subscription
      */
-    async getApiKeysForApplicationSubscriptionRaw(requestParameters: GetApiKeysForApplicationSubscriptionRequest): Promise<runtime.ApiResponse<Array<ApiKeyEntity>>> {
+    async getApiKeysForApplicationSubscriptionRaw(requestParameters: GetApiKeysForApplicationSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApiKeyEntity>>> {
         if (requestParameters.subscription === null || requestParameters.subscription === undefined) {
             throw new runtime.RequiredError('subscription','Required parameter requestParameters.subscription was null or undefined when calling getApiKeysForApplicationSubscription.');
         }
@@ -1167,7 +1169,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiKeysForApplicationSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1179,7 +1181,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApiKeyEntityFromJSON));
     }
@@ -1188,8 +1190,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * List all API Keys for a subscription
      */
-    async getApiKeysForApplicationSubscription(requestParameters: GetApiKeysForApplicationSubscriptionRequest): Promise<Array<ApiKeyEntity>> {
-        const response = await this.getApiKeysForApplicationSubscriptionRaw(requestParameters);
+    async getApiKeysForApplicationSubscription(requestParameters: GetApiKeysForApplicationSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApiKeyEntity>> {
+        const response = await this.getApiKeysForApplicationSubscriptionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1197,7 +1199,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_SUBSCRIPTION permission to use this service
      * List APIs subscribed by the application
      */
-    async getApiSubscribedRaw(requestParameters: GetApiSubscribedRequest): Promise<runtime.ApiResponse<Array<ApplicationEntity>>> {
+    async getApiSubscribedRaw(requestParameters: GetApiSubscribedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApplicationEntity>>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApiSubscribed.');
         }
@@ -1210,7 +1212,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiSubscribed.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1222,7 +1224,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApplicationEntityFromJSON));
     }
@@ -1231,8 +1233,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_SUBSCRIPTION permission to use this service
      * List APIs subscribed by the application
      */
-    async getApiSubscribed(requestParameters: GetApiSubscribedRequest): Promise<Array<ApplicationEntity>> {
-        const response = await this.getApiSubscribedRaw(requestParameters);
+    async getApiSubscribed(requestParameters: GetApiSubscribedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApplicationEntity>> {
+        const response = await this.getApiSubscribedRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1240,7 +1242,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get an application
      */
-    async getApplicationRaw(requestParameters: GetApplicationRequest): Promise<runtime.ApiResponse<ApplicationEntity>> {
+    async getApplicationRaw(requestParameters: GetApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationEntity>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplication.');
         }
@@ -1253,7 +1255,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplication.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1265,7 +1267,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationEntityFromJSON(jsonValue));
     }
@@ -1274,8 +1276,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get an application
      */
-    async getApplication(requestParameters: GetApplicationRequest): Promise<ApplicationEntity> {
-        const response = await this.getApplicationRaw(requestParameters);
+    async getApplication(requestParameters: GetApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationEntity> {
+        const response = await this.getApplicationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1283,7 +1285,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_ALERT[READ] permission to use this service
      * List configured alerts of an application
      */
-    async getApplicationAlertsRaw(requestParameters: GetApplicationAlertsRequest): Promise<runtime.ApiResponse<Array<AlertTriggerEntity>>> {
+    async getApplicationAlertsRaw(requestParameters: GetApplicationAlertsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AlertTriggerEntity>>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationAlerts.');
         }
@@ -1296,7 +1298,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationAlerts.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.eventCounts !== undefined) {
             queryParameters['event_counts'] = requestParameters.eventCounts;
@@ -1312,7 +1314,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(AlertTriggerEntityFromJSON));
     }
@@ -1321,8 +1323,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_ALERT[READ] permission to use this service
      * List configured alerts of an application
      */
-    async getApplicationAlerts(requestParameters: GetApplicationAlertsRequest): Promise<Array<AlertTriggerEntity>> {
-        const response = await this.getApplicationAlertsRaw(requestParameters);
+    async getApplicationAlerts(requestParameters: GetApplicationAlertsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<AlertTriggerEntity>> {
+        const response = await this.getApplicationAlertsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1330,7 +1332,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * Get alerting status
      */
-    async getApplicationAlertsStatusRaw(requestParameters: GetApplicationAlertsStatusRequest): Promise<runtime.ApiResponse<AlertStatusEntity>> {
+    async getApplicationAlertsStatusRaw(requestParameters: GetApplicationAlertsStatusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AlertStatusEntity>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationAlertsStatus.');
         }
@@ -1343,7 +1345,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationAlertsStatus.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1355,7 +1357,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AlertStatusEntityFromJSON(jsonValue));
     }
@@ -1364,8 +1366,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * Get alerting status
      */
-    async getApplicationAlertsStatus(requestParameters: GetApplicationAlertsStatusRequest): Promise<AlertStatusEntity> {
-        const response = await this.getApplicationAlertsStatusRaw(requestParameters);
+    async getApplicationAlertsStatus(requestParameters: GetApplicationAlertsStatusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AlertStatusEntity> {
+        const response = await this.getApplicationAlertsStatusRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1373,7 +1375,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_ANALYTICS[READ] permission to use this service
      * Get application analytics
      */
-    async getApplicationAnalyticsHitsRaw(requestParameters: GetApplicationAnalyticsHitsRequest): Promise<runtime.ApiResponse<Analytics>> {
+    async getApplicationAnalyticsHitsRaw(requestParameters: GetApplicationAnalyticsHitsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Analytics>> {
         if (requestParameters.type === null || requestParameters.type === undefined) {
             throw new runtime.RequiredError('type','Required parameter requestParameters.type was null or undefined when calling getApplicationAnalyticsHits.');
         }
@@ -1390,7 +1392,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationAnalyticsHits.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -1438,7 +1440,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AnalyticsFromJSON(jsonValue));
     }
@@ -1447,8 +1449,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_ANALYTICS[READ] permission to use this service
      * Get application analytics
      */
-    async getApplicationAnalyticsHits(requestParameters: GetApplicationAnalyticsHitsRequest): Promise<Analytics> {
-        const response = await this.getApplicationAnalyticsHitsRaw(requestParameters);
+    async getApplicationAnalyticsHits(requestParameters: GetApplicationAnalyticsHitsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Analytics> {
+        const response = await this.getApplicationAnalyticsHitsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1456,7 +1458,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get the application\'s background
      */
-    async getApplicationBackgroundRaw(requestParameters: GetApplicationBackgroundRequest): Promise<runtime.ApiResponse<Blob>> {
+    async getApplicationBackgroundRaw(requestParameters: GetApplicationBackgroundRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationBackground.');
         }
@@ -1469,7 +1471,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationBackground.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1481,7 +1483,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.BlobApiResponse(response);
     }
@@ -1490,15 +1492,15 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get the application\'s background
      */
-    async getApplicationBackground(requestParameters: GetApplicationBackgroundRequest): Promise<Blob> {
-        const response = await this.getApplicationBackgroundRaw(requestParameters);
+    async getApplicationBackground(requestParameters: GetApplicationBackgroundRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getApplicationBackgroundRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the list of available hooks
      */
-    async getApplicationHooksRaw(requestParameters: GetApplicationHooksRequest): Promise<runtime.ApiResponse<Array<Hook>>> {
+    async getApplicationHooksRaw(requestParameters: GetApplicationHooksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<Hook>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getApplicationHooks.');
         }
@@ -1507,7 +1509,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationHooks.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1519,7 +1521,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(HookFromJSON));
     }
@@ -1527,15 +1529,15 @@ export class ApplicationsApi extends runtime.BaseAPI {
     /**
      * Get the list of available hooks
      */
-    async getApplicationHooks(requestParameters: GetApplicationHooksRequest): Promise<Array<Hook>> {
-        const response = await this.getApplicationHooksRaw(requestParameters);
+    async getApplicationHooks(requestParameters: GetApplicationHooksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Hook>> {
+        const response = await this.getApplicationHooksRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get a specific log
      */
-    async getApplicationLogRaw(requestParameters: GetApplicationLogRequest): Promise<runtime.ApiResponse<ApplicationRequest>> {
+    async getApplicationLogRaw(requestParameters: GetApplicationLogRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationRequest>> {
         if (requestParameters.log === null || requestParameters.log === undefined) {
             throw new runtime.RequiredError('log','Required parameter requestParameters.log was null or undefined when calling getApplicationLog.');
         }
@@ -1552,7 +1554,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationLog.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.timestamp !== undefined) {
             queryParameters['timestamp'] = requestParameters.timestamp;
@@ -1568,7 +1570,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationRequestFromJSON(jsonValue));
     }
@@ -1576,15 +1578,15 @@ export class ApplicationsApi extends runtime.BaseAPI {
     /**
      * Get a specific log
      */
-    async getApplicationLog(requestParameters: GetApplicationLogRequest): Promise<ApplicationRequest> {
-        const response = await this.getApplicationLogRaw(requestParameters);
+    async getApplicationLog(requestParameters: GetApplicationLogRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationRequest> {
+        const response = await this.getApplicationLogRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get application logs
      */
-    async getApplicationLogsRaw(requestParameters: GetApplicationLogsRequest): Promise<runtime.ApiResponse<ApplicationRequestItemSearchLogResponse>> {
+    async getApplicationLogsRaw(requestParameters: GetApplicationLogsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationRequestItemSearchLogResponse>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationLogs.');
         }
@@ -1597,7 +1599,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationLogs.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -1637,7 +1639,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationRequestItemSearchLogResponseFromJSON(jsonValue));
     }
@@ -1645,8 +1647,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
     /**
      * Get application logs
      */
-    async getApplicationLogs(requestParameters: GetApplicationLogsRequest): Promise<ApplicationRequestItemSearchLogResponse> {
-        const response = await this.getApplicationLogsRaw(requestParameters);
+    async getApplicationLogs(requestParameters: GetApplicationLogsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationRequestItemSearchLogResponse> {
+        const response = await this.getApplicationLogsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1654,7 +1656,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_MEMBER permission to use this service
      * Get application members
      */
-    async getApplicationMemberPermissionsRaw(requestParameters: GetApplicationMemberPermissionsRequest): Promise<runtime.ApiResponse<Array<MemberEntity>>> {
+    async getApplicationMemberPermissionsRaw(requestParameters: GetApplicationMemberPermissionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<MemberEntity>>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationMemberPermissions.');
         }
@@ -1667,7 +1669,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationMemberPermissions.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1679,7 +1681,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(MemberEntityFromJSON));
     }
@@ -1688,8 +1690,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_MEMBER permission to use this service
      * Get application members
      */
-    async getApplicationMemberPermissions(requestParameters: GetApplicationMemberPermissionsRequest): Promise<Array<MemberEntity>> {
-        const response = await this.getApplicationMemberPermissionsRaw(requestParameters);
+    async getApplicationMemberPermissions(requestParameters: GetApplicationMemberPermissionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<MemberEntity>> {
+        const response = await this.getApplicationMemberPermissionsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1697,7 +1699,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * List application members
      */
-    async getApplicationMembersRaw(requestParameters: GetApplicationMembersRequest): Promise<runtime.ApiResponse<Array<MembershipListItem>>> {
+    async getApplicationMembersRaw(requestParameters: GetApplicationMembersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<MembershipListItem>>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationMembers.');
         }
@@ -1710,7 +1712,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationMembers.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1722,7 +1724,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(MembershipListItemFromJSON));
     }
@@ -1731,8 +1733,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * List application members
      */
-    async getApplicationMembers(requestParameters: GetApplicationMembersRequest): Promise<Array<MembershipListItem>> {
-        const response = await this.getApplicationMembersRaw(requestParameters);
+    async getApplicationMembers(requestParameters: GetApplicationMembersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<MembershipListItem>> {
+        const response = await this.getApplicationMembersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1740,7 +1742,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[READ] permission to use this service
      * A metadata for an application and metadata id
      */
-    async getApplicationMetadataRaw(requestParameters: GetApplicationMetadataRequest): Promise<runtime.ApiResponse<ApplicationMetadataEntity>> {
+    async getApplicationMetadataRaw(requestParameters: GetApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationMetadataEntity>> {
         if (requestParameters.metadata === null || requestParameters.metadata === undefined) {
             throw new runtime.RequiredError('metadata','Required parameter requestParameters.metadata was null or undefined when calling getApplicationMetadata.');
         }
@@ -1757,7 +1759,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1769,7 +1771,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationMetadataEntityFromJSON(jsonValue));
     }
@@ -1778,8 +1780,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[READ] permission to use this service
      * A metadata for an application and metadata id
      */
-    async getApplicationMetadata(requestParameters: GetApplicationMetadataRequest): Promise<ApplicationMetadataEntity> {
-        const response = await this.getApplicationMetadataRaw(requestParameters);
+    async getApplicationMetadata(requestParameters: GetApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationMetadataEntity> {
+        const response = await this.getApplicationMetadataRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1787,7 +1789,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[READ] permission to use this service
      * List metadata for an application
      */
-    async getApplicationMetadatasRaw(requestParameters: GetApplicationMetadatasRequest): Promise<runtime.ApiResponse<Array<ApplicationMetadataEntity>>> {
+    async getApplicationMetadatasRaw(requestParameters: GetApplicationMetadatasRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApplicationMetadataEntity>>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationMetadatas.');
         }
@@ -1800,7 +1802,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationMetadatas.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1812,7 +1814,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApplicationMetadataEntityFromJSON));
     }
@@ -1821,15 +1823,15 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[READ] permission to use this service
      * List metadata for an application
      */
-    async getApplicationMetadatas(requestParameters: GetApplicationMetadatasRequest): Promise<Array<ApplicationMetadataEntity>> {
-        const response = await this.getApplicationMetadatasRaw(requestParameters);
+    async getApplicationMetadatas(requestParameters: GetApplicationMetadatasRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApplicationMetadataEntity>> {
+        const response = await this.getApplicationMetadatasRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get notification settings
      */
-    async getApplicationNotificationSettingsRaw(requestParameters: GetApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<Array<any>>> {
+    async getApplicationNotificationSettingsRaw(requestParameters: GetApplicationNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<any>>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationNotificationSettings.');
         }
@@ -1842,7 +1844,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1854,7 +1856,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -1862,8 +1864,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
     /**
      * Get notification settings
      */
-    async getApplicationNotificationSettings(requestParameters: GetApplicationNotificationSettingsRequest): Promise<Array<any>> {
-        const response = await this.getApplicationNotificationSettingsRaw(requestParameters);
+    async getApplicationNotificationSettings(requestParameters: GetApplicationNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<any>> {
+        const response = await this.getApplicationNotificationSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1871,7 +1873,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_NOTIFICATION[READ] permission to use this service
      * List available notifiers for application
      */
-    async getApplicationNotifiersRaw(requestParameters: GetApplicationNotifiersRequest): Promise<runtime.ApiResponse<Array<NotifierEntity>>> {
+    async getApplicationNotifiersRaw(requestParameters: GetApplicationNotifiersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<NotifierEntity>>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationNotifiers.');
         }
@@ -1884,7 +1886,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationNotifiers.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1896,7 +1898,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(NotifierEntityFromJSON));
     }
@@ -1905,8 +1907,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_NOTIFICATION[READ] permission to use this service
      * List available notifiers for application
      */
-    async getApplicationNotifiers(requestParameters: GetApplicationNotifiersRequest): Promise<Array<NotifierEntity>> {
-        const response = await this.getApplicationNotifiersRaw(requestParameters);
+    async getApplicationNotifiers(requestParameters: GetApplicationNotifiersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<NotifierEntity>> {
+        const response = await this.getApplicationNotifiersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1914,7 +1916,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get the application\'s picture
      */
-    async getApplicationPictureRaw(requestParameters: GetApplicationPictureRequest): Promise<runtime.ApiResponse<Blob>> {
+    async getApplicationPictureRaw(requestParameters: GetApplicationPictureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationPicture.');
         }
@@ -1927,7 +1929,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationPicture.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1939,7 +1941,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.BlobApiResponse(response);
     }
@@ -1948,8 +1950,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get the application\'s picture
      */
-    async getApplicationPicture(requestParameters: GetApplicationPictureRequest): Promise<Blob> {
-        const response = await this.getApplicationPictureRaw(requestParameters);
+    async getApplicationPicture(requestParameters: GetApplicationPictureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getApplicationPictureRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1957,7 +1959,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get subscription information
      */
-    async getApplicationSubscriptionRaw(requestParameters: GetApplicationSubscriptionRequest): Promise<runtime.ApiResponse<Subscription>> {
+    async getApplicationSubscriptionRaw(requestParameters: GetApplicationSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
         if (requestParameters.subscription === null || requestParameters.subscription === undefined) {
             throw new runtime.RequiredError('subscription','Required parameter requestParameters.subscription was null or undefined when calling getApplicationSubscription.');
         }
@@ -1974,7 +1976,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1986,7 +1988,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionFromJSON(jsonValue));
     }
@@ -1995,8 +1997,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get subscription information
      */
-    async getApplicationSubscription(requestParameters: GetApplicationSubscriptionRequest): Promise<Subscription> {
-        const response = await this.getApplicationSubscriptionRaw(requestParameters);
+    async getApplicationSubscription(requestParameters: GetApplicationSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.getApplicationSubscriptionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2004,7 +2006,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ_SUBSCRIPTION permission to use this service
      * List subscriptions for the application
      */
-    async getApplicationSubscriptionsRaw(requestParameters: GetApplicationSubscriptionsRequest): Promise<runtime.ApiResponse<SubscriptionEntityPageResult>> {
+    async getApplicationSubscriptionsRaw(requestParameters: GetApplicationSubscriptionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubscriptionEntityPageResult>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationSubscriptions.');
         }
@@ -2017,7 +2019,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationSubscriptions.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.plan) {
             queryParameters['plan'] = requestParameters.plan.join(runtime.COLLECTION_FORMATS["csv"]);
@@ -2061,7 +2063,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionEntityPageResultFromJSON(jsonValue));
     }
@@ -2070,8 +2072,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ_SUBSCRIPTION permission to use this service
      * List subscriptions for the application
      */
-    async getApplicationSubscriptions(requestParameters: GetApplicationSubscriptionsRequest): Promise<SubscriptionEntityPageResult> {
-        const response = await this.getApplicationSubscriptionsRaw(requestParameters);
+    async getApplicationSubscriptions(requestParameters: GetApplicationSubscriptionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubscriptionEntityPageResult> {
+        const response = await this.getApplicationSubscriptionsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2079,7 +2081,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get application type definition of an application
      */
-    async getApplicationTypeRaw(requestParameters: GetApplicationTypeRequest): Promise<runtime.ApiResponse<ApplicationTypeEntity>> {
+    async getApplicationTypeRaw(requestParameters: GetApplicationTypeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationTypeEntity>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationType.');
         }
@@ -2092,7 +2094,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationType.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2104,7 +2106,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationTypeEntityFromJSON(jsonValue));
     }
@@ -2113,8 +2115,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get application type definition of an application
      */
-    async getApplicationType(requestParameters: GetApplicationTypeRequest): Promise<ApplicationTypeEntity> {
-        const response = await this.getApplicationTypeRaw(requestParameters);
+    async getApplicationType(requestParameters: GetApplicationTypeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationTypeEntity> {
+        const response = await this.getApplicationTypeRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2122,7 +2124,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.
      * List all the applications accessible to authenticated user
      */
-    async getApplicationsRaw(requestParameters: GetApplicationsRequest): Promise<runtime.ApiResponse<Array<ApplicationEntity>>> {
+    async getApplicationsRaw(requestParameters: GetApplicationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApplicationEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getApplications.');
         }
@@ -2131,7 +2133,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplications.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.group !== undefined) {
             queryParameters['group'] = requestParameters.group;
@@ -2159,7 +2161,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApplicationEntityFromJSON));
     }
@@ -2168,8 +2170,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.
      * List all the applications accessible to authenticated user
      */
-    async getApplications(requestParameters: GetApplicationsRequest): Promise<Array<ApplicationEntity>> {
-        const response = await this.getApplicationsRaw(requestParameters);
+    async getApplications(requestParameters: GetApplicationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApplicationEntity>> {
+        const response = await this.getApplicationsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2177,7 +2179,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.
      * List all the applications accessible to authenticated user
      */
-    async getApplicationsPagedRaw(requestParameters: GetApplicationsPagedRequest): Promise<runtime.ApiResponse<ApplicationListItemPagedResult>> {
+    async getApplicationsPagedRaw(requestParameters: GetApplicationsPagedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationListItemPagedResult>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getApplicationsPaged.');
         }
@@ -2186,7 +2188,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationsPaged.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.group !== undefined) {
             queryParameters['group'] = requestParameters.group;
@@ -2226,7 +2228,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationListItemPagedResultFromJSON(jsonValue));
     }
@@ -2235,8 +2237,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.
      * List all the applications accessible to authenticated user
      */
-    async getApplicationsPaged(requestParameters: GetApplicationsPagedRequest): Promise<ApplicationListItemPagedResult> {
-        const response = await this.getApplicationsPagedRaw(requestParameters);
+    async getApplicationsPaged(requestParameters: GetApplicationsPagedRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationListItemPagedResult> {
+        const response = await this.getApplicationsPagedRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2244,7 +2246,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGE_API_KEYS permission to use this service
      * Renew an API key
      */
-    async renewApiKeyForApplicationSubscriptionRaw(requestParameters: RenewApiKeyForApplicationSubscriptionRequest): Promise<runtime.ApiResponse<ApiKeyEntity>> {
+    async renewApiKeyForApplicationSubscriptionRaw(requestParameters: RenewApiKeyForApplicationSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiKeyEntity>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling renewApiKeyForApplicationSubscription.');
         }
@@ -2257,7 +2259,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling renewApiKeyForApplicationSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2269,7 +2271,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiKeyEntityFromJSON(jsonValue));
     }
@@ -2278,8 +2280,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGE_API_KEYS permission to use this service
      * Renew an API key
      */
-    async renewApiKeyForApplicationSubscription(requestParameters: RenewApiKeyForApplicationSubscriptionRequest): Promise<ApiKeyEntity> {
-        const response = await this.renewApiKeyForApplicationSubscriptionRaw(requestParameters);
+    async renewApiKeyForApplicationSubscription(requestParameters: RenewApiKeyForApplicationSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiKeyEntity> {
+        const response = await this.renewApiKeyForApplicationSubscriptionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2287,7 +2289,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGE_API_KEYS permission to use this service
      * Renew an API key
      */
-    async renewApiKeyForApplicationSubscription1Raw(requestParameters: RenewApiKeyForApplicationSubscription1Request): Promise<runtime.ApiResponse<ApiKeyEntity>> {
+    async renewApiKeyForApplicationSubscription1Raw(requestParameters: RenewApiKeyForApplicationSubscription1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiKeyEntity>> {
         if (requestParameters.subscription === null || requestParameters.subscription === undefined) {
             throw new runtime.RequiredError('subscription','Required parameter requestParameters.subscription was null or undefined when calling renewApiKeyForApplicationSubscription1.');
         }
@@ -2304,7 +2306,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling renewApiKeyForApplicationSubscription1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2316,7 +2318,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiKeyEntityFromJSON(jsonValue));
     }
@@ -2325,8 +2327,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGE_API_KEYS permission to use this service
      * Renew an API key
      */
-    async renewApiKeyForApplicationSubscription1(requestParameters: RenewApiKeyForApplicationSubscription1Request): Promise<ApiKeyEntity> {
-        const response = await this.renewApiKeyForApplicationSubscription1Raw(requestParameters);
+    async renewApiKeyForApplicationSubscription1(requestParameters: RenewApiKeyForApplicationSubscription1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiKeyEntity> {
+        const response = await this.renewApiKeyForApplicationSubscription1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2334,7 +2336,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have APPLICATION_DEFINITION[UPDATE] permission to update an application.
      * Renew the client secret for an OAuth2 application
      */
-    async renewApplicationClientSecretRaw(requestParameters: RenewApplicationClientSecretRequest): Promise<runtime.ApiResponse<ApplicationEntity>> {
+    async renewApplicationClientSecretRaw(requestParameters: RenewApplicationClientSecretRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationEntity>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling renewApplicationClientSecret.');
         }
@@ -2347,7 +2349,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling renewApplicationClientSecret.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2359,7 +2361,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationEntityFromJSON(jsonValue));
     }
@@ -2368,8 +2370,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have APPLICATION_DEFINITION[UPDATE] permission to update an application.
      * Renew the client secret for an OAuth2 application
      */
-    async renewApplicationClientSecret(requestParameters: RenewApplicationClientSecretRequest): Promise<ApplicationEntity> {
-        const response = await this.renewApplicationClientSecretRaw(requestParameters);
+    async renewApplicationClientSecret(requestParameters: RenewApplicationClientSecretRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationEntity> {
+        const response = await this.renewApplicationClientSecretRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2377,7 +2379,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have ORGANIZATION:ADMIN role to restore an application.
      * Restore the application
      */
-    async restoreApplicationRaw(requestParameters: RestoreApplicationRequest): Promise<runtime.ApiResponse<ApplicationEntity>> {
+    async restoreApplicationRaw(requestParameters: RestoreApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationEntity>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling restoreApplication.');
         }
@@ -2390,7 +2392,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling restoreApplication.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2402,7 +2404,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationEntityFromJSON(jsonValue));
     }
@@ -2411,8 +2413,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have ORGANIZATION:ADMIN role to restore an application.
      * Restore the application
      */
-    async restoreApplication(requestParameters: RestoreApplicationRequest): Promise<ApplicationEntity> {
-        const response = await this.restoreApplicationRaw(requestParameters);
+    async restoreApplication(requestParameters: RestoreApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationEntity> {
+        const response = await this.restoreApplicationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2420,7 +2422,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGE_API_KEYS permission to use this service
      * Revoke an API key
      */
-    async revokeApiKeyForApplicationRaw(requestParameters: RevokeApiKeyForApplicationRequest): Promise<runtime.ApiResponse<void>> {
+    async revokeApiKeyForApplicationRaw(requestParameters: RevokeApiKeyForApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.apikey === null || requestParameters.apikey === undefined) {
             throw new runtime.RequiredError('apikey','Required parameter requestParameters.apikey was null or undefined when calling revokeApiKeyForApplication.');
         }
@@ -2437,7 +2439,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling revokeApiKeyForApplication.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2449,7 +2451,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2458,15 +2460,15 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGE_API_KEYS permission to use this service
      * Revoke an API key
      */
-    async revokeApiKeyForApplication(requestParameters: RevokeApiKeyForApplicationRequest): Promise<void> {
-        await this.revokeApiKeyForApplicationRaw(requestParameters);
+    async revokeApiKeyForApplication(requestParameters: RevokeApiKeyForApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.revokeApiKeyForApplicationRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGE_API_KEYS permission to use this service
      * Revoke an API key
      */
-    async revokeApiKeyForApplicationSubscriptionRaw(requestParameters: RevokeApiKeyForApplicationSubscriptionRequest): Promise<runtime.ApiResponse<void>> {
+    async revokeApiKeyForApplicationSubscriptionRaw(requestParameters: RevokeApiKeyForApplicationSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.apikey === null || requestParameters.apikey === undefined) {
             throw new runtime.RequiredError('apikey','Required parameter requestParameters.apikey was null or undefined when calling revokeApiKeyForApplicationSubscription.');
         }
@@ -2487,7 +2489,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling revokeApiKeyForApplicationSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2499,7 +2501,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2508,15 +2510,15 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the MANAGE_API_KEYS permission to use this service
      * Revoke an API key
      */
-    async revokeApiKeyForApplicationSubscription(requestParameters: RevokeApiKeyForApplicationSubscriptionRequest): Promise<void> {
-        await this.revokeApiKeyForApplicationSubscriptionRaw(requestParameters);
+    async revokeApiKeyForApplicationSubscription(requestParameters: RevokeApiKeyForApplicationSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.revokeApiKeyForApplicationSubscriptionRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the TRANSFER_OWNERSHIP permission to use this service
      * Transfer the ownership of the APPLICATION
      */
-    async transferApplicationOwnershipRaw(requestParameters: TransferApplicationOwnershipRequest): Promise<runtime.ApiResponse<void>> {
+    async transferApplicationOwnershipRaw(requestParameters: TransferApplicationOwnershipRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling transferApplicationOwnership.');
         }
@@ -2533,7 +2535,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('transferOwnership','Required parameter requestParameters.transferOwnership was null or undefined when calling transferApplicationOwnership.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2548,7 +2550,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: TransferOwnershipToJSON(requestParameters.transferOwnership),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2557,15 +2559,15 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the TRANSFER_OWNERSHIP permission to use this service
      * Transfer the ownership of the APPLICATION
      */
-    async transferApplicationOwnership(requestParameters: TransferApplicationOwnershipRequest): Promise<void> {
-        await this.transferApplicationOwnershipRaw(requestParameters);
+    async transferApplicationOwnership(requestParameters: TransferApplicationOwnershipRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.transferApplicationOwnershipRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have APPLICATION_DEFINITION[UPDATE] permission to update an application.
      * Update an application
      */
-    async updateApplicationRaw(requestParameters: UpdateApplicationRequest): Promise<runtime.ApiResponse<ApplicationEntity>> {
+    async updateApplicationRaw(requestParameters: UpdateApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationEntity>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling updateApplication.');
         }
@@ -2582,7 +2584,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateApplicationEntity','Required parameter requestParameters.updateApplicationEntity was null or undefined when calling updateApplication.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2597,7 +2599,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateApplicationEntityToJSON(requestParameters.updateApplicationEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationEntityFromJSON(jsonValue));
     }
@@ -2606,8 +2608,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have APPLICATION_DEFINITION[UPDATE] permission to update an application.
      * Update an application
      */
-    async updateApplication(requestParameters: UpdateApplicationRequest): Promise<ApplicationEntity> {
-        const response = await this.updateApplicationRaw(requestParameters);
+    async updateApplication(requestParameters: UpdateApplicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationEntity> {
+        const response = await this.updateApplicationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2615,7 +2617,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_ALERT[UPDATE] permission to use this service
      * Update an alert for an application
      */
-    async updateApplicationAlertRaw(requestParameters: UpdateApplicationAlertRequest): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
+    async updateApplicationAlertRaw(requestParameters: UpdateApplicationAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
         if (requestParameters.alert === null || requestParameters.alert === undefined) {
             throw new runtime.RequiredError('alert','Required parameter requestParameters.alert was null or undefined when calling updateApplicationAlert.');
         }
@@ -2636,7 +2638,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateAlertTriggerEntity','Required parameter requestParameters.updateAlertTriggerEntity was null or undefined when calling updateApplicationAlert.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2651,7 +2653,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateAlertTriggerEntityToJSON(requestParameters.updateAlertTriggerEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AlertTriggerEntityFromJSON(jsonValue));
     }
@@ -2660,15 +2662,15 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_ALERT[UPDATE] permission to use this service
      * Update an alert for an application
      */
-    async updateApplicationAlert(requestParameters: UpdateApplicationAlertRequest): Promise<AlertTriggerEntity> {
-        const response = await this.updateApplicationAlertRaw(requestParameters);
+    async updateApplicationAlert(requestParameters: UpdateApplicationAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AlertTriggerEntity> {
+        const response = await this.updateApplicationAlertRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Update generic notification settings
      */
-    async updateApplicationGeneralNotificationSettingsRaw(requestParameters: UpdateApplicationGeneralNotificationSettingsRequest): Promise<runtime.ApiResponse<GenericNotificationConfigEntity>> {
+    async updateApplicationGeneralNotificationSettingsRaw(requestParameters: UpdateApplicationGeneralNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GenericNotificationConfigEntity>> {
         if (requestParameters.notificationId === null || requestParameters.notificationId === undefined) {
             throw new runtime.RequiredError('notificationId','Required parameter requestParameters.notificationId was null or undefined when calling updateApplicationGeneralNotificationSettings.');
         }
@@ -2685,7 +2687,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateApplicationGeneralNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2700,7 +2702,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: GenericNotificationConfigEntityToJSON(requestParameters.genericNotificationConfigEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => GenericNotificationConfigEntityFromJSON(jsonValue));
     }
@@ -2708,8 +2710,8 @@ export class ApplicationsApi extends runtime.BaseAPI {
     /**
      * Update generic notification settings
      */
-    async updateApplicationGeneralNotificationSettings(requestParameters: UpdateApplicationGeneralNotificationSettingsRequest): Promise<GenericNotificationConfigEntity> {
-        const response = await this.updateApplicationGeneralNotificationSettingsRaw(requestParameters);
+    async updateApplicationGeneralNotificationSettings(requestParameters: UpdateApplicationGeneralNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GenericNotificationConfigEntity> {
+        const response = await this.updateApplicationGeneralNotificationSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2717,7 +2719,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[UPDATE] permission to use this service
      * Update an application metadata
      */
-    async updateApplicationMetadataRaw(requestParameters: UpdateApplicationMetadataRequest): Promise<runtime.ApiResponse<ApplicationMetadataEntity>> {
+    async updateApplicationMetadataRaw(requestParameters: UpdateApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationMetadataEntity>> {
         if (requestParameters.metadata === null || requestParameters.metadata === undefined) {
             throw new runtime.RequiredError('metadata','Required parameter requestParameters.metadata was null or undefined when calling updateApplicationMetadata.');
         }
@@ -2738,7 +2740,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateApplicationMetadataEntity','Required parameter requestParameters.updateApplicationMetadataEntity was null or undefined when calling updateApplicationMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2753,7 +2755,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateApplicationMetadataEntityToJSON(requestParameters.updateApplicationMetadataEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationMetadataEntityFromJSON(jsonValue));
     }
@@ -2762,15 +2764,15 @@ export class ApplicationsApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[UPDATE] permission to use this service
      * Update an application metadata
      */
-    async updateApplicationMetadata(requestParameters: UpdateApplicationMetadataRequest): Promise<ApplicationMetadataEntity> {
-        const response = await this.updateApplicationMetadataRaw(requestParameters);
+    async updateApplicationMetadata(requestParameters: UpdateApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationMetadataEntity> {
+        const response = await this.updateApplicationMetadataRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Update portal notification settings
      */
-    async updateApplicationPortalNotificationSettingsRaw(requestParameters: UpdateApplicationPortalNotificationSettingsRequest): Promise<runtime.ApiResponse<PortalNotificationConfigEntity>> {
+    async updateApplicationPortalNotificationSettingsRaw(requestParameters: UpdateApplicationPortalNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PortalNotificationConfigEntity>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling updateApplicationPortalNotificationSettings.');
         }
@@ -2783,7 +2785,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateApplicationPortalNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2798,7 +2800,7 @@ export class ApplicationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: PortalNotificationConfigEntityToJSON(requestParameters.portalNotificationConfigEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PortalNotificationConfigEntityFromJSON(jsonValue));
     }
@@ -2806,34 +2808,34 @@ export class ApplicationsApi extends runtime.BaseAPI {
     /**
      * Update portal notification settings
      */
-    async updateApplicationPortalNotificationSettings(requestParameters: UpdateApplicationPortalNotificationSettingsRequest): Promise<PortalNotificationConfigEntity> {
-        const response = await this.updateApplicationPortalNotificationSettingsRaw(requestParameters);
+    async updateApplicationPortalNotificationSettings(requestParameters: UpdateApplicationPortalNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PortalNotificationConfigEntity> {
+        const response = await this.updateApplicationPortalNotificationSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
 }
 
 /**
-    * @export
-    * @enum {string}
-    */
-export enum GetApplicationSubscriptionsExpandEnum {
-    Keys = 'keys',
-    Security = 'security'
-}
+ * @export
+ */
+export const GetApplicationSubscriptionsExpandEnum = {
+    KEYS: 'keys',
+    SECURITY: 'security'
+} as const;
+export type GetApplicationSubscriptionsExpandEnum = typeof GetApplicationSubscriptionsExpandEnum[keyof typeof GetApplicationSubscriptionsExpandEnum];
 /**
-    * @export
-    * @enum {string}
-    */
-export enum GetApplicationsExcludeEnum {
-    PICTURE = 'PICTURE',
-    OWNER = 'OWNER'
-}
+ * @export
+ */
+export const GetApplicationsExcludeEnum = {
+    PICTURE: 'PICTURE',
+    OWNER: 'OWNER'
+} as const;
+export type GetApplicationsExcludeEnum = typeof GetApplicationsExcludeEnum[keyof typeof GetApplicationsExcludeEnum];
 /**
-    * @export
-    * @enum {string}
-    */
-export enum GetApplicationsPagedExcludeEnum {
-    PICTURE = 'PICTURE',
-    OWNER = 'OWNER'
-}
+ * @export
+ */
+export const GetApplicationsPagedExcludeEnum = {
+    PICTURE: 'PICTURE',
+    OWNER: 'OWNER'
+} as const;
+export type GetApplicationsPagedExcludeEnum = typeof GetApplicationsPagedExcludeEnum[keyof typeof GetApplicationsPagedExcludeEnum];

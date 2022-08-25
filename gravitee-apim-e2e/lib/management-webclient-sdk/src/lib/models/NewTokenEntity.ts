@@ -26,6 +26,16 @@ export interface NewTokenEntity {
     name: string;
 }
 
+/**
+ * Check if a given object implements the NewTokenEntity interface.
+ */
+export function instanceOfNewTokenEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function NewTokenEntityFromJSON(json: any): NewTokenEntity {
     return NewTokenEntityFromJSONTyped(json, false);
 }
@@ -52,5 +62,4 @@ export function NewTokenEntityToJSON(value?: NewTokenEntity | null): any {
         'name': value.name,
     };
 }
-
 

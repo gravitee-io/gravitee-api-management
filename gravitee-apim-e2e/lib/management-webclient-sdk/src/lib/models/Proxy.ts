@@ -12,28 +12,36 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Cors } from './Cors';
 import {
-    Cors,
     CorsFromJSON,
     CorsFromJSONTyped,
     CorsToJSON,
-    EndpointGroup,
+} from './Cors';
+import type { EndpointGroup } from './EndpointGroup';
+import {
     EndpointGroupFromJSON,
     EndpointGroupFromJSONTyped,
     EndpointGroupToJSON,
-    Failover,
+} from './EndpointGroup';
+import type { Failover } from './Failover';
+import {
     FailoverFromJSON,
     FailoverFromJSONTyped,
     FailoverToJSON,
-    Logging,
+} from './Failover';
+import type { Logging } from './Logging';
+import {
     LoggingFromJSON,
     LoggingFromJSONTyped,
     LoggingToJSON,
-    VirtualHost,
+} from './Logging';
+import type { VirtualHost } from './VirtualHost';
+import {
     VirtualHostFromJSON,
     VirtualHostFromJSONTyped,
     VirtualHostToJSON,
-} from './';
+} from './VirtualHost';
 
 /**
  * API's definition.
@@ -85,6 +93,15 @@ export interface Proxy {
     virtual_hosts?: Array<VirtualHost>;
 }
 
+/**
+ * Check if a given object implements the Proxy interface.
+ */
+export function instanceOfProxy(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ProxyFromJSON(json: any): Proxy {
     return ProxyFromJSONTyped(json, false);
 }
@@ -123,5 +140,4 @@ export function ProxyToJSON(value?: Proxy | null): any {
         'virtual_hosts': value.virtual_hosts === undefined ? undefined : ((value.virtual_hosts as Array<any>).map(VirtualHostToJSON)),
     };
 }
-
 

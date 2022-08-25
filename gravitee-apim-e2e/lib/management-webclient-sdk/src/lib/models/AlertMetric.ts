@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AlertThreshold } from './AlertThreshold';
 import {
-    AlertThreshold,
     AlertThresholdFromJSON,
     AlertThresholdFromJSONTyped,
     AlertThresholdToJSON,
-} from './';
+} from './AlertThreshold';
 
 /**
  * 
@@ -43,6 +43,15 @@ export interface AlertMetric {
      * @memberof AlertMetric
      */
     thresholds?: Array<AlertThreshold>;
+}
+
+/**
+ * Check if a given object implements the AlertMetric interface.
+ */
+export function instanceOfAlertMetric(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function AlertMetricFromJSON(json: any): AlertMetric {
@@ -75,5 +84,4 @@ export function AlertMetricToJSON(value?: AlertMetric | null): any {
         'thresholds': value.thresholds === undefined ? undefined : ((value.thresholds as Array<any>).map(AlertThresholdToJSON)),
     };
 }
-
 

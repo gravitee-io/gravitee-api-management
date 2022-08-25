@@ -12,36 +12,48 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AlertEventRuleEntity } from './AlertEventRuleEntity';
 import {
-    AlertEventRuleEntity,
     AlertEventRuleEntityFromJSON,
     AlertEventRuleEntityFromJSONTyped,
     AlertEventRuleEntityToJSON,
-    AlertReferenceType,
+} from './AlertEventRuleEntity';
+import type { AlertReferenceType } from './AlertReferenceType';
+import {
     AlertReferenceTypeFromJSON,
     AlertReferenceTypeFromJSONTyped,
     AlertReferenceTypeToJSON,
-    Condition,
+} from './AlertReferenceType';
+import type { Condition } from './Condition';
+import {
     ConditionFromJSON,
     ConditionFromJSONTyped,
     ConditionToJSON,
-    Dampening,
+} from './Condition';
+import type { Dampening } from './Dampening';
+import {
     DampeningFromJSON,
     DampeningFromJSONTyped,
     DampeningToJSON,
-    Filter,
+} from './Dampening';
+import type { Filter } from './Filter';
+import {
     FilterFromJSON,
     FilterFromJSONTyped,
     FilterToJSON,
-    Notification,
+} from './Filter';
+import type { Notification } from './Notification';
+import {
     NotificationFromJSON,
     NotificationFromJSONTyped,
     NotificationToJSON,
-    Period,
+} from './Notification';
+import type { Period } from './Period';
+import {
     PeriodFromJSON,
     PeriodFromJSONTyped,
     PeriodToJSON,
-} from './';
+} from './Period';
 
 /**
  * 
@@ -195,6 +207,27 @@ export interface AlertTriggerEntity {
     updated_at?: Date;
 }
 
+
+/**
+ * @export
+ */
+export const AlertTriggerEntitySeverityEnum = {
+    INFO: 'INFO',
+    WARNING: 'WARNING',
+    CRITICAL: 'CRITICAL'
+} as const;
+export type AlertTriggerEntitySeverityEnum = typeof AlertTriggerEntitySeverityEnum[keyof typeof AlertTriggerEntitySeverityEnum];
+
+
+/**
+ * Check if a given object implements the AlertTriggerEntity interface.
+ */
+export function instanceOfAlertTriggerEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function AlertTriggerEntityFromJSON(json: any): AlertTriggerEntity {
     return AlertTriggerEntityFromJSONTyped(json, false);
 }
@@ -267,15 +300,4 @@ export function AlertTriggerEntityToJSON(value?: AlertTriggerEntity | null): any
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum AlertTriggerEntitySeverityEnum {
-    INFO = 'INFO',
-    WARNING = 'WARNING',
-    CRITICAL = 'CRITICAL'
-}
-
 

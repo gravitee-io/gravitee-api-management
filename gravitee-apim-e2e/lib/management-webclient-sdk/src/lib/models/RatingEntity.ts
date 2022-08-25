@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { RatingAnswerEntity } from './RatingAnswerEntity';
 import {
-    RatingAnswerEntity,
     RatingAnswerEntityFromJSON,
     RatingAnswerEntityFromJSONTyped,
     RatingAnswerEntityToJSON,
-} from './';
+} from './RatingAnswerEntity';
 
 /**
  * 
@@ -87,6 +87,15 @@ export interface RatingEntity {
     userDisplayName?: string;
 }
 
+/**
+ * Check if a given object implements the RatingEntity interface.
+ */
+export function instanceOfRatingEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function RatingEntityFromJSON(json: any): RatingEntity {
     return RatingEntityFromJSONTyped(json, false);
 }
@@ -131,5 +140,4 @@ export function RatingEntityToJSON(value?: RatingEntity | null): any {
         'userDisplayName': value.userDisplayName,
     };
 }
-
 

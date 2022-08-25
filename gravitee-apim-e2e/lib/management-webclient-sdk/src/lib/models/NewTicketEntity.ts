@@ -50,6 +50,17 @@ export interface NewTicketEntity {
     subject: string;
 }
 
+/**
+ * Check if a given object implements the NewTicketEntity interface.
+ */
+export function instanceOfNewTicketEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "content" in value;
+    isInstance = isInstance && "subject" in value;
+
+    return isInstance;
+}
+
 export function NewTicketEntityFromJSON(json: any): NewTicketEntity {
     return NewTicketEntityFromJSONTyped(json, false);
 }
@@ -84,5 +95,4 @@ export function NewTicketEntityToJSON(value?: NewTicketEntity | null): any {
         'subject': value.subject,
     };
 }
-
 

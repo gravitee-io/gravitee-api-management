@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  EnvironmentEntity,
+  EnvironmentPermissionsEntity,
+  IdentityProviderActivationEntity,
+} from '../models';
 import {
-    EnvironmentEntity,
     EnvironmentEntityFromJSON,
     EnvironmentEntityToJSON,
-    EnvironmentPermissionsEntity,
     EnvironmentPermissionsEntityFromJSON,
     EnvironmentPermissionsEntityToJSON,
-    IdentityProviderActivationEntity,
     IdentityProviderActivationEntityFromJSON,
     IdentityProviderActivationEntityToJSON,
 } from '../models';
@@ -60,7 +62,7 @@ export class DefaultApi extends runtime.BaseAPI {
     /**
      * Get permissions on environment
      */
-    async getEnvironmentPermissionsRaw(requestParameters: GetEnvironmentPermissionsRequest): Promise<runtime.ApiResponse<{ [key: string]: Array<string>; }>> {
+    async getEnvironmentPermissionsRaw(requestParameters: GetEnvironmentPermissionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{ [key: string]: Array<string>; }>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getEnvironmentPermissions.');
         }
@@ -69,7 +71,7 @@ export class DefaultApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEnvironmentPermissions.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -81,7 +83,7 @@ export class DefaultApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -89,20 +91,20 @@ export class DefaultApi extends runtime.BaseAPI {
     /**
      * Get permissions on environment
      */
-    async getEnvironmentPermissions(requestParameters: GetEnvironmentPermissionsRequest): Promise<{ [key: string]: Array<string>; }> {
-        const response = await this.getEnvironmentPermissionsRaw(requestParameters);
+    async getEnvironmentPermissions(requestParameters: GetEnvironmentPermissionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{ [key: string]: Array<string>; }> {
+        const response = await this.getEnvironmentPermissionsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List available environments for current user organization
      */
-    async getEnvironmentsRaw(requestParameters: GetEnvironmentsRequest): Promise<runtime.ApiResponse<Array<EnvironmentEntity>>> {
+    async getEnvironmentsRaw(requestParameters: GetEnvironmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<EnvironmentEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEnvironments.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -114,7 +116,7 @@ export class DefaultApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(EnvironmentEntityFromJSON));
     }
@@ -122,20 +124,20 @@ export class DefaultApi extends runtime.BaseAPI {
     /**
      * List available environments for current user organization
      */
-    async getEnvironments(requestParameters: GetEnvironmentsRequest): Promise<Array<EnvironmentEntity>> {
-        const response = await this.getEnvironmentsRaw(requestParameters);
+    async getEnvironments(requestParameters: GetEnvironmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<EnvironmentEntity>> {
+        const response = await this.getEnvironmentsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List available environments with their permissions for current user organization
      */
-    async getEnvironmentsPermissionsRaw(requestParameters: GetEnvironmentsPermissionsRequest): Promise<runtime.ApiResponse<Array<EnvironmentPermissionsEntity>>> {
+    async getEnvironmentsPermissionsRaw(requestParameters: GetEnvironmentsPermissionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<EnvironmentPermissionsEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEnvironmentsPermissions.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.idOrHrid !== undefined) {
             queryParameters['idOrHrid'] = requestParameters.idOrHrid;
@@ -151,7 +153,7 @@ export class DefaultApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(EnvironmentPermissionsEntityFromJSON));
     }
@@ -159,8 +161,8 @@ export class DefaultApi extends runtime.BaseAPI {
     /**
      * List available environments with their permissions for current user organization
      */
-    async getEnvironmentsPermissions(requestParameters: GetEnvironmentsPermissionsRequest): Promise<Array<EnvironmentPermissionsEntity>> {
-        const response = await this.getEnvironmentsPermissionsRaw(requestParameters);
+    async getEnvironmentsPermissions(requestParameters: GetEnvironmentsPermissionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<EnvironmentPermissionsEntity>> {
+        const response = await this.getEnvironmentsPermissionsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -168,7 +170,7 @@ export class DefaultApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service
      * Get the list of identity provider activations for current environment
      */
-    async getIdentityProviderActivationsRaw(requestParameters: GetIdentityProviderActivationsRequest): Promise<runtime.ApiResponse<Array<IdentityProviderActivationEntity>>> {
+    async getIdentityProviderActivationsRaw(requestParameters: GetIdentityProviderActivationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<IdentityProviderActivationEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getIdentityProviderActivations.');
         }
@@ -177,7 +179,7 @@ export class DefaultApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getIdentityProviderActivations.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -189,7 +191,7 @@ export class DefaultApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(IdentityProviderActivationEntityFromJSON));
     }
@@ -198,8 +200,8 @@ export class DefaultApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service
      * Get the list of identity provider activations for current environment
      */
-    async getIdentityProviderActivations(requestParameters: GetIdentityProviderActivationsRequest): Promise<Array<IdentityProviderActivationEntity>> {
-        const response = await this.getIdentityProviderActivationsRaw(requestParameters);
+    async getIdentityProviderActivations(requestParameters: GetIdentityProviderActivationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<IdentityProviderActivationEntity>> {
+        const response = await this.getIdentityProviderActivationsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -207,12 +209,12 @@ export class DefaultApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service
      * Get the list of identity provider activations for current organization
      */
-    async listIdentityProviderActivationsRaw(requestParameters: ListIdentityProviderActivationsRequest): Promise<runtime.ApiResponse<Array<IdentityProviderActivationEntity>>> {
+    async listIdentityProviderActivationsRaw(requestParameters: ListIdentityProviderActivationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<IdentityProviderActivationEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling listIdentityProviderActivations.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -224,7 +226,7 @@ export class DefaultApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(IdentityProviderActivationEntityFromJSON));
     }
@@ -233,15 +235,15 @@ export class DefaultApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service
      * Get the list of identity provider activations for current organization
      */
-    async listIdentityProviderActivations(requestParameters: ListIdentityProviderActivationsRequest): Promise<Array<IdentityProviderActivationEntity>> {
-        const response = await this.listIdentityProviderActivationsRaw(requestParameters);
+    async listIdentityProviderActivations(requestParameters: ListIdentityProviderActivationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<IdentityProviderActivationEntity>> {
+        const response = await this.listIdentityProviderActivationsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async tokenExchangeRaw(requestParameters: TokenExchangeRequest): Promise<runtime.ApiResponse<void>> {
-        const queryParameters: runtime.HTTPQuery = {};
+    async tokenExchangeRaw(requestParameters: TokenExchangeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: any = {};
 
         if (requestParameters.token !== undefined) {
             queryParameters['token'] = requestParameters.token;
@@ -257,15 +259,15 @@ export class DefaultApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async tokenExchange(requestParameters: TokenExchangeRequest): Promise<void> {
-        await this.tokenExchangeRaw(requestParameters);
+    async tokenExchange(requestParameters: TokenExchangeRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.tokenExchangeRaw(requestParameters, initOverrides);
     }
 
 }

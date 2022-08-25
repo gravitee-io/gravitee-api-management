@@ -38,6 +38,15 @@ export interface MembershipListItem {
     role?: string;
 }
 
+/**
+ * Check if a given object implements the MembershipListItem interface.
+ */
+export function instanceOfMembershipListItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MembershipListItemFromJSON(json: any): MembershipListItem {
     return MembershipListItemFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function MembershipListItemToJSON(value?: MembershipListItem | null): any
         'role': value.role,
     };
 }
-
 

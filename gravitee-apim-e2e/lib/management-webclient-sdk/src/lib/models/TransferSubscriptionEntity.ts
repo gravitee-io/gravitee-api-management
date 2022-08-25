@@ -32,6 +32,16 @@ export interface TransferSubscriptionEntity {
     plan: string;
 }
 
+/**
+ * Check if a given object implements the TransferSubscriptionEntity interface.
+ */
+export function instanceOfTransferSubscriptionEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "plan" in value;
+
+    return isInstance;
+}
+
 export function TransferSubscriptionEntityFromJSON(json: any): TransferSubscriptionEntity {
     return TransferSubscriptionEntityFromJSONTyped(json, false);
 }
@@ -60,5 +70,4 @@ export function TransferSubscriptionEntityToJSON(value?: TransferSubscriptionEnt
         'plan': value.plan,
     };
 }
-
 

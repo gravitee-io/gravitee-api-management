@@ -44,6 +44,16 @@ export interface TagEntity {
     restricted_groups?: Array<string>;
 }
 
+/**
+ * Check if a given object implements the TagEntity interface.
+ */
+export function instanceOfTagEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function TagEntityFromJSON(json: any): TagEntity {
     return TagEntityFromJSONTyped(json, false);
 }
@@ -76,5 +86,4 @@ export function TagEntityToJSON(value?: TagEntity | null): any {
         'restricted_groups': value.restricted_groups,
     };
 }
-
 

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { PlatformRequestItem } from './PlatformRequestItem';
 import {
-    PlatformRequestItem,
     PlatformRequestItemFromJSON,
     PlatformRequestItemFromJSONTyped,
     PlatformRequestItemToJSON,
-} from './';
+} from './PlatformRequestItem';
 
 /**
  * 
@@ -43,6 +43,15 @@ export interface PlatformRequestItemSearchLogResponse {
      * @memberof PlatformRequestItemSearchLogResponse
      */
     total?: number;
+}
+
+/**
+ * Check if a given object implements the PlatformRequestItemSearchLogResponse interface.
+ */
+export function instanceOfPlatformRequestItemSearchLogResponse(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PlatformRequestItemSearchLogResponseFromJSON(json: any): PlatformRequestItemSearchLogResponse {
@@ -75,5 +84,4 @@ export function PlatformRequestItemSearchLogResponseToJSON(value?: PlatformReque
         'total': value.total,
     };
 }
-
 

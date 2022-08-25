@@ -177,7 +177,7 @@ async function createWithPlan(): Promise<{ api: ApiEntity; planId: string }> {
     orgId,
     envId,
     api: api.id,
-    newPlanEntity: PlansFaker.newPlan({ status: PlanStatus.PUBLISHED, security: PlanSecurityType.APIKEY }),
+    newPlanEntity: PlansFaker.newPlan({ status: PlanStatus.PUBLISHED, security: PlanSecurityType.API_KEY }),
   });
   return {
     api,

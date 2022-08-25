@@ -38,6 +38,16 @@ export interface PathV4 {
     path: string;
 }
 
+/**
+ * Check if a given object implements the PathV4 interface.
+ */
+export function instanceOfPathV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "path" in value;
+
+    return isInstance;
+}
+
 export function PathV4FromJSON(json: any): PathV4 {
     return PathV4FromJSONTyped(json, false);
 }
@@ -68,5 +78,4 @@ export function PathV4ToJSON(value?: PathV4 | null): any {
         'path': value.path,
     };
 }
-
 

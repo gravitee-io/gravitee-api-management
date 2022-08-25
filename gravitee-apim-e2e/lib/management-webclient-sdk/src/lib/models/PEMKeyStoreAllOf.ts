@@ -44,6 +44,15 @@ export interface PEMKeyStoreAllOf {
     certContent?: string;
 }
 
+/**
+ * Check if a given object implements the PEMKeyStoreAllOf interface.
+ */
+export function instanceOfPEMKeyStoreAllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PEMKeyStoreAllOfFromJSON(json: any): PEMKeyStoreAllOf {
     return PEMKeyStoreAllOfFromJSONTyped(json, false);
 }
@@ -76,5 +85,4 @@ export function PEMKeyStoreAllOfToJSON(value?: PEMKeyStoreAllOf | null): any {
         'certContent': value.certContent,
     };
 }
-
 

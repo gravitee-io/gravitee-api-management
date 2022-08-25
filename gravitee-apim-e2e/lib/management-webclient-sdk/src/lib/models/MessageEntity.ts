@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { MessageChannel } from './MessageChannel';
 import {
-    MessageChannel,
     MessageChannelFromJSON,
     MessageChannelFromJSONTyped,
     MessageChannelToJSON,
-    MessageRecipientEntity,
+} from './MessageChannel';
+import type { MessageRecipientEntity } from './MessageRecipientEntity';
+import {
     MessageRecipientEntityFromJSON,
     MessageRecipientEntityFromJSONTyped,
     MessageRecipientEntityToJSON,
-} from './';
+} from './MessageRecipientEntity';
 
 /**
  * 
@@ -67,6 +69,15 @@ export interface MessageEntity {
     useSystemProxy?: boolean;
 }
 
+/**
+ * Check if a given object implements the MessageEntity interface.
+ */
+export function instanceOfMessageEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MessageEntityFromJSON(json: any): MessageEntity {
     return MessageEntityFromJSONTyped(json, false);
 }
@@ -103,5 +114,4 @@ export function MessageEntityToJSON(value?: MessageEntity | null): any {
         'useSystemProxy': value.useSystemProxy,
     };
 }
-
 

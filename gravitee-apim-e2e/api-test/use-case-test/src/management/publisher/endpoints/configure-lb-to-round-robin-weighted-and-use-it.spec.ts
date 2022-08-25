@@ -64,7 +64,7 @@ describe('Configure LB to round robin weighted and use it', () => {
                   },
                 ],
                 load_balancing: {
-                  type: LoadBalancerTypeEnum.WEIGHTEDROUNDROBIN,
+                  type: LoadBalancerTypeEnum.WEIGHTED_ROUND_ROBIN,
                 },
               },
             ],

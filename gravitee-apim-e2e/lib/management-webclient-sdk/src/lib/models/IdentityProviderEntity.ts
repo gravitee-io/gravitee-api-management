@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { GroupMappingEntity } from './GroupMappingEntity';
 import {
-    GroupMappingEntity,
     GroupMappingEntityFromJSON,
     GroupMappingEntityFromJSONTyped,
     GroupMappingEntityToJSON,
-    IdentityProviderType,
+} from './GroupMappingEntity';
+import type { IdentityProviderType } from './IdentityProviderType';
+import {
     IdentityProviderTypeFromJSON,
     IdentityProviderTypeFromJSONTyped,
     IdentityProviderTypeToJSON,
-    RoleMappingEntity,
+} from './IdentityProviderType';
+import type { RoleMappingEntity } from './RoleMappingEntity';
+import {
     RoleMappingEntityFromJSON,
     RoleMappingEntityFromJSONTyped,
     RoleMappingEntityToJSON,
-} from './';
+} from './RoleMappingEntity';
 
 /**
  * 
@@ -119,6 +123,15 @@ export interface IdentityProviderEntity {
     userProfileMapping?: { [key: string]: string; };
 }
 
+/**
+ * Check if a given object implements the IdentityProviderEntity interface.
+ */
+export function instanceOfIdentityProviderEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function IdentityProviderEntityFromJSON(json: any): IdentityProviderEntity {
     return IdentityProviderEntityFromJSONTyped(json, false);
 }
@@ -171,5 +184,4 @@ export function IdentityProviderEntityToJSON(value?: IdentityProviderEntity | nu
         'userProfileMapping': value.userProfileMapping,
     };
 }
-
 

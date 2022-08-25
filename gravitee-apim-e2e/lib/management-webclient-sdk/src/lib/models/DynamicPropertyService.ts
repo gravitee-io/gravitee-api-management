@@ -44,6 +44,25 @@ export interface DynamicPropertyService {
     schedule?: string;
 }
 
+
+/**
+ * @export
+ */
+export const DynamicPropertyServiceProviderEnum = {
+    HTTP: 'HTTP'
+} as const;
+export type DynamicPropertyServiceProviderEnum = typeof DynamicPropertyServiceProviderEnum[keyof typeof DynamicPropertyServiceProviderEnum];
+
+
+/**
+ * Check if a given object implements the DynamicPropertyService interface.
+ */
+export function instanceOfDynamicPropertyService(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function DynamicPropertyServiceFromJSON(json: any): DynamicPropertyService {
     return DynamicPropertyServiceFromJSONTyped(json, false);
 }
@@ -76,13 +95,4 @@ export function DynamicPropertyServiceToJSON(value?: DynamicPropertyService | nu
         'schedule': value.schedule,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum DynamicPropertyServiceProviderEnum {
-    HTTP = 'HTTP'
-}
-
 

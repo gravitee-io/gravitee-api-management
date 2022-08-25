@@ -32,6 +32,17 @@ export interface DictionaryProviderEntity {
     type: string;
 }
 
+/**
+ * Check if a given object implements the DictionaryProviderEntity interface.
+ */
+export function instanceOfDictionaryProviderEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "configuration" in value;
+    isInstance = isInstance && "type" in value;
+
+    return isInstance;
+}
+
 export function DictionaryProviderEntityFromJSON(json: any): DictionaryProviderEntity {
     return DictionaryProviderEntityFromJSONTyped(json, false);
 }
@@ -60,5 +71,4 @@ export function DictionaryProviderEntityToJSON(value?: DictionaryProviderEntity 
         'type': value.type,
     };
 }
-
 

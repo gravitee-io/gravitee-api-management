@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum NotificationConfigType {
-    PORTAL = 'PORTAL',
-    GENERIC = 'GENERIC'
-}
+export const NotificationConfigType = {
+    PORTAL: 'PORTAL',
+    GENERIC: 'GENERIC'
+} as const;
+export type NotificationConfigType = typeof NotificationConfigType[keyof typeof NotificationConfigType];
+
 
 export function NotificationConfigTypeFromJSON(json: any): NotificationConfigType {
     return NotificationConfigTypeFromJSONTyped(json, false);

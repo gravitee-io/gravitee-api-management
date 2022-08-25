@@ -64,7 +64,8 @@ import lombok.experimental.FieldNameConstants;
         @DiscriminatorMapping(value = HTTP_LABEL, schema = ListenerHttp.class),
         @DiscriminatorMapping(value = TCP_LABEL, schema = ListenerTcp.class),
         @DiscriminatorMapping(value = SUBSCRIPTION_LABEL, schema = ListenerSubscription.class),
-    }
+    },
+    oneOf = { ListenerHttp.class, ListenerTcp.class, ListenerSubscription.class }
 )
 public abstract class Listener implements Serializable {
 

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Projection } from './Projection';
 import {
-    Projection,
     ProjectionFromJSON,
     ProjectionFromJSONTyped,
     ProjectionToJSON,
-} from './';
+} from './Projection';
 
 /**
  * 
@@ -37,6 +37,33 @@ export interface Filter {
      * @memberof Filter
      */
     type?: FilterTypeEnum;
+}
+
+
+/**
+ * @export
+ */
+export const FilterTypeEnum = {
+    STRING: 'STRING',
+    THRESHOLD: 'THRESHOLD',
+    THRESHOLD_RANGE: 'THRESHOLD_RANGE',
+    RATE: 'RATE',
+    FREQUENCY: 'FREQUENCY',
+    AGGREGATION: 'AGGREGATION',
+    COMPARE: 'COMPARE',
+    STRING_COMPARE: 'STRING_COMPARE',
+    MISSING_DATA: 'MISSING_DATA'
+} as const;
+export type FilterTypeEnum = typeof FilterTypeEnum[keyof typeof FilterTypeEnum];
+
+
+/**
+ * Check if a given object implements the Filter interface.
+ */
+export function instanceOfFilter(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function FilterFromJSON(json: any): Filter {
@@ -67,21 +94,4 @@ export function FilterToJSON(value?: Filter | null): any {
         'type': value.type,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum FilterTypeEnum {
-    STRING = 'STRING',
-    THRESHOLD = 'THRESHOLD',
-    THRESHOLDRANGE = 'THRESHOLD_RANGE',
-    RATE = 'RATE',
-    FREQUENCY = 'FREQUENCY',
-    AGGREGATION = 'AGGREGATION',
-    COMPARE = 'COMPARE',
-    STRINGCOMPARE = 'STRING_COMPARE',
-    MISSINGDATA = 'MISSING_DATA'
-}
-
 

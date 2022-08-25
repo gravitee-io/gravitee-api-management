@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { EndpointHealthCheckService } from './EndpointHealthCheckService';
 import {
-    EndpointHealthCheckService,
     EndpointHealthCheckServiceFromJSON,
     EndpointHealthCheckServiceFromJSONTyped,
     EndpointHealthCheckServiceToJSON,
-} from './';
+} from './EndpointHealthCheckService';
 
 /**
  * 
@@ -75,6 +75,15 @@ export interface Endpoint {
     weight?: number;
 }
 
+/**
+ * Check if a given object implements the Endpoint interface.
+ */
+export function instanceOfEndpoint(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function EndpointFromJSON(json: any): Endpoint {
     return EndpointFromJSONTyped(json, false);
 }
@@ -115,5 +124,4 @@ export function EndpointToJSON(value?: Endpoint | null): any {
         'weight': value.weight,
     };
 }
-
 

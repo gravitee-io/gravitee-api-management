@@ -13,32 +13,34 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ConnectorListItem,
+  FetcherEntity,
+  FetcherListItem,
+  NotifierEntity,
+  NotifierListItem,
+  PlatformPluginEntity,
+  PolicyEntity,
+  PolicyListItem,
+  ResourceListItem,
+} from '../models';
 import {
-    ConnectorListItem,
     ConnectorListItemFromJSON,
     ConnectorListItemToJSON,
-    FetcherEntity,
     FetcherEntityFromJSON,
     FetcherEntityToJSON,
-    FetcherListItem,
     FetcherListItemFromJSON,
     FetcherListItemToJSON,
-    NotifierEntity,
     NotifierEntityFromJSON,
     NotifierEntityToJSON,
-    NotifierListItem,
     NotifierListItemFromJSON,
     NotifierListItemToJSON,
-    PlatformPluginEntity,
     PlatformPluginEntityFromJSON,
     PlatformPluginEntityToJSON,
-    PolicyEntity,
     PolicyEntityFromJSON,
     PolicyEntityToJSON,
-    PolicyListItem,
     PolicyListItemFromJSON,
     PolicyListItemToJSON,
-    ResourceListItem,
     ResourceListItemFromJSON,
     ResourceListItemToJSON,
 } from '../models';
@@ -191,7 +193,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * Get a connector
      */
-    async getConnectorRaw(requestParameters: GetConnectorRequest): Promise<runtime.ApiResponse<PlatformPluginEntity>> {
+    async getConnectorRaw(requestParameters: GetConnectorRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlatformPluginEntity>> {
         if (requestParameters.connector === null || requestParameters.connector === undefined) {
             throw new runtime.RequiredError('connector','Required parameter requestParameters.connector was null or undefined when calling getConnector.');
         }
@@ -204,7 +206,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getConnector.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -216,7 +218,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlatformPluginEntityFromJSON(jsonValue));
     }
@@ -225,8 +227,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * Get a connector
      */
-    async getConnector(requestParameters: GetConnectorRequest): Promise<PlatformPluginEntity> {
-        const response = await this.getConnectorRaw(requestParameters);
+    async getConnector(requestParameters: GetConnectorRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlatformPluginEntity> {
+        const response = await this.getConnectorRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -234,7 +236,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * Get a connector\'s documentation
      */
-    async getConnectorDocRaw(requestParameters: GetConnectorDocRequest): Promise<runtime.ApiResponse<string>> {
+    async getConnectorDocRaw(requestParameters: GetConnectorDocRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.connector === null || requestParameters.connector === undefined) {
             throw new runtime.RequiredError('connector','Required parameter requestParameters.connector was null or undefined when calling getConnectorDoc.');
         }
@@ -247,7 +249,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getConnectorDoc.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -259,7 +261,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -268,8 +270,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * Get a connector\'s documentation
      */
-    async getConnectorDoc(requestParameters: GetConnectorDocRequest): Promise<string> {
-        const response = await this.getConnectorDocRaw(requestParameters);
+    async getConnectorDoc(requestParameters: GetConnectorDocRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getConnectorDocRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -277,7 +279,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * Get a connector\'s schema
      */
-    async getConnectorSchemaRaw(requestParameters: GetConnectorSchemaRequest): Promise<runtime.ApiResponse<string>> {
+    async getConnectorSchemaRaw(requestParameters: GetConnectorSchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.connector === null || requestParameters.connector === undefined) {
             throw new runtime.RequiredError('connector','Required parameter requestParameters.connector was null or undefined when calling getConnectorSchema.');
         }
@@ -290,7 +292,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getConnectorSchema.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -302,7 +304,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -311,8 +313,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * Get a connector\'s schema
      */
-    async getConnectorSchema(requestParameters: GetConnectorSchemaRequest): Promise<string> {
-        const response = await this.getConnectorSchemaRaw(requestParameters);
+    async getConnectorSchema(requestParameters: GetConnectorSchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getConnectorSchemaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -320,7 +322,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * List connector plugins
      */
-    async getConnectorsRaw(requestParameters: GetConnectorsRequest): Promise<runtime.ApiResponse<Array<ConnectorListItem>>> {
+    async getConnectorsRaw(requestParameters: GetConnectorsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ConnectorListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getConnectors.');
         }
@@ -329,7 +331,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getConnectors.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.expand) {
             queryParameters['expand'] = requestParameters.expand;
@@ -345,7 +347,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ConnectorListItemFromJSON));
     }
@@ -354,15 +356,15 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * List connector plugins
      */
-    async getConnectors(requestParameters: GetConnectorsRequest): Promise<Array<ConnectorListItem>> {
-        const response = await this.getConnectorsRaw(requestParameters);
+    async getConnectors(requestParameters: GetConnectorsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ConnectorListItem>> {
+        const response = await this.getConnectorsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get a fetcher plugin
      */
-    async getFetcherRaw(requestParameters: GetFetcherRequest): Promise<runtime.ApiResponse<FetcherEntity>> {
+    async getFetcherRaw(requestParameters: GetFetcherRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<FetcherEntity>> {
         if (requestParameters.fetcher === null || requestParameters.fetcher === undefined) {
             throw new runtime.RequiredError('fetcher','Required parameter requestParameters.fetcher was null or undefined when calling getFetcher.');
         }
@@ -375,7 +377,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getFetcher.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -387,7 +389,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => FetcherEntityFromJSON(jsonValue));
     }
@@ -395,15 +397,15 @@ export class PluginsApi extends runtime.BaseAPI {
     /**
      * Get a fetcher plugin
      */
-    async getFetcher(requestParameters: GetFetcherRequest): Promise<FetcherEntity> {
-        const response = await this.getFetcherRaw(requestParameters);
+    async getFetcher(requestParameters: GetFetcherRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<FetcherEntity> {
+        const response = await this.getFetcherRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get a fetcher plugin\'s schema
      */
-    async getFetcherSchemaRaw(requestParameters: GetFetcherSchemaRequest): Promise<runtime.ApiResponse<string>> {
+    async getFetcherSchemaRaw(requestParameters: GetFetcherSchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.fetcher === null || requestParameters.fetcher === undefined) {
             throw new runtime.RequiredError('fetcher','Required parameter requestParameters.fetcher was null or undefined when calling getFetcherSchema.');
         }
@@ -416,7 +418,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getFetcherSchema.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -428,7 +430,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -436,15 +438,15 @@ export class PluginsApi extends runtime.BaseAPI {
     /**
      * Get a fetcher plugin\'s schema
      */
-    async getFetcherSchema(requestParameters: GetFetcherSchemaRequest): Promise<string> {
-        const response = await this.getFetcherSchemaRaw(requestParameters);
+    async getFetcherSchema(requestParameters: GetFetcherSchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getFetcherSchemaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List of fetcher plugins
      */
-    async getFetchersRaw(requestParameters: GetFetchersRequest): Promise<runtime.ApiResponse<Array<FetcherListItem>>> {
+    async getFetchersRaw(requestParameters: GetFetchersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<FetcherListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getFetchers.');
         }
@@ -453,7 +455,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getFetchers.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.expand) {
             queryParameters['expand'] = requestParameters.expand.join(runtime.COLLECTION_FORMATS["csv"]);
@@ -473,7 +475,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(FetcherListItemFromJSON));
     }
@@ -481,8 +483,8 @@ export class PluginsApi extends runtime.BaseAPI {
     /**
      * List of fetcher plugins
      */
-    async getFetchers(requestParameters: GetFetchersRequest): Promise<Array<FetcherListItem>> {
-        const response = await this.getFetchersRaw(requestParameters);
+    async getFetchers(requestParameters: GetFetchersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<FetcherListItem>> {
+        const response = await this.getFetchersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -490,7 +492,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a notifier
      */
-    async getNotifierRaw(requestParameters: GetNotifierRequest): Promise<runtime.ApiResponse<NotifierEntity>> {
+    async getNotifierRaw(requestParameters: GetNotifierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NotifierEntity>> {
         if (requestParameters.notifier === null || requestParameters.notifier === undefined) {
             throw new runtime.RequiredError('notifier','Required parameter requestParameters.notifier was null or undefined when calling getNotifier.');
         }
@@ -503,7 +505,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getNotifier.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -515,7 +517,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => NotifierEntityFromJSON(jsonValue));
     }
@@ -524,8 +526,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a notifier
      */
-    async getNotifier(requestParameters: GetNotifierRequest): Promise<NotifierEntity> {
-        const response = await this.getNotifierRaw(requestParameters);
+    async getNotifier(requestParameters: GetNotifierRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NotifierEntity> {
+        const response = await this.getNotifierRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -533,7 +535,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a notifier\'s schema
      */
-    async getNotifierSchemaRaw(requestParameters: GetNotifierSchemaRequest): Promise<runtime.ApiResponse<string>> {
+    async getNotifierSchemaRaw(requestParameters: GetNotifierSchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.notifier === null || requestParameters.notifier === undefined) {
             throw new runtime.RequiredError('notifier','Required parameter requestParameters.notifier was null or undefined when calling getNotifierSchema.');
         }
@@ -546,7 +548,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getNotifierSchema.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -558,7 +560,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -567,8 +569,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a notifier\'s schema
      */
-    async getNotifierSchema(requestParameters: GetNotifierSchemaRequest): Promise<string> {
-        const response = await this.getNotifierSchemaRaw(requestParameters);
+    async getNotifierSchema(requestParameters: GetNotifierSchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getNotifierSchemaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -576,7 +578,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * List notifier plugins
      */
-    async getNotifiersRaw(requestParameters: GetNotifiersRequest): Promise<runtime.ApiResponse<Array<NotifierListItem>>> {
+    async getNotifiersRaw(requestParameters: GetNotifiersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<NotifierListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getNotifiers.');
         }
@@ -585,7 +587,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getNotifiers.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.expand) {
             queryParameters['expand'] = requestParameters.expand;
@@ -601,7 +603,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(NotifierListItemFromJSON));
     }
@@ -610,8 +612,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * List notifier plugins
      */
-    async getNotifiers(requestParameters: GetNotifiersRequest): Promise<Array<NotifierListItem>> {
-        const response = await this.getNotifiersRaw(requestParameters);
+    async getNotifiers(requestParameters: GetNotifiersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<NotifierListItem>> {
+        const response = await this.getNotifiersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -619,7 +621,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * List policies
      */
-    async getPoliciesRaw(requestParameters: GetPoliciesRequest): Promise<runtime.ApiResponse<Array<PolicyListItem>>> {
+    async getPoliciesRaw(requestParameters: GetPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<PolicyListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPolicies.');
         }
@@ -628,7 +630,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPolicies.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.expand) {
             queryParameters['expand'] = requestParameters.expand;
@@ -648,7 +650,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PolicyListItemFromJSON));
     }
@@ -657,8 +659,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * List policies
      */
-    async getPolicies(requestParameters: GetPoliciesRequest): Promise<Array<PolicyListItem>> {
-        const response = await this.getPoliciesRaw(requestParameters);
+    async getPolicies(requestParameters: GetPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<PolicyListItem>> {
+        const response = await this.getPoliciesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -666,7 +668,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a policy
      */
-    async getPolicyRaw(requestParameters: GetPolicyRequest): Promise<runtime.ApiResponse<PolicyEntity>> {
+    async getPolicyRaw(requestParameters: GetPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PolicyEntity>> {
         if (requestParameters.policy === null || requestParameters.policy === undefined) {
             throw new runtime.RequiredError('policy','Required parameter requestParameters.policy was null or undefined when calling getPolicy.');
         }
@@ -679,7 +681,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPolicy.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -691,7 +693,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PolicyEntityFromJSON(jsonValue));
     }
@@ -700,8 +702,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a policy
      */
-    async getPolicy(requestParameters: GetPolicyRequest): Promise<PolicyEntity> {
-        const response = await this.getPolicyRaw(requestParameters);
+    async getPolicy(requestParameters: GetPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PolicyEntity> {
+        const response = await this.getPolicyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -709,7 +711,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a policy\'s documentation
      */
-    async getPolicyDocRaw(requestParameters: GetPolicyDocRequest): Promise<runtime.ApiResponse<string>> {
+    async getPolicyDocRaw(requestParameters: GetPolicyDocRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.policy === null || requestParameters.policy === undefined) {
             throw new runtime.RequiredError('policy','Required parameter requestParameters.policy was null or undefined when calling getPolicyDoc.');
         }
@@ -722,7 +724,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPolicyDoc.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -734,7 +736,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -743,8 +745,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a policy\'s documentation
      */
-    async getPolicyDoc(requestParameters: GetPolicyDocRequest): Promise<string> {
-        const response = await this.getPolicyDocRaw(requestParameters);
+    async getPolicyDoc(requestParameters: GetPolicyDocRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getPolicyDocRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -752,7 +754,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a policy\'s icon
      */
-    async getPolicyIconRaw(requestParameters: GetPolicyIconRequest): Promise<runtime.ApiResponse<string>> {
+    async getPolicyIconRaw(requestParameters: GetPolicyIconRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.policy === null || requestParameters.policy === undefined) {
             throw new runtime.RequiredError('policy','Required parameter requestParameters.policy was null or undefined when calling getPolicyIcon.');
         }
@@ -765,7 +767,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPolicyIcon.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -777,7 +779,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -786,8 +788,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a policy\'s icon
      */
-    async getPolicyIcon(requestParameters: GetPolicyIconRequest): Promise<string> {
-        const response = await this.getPolicyIconRaw(requestParameters);
+    async getPolicyIcon(requestParameters: GetPolicyIconRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getPolicyIconRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -795,7 +797,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a policy\'s schema
      */
-    async getPolicySchemaRaw(requestParameters: GetPolicySchemaRequest): Promise<runtime.ApiResponse<string>> {
+    async getPolicySchemaRaw(requestParameters: GetPolicySchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.policy === null || requestParameters.policy === undefined) {
             throw new runtime.RequiredError('policy','Required parameter requestParameters.policy was null or undefined when calling getPolicySchema.');
         }
@@ -808,7 +810,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPolicySchema.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -820,7 +822,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -829,8 +831,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a policy\'s schema
      */
-    async getPolicySchema(requestParameters: GetPolicySchemaRequest): Promise<string> {
-        const response = await this.getPolicySchemaRaw(requestParameters);
+    async getPolicySchema(requestParameters: GetPolicySchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getPolicySchemaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -838,7 +840,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a resource
      */
-    async getResourceRaw(requestParameters: GetResourceRequest): Promise<runtime.ApiResponse<PlatformPluginEntity>> {
+    async getResourceRaw(requestParameters: GetResourceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlatformPluginEntity>> {
         if (requestParameters.resource === null || requestParameters.resource === undefined) {
             throw new runtime.RequiredError('resource','Required parameter requestParameters.resource was null or undefined when calling getResource.');
         }
@@ -851,7 +853,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getResource.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -863,7 +865,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlatformPluginEntityFromJSON(jsonValue));
     }
@@ -872,8 +874,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a resource
      */
-    async getResource(requestParameters: GetResourceRequest): Promise<PlatformPluginEntity> {
-        const response = await this.getResourceRaw(requestParameters);
+    async getResource(requestParameters: GetResourceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlatformPluginEntity> {
+        const response = await this.getResourceRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -881,7 +883,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a resource\'s documentation
      */
-    async getResourceDocRaw(requestParameters: GetResourceDocRequest): Promise<runtime.ApiResponse<string>> {
+    async getResourceDocRaw(requestParameters: GetResourceDocRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.resource === null || requestParameters.resource === undefined) {
             throw new runtime.RequiredError('resource','Required parameter requestParameters.resource was null or undefined when calling getResourceDoc.');
         }
@@ -894,7 +896,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getResourceDoc.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -906,7 +908,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -915,8 +917,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a resource\'s documentation
      */
-    async getResourceDoc(requestParameters: GetResourceDocRequest): Promise<string> {
-        const response = await this.getResourceDocRaw(requestParameters);
+    async getResourceDoc(requestParameters: GetResourceDocRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getResourceDocRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -924,7 +926,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a resource\'s schema
      */
-    async getResourceSchemaRaw(requestParameters: GetResourceSchemaRequest): Promise<runtime.ApiResponse<string>> {
+    async getResourceSchemaRaw(requestParameters: GetResourceSchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.resource === null || requestParameters.resource === undefined) {
             throw new runtime.RequiredError('resource','Required parameter requestParameters.resource was null or undefined when calling getResourceSchema.');
         }
@@ -937,7 +939,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getResourceSchema.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -949,7 +951,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -958,8 +960,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a resource\'s schema
      */
-    async getResourceSchema(requestParameters: GetResourceSchemaRequest): Promise<string> {
-        const response = await this.getResourceSchemaRaw(requestParameters);
+    async getResourceSchema(requestParameters: GetResourceSchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getResourceSchemaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -967,7 +969,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * List resource plugins
      */
-    async getResourcesRaw(requestParameters: GetResourcesRequest): Promise<runtime.ApiResponse<Array<ResourceListItem>>> {
+    async getResourcesRaw(requestParameters: GetResourcesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ResourceListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getResources.');
         }
@@ -976,7 +978,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getResources.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.expand) {
             queryParameters['expand'] = requestParameters.expand;
@@ -992,7 +994,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ResourceListItemFromJSON));
     }
@@ -1001,8 +1003,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * List resource plugins
      */
-    async getResources(requestParameters: GetResourcesRequest): Promise<Array<ResourceListItem>> {
-        const response = await this.getResourcesRaw(requestParameters);
+    async getResources(requestParameters: GetResourcesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ResourceListItem>> {
+        const response = await this.getResourcesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1010,7 +1012,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a service discovery
      */
-    async getServiceDiscoveryRaw(requestParameters: GetServiceDiscoveryRequest): Promise<runtime.ApiResponse<PlatformPluginEntity>> {
+    async getServiceDiscoveryRaw(requestParameters: GetServiceDiscoveryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlatformPluginEntity>> {
         if (requestParameters.plugin === null || requestParameters.plugin === undefined) {
             throw new runtime.RequiredError('plugin','Required parameter requestParameters.plugin was null or undefined when calling getServiceDiscovery.');
         }
@@ -1023,7 +1025,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getServiceDiscovery.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1035,7 +1037,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlatformPluginEntityFromJSON(jsonValue));
     }
@@ -1044,8 +1046,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a service discovery
      */
-    async getServiceDiscovery(requestParameters: GetServiceDiscoveryRequest): Promise<PlatformPluginEntity> {
-        const response = await this.getServiceDiscoveryRaw(requestParameters);
+    async getServiceDiscovery(requestParameters: GetServiceDiscoveryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlatformPluginEntity> {
+        const response = await this.getServiceDiscoveryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1053,7 +1055,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a service discovery\'s schema
      */
-    async getServiceDiscoverySchemaRaw(requestParameters: GetServiceDiscoverySchemaRequest): Promise<runtime.ApiResponse<string>> {
+    async getServiceDiscoverySchemaRaw(requestParameters: GetServiceDiscoverySchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.plugin === null || requestParameters.plugin === undefined) {
             throw new runtime.RequiredError('plugin','Required parameter requestParameters.plugin was null or undefined when calling getServiceDiscoverySchema.');
         }
@@ -1066,7 +1068,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getServiceDiscoverySchema.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1078,7 +1080,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -1087,8 +1089,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * Get a service discovery\'s schema
      */
-    async getServiceDiscoverySchema(requestParameters: GetServiceDiscoverySchemaRequest): Promise<string> {
-        const response = await this.getServiceDiscoverySchemaRaw(requestParameters);
+    async getServiceDiscoverySchema(requestParameters: GetServiceDiscoverySchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getServiceDiscoverySchemaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1096,7 +1098,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * List service discovery plugins
      */
-    async getServicesDiscoverResourcesRaw(requestParameters: GetServicesDiscoverResourcesRequest): Promise<runtime.ApiResponse<Array<ResourceListItem>>> {
+    async getServicesDiscoverResourcesRaw(requestParameters: GetServicesDiscoverResourcesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ResourceListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getServicesDiscoverResources.');
         }
@@ -1105,7 +1107,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getServicesDiscoverResources.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.expand) {
             queryParameters['expand'] = requestParameters.expand;
@@ -1121,7 +1123,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ResourceListItemFromJSON));
     }
@@ -1130,8 +1132,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_API[READ] permission to use this service
      * List service discovery plugins
      */
-    async getServicesDiscoverResources(requestParameters: GetServicesDiscoverResourcesRequest): Promise<Array<ResourceListItem>> {
-        const response = await this.getServicesDiscoverResourcesRaw(requestParameters);
+    async getServicesDiscoverResources(requestParameters: GetServicesDiscoverResourcesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ResourceListItem>> {
+        const response = await this.getServicesDiscoverResourcesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1139,7 +1141,7 @@ export class PluginsApi extends runtime.BaseAPI {
      * These policies are used when importing an OAI to create an API
      * List policies which are handling Swagger / OAI definition
      */
-    async getSwaggerPolicyRaw(requestParameters: GetSwaggerPolicyRequest): Promise<runtime.ApiResponse<Array<PolicyListItem>>> {
+    async getSwaggerPolicyRaw(requestParameters: GetSwaggerPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<PolicyListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getSwaggerPolicy.');
         }
@@ -1148,7 +1150,7 @@ export class PluginsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getSwaggerPolicy.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1160,7 +1162,7 @@ export class PluginsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PolicyListItemFromJSON));
     }
@@ -1169,8 +1171,8 @@ export class PluginsApi extends runtime.BaseAPI {
      * These policies are used when importing an OAI to create an API
      * List policies which are handling Swagger / OAI definition
      */
-    async getSwaggerPolicy(requestParameters: GetSwaggerPolicyRequest): Promise<Array<PolicyListItem>> {
-        const response = await this.getSwaggerPolicyRaw(requestParameters);
+    async getSwaggerPolicy(requestParameters: GetSwaggerPolicyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<PolicyListItem>> {
+        const response = await this.getSwaggerPolicyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Enabled } from './Enabled';
 import {
-    Enabled,
     EnabledFromJSON,
     EnabledFromJSONTyped,
     EnabledToJSON,
-} from './';
+} from './Enabled';
 
 /**
  * 
@@ -37,6 +37,15 @@ export interface PortalUserCreation {
      * @memberof PortalUserCreation
      */
     enabled?: boolean;
+}
+
+/**
+ * Check if a given object implements the PortalUserCreation interface.
+ */
+export function instanceOfPortalUserCreation(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PortalUserCreationFromJSON(json: any): PortalUserCreation {
@@ -67,5 +76,4 @@ export function PortalUserCreationToJSON(value?: PortalUserCreation | null): any
         'enabled': value.enabled,
     };
 }
-
 

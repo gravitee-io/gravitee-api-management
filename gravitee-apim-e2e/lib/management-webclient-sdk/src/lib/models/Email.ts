@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { EmailProperties } from './EmailProperties';
 import {
-    EmailProperties,
     EmailPropertiesFromJSON,
     EmailPropertiesFromJSONTyped,
     EmailPropertiesToJSON,
-} from './';
+} from './EmailProperties';
 
 /**
  * 
@@ -81,6 +81,15 @@ export interface Email {
     username?: string;
 }
 
+/**
+ * Check if a given object implements the Email interface.
+ */
+export function instanceOfEmail(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function EmailFromJSON(json: any): Email {
     return EmailFromJSONTyped(json, false);
 }
@@ -123,5 +132,4 @@ export function EmailToJSON(value?: Email | null): any {
         'username': value.username,
     };
 }
-
 

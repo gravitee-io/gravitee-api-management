@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { NotificationTemplateType } from './NotificationTemplateType';
 import {
-    NotificationTemplateType,
     NotificationTemplateTypeFromJSON,
     NotificationTemplateTypeFromJSONTyped,
     NotificationTemplateTypeToJSON,
-} from './';
+} from './NotificationTemplateType';
 
 /**
  * 
@@ -93,6 +93,15 @@ export interface NotificationTemplateEntity {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the NotificationTemplateEntity interface.
+ */
+export function instanceOfNotificationTemplateEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function NotificationTemplateEntityFromJSON(json: any): NotificationTemplateEntity {
     return NotificationTemplateEntityFromJSONTyped(json, false);
 }
@@ -139,5 +148,4 @@ export function NotificationTemplateEntityToJSON(value?: NotificationTemplateEnt
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

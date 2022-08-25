@@ -50,6 +50,43 @@ export interface Dampening {
     trueEvaluations?: number;
 }
 
+
+/**
+ * @export
+ */
+export const DampeningModeEnum = {
+    STRICT_COUNT: 'STRICT_COUNT',
+    RELAXED_COUNT: 'RELAXED_COUNT',
+    RELAXED_TIME: 'RELAXED_TIME',
+    STRICT_TIME: 'STRICT_TIME'
+} as const;
+export type DampeningModeEnum = typeof DampeningModeEnum[keyof typeof DampeningModeEnum];
+
+/**
+ * @export
+ */
+export const DampeningTimeUnitEnum = {
+    NANOSECONDS: 'NANOSECONDS',
+    MICROSECONDS: 'MICROSECONDS',
+    MILLISECONDS: 'MILLISECONDS',
+    SECONDS: 'SECONDS',
+    MINUTES: 'MINUTES',
+    HOURS: 'HOURS',
+    DAYS: 'DAYS'
+} as const;
+export type DampeningTimeUnitEnum = typeof DampeningTimeUnitEnum[keyof typeof DampeningTimeUnitEnum];
+
+
+/**
+ * Check if a given object implements the Dampening interface.
+ */
+export function instanceOfDampening(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "mode" in value;
+
+    return isInstance;
+}
+
 export function DampeningFromJSON(json: any): Dampening {
     return DampeningFromJSONTyped(json, false);
 }
@@ -84,29 +121,4 @@ export function DampeningToJSON(value?: Dampening | null): any {
         'trueEvaluations': value.trueEvaluations,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum DampeningModeEnum {
-    STRICTCOUNT = 'STRICT_COUNT',
-    RELAXEDCOUNT = 'RELAXED_COUNT',
-    RELAXEDTIME = 'RELAXED_TIME',
-    STRICTTIME = 'STRICT_TIME'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum DampeningTimeUnitEnum {
-    NANOSECONDS = 'NANOSECONDS',
-    MICROSECONDS = 'MICROSECONDS',
-    MILLISECONDS = 'MILLISECONDS',
-    SECONDS = 'SECONDS',
-    MINUTES = 'MINUTES',
-    HOURS = 'HOURS',
-    DAYS = 'DAYS'
-}
-
 

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ServiceV4 } from './ServiceV4';
 import {
-    ServiceV4,
     ServiceV4FromJSON,
     ServiceV4FromJSONTyped,
     ServiceV4ToJSON,
-} from './';
+} from './ServiceV4';
 
 /**
  * 
@@ -31,6 +31,15 @@ export interface EndpointServicesV4 {
      * @memberof EndpointServicesV4
      */
     healthCheck?: ServiceV4;
+}
+
+/**
+ * Check if a given object implements the EndpointServicesV4 interface.
+ */
+export function instanceOfEndpointServicesV4(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function EndpointServicesV4FromJSON(json: any): EndpointServicesV4 {
@@ -59,5 +68,4 @@ export function EndpointServicesV4ToJSON(value?: EndpointServicesV4 | null): any
         'healthCheck': ServiceV4ToJSON(value.healthCheck),
     };
 }
-
 

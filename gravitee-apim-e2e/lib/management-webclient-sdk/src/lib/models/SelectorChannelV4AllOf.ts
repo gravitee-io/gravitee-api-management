@@ -38,6 +38,35 @@ export interface SelectorChannelV4AllOf {
     channelOperator?: SelectorChannelV4AllOfChannelOperatorEnum;
 }
 
+
+/**
+ * @export
+ */
+export const SelectorChannelV4AllOfOperationsEnum = {
+    SUB: 'SUB',
+    PUB: 'PUB'
+} as const;
+export type SelectorChannelV4AllOfOperationsEnum = typeof SelectorChannelV4AllOfOperationsEnum[keyof typeof SelectorChannelV4AllOfOperationsEnum];
+
+/**
+ * @export
+ */
+export const SelectorChannelV4AllOfChannelOperatorEnum = {
+    STARTS_WITH: 'STARTS_WITH',
+    EQUALS: 'EQUALS'
+} as const;
+export type SelectorChannelV4AllOfChannelOperatorEnum = typeof SelectorChannelV4AllOfChannelOperatorEnum[keyof typeof SelectorChannelV4AllOfChannelOperatorEnum];
+
+
+/**
+ * Check if a given object implements the SelectorChannelV4AllOf interface.
+ */
+export function instanceOfSelectorChannelV4AllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function SelectorChannelV4AllOfFromJSON(json: any): SelectorChannelV4AllOf {
     return SelectorChannelV4AllOfFromJSONTyped(json, false);
 }
@@ -68,22 +97,4 @@ export function SelectorChannelV4AllOfToJSON(value?: SelectorChannelV4AllOf | nu
         'channelOperator': value.channelOperator,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum SelectorChannelV4AllOfOperationsEnum {
-    SUB = 'SUB',
-    PUB = 'PUB'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum SelectorChannelV4AllOfChannelOperatorEnum {
-    STARTSWITH = 'STARTS_WITH',
-    EQUALS = 'EQUALS'
-}
-
 

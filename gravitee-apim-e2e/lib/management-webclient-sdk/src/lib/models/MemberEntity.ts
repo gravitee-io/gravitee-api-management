@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { MembershipMemberType } from './MembershipMemberType';
 import {
-    MembershipMemberType,
     MembershipMemberTypeFromJSON,
     MembershipMemberTypeFromJSONTyped,
     MembershipMemberTypeToJSON,
-    MembershipReferenceType,
+} from './MembershipMemberType';
+import type { MembershipReferenceType } from './MembershipReferenceType';
+import {
     MembershipReferenceTypeFromJSON,
     MembershipReferenceTypeFromJSONTyped,
     MembershipReferenceTypeToJSON,
-    RoleEntity,
+} from './MembershipReferenceType';
+import type { RoleEntity } from './RoleEntity';
+import {
     RoleEntityFromJSON,
     RoleEntityFromJSONTyped,
     RoleEntityToJSON,
-} from './';
+} from './RoleEntity';
 
 /**
  * 
@@ -95,6 +99,15 @@ export interface MemberEntity {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the MemberEntity interface.
+ */
+export function instanceOfMemberEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MemberEntityFromJSON(json: any): MemberEntity {
     return MemberEntityFromJSONTyped(json, false);
 }
@@ -139,5 +152,4 @@ export function MemberEntityToJSON(value?: MemberEntity | null): any {
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

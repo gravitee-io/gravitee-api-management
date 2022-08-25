@@ -44,6 +44,17 @@ export interface CustomUserFieldEntity {
     values?: Array<string>;
 }
 
+/**
+ * Check if a given object implements the CustomUserFieldEntity interface.
+ */
+export function instanceOfCustomUserFieldEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "key" in value;
+    isInstance = isInstance && "label" in value;
+
+    return isInstance;
+}
+
 export function CustomUserFieldEntityFromJSON(json: any): CustomUserFieldEntity {
     return CustomUserFieldEntityFromJSONTyped(json, false);
 }
@@ -76,5 +87,4 @@ export function CustomUserFieldEntityToJSON(value?: CustomUserFieldEntity | null
         'values': value.values,
     };
 }
-
 

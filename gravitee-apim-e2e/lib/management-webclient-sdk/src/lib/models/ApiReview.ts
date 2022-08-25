@@ -26,6 +26,15 @@ export interface ApiReview {
     enabled?: boolean;
 }
 
+/**
+ * Check if a given object implements the ApiReview interface.
+ */
+export function instanceOfApiReview(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiReviewFromJSON(json: any): ApiReview {
     return ApiReviewFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function ApiReviewToJSON(value?: ApiReview | null): any {
         'enabled': value.enabled,
     };
 }
-
 

@@ -53,7 +53,7 @@ describe('Create global flows and use them', () => {
             name: '',
             path_operator: {
               path: '/client',
-              operator: PathOperatorOperatorEnum.STARTSWITH,
+              operator: PathOperatorOperatorEnum.STARTS_WITH,
             },
             condition: '',
             consumers: [],
@@ -84,14 +84,14 @@ describe('Create global flows and use them', () => {
       envId,
       newApiEntity: ApisFaker.newApi({
         gravitee: '2.0.0',
-        flow_mode: NewApiEntityFlowModeEnum.BESTMATCH,
+        flow_mode: NewApiEntityFlowModeEnum.BEST_MATCH,
         // With flow on root path
         flows: [
           {
             name: '',
             path_operator: {
               path: '/client/:clientName',
-              operator: PathOperatorOperatorEnum.STARTSWITH,
+              operator: PathOperatorOperatorEnum.STARTS_WITH,
             },
             condition: '',
             consumers: [],
@@ -122,7 +122,7 @@ describe('Create global flows and use them', () => {
       envId,
       api: createdApi.id,
       newPlanEntity: PlansFaker.newPlan({
-        security: PlanSecurityType.KEYLESS,
+        security: PlanSecurityType.KEY_LESS,
         status: PlanStatus.PUBLISHED,
         flows: [
           // With flow on this plan
@@ -130,7 +130,7 @@ describe('Create global flows and use them', () => {
             name: '',
             path_operator: {
               path: '/client/:clientName/keyless',
-              operator: PathOperatorOperatorEnum.STARTSWITH,
+              operator: PathOperatorOperatorEnum.STARTS_WITH,
             },
             condition: '',
             consumers: [],

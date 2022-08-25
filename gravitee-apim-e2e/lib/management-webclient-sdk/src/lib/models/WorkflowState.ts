@@ -11,17 +11,19 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum WorkflowState {
-    DRAFT = 'DRAFT',
-    INREVIEW = 'IN_REVIEW',
-    REQUESTFORCHANGES = 'REQUEST_FOR_CHANGES',
-    REVIEWOK = 'REVIEW_OK'
-}
+export const WorkflowState = {
+    DRAFT: 'DRAFT',
+    IN_REVIEW: 'IN_REVIEW',
+    REQUEST_FOR_CHANGES: 'REQUEST_FOR_CHANGES',
+    REVIEW_OK: 'REVIEW_OK'
+} as const;
+export type WorkflowState = typeof WorkflowState[keyof typeof WorkflowState];
+
 
 export function WorkflowStateFromJSON(json: any): WorkflowState {
     return WorkflowStateFromJSONTyped(json, false);

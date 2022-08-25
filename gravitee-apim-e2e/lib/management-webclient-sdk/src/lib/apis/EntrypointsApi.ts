@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  EntrypointEntity,
+  NewEntryPointEntity,
+  UpdateEntryPointEntity,
+} from '../models';
 import {
-    EntrypointEntity,
     EntrypointEntityFromJSON,
     EntrypointEntityToJSON,
-    NewEntryPointEntity,
     NewEntryPointEntityFromJSON,
     NewEntryPointEntityToJSON,
-    UpdateEntryPointEntity,
     UpdateEntryPointEntityFromJSON,
     UpdateEntryPointEntityToJSON,
 } from '../models';
@@ -87,7 +89,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[CREATE] permission to use this service
      * Create a platform entrypoint
      */
-    async createEntrypointRaw(requestParameters: CreateEntrypointRequest): Promise<runtime.ApiResponse<EntrypointEntity>> {
+    async createEntrypointRaw(requestParameters: CreateEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EntrypointEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createEntrypoint.');
         }
@@ -96,7 +98,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newEntryPointEntity','Required parameter requestParameters.newEntryPointEntity was null or undefined when calling createEntrypoint.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -111,7 +113,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewEntryPointEntityToJSON(requestParameters.newEntryPointEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EntrypointEntityFromJSON(jsonValue));
     }
@@ -120,8 +122,8 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[CREATE] permission to use this service
      * Create a platform entrypoint
      */
-    async createEntrypoint(requestParameters: CreateEntrypointRequest): Promise<EntrypointEntity> {
-        const response = await this.createEntrypointRaw(requestParameters);
+    async createEntrypoint(requestParameters: CreateEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EntrypointEntity> {
+        const response = await this.createEntrypointRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -129,7 +131,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[CREATE] permission to use this service
      * Create a platform entrypoint
      */
-    async createEntrypoint1Raw(requestParameters: CreateEntrypoint1Request): Promise<runtime.ApiResponse<EntrypointEntity>> {
+    async createEntrypoint1Raw(requestParameters: CreateEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EntrypointEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createEntrypoint1.');
         }
@@ -142,7 +144,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newEntryPointEntity','Required parameter requestParameters.newEntryPointEntity was null or undefined when calling createEntrypoint1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -157,7 +159,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewEntryPointEntityToJSON(requestParameters.newEntryPointEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EntrypointEntityFromJSON(jsonValue));
     }
@@ -166,8 +168,8 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[CREATE] permission to use this service
      * Create a platform entrypoint
      */
-    async createEntrypoint1(requestParameters: CreateEntrypoint1Request): Promise<EntrypointEntity> {
-        const response = await this.createEntrypoint1Raw(requestParameters);
+    async createEntrypoint1(requestParameters: CreateEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EntrypointEntity> {
+        const response = await this.createEntrypoint1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -175,7 +177,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[DELETE] permission to use this service
      * Delete a platform entrypoint
      */
-    async deleteEntrypointRaw(requestParameters: DeleteEntrypointRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteEntrypointRaw(requestParameters: DeleteEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.entrypoint === null || requestParameters.entrypoint === undefined) {
             throw new runtime.RequiredError('entrypoint','Required parameter requestParameters.entrypoint was null or undefined when calling deleteEntrypoint.');
         }
@@ -184,7 +186,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteEntrypoint.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -196,7 +198,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -205,15 +207,15 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[DELETE] permission to use this service
      * Delete a platform entrypoint
      */
-    async deleteEntrypoint(requestParameters: DeleteEntrypointRequest): Promise<void> {
-        await this.deleteEntrypointRaw(requestParameters);
+    async deleteEntrypoint(requestParameters: DeleteEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteEntrypointRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ENTRYPOINT[DELETE] permission to use this service
      * Delete a platform entrypoint
      */
-    async deleteEntrypoint1Raw(requestParameters: DeleteEntrypoint1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteEntrypoint1Raw(requestParameters: DeleteEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.entrypoint === null || requestParameters.entrypoint === undefined) {
             throw new runtime.RequiredError('entrypoint','Required parameter requestParameters.entrypoint was null or undefined when calling deleteEntrypoint1.');
         }
@@ -226,7 +228,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteEntrypoint1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -238,7 +240,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -247,15 +249,15 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[DELETE] permission to use this service
      * Delete a platform entrypoint
      */
-    async deleteEntrypoint1(requestParameters: DeleteEntrypoint1Request): Promise<void> {
-        await this.deleteEntrypoint1Raw(requestParameters);
+    async deleteEntrypoint1(requestParameters: DeleteEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteEntrypoint1Raw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * Get a platform entrypoints
      */
-    async getEntrypointRaw(requestParameters: GetEntrypointRequest): Promise<runtime.ApiResponse<EntrypointEntity>> {
+    async getEntrypointRaw(requestParameters: GetEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EntrypointEntity>> {
         if (requestParameters.entrypoint === null || requestParameters.entrypoint === undefined) {
             throw new runtime.RequiredError('entrypoint','Required parameter requestParameters.entrypoint was null or undefined when calling getEntrypoint.');
         }
@@ -264,7 +266,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEntrypoint.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -276,7 +278,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EntrypointEntityFromJSON(jsonValue));
     }
@@ -285,8 +287,8 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * Get a platform entrypoints
      */
-    async getEntrypoint(requestParameters: GetEntrypointRequest): Promise<EntrypointEntity> {
-        const response = await this.getEntrypointRaw(requestParameters);
+    async getEntrypoint(requestParameters: GetEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EntrypointEntity> {
+        const response = await this.getEntrypointRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -294,7 +296,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * Get a platform entrypoints
      */
-    async getEntrypoint1Raw(requestParameters: GetEntrypoint1Request): Promise<runtime.ApiResponse<EntrypointEntity>> {
+    async getEntrypoint1Raw(requestParameters: GetEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EntrypointEntity>> {
         if (requestParameters.entrypoint === null || requestParameters.entrypoint === undefined) {
             throw new runtime.RequiredError('entrypoint','Required parameter requestParameters.entrypoint was null or undefined when calling getEntrypoint1.');
         }
@@ -307,7 +309,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEntrypoint1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -319,7 +321,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EntrypointEntityFromJSON(jsonValue));
     }
@@ -328,8 +330,8 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * Get a platform entrypoints
      */
-    async getEntrypoint1(requestParameters: GetEntrypoint1Request): Promise<EntrypointEntity> {
-        const response = await this.getEntrypoint1Raw(requestParameters);
+    async getEntrypoint1(requestParameters: GetEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EntrypointEntity> {
+        const response = await this.getEntrypoint1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -337,12 +339,12 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * List the platform entrypoints
      */
-    async getEntrypointsRaw(requestParameters: GetEntrypointsRequest): Promise<runtime.ApiResponse<Array<EntrypointEntity>>> {
+    async getEntrypointsRaw(requestParameters: GetEntrypointsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<EntrypointEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEntrypoints.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -354,7 +356,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(EntrypointEntityFromJSON));
     }
@@ -363,8 +365,8 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * List the platform entrypoints
      */
-    async getEntrypoints(requestParameters: GetEntrypointsRequest): Promise<Array<EntrypointEntity>> {
-        const response = await this.getEntrypointsRaw(requestParameters);
+    async getEntrypoints(requestParameters: GetEntrypointsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<EntrypointEntity>> {
+        const response = await this.getEntrypointsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -372,7 +374,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * List the platform entrypoints
      */
-    async getEntrypoints1Raw(requestParameters: GetEntrypoints1Request): Promise<runtime.ApiResponse<Array<EntrypointEntity>>> {
+    async getEntrypoints1Raw(requestParameters: GetEntrypoints1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<EntrypointEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getEntrypoints1.');
         }
@@ -381,7 +383,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEntrypoints1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -393,7 +395,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(EntrypointEntityFromJSON));
     }
@@ -402,8 +404,8 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * List the platform entrypoints
      */
-    async getEntrypoints1(requestParameters: GetEntrypoints1Request): Promise<Array<EntrypointEntity>> {
-        const response = await this.getEntrypoints1Raw(requestParameters);
+    async getEntrypoints1(requestParameters: GetEntrypoints1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<EntrypointEntity>> {
+        const response = await this.getEntrypoints1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -411,7 +413,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[UPDATE] permission to use this service
      * Update a platform entrypoint
      */
-    async updateEntrypointRaw(requestParameters: UpdateEntrypointRequest): Promise<runtime.ApiResponse<EntrypointEntity>> {
+    async updateEntrypointRaw(requestParameters: UpdateEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EntrypointEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateEntrypoint.');
         }
@@ -420,7 +422,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateEntryPointEntity','Required parameter requestParameters.updateEntryPointEntity was null or undefined when calling updateEntrypoint.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -435,7 +437,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateEntryPointEntityToJSON(requestParameters.updateEntryPointEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EntrypointEntityFromJSON(jsonValue));
     }
@@ -444,8 +446,8 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[UPDATE] permission to use this service
      * Update a platform entrypoint
      */
-    async updateEntrypoint(requestParameters: UpdateEntrypointRequest): Promise<EntrypointEntity> {
-        const response = await this.updateEntrypointRaw(requestParameters);
+    async updateEntrypoint(requestParameters: UpdateEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EntrypointEntity> {
+        const response = await this.updateEntrypointRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -453,7 +455,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[UPDATE] permission to use this service
      * Update a platform entrypoint
      */
-    async updateEntrypoint1Raw(requestParameters: UpdateEntrypoint1Request): Promise<runtime.ApiResponse<EntrypointEntity>> {
+    async updateEntrypoint1Raw(requestParameters: UpdateEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EntrypointEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateEntrypoint1.');
         }
@@ -466,7 +468,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateEntryPointEntity','Required parameter requestParameters.updateEntryPointEntity was null or undefined when calling updateEntrypoint1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -481,7 +483,7 @@ export class EntrypointsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateEntryPointEntityToJSON(requestParameters.updateEntryPointEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EntrypointEntityFromJSON(jsonValue));
     }
@@ -490,8 +492,8 @@ export class EntrypointsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[UPDATE] permission to use this service
      * Update a platform entrypoint
      */
-    async updateEntrypoint1(requestParameters: UpdateEntrypoint1Request): Promise<EntrypointEntity> {
-        const response = await this.updateEntrypoint1Raw(requestParameters);
+    async updateEntrypoint1(requestParameters: UpdateEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EntrypointEntity> {
+        const response = await this.updateEntrypoint1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

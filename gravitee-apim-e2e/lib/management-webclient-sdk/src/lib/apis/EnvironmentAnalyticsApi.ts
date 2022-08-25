@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  Analytics,
+  AnalyticsType,
+} from '../models';
 import {
-    Analytics,
     AnalyticsFromJSON,
     AnalyticsToJSON,
-    AnalyticsType,
     AnalyticsTypeFromJSON,
     AnalyticsTypeToJSON,
 } from '../models';
@@ -44,7 +46,7 @@ export class EnvironmentAnalyticsApi extends runtime.BaseAPI {
     /**
      * Get environment analytics
      */
-    async getPlatformAnalyticsRaw(requestParameters: GetPlatformAnalyticsRequest): Promise<runtime.ApiResponse<Analytics>> {
+    async getPlatformAnalyticsRaw(requestParameters: GetPlatformAnalyticsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Analytics>> {
         if (requestParameters.type === null || requestParameters.type === undefined) {
             throw new runtime.RequiredError('type','Required parameter requestParameters.type was null or undefined when calling getPlatformAnalytics.');
         }
@@ -57,7 +59,7 @@ export class EnvironmentAnalyticsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPlatformAnalytics.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -105,7 +107,7 @@ export class EnvironmentAnalyticsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AnalyticsFromJSON(jsonValue));
     }
@@ -113,8 +115,8 @@ export class EnvironmentAnalyticsApi extends runtime.BaseAPI {
     /**
      * Get environment analytics
      */
-    async getPlatformAnalytics(requestParameters: GetPlatformAnalyticsRequest): Promise<Analytics> {
-        const response = await this.getPlatformAnalyticsRaw(requestParameters);
+    async getPlatformAnalytics(requestParameters: GetPlatformAnalyticsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Analytics> {
+        const response = await this.getPlatformAnalyticsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

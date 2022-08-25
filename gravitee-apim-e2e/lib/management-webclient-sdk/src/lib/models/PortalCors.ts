@@ -50,6 +50,15 @@ export interface PortalCors {
     maxAge?: number;
 }
 
+/**
+ * Check if a given object implements the PortalCors interface.
+ */
+export function instanceOfPortalCors(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PortalCorsFromJSON(json: any): PortalCors {
     return PortalCorsFromJSONTyped(json, false);
 }
@@ -84,5 +93,4 @@ export function PortalCorsToJSON(value?: PortalCors | null): any {
         'maxAge': value.maxAge,
     };
 }
-
 

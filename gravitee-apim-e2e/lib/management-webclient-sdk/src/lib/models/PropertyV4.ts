@@ -44,6 +44,17 @@ export interface PropertyV4 {
     value: string;
 }
 
+/**
+ * Check if a given object implements the PropertyV4 interface.
+ */
+export function instanceOfPropertyV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "key" in value;
+    isInstance = isInstance && "value" in value;
+
+    return isInstance;
+}
+
 export function PropertyV4FromJSON(json: any): PropertyV4 {
     return PropertyV4FromJSONTyped(json, false);
 }
@@ -76,5 +87,4 @@ export function PropertyV4ToJSON(value?: PropertyV4 | null): any {
         'value': value.value,
     };
 }
-
 

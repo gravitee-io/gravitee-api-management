@@ -38,6 +38,15 @@ export interface PlanSecurityEntity {
     policy?: string;
 }
 
+/**
+ * Check if a given object implements the PlanSecurityEntity interface.
+ */
+export function instanceOfPlanSecurityEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PlanSecurityEntityFromJSON(json: any): PlanSecurityEntity {
     return PlanSecurityEntityFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function PlanSecurityEntityToJSON(value?: PlanSecurityEntity | null): any
         'policy': value.policy,
     };
 }
-
 

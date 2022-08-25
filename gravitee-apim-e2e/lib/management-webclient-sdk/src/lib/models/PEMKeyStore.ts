@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { KeyStore } from './KeyStore';
 import {
-    KeyStore,
     KeyStoreFromJSON,
     KeyStoreFromJSONTyped,
     KeyStoreToJSON,
-    PEMKeyStoreAllOf,
+} from './KeyStore';
+import type { PEMKeyStoreAllOf } from './PEMKeyStoreAllOf';
+import {
     PEMKeyStoreAllOfFromJSON,
     PEMKeyStoreAllOfFromJSONTyped,
     PEMKeyStoreAllOfToJSON,
-} from './';
+} from './PEMKeyStoreAllOf';
 
 /**
  * 
@@ -53,6 +55,17 @@ export interface PEMKeyStore extends KeyStore {
      * @memberof PEMKeyStore
      */
     certContent?: string;
+}
+
+
+
+/**
+ * Check if a given object implements the PEMKeyStore interface.
+ */
+export function instanceOfPEMKeyStore(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PEMKeyStoreFromJSON(json: any): PEMKeyStore {
@@ -87,6 +100,4 @@ export function PEMKeyStoreToJSON(value?: PEMKeyStore | null): any {
         'certContent': value.certContent,
     };
 }
-
-
 

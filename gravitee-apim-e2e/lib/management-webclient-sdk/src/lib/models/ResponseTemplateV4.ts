@@ -38,6 +38,15 @@ export interface ResponseTemplateV4 {
     statusCode?: number;
 }
 
+/**
+ * Check if a given object implements the ResponseTemplateV4 interface.
+ */
+export function instanceOfResponseTemplateV4(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ResponseTemplateV4FromJSON(json: any): ResponseTemplateV4 {
     return ResponseTemplateV4FromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function ResponseTemplateV4ToJSON(value?: ResponseTemplateV4 | null): any
         'statusCode': value.statusCode,
     };
 }
-
 

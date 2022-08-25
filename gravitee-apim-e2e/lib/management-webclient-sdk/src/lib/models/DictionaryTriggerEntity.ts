@@ -32,6 +32,33 @@ export interface DictionaryTriggerEntity {
     unit: DictionaryTriggerEntityUnitEnum;
 }
 
+
+/**
+ * @export
+ */
+export const DictionaryTriggerEntityUnitEnum = {
+    NANOSECONDS: 'NANOSECONDS',
+    MICROSECONDS: 'MICROSECONDS',
+    MILLISECONDS: 'MILLISECONDS',
+    SECONDS: 'SECONDS',
+    MINUTES: 'MINUTES',
+    HOURS: 'HOURS',
+    DAYS: 'DAYS'
+} as const;
+export type DictionaryTriggerEntityUnitEnum = typeof DictionaryTriggerEntityUnitEnum[keyof typeof DictionaryTriggerEntityUnitEnum];
+
+
+/**
+ * Check if a given object implements the DictionaryTriggerEntity interface.
+ */
+export function instanceOfDictionaryTriggerEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "rate" in value;
+    isInstance = isInstance && "unit" in value;
+
+    return isInstance;
+}
+
 export function DictionaryTriggerEntityFromJSON(json: any): DictionaryTriggerEntity {
     return DictionaryTriggerEntityFromJSONTyped(json, false);
 }
@@ -60,19 +87,4 @@ export function DictionaryTriggerEntityToJSON(value?: DictionaryTriggerEntity | 
         'unit': value.unit,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum DictionaryTriggerEntityUnitEnum {
-    NANOSECONDS = 'NANOSECONDS',
-    MICROSECONDS = 'MICROSECONDS',
-    MILLISECONDS = 'MILLISECONDS',
-    SECONDS = 'SECONDS',
-    MINUTES = 'MINUTES',
-    HOURS = 'HOURS',
-    DAYS = 'DAYS'
-}
-
 

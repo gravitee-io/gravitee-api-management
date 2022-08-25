@@ -32,6 +32,31 @@ export interface MissingDataConditionAllOf {
     timeUnit?: MissingDataConditionAllOfTimeUnitEnum;
 }
 
+
+/**
+ * @export
+ */
+export const MissingDataConditionAllOfTimeUnitEnum = {
+    NANOSECONDS: 'NANOSECONDS',
+    MICROSECONDS: 'MICROSECONDS',
+    MILLISECONDS: 'MILLISECONDS',
+    SECONDS: 'SECONDS',
+    MINUTES: 'MINUTES',
+    HOURS: 'HOURS',
+    DAYS: 'DAYS'
+} as const;
+export type MissingDataConditionAllOfTimeUnitEnum = typeof MissingDataConditionAllOfTimeUnitEnum[keyof typeof MissingDataConditionAllOfTimeUnitEnum];
+
+
+/**
+ * Check if a given object implements the MissingDataConditionAllOf interface.
+ */
+export function instanceOfMissingDataConditionAllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MissingDataConditionAllOfFromJSON(json: any): MissingDataConditionAllOf {
     return MissingDataConditionAllOfFromJSONTyped(json, false);
 }
@@ -60,19 +85,4 @@ export function MissingDataConditionAllOfToJSON(value?: MissingDataConditionAllO
         'timeUnit': value.timeUnit,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum MissingDataConditionAllOfTimeUnitEnum {
-    NANOSECONDS = 'NANOSECONDS',
-    MICROSECONDS = 'MICROSECONDS',
-    MILLISECONDS = 'MILLISECONDS',
-    SECONDS = 'SECONDS',
-    MINUTES = 'MINUTES',
-    HOURS = 'HOURS',
-    DAYS = 'DAYS'
-}
-
 

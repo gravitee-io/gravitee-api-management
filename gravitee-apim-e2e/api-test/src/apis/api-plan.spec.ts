@@ -162,7 +162,7 @@ describe('API - Plan', () => {
           envId,
           orgId,
           api: createdApi.id,
-          newPlanEntity: PlansFaker.newPlan({ security: PlanSecurityType.APIKEY, validation: PlanValidationType.MANUAL }),
+          newPlanEntity: PlansFaker.newPlan({ security: PlanSecurityType.API_KEY, validation: PlanValidationType.MANUAL }),
         }),
         201,
       );

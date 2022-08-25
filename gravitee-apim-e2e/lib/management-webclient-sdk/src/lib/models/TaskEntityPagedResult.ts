@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Page } from './Page';
 import {
-    Page,
     PageFromJSON,
     PageFromJSONTyped,
     PageToJSON,
-    TaskEntity,
+} from './Page';
+import type { TaskEntity } from './TaskEntity';
+import {
     TaskEntityFromJSON,
     TaskEntityFromJSONTyped,
     TaskEntityToJSON,
-} from './';
+} from './TaskEntity';
 
 /**
  * 
@@ -47,6 +49,15 @@ export interface TaskEntityPagedResult {
      * @memberof TaskEntityPagedResult
      */
     page?: Page;
+}
+
+/**
+ * Check if a given object implements the TaskEntityPagedResult interface.
+ */
+export function instanceOfTaskEntityPagedResult(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function TaskEntityPagedResultFromJSON(json: any): TaskEntityPagedResult {
@@ -79,5 +90,4 @@ export function TaskEntityPagedResultToJSON(value?: TaskEntityPagedResult | null
         'page': PageToJSON(value.page),
     };
 }
-
 

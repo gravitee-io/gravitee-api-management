@@ -32,6 +32,15 @@ export interface AlertStatusEntity {
     enabled?: boolean;
 }
 
+/**
+ * Check if a given object implements the AlertStatusEntity interface.
+ */
+export function instanceOfAlertStatusEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function AlertStatusEntityFromJSON(json: any): AlertStatusEntity {
     return AlertStatusEntityFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function AlertStatusEntityToJSON(value?: AlertStatusEntity | null): any {
         'enabled': value.enabled,
     };
 }
-
 

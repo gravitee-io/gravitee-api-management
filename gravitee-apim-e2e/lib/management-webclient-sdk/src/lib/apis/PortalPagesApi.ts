@@ -13,23 +13,25 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  FormDataBodyPart,
+  ImportPageEntity,
+  NewPageEntity,
+  PageEntity,
+  PageType,
+  UpdatePageEntity,
+} from '../models';
 import {
-    FormDataBodyPart,
     FormDataBodyPartFromJSON,
     FormDataBodyPartToJSON,
-    ImportPageEntity,
     ImportPageEntityFromJSON,
     ImportPageEntityToJSON,
-    NewPageEntity,
     NewPageEntityFromJSON,
     NewPageEntityToJSON,
-    PageEntity,
     PageEntityFromJSON,
     PageEntityToJSON,
-    PageType,
     PageTypeFromJSON,
     PageTypeToJSON,
-    UpdatePageEntity,
     UpdatePageEntityFromJSON,
     UpdatePageEntityToJSON,
 } from '../models';
@@ -141,7 +143,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service
      * Attach a media to a portal page 
      */
-    async attachPortalPageMediaRaw(requestParameters: AttachPortalPageMediaRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async attachPortalPageMediaRaw(requestParameters: AttachPortalPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling attachPortalPageMedia.');
         }
@@ -154,7 +156,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling attachPortalPageMedia.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -176,8 +178,8 @@ export class PortalPagesApi extends runtime.BaseAPI {
         }
 
         if (requestParameters.file !== undefined) {
-            formParams.append('file', requestParameters.file as any);
-        }
+            formParams.append('file', new Blob([JSON.stringify(FormDataBodyPartToJSON(requestParameters.file))], { type: "application/json", }));
+                    }
 
         if (requestParameters.fileName !== undefined) {
             formParams.append('fileName', requestParameters.fileName as any);
@@ -189,7 +191,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: formParams,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -198,8 +200,8 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service
      * Attach a media to a portal page 
      */
-    async attachPortalPageMedia(requestParameters: AttachPortalPageMediaRequest): Promise<PageEntity> {
-        const response = await this.attachPortalPageMediaRaw(requestParameters);
+    async attachPortalPageMedia(requestParameters: AttachPortalPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.attachPortalPageMediaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -207,7 +209,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service
      * Create a page
      */
-    async createPortalPageRaw(requestParameters: CreatePortalPageRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async createPortalPageRaw(requestParameters: CreatePortalPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createPortalPage.');
         }
@@ -220,7 +222,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newPageEntity','Required parameter requestParameters.newPageEntity was null or undefined when calling createPortalPage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -235,7 +237,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewPageEntityToJSON(requestParameters.newPageEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -244,8 +246,8 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service
      * Create a page
      */
-    async createPortalPage(requestParameters: CreatePortalPageRequest): Promise<PageEntity> {
-        const response = await this.createPortalPageRaw(requestParameters);
+    async createPortalPage(requestParameters: CreatePortalPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.createPortalPageRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -253,7 +255,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[DELETE] permission to use this service
      * Delete a page
      */
-    async deletePortalPageRaw(requestParameters: DeletePortalPageRequest): Promise<runtime.ApiResponse<void>> {
+    async deletePortalPageRaw(requestParameters: DeletePortalPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling deletePortalPage.');
         }
@@ -266,7 +268,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deletePortalPage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -278,7 +280,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -287,15 +289,15 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[DELETE] permission to use this service
      * Delete a page
      */
-    async deletePortalPage(requestParameters: DeletePortalPageRequest): Promise<void> {
-        await this.deletePortalPageRaw(requestParameters);
+    async deletePortalPage(requestParameters: DeletePortalPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deletePortalPageRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service
      * Refresh all pages by calling their associated fetcher
      */
-    async fetchAllPortalPagesRaw(requestParameters: FetchAllPortalPagesRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async fetchAllPortalPagesRaw(requestParameters: FetchAllPortalPagesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling fetchAllPortalPages.');
         }
@@ -304,7 +306,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling fetchAllPortalPages.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -316,7 +318,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -325,8 +327,8 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service
      * Refresh all pages by calling their associated fetcher
      */
-    async fetchAllPortalPages(requestParameters: FetchAllPortalPagesRequest): Promise<PageEntity> {
-        const response = await this.fetchAllPortalPagesRaw(requestParameters);
+    async fetchAllPortalPages(requestParameters: FetchAllPortalPagesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.fetchAllPortalPagesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -334,7 +336,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service
      * Refresh page by calling the associated fetcher
      */
-    async fetchPortalPageRaw(requestParameters: FetchPortalPageRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async fetchPortalPageRaw(requestParameters: FetchPortalPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling fetchPortalPage.');
         }
@@ -347,7 +349,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling fetchPortalPage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -359,7 +361,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -368,8 +370,8 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service
      * Refresh page by calling the associated fetcher
      */
-    async fetchPortalPage(requestParameters: FetchPortalPageRequest): Promise<PageEntity> {
-        const response = await this.fetchPortalPageRaw(requestParameters);
+    async fetchPortalPage(requestParameters: FetchPortalPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.fetchPortalPageRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -377,7 +379,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * Every users can use this service
      * Get a page
      */
-    async getPortalPageRaw(requestParameters: GetPortalPageRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async getPortalPageRaw(requestParameters: GetPortalPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling getPortalPage.');
         }
@@ -390,7 +392,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPortalPage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.portal !== undefined) {
             queryParameters['portal'] = requestParameters.portal;
@@ -414,7 +416,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -423,8 +425,8 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * Every users can use this service
      * Get a page
      */
-    async getPortalPage(requestParameters: GetPortalPageRequest): Promise<PageEntity> {
-        const response = await this.getPortalPageRaw(requestParameters);
+    async getPortalPage(requestParameters: GetPortalPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.getPortalPageRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -432,7 +434,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * Every users can use this service
      * Get the page\'s content
      */
-    async getPortalPageContentRaw(requestParameters: GetPortalPageContentRequest): Promise<runtime.ApiResponse<string>> {
+    async getPortalPageContentRaw(requestParameters: GetPortalPageContentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling getPortalPageContent.');
         }
@@ -445,7 +447,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPortalPageContent.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -457,7 +459,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -466,8 +468,8 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * Every users can use this service
      * Get the page\'s content
      */
-    async getPortalPageContent(requestParameters: GetPortalPageContentRequest): Promise<string> {
-        const response = await this.getPortalPageContentRaw(requestParameters);
+    async getPortalPageContent(requestParameters: GetPortalPageContentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getPortalPageContentRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -475,7 +477,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[READ] permission to use this service
      * Retrieve all media for a Portal page
      */
-    async getPortalPageMediaRaw(requestParameters: GetPortalPageMediaRequest): Promise<runtime.ApiResponse<void>> {
+    async getPortalPageMediaRaw(requestParameters: GetPortalPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling getPortalPageMedia.');
         }
@@ -488,7 +490,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPortalPageMedia.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -500,7 +502,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -509,15 +511,15 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[READ] permission to use this service
      * Retrieve all media for a Portal page
      */
-    async getPortalPageMedia(requestParameters: GetPortalPageMediaRequest): Promise<void> {
-        await this.getPortalPageMediaRaw(requestParameters);
+    async getPortalPageMedia(requestParameters: GetPortalPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getPortalPageMediaRaw(requestParameters, initOverrides);
     }
 
     /**
      * Every users can use this service
      * List pages
      */
-    async getPortalPagesRaw(requestParameters: GetPortalPagesRequest): Promise<runtime.ApiResponse<Array<PageEntity>>> {
+    async getPortalPagesRaw(requestParameters: GetPortalPagesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<PageEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPortalPages.');
         }
@@ -526,7 +528,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPortalPages.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.homepage !== undefined) {
             queryParameters['homepage'] = requestParameters.homepage;
@@ -570,7 +572,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PageEntityFromJSON));
     }
@@ -579,8 +581,8 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * Every users can use this service
      * List pages
      */
-    async getPortalPages(requestParameters: GetPortalPagesRequest): Promise<Array<PageEntity>> {
-        const response = await this.getPortalPagesRaw(requestParameters);
+    async getPortalPages(requestParameters: GetPortalPagesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<PageEntity>> {
+        const response = await this.getPortalPagesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -588,7 +590,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service
      * Import pages
      */
-    async importPortalPageFromFilesRaw(requestParameters: ImportPortalPageFromFilesRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async importPortalPageFromFilesRaw(requestParameters: ImportPortalPageFromFilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling importPortalPageFromFiles.');
         }
@@ -601,7 +603,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('importPageEntity','Required parameter requestParameters.importPageEntity was null or undefined when calling importPortalPageFromFiles.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -616,7 +618,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: ImportPageEntityToJSON(requestParameters.importPageEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -625,8 +627,8 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service
      * Import pages
      */
-    async importPortalPageFromFiles(requestParameters: ImportPortalPageFromFilesRequest): Promise<PageEntity> {
-        const response = await this.importPortalPageFromFilesRaw(requestParameters);
+    async importPortalPageFromFiles(requestParameters: ImportPortalPageFromFilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.importPortalPageFromFilesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -634,7 +636,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service
      * Update a page
      */
-    async partialUpdatePortalPageRaw(requestParameters: PartialUpdatePortalPageRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async partialUpdatePortalPageRaw(requestParameters: PartialUpdatePortalPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling partialUpdatePortalPage.');
         }
@@ -651,7 +653,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updatePageEntity','Required parameter requestParameters.updatePageEntity was null or undefined when calling partialUpdatePortalPage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -666,7 +668,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdatePageEntityToJSON(requestParameters.updatePageEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -675,8 +677,8 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service
      * Update a page
      */
-    async partialUpdatePortalPage(requestParameters: PartialUpdatePortalPageRequest): Promise<PageEntity> {
-        const response = await this.partialUpdatePortalPageRaw(requestParameters);
+    async partialUpdatePortalPage(requestParameters: PartialUpdatePortalPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.partialUpdatePortalPageRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -684,7 +686,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service
      * Import pages
      */
-    async updateImportedPortalPageFromFilesRaw(requestParameters: UpdateImportedPortalPageFromFilesRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async updateImportedPortalPageFromFilesRaw(requestParameters: UpdateImportedPortalPageFromFilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateImportedPortalPageFromFiles.');
         }
@@ -697,7 +699,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('importPageEntity','Required parameter requestParameters.importPageEntity was null or undefined when calling updateImportedPortalPageFromFiles.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -712,7 +714,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: ImportPageEntityToJSON(requestParameters.importPageEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -721,8 +723,8 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service
      * Import pages
      */
-    async updateImportedPortalPageFromFiles(requestParameters: UpdateImportedPortalPageFromFilesRequest): Promise<PageEntity> {
-        const response = await this.updateImportedPortalPageFromFilesRaw(requestParameters);
+    async updateImportedPortalPageFromFiles(requestParameters: UpdateImportedPortalPageFromFilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.updateImportedPortalPageFromFilesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -730,7 +732,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service
      * Update a page content
      */
-    async updatePageContent1Raw(requestParameters: UpdatePageContent1Request): Promise<runtime.ApiResponse<string>> {
+    async updatePageContent1Raw(requestParameters: UpdatePageContent1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling updatePageContent1.');
         }
@@ -747,7 +749,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('body','Required parameter requestParameters.body was null or undefined when calling updatePageContent1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -762,7 +764,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.body as any,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -771,8 +773,8 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service
      * Update a page content
      */
-    async updatePageContent1(requestParameters: UpdatePageContent1Request): Promise<string> {
-        const response = await this.updatePageContent1Raw(requestParameters);
+    async updatePageContent1(requestParameters: UpdatePageContent1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.updatePageContent1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -780,7 +782,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service
      * Update a page
      */
-    async updatePortalPageRaw(requestParameters: UpdatePortalPageRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async updatePortalPageRaw(requestParameters: UpdatePortalPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling updatePortalPage.');
         }
@@ -797,7 +799,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updatePageEntity','Required parameter requestParameters.updatePageEntity was null or undefined when calling updatePortalPage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -812,7 +814,7 @@ export class PortalPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdatePageEntityToJSON(requestParameters.updatePageEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -821,8 +823,8 @@ export class PortalPagesApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service
      * Update a page
      */
-    async updatePortalPage(requestParameters: UpdatePortalPageRequest): Promise<PageEntity> {
-        const response = await this.updatePortalPageRaw(requestParameters);
+    async updatePortalPage(requestParameters: UpdatePortalPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.updatePortalPageRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

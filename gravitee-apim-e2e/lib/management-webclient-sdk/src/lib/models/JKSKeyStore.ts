@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { JKSKeyStoreAllOf } from './JKSKeyStoreAllOf';
 import {
-    JKSKeyStoreAllOf,
     JKSKeyStoreAllOfFromJSON,
     JKSKeyStoreAllOfFromJSONTyped,
     JKSKeyStoreAllOfToJSON,
-    KeyStore,
+} from './JKSKeyStoreAllOf';
+import type { KeyStore } from './KeyStore';
+import {
     KeyStoreFromJSON,
     KeyStoreFromJSONTyped,
     KeyStoreToJSON,
-} from './';
+} from './KeyStore';
 
 /**
  * 
@@ -47,6 +49,17 @@ export interface JKSKeyStore extends KeyStore {
      * @memberof JKSKeyStore
      */
     password?: string;
+}
+
+
+
+/**
+ * Check if a given object implements the JKSKeyStore interface.
+ */
+export function instanceOfJKSKeyStore(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function JKSKeyStoreFromJSON(json: any): JKSKeyStore {
@@ -79,6 +92,4 @@ export function JKSKeyStoreToJSON(value?: JKSKeyStore | null): any {
         'password': value.password,
     };
 }
-
-
 

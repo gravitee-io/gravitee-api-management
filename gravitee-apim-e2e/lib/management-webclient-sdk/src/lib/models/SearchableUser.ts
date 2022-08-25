@@ -62,6 +62,15 @@ export interface SearchableUser {
     reference?: string;
 }
 
+/**
+ * Check if a given object implements the SearchableUser interface.
+ */
+export function instanceOfSearchableUser(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function SearchableUserFromJSON(json: any): SearchableUser {
     return SearchableUserFromJSONTyped(json, false);
 }
@@ -100,5 +109,4 @@ export function SearchableUserToJSON(value?: SearchableUser | null): any {
         'reference': value.reference,
     };
 }
-
 

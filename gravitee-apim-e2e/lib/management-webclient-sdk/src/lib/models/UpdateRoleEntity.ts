@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { RoleScope } from './RoleScope';
 import {
-    RoleScope,
     RoleScopeFromJSON,
     RoleScopeFromJSONTyped,
     RoleScopeToJSON,
-} from './';
+} from './RoleScope';
 
 /**
  * 
@@ -63,6 +63,18 @@ export interface UpdateRoleEntity {
     scope: RoleScope;
 }
 
+/**
+ * Check if a given object implements the UpdateRoleEntity interface.
+ */
+export function instanceOfUpdateRoleEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "id" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "scope" in value;
+
+    return isInstance;
+}
+
 export function UpdateRoleEntityFromJSON(json: any): UpdateRoleEntity {
     return UpdateRoleEntityFromJSONTyped(json, false);
 }
@@ -99,5 +111,4 @@ export function UpdateRoleEntityToJSON(value?: UpdateRoleEntity | null): any {
         'scope': RoleScopeToJSON(value.scope),
     };
 }
-
 

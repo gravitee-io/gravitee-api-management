@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AlertTriggerAnalytics } from './AlertTriggerAnalytics';
 import {
-    AlertTriggerAnalytics,
     AlertTriggerAnalyticsFromJSON,
     AlertTriggerAnalyticsFromJSONTyped,
     AlertTriggerAnalyticsToJSON,
-} from './';
+} from './AlertTriggerAnalytics';
 
 /**
  * 
@@ -37,6 +37,15 @@ export interface AlertAnalyticsEntity {
      * @memberof AlertAnalyticsEntity
      */
     bySeverity?: { [key: string]: number; };
+}
+
+/**
+ * Check if a given object implements the AlertAnalyticsEntity interface.
+ */
+export function instanceOfAlertAnalyticsEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function AlertAnalyticsEntityFromJSON(json: any): AlertAnalyticsEntity {
@@ -67,5 +76,4 @@ export function AlertAnalyticsEntityToJSON(value?: AlertAnalyticsEntity | null):
         'bySeverity': value.bySeverity,
     };
 }
-
 

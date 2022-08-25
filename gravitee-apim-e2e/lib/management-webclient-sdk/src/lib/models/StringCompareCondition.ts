@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Condition } from './Condition';
 import {
-    Condition,
     ConditionFromJSON,
     ConditionFromJSONTyped,
     ConditionToJSON,
-    Projection,
+} from './Condition';
+import type { Projection } from './Projection';
+import {
     ProjectionFromJSON,
     ProjectionFromJSONTyped,
     ProjectionToJSON,
-    StringCompareConditionAllOf,
+} from './Projection';
+import type { StringCompareConditionAllOf } from './StringCompareConditionAllOf';
+import {
     StringCompareConditionAllOfFromJSON,
     StringCompareConditionAllOfFromJSONTyped,
     StringCompareConditionAllOfToJSON,
-} from './';
+} from './StringCompareConditionAllOf';
 
 /**
  * 
@@ -57,6 +61,33 @@ export interface StringCompareCondition extends Condition {
      * @memberof StringCompareCondition
      */
     ignoreCase?: boolean;
+}
+
+
+/**
+ * @export
+ */
+export const StringCompareConditionOperatorEnum = {
+    EQUALS: 'EQUALS',
+    NOT_EQUALS: 'NOT_EQUALS',
+    STARTS_WITH: 'STARTS_WITH',
+    ENDS_WITH: 'ENDS_WITH',
+    CONTAINS: 'CONTAINS',
+    MATCHES: 'MATCHES'
+} as const;
+export type StringCompareConditionOperatorEnum = typeof StringCompareConditionOperatorEnum[keyof typeof StringCompareConditionOperatorEnum];
+
+
+/**
+ * Check if a given object implements the StringCompareCondition interface.
+ */
+export function instanceOfStringCompareCondition(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "property" in value;
+    isInstance = isInstance && "operator" in value;
+    isInstance = isInstance && "property2" in value;
+
+    return isInstance;
 }
 
 export function StringCompareConditionFromJSON(json: any): StringCompareCondition {
@@ -91,18 +122,4 @@ export function StringCompareConditionToJSON(value?: StringCompareCondition | nu
         'ignoreCase': value.ignoreCase,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum StringCompareConditionOperatorEnum {
-    EQUALS = 'EQUALS',
-    NOTEQUALS = 'NOT_EQUALS',
-    STARTSWITH = 'STARTS_WITH',
-    ENDSWITH = 'ENDS_WITH',
-    CONTAINS = 'CONTAINS',
-    MATCHES = 'MATCHES'
-}
-
 

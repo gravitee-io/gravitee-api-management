@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { GroupMemberEntity } from './GroupMemberEntity';
 import {
-    GroupMemberEntity,
     GroupMemberEntityFromJSON,
     GroupMemberEntityFromJSONTyped,
     GroupMemberEntityToJSON,
-    Page,
+} from './GroupMemberEntity';
+import type { Page } from './Page';
+import {
     PageFromJSON,
     PageFromJSONTyped,
     PageToJSON,
-} from './';
+} from './Page';
 
 /**
  * 
@@ -47,6 +49,15 @@ export interface PagedResultGroupMemberEntity {
      * @memberof PagedResultGroupMemberEntity
      */
     page?: Page;
+}
+
+/**
+ * Check if a given object implements the PagedResultGroupMemberEntity interface.
+ */
+export function instanceOfPagedResultGroupMemberEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PagedResultGroupMemberEntityFromJSON(json: any): PagedResultGroupMemberEntity {
@@ -79,5 +90,4 @@ export function PagedResultGroupMemberEntityToJSON(value?: PagedResultGroupMembe
         'page': PageToJSON(value.page),
     };
 }
-
 

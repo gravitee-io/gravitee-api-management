@@ -38,6 +38,15 @@ export interface UserGroupEntity {
     roles?: { [key: string]: string; };
 }
 
+/**
+ * Check if a given object implements the UserGroupEntity interface.
+ */
+export function instanceOfUserGroupEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function UserGroupEntityFromJSON(json: any): UserGroupEntity {
     return UserGroupEntityFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function UserGroupEntityToJSON(value?: UserGroupEntity | null): any {
         'roles': value.roles,
     };
 }
-
 

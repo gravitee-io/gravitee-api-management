@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ThemeDefinition } from './ThemeDefinition';
 import {
-    ThemeDefinition,
     ThemeDefinitionFromJSON,
     ThemeDefinitionFromJSONTyped,
     ThemeDefinitionToJSON,
-} from './';
+} from './ThemeDefinition';
 
 /**
  * 
@@ -87,6 +87,16 @@ export interface ThemeEntity {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the ThemeEntity interface.
+ */
+export function instanceOfThemeEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function ThemeEntityFromJSON(json: any): ThemeEntity {
     return ThemeEntityFromJSONTyped(json, false);
 }
@@ -131,5 +141,4 @@ export function ThemeEntityToJSON(value?: ThemeEntity | null): any {
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

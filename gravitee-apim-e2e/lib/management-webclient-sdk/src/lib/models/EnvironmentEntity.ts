@@ -62,6 +62,17 @@ export interface EnvironmentEntity {
     organizationId: string;
 }
 
+/**
+ * Check if a given object implements the EnvironmentEntity interface.
+ */
+export function instanceOfEnvironmentEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "organizationId" in value;
+
+    return isInstance;
+}
+
 export function EnvironmentEntityFromJSON(json: any): EnvironmentEntity {
     return EnvironmentEntityFromJSONTyped(json, false);
 }
@@ -100,5 +111,4 @@ export function EnvironmentEntityToJSON(value?: EnvironmentEntity | null): any {
         'organizationId': value.organizationId,
     };
 }
-
 

@@ -62,6 +62,15 @@ export interface UpdateUserEntity {
     status?: string;
 }
 
+/**
+ * Check if a given object implements the UpdateUserEntity interface.
+ */
+export function instanceOfUpdateUserEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function UpdateUserEntityFromJSON(json: any): UpdateUserEntity {
     return UpdateUserEntityFromJSONTyped(json, false);
 }
@@ -100,5 +109,4 @@ export function UpdateUserEntityToJSON(value?: UpdateUserEntity | null): any {
         'status': value.status,
     };
 }
-
 

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApplicationGrantTypeEntity } from './ApplicationGrantTypeEntity';
 import {
-    ApplicationGrantTypeEntity,
     ApplicationGrantTypeEntityFromJSON,
     ApplicationGrantTypeEntityFromJSONTyped,
     ApplicationGrantTypeEntityToJSON,
-} from './';
+} from './ApplicationGrantTypeEntity';
 
 /**
  * 
@@ -69,6 +69,15 @@ export interface ApplicationTypeEntity {
     requires_redirect_uris?: boolean;
 }
 
+/**
+ * Check if a given object implements the ApplicationTypeEntity interface.
+ */
+export function instanceOfApplicationTypeEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApplicationTypeEntityFromJSON(json: any): ApplicationTypeEntity {
     return ApplicationTypeEntityFromJSONTyped(json, false);
 }
@@ -107,5 +116,4 @@ export function ApplicationTypeEntityToJSON(value?: ApplicationTypeEntity | null
         'requires_redirect_uris': value.requires_redirect_uris,
     };
 }
-
 

@@ -13,8 +13,10 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  UserEntity,
+} from '../models';
 import {
-    UserEntity,
     UserEntityFromJSON,
     UserEntityToJSON,
 } from '../models';
@@ -47,12 +49,12 @@ export class NewsletterApi extends runtime.BaseAPI {
     /**
      * Get taglines to display in the newsletter
      */
-    async getTaglinesRaw(requestParameters: GetTaglinesRequest): Promise<runtime.ApiResponse<Array<string>>> {
+    async getTaglinesRaw(requestParameters: GetTaglinesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<string>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTaglines.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -64,7 +66,7 @@ export class NewsletterApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -72,15 +74,15 @@ export class NewsletterApi extends runtime.BaseAPI {
     /**
      * Get taglines to display in the newsletter
      */
-    async getTaglines(requestParameters: GetTaglinesRequest): Promise<Array<string>> {
-        const response = await this.getTaglinesRaw(requestParameters);
+    async getTaglines(requestParameters: GetTaglinesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<string>> {
+        const response = await this.getTaglinesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get taglines to display in the newsletter
      */
-    async getTaglines1Raw(requestParameters: GetTaglines1Request): Promise<runtime.ApiResponse<Array<string>>> {
+    async getTaglines1Raw(requestParameters: GetTaglines1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<string>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getTaglines1.');
         }
@@ -89,7 +91,7 @@ export class NewsletterApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTaglines1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -101,7 +103,7 @@ export class NewsletterApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -109,15 +111,15 @@ export class NewsletterApi extends runtime.BaseAPI {
     /**
      * Get taglines to display in the newsletter
      */
-    async getTaglines1(requestParameters: GetTaglines1Request): Promise<Array<string>> {
-        const response = await this.getTaglines1Raw(requestParameters);
+    async getTaglines1(requestParameters: GetTaglines1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<string>> {
+        const response = await this.getTaglines1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Subscribe to the newsletter the authenticated user
      */
-    async subscribeNewsletterToCurrentUserRaw(requestParameters: SubscribeNewsletterToCurrentUserRequest): Promise<runtime.ApiResponse<UserEntity>> {
+    async subscribeNewsletterToCurrentUserRaw(requestParameters: SubscribeNewsletterToCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling subscribeNewsletterToCurrentUser.');
         }
@@ -126,7 +128,7 @@ export class NewsletterApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('body','Required parameter requestParameters.body was null or undefined when calling subscribeNewsletterToCurrentUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -141,7 +143,7 @@ export class NewsletterApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.body as any,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -149,15 +151,15 @@ export class NewsletterApi extends runtime.BaseAPI {
     /**
      * Subscribe to the newsletter the authenticated user
      */
-    async subscribeNewsletterToCurrentUser(requestParameters: SubscribeNewsletterToCurrentUserRequest): Promise<UserEntity> {
-        const response = await this.subscribeNewsletterToCurrentUserRaw(requestParameters);
+    async subscribeNewsletterToCurrentUser(requestParameters: SubscribeNewsletterToCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.subscribeNewsletterToCurrentUserRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Subscribe to the newsletter the authenticated user
      */
-    async subscribeNewsletterToCurrentUser1Raw(requestParameters: SubscribeNewsletterToCurrentUser1Request): Promise<runtime.ApiResponse<UserEntity>> {
+    async subscribeNewsletterToCurrentUser1Raw(requestParameters: SubscribeNewsletterToCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling subscribeNewsletterToCurrentUser1.');
         }
@@ -170,7 +172,7 @@ export class NewsletterApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('body','Required parameter requestParameters.body was null or undefined when calling subscribeNewsletterToCurrentUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -185,7 +187,7 @@ export class NewsletterApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.body as any,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -193,8 +195,8 @@ export class NewsletterApi extends runtime.BaseAPI {
     /**
      * Subscribe to the newsletter the authenticated user
      */
-    async subscribeNewsletterToCurrentUser1(requestParameters: SubscribeNewsletterToCurrentUser1Request): Promise<UserEntity> {
-        const response = await this.subscribeNewsletterToCurrentUser1Raw(requestParameters);
+    async subscribeNewsletterToCurrentUser1(requestParameters: SubscribeNewsletterToCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.subscribeNewsletterToCurrentUser1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

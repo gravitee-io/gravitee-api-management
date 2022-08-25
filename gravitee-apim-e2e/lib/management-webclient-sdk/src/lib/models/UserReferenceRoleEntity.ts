@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { MembershipReferenceType } from './MembershipReferenceType';
 import {
-    MembershipReferenceType,
     MembershipReferenceTypeFromJSON,
     MembershipReferenceTypeFromJSONTyped,
     MembershipReferenceTypeToJSON,
-} from './';
+} from './MembershipReferenceType';
 
 /**
  * 
@@ -49,6 +49,15 @@ export interface UserReferenceRoleEntity {
      * @memberof UserReferenceRoleEntity
      */
     user?: string;
+}
+
+/**
+ * Check if a given object implements the UserReferenceRoleEntity interface.
+ */
+export function instanceOfUserReferenceRoleEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function UserReferenceRoleEntityFromJSON(json: any): UserReferenceRoleEntity {
@@ -83,5 +92,4 @@ export function UserReferenceRoleEntityToJSON(value?: UserReferenceRoleEntity | 
         'user': value.user,
     };
 }
-
 

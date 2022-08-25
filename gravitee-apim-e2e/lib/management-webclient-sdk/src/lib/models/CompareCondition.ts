@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { CompareConditionAllOf } from './CompareConditionAllOf';
 import {
-    CompareConditionAllOf,
     CompareConditionAllOfFromJSON,
     CompareConditionAllOfFromJSONTyped,
     CompareConditionAllOfToJSON,
-    Condition,
+} from './CompareConditionAllOf';
+import type { Condition } from './Condition';
+import {
     ConditionFromJSON,
     ConditionFromJSONTyped,
     ConditionToJSON,
-    Projection,
+} from './Condition';
+import type { Projection } from './Projection';
+import {
     ProjectionFromJSON,
     ProjectionFromJSONTyped,
     ProjectionToJSON,
-} from './';
+} from './Projection';
 
 /**
  * 
@@ -57,6 +61,32 @@ export interface CompareCondition extends Condition {
      * @memberof CompareCondition
      */
     property2: string;
+}
+
+
+/**
+ * @export
+ */
+export const CompareConditionOperatorEnum = {
+    LT: 'LT',
+    LTE: 'LTE',
+    GTE: 'GTE',
+    GT: 'GT'
+} as const;
+export type CompareConditionOperatorEnum = typeof CompareConditionOperatorEnum[keyof typeof CompareConditionOperatorEnum];
+
+
+/**
+ * Check if a given object implements the CompareCondition interface.
+ */
+export function instanceOfCompareCondition(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "property" in value;
+    isInstance = isInstance && "operator" in value;
+    isInstance = isInstance && "multiplier" in value;
+    isInstance = isInstance && "property2" in value;
+
+    return isInstance;
 }
 
 export function CompareConditionFromJSON(json: any): CompareCondition {
@@ -91,16 +121,4 @@ export function CompareConditionToJSON(value?: CompareCondition | null): any {
         'property2': value.property2,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum CompareConditionOperatorEnum {
-    LT = 'LT',
-    LTE = 'LTE',
-    GTE = 'GTE',
-    GT = 'GT'
-}
-
 

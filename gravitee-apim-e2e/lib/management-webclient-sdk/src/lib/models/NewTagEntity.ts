@@ -38,6 +38,16 @@ export interface NewTagEntity {
     restricted_groups?: Array<string>;
 }
 
+/**
+ * Check if a given object implements the NewTagEntity interface.
+ */
+export function instanceOfNewTagEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function NewTagEntityFromJSON(json: any): NewTagEntity {
     return NewTagEntityFromJSONTyped(json, false);
 }
@@ -68,5 +78,4 @@ export function NewTagEntityToJSON(value?: NewTagEntity | null): any {
         'restricted_groups': value.restricted_groups,
     };
 }
-
 

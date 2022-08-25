@@ -62,6 +62,27 @@ export interface HttpProxy {
     username?: string;
 }
 
+
+/**
+ * @export
+ */
+export const HttpProxyTypeEnum = {
+    HTTP: 'HTTP',
+    SOCKS4: 'SOCKS4',
+    SOCKS5: 'SOCKS5'
+} as const;
+export type HttpProxyTypeEnum = typeof HttpProxyTypeEnum[keyof typeof HttpProxyTypeEnum];
+
+
+/**
+ * Check if a given object implements the HttpProxy interface.
+ */
+export function instanceOfHttpProxy(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function HttpProxyFromJSON(json: any): HttpProxy {
     return HttpProxyFromJSONTyped(json, false);
 }
@@ -100,15 +121,4 @@ export function HttpProxyToJSON(value?: HttpProxy | null): any {
         'username': value.username,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum HttpProxyTypeEnum {
-    HTTP = 'HTTP',
-    SOCKS4 = 'SOCKS4',
-    SOCKS5 = 'SOCKS5'
-}
-
 

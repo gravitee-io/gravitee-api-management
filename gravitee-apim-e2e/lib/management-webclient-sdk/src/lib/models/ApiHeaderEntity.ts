@@ -56,6 +56,15 @@ export interface ApiHeaderEntity {
     value?: string;
 }
 
+/**
+ * Check if a given object implements the ApiHeaderEntity interface.
+ */
+export function instanceOfApiHeaderEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiHeaderEntityFromJSON(json: any): ApiHeaderEntity {
     return ApiHeaderEntityFromJSONTyped(json, false);
 }
@@ -92,5 +101,4 @@ export function ApiHeaderEntityToJSON(value?: ApiHeaderEntity | null): any {
         'value': value.value,
     };
 }
-
 

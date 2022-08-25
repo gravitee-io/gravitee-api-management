@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { MetadataFormat } from './MetadataFormat';
 import {
-    MetadataFormat,
     MetadataFormatFromJSON,
     MetadataFormatFromJSONTyped,
     MetadataFormatToJSON,
-} from './';
+} from './MetadataFormat';
 
 /**
  * 
@@ -63,6 +63,16 @@ export interface NewApiMetadataEntity {
     value?: string;
 }
 
+/**
+ * Check if a given object implements the NewApiMetadataEntity interface.
+ */
+export function instanceOfNewApiMetadataEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function NewApiMetadataEntityFromJSON(json: any): NewApiMetadataEntity {
     return NewApiMetadataEntityFromJSONTyped(json, false);
 }
@@ -99,5 +109,4 @@ export function NewApiMetadataEntityToJSON(value?: NewApiMetadataEntity | null):
         'value': value.value,
     };
 }
-
 

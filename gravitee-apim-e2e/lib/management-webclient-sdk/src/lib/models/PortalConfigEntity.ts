@@ -12,64 +12,90 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Analytics } from './Analytics';
 import {
-    Analytics,
     AnalyticsFromJSON,
     AnalyticsFromJSONTyped,
     AnalyticsToJSON,
-    Api,
+} from './Analytics';
+import type { Api } from './Api';
+import {
     ApiFromJSON,
     ApiFromJSONTyped,
     ApiToJSON,
-    ApiQualityMetrics,
+} from './Api';
+import type { ApiQualityMetrics } from './ApiQualityMetrics';
+import {
     ApiQualityMetricsFromJSON,
     ApiQualityMetricsFromJSONTyped,
     ApiQualityMetricsToJSON,
-    ApiReview,
+} from './ApiQualityMetrics';
+import type { ApiReview } from './ApiReview';
+import {
     ApiReviewFromJSON,
     ApiReviewFromJSONTyped,
     ApiReviewToJSON,
-    Company,
+} from './ApiReview';
+import type { Company } from './Company';
+import {
     CompanyFromJSON,
     CompanyFromJSONTyped,
     CompanyToJSON,
-    Dashboards,
+} from './Company';
+import type { Dashboards } from './Dashboards';
+import {
     DashboardsFromJSON,
     DashboardsFromJSONTyped,
     DashboardsToJSON,
-    Documentation,
+} from './Dashboards';
+import type { Documentation } from './Documentation';
+import {
     DocumentationFromJSON,
     DocumentationFromJSONTyped,
     DocumentationToJSON,
-    OpenAPIDocViewer,
+} from './Documentation';
+import type { OpenAPIDocViewer } from './OpenAPIDocViewer';
+import {
     OpenAPIDocViewerFromJSON,
     OpenAPIDocViewerFromJSONTyped,
     OpenAPIDocViewerToJSON,
-    PlanSettings,
+} from './OpenAPIDocViewer';
+import type { PlanSettings } from './PlanSettings';
+import {
     PlanSettingsFromJSON,
     PlanSettingsFromJSONTyped,
     PlanSettingsToJSON,
-    Portal,
+} from './PlanSettings';
+import type { Portal } from './Portal';
+import {
     PortalFromJSON,
     PortalFromJSONTyped,
     PortalToJSON,
-    PortalApplicationSettings,
+} from './Portal';
+import type { PortalApplicationSettings } from './PortalApplicationSettings';
+import {
     PortalApplicationSettingsFromJSON,
     PortalApplicationSettingsFromJSONTyped,
     PortalApplicationSettingsToJSON,
-    PortalAuthentication,
+} from './PortalApplicationSettings';
+import type { PortalAuthentication } from './PortalAuthentication';
+import {
     PortalAuthenticationFromJSON,
     PortalAuthenticationFromJSONTyped,
     PortalAuthenticationToJSON,
-    PortalReCaptcha,
+} from './PortalAuthentication';
+import type { PortalReCaptcha } from './PortalReCaptcha';
+import {
     PortalReCaptchaFromJSON,
     PortalReCaptchaFromJSONTyped,
     PortalReCaptchaToJSON,
-    PortalScheduler,
+} from './PortalReCaptcha';
+import type { PortalScheduler } from './PortalScheduler';
+import {
     PortalSchedulerFromJSON,
     PortalSchedulerFromJSONTyped,
     PortalSchedulerToJSON,
-} from './';
+} from './PortalScheduler';
 
 /**
  * 
@@ -163,6 +189,15 @@ export interface PortalConfigEntity {
     scheduler?: PortalScheduler;
 }
 
+/**
+ * Check if a given object implements the PortalConfigEntity interface.
+ */
+export function instanceOfPortalConfigEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PortalConfigEntityFromJSON(json: any): PortalConfigEntity {
     return PortalConfigEntityFromJSONTyped(json, false);
 }
@@ -215,5 +250,4 @@ export function PortalConfigEntityToJSON(value?: PortalConfigEntity | null): any
         'scheduler': PortalSchedulerToJSON(value.scheduler),
     };
 }
-
 

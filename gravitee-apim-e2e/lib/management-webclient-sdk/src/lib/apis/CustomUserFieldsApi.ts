@@ -13,8 +13,10 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  CustomUserFieldEntity,
+} from '../models';
 import {
-    CustomUserFieldEntity,
     CustomUserFieldEntityFromJSON,
     CustomUserFieldEntityToJSON,
 } from '../models';
@@ -48,12 +50,12 @@ export class CustomUserFieldsApi extends runtime.BaseAPI {
      * User must have the CUSTOM_USER_FIELDS[CREATE] permission to use this service
      * Create a Custom User Field
      */
-    async createCustomUserFieldRaw(requestParameters: CreateCustomUserFieldRequest): Promise<runtime.ApiResponse<CustomUserFieldEntity>> {
+    async createCustomUserFieldRaw(requestParameters: CreateCustomUserFieldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CustomUserFieldEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createCustomUserField.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -68,7 +70,7 @@ export class CustomUserFieldsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: CustomUserFieldEntityToJSON(requestParameters.customUserFieldEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CustomUserFieldEntityFromJSON(jsonValue));
     }
@@ -77,8 +79,8 @@ export class CustomUserFieldsApi extends runtime.BaseAPI {
      * User must have the CUSTOM_USER_FIELDS[CREATE] permission to use this service
      * Create a Custom User Field
      */
-    async createCustomUserField(requestParameters: CreateCustomUserFieldRequest): Promise<CustomUserFieldEntity> {
-        const response = await this.createCustomUserFieldRaw(requestParameters);
+    async createCustomUserField(requestParameters: CreateCustomUserFieldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CustomUserFieldEntity> {
+        const response = await this.createCustomUserFieldRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -86,7 +88,7 @@ export class CustomUserFieldsApi extends runtime.BaseAPI {
      * User must have the CUSTOM_USER_FIELDS[DELETE] permission to use this service
      * Delete a Custom User Field
      */
-    async deleteCustomUserFieldRaw(requestParameters: DeleteCustomUserFieldRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteCustomUserFieldRaw(requestParameters: DeleteCustomUserFieldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.key === null || requestParameters.key === undefined) {
             throw new runtime.RequiredError('key','Required parameter requestParameters.key was null or undefined when calling deleteCustomUserField.');
         }
@@ -95,7 +97,7 @@ export class CustomUserFieldsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteCustomUserField.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -107,7 +109,7 @@ export class CustomUserFieldsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -116,20 +118,20 @@ export class CustomUserFieldsApi extends runtime.BaseAPI {
      * User must have the CUSTOM_USER_FIELDS[DELETE] permission to use this service
      * Delete a Custom User Field
      */
-    async deleteCustomUserField(requestParameters: DeleteCustomUserFieldRequest): Promise<void> {
-        await this.deleteCustomUserFieldRaw(requestParameters);
+    async deleteCustomUserField(requestParameters: DeleteCustomUserFieldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteCustomUserFieldRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the CUSTOM_USER_FIELDS[READ] permission to use this service
      * List All Custom User Fields
      */
-    async getCustomUserFieldsRaw(requestParameters: GetCustomUserFieldsRequest): Promise<runtime.ApiResponse<Array<CustomUserFieldEntity>>> {
+    async getCustomUserFieldsRaw(requestParameters: GetCustomUserFieldsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CustomUserFieldEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCustomUserFields.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -141,7 +143,7 @@ export class CustomUserFieldsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CustomUserFieldEntityFromJSON));
     }
@@ -150,8 +152,8 @@ export class CustomUserFieldsApi extends runtime.BaseAPI {
      * User must have the CUSTOM_USER_FIELDS[READ] permission to use this service
      * List All Custom User Fields
      */
-    async getCustomUserFields(requestParameters: GetCustomUserFieldsRequest): Promise<Array<CustomUserFieldEntity>> {
-        const response = await this.getCustomUserFieldsRaw(requestParameters);
+    async getCustomUserFields(requestParameters: GetCustomUserFieldsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CustomUserFieldEntity>> {
+        const response = await this.getCustomUserFieldsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -159,7 +161,7 @@ export class CustomUserFieldsApi extends runtime.BaseAPI {
      * User must have the CUSTOM_USER_FIELDS[UPDATE] permission to use this service
      * Update a Custom User Field
      */
-    async updateCustomUserFieldRaw(requestParameters: UpdateCustomUserFieldRequest): Promise<runtime.ApiResponse<CustomUserFieldEntity>> {
+    async updateCustomUserFieldRaw(requestParameters: UpdateCustomUserFieldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CustomUserFieldEntity>> {
         if (requestParameters.key === null || requestParameters.key === undefined) {
             throw new runtime.RequiredError('key','Required parameter requestParameters.key was null or undefined when calling updateCustomUserField.');
         }
@@ -168,7 +170,7 @@ export class CustomUserFieldsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateCustomUserField.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -183,7 +185,7 @@ export class CustomUserFieldsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: CustomUserFieldEntityToJSON(requestParameters.customUserFieldEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CustomUserFieldEntityFromJSON(jsonValue));
     }
@@ -192,8 +194,8 @@ export class CustomUserFieldsApi extends runtime.BaseAPI {
      * User must have the CUSTOM_USER_FIELDS[UPDATE] permission to use this service
      * Update a Custom User Field
      */
-    async updateCustomUserField(requestParameters: UpdateCustomUserFieldRequest): Promise<CustomUserFieldEntity> {
-        const response = await this.updateCustomUserFieldRaw(requestParameters);
+    async updateCustomUserField(requestParameters: UpdateCustomUserFieldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CustomUserFieldEntity> {
+        const response = await this.updateCustomUserFieldRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

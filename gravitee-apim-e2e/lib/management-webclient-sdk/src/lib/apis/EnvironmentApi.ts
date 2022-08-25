@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  EnvironmentEntity,
+  IdentityProviderActivationEntity,
+} from '../models';
 import {
-    EnvironmentEntity,
     EnvironmentEntityFromJSON,
     EnvironmentEntityToJSON,
-    IdentityProviderActivationEntity,
     IdentityProviderActivationEntityFromJSON,
     IdentityProviderActivationEntityToJSON,
 } from '../models';
@@ -41,7 +43,7 @@ export class EnvironmentApi extends runtime.BaseAPI {
     /**
      * Get an Environment
      */
-    async getEnvironmentRaw(requestParameters: GetEnvironmentRequest): Promise<runtime.ApiResponse<EnvironmentEntity>> {
+    async getEnvironmentRaw(requestParameters: GetEnvironmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EnvironmentEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getEnvironment.');
         }
@@ -50,7 +52,7 @@ export class EnvironmentApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEnvironment.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -62,7 +64,7 @@ export class EnvironmentApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EnvironmentEntityFromJSON(jsonValue));
     }
@@ -70,15 +72,15 @@ export class EnvironmentApi extends runtime.BaseAPI {
     /**
      * Get an Environment
      */
-    async getEnvironment(requestParameters: GetEnvironmentRequest): Promise<EnvironmentEntity> {
-        const response = await this.getEnvironmentRaw(requestParameters);
+    async getEnvironment(requestParameters: GetEnvironmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EnvironmentEntity> {
+        const response = await this.getEnvironmentRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Update available environment identities
      */
-    async updateEnvironmentIdentitiesRaw(requestParameters: UpdateEnvironmentIdentitiesRequest): Promise<runtime.ApiResponse<void>> {
+    async updateEnvironmentIdentitiesRaw(requestParameters: UpdateEnvironmentIdentitiesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateEnvironmentIdentities.');
         }
@@ -87,7 +89,7 @@ export class EnvironmentApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateEnvironmentIdentities.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -102,7 +104,7 @@ export class EnvironmentApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.identityProviderActivationEntity.map(IdentityProviderActivationEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -110,8 +112,8 @@ export class EnvironmentApi extends runtime.BaseAPI {
     /**
      * Update available environment identities
      */
-    async updateEnvironmentIdentities(requestParameters: UpdateEnvironmentIdentitiesRequest): Promise<void> {
-        await this.updateEnvironmentIdentitiesRaw(requestParameters);
+    async updateEnvironmentIdentities(requestParameters: UpdateEnvironmentIdentitiesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.updateEnvironmentIdentitiesRaw(requestParameters, initOverrides);
     }
 
 }

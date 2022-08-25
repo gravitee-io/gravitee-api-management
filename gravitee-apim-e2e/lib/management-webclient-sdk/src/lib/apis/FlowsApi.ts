@@ -13,8 +13,10 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  OrganizationFlowConfiguration,
+} from '../models';
 import {
-    OrganizationFlowConfiguration,
     OrganizationFlowConfigurationFromJSON,
     OrganizationFlowConfigurationToJSON,
 } from '../models';
@@ -38,12 +40,12 @@ export class FlowsApi extends runtime.BaseAPI {
 
     /**
      */
-    async getConfigurationSchemaFormRaw(requestParameters: GetConfigurationSchemaFormRequest): Promise<runtime.ApiResponse<void>> {
+    async getConfigurationSchemaFormRaw(requestParameters: GetConfigurationSchemaFormRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getConfigurationSchemaForm.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -55,25 +57,25 @@ export class FlowsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async getConfigurationSchemaForm(requestParameters: GetConfigurationSchemaFormRequest): Promise<void> {
-        await this.getConfigurationSchemaFormRaw(requestParameters);
+    async getConfigurationSchemaForm(requestParameters: GetConfigurationSchemaFormRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getConfigurationSchemaFormRaw(requestParameters, initOverrides);
     }
 
     /**
      */
-    async getPlatformFlowSchemaFormRaw(requestParameters: GetPlatformFlowSchemaFormRequest): Promise<runtime.ApiResponse<void>> {
+    async getPlatformFlowSchemaFormRaw(requestParameters: GetPlatformFlowSchemaFormRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPlatformFlowSchemaForm.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -85,26 +87,26 @@ export class FlowsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async getPlatformFlowSchemaForm(requestParameters: GetPlatformFlowSchemaFormRequest): Promise<void> {
-        await this.getPlatformFlowSchemaFormRaw(requestParameters);
+    async getPlatformFlowSchemaForm(requestParameters: GetPlatformFlowSchemaFormRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getPlatformFlowSchemaFormRaw(requestParameters, initOverrides);
     }
 
     /**
      * Get the global flow configuration of the organization
      */
-    async hasPoliciesRaw(requestParameters: HasPoliciesRequest): Promise<runtime.ApiResponse<OrganizationFlowConfiguration>> {
+    async hasPoliciesRaw(requestParameters: HasPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<OrganizationFlowConfiguration>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling hasPolicies.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -116,7 +118,7 @@ export class FlowsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => OrganizationFlowConfigurationFromJSON(jsonValue));
     }
@@ -124,8 +126,8 @@ export class FlowsApi extends runtime.BaseAPI {
     /**
      * Get the global flow configuration of the organization
      */
-    async hasPolicies(requestParameters: HasPoliciesRequest): Promise<OrganizationFlowConfiguration> {
-        const response = await this.hasPoliciesRaw(requestParameters);
+    async hasPolicies(requestParameters: HasPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<OrganizationFlowConfiguration> {
+        const response = await this.hasPoliciesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

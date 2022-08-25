@@ -13,8 +13,10 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ApiListItem,
+} from '../models';
 import {
-    ApiListItem,
     ApiListItemFromJSON,
     ApiListItemToJSON,
 } from '../models';
@@ -33,7 +35,7 @@ export class PortalAPIsApi extends runtime.BaseAPI {
     /**
      * Search for API using the search engine
      */
-    async searchPortalApisRaw(requestParameters: SearchPortalApisRequest): Promise<runtime.ApiResponse<Array<ApiListItem>>> {
+    async searchPortalApisRaw(requestParameters: SearchPortalApisRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApiListItem>>> {
         if (requestParameters.q === null || requestParameters.q === undefined) {
             throw new runtime.RequiredError('q','Required parameter requestParameters.q was null or undefined when calling searchPortalApis.');
         }
@@ -46,7 +48,7 @@ export class PortalAPIsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling searchPortalApis.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.q !== undefined) {
             queryParameters['q'] = requestParameters.q;
@@ -62,7 +64,7 @@ export class PortalAPIsApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApiListItemFromJSON));
     }
@@ -70,8 +72,8 @@ export class PortalAPIsApi extends runtime.BaseAPI {
     /**
      * Search for API using the search engine
      */
-    async searchPortalApis(requestParameters: SearchPortalApisRequest): Promise<Array<ApiListItem>> {
-        const response = await this.searchPortalApisRaw(requestParameters);
+    async searchPortalApis(requestParameters: SearchPortalApisRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApiListItem>> {
+        const response = await this.searchPortalApisRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

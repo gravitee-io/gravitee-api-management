@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { DynamicPropertyService } from './DynamicPropertyService';
 import {
-    DynamicPropertyService,
     DynamicPropertyServiceFromJSON,
     DynamicPropertyServiceFromJSONTyped,
     DynamicPropertyServiceToJSON,
-    EndpointDiscoveryService,
+} from './DynamicPropertyService';
+import type { EndpointDiscoveryService } from './EndpointDiscoveryService';
+import {
     EndpointDiscoveryServiceFromJSON,
     EndpointDiscoveryServiceFromJSONTyped,
     EndpointDiscoveryServiceToJSON,
-    HealthCheckService,
+} from './EndpointDiscoveryService';
+import type { HealthCheckService } from './HealthCheckService';
+import {
     HealthCheckServiceFromJSON,
     HealthCheckServiceFromJSONTyped,
     HealthCheckServiceToJSON,
-} from './';
+} from './HealthCheckService';
 
 /**
  * The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.
@@ -51,6 +55,15 @@ export interface Services {
      * @memberof Services
      */
     health_check?: HealthCheckService;
+}
+
+/**
+ * Check if a given object implements the Services interface.
+ */
+export function instanceOfServices(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function ServicesFromJSON(json: any): Services {
@@ -83,5 +96,4 @@ export function ServicesToJSON(value?: Services | null): any {
         'health-check': HealthCheckServiceToJSON(value.health_check),
     };
 }
-
 

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { IdentityProviderActivationReferenceType } from './IdentityProviderActivationReferenceType';
 import {
-    IdentityProviderActivationReferenceType,
     IdentityProviderActivationReferenceTypeFromJSON,
     IdentityProviderActivationReferenceTypeFromJSONTyped,
     IdentityProviderActivationReferenceTypeToJSON,
-} from './';
+} from './IdentityProviderActivationReferenceType';
 
 /**
  * 
@@ -49,6 +49,15 @@ export interface IdentityProviderActivationEntity {
      * @memberof IdentityProviderActivationEntity
      */
     referenceType?: IdentityProviderActivationReferenceType;
+}
+
+/**
+ * Check if a given object implements the IdentityProviderActivationEntity interface.
+ */
+export function instanceOfIdentityProviderActivationEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function IdentityProviderActivationEntityFromJSON(json: any): IdentityProviderActivationEntity {
@@ -83,5 +92,4 @@ export function IdentityProviderActivationEntityToJSON(value?: IdentityProviderA
         'referenceType': IdentityProviderActivationReferenceTypeToJSON(value.referenceType),
     };
 }
-
 

@@ -38,6 +38,15 @@ export interface ApiMetrics {
     metadata?: { [key: string]: { [key: string]: string; }; };
 }
 
+/**
+ * Check if a given object implements the ApiMetrics interface.
+ */
+export function instanceOfApiMetrics(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiMetricsFromJSON(json: any): ApiMetrics {
     return ApiMetricsFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function ApiMetricsToJSON(value?: ApiMetrics | null): any {
         'metadata': value.metadata,
     };
 }
-
 

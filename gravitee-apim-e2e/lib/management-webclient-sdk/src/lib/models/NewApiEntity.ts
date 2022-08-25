@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Flow } from './Flow';
 import {
-    Flow,
     FlowFromJSON,
     FlowFromJSONTyped,
     FlowToJSON,
-} from './';
+} from './Flow';
 
 /**
  * 
@@ -87,6 +87,31 @@ export interface NewApiEntity {
     version: string;
 }
 
+
+/**
+ * @export
+ */
+export const NewApiEntityFlowModeEnum = {
+    DEFAULT: 'DEFAULT',
+    BEST_MATCH: 'BEST_MATCH'
+} as const;
+export type NewApiEntityFlowModeEnum = typeof NewApiEntityFlowModeEnum[keyof typeof NewApiEntityFlowModeEnum];
+
+
+/**
+ * Check if a given object implements the NewApiEntity interface.
+ */
+export function instanceOfNewApiEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "contextPath" in value;
+    isInstance = isInstance && "description" in value;
+    isInstance = isInstance && "endpoint" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "version" in value;
+
+    return isInstance;
+}
+
 export function NewApiEntityFromJSON(json: any): NewApiEntity {
     return NewApiEntityFromJSONTyped(json, false);
 }
@@ -131,14 +156,4 @@ export function NewApiEntityToJSON(value?: NewApiEntity | null): any {
         'version': value.version,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum NewApiEntityFlowModeEnum {
-    DEFAULT = 'DEFAULT',
-    BESTMATCH = 'BEST_MATCH'
-}
-
 

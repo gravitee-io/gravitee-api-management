@@ -13,41 +13,43 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  NewExternalUserEntity,
+  NewPreRegisterUserEntity,
+  NewTokenEntity,
+  RegisterUserEntity,
+  ResetPasswordUserEntity,
+  SearchableUser,
+  TokenEntity,
+  UserEntity,
+  UserGroupEntity,
+  UserMembershipList,
+  UserPageResult,
+  UserReferenceRoleEntity,
+} from '../models';
 import {
-    NewExternalUserEntity,
     NewExternalUserEntityFromJSON,
     NewExternalUserEntityToJSON,
-    NewPreRegisterUserEntity,
     NewPreRegisterUserEntityFromJSON,
     NewPreRegisterUserEntityToJSON,
-    NewTokenEntity,
     NewTokenEntityFromJSON,
     NewTokenEntityToJSON,
-    RegisterUserEntity,
     RegisterUserEntityFromJSON,
     RegisterUserEntityToJSON,
-    ResetPasswordUserEntity,
     ResetPasswordUserEntityFromJSON,
     ResetPasswordUserEntityToJSON,
-    SearchableUser,
     SearchableUserFromJSON,
     SearchableUserToJSON,
-    TokenEntity,
     TokenEntityFromJSON,
     TokenEntityToJSON,
-    UserEntity,
     UserEntityFromJSON,
     UserEntityToJSON,
-    UserGroupEntity,
     UserGroupEntityFromJSON,
     UserGroupEntityToJSON,
-    UserMembershipList,
     UserMembershipListFromJSON,
     UserMembershipListToJSON,
-    UserPageResult,
     UserPageResultFromJSON,
     UserPageResultToJSON,
-    UserReferenceRoleEntity,
     UserReferenceRoleEntityFromJSON,
     UserReferenceRoleEntityToJSON,
 } from '../models';
@@ -263,7 +265,7 @@ export class UsersApi extends runtime.BaseAPI {
     /**
      * Create a personal token
      */
-    async createTokenRaw(requestParameters: CreateTokenRequest): Promise<runtime.ApiResponse<TokenEntity>> {
+    async createTokenRaw(requestParameters: CreateTokenRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TokenEntity>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling createToken.');
         }
@@ -280,7 +282,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTokenEntity','Required parameter requestParameters.newTokenEntity was null or undefined when calling createToken.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -295,7 +297,7 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewTokenEntityToJSON(requestParameters.newTokenEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TokenEntityFromJSON(jsonValue));
     }
@@ -303,15 +305,15 @@ export class UsersApi extends runtime.BaseAPI {
     /**
      * Create a personal token
      */
-    async createToken(requestParameters: CreateTokenRequest): Promise<TokenEntity> {
-        const response = await this.createTokenRaw(requestParameters);
+    async createToken(requestParameters: CreateTokenRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TokenEntity> {
+        const response = await this.createTokenRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Create a personal token
      */
-    async createToken1Raw(requestParameters: CreateToken1Request): Promise<runtime.ApiResponse<TokenEntity>> {
+    async createToken1Raw(requestParameters: CreateToken1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TokenEntity>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling createToken1.');
         }
@@ -324,7 +326,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTokenEntity','Required parameter requestParameters.newTokenEntity was null or undefined when calling createToken1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -339,7 +341,7 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewTokenEntityToJSON(requestParameters.newTokenEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TokenEntityFromJSON(jsonValue));
     }
@@ -347,8 +349,8 @@ export class UsersApi extends runtime.BaseAPI {
     /**
      * Create a personal token
      */
-    async createToken1(requestParameters: CreateToken1Request): Promise<TokenEntity> {
-        const response = await this.createToken1Raw(requestParameters);
+    async createToken1(requestParameters: CreateToken1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TokenEntity> {
+        const response = await this.createToken1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -356,7 +358,7 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[CREATE] permission to use this service
      * Create a user
      */
-    async createUserRaw(requestParameters: CreateUserRequest): Promise<runtime.ApiResponse<UserEntity>> {
+    async createUserRaw(requestParameters: CreateUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createUser.');
         }
@@ -365,7 +367,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -380,7 +382,7 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewPreRegisterUserEntityToJSON(requestParameters.newPreRegisterUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -389,8 +391,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[CREATE] permission to use this service
      * Create a user
      */
-    async createUser(requestParameters: CreateUserRequest): Promise<UserEntity> {
-        const response = await this.createUserRaw(requestParameters);
+    async createUser(requestParameters: CreateUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.createUserRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -398,12 +400,12 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[CREATE] permission to use this service
      * Create a user
      */
-    async createUser1Raw(requestParameters: CreateUser1Request): Promise<runtime.ApiResponse<UserEntity>> {
+    async createUser1Raw(requestParameters: CreateUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -418,7 +420,7 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewPreRegisterUserEntityToJSON(requestParameters.newPreRegisterUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -427,8 +429,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[CREATE] permission to use this service
      * Create a user
      */
-    async createUser1(requestParameters: CreateUser1Request): Promise<UserEntity> {
-        const response = await this.createUser1Raw(requestParameters);
+    async createUser1(requestParameters: CreateUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.createUser1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -436,7 +438,7 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[DELETE] permission to use this service
      * Delete a user
      */
-    async deleteUserRaw(requestParameters: DeleteUserRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteUserRaw(requestParameters: DeleteUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling deleteUser.');
         }
@@ -449,7 +451,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -461,7 +463,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -470,15 +472,15 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[DELETE] permission to use this service
      * Delete a user
      */
-    async deleteUser(requestParameters: DeleteUserRequest): Promise<void> {
-        await this.deleteUserRaw(requestParameters);
+    async deleteUser(requestParameters: DeleteUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteUserRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the ORGANIZATION_USERS[DELETE] permission to use this service
      * Delete a user
      */
-    async deleteUser1Raw(requestParameters: DeleteUser1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteUser1Raw(requestParameters: DeleteUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling deleteUser1.');
         }
@@ -487,7 +489,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -499,7 +501,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -508,15 +510,15 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[DELETE] permission to use this service
      * Delete a user
      */
-    async deleteUser1(requestParameters: DeleteUser1Request): Promise<void> {
-        await this.deleteUser1Raw(requestParameters);
+    async deleteUser1(requestParameters: DeleteUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteUser1Raw(requestParameters, initOverrides);
     }
 
     /**
      * User registration must be enabled
      * Change user password after a reset
      */
-    async finalizeResetPasswordRaw(requestParameters: FinalizeResetPasswordRequest): Promise<runtime.ApiResponse<UserEntity>> {
+    async finalizeResetPasswordRaw(requestParameters: FinalizeResetPasswordRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling finalizeResetPassword.');
         }
@@ -529,7 +531,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling finalizeResetPassword.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -544,7 +546,7 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: ResetPasswordUserEntityToJSON(requestParameters.resetPasswordUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -553,8 +555,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Change user password after a reset
      */
-    async finalizeResetPassword(requestParameters: FinalizeResetPasswordRequest): Promise<UserEntity> {
-        const response = await this.finalizeResetPasswordRaw(requestParameters);
+    async finalizeResetPassword(requestParameters: FinalizeResetPasswordRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.finalizeResetPasswordRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -562,7 +564,7 @@ export class UsersApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Change user password after a reset
      */
-    async finalizeResetPassword1Raw(requestParameters: FinalizeResetPassword1Request): Promise<runtime.ApiResponse<UserEntity>> {
+    async finalizeResetPassword1Raw(requestParameters: FinalizeResetPassword1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling finalizeResetPassword1.');
         }
@@ -571,7 +573,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling finalizeResetPassword1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -586,7 +588,7 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: ResetPasswordUserEntityToJSON(requestParameters.resetPasswordUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -595,8 +597,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Change user password after a reset
      */
-    async finalizeResetPassword1(requestParameters: FinalizeResetPassword1Request): Promise<UserEntity> {
-        const response = await this.finalizeResetPassword1Raw(requestParameters);
+    async finalizeResetPassword1(requestParameters: FinalizeResetPassword1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.finalizeResetPassword1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -604,7 +606,7 @@ export class UsersApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Finalize user registration
      */
-    async finalizeUserRegistrationRaw(requestParameters: FinalizeUserRegistrationRequest): Promise<runtime.ApiResponse<UserEntity>> {
+    async finalizeUserRegistrationRaw(requestParameters: FinalizeUserRegistrationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling finalizeUserRegistration.');
         }
@@ -613,7 +615,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling finalizeUserRegistration.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -628,7 +630,7 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: RegisterUserEntityToJSON(requestParameters.registerUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -637,8 +639,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Finalize user registration
      */
-    async finalizeUserRegistration(requestParameters: FinalizeUserRegistrationRequest): Promise<UserEntity> {
-        const response = await this.finalizeUserRegistrationRaw(requestParameters);
+    async finalizeUserRegistration(requestParameters: FinalizeUserRegistrationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.finalizeUserRegistrationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -646,12 +648,12 @@ export class UsersApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Finalize user registration
      */
-    async finalizeUserRegistration1Raw(requestParameters: FinalizeUserRegistration1Request): Promise<runtime.ApiResponse<UserEntity>> {
+    async finalizeUserRegistration1Raw(requestParameters: FinalizeUserRegistration1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling finalizeUserRegistration1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -666,7 +668,7 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: RegisterUserEntityToJSON(requestParameters.registerUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -675,8 +677,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Finalize user registration
      */
-    async finalizeUserRegistration1(requestParameters: FinalizeUserRegistration1Request): Promise<UserEntity> {
-        const response = await this.finalizeUserRegistration1Raw(requestParameters);
+    async finalizeUserRegistration1(requestParameters: FinalizeUserRegistration1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.finalizeUserRegistration1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -684,7 +686,7 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * Search for users using the search engine
      */
-    async getAllUsersRaw(requestParameters: GetAllUsersRequest): Promise<runtime.ApiResponse<UserPageResult>> {
+    async getAllUsersRaw(requestParameters: GetAllUsersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserPageResult>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getAllUsers.');
         }
@@ -693,7 +695,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getAllUsers.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.q !== undefined) {
             queryParameters['q'] = requestParameters.q;
@@ -717,7 +719,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserPageResultFromJSON(jsonValue));
     }
@@ -726,8 +728,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * Search for users using the search engine
      */
-    async getAllUsers(requestParameters: GetAllUsersRequest): Promise<UserPageResult> {
-        const response = await this.getAllUsersRaw(requestParameters);
+    async getAllUsers(requestParameters: GetAllUsersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserPageResult> {
+        const response = await this.getAllUsersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -735,12 +737,12 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * Search for users using the search engine
      */
-    async getAllUsers1Raw(requestParameters: GetAllUsers1Request): Promise<runtime.ApiResponse<UserPageResult>> {
+    async getAllUsers1Raw(requestParameters: GetAllUsers1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserPageResult>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getAllUsers1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.q !== undefined) {
             queryParameters['q'] = requestParameters.q;
@@ -764,7 +766,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserPageResultFromJSON(jsonValue));
     }
@@ -773,8 +775,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * Search for users using the search engine
      */
-    async getAllUsers1(requestParameters: GetAllUsers1Request): Promise<UserPageResult> {
-        const response = await this.getAllUsers1Raw(requestParameters);
+    async getAllUsers1(requestParameters: GetAllUsers1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserPageResult> {
+        const response = await this.getAllUsers1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -782,7 +784,7 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * Retrieve a user
      */
-    async getUserRaw(requestParameters: GetUserRequest): Promise<runtime.ApiResponse<UserEntity>> {
+    async getUserRaw(requestParameters: GetUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling getUser.');
         }
@@ -795,7 +797,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -807,7 +809,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -816,8 +818,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * Retrieve a user
      */
-    async getUser(requestParameters: GetUserRequest): Promise<UserEntity> {
-        const response = await this.getUserRaw(requestParameters);
+    async getUser(requestParameters: GetUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.getUserRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -825,7 +827,7 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * Retrieve a user
      */
-    async getUser1Raw(requestParameters: GetUser1Request): Promise<runtime.ApiResponse<UserEntity>> {
+    async getUser1Raw(requestParameters: GetUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling getUser1.');
         }
@@ -834,7 +836,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -846,7 +848,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -855,15 +857,15 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * Retrieve a user
      */
-    async getUser1(requestParameters: GetUser1Request): Promise<UserEntity> {
-        const response = await this.getUser1Raw(requestParameters);
+    async getUser1(requestParameters: GetUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.getUser1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the user\'s avatar
      */
-    async getUserAvatarRaw(requestParameters: GetUserAvatarRequest): Promise<runtime.ApiResponse<Blob>> {
+    async getUserAvatarRaw(requestParameters: GetUserAvatarRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling getUserAvatar.');
         }
@@ -876,7 +878,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserAvatar.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -888,7 +890,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.BlobApiResponse(response);
     }
@@ -896,15 +898,15 @@ export class UsersApi extends runtime.BaseAPI {
     /**
      * Get the user\'s avatar
      */
-    async getUserAvatar(requestParameters: GetUserAvatarRequest): Promise<Blob> {
-        const response = await this.getUserAvatarRaw(requestParameters);
+    async getUserAvatar(requestParameters: GetUserAvatarRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getUserAvatarRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the user\'s avatar
      */
-    async getUserAvatar1Raw(requestParameters: GetUserAvatar1Request): Promise<runtime.ApiResponse<Blob>> {
+    async getUserAvatar1Raw(requestParameters: GetUserAvatar1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling getUserAvatar1.');
         }
@@ -913,7 +915,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserAvatar1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -925,7 +927,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.BlobApiResponse(response);
     }
@@ -933,8 +935,8 @@ export class UsersApi extends runtime.BaseAPI {
     /**
      * Get the user\'s avatar
      */
-    async getUserAvatar1(requestParameters: GetUserAvatar1Request): Promise<Blob> {
-        const response = await this.getUserAvatar1Raw(requestParameters);
+    async getUserAvatar1(requestParameters: GetUserAvatar1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getUserAvatar1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -942,7 +944,7 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * List of groups the user belongs to
      */
-    async getUserGroupsRaw(requestParameters: GetUserGroupsRequest): Promise<runtime.ApiResponse<Array<UserGroupEntity>>> {
+    async getUserGroupsRaw(requestParameters: GetUserGroupsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<UserGroupEntity>>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling getUserGroups.');
         }
@@ -955,7 +957,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserGroups.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -967,7 +969,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(UserGroupEntityFromJSON));
     }
@@ -976,8 +978,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * List of groups the user belongs to
      */
-    async getUserGroups(requestParameters: GetUserGroupsRequest): Promise<Array<UserGroupEntity>> {
-        const response = await this.getUserGroupsRaw(requestParameters);
+    async getUserGroups(requestParameters: GetUserGroupsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<UserGroupEntity>> {
+        const response = await this.getUserGroupsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -985,7 +987,7 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * List of groups the user belongs to
      */
-    async getUserGroups1Raw(requestParameters: GetUserGroups1Request): Promise<runtime.ApiResponse<Array<UserGroupEntity>>> {
+    async getUserGroups1Raw(requestParameters: GetUserGroups1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<UserGroupEntity>>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling getUserGroups1.');
         }
@@ -994,7 +996,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserGroups1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1006,7 +1008,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(UserGroupEntityFromJSON));
     }
@@ -1015,8 +1017,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * List of groups the user belongs to
      */
-    async getUserGroups1(requestParameters: GetUserGroups1Request): Promise<Array<UserGroupEntity>> {
-        const response = await this.getUserGroups1Raw(requestParameters);
+    async getUserGroups1(requestParameters: GetUserGroups1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<UserGroupEntity>> {
+        const response = await this.getUserGroups1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1024,7 +1026,7 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * List of memberships the user belongs to
      */
-    async getUserMembershipsRaw(requestParameters: GetUserMembershipsRequest): Promise<runtime.ApiResponse<UserMembershipList>> {
+    async getUserMembershipsRaw(requestParameters: GetUserMembershipsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserMembershipList>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling getUserMemberships.');
         }
@@ -1037,7 +1039,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserMemberships.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.type !== undefined) {
             queryParameters['type'] = requestParameters.type;
@@ -1053,7 +1055,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserMembershipListFromJSON(jsonValue));
     }
@@ -1062,8 +1064,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * List of memberships the user belongs to
      */
-    async getUserMemberships(requestParameters: GetUserMembershipsRequest): Promise<UserMembershipList> {
-        const response = await this.getUserMembershipsRaw(requestParameters);
+    async getUserMemberships(requestParameters: GetUserMembershipsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserMembershipList> {
+        const response = await this.getUserMembershipsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1071,7 +1073,7 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * List of memberships the user belongs to
      */
-    async getUserMemberships1Raw(requestParameters: GetUserMemberships1Request): Promise<runtime.ApiResponse<UserMembershipList>> {
+    async getUserMemberships1Raw(requestParameters: GetUserMemberships1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserMembershipList>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling getUserMemberships1.');
         }
@@ -1080,7 +1082,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserMemberships1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.type !== undefined) {
             queryParameters['type'] = requestParameters.type;
@@ -1096,7 +1098,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserMembershipListFromJSON(jsonValue));
     }
@@ -1105,15 +1107,15 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[READ] permission to use this service
      * List of memberships the user belongs to
      */
-    async getUserMemberships1(requestParameters: GetUserMemberships1Request): Promise<UserMembershipList> {
-        const response = await this.getUserMemberships1Raw(requestParameters);
+    async getUserMemberships1(requestParameters: GetUserMemberships1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserMembershipList> {
+        const response = await this.getUserMemberships1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List user\'s personal tokens
      */
-    async getUserTokensRaw(requestParameters: GetUserTokensRequest): Promise<runtime.ApiResponse<Array<TokenEntity>>> {
+    async getUserTokensRaw(requestParameters: GetUserTokensRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TokenEntity>>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling getUserTokens.');
         }
@@ -1126,7 +1128,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserTokens.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1138,7 +1140,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TokenEntityFromJSON));
     }
@@ -1146,15 +1148,15 @@ export class UsersApi extends runtime.BaseAPI {
     /**
      * List user\'s personal tokens
      */
-    async getUserTokens(requestParameters: GetUserTokensRequest): Promise<Array<TokenEntity>> {
-        const response = await this.getUserTokensRaw(requestParameters);
+    async getUserTokens(requestParameters: GetUserTokensRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TokenEntity>> {
+        const response = await this.getUserTokensRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List user\'s personal tokens
      */
-    async getUserTokens1Raw(requestParameters: GetUserTokens1Request): Promise<runtime.ApiResponse<Array<TokenEntity>>> {
+    async getUserTokens1Raw(requestParameters: GetUserTokens1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TokenEntity>>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling getUserTokens1.');
         }
@@ -1163,7 +1165,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserTokens1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1175,7 +1177,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TokenEntityFromJSON));
     }
@@ -1183,8 +1185,8 @@ export class UsersApi extends runtime.BaseAPI {
     /**
      * List user\'s personal tokens
      */
-    async getUserTokens1(requestParameters: GetUserTokens1Request): Promise<Array<TokenEntity>> {
-        const response = await this.getUserTokens1Raw(requestParameters);
+    async getUserTokens1(requestParameters: GetUserTokens1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TokenEntity>> {
+        const response = await this.getUserTokens1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1192,7 +1194,7 @@ export class UsersApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Register a user
      */
-    async registerUserRaw(requestParameters: RegisterUserRequest): Promise<runtime.ApiResponse<UserEntity>> {
+    async registerUserRaw(requestParameters: RegisterUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling registerUser.');
         }
@@ -1201,7 +1203,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling registerUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1216,7 +1218,7 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewExternalUserEntityToJSON(requestParameters.newExternalUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -1225,8 +1227,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Register a user
      */
-    async registerUser(requestParameters: RegisterUserRequest): Promise<UserEntity> {
-        const response = await this.registerUserRaw(requestParameters);
+    async registerUser(requestParameters: RegisterUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.registerUserRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1234,12 +1236,12 @@ export class UsersApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Register a user
      */
-    async registerUser1Raw(requestParameters: RegisterUser1Request): Promise<runtime.ApiResponse<UserEntity>> {
+    async registerUser1Raw(requestParameters: RegisterUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling registerUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1254,7 +1256,7 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewExternalUserEntityToJSON(requestParameters.newExternalUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -1263,8 +1265,8 @@ export class UsersApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Register a user
      */
-    async registerUser1(requestParameters: RegisterUser1Request): Promise<UserEntity> {
-        const response = await this.registerUser1Raw(requestParameters);
+    async registerUser1(requestParameters: RegisterUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.registerUser1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1272,7 +1274,7 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[UPDATE] permission to use this service
      * Reset the user\'s password
      */
-    async resetUserPasswordRaw(requestParameters: ResetUserPasswordRequest): Promise<runtime.ApiResponse<void>> {
+    async resetUserPasswordRaw(requestParameters: ResetUserPasswordRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling resetUserPassword.');
         }
@@ -1285,7 +1287,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling resetUserPassword.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1297,7 +1299,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1306,15 +1308,15 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[UPDATE] permission to use this service
      * Reset the user\'s password
      */
-    async resetUserPassword(requestParameters: ResetUserPasswordRequest): Promise<void> {
-        await this.resetUserPasswordRaw(requestParameters);
+    async resetUserPassword(requestParameters: ResetUserPasswordRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.resetUserPasswordRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the ORGANIZATION_USERS[UPDATE] permission to use this service
      * Reset the user\'s password
      */
-    async resetUserPassword1Raw(requestParameters: ResetUserPassword1Request): Promise<runtime.ApiResponse<void>> {
+    async resetUserPassword1Raw(requestParameters: ResetUserPassword1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling resetUserPassword1.');
         }
@@ -1323,7 +1325,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling resetUserPassword1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1335,7 +1337,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1344,14 +1346,14 @@ export class UsersApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_USERS[UPDATE] permission to use this service
      * Reset the user\'s password
      */
-    async resetUserPassword1(requestParameters: ResetUserPassword1Request): Promise<void> {
-        await this.resetUserPassword1Raw(requestParameters);
+    async resetUserPassword1(requestParameters: ResetUserPassword1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.resetUserPassword1Raw(requestParameters, initOverrides);
     }
 
     /**
      * Revoke a single user\'s personal tokens
      */
-    async revokeToken2Raw(requestParameters: RevokeToken2Request): Promise<runtime.ApiResponse<void>> {
+    async revokeToken2Raw(requestParameters: RevokeToken2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.token === null || requestParameters.token === undefined) {
             throw new runtime.RequiredError('token','Required parameter requestParameters.token was null or undefined when calling revokeToken2.');
         }
@@ -1368,7 +1370,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling revokeToken2.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1380,7 +1382,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1388,14 +1390,14 @@ export class UsersApi extends runtime.BaseAPI {
     /**
      * Revoke a single user\'s personal tokens
      */
-    async revokeToken2(requestParameters: RevokeToken2Request): Promise<void> {
-        await this.revokeToken2Raw(requestParameters);
+    async revokeToken2(requestParameters: RevokeToken2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.revokeToken2Raw(requestParameters, initOverrides);
     }
 
     /**
      * Revoke a single user\'s personal tokens
      */
-    async revokeToken3Raw(requestParameters: RevokeToken3Request): Promise<runtime.ApiResponse<void>> {
+    async revokeToken3Raw(requestParameters: RevokeToken3Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.token === null || requestParameters.token === undefined) {
             throw new runtime.RequiredError('token','Required parameter requestParameters.token was null or undefined when calling revokeToken3.');
         }
@@ -1408,7 +1410,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling revokeToken3.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1420,7 +1422,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1428,14 +1430,14 @@ export class UsersApi extends runtime.BaseAPI {
     /**
      * Revoke a single user\'s personal tokens
      */
-    async revokeToken3(requestParameters: RevokeToken3Request): Promise<void> {
-        await this.revokeToken3Raw(requestParameters);
+    async revokeToken3(requestParameters: RevokeToken3Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.revokeToken3Raw(requestParameters, initOverrides);
     }
 
     /**
      * Search for users
      */
-    async searchUsersRaw(requestParameters: SearchUsersRequest): Promise<runtime.ApiResponse<Array<SearchableUser>>> {
+    async searchUsersRaw(requestParameters: SearchUsersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<SearchableUser>>> {
         if (requestParameters.q === null || requestParameters.q === undefined) {
             throw new runtime.RequiredError('q','Required parameter requestParameters.q was null or undefined when calling searchUsers.');
         }
@@ -1448,7 +1450,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling searchUsers.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.q !== undefined) {
             queryParameters['q'] = requestParameters.q;
@@ -1464,7 +1466,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SearchableUserFromJSON));
     }
@@ -1472,15 +1474,15 @@ export class UsersApi extends runtime.BaseAPI {
     /**
      * Search for users
      */
-    async searchUsers(requestParameters: SearchUsersRequest): Promise<Array<SearchableUser>> {
-        const response = await this.searchUsersRaw(requestParameters);
+    async searchUsers(requestParameters: SearchUsersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<SearchableUser>> {
+        const response = await this.searchUsersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Search for users
      */
-    async searchUsers1Raw(requestParameters: SearchUsers1Request): Promise<runtime.ApiResponse<Array<SearchableUser>>> {
+    async searchUsers1Raw(requestParameters: SearchUsers1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<SearchableUser>>> {
         if (requestParameters.q === null || requestParameters.q === undefined) {
             throw new runtime.RequiredError('q','Required parameter requestParameters.q was null or undefined when calling searchUsers1.');
         }
@@ -1489,7 +1491,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling searchUsers1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.q !== undefined) {
             queryParameters['q'] = requestParameters.q;
@@ -1505,7 +1507,7 @@ export class UsersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SearchableUserFromJSON));
     }
@@ -1513,14 +1515,14 @@ export class UsersApi extends runtime.BaseAPI {
     /**
      * Search for users
      */
-    async searchUsers1(requestParameters: SearchUsers1Request): Promise<Array<SearchableUser>> {
-        const response = await this.searchUsers1Raw(requestParameters);
+    async searchUsers1(requestParameters: SearchUsers1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<SearchableUser>> {
+        const response = await this.searchUsers1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async updateUserRolesRaw(requestParameters: UpdateUserRolesRequest): Promise<runtime.ApiResponse<void>> {
+    async updateUserRolesRaw(requestParameters: UpdateUserRolesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling updateUserRoles.');
         }
@@ -1537,7 +1539,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('userReferenceRoleEntity','Required parameter requestParameters.userReferenceRoleEntity was null or undefined when calling updateUserRoles.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1552,20 +1554,20 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UserReferenceRoleEntityToJSON(requestParameters.userReferenceRoleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async updateUserRoles(requestParameters: UpdateUserRolesRequest): Promise<void> {
-        await this.updateUserRolesRaw(requestParameters);
+    async updateUserRoles(requestParameters: UpdateUserRolesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.updateUserRolesRaw(requestParameters, initOverrides);
     }
 
     /**
      */
-    async updateUserRoles1Raw(requestParameters: UpdateUserRoles1Request): Promise<runtime.ApiResponse<void>> {
+    async updateUserRoles1Raw(requestParameters: UpdateUserRoles1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling updateUserRoles1.');
         }
@@ -1578,7 +1580,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('userReferenceRoleEntity','Required parameter requestParameters.userReferenceRoleEntity was null or undefined when calling updateUserRoles1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1593,21 +1595,21 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UserReferenceRoleEntityToJSON(requestParameters.userReferenceRoleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async updateUserRoles1(requestParameters: UpdateUserRoles1Request): Promise<void> {
-        await this.updateUserRoles1Raw(requestParameters);
+    async updateUserRoles1(requestParameters: UpdateUserRoles1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.updateUserRoles1Raw(requestParameters, initOverrides);
     }
 
     /**
      * Process a user registration by accepting or rejecting it
      */
-    async validateRegistrationRaw(requestParameters: ValidateRegistrationRequest): Promise<runtime.ApiResponse<UserEntity>> {
+    async validateRegistrationRaw(requestParameters: ValidateRegistrationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling validateRegistration.');
         }
@@ -1620,7 +1622,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling validateRegistration.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1635,7 +1637,7 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.body as any,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -1643,15 +1645,15 @@ export class UsersApi extends runtime.BaseAPI {
     /**
      * Process a user registration by accepting or rejecting it
      */
-    async validateRegistration(requestParameters: ValidateRegistrationRequest): Promise<UserEntity> {
-        const response = await this.validateRegistrationRaw(requestParameters);
+    async validateRegistration(requestParameters: ValidateRegistrationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.validateRegistrationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Process a user registration by accepting or rejecting it
      */
-    async validateRegistration1Raw(requestParameters: ValidateRegistration1Request): Promise<runtime.ApiResponse<UserEntity>> {
+    async validateRegistration1Raw(requestParameters: ValidateRegistration1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.userId === null || requestParameters.userId === undefined) {
             throw new runtime.RequiredError('userId','Required parameter requestParameters.userId was null or undefined when calling validateRegistration1.');
         }
@@ -1660,7 +1662,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling validateRegistration1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1675,7 +1677,7 @@ export class UsersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.body as any,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -1683,8 +1685,8 @@ export class UsersApi extends runtime.BaseAPI {
     /**
      * Process a user registration by accepting or rejecting it
      */
-    async validateRegistration1(requestParameters: ValidateRegistration1Request): Promise<UserEntity> {
-        const response = await this.validateRegistration1Raw(requestParameters);
+    async validateRegistration1(requestParameters: ValidateRegistration1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.validateRegistration1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

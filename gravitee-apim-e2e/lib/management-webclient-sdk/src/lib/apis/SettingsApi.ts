@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ConsoleSettingsEntity,
+  PortalSettingsEntity,
+} from '../models';
 import {
-    ConsoleSettingsEntity,
     ConsoleSettingsEntityFromJSON,
     ConsoleSettingsEntityToJSON,
-    PortalSettingsEntity,
     PortalSettingsEntityFromJSON,
     PortalSettingsEntityToJSON,
 } from '../models';
@@ -50,12 +52,12 @@ export class SettingsApi extends runtime.BaseAPI {
     /**
      * Get the console settings
      */
-    async getConsoleSettingsRaw(requestParameters: GetConsoleSettingsRequest): Promise<runtime.ApiResponse<ConsoleSettingsEntity>> {
+    async getConsoleSettingsRaw(requestParameters: GetConsoleSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ConsoleSettingsEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getConsoleSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -67,7 +69,7 @@ export class SettingsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ConsoleSettingsEntityFromJSON(jsonValue));
     }
@@ -75,15 +77,15 @@ export class SettingsApi extends runtime.BaseAPI {
     /**
      * Get the console settings
      */
-    async getConsoleSettings(requestParameters: GetConsoleSettingsRequest): Promise<ConsoleSettingsEntity> {
-        const response = await this.getConsoleSettingsRaw(requestParameters);
+    async getConsoleSettings(requestParameters: GetConsoleSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ConsoleSettingsEntity> {
+        const response = await this.getConsoleSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the portal settings
      */
-    async getPortalSettingsRaw(requestParameters: GetPortalSettingsRequest): Promise<runtime.ApiResponse<PortalSettingsEntity>> {
+    async getPortalSettingsRaw(requestParameters: GetPortalSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PortalSettingsEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPortalSettings.');
         }
@@ -92,7 +94,7 @@ export class SettingsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPortalSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -104,7 +106,7 @@ export class SettingsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PortalSettingsEntityFromJSON(jsonValue));
     }
@@ -112,15 +114,15 @@ export class SettingsApi extends runtime.BaseAPI {
     /**
      * Get the portal settings
      */
-    async getPortalSettings(requestParameters: GetPortalSettingsRequest): Promise<PortalSettingsEntity> {
-        const response = await this.getPortalSettingsRaw(requestParameters);
+    async getPortalSettings(requestParameters: GetPortalSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PortalSettingsEntity> {
+        const response = await this.getPortalSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Save the console settings
      */
-    async saveConsoleSettingsRaw(requestParameters: SaveConsoleSettingsRequest): Promise<runtime.ApiResponse<ConsoleSettingsEntity>> {
+    async saveConsoleSettingsRaw(requestParameters: SaveConsoleSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ConsoleSettingsEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling saveConsoleSettings.');
         }
@@ -129,7 +131,7 @@ export class SettingsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('consoleSettingsEntity','Required parameter requestParameters.consoleSettingsEntity was null or undefined when calling saveConsoleSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -144,7 +146,7 @@ export class SettingsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: ConsoleSettingsEntityToJSON(requestParameters.consoleSettingsEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ConsoleSettingsEntityFromJSON(jsonValue));
     }
@@ -152,15 +154,15 @@ export class SettingsApi extends runtime.BaseAPI {
     /**
      * Save the console settings
      */
-    async saveConsoleSettings(requestParameters: SaveConsoleSettingsRequest): Promise<ConsoleSettingsEntity> {
-        const response = await this.saveConsoleSettingsRaw(requestParameters);
+    async saveConsoleSettings(requestParameters: SaveConsoleSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ConsoleSettingsEntity> {
+        const response = await this.saveConsoleSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Save the portal settings
      */
-    async savePortalSettingsRaw(requestParameters: SavePortalSettingsRequest): Promise<runtime.ApiResponse<PortalSettingsEntity>> {
+    async savePortalSettingsRaw(requestParameters: SavePortalSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PortalSettingsEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling savePortalSettings.');
         }
@@ -173,7 +175,7 @@ export class SettingsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('portalSettingsEntity','Required parameter requestParameters.portalSettingsEntity was null or undefined when calling savePortalSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -188,7 +190,7 @@ export class SettingsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: PortalSettingsEntityToJSON(requestParameters.portalSettingsEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PortalSettingsEntityFromJSON(jsonValue));
     }
@@ -196,8 +198,8 @@ export class SettingsApi extends runtime.BaseAPI {
     /**
      * Save the portal settings
      */
-    async savePortalSettings(requestParameters: SavePortalSettingsRequest): Promise<PortalSettingsEntity> {
-        const response = await this.savePortalSettingsRaw(requestParameters);
+    async savePortalSettings(requestParameters: SavePortalSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PortalSettingsEntity> {
+        const response = await this.savePortalSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

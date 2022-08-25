@@ -13,17 +13,19 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ApiMembership,
+  MemberEntity,
+  MembershipListItem,
+  TransferOwnership,
+} from '../models';
 import {
-    ApiMembership,
     ApiMembershipFromJSON,
     ApiMembershipToJSON,
-    MemberEntity,
     MemberEntityFromJSON,
     MemberEntityToJSON,
-    MembershipListItem,
     MembershipListItemFromJSON,
     MembershipListItemToJSON,
-    TransferOwnership,
     TransferOwnershipFromJSON,
     TransferOwnershipToJSON,
 } from '../models';
@@ -70,7 +72,7 @@ export class APIMembershipsApi extends runtime.BaseAPI {
      * User must have the MANAGE_MEMBERS permission to use this service
      * Add or update an API member
      */
-    async addOrUpdateApiMemberRaw(requestParameters: AddOrUpdateApiMemberRequest): Promise<runtime.ApiResponse<void>> {
+    async addOrUpdateApiMemberRaw(requestParameters: AddOrUpdateApiMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling addOrUpdateApiMember.');
         }
@@ -87,7 +89,7 @@ export class APIMembershipsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('apiMembership','Required parameter requestParameters.apiMembership was null or undefined when calling addOrUpdateApiMember.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -102,7 +104,7 @@ export class APIMembershipsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: ApiMembershipToJSON(requestParameters.apiMembership),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -111,15 +113,15 @@ export class APIMembershipsApi extends runtime.BaseAPI {
      * User must have the MANAGE_MEMBERS permission to use this service
      * Add or update an API member
      */
-    async addOrUpdateApiMember(requestParameters: AddOrUpdateApiMemberRequest): Promise<void> {
-        await this.addOrUpdateApiMemberRaw(requestParameters);
+    async addOrUpdateApiMember(requestParameters: AddOrUpdateApiMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.addOrUpdateApiMemberRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGE_MEMBERS permission to use this service
      * Remove an API member
      */
-    async deleteApiMemberRaw(requestParameters: DeleteApiMemberRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteApiMemberRaw(requestParameters: DeleteApiMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.user === null || requestParameters.user === undefined) {
             throw new runtime.RequiredError('user','Required parameter requestParameters.user was null or undefined when calling deleteApiMember.');
         }
@@ -136,7 +138,7 @@ export class APIMembershipsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApiMember.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.user !== undefined) {
             queryParameters['user'] = requestParameters.user;
@@ -152,7 +154,7 @@ export class APIMembershipsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -161,15 +163,15 @@ export class APIMembershipsApi extends runtime.BaseAPI {
      * User must have the MANAGE_MEMBERS permission to use this service
      * Remove an API member
      */
-    async deleteApiMember(requestParameters: DeleteApiMemberRequest): Promise<void> {
-        await this.deleteApiMemberRaw(requestParameters);
+    async deleteApiMember(requestParameters: DeleteApiMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteApiMemberRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGE_MEMBERS permission to use this service
      * List API members
      */
-    async getApiMembersRaw(requestParameters: GetApiMembersRequest): Promise<runtime.ApiResponse<Array<MembershipListItem>>> {
+    async getApiMembersRaw(requestParameters: GetApiMembersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<MembershipListItem>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiMembers.');
         }
@@ -182,7 +184,7 @@ export class APIMembershipsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiMembers.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -194,7 +196,7 @@ export class APIMembershipsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(MembershipListItemFromJSON));
     }
@@ -203,8 +205,8 @@ export class APIMembershipsApi extends runtime.BaseAPI {
      * User must have the MANAGE_MEMBERS permission to use this service
      * List API members
      */
-    async getApiMembers(requestParameters: GetApiMembersRequest): Promise<Array<MembershipListItem>> {
-        const response = await this.getApiMembersRaw(requestParameters);
+    async getApiMembers(requestParameters: GetApiMembersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<MembershipListItem>> {
+        const response = await this.getApiMembersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -212,7 +214,7 @@ export class APIMembershipsApi extends runtime.BaseAPI {
      * User must have the MANAGE_MEMBERS permission to use this service
      * Get API members
      */
-    async getApiMembersPermissionsRaw(requestParameters: GetApiMembersPermissionsRequest): Promise<runtime.ApiResponse<Array<MemberEntity>>> {
+    async getApiMembersPermissionsRaw(requestParameters: GetApiMembersPermissionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<MemberEntity>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiMembersPermissions.');
         }
@@ -225,7 +227,7 @@ export class APIMembershipsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiMembersPermissions.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -237,7 +239,7 @@ export class APIMembershipsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(MemberEntityFromJSON));
     }
@@ -246,8 +248,8 @@ export class APIMembershipsApi extends runtime.BaseAPI {
      * User must have the MANAGE_MEMBERS permission to use this service
      * Get API members
      */
-    async getApiMembersPermissions(requestParameters: GetApiMembersPermissionsRequest): Promise<Array<MemberEntity>> {
-        const response = await this.getApiMembersPermissionsRaw(requestParameters);
+    async getApiMembersPermissions(requestParameters: GetApiMembersPermissionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<MemberEntity>> {
+        const response = await this.getApiMembersPermissionsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -255,7 +257,7 @@ export class APIMembershipsApi extends runtime.BaseAPI {
      * User must have the TRANSFER_OWNERSHIP permission to use this service
      * Transfer the ownership of the API
      */
-    async transferApiMemberOwnershipRaw(requestParameters: TransferApiMemberOwnershipRequest): Promise<runtime.ApiResponse<void>> {
+    async transferApiMemberOwnershipRaw(requestParameters: TransferApiMemberOwnershipRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling transferApiMemberOwnership.');
         }
@@ -272,7 +274,7 @@ export class APIMembershipsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('transferOwnership','Required parameter requestParameters.transferOwnership was null or undefined when calling transferApiMemberOwnership.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -287,7 +289,7 @@ export class APIMembershipsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: TransferOwnershipToJSON(requestParameters.transferOwnership),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -296,8 +298,8 @@ export class APIMembershipsApi extends runtime.BaseAPI {
      * User must have the TRANSFER_OWNERSHIP permission to use this service
      * Transfer the ownership of the API
      */
-    async transferApiMemberOwnership(requestParameters: TransferApiMemberOwnershipRequest): Promise<void> {
-        await this.transferApiMemberOwnershipRaw(requestParameters);
+    async transferApiMemberOwnership(requestParameters: TransferApiMemberOwnershipRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.transferApiMemberOwnershipRaw(requestParameters, initOverrides);
     }
 
 }

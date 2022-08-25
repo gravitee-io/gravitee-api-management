@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Selector } from './Selector';
 import {
-    Selector,
     SelectorFromJSON,
     SelectorFromJSONTyped,
     SelectorToJSON,
-    SelectorHttpV4AllOf,
+} from './Selector';
+import type { SelectorHttpV4AllOf } from './SelectorHttpV4AllOf';
+import {
     SelectorHttpV4AllOfFromJSON,
     SelectorHttpV4AllOfFromJSONTyped,
     SelectorHttpV4AllOfToJSON,
-} from './';
+} from './SelectorHttpV4AllOf';
 
 /**
  * 
@@ -47,6 +49,45 @@ export interface SelectorHttpV4 extends Selector {
      * @memberof SelectorHttpV4
      */
     methods?: Array<SelectorHttpV4MethodsEnum>;
+}
+
+
+/**
+ * @export
+ */
+export const SelectorHttpV4PathOperatorEnum = {
+    STARTS_WITH: 'STARTS_WITH',
+    EQUALS: 'EQUALS'
+} as const;
+export type SelectorHttpV4PathOperatorEnum = typeof SelectorHttpV4PathOperatorEnum[keyof typeof SelectorHttpV4PathOperatorEnum];
+
+/**
+ * @export
+ */
+export const SelectorHttpV4MethodsEnum = {
+    CONNECT: 'CONNECT',
+    DELETE: 'DELETE',
+    GET: 'GET',
+    HEAD: 'HEAD',
+    OPTIONS: 'OPTIONS',
+    PATCH: 'PATCH',
+    POST: 'POST',
+    PUT: 'PUT',
+    TRACE: 'TRACE',
+    OTHER: 'OTHER'
+} as const;
+export type SelectorHttpV4MethodsEnum = typeof SelectorHttpV4MethodsEnum[keyof typeof SelectorHttpV4MethodsEnum];
+
+
+/**
+ * Check if a given object implements the SelectorHttpV4 interface.
+ */
+export function instanceOfSelectorHttpV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "path" in value;
+    isInstance = isInstance && "pathOperator" in value;
+
+    return isInstance;
 }
 
 export function SelectorHttpV4FromJSON(json: any): SelectorHttpV4 {
@@ -79,30 +120,4 @@ export function SelectorHttpV4ToJSON(value?: SelectorHttpV4 | null): any {
         'methods': value.methods,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum SelectorHttpV4PathOperatorEnum {
-    STARTSWITH = 'STARTS_WITH',
-    EQUALS = 'EQUALS'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum SelectorHttpV4MethodsEnum {
-    CONNECT = 'CONNECT',
-    DELETE = 'DELETE',
-    GET = 'GET',
-    HEAD = 'HEAD',
-    OPTIONS = 'OPTIONS',
-    PATCH = 'PATCH',
-    POST = 'POST',
-    PUT = 'PUT',
-    TRACE = 'TRACE',
-    OTHER = 'OTHER'
-}
-
 

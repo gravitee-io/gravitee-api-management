@@ -32,6 +32,15 @@ export interface AlertEventEntity {
     message?: string;
 }
 
+/**
+ * Check if a given object implements the AlertEventEntity interface.
+ */
+export function instanceOfAlertEventEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function AlertEventEntityFromJSON(json: any): AlertEventEntity {
     return AlertEventEntityFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function AlertEventEntityToJSON(value?: AlertEventEntity | null): any {
         'message': value.message,
     };
 }
-
 

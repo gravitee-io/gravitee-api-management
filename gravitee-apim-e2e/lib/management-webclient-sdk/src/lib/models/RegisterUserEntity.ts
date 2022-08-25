@@ -44,6 +44,19 @@ export interface RegisterUserEntity {
     token: string;
 }
 
+/**
+ * Check if a given object implements the RegisterUserEntity interface.
+ */
+export function instanceOfRegisterUserEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "firstname" in value;
+    isInstance = isInstance && "lastname" in value;
+    isInstance = isInstance && "password" in value;
+    isInstance = isInstance && "token" in value;
+
+    return isInstance;
+}
+
 export function RegisterUserEntityFromJSON(json: any): RegisterUserEntity {
     return RegisterUserEntityFromJSONTyped(json, false);
 }
@@ -76,5 +89,4 @@ export function RegisterUserEntityToJSON(value?: RegisterUserEntity | null): any
         'token': value.token,
     };
 }
-
 

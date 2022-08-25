@@ -38,6 +38,15 @@ export interface JKSKeyStoreAllOf {
     password?: string;
 }
 
+/**
+ * Check if a given object implements the JKSKeyStoreAllOf interface.
+ */
+export function instanceOfJKSKeyStoreAllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function JKSKeyStoreAllOfFromJSON(json: any): JKSKeyStoreAllOf {
     return JKSKeyStoreAllOfFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function JKSKeyStoreAllOfToJSON(value?: JKSKeyStoreAllOf | null): any {
         'password': value.password,
     };
 }
-
 

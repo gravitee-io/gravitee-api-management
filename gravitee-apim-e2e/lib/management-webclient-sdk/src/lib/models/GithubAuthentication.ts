@@ -26,6 +26,15 @@ export interface GithubAuthentication {
     clientId?: string;
 }
 
+/**
+ * Check if a given object implements the GithubAuthentication interface.
+ */
+export function instanceOfGithubAuthentication(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function GithubAuthenticationFromJSON(json: any): GithubAuthentication {
     return GithubAuthenticationFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function GithubAuthenticationToJSON(value?: GithubAuthentication | null):
         'clientId': value.clientId,
     };
 }
-
 

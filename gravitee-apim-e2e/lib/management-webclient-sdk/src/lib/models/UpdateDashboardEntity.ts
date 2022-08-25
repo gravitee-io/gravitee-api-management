@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { DashboardReferenceType } from './DashboardReferenceType';
 import {
-    DashboardReferenceType,
     DashboardReferenceTypeFromJSON,
     DashboardReferenceTypeFromJSONTyped,
     DashboardReferenceTypeToJSON,
-} from './';
+} from './DashboardReferenceType';
 
 /**
  * 
@@ -75,6 +75,19 @@ export interface UpdateDashboardEntity {
     reference_type: DashboardReferenceType;
 }
 
+/**
+ * Check if a given object implements the UpdateDashboardEntity interface.
+ */
+export function instanceOfUpdateDashboardEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "order" in value;
+    isInstance = isInstance && "reference_id" in value;
+    isInstance = isInstance && "reference_type" in value;
+
+    return isInstance;
+}
+
 export function UpdateDashboardEntityFromJSON(json: any): UpdateDashboardEntity {
     return UpdateDashboardEntityFromJSONTyped(json, false);
 }
@@ -115,5 +128,4 @@ export function UpdateDashboardEntityToJSON(value?: UpdateDashboardEntity | null
         'reference_type': DashboardReferenceTypeToJSON(value.reference_type),
     };
 }
-
 

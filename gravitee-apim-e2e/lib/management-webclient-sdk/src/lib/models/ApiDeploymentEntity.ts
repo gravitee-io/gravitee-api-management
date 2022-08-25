@@ -26,6 +26,15 @@ export interface ApiDeploymentEntity {
     deploymentLabel?: string;
 }
 
+/**
+ * Check if a given object implements the ApiDeploymentEntity interface.
+ */
+export function instanceOfApiDeploymentEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiDeploymentEntityFromJSON(json: any): ApiDeploymentEntity {
     return ApiDeploymentEntityFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function ApiDeploymentEntityToJSON(value?: ApiDeploymentEntity | null): a
         'deploymentLabel': value.deploymentLabel,
     };
 }
-
 

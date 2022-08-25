@@ -38,6 +38,43 @@ export interface SelectorHttpV4AllOf {
     methods?: Array<SelectorHttpV4AllOfMethodsEnum>;
 }
 
+
+/**
+ * @export
+ */
+export const SelectorHttpV4AllOfPathOperatorEnum = {
+    STARTS_WITH: 'STARTS_WITH',
+    EQUALS: 'EQUALS'
+} as const;
+export type SelectorHttpV4AllOfPathOperatorEnum = typeof SelectorHttpV4AllOfPathOperatorEnum[keyof typeof SelectorHttpV4AllOfPathOperatorEnum];
+
+/**
+ * @export
+ */
+export const SelectorHttpV4AllOfMethodsEnum = {
+    CONNECT: 'CONNECT',
+    DELETE: 'DELETE',
+    GET: 'GET',
+    HEAD: 'HEAD',
+    OPTIONS: 'OPTIONS',
+    PATCH: 'PATCH',
+    POST: 'POST',
+    PUT: 'PUT',
+    TRACE: 'TRACE',
+    OTHER: 'OTHER'
+} as const;
+export type SelectorHttpV4AllOfMethodsEnum = typeof SelectorHttpV4AllOfMethodsEnum[keyof typeof SelectorHttpV4AllOfMethodsEnum];
+
+
+/**
+ * Check if a given object implements the SelectorHttpV4AllOf interface.
+ */
+export function instanceOfSelectorHttpV4AllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function SelectorHttpV4AllOfFromJSON(json: any): SelectorHttpV4AllOf {
     return SelectorHttpV4AllOfFromJSONTyped(json, false);
 }
@@ -68,30 +105,4 @@ export function SelectorHttpV4AllOfToJSON(value?: SelectorHttpV4AllOf | null): a
         'methods': value.methods,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum SelectorHttpV4AllOfPathOperatorEnum {
-    STARTSWITH = 'STARTS_WITH',
-    EQUALS = 'EQUALS'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum SelectorHttpV4AllOfMethodsEnum {
-    CONNECT = 'CONNECT',
-    DELETE = 'DELETE',
-    GET = 'GET',
-    HEAD = 'HEAD',
-    OPTIONS = 'OPTIONS',
-    PATCH = 'PATCH',
-    POST = 'POST',
-    PUT = 'PUT',
-    TRACE = 'TRACE',
-    OTHER = 'OTHER'
-}
-
 

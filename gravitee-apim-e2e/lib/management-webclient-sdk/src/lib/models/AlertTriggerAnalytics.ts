@@ -56,6 +56,15 @@ export interface AlertTriggerAnalytics {
     type?: string;
 }
 
+/**
+ * Check if a given object implements the AlertTriggerAnalytics interface.
+ */
+export function instanceOfAlertTriggerAnalytics(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function AlertTriggerAnalyticsFromJSON(json: any): AlertTriggerAnalytics {
     return AlertTriggerAnalyticsFromJSONTyped(json, false);
 }
@@ -92,5 +101,4 @@ export function AlertTriggerAnalyticsToJSON(value?: AlertTriggerAnalytics | null
         'type': value.type,
     };
 }
-
 

@@ -38,6 +38,16 @@ export interface UpdateTenantEntity {
     name: string;
 }
 
+/**
+ * Check if a given object implements the UpdateTenantEntity interface.
+ */
+export function instanceOfUpdateTenantEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function UpdateTenantEntityFromJSON(json: any): UpdateTenantEntity {
     return UpdateTenantEntityFromJSONTyped(json, false);
 }
@@ -68,5 +78,4 @@ export function UpdateTenantEntityToJSON(value?: UpdateTenantEntity | null): any
         'name': value.name,
     };
 }
-
 

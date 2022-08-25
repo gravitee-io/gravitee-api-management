@@ -44,6 +44,15 @@ export interface PortalNotificationEntity {
     title?: string;
 }
 
+/**
+ * Check if a given object implements the PortalNotificationEntity interface.
+ */
+export function instanceOfPortalNotificationEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PortalNotificationEntityFromJSON(json: any): PortalNotificationEntity {
     return PortalNotificationEntityFromJSONTyped(json, false);
 }
@@ -76,5 +85,4 @@ export function PortalNotificationEntityToJSON(value?: PortalNotificationEntity 
         'title': value.title,
     };
 }
-
 

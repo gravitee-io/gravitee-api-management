@@ -12,24 +12,30 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Condition } from './Condition';
 import {
-    Condition,
     ConditionFromJSON,
     ConditionFromJSONTyped,
     ConditionToJSON,
-    Projection,
+} from './Condition';
+import type { Projection } from './Projection';
+import {
     ProjectionFromJSON,
     ProjectionFromJSONTyped,
     ProjectionToJSON,
-    RateConditionAllOf,
+} from './Projection';
+import type { RateConditionAllOf } from './RateConditionAllOf';
+import {
     RateConditionAllOfFromJSON,
     RateConditionAllOfFromJSONTyped,
     RateConditionAllOfToJSON,
-    SingleValueCondition,
+} from './RateConditionAllOf';
+import type { SingleValueCondition } from './SingleValueCondition';
+import {
     SingleValueConditionFromJSON,
     SingleValueConditionFromJSONTyped,
     SingleValueConditionToJSON,
-} from './';
+} from './SingleValueCondition';
 
 /**
  * 
@@ -75,6 +81,46 @@ export interface RateCondition extends Condition {
     sampleSize?: number;
 }
 
+
+/**
+ * @export
+ */
+export const RateConditionOperatorEnum = {
+    LT: 'LT',
+    LTE: 'LTE',
+    GTE: 'GTE',
+    GT: 'GT'
+} as const;
+export type RateConditionOperatorEnum = typeof RateConditionOperatorEnum[keyof typeof RateConditionOperatorEnum];
+
+/**
+ * @export
+ */
+export const RateConditionTimeUnitEnum = {
+    NANOSECONDS: 'NANOSECONDS',
+    MICROSECONDS: 'MICROSECONDS',
+    MILLISECONDS: 'MILLISECONDS',
+    SECONDS: 'SECONDS',
+    MINUTES: 'MINUTES',
+    HOURS: 'HOURS',
+    DAYS: 'DAYS'
+} as const;
+export type RateConditionTimeUnitEnum = typeof RateConditionTimeUnitEnum[keyof typeof RateConditionTimeUnitEnum];
+
+
+/**
+ * Check if a given object implements the RateCondition interface.
+ */
+export function instanceOfRateCondition(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "operator" in value;
+    isInstance = isInstance && "threshold" in value;
+    isInstance = isInstance && "comparison" in value;
+    isInstance = isInstance && "duration" in value;
+
+    return isInstance;
+}
+
 export function RateConditionFromJSON(json: any): RateCondition {
     return RateConditionFromJSONTyped(json, false);
 }
@@ -111,29 +157,4 @@ export function RateConditionToJSON(value?: RateCondition | null): any {
         'sampleSize': value.sampleSize,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum RateConditionOperatorEnum {
-    LT = 'LT',
-    LTE = 'LTE',
-    GTE = 'GTE',
-    GT = 'GT'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum RateConditionTimeUnitEnum {
-    NANOSECONDS = 'NANOSECONDS',
-    MICROSECONDS = 'MICROSECONDS',
-    MILLISECONDS = 'MILLISECONDS',
-    SECONDS = 'SECONDS',
-    MINUTES = 'MINUTES',
-    HOURS = 'HOURS',
-    DAYS = 'DAYS'
-}
-
 

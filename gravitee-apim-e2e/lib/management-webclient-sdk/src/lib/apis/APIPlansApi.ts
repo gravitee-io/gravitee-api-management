@@ -13,20 +13,22 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  NewPlanEntity,
+  PlanEntity,
+  PlanSecurityType,
+  PlanStatus,
+  UpdatePlanEntity,
+} from '../models';
 import {
-    NewPlanEntity,
     NewPlanEntityFromJSON,
     NewPlanEntityToJSON,
-    PlanEntity,
     PlanEntityFromJSON,
     PlanEntityToJSON,
-    PlanSecurityType,
     PlanSecurityTypeFromJSON,
     PlanSecurityTypeToJSON,
-    PlanStatus,
     PlanStatusFromJSON,
     PlanStatusToJSON,
-    UpdatePlanEntity,
     UpdatePlanEntityFromJSON,
     UpdatePlanEntityToJSON,
 } from '../models';
@@ -105,7 +107,7 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Close  a plan
      */
-    async closeApiPlanRaw(requestParameters: CloseApiPlanRequest): Promise<runtime.ApiResponse<PlanEntity>> {
+    async closeApiPlanRaw(requestParameters: CloseApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlanEntity>> {
         if (requestParameters.plan === null || requestParameters.plan === undefined) {
             throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling closeApiPlan.');
         }
@@ -122,7 +124,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling closeApiPlan.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -134,7 +136,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityFromJSON(jsonValue));
     }
@@ -143,8 +145,8 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Close  a plan
      */
-    async closeApiPlan(requestParameters: CloseApiPlanRequest): Promise<PlanEntity> {
-        const response = await this.closeApiPlanRaw(requestParameters);
+    async closeApiPlan(requestParameters: CloseApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlanEntity> {
+        const response = await this.closeApiPlanRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -152,7 +154,7 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Create a plan
      */
-    async createApiPlanRaw(requestParameters: CreateApiPlanRequest): Promise<runtime.ApiResponse<PlanEntity>> {
+    async createApiPlanRaw(requestParameters: CreateApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlanEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling createApiPlan.');
         }
@@ -169,7 +171,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newPlanEntity','Required parameter requestParameters.newPlanEntity was null or undefined when calling createApiPlan.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -184,7 +186,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewPlanEntityToJSON(requestParameters.newPlanEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityFromJSON(jsonValue));
     }
@@ -193,8 +195,8 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Create a plan
      */
-    async createApiPlan(requestParameters: CreateApiPlanRequest): Promise<PlanEntity> {
-        const response = await this.createApiPlanRaw(requestParameters);
+    async createApiPlan(requestParameters: CreateApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlanEntity> {
+        const response = await this.createApiPlanRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -202,7 +204,7 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Delete a plan
      */
-    async deleteApiPlanRaw(requestParameters: DeleteApiPlanRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteApiPlanRaw(requestParameters: DeleteApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.plan === null || requestParameters.plan === undefined) {
             throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling deleteApiPlan.');
         }
@@ -219,7 +221,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApiPlan.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -231,7 +233,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -240,15 +242,15 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Delete a plan
      */
-    async deleteApiPlan(requestParameters: DeleteApiPlanRequest): Promise<void> {
-        await this.deleteApiPlanRaw(requestParameters);
+    async deleteApiPlan(requestParameters: DeleteApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteApiPlanRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the API_PLAN[UPDATE] permission to use this service
      * Deprecate a plan
      */
-    async deprecateApiPlanRaw(requestParameters: DeprecateApiPlanRequest): Promise<runtime.ApiResponse<PlanEntity>> {
+    async deprecateApiPlanRaw(requestParameters: DeprecateApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlanEntity>> {
         if (requestParameters.plan === null || requestParameters.plan === undefined) {
             throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling deprecateApiPlan.');
         }
@@ -265,7 +267,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deprecateApiPlan.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -277,7 +279,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityFromJSON(jsonValue));
     }
@@ -286,8 +288,8 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the API_PLAN[UPDATE] permission to use this service
      * Deprecate a plan
      */
-    async deprecateApiPlan(requestParameters: DeprecateApiPlanRequest): Promise<PlanEntity> {
-        const response = await this.deprecateApiPlanRaw(requestParameters);
+    async deprecateApiPlan(requestParameters: DeprecateApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlanEntity> {
+        const response = await this.deprecateApiPlanRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -295,7 +297,7 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the API_PLAN[UPDATE] permission to use this service
      * Deprecated, use \'_deprecate\' instead. Deprecate a plan
      */
-    async depreciateApiPlanRaw(requestParameters: DepreciateApiPlanRequest): Promise<runtime.ApiResponse<PlanEntity>> {
+    async depreciateApiPlanRaw(requestParameters: DepreciateApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlanEntity>> {
         if (requestParameters.plan === null || requestParameters.plan === undefined) {
             throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling depreciateApiPlan.');
         }
@@ -312,7 +314,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling depreciateApiPlan.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -324,7 +326,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityFromJSON(jsonValue));
     }
@@ -333,8 +335,8 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the API_PLAN[UPDATE] permission to use this service
      * Deprecated, use \'_deprecate\' instead. Deprecate a plan
      */
-    async depreciateApiPlan(requestParameters: DepreciateApiPlanRequest): Promise<PlanEntity> {
-        const response = await this.depreciateApiPlanRaw(requestParameters);
+    async depreciateApiPlan(requestParameters: DepreciateApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlanEntity> {
+        const response = await this.depreciateApiPlanRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -342,7 +344,7 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get a plan
      */
-    async getApiPlanRaw(requestParameters: GetApiPlanRequest): Promise<runtime.ApiResponse<PlanEntity>> {
+    async getApiPlanRaw(requestParameters: GetApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlanEntity>> {
         if (requestParameters.plan === null || requestParameters.plan === undefined) {
             throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling getApiPlan.');
         }
@@ -359,7 +361,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiPlan.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -371,7 +373,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityFromJSON(jsonValue));
     }
@@ -380,8 +382,8 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get a plan
      */
-    async getApiPlan(requestParameters: GetApiPlanRequest): Promise<PlanEntity> {
-        const response = await this.getApiPlanRaw(requestParameters);
+    async getApiPlan(requestParameters: GetApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlanEntity> {
+        const response = await this.getApiPlanRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -389,7 +391,7 @@ export class APIPlansApi extends runtime.BaseAPI {
      * List all the plans accessible to the current user.
      * List plans for an API
      */
-    async getApiPlansRaw(requestParameters: GetApiPlansRequest): Promise<runtime.ApiResponse<Array<PlanEntity>>> {
+    async getApiPlansRaw(requestParameters: GetApiPlansRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<PlanEntity>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiPlans.');
         }
@@ -402,7 +404,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiPlans.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.status) {
             queryParameters['status'] = requestParameters.status.join(runtime.COLLECTION_FORMATS["csv"]);
@@ -422,7 +424,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PlanEntityFromJSON));
     }
@@ -431,8 +433,8 @@ export class APIPlansApi extends runtime.BaseAPI {
      * List all the plans accessible to the current user.
      * List plans for an API
      */
-    async getApiPlans(requestParameters: GetApiPlansRequest): Promise<Array<PlanEntity>> {
-        const response = await this.getApiPlansRaw(requestParameters);
+    async getApiPlans(requestParameters: GetApiPlansRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<PlanEntity>> {
+        const response = await this.getApiPlansRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -440,7 +442,7 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Publicly publish plan
      */
-    async publishApiPlanRaw(requestParameters: PublishApiPlanRequest): Promise<runtime.ApiResponse<PlanEntity>> {
+    async publishApiPlanRaw(requestParameters: PublishApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlanEntity>> {
         if (requestParameters.plan === null || requestParameters.plan === undefined) {
             throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling publishApiPlan.');
         }
@@ -457,7 +459,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling publishApiPlan.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -469,7 +471,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityFromJSON(jsonValue));
     }
@@ -478,8 +480,8 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Publicly publish plan
      */
-    async publishApiPlan(requestParameters: PublishApiPlanRequest): Promise<PlanEntity> {
-        const response = await this.publishApiPlanRaw(requestParameters);
+    async publishApiPlan(requestParameters: PublishApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlanEntity> {
+        const response = await this.publishApiPlanRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -487,7 +489,7 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Update a plan
      */
-    async updateApiPlanRaw(requestParameters: UpdateApiPlanRequest): Promise<runtime.ApiResponse<PlanEntity>> {
+    async updateApiPlanRaw(requestParameters: UpdateApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlanEntity>> {
         if (requestParameters.plan === null || requestParameters.plan === undefined) {
             throw new runtime.RequiredError('plan','Required parameter requestParameters.plan was null or undefined when calling updateApiPlan.');
         }
@@ -508,7 +510,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updatePlanEntity','Required parameter requestParameters.updatePlanEntity was null or undefined when calling updateApiPlan.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -523,7 +525,7 @@ export class APIPlansApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdatePlanEntityToJSON(requestParameters.updatePlanEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlanEntityFromJSON(jsonValue));
     }
@@ -532,8 +534,8 @@ export class APIPlansApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Update a plan
      */
-    async updateApiPlan(requestParameters: UpdateApiPlanRequest): Promise<PlanEntity> {
-        const response = await this.updateApiPlanRaw(requestParameters);
+    async updateApiPlan(requestParameters: UpdateApiPlanRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlanEntity> {
+        const response = await this.updateApiPlanRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

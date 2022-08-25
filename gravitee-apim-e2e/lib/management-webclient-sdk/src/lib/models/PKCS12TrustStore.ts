@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { JKSKeyStoreAllOf } from './JKSKeyStoreAllOf';
 import {
-    JKSKeyStoreAllOf,
     JKSKeyStoreAllOfFromJSON,
     JKSKeyStoreAllOfFromJSONTyped,
     JKSKeyStoreAllOfToJSON,
-    TrustStore,
+} from './JKSKeyStoreAllOf';
+import type { TrustStore } from './TrustStore';
+import {
     TrustStoreFromJSON,
     TrustStoreFromJSONTyped,
     TrustStoreToJSON,
-} from './';
+} from './TrustStore';
 
 /**
  * 
@@ -47,6 +49,17 @@ export interface PKCS12TrustStore extends TrustStore {
      * @memberof PKCS12TrustStore
      */
     password?: string;
+}
+
+
+
+/**
+ * Check if a given object implements the PKCS12TrustStore interface.
+ */
+export function instanceOfPKCS12TrustStore(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PKCS12TrustStoreFromJSON(json: any): PKCS12TrustStore {
@@ -79,6 +92,4 @@ export function PKCS12TrustStoreToJSON(value?: PKCS12TrustStore | null): any {
         'password': value.password,
     };
 }
-
-
 

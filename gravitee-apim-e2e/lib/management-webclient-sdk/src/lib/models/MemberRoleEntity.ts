@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { RoleScope } from './RoleScope';
 import {
-    RoleScope,
     RoleScopeFromJSON,
     RoleScopeFromJSONTyped,
     RoleScopeToJSON,
-} from './';
+} from './RoleScope';
 
 /**
  * 
@@ -37,6 +37,15 @@ export interface MemberRoleEntity {
      * @memberof MemberRoleEntity
      */
     scope?: RoleScope;
+}
+
+/**
+ * Check if a given object implements the MemberRoleEntity interface.
+ */
+export function instanceOfMemberRoleEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function MemberRoleEntityFromJSON(json: any): MemberRoleEntity {
@@ -67,5 +76,4 @@ export function MemberRoleEntityToJSON(value?: MemberRoleEntity | null): any {
         'scope': RoleScopeToJSON(value.scope),
     };
 }
-
 

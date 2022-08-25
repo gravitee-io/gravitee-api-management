@@ -38,6 +38,15 @@ export interface EntrypointEntity {
     value?: string;
 }
 
+/**
+ * Check if a given object implements the EntrypointEntity interface.
+ */
+export function instanceOfEntrypointEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function EntrypointEntityFromJSON(json: any): EntrypointEntity {
     return EntrypointEntityFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function EntrypointEntityToJSON(value?: EntrypointEntity | null): any {
         'value': value.value,
     };
 }
-
 

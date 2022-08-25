@@ -11,18 +11,20 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum PromotionEntityStatus {
-    CREATED = 'CREATED',
-    TOBEVALIDATED = 'TO_BE_VALIDATED',
-    ACCEPTED = 'ACCEPTED',
-    REJECTED = 'REJECTED',
-    ERROR = 'ERROR'
-}
+export const PromotionEntityStatus = {
+    CREATED: 'CREATED',
+    TO_BE_VALIDATED: 'TO_BE_VALIDATED',
+    ACCEPTED: 'ACCEPTED',
+    REJECTED: 'REJECTED',
+    ERROR: 'ERROR'
+} as const;
+export type PromotionEntityStatus = typeof PromotionEntityStatus[keyof typeof PromotionEntityStatus];
+
 
 export function PromotionEntityStatusFromJSON(json: any): PromotionEntityStatus {
     return PromotionEntityStatusFromJSONTyped(json, false);

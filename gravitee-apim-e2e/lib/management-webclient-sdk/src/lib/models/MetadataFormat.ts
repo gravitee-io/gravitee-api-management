@@ -11,19 +11,21 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum MetadataFormat {
-    STRING = 'STRING',
-    NUMERIC = 'NUMERIC',
-    BOOLEAN = 'BOOLEAN',
-    DATE = 'DATE',
-    MAIL = 'MAIL',
-    URL = 'URL'
-}
+export const MetadataFormat = {
+    STRING: 'STRING',
+    NUMERIC: 'NUMERIC',
+    BOOLEAN: 'BOOLEAN',
+    DATE: 'DATE',
+    MAIL: 'MAIL',
+    URL: 'URL'
+} as const;
+export type MetadataFormat = typeof MetadataFormat[keyof typeof MetadataFormat];
+
 
 export function MetadataFormatFromJSON(json: any): MetadataFormat {
     return MetadataFormatFromJSONTyped(json, false);

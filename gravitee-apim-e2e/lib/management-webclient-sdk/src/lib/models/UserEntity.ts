@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { UserRoleEntity } from './UserRoleEntity';
 import {
-    UserRoleEntity,
     UserRoleEntityFromJSON,
     UserRoleEntityFromJSONTyped,
     UserRoleEntityToJSON,
-} from './';
+} from './UserRoleEntity';
 
 /**
  * 
@@ -153,6 +153,15 @@ export interface UserEntity {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the UserEntity interface.
+ */
+export function instanceOfUserEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function UserEntityFromJSON(json: any): UserEntity {
     return UserEntityFromJSONTyped(json, false);
 }
@@ -218,5 +227,4 @@ export function UserEntityToJSON(value?: UserEntity | null): any {
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

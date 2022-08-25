@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { PromotionEntityAuthor } from './PromotionEntityAuthor';
 import {
-    PromotionEntityAuthor,
     PromotionEntityAuthorFromJSON,
     PromotionEntityAuthorFromJSONTyped,
     PromotionEntityAuthorToJSON,
-    PromotionEntityStatus,
+} from './PromotionEntityAuthor';
+import type { PromotionEntityStatus } from './PromotionEntityStatus';
+import {
     PromotionEntityStatusFromJSON,
     PromotionEntityStatusFromJSONTyped,
     PromotionEntityStatusToJSON,
-} from './';
+} from './PromotionEntityStatus';
 
 /**
  * 
@@ -103,6 +105,15 @@ export interface PromotionEntity {
     updatedAt?: Date;
 }
 
+/**
+ * Check if a given object implements the PromotionEntity interface.
+ */
+export function instanceOfPromotionEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PromotionEntityFromJSON(json: any): PromotionEntity {
     return PromotionEntityFromJSONTyped(json, false);
 }
@@ -151,5 +162,4 @@ export function PromotionEntityToJSON(value?: PromotionEntity | null): any {
         'updatedAt': value.updatedAt === undefined ? undefined : (value.updatedAt.toISOString()),
     };
 }
-
 

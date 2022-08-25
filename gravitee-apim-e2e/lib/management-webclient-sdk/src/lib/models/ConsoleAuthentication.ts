@@ -12,24 +12,30 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Enabled } from './Enabled';
 import {
-    Enabled,
     EnabledFromJSON,
     EnabledFromJSONTyped,
     EnabledToJSON,
-    GithubAuthentication,
+} from './Enabled';
+import type { GithubAuthentication } from './GithubAuthentication';
+import {
     GithubAuthenticationFromJSON,
     GithubAuthenticationFromJSONTyped,
     GithubAuthenticationToJSON,
-    GoogleAuthentication,
+} from './GithubAuthentication';
+import type { GoogleAuthentication } from './GoogleAuthentication';
+import {
     GoogleAuthenticationFromJSON,
     GoogleAuthenticationFromJSONTyped,
     GoogleAuthenticationToJSON,
-    OAuth2Authentication,
+} from './GoogleAuthentication';
+import type { OAuth2Authentication } from './OAuth2Authentication';
+import {
     OAuth2AuthenticationFromJSON,
     OAuth2AuthenticationFromJSONTyped,
     OAuth2AuthenticationToJSON,
-} from './';
+} from './OAuth2Authentication';
 
 /**
  * 
@@ -61,6 +67,15 @@ export interface ConsoleAuthentication {
      * @memberof ConsoleAuthentication
      */
     oauth2?: OAuth2Authentication;
+}
+
+/**
+ * Check if a given object implements the ConsoleAuthentication interface.
+ */
+export function instanceOfConsoleAuthentication(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function ConsoleAuthenticationFromJSON(json: any): ConsoleAuthentication {
@@ -95,5 +110,4 @@ export function ConsoleAuthenticationToJSON(value?: ConsoleAuthentication | null
         'oauth2': OAuth2AuthenticationToJSON(value.oauth2),
     };
 }
-
 

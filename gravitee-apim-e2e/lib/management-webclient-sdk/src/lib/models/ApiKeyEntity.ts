@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApplicationEntity } from './ApplicationEntity';
 import {
-    ApplicationEntity,
     ApplicationEntityFromJSON,
     ApplicationEntityFromJSONTyped,
     ApplicationEntityToJSON,
-    SubscriptionEntity,
+} from './ApplicationEntity';
+import type { SubscriptionEntity } from './SubscriptionEntity';
+import {
     SubscriptionEntityFromJSON,
     SubscriptionEntityFromJSONTyped,
     SubscriptionEntityToJSON,
-} from './';
+} from './SubscriptionEntity';
 
 /**
  * 
@@ -103,6 +105,15 @@ export interface ApiKeyEntity {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the ApiKeyEntity interface.
+ */
+export function instanceOfApiKeyEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiKeyEntityFromJSON(json: any): ApiKeyEntity {
     return ApiKeyEntityFromJSONTyped(json, false);
 }
@@ -151,5 +162,4 @@ export function ApiKeyEntityToJSON(value?: ApiKeyEntity | null): any {
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

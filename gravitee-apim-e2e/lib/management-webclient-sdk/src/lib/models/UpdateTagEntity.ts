@@ -44,6 +44,16 @@ export interface UpdateTagEntity {
     restricted_groups?: Array<string>;
 }
 
+/**
+ * Check if a given object implements the UpdateTagEntity interface.
+ */
+export function instanceOfUpdateTagEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function UpdateTagEntityFromJSON(json: any): UpdateTagEntity {
     return UpdateTagEntityFromJSONTyped(json, false);
 }
@@ -76,5 +86,4 @@ export function UpdateTagEntityToJSON(value?: UpdateTagEntity | null): any {
         'restricted_groups': value.restricted_groups,
     };
 }
-
 

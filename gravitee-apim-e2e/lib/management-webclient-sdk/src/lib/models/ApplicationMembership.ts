@@ -38,6 +38,16 @@ export interface ApplicationMembership {
     role: string;
 }
 
+/**
+ * Check if a given object implements the ApplicationMembership interface.
+ */
+export function instanceOfApplicationMembership(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "role" in value;
+
+    return isInstance;
+}
+
 export function ApplicationMembershipFromJSON(json: any): ApplicationMembership {
     return ApplicationMembershipFromJSONTyped(json, false);
 }
@@ -68,5 +78,4 @@ export function ApplicationMembershipToJSON(value?: ApplicationMembership | null
         'role': value.role,
     };
 }
-
 

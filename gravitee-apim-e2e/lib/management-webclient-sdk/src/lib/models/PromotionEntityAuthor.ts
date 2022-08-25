@@ -56,6 +56,15 @@ export interface PromotionEntityAuthor {
     userId?: string;
 }
 
+/**
+ * Check if a given object implements the PromotionEntityAuthor interface.
+ */
+export function instanceOfPromotionEntityAuthor(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PromotionEntityAuthorFromJSON(json: any): PromotionEntityAuthor {
     return PromotionEntityAuthorFromJSONTyped(json, false);
 }
@@ -92,5 +101,4 @@ export function PromotionEntityAuthorToJSON(value?: PromotionEntityAuthor | null
         'userId': value.userId,
     };
 }
-
 

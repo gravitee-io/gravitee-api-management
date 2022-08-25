@@ -594,10 +594,10 @@ describe('Documentation', () => {
           orgId,
           envId,
           api: createdApi.id,
-          type: PageType.SYSTEMFOLDER,
+          type: PageType.SYSTEM_FOLDER,
         }),
       );
-      asideFolder = systemFolders.find((systemFolder) => systemFolder.name === 'Aside' && systemFolder.type === PageType.SYSTEMFOLDER);
+      asideFolder = systemFolders.find((systemFolder) => systemFolder.name === 'Aside' && systemFolder.type === PageType.SYSTEM_FOLDER);
       expect(asideFolder).toBeDefined();
     });
     test('Add aside link to existing createdPage', async () => {

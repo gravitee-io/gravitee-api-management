@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Condition } from './Condition';
 import {
-    Condition,
     ConditionFromJSON,
     ConditionFromJSONTyped,
     ConditionToJSON,
-    Projection,
+} from './Condition';
+import type { Projection } from './Projection';
+import {
     ProjectionFromJSON,
     ProjectionFromJSONTyped,
     ProjectionToJSON,
-    StringConditionAllOf,
+} from './Projection';
+import type { StringConditionAllOf } from './StringConditionAllOf';
+import {
     StringConditionAllOfFromJSON,
     StringConditionAllOfFromJSONTyped,
     StringConditionAllOfToJSON,
-} from './';
+} from './StringConditionAllOf';
 
 /**
  * 
@@ -57,6 +61,33 @@ export interface StringCondition extends Condition {
      * @memberof StringCondition
      */
     ignoreCase?: boolean;
+}
+
+
+/**
+ * @export
+ */
+export const StringConditionOperatorEnum = {
+    EQUALS: 'EQUALS',
+    NOT_EQUALS: 'NOT_EQUALS',
+    STARTS_WITH: 'STARTS_WITH',
+    ENDS_WITH: 'ENDS_WITH',
+    CONTAINS: 'CONTAINS',
+    MATCHES: 'MATCHES'
+} as const;
+export type StringConditionOperatorEnum = typeof StringConditionOperatorEnum[keyof typeof StringConditionOperatorEnum];
+
+
+/**
+ * Check if a given object implements the StringCondition interface.
+ */
+export function instanceOfStringCondition(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "property" in value;
+    isInstance = isInstance && "operator" in value;
+    isInstance = isInstance && "pattern" in value;
+
+    return isInstance;
 }
 
 export function StringConditionFromJSON(json: any): StringCondition {
@@ -91,18 +122,4 @@ export function StringConditionToJSON(value?: StringCondition | null): any {
         'ignoreCase': value.ignoreCase,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum StringConditionOperatorEnum {
-    EQUALS = 'EQUALS',
-    NOTEQUALS = 'NOT_EQUALS',
-    STARTSWITH = 'STARTS_WITH',
-    ENDSWITH = 'ENDS_WITH',
-    CONTAINS = 'CONTAINS',
-    MATCHES = 'MATCHES'
-}
-
 

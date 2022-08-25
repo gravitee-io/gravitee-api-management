@@ -26,6 +26,15 @@ export interface NewTopApiEntity {
     api?: string;
 }
 
+/**
+ * Check if a given object implements the NewTopApiEntity interface.
+ */
+export function instanceOfNewTopApiEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function NewTopApiEntityFromJSON(json: any): NewTopApiEntity {
     return NewTopApiEntityFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function NewTopApiEntityToJSON(value?: NewTopApiEntity | null): any {
         'api': value.api,
     };
 }
-
 

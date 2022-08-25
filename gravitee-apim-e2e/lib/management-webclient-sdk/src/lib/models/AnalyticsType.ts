@@ -11,17 +11,19 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum AnalyticsType {
-    GROUPBY = 'GROUP_BY',
-    DATEHISTO = 'DATE_HISTO',
-    COUNT = 'COUNT',
-    STATS = 'STATS'
-}
+export const AnalyticsType = {
+    GROUP_BY: 'GROUP_BY',
+    DATE_HISTO: 'DATE_HISTO',
+    COUNT: 'COUNT',
+    STATS: 'STATS'
+} as const;
+export type AnalyticsType = typeof AnalyticsType[keyof typeof AnalyticsType];
+
 
 export function AnalyticsTypeFromJSON(json: any): AnalyticsType {
     return AnalyticsTypeFromJSONTyped(json, false);

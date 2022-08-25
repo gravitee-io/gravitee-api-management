@@ -56,6 +56,15 @@ export interface TokenEntity {
     token?: string;
 }
 
+/**
+ * Check if a given object implements the TokenEntity interface.
+ */
+export function instanceOfTokenEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function TokenEntityFromJSON(json: any): TokenEntity {
     return TokenEntityFromJSONTyped(json, false);
 }
@@ -92,5 +101,4 @@ export function TokenEntityToJSON(value?: TokenEntity | null): any {
         'token': value.token,
     };
 }
-
 

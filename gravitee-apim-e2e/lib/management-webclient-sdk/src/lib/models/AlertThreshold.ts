@@ -32,6 +32,15 @@ export interface AlertThreshold {
     key?: string;
 }
 
+/**
+ * Check if a given object implements the AlertThreshold interface.
+ */
+export function instanceOfAlertThreshold(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function AlertThresholdFromJSON(json: any): AlertThreshold {
     return AlertThresholdFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function AlertThresholdToJSON(value?: AlertThreshold | null): any {
         'key': value.key,
     };
 }
-
 

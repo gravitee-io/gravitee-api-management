@@ -44,6 +44,15 @@ export interface UpdateApiHeaderEntity {
     value?: string;
 }
 
+/**
+ * Check if a given object implements the UpdateApiHeaderEntity interface.
+ */
+export function instanceOfUpdateApiHeaderEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function UpdateApiHeaderEntityFromJSON(json: any): UpdateApiHeaderEntity {
     return UpdateApiHeaderEntityFromJSONTyped(json, false);
 }
@@ -76,5 +85,4 @@ export function UpdateApiHeaderEntityToJSON(value?: UpdateApiHeaderEntity | null
         'value': value.value,
     };
 }
-
 

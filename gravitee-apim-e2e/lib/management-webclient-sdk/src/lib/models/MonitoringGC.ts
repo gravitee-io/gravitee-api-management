@@ -44,6 +44,15 @@ export interface MonitoringGC {
     young_collection_time_in_millis?: number;
 }
 
+/**
+ * Check if a given object implements the MonitoringGC interface.
+ */
+export function instanceOfMonitoringGC(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MonitoringGCFromJSON(json: any): MonitoringGC {
     return MonitoringGCFromJSONTyped(json, false);
 }
@@ -76,5 +85,4 @@ export function MonitoringGCToJSON(value?: MonitoringGC | null): any {
         'young_collection_time_in_millis': value.young_collection_time_in_millis,
     };
 }
-
 

@@ -60,7 +60,7 @@ describe('Update API by importing it', () => {
           expect.objectContaining({
             description: 'this is a test plan',
             validation: 'AUTO',
-            security: PlanSecurityType.KEYLESS,
+            security: PlanSecurityType.KEY_LESS,
             type: PlanType.API,
             status: PlanStatus.STAGING,
             order: 1,
@@ -70,7 +70,7 @@ describe('Update API by importing it', () => {
           expect.objectContaining({
             description: 'this is a test plan',
             validation: 'AUTO',
-            security: PlanSecurityType.KEYLESS,
+            security: PlanSecurityType.KEY_LESS,
             type: PlanType.API,
             status: PlanStatus.STAGING,
             order: 2,
@@ -156,7 +156,7 @@ describe('Update API by importing it', () => {
       const existingPlan = PlansFaker.plan({
         crossId: 'my-plan',
         status: PlanStatus.STAGING,
-        security: PlanSecurityType.APIKEY,
+        security: PlanSecurityType.API_KEY,
         validation: PlanValidationType.AUTO,
         name: 'my old plan name',
         description: 'my old plan description',
@@ -165,7 +165,7 @@ describe('Update API by importing it', () => {
       const updatePlanWithMissingData = PlansFaker.plan({
         crossId: 'my-plan',
         name: 'my new plan name',
-        security: PlanSecurityType.APIKEY,
+        security: PlanSecurityType.API_KEY,
       });
       // plan from gateway event misses for example, validation, and description
       delete updatePlanWithMissingData.validation;
@@ -188,7 +188,7 @@ describe('Update API by importing it', () => {
         expect(plans[0].name).toBe('my new plan name');
         expect(plans[0].description).toBe('my old plan description');
         expect(plans[0].validation).toBe(PlanValidationType.AUTO);
-        expect(plans[0].security).toBe(PlanSecurityType.APIKEY);
+        expect(plans[0].security).toBe(PlanSecurityType.API_KEY);
       });
 
       afterAll(async () => {

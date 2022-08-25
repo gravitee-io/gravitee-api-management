@@ -44,6 +44,15 @@ export interface RatingSummaryEntity {
     numberOfRatingsByRate?: { [key: string]: number; };
 }
 
+/**
+ * Check if a given object implements the RatingSummaryEntity interface.
+ */
+export function instanceOfRatingSummaryEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function RatingSummaryEntityFromJSON(json: any): RatingSummaryEntity {
     return RatingSummaryEntityFromJSONTyped(json, false);
 }
@@ -76,5 +85,4 @@ export function RatingSummaryEntityToJSON(value?: RatingSummaryEntity | null): a
         'numberOfRatingsByRate': value.numberOfRatingsByRate,
     };
 }
-
 

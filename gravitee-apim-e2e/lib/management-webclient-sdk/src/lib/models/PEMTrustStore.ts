@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { PEMTrustStoreAllOf } from './PEMTrustStoreAllOf';
 import {
-    PEMTrustStoreAllOf,
     PEMTrustStoreAllOfFromJSON,
     PEMTrustStoreAllOfFromJSONTyped,
     PEMTrustStoreAllOfToJSON,
-    TrustStore,
+} from './PEMTrustStoreAllOf';
+import type { TrustStore } from './TrustStore';
+import {
     TrustStoreFromJSON,
     TrustStoreFromJSONTyped,
     TrustStoreToJSON,
-} from './';
+} from './TrustStore';
 
 /**
  * 
@@ -41,6 +43,17 @@ export interface PEMTrustStore extends TrustStore {
      * @memberof PEMTrustStore
      */
     content?: string;
+}
+
+
+
+/**
+ * Check if a given object implements the PEMTrustStore interface.
+ */
+export function instanceOfPEMTrustStore(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PEMTrustStoreFromJSON(json: any): PEMTrustStore {
@@ -71,6 +84,4 @@ export function PEMTrustStoreToJSON(value?: PEMTrustStore | null): any {
         'content': value.content,
     };
 }
-
-
 

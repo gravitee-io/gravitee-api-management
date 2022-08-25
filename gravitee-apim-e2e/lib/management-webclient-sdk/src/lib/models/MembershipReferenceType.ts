@@ -11,19 +11,21 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum MembershipReferenceType {
-    APPLICATION = 'APPLICATION',
-    API = 'API',
-    GROUP = 'GROUP',
-    ENVIRONMENT = 'ENVIRONMENT',
-    ORGANIZATION = 'ORGANIZATION',
-    PLATFORM = 'PLATFORM'
-}
+export const MembershipReferenceType = {
+    APPLICATION: 'APPLICATION',
+    API: 'API',
+    GROUP: 'GROUP',
+    ENVIRONMENT: 'ENVIRONMENT',
+    ORGANIZATION: 'ORGANIZATION',
+    PLATFORM: 'PLATFORM'
+} as const;
+export type MembershipReferenceType = typeof MembershipReferenceType[keyof typeof MembershipReferenceType];
+
 
 export function MembershipReferenceTypeFromJSON(json: any): MembershipReferenceType {
     return MembershipReferenceTypeFromJSONTyped(json, false);

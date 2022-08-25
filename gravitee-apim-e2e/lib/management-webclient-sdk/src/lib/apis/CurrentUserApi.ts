@@ -13,26 +13,28 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  NewTokenEntity,
+  PortalNotificationPageResult,
+  TaskEntityPagedResult,
+  TokenEntity,
+  UpdateUserEntity,
+  UserDetails,
+  UserEntity,
+} from '../models';
 import {
-    NewTokenEntity,
     NewTokenEntityFromJSON,
     NewTokenEntityToJSON,
-    PortalNotificationPageResult,
     PortalNotificationPageResultFromJSON,
     PortalNotificationPageResultToJSON,
-    TaskEntityPagedResult,
     TaskEntityPagedResultFromJSON,
     TaskEntityPagedResultToJSON,
-    TokenEntity,
     TokenEntityFromJSON,
     TokenEntityToJSON,
-    UpdateUserEntity,
     UpdateUserEntityFromJSON,
     UpdateUserEntityToJSON,
-    UserDetails,
     UserDetailsFromJSON,
     UserDetailsToJSON,
-    UserEntity,
     UserEntityFromJSON,
     UserEntityToJSON,
 } from '../models';
@@ -208,7 +210,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Create a personal token
      */
-    async createTokensRaw(requestParameters: CreateTokensRequest): Promise<runtime.ApiResponse<TokenEntity>> {
+    async createTokensRaw(requestParameters: CreateTokensRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TokenEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createTokens.');
         }
@@ -217,7 +219,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTokenEntity','Required parameter requestParameters.newTokenEntity was null or undefined when calling createTokens.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -232,7 +234,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewTokenEntityToJSON(requestParameters.newTokenEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TokenEntityFromJSON(jsonValue));
     }
@@ -240,15 +242,15 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Create a personal token
      */
-    async createTokens(requestParameters: CreateTokensRequest): Promise<TokenEntity> {
-        const response = await this.createTokensRaw(requestParameters);
+    async createTokens(requestParameters: CreateTokensRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TokenEntity> {
+        const response = await this.createTokensRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Create a personal token
      */
-    async createTokens1Raw(requestParameters: CreateTokens1Request): Promise<runtime.ApiResponse<TokenEntity>> {
+    async createTokens1Raw(requestParameters: CreateTokens1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TokenEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createTokens1.');
         }
@@ -261,7 +263,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTokenEntity','Required parameter requestParameters.newTokenEntity was null or undefined when calling createTokens1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -276,7 +278,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewTokenEntityToJSON(requestParameters.newTokenEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TokenEntityFromJSON(jsonValue));
     }
@@ -284,20 +286,20 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Create a personal token
      */
-    async createTokens1(requestParameters: CreateTokens1Request): Promise<TokenEntity> {
-        const response = await this.createTokens1Raw(requestParameters);
+    async createTokens1(requestParameters: CreateTokens1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TokenEntity> {
+        const response = await this.createTokens1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Delete all user\'s notifications
      */
-    async deleteAllUserNotificationsRaw(requestParameters: DeleteAllUserNotificationsRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteAllUserNotificationsRaw(requestParameters: DeleteAllUserNotificationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteAllUserNotifications.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -309,7 +311,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -317,14 +319,14 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Delete all user\'s notifications
      */
-    async deleteAllUserNotifications(requestParameters: DeleteAllUserNotificationsRequest): Promise<void> {
-        await this.deleteAllUserNotificationsRaw(requestParameters);
+    async deleteAllUserNotifications(requestParameters: DeleteAllUserNotificationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteAllUserNotificationsRaw(requestParameters, initOverrides);
     }
 
     /**
      * Delete all user\'s notifications
      */
-    async deleteAllUserNotifications1Raw(requestParameters: DeleteAllUserNotifications1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteAllUserNotifications1Raw(requestParameters: DeleteAllUserNotifications1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling deleteAllUserNotifications1.');
         }
@@ -333,7 +335,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteAllUserNotifications1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -345,7 +347,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -353,19 +355,19 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Delete all user\'s notifications
      */
-    async deleteAllUserNotifications1(requestParameters: DeleteAllUserNotifications1Request): Promise<void> {
-        await this.deleteAllUserNotifications1Raw(requestParameters);
+    async deleteAllUserNotifications1(requestParameters: DeleteAllUserNotifications1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteAllUserNotifications1Raw(requestParameters, initOverrides);
     }
 
     /**
      * Delete the current logged user
      */
-    async deleteCurrentUserRaw(requestParameters: DeleteCurrentUserRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteCurrentUserRaw(requestParameters: DeleteCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteCurrentUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -377,7 +379,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -385,14 +387,14 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Delete the current logged user
      */
-    async deleteCurrentUser(requestParameters: DeleteCurrentUserRequest): Promise<void> {
-        await this.deleteCurrentUserRaw(requestParameters);
+    async deleteCurrentUser(requestParameters: DeleteCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteCurrentUserRaw(requestParameters, initOverrides);
     }
 
     /**
      * Delete the current logged user
      */
-    async deleteCurrentUser1Raw(requestParameters: DeleteCurrentUser1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteCurrentUser1Raw(requestParameters: DeleteCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling deleteCurrentUser1.');
         }
@@ -401,7 +403,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteCurrentUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -413,7 +415,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -421,14 +423,14 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Delete the current logged user
      */
-    async deleteCurrentUser1(requestParameters: DeleteCurrentUser1Request): Promise<void> {
-        await this.deleteCurrentUser1Raw(requestParameters);
+    async deleteCurrentUser1(requestParameters: DeleteCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteCurrentUser1Raw(requestParameters, initOverrides);
     }
 
     /**
      * Delete a single user\'s notification
      */
-    async deleteUserNotificationRaw(requestParameters: DeleteUserNotificationRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteUserNotificationRaw(requestParameters: DeleteUserNotificationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.notification === null || requestParameters.notification === undefined) {
             throw new runtime.RequiredError('notification','Required parameter requestParameters.notification was null or undefined when calling deleteUserNotification.');
         }
@@ -437,7 +439,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteUserNotification.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -449,7 +451,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -457,14 +459,14 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Delete a single user\'s notification
      */
-    async deleteUserNotification(requestParameters: DeleteUserNotificationRequest): Promise<void> {
-        await this.deleteUserNotificationRaw(requestParameters);
+    async deleteUserNotification(requestParameters: DeleteUserNotificationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteUserNotificationRaw(requestParameters, initOverrides);
     }
 
     /**
      * Delete a single user\'s notification
      */
-    async deleteUserNotification1Raw(requestParameters: DeleteUserNotification1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteUserNotification1Raw(requestParameters: DeleteUserNotification1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.notification === null || requestParameters.notification === undefined) {
             throw new runtime.RequiredError('notification','Required parameter requestParameters.notification was null or undefined when calling deleteUserNotification1.');
         }
@@ -477,7 +479,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteUserNotification1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -489,7 +491,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -497,19 +499,19 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Delete a single user\'s notification
      */
-    async deleteUserNotification1(requestParameters: DeleteUserNotification1Request): Promise<void> {
-        await this.deleteUserNotification1Raw(requestParameters);
+    async deleteUserNotification1(requestParameters: DeleteUserNotification1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteUserNotification1Raw(requestParameters, initOverrides);
     }
 
     /**
      * Get the authenticated user
      */
-    async getCurrentUserRaw(requestParameters: GetCurrentUserRequest): Promise<runtime.ApiResponse<UserDetails>> {
+    async getCurrentUserRaw(requestParameters: GetCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserDetails>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCurrentUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -521,7 +523,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserDetailsFromJSON(jsonValue));
     }
@@ -529,15 +531,15 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Get the authenticated user
      */
-    async getCurrentUser(requestParameters: GetCurrentUserRequest): Promise<UserDetails> {
-        const response = await this.getCurrentUserRaw(requestParameters);
+    async getCurrentUser(requestParameters: GetCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserDetails> {
+        const response = await this.getCurrentUserRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the authenticated user
      */
-    async getCurrentUser1Raw(requestParameters: GetCurrentUser1Request): Promise<runtime.ApiResponse<UserDetails>> {
+    async getCurrentUser1Raw(requestParameters: GetCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserDetails>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getCurrentUser1.');
         }
@@ -546,7 +548,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCurrentUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -558,7 +560,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserDetailsFromJSON(jsonValue));
     }
@@ -566,20 +568,20 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Get the authenticated user
      */
-    async getCurrentUser1(requestParameters: GetCurrentUser1Request): Promise<UserDetails> {
-        const response = await this.getCurrentUser1Raw(requestParameters);
+    async getCurrentUser1(requestParameters: GetCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserDetails> {
+        const response = await this.getCurrentUser1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get user\'s avatar
      */
-    async getCurrentUserPictureRaw(requestParameters: GetCurrentUserPictureRequest): Promise<runtime.ApiResponse<Blob>> {
+    async getCurrentUserPictureRaw(requestParameters: GetCurrentUserPictureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCurrentUserPicture.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -591,7 +593,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.BlobApiResponse(response);
     }
@@ -599,15 +601,15 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Get user\'s avatar
      */
-    async getCurrentUserPicture(requestParameters: GetCurrentUserPictureRequest): Promise<Blob> {
-        const response = await this.getCurrentUserPictureRaw(requestParameters);
+    async getCurrentUserPicture(requestParameters: GetCurrentUserPictureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getCurrentUserPictureRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get user\'s avatar
      */
-    async getCurrentUserPicture1Raw(requestParameters: GetCurrentUserPicture1Request): Promise<runtime.ApiResponse<Blob>> {
+    async getCurrentUserPicture1Raw(requestParameters: GetCurrentUserPicture1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getCurrentUserPicture1.');
         }
@@ -616,7 +618,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCurrentUserPicture1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -628,7 +630,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.BlobApiResponse(response);
     }
@@ -636,20 +638,20 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Get user\'s avatar
      */
-    async getCurrentUserPicture1(requestParameters: GetCurrentUserPicture1Request): Promise<Blob> {
-        const response = await this.getCurrentUserPicture1Raw(requestParameters);
+    async getCurrentUserPicture1(requestParameters: GetCurrentUserPicture1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getCurrentUserPicture1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get taglines to display in the newsletter
      */
-    async getTaglinesRaw(requestParameters: GetTaglinesRequest): Promise<runtime.ApiResponse<Array<string>>> {
+    async getTaglinesRaw(requestParameters: GetTaglinesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<string>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTaglines.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -661,7 +663,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -669,15 +671,15 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Get taglines to display in the newsletter
      */
-    async getTaglines(requestParameters: GetTaglinesRequest): Promise<Array<string>> {
-        const response = await this.getTaglinesRaw(requestParameters);
+    async getTaglines(requestParameters: GetTaglinesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<string>> {
+        const response = await this.getTaglinesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get taglines to display in the newsletter
      */
-    async getTaglines1Raw(requestParameters: GetTaglines1Request): Promise<runtime.ApiResponse<Array<string>>> {
+    async getTaglines1Raw(requestParameters: GetTaglines1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<string>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getTaglines1.');
         }
@@ -686,7 +688,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTaglines1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -698,7 +700,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -706,20 +708,20 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Get taglines to display in the newsletter
      */
-    async getTaglines1(requestParameters: GetTaglines1Request): Promise<Array<string>> {
-        const response = await this.getTaglines1Raw(requestParameters);
+    async getTaglines1(requestParameters: GetTaglines1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<string>> {
+        const response = await this.getTaglines1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List user\'s personal tokens
      */
-    async getTokensRaw(requestParameters: GetTokensRequest): Promise<runtime.ApiResponse<Array<TokenEntity>>> {
+    async getTokensRaw(requestParameters: GetTokensRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TokenEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTokens.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -731,7 +733,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TokenEntityFromJSON));
     }
@@ -739,15 +741,15 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * List user\'s personal tokens
      */
-    async getTokens(requestParameters: GetTokensRequest): Promise<Array<TokenEntity>> {
-        const response = await this.getTokensRaw(requestParameters);
+    async getTokens(requestParameters: GetTokensRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TokenEntity>> {
+        const response = await this.getTokensRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List user\'s personal tokens
      */
-    async getTokens1Raw(requestParameters: GetTokens1Request): Promise<runtime.ApiResponse<Array<TokenEntity>>> {
+    async getTokens1Raw(requestParameters: GetTokens1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TokenEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getTokens1.');
         }
@@ -756,7 +758,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTokens1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -768,7 +770,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TokenEntityFromJSON));
     }
@@ -776,20 +778,20 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * List user\'s personal tokens
      */
-    async getTokens1(requestParameters: GetTokens1Request): Promise<Array<TokenEntity>> {
-        const response = await this.getTokens1Raw(requestParameters);
+    async getTokens1(requestParameters: GetTokens1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TokenEntity>> {
+        const response = await this.getTokens1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List user\'s notifications
      */
-    async getUserNotificationsRaw(requestParameters: GetUserNotificationsRequest): Promise<runtime.ApiResponse<PortalNotificationPageResult>> {
+    async getUserNotificationsRaw(requestParameters: GetUserNotificationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PortalNotificationPageResult>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserNotifications.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -801,7 +803,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PortalNotificationPageResultFromJSON(jsonValue));
     }
@@ -809,15 +811,15 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * List user\'s notifications
      */
-    async getUserNotifications(requestParameters: GetUserNotificationsRequest): Promise<PortalNotificationPageResult> {
-        const response = await this.getUserNotificationsRaw(requestParameters);
+    async getUserNotifications(requestParameters: GetUserNotificationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PortalNotificationPageResult> {
+        const response = await this.getUserNotificationsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List user\'s notifications
      */
-    async getUserNotifications1Raw(requestParameters: GetUserNotifications1Request): Promise<runtime.ApiResponse<PortalNotificationPageResult>> {
+    async getUserNotifications1Raw(requestParameters: GetUserNotifications1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PortalNotificationPageResult>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getUserNotifications1.');
         }
@@ -826,7 +828,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserNotifications1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -838,7 +840,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PortalNotificationPageResultFromJSON(jsonValue));
     }
@@ -846,20 +848,20 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * List user\'s notifications
      */
-    async getUserNotifications1(requestParameters: GetUserNotifications1Request): Promise<PortalNotificationPageResult> {
-        const response = await this.getUserNotifications1Raw(requestParameters);
+    async getUserNotifications1(requestParameters: GetUserNotifications1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PortalNotificationPageResult> {
+        const response = await this.getUserNotifications1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the user\'s allowed sharding tags
      */
-    async getUserShardingTagsRaw(requestParameters: GetUserShardingTagsRequest): Promise<runtime.ApiResponse<Array<string>>> {
+    async getUserShardingTagsRaw(requestParameters: GetUserShardingTagsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<string>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserShardingTags.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -871,7 +873,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -879,15 +881,15 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Get the user\'s allowed sharding tags
      */
-    async getUserShardingTags(requestParameters: GetUserShardingTagsRequest): Promise<Array<string>> {
-        const response = await this.getUserShardingTagsRaw(requestParameters);
+    async getUserShardingTags(requestParameters: GetUserShardingTagsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<string>> {
+        const response = await this.getUserShardingTagsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the user\'s allowed sharding tags
      */
-    async getUserShardingTags1Raw(requestParameters: GetUserShardingTags1Request): Promise<runtime.ApiResponse<Array<string>>> {
+    async getUserShardingTags1Raw(requestParameters: GetUserShardingTags1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<string>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getUserShardingTags1.');
         }
@@ -896,7 +898,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserShardingTags1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -908,7 +910,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -916,20 +918,20 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Get the user\'s allowed sharding tags
      */
-    async getUserShardingTags1(requestParameters: GetUserShardingTags1Request): Promise<Array<string>> {
-        const response = await this.getUserShardingTags1Raw(requestParameters);
+    async getUserShardingTags1(requestParameters: GetUserShardingTags1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<string>> {
+        const response = await this.getUserShardingTags1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the user\'s tasks
      */
-    async getUserTasksRaw(requestParameters: GetUserTasksRequest): Promise<runtime.ApiResponse<TaskEntityPagedResult>> {
+    async getUserTasksRaw(requestParameters: GetUserTasksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TaskEntityPagedResult>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserTasks.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -941,7 +943,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TaskEntityPagedResultFromJSON(jsonValue));
     }
@@ -949,15 +951,15 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Get the user\'s tasks
      */
-    async getUserTasks(requestParameters: GetUserTasksRequest): Promise<TaskEntityPagedResult> {
-        const response = await this.getUserTasksRaw(requestParameters);
+    async getUserTasks(requestParameters: GetUserTasksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TaskEntityPagedResult> {
+        const response = await this.getUserTasksRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the user\'s tasks
      */
-    async getUserTasks1Raw(requestParameters: GetUserTasks1Request): Promise<runtime.ApiResponse<TaskEntityPagedResult>> {
+    async getUserTasks1Raw(requestParameters: GetUserTasks1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TaskEntityPagedResult>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getUserTasks1.');
         }
@@ -966,7 +968,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUserTasks1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -978,7 +980,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TaskEntityPagedResultFromJSON(jsonValue));
     }
@@ -986,20 +988,20 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Get the user\'s tasks
      */
-    async getUserTasks1(requestParameters: GetUserTasks1Request): Promise<TaskEntityPagedResult> {
-        const response = await this.getUserTasks1Raw(requestParameters);
+    async getUserTasks1(requestParameters: GetUserTasks1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TaskEntityPagedResult> {
+        const response = await this.getUserTasks1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Login
      */
-    async loginRaw(requestParameters: LoginRequest): Promise<runtime.ApiResponse<void>> {
+    async loginRaw(requestParameters: LoginRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling login.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1011,7 +1013,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1019,14 +1021,14 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Login
      */
-    async login(requestParameters: LoginRequest): Promise<void> {
-        await this.loginRaw(requestParameters);
+    async login(requestParameters: LoginRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.loginRaw(requestParameters, initOverrides);
     }
 
     /**
      * Login
      */
-    async login1Raw(requestParameters: Login1Request): Promise<runtime.ApiResponse<void>> {
+    async login1Raw(requestParameters: Login1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling login1.');
         }
@@ -1035,7 +1037,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling login1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1047,7 +1049,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1055,19 +1057,19 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Login
      */
-    async login1(requestParameters: Login1Request): Promise<void> {
-        await this.login1Raw(requestParameters);
+    async login1(requestParameters: Login1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.login1Raw(requestParameters, initOverrides);
     }
 
     /**
      * Logout
      */
-    async logoutCurrentUserRaw(requestParameters: LogoutCurrentUserRequest): Promise<runtime.ApiResponse<void>> {
+    async logoutCurrentUserRaw(requestParameters: LogoutCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling logoutCurrentUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1079,7 +1081,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1087,14 +1089,14 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Logout
      */
-    async logoutCurrentUser(requestParameters: LogoutCurrentUserRequest): Promise<void> {
-        await this.logoutCurrentUserRaw(requestParameters);
+    async logoutCurrentUser(requestParameters: LogoutCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.logoutCurrentUserRaw(requestParameters, initOverrides);
     }
 
     /**
      * Logout
      */
-    async logoutCurrentUser1Raw(requestParameters: LogoutCurrentUser1Request): Promise<runtime.ApiResponse<void>> {
+    async logoutCurrentUser1Raw(requestParameters: LogoutCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling logoutCurrentUser1.');
         }
@@ -1103,7 +1105,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling logoutCurrentUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1115,7 +1117,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1123,19 +1125,19 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Logout
      */
-    async logoutCurrentUser1(requestParameters: LogoutCurrentUser1Request): Promise<void> {
-        await this.logoutCurrentUser1Raw(requestParameters);
+    async logoutCurrentUser1(requestParameters: LogoutCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.logoutCurrentUser1Raw(requestParameters, initOverrides);
     }
 
     /**
      * Revoke all user\'s personal tokens
      */
-    async revokeAllTokensRaw(requestParameters: RevokeAllTokensRequest): Promise<runtime.ApiResponse<void>> {
+    async revokeAllTokensRaw(requestParameters: RevokeAllTokensRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling revokeAllTokens.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1147,7 +1149,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1155,14 +1157,14 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Revoke all user\'s personal tokens
      */
-    async revokeAllTokens(requestParameters: RevokeAllTokensRequest): Promise<void> {
-        await this.revokeAllTokensRaw(requestParameters);
+    async revokeAllTokens(requestParameters: RevokeAllTokensRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.revokeAllTokensRaw(requestParameters, initOverrides);
     }
 
     /**
      * Revoke all user\'s personal tokens
      */
-    async revokeAllTokens1Raw(requestParameters: RevokeAllTokens1Request): Promise<runtime.ApiResponse<void>> {
+    async revokeAllTokens1Raw(requestParameters: RevokeAllTokens1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling revokeAllTokens1.');
         }
@@ -1171,7 +1173,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling revokeAllTokens1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1183,7 +1185,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1191,14 +1193,14 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Revoke all user\'s personal tokens
      */
-    async revokeAllTokens1(requestParameters: RevokeAllTokens1Request): Promise<void> {
-        await this.revokeAllTokens1Raw(requestParameters);
+    async revokeAllTokens1(requestParameters: RevokeAllTokens1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.revokeAllTokens1Raw(requestParameters, initOverrides);
     }
 
     /**
      * Revoke a single user\'s personal tokens
      */
-    async revokeTokenRaw(requestParameters: RevokeTokenRequest): Promise<runtime.ApiResponse<void>> {
+    async revokeTokenRaw(requestParameters: RevokeTokenRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.token === null || requestParameters.token === undefined) {
             throw new runtime.RequiredError('token','Required parameter requestParameters.token was null or undefined when calling revokeToken.');
         }
@@ -1207,7 +1209,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling revokeToken.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1219,7 +1221,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1227,14 +1229,14 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Revoke a single user\'s personal tokens
      */
-    async revokeToken(requestParameters: RevokeTokenRequest): Promise<void> {
-        await this.revokeTokenRaw(requestParameters);
+    async revokeToken(requestParameters: RevokeTokenRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.revokeTokenRaw(requestParameters, initOverrides);
     }
 
     /**
      * Revoke a single user\'s personal tokens
      */
-    async revokeToken1Raw(requestParameters: RevokeToken1Request): Promise<runtime.ApiResponse<void>> {
+    async revokeToken1Raw(requestParameters: RevokeToken1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.token === null || requestParameters.token === undefined) {
             throw new runtime.RequiredError('token','Required parameter requestParameters.token was null or undefined when calling revokeToken1.');
         }
@@ -1247,7 +1249,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling revokeToken1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1259,7 +1261,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1267,14 +1269,14 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Revoke a single user\'s personal tokens
      */
-    async revokeToken1(requestParameters: RevokeToken1Request): Promise<void> {
-        await this.revokeToken1Raw(requestParameters);
+    async revokeToken1(requestParameters: RevokeToken1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.revokeToken1Raw(requestParameters, initOverrides);
     }
 
     /**
      * Subscribe to the newsletter the authenticated user
      */
-    async subscribeNewsletterToCurrentUserRaw(requestParameters: SubscribeNewsletterToCurrentUserRequest): Promise<runtime.ApiResponse<UserEntity>> {
+    async subscribeNewsletterToCurrentUserRaw(requestParameters: SubscribeNewsletterToCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling subscribeNewsletterToCurrentUser.');
         }
@@ -1283,7 +1285,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('body','Required parameter requestParameters.body was null or undefined when calling subscribeNewsletterToCurrentUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1298,7 +1300,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.body as any,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -1306,15 +1308,15 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Subscribe to the newsletter the authenticated user
      */
-    async subscribeNewsletterToCurrentUser(requestParameters: SubscribeNewsletterToCurrentUserRequest): Promise<UserEntity> {
-        const response = await this.subscribeNewsletterToCurrentUserRaw(requestParameters);
+    async subscribeNewsletterToCurrentUser(requestParameters: SubscribeNewsletterToCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.subscribeNewsletterToCurrentUserRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Subscribe to the newsletter the authenticated user
      */
-    async subscribeNewsletterToCurrentUser1Raw(requestParameters: SubscribeNewsletterToCurrentUser1Request): Promise<runtime.ApiResponse<UserEntity>> {
+    async subscribeNewsletterToCurrentUser1Raw(requestParameters: SubscribeNewsletterToCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling subscribeNewsletterToCurrentUser1.');
         }
@@ -1327,7 +1329,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('body','Required parameter requestParameters.body was null or undefined when calling subscribeNewsletterToCurrentUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1342,7 +1344,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.body as any,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -1350,15 +1352,15 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Subscribe to the newsletter the authenticated user
      */
-    async subscribeNewsletterToCurrentUser1(requestParameters: SubscribeNewsletterToCurrentUser1Request): Promise<UserEntity> {
-        const response = await this.subscribeNewsletterToCurrentUser1Raw(requestParameters);
+    async subscribeNewsletterToCurrentUser1(requestParameters: SubscribeNewsletterToCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.subscribeNewsletterToCurrentUser1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Update the authenticated user
      */
-    async updateCurrentUserRaw(requestParameters: UpdateCurrentUserRequest): Promise<runtime.ApiResponse<UserEntity>> {
+    async updateCurrentUserRaw(requestParameters: UpdateCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateCurrentUser.');
         }
@@ -1367,7 +1369,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateUserEntity','Required parameter requestParameters.updateUserEntity was null or undefined when calling updateCurrentUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1382,7 +1384,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateUserEntityToJSON(requestParameters.updateUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -1390,15 +1392,15 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Update the authenticated user
      */
-    async updateCurrentUser(requestParameters: UpdateCurrentUserRequest): Promise<UserEntity> {
-        const response = await this.updateCurrentUserRaw(requestParameters);
+    async updateCurrentUser(requestParameters: UpdateCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.updateCurrentUserRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Update the authenticated user
      */
-    async updateCurrentUser1Raw(requestParameters: UpdateCurrentUser1Request): Promise<runtime.ApiResponse<UserEntity>> {
+    async updateCurrentUser1Raw(requestParameters: UpdateCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateCurrentUser1.');
         }
@@ -1411,7 +1413,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateUserEntity','Required parameter requestParameters.updateUserEntity was null or undefined when calling updateCurrentUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1426,7 +1428,7 @@ export class CurrentUserApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateUserEntityToJSON(requestParameters.updateUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -1434,8 +1436,8 @@ export class CurrentUserApi extends runtime.BaseAPI {
     /**
      * Update the authenticated user
      */
-    async updateCurrentUser1(requestParameters: UpdateCurrentUser1Request): Promise<UserEntity> {
-        const response = await this.updateCurrentUser1Raw(requestParameters);
+    async updateCurrentUser1(requestParameters: UpdateCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.updateCurrentUser1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

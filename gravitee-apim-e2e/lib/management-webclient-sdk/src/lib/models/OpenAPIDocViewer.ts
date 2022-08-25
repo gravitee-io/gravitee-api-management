@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { OpenAPIDocType } from './OpenAPIDocType';
 import {
-    OpenAPIDocType,
     OpenAPIDocTypeFromJSON,
     OpenAPIDocTypeFromJSONTyped,
     OpenAPIDocTypeToJSON,
-} from './';
+} from './OpenAPIDocType';
 
 /**
  * 
@@ -31,6 +31,15 @@ export interface OpenAPIDocViewer {
      * @memberof OpenAPIDocViewer
      */
     openAPIDocType?: OpenAPIDocType;
+}
+
+/**
+ * Check if a given object implements the OpenAPIDocViewer interface.
+ */
+export function instanceOfOpenAPIDocViewer(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function OpenAPIDocViewerFromJSON(json: any): OpenAPIDocViewer {
@@ -59,5 +68,4 @@ export function OpenAPIDocViewerToJSON(value?: OpenAPIDocViewer | null): any {
         'openAPIDocType': OpenAPIDocTypeToJSON(value.openAPIDocType),
     };
 }
-
 

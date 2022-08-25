@@ -38,6 +38,15 @@ export interface UserDetailRole {
     scope?: string;
 }
 
+/**
+ * Check if a given object implements the UserDetailRole interface.
+ */
+export function instanceOfUserDetailRole(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function UserDetailRoleFromJSON(json: any): UserDetailRole {
     return UserDetailRoleFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function UserDetailRoleToJSON(value?: UserDetailRole | null): any {
         'scope': value.scope,
     };
 }
-
 

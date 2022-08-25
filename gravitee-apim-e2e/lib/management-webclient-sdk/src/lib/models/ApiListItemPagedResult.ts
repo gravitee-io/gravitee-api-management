@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApiListItem } from './ApiListItem';
 import {
-    ApiListItem,
     ApiListItemFromJSON,
     ApiListItemFromJSONTyped,
     ApiListItemToJSON,
-    Page,
+} from './ApiListItem';
+import type { Page } from './Page';
+import {
     PageFromJSON,
     PageFromJSONTyped,
     PageToJSON,
-} from './';
+} from './Page';
 
 /**
  * 
@@ -47,6 +49,15 @@ export interface ApiListItemPagedResult {
      * @memberof ApiListItemPagedResult
      */
     page?: Page;
+}
+
+/**
+ * Check if a given object implements the ApiListItemPagedResult interface.
+ */
+export function instanceOfApiListItemPagedResult(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function ApiListItemPagedResultFromJSON(json: any): ApiListItemPagedResult {
@@ -79,5 +90,4 @@ export function ApiListItemPagedResultToJSON(value?: ApiListItemPagedResult | nu
         'page': PageToJSON(value.page),
     };
 }
-
 

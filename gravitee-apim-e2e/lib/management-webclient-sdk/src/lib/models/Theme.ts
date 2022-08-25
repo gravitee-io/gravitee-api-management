@@ -44,6 +44,15 @@ export interface Theme {
     name?: string;
 }
 
+/**
+ * Check if a given object implements the Theme interface.
+ */
+export function instanceOfTheme(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ThemeFromJSON(json: any): Theme {
     return ThemeFromJSONTyped(json, false);
 }
@@ -76,5 +85,4 @@ export function ThemeToJSON(value?: Theme | null): any {
         'name': value.name,
     };
 }
-
 

@@ -38,6 +38,15 @@ export interface ResponseTemplate {
     status?: number;
 }
 
+/**
+ * Check if a given object implements the ResponseTemplate interface.
+ */
+export function instanceOfResponseTemplate(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ResponseTemplateFromJSON(json: any): ResponseTemplate {
     return ResponseTemplateFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function ResponseTemplateToJSON(value?: ResponseTemplate | null): any {
         'status': value.status,
     };
 }
-
 

@@ -44,6 +44,17 @@ export interface Property {
     value: string;
 }
 
+/**
+ * Check if a given object implements the Property interface.
+ */
+export function instanceOfProperty(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "key" in value;
+    isInstance = isInstance && "value" in value;
+
+    return isInstance;
+}
+
 export function PropertyFromJSON(json: any): Property {
     return PropertyFromJSONTyped(json, false);
 }
@@ -76,5 +87,4 @@ export function PropertyToJSON(value?: Property | null): any {
         'value': value.value,
     };
 }
-
 

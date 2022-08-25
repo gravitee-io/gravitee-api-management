@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Page } from './Page';
 import {
-    Page,
     PageFromJSON,
     PageFromJSONTyped,
     PageToJSON,
-    PortalNotificationEntity,
+} from './Page';
+import type { PortalNotificationEntity } from './PortalNotificationEntity';
+import {
     PortalNotificationEntityFromJSON,
     PortalNotificationEntityFromJSONTyped,
     PortalNotificationEntityToJSON,
-} from './';
+} from './PortalNotificationEntity';
 
 /**
  * 
@@ -47,6 +49,15 @@ export interface PortalNotificationPageResult {
      * @memberof PortalNotificationPageResult
      */
     page?: Page;
+}
+
+/**
+ * Check if a given object implements the PortalNotificationPageResult interface.
+ */
+export function instanceOfPortalNotificationPageResult(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PortalNotificationPageResultFromJSON(json: any): PortalNotificationPageResult {
@@ -79,5 +90,4 @@ export function PortalNotificationPageResultToJSON(value?: PortalNotificationPag
         'page': PageToJSON(value.page),
     };
 }
-
 

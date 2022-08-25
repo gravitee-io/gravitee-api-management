@@ -12,24 +12,30 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Cors } from './Cors';
 import {
-    Cors,
     CorsFromJSON,
     CorsFromJSONTyped,
     CorsToJSON,
-    EntrypointV4,
+} from './Cors';
+import type { EntrypointV4 } from './EntrypointV4';
+import {
     EntrypointV4FromJSON,
     EntrypointV4FromJSONTyped,
     EntrypointV4ToJSON,
-    Logging,
+} from './EntrypointV4';
+import type { Logging } from './Logging';
+import {
     LoggingFromJSON,
     LoggingFromJSONTyped,
     LoggingToJSON,
-    PathV4,
+} from './Logging';
+import type { PathV4 } from './PathV4';
+import {
     PathV4FromJSON,
     PathV4FromJSONTyped,
     PathV4ToJSON,
-} from './';
+} from './PathV4';
 
 /**
  * 
@@ -37,6 +43,12 @@ import {
  * @interface ListenerHttpV4AllOf
  */
 export interface ListenerHttpV4AllOf {
+    /**
+     * 
+     * @type {string}
+     * @memberof ListenerHttpV4AllOf
+     */
+    type?: string;
     /**
      * 
      * @type {Array<PathV4>}
@@ -69,6 +81,15 @@ export interface ListenerHttpV4AllOf {
     logging?: Logging;
 }
 
+/**
+ * Check if a given object implements the ListenerHttpV4AllOf interface.
+ */
+export function instanceOfListenerHttpV4AllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ListenerHttpV4AllOfFromJSON(json: any): ListenerHttpV4AllOf {
     return ListenerHttpV4AllOfFromJSONTyped(json, false);
 }
@@ -79,6 +100,7 @@ export function ListenerHttpV4AllOfFromJSONTyped(json: any, ignoreDiscriminator:
     }
     return {
         
+        'type': !exists(json, 'type') ? undefined : json['type'],
         'paths': !exists(json, 'paths') ? undefined : ((json['paths'] as Array<any>).map(PathV4FromJSON)),
         'pathMappings': !exists(json, 'pathMappings') ? undefined : json['pathMappings'],
         'entrypoints': !exists(json, 'entrypoints') ? undefined : ((json['entrypoints'] as Array<any>).map(EntrypointV4FromJSON)),
@@ -96,6 +118,7 @@ export function ListenerHttpV4AllOfToJSON(value?: ListenerHttpV4AllOf | null): a
     }
     return {
         
+        'type': value.type,
         'paths': value.paths === undefined ? undefined : ((value.paths as Array<any>).map(PathV4ToJSON)),
         'pathMappings': value.pathMappings,
         'entrypoints': value.entrypoints === undefined ? undefined : ((value.entrypoints as Array<any>).map(EntrypointV4ToJSON)),
@@ -103,5 +126,4 @@ export function ListenerHttpV4AllOfToJSON(value?: ListenerHttpV4AllOf | null): a
         'logging': LoggingToJSON(value.logging),
     };
 }
-
 

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Enabled } from './Enabled';
 import {
-    Enabled,
     EnabledFromJSON,
     EnabledFromJSONTyped,
     EnabledToJSON,
-} from './';
+} from './Enabled';
 
 /**
  * 
@@ -57,6 +57,15 @@ export interface PortalApis {
     tilesMode?: Enabled;
 }
 
+/**
+ * Check if a given object implements the PortalApis interface.
+ */
+export function instanceOfPortalApis(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PortalApisFromJSON(json: any): PortalApis {
     return PortalApisFromJSONTyped(json, false);
 }
@@ -91,5 +100,4 @@ export function PortalApisToJSON(value?: PortalApis | null): any {
         'tilesMode': EnabledToJSON(value.tilesMode),
     };
 }
-
 

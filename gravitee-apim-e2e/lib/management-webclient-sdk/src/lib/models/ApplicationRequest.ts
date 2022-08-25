@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Request } from './Request';
 import {
-    Request,
     RequestFromJSON,
     RequestFromJSONTyped,
     RequestToJSON,
-    Response,
+} from './Request';
+import type { Response } from './Response';
+import {
     ResponseFromJSON,
     ResponseFromJSONTyped,
     ResponseToJSON,
-} from './';
+} from './Response';
 
 /**
  * 
@@ -145,6 +147,34 @@ export interface ApplicationRequest {
     user?: string;
 }
 
+
+/**
+ * @export
+ */
+export const ApplicationRequestMethodEnum = {
+    CONNECT: 'CONNECT',
+    DELETE: 'DELETE',
+    GET: 'GET',
+    HEAD: 'HEAD',
+    OPTIONS: 'OPTIONS',
+    PATCH: 'PATCH',
+    POST: 'POST',
+    PUT: 'PUT',
+    TRACE: 'TRACE',
+    OTHER: 'OTHER'
+} as const;
+export type ApplicationRequestMethodEnum = typeof ApplicationRequestMethodEnum[keyof typeof ApplicationRequestMethodEnum];
+
+
+/**
+ * Check if a given object implements the ApplicationRequest interface.
+ */
+export function instanceOfApplicationRequest(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApplicationRequestFromJSON(json: any): ApplicationRequest {
     return ApplicationRequestFromJSONTyped(json, false);
 }
@@ -207,22 +237,4 @@ export function ApplicationRequestToJSON(value?: ApplicationRequest | null): any
         'user': value.user,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ApplicationRequestMethodEnum {
-    CONNECT = 'CONNECT',
-    DELETE = 'DELETE',
-    GET = 'GET',
-    HEAD = 'HEAD',
-    OPTIONS = 'OPTIONS',
-    PATCH = 'PATCH',
-    POST = 'POST',
-    PUT = 'PUT',
-    TRACE = 'TRACE',
-    OTHER = 'OTHER'
-}
-
 

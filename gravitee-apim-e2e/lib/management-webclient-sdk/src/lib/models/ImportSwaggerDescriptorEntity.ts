@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Format } from './Format';
 import {
-    Format,
     FormatFromJSON,
     FormatFromJSONTyped,
     FormatToJSON,
-    Type,
+} from './Format';
+import type { Type } from './Type';
+import {
     TypeFromJSON,
     TypeFromJSONTyped,
     TypeToJSON,
-} from './';
+} from './Type';
 
 /**
  * 
@@ -73,6 +75,16 @@ export interface ImportSwaggerDescriptorEntity {
     with_policy_paths?: boolean;
 }
 
+/**
+ * Check if a given object implements the ImportSwaggerDescriptorEntity interface.
+ */
+export function instanceOfImportSwaggerDescriptorEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "payload" in value;
+
+    return isInstance;
+}
+
 export function ImportSwaggerDescriptorEntityFromJSON(json: any): ImportSwaggerDescriptorEntity {
     return ImportSwaggerDescriptorEntityFromJSONTyped(json, false);
 }
@@ -111,5 +123,4 @@ export function ImportSwaggerDescriptorEntityToJSON(value?: ImportSwaggerDescrip
         'with_policy_paths': value.with_policy_paths,
     };
 }
-
 

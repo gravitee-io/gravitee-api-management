@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ApplicationRequest,
+  ApplicationRequestItemSearchLogResponse,
+} from '../models';
 import {
-    ApplicationRequest,
     ApplicationRequestFromJSON,
     ApplicationRequestToJSON,
-    ApplicationRequestItemSearchLogResponse,
     ApplicationRequestItemSearchLogResponseFromJSON,
     ApplicationRequestItemSearchLogResponseToJSON,
 } from '../models';
@@ -64,7 +66,7 @@ export class ApplicationLogsApi extends runtime.BaseAPI {
     /**
      * Export application logs as CSV
      */
-    async exportApplicationLogsAsCSVRaw(requestParameters: ExportApplicationLogsAsCSVRequest): Promise<runtime.ApiResponse<string>> {
+    async exportApplicationLogsAsCSVRaw(requestParameters: ExportApplicationLogsAsCSVRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling exportApplicationLogsAsCSV.');
         }
@@ -77,7 +79,7 @@ export class ApplicationLogsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling exportApplicationLogsAsCSV.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -117,7 +119,7 @@ export class ApplicationLogsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -125,15 +127,15 @@ export class ApplicationLogsApi extends runtime.BaseAPI {
     /**
      * Export application logs as CSV
      */
-    async exportApplicationLogsAsCSV(requestParameters: ExportApplicationLogsAsCSVRequest): Promise<string> {
-        const response = await this.exportApplicationLogsAsCSVRaw(requestParameters);
+    async exportApplicationLogsAsCSV(requestParameters: ExportApplicationLogsAsCSVRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.exportApplicationLogsAsCSVRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get a specific log
      */
-    async getApplicationLogRaw(requestParameters: GetApplicationLogRequest): Promise<runtime.ApiResponse<ApplicationRequest>> {
+    async getApplicationLogRaw(requestParameters: GetApplicationLogRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationRequest>> {
         if (requestParameters.log === null || requestParameters.log === undefined) {
             throw new runtime.RequiredError('log','Required parameter requestParameters.log was null or undefined when calling getApplicationLog.');
         }
@@ -150,7 +152,7 @@ export class ApplicationLogsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationLog.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.timestamp !== undefined) {
             queryParameters['timestamp'] = requestParameters.timestamp;
@@ -166,7 +168,7 @@ export class ApplicationLogsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationRequestFromJSON(jsonValue));
     }
@@ -174,15 +176,15 @@ export class ApplicationLogsApi extends runtime.BaseAPI {
     /**
      * Get a specific log
      */
-    async getApplicationLog(requestParameters: GetApplicationLogRequest): Promise<ApplicationRequest> {
-        const response = await this.getApplicationLogRaw(requestParameters);
+    async getApplicationLog(requestParameters: GetApplicationLogRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationRequest> {
+        const response = await this.getApplicationLogRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get application logs
      */
-    async getApplicationLogsRaw(requestParameters: GetApplicationLogsRequest): Promise<runtime.ApiResponse<ApplicationRequestItemSearchLogResponse>> {
+    async getApplicationLogsRaw(requestParameters: GetApplicationLogsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationRequestItemSearchLogResponse>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationLogs.');
         }
@@ -195,7 +197,7 @@ export class ApplicationLogsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationLogs.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -235,7 +237,7 @@ export class ApplicationLogsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationRequestItemSearchLogResponseFromJSON(jsonValue));
     }
@@ -243,8 +245,8 @@ export class ApplicationLogsApi extends runtime.BaseAPI {
     /**
      * Get application logs
      */
-    async getApplicationLogs(requestParameters: GetApplicationLogsRequest): Promise<ApplicationRequestItemSearchLogResponse> {
-        const response = await this.getApplicationLogsRaw(requestParameters);
+    async getApplicationLogs(requestParameters: GetApplicationLogsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationRequestItemSearchLogResponse> {
+        const response = await this.getApplicationLogsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

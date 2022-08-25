@@ -56,6 +56,57 @@ export interface AggregationConditionAllOf {
     duration?: number;
 }
 
+
+/**
+ * @export
+ */
+export const AggregationConditionAllOfFunctionEnum = {
+    COUNT: 'COUNT',
+    AVG: 'AVG',
+    MIN: 'MIN',
+    MAX: 'MAX',
+    P50: 'P50',
+    P90: 'P90',
+    P95: 'P95',
+    P99: 'P99'
+} as const;
+export type AggregationConditionAllOfFunctionEnum = typeof AggregationConditionAllOfFunctionEnum[keyof typeof AggregationConditionAllOfFunctionEnum];
+
+/**
+ * @export
+ */
+export const AggregationConditionAllOfOperatorEnum = {
+    LT: 'LT',
+    LTE: 'LTE',
+    GTE: 'GTE',
+    GT: 'GT'
+} as const;
+export type AggregationConditionAllOfOperatorEnum = typeof AggregationConditionAllOfOperatorEnum[keyof typeof AggregationConditionAllOfOperatorEnum];
+
+/**
+ * @export
+ */
+export const AggregationConditionAllOfTimeUnitEnum = {
+    NANOSECONDS: 'NANOSECONDS',
+    MICROSECONDS: 'MICROSECONDS',
+    MILLISECONDS: 'MILLISECONDS',
+    SECONDS: 'SECONDS',
+    MINUTES: 'MINUTES',
+    HOURS: 'HOURS',
+    DAYS: 'DAYS'
+} as const;
+export type AggregationConditionAllOfTimeUnitEnum = typeof AggregationConditionAllOfTimeUnitEnum[keyof typeof AggregationConditionAllOfTimeUnitEnum];
+
+
+/**
+ * Check if a given object implements the AggregationConditionAllOf interface.
+ */
+export function instanceOfAggregationConditionAllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function AggregationConditionAllOfFromJSON(json: any): AggregationConditionAllOf {
     return AggregationConditionAllOfFromJSONTyped(json, false);
 }
@@ -92,43 +143,4 @@ export function AggregationConditionAllOfToJSON(value?: AggregationConditionAllO
         'duration': value.duration,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum AggregationConditionAllOfFunctionEnum {
-    COUNT = 'COUNT',
-    AVG = 'AVG',
-    MIN = 'MIN',
-    MAX = 'MAX',
-    P50 = 'P50',
-    P90 = 'P90',
-    P95 = 'P95',
-    P99 = 'P99'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum AggregationConditionAllOfOperatorEnum {
-    LT = 'LT',
-    LTE = 'LTE',
-    GTE = 'GTE',
-    GT = 'GT'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum AggregationConditionAllOfTimeUnitEnum {
-    NANOSECONDS = 'NANOSECONDS',
-    MICROSECONDS = 'MICROSECONDS',
-    MILLISECONDS = 'MILLISECONDS',
-    SECONDS = 'SECONDS',
-    MINUTES = 'MINUTES',
-    HOURS = 'HOURS',
-    DAYS = 'DAYS'
-}
-
 

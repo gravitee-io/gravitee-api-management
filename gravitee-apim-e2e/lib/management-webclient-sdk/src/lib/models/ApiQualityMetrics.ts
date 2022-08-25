@@ -74,6 +74,15 @@ export interface ApiQualityMetrics {
     technicalDocumentationWeight?: number;
 }
 
+/**
+ * Check if a given object implements the ApiQualityMetrics interface.
+ */
+export function instanceOfApiQualityMetrics(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiQualityMetricsFromJSON(json: any): ApiQualityMetrics {
     return ApiQualityMetricsFromJSONTyped(json, false);
 }
@@ -116,5 +125,4 @@ export function ApiQualityMetricsToJSON(value?: ApiQualityMetrics | null): any {
         'technicalDocumentationWeight': value.technicalDocumentationWeight,
     };
 }
-
 

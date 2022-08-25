@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApiKeyMode } from './ApiKeyMode';
 import {
-    ApiKeyMode,
     ApiKeyModeFromJSON,
     ApiKeyModeFromJSONTyped,
     ApiKeyModeToJSON,
-    ApplicationSettings,
+} from './ApiKeyMode';
+import type { ApplicationSettings } from './ApplicationSettings';
+import {
     ApplicationSettingsFromJSON,
     ApplicationSettingsFromJSONTyped,
     ApplicationSettingsToJSON,
-    PrimaryOwnerEntity,
+} from './ApplicationSettings';
+import type { PrimaryOwnerEntity } from './PrimaryOwnerEntity';
+import {
     PrimaryOwnerEntityFromJSON,
     PrimaryOwnerEntityFromJSONTyped,
     PrimaryOwnerEntityToJSON,
-} from './';
+} from './PrimaryOwnerEntity';
 
 /**
  * 
@@ -125,6 +129,15 @@ export interface ApplicationEntity {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the ApplicationEntity interface.
+ */
+export function instanceOfApplicationEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApplicationEntityFromJSON(json: any): ApplicationEntity {
     return ApplicationEntityFromJSONTyped(json, false);
 }
@@ -179,5 +192,4 @@ export function ApplicationEntityToJSON(value?: ApplicationEntity | null): any {
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

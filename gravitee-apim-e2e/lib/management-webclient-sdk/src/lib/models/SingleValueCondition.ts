@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Projection } from './Projection';
 import {
-    Projection,
     ProjectionFromJSON,
     ProjectionFromJSONTyped,
     ProjectionToJSON,
-} from './';
+} from './Projection';
 
 /**
  * 
@@ -37,6 +37,33 @@ export interface SingleValueCondition {
      * @memberof SingleValueCondition
      */
     type?: SingleValueConditionTypeEnum;
+}
+
+
+/**
+ * @export
+ */
+export const SingleValueConditionTypeEnum = {
+    STRING: 'STRING',
+    THRESHOLD: 'THRESHOLD',
+    THRESHOLD_RANGE: 'THRESHOLD_RANGE',
+    RATE: 'RATE',
+    FREQUENCY: 'FREQUENCY',
+    AGGREGATION: 'AGGREGATION',
+    COMPARE: 'COMPARE',
+    STRING_COMPARE: 'STRING_COMPARE',
+    MISSING_DATA: 'MISSING_DATA'
+} as const;
+export type SingleValueConditionTypeEnum = typeof SingleValueConditionTypeEnum[keyof typeof SingleValueConditionTypeEnum];
+
+
+/**
+ * Check if a given object implements the SingleValueCondition interface.
+ */
+export function instanceOfSingleValueCondition(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function SingleValueConditionFromJSON(json: any): SingleValueCondition {
@@ -67,21 +94,4 @@ export function SingleValueConditionToJSON(value?: SingleValueCondition | null):
         'type': value.type,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum SingleValueConditionTypeEnum {
-    STRING = 'STRING',
-    THRESHOLD = 'THRESHOLD',
-    THRESHOLDRANGE = 'THRESHOLD_RANGE',
-    RATE = 'RATE',
-    FREQUENCY = 'FREQUENCY',
-    AGGREGATION = 'AGGREGATION',
-    COMPARE = 'COMPARE',
-    STRINGCOMPARE = 'STRING_COMPARE',
-    MISSINGDATA = 'MISSING_DATA'
-}
-
 

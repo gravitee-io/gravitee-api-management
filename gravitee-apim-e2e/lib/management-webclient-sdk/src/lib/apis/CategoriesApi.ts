@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  CategoryEntity,
+  NewCategoryEntity,
+  UpdateCategoryEntity,
+} from '../models';
 import {
-    CategoryEntity,
     CategoryEntityFromJSON,
     CategoryEntityToJSON,
-    NewCategoryEntity,
     NewCategoryEntityFromJSON,
     NewCategoryEntityToJSON,
-    UpdateCategoryEntity,
     UpdateCategoryEntityFromJSON,
     UpdateCategoryEntityToJSON,
 } from '../models';
@@ -83,7 +85,7 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[CREATE] permission to use this service
      * Create a category
      */
-    async createCategoryRaw(requestParameters: CreateCategoryRequest): Promise<runtime.ApiResponse<CategoryEntity>> {
+    async createCategoryRaw(requestParameters: CreateCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CategoryEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createCategory.');
         }
@@ -96,7 +98,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newCategoryEntity','Required parameter requestParameters.newCategoryEntity was null or undefined when calling createCategory.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -111,7 +113,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewCategoryEntityToJSON(requestParameters.newCategoryEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CategoryEntityFromJSON(jsonValue));
     }
@@ -120,8 +122,8 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[CREATE] permission to use this service
      * Create a category
      */
-    async createCategory(requestParameters: CreateCategoryRequest): Promise<CategoryEntity> {
-        const response = await this.createCategoryRaw(requestParameters);
+    async createCategory(requestParameters: CreateCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CategoryEntity> {
+        const response = await this.createCategoryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -129,7 +131,7 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[DELETE] permission to use this service
      * Delete the category
      */
-    async deleteCategoryRaw(requestParameters: DeleteCategoryRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteCategoryRaw(requestParameters: DeleteCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.categoryId === null || requestParameters.categoryId === undefined) {
             throw new runtime.RequiredError('categoryId','Required parameter requestParameters.categoryId was null or undefined when calling deleteCategory.');
         }
@@ -142,7 +144,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteCategory.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -154,7 +156,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -163,14 +165,14 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[DELETE] permission to use this service
      * Delete the category
      */
-    async deleteCategory(requestParameters: DeleteCategoryRequest): Promise<void> {
-        await this.deleteCategoryRaw(requestParameters);
+    async deleteCategory(requestParameters: DeleteCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteCategoryRaw(requestParameters, initOverrides);
     }
 
     /**
      * Retrieve list of categories
      */
-    async getCategoriesRaw(requestParameters: GetCategoriesRequest): Promise<runtime.ApiResponse<Array<CategoryEntity>>> {
+    async getCategoriesRaw(requestParameters: GetCategoriesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CategoryEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getCategories.');
         }
@@ -179,7 +181,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCategories.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.include) {
             queryParameters['include'] = requestParameters.include;
@@ -195,7 +197,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CategoryEntityFromJSON));
     }
@@ -203,8 +205,8 @@ export class CategoriesApi extends runtime.BaseAPI {
     /**
      * Retrieve list of categories
      */
-    async getCategories(requestParameters: GetCategoriesRequest): Promise<Array<CategoryEntity>> {
-        const response = await this.getCategoriesRaw(requestParameters);
+    async getCategories(requestParameters: GetCategoriesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CategoryEntity>> {
+        const response = await this.getCategoriesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -212,7 +214,7 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[READ] permission to use this service
      * Get the category
      */
-    async getCategoryRaw(requestParameters: GetCategoryRequest): Promise<runtime.ApiResponse<CategoryEntity>> {
+    async getCategoryRaw(requestParameters: GetCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CategoryEntity>> {
         if (requestParameters.categoryId === null || requestParameters.categoryId === undefined) {
             throw new runtime.RequiredError('categoryId','Required parameter requestParameters.categoryId was null or undefined when calling getCategory.');
         }
@@ -225,7 +227,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCategory.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -237,7 +239,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CategoryEntityFromJSON(jsonValue));
     }
@@ -246,8 +248,8 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[READ] permission to use this service
      * Get the category
      */
-    async getCategory(requestParameters: GetCategoryRequest): Promise<CategoryEntity> {
-        const response = await this.getCategoryRaw(requestParameters);
+    async getCategory(requestParameters: GetCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CategoryEntity> {
+        const response = await this.getCategoryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -255,7 +257,7 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get the Category\'s background
      */
-    async getCategoryBackgroundRaw(requestParameters: GetCategoryBackgroundRequest): Promise<runtime.ApiResponse<Blob>> {
+    async getCategoryBackgroundRaw(requestParameters: GetCategoryBackgroundRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters.categoryId === null || requestParameters.categoryId === undefined) {
             throw new runtime.RequiredError('categoryId','Required parameter requestParameters.categoryId was null or undefined when calling getCategoryBackground.');
         }
@@ -268,7 +270,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCategoryBackground.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -280,7 +282,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.BlobApiResponse(response);
     }
@@ -289,8 +291,8 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get the Category\'s background
      */
-    async getCategoryBackground(requestParameters: GetCategoryBackgroundRequest): Promise<Blob> {
-        const response = await this.getCategoryBackgroundRaw(requestParameters);
+    async getCategoryBackground(requestParameters: GetCategoryBackgroundRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getCategoryBackgroundRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -298,7 +300,7 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[READ] permission to use this service
      * Get the category\'s picture
      */
-    async getCategoryPictureRaw(requestParameters: GetCategoryPictureRequest): Promise<runtime.ApiResponse<Blob>> {
+    async getCategoryPictureRaw(requestParameters: GetCategoryPictureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters.categoryId === null || requestParameters.categoryId === undefined) {
             throw new runtime.RequiredError('categoryId','Required parameter requestParameters.categoryId was null or undefined when calling getCategoryPicture.');
         }
@@ -311,7 +313,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCategoryPicture.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -323,7 +325,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.BlobApiResponse(response);
     }
@@ -332,8 +334,8 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[READ] permission to use this service
      * Get the category\'s picture
      */
-    async getCategoryPicture(requestParameters: GetCategoryPictureRequest): Promise<Blob> {
-        const response = await this.getCategoryPictureRaw(requestParameters);
+    async getCategoryPicture(requestParameters: GetCategoryPictureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getCategoryPictureRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -341,7 +343,7 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[UPDATE] permission to use this service
      * Update an existing category
      */
-    async updateCategoriesRaw(requestParameters: UpdateCategoriesRequest): Promise<runtime.ApiResponse<Array<CategoryEntity>>> {
+    async updateCategoriesRaw(requestParameters: UpdateCategoriesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CategoryEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateCategories.');
         }
@@ -354,7 +356,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateCategoryEntity','Required parameter requestParameters.updateCategoryEntity was null or undefined when calling updateCategories.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -369,7 +371,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.updateCategoryEntity.map(UpdateCategoryEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CategoryEntityFromJSON));
     }
@@ -378,8 +380,8 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[UPDATE] permission to use this service
      * Update an existing category
      */
-    async updateCategories(requestParameters: UpdateCategoriesRequest): Promise<Array<CategoryEntity>> {
-        const response = await this.updateCategoriesRaw(requestParameters);
+    async updateCategories(requestParameters: UpdateCategoriesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CategoryEntity>> {
+        const response = await this.updateCategoriesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -387,7 +389,7 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[UPDATE] permission to use this service
      * Update the category
      */
-    async updateCategoryRaw(requestParameters: UpdateCategoryRequest): Promise<runtime.ApiResponse<CategoryEntity>> {
+    async updateCategoryRaw(requestParameters: UpdateCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CategoryEntity>> {
         if (requestParameters.categoryId === null || requestParameters.categoryId === undefined) {
             throw new runtime.RequiredError('categoryId','Required parameter requestParameters.categoryId was null or undefined when calling updateCategory.');
         }
@@ -404,7 +406,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateCategoryEntity','Required parameter requestParameters.updateCategoryEntity was null or undefined when calling updateCategory.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -419,7 +421,7 @@ export class CategoriesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateCategoryEntityToJSON(requestParameters.updateCategoryEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CategoryEntityFromJSON(jsonValue));
     }
@@ -428,8 +430,8 @@ export class CategoriesApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[UPDATE] permission to use this service
      * Update the category
      */
-    async updateCategory(requestParameters: UpdateCategoryRequest): Promise<CategoryEntity> {
-        const response = await this.updateCategoryRaw(requestParameters);
+    async updateCategory(requestParameters: UpdateCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CategoryEntity> {
+        const response = await this.updateCategoryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

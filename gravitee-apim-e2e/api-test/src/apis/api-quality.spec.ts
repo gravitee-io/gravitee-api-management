@@ -218,7 +218,7 @@ describe('API - Quality', () => {
       let foundApi = find(foundApis, (a) => a.id === apiEntity.id);
 
       expect(foundApi).toBeTruthy();
-      expect(foundApi.workflow_state).toBe(WorkflowState.INREVIEW);
+      expect(foundApi.workflow_state).toBe(WorkflowState.IN_REVIEW);
     });
 
     test('should get API with IN_REVIEW status', async () => {
@@ -227,7 +227,7 @@ describe('API - Quality', () => {
       expect(foundApi).toBeTruthy();
       expect(foundApi.state).toBe(ApiEntityStateEnum.STOPPED);
       expect(foundApi.visibility).toBe('PRIVATE');
-      expect(foundApi.workflow_state).toBe(WorkflowState.INREVIEW);
+      expect(foundApi.workflow_state).toBe(WorkflowState.IN_REVIEW);
       expect(foundApi.lifecycle_state).toBe(ApiLifecycleState.CREATED);
     });
 
@@ -371,7 +371,7 @@ describe('API - Quality', () => {
       let foundApi = find(foundApis, (a) => a.id === apiEntity.id);
 
       expect(foundApi).toBeTruthy();
-      expect(foundApi.workflow_state).toBe(WorkflowState.INREVIEW);
+      expect(foundApi.workflow_state).toBe(WorkflowState.IN_REVIEW);
     });
 
     test('should get API with IN_REVIEW status', async () => {
@@ -380,7 +380,7 @@ describe('API - Quality', () => {
       expect(foundApi).toBeTruthy();
       expect(foundApi.state).toBe(ApiEntityStateEnum.STOPPED);
       expect(foundApi.visibility).toBe('PRIVATE');
-      expect(foundApi.workflow_state).toBe(WorkflowState.INREVIEW);
+      expect(foundApi.workflow_state).toBe(WorkflowState.IN_REVIEW);
       expect(foundApi.lifecycle_state).toBe(ApiLifecycleState.CREATED);
     });
 
@@ -421,7 +421,7 @@ describe('API - Quality', () => {
       let foundApi = find(foundApis, (a) => a.id === apiEntity.id);
 
       expect(foundApi).toBeTruthy();
-      expect(foundApi.workflow_state).toBe(WorkflowState.REVIEWOK);
+      expect(foundApi.workflow_state).toBe(WorkflowState.REVIEW_OK);
     });
 
     test('should get API with REVIEW_OK status', async () => {
@@ -430,7 +430,7 @@ describe('API - Quality', () => {
       expect(foundApi).toBeTruthy();
       expect(foundApi.state).toBe(ApiEntityStateEnum.STOPPED);
       expect(foundApi.visibility).toBe('PRIVATE');
-      expect(foundApi.workflow_state).toBe(WorkflowState.REVIEWOK);
+      expect(foundApi.workflow_state).toBe(WorkflowState.REVIEW_OK);
       expect(foundApi.lifecycle_state).toBe(ApiLifecycleState.CREATED);
     });
 

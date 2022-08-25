@@ -58,7 +58,7 @@ describe('Gateway - Simple proxy', () => {
                   },
                 ],
                 load_balancing: {
-                  type: LoadBalancerTypeEnum.ROUNDROBIN,
+                  type: LoadBalancerTypeEnum.ROUND_ROBIN,
                 },
                 http: {
                   connectTimeout: 5000,

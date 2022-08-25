@@ -32,6 +32,15 @@ export interface ConsoleReCaptcha {
     siteKey?: string;
 }
 
+/**
+ * Check if a given object implements the ConsoleReCaptcha interface.
+ */
+export function instanceOfConsoleReCaptcha(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ConsoleReCaptchaFromJSON(json: any): ConsoleReCaptcha {
     return ConsoleReCaptchaFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function ConsoleReCaptchaToJSON(value?: ConsoleReCaptcha | null): any {
         'siteKey': value.siteKey,
     };
 }
-
 

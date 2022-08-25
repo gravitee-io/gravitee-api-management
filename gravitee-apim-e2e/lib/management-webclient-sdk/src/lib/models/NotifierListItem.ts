@@ -50,6 +50,15 @@ export interface NotifierListItem {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the NotifierListItem interface.
+ */
+export function instanceOfNotifierListItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function NotifierListItemFromJSON(json: any): NotifierListItem {
     return NotifierListItemFromJSONTyped(json, false);
 }
@@ -84,5 +93,4 @@ export function NotifierListItemToJSON(value?: NotifierListItem | null): any {
         'version': value.version,
     };
 }
-
 

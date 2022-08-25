@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApplicationListItem } from './ApplicationListItem';
 import {
-    ApplicationListItem,
     ApplicationListItemFromJSON,
     ApplicationListItemFromJSONTyped,
     ApplicationListItemToJSON,
-    Page,
+} from './ApplicationListItem';
+import type { Page } from './Page';
+import {
     PageFromJSON,
     PageFromJSONTyped,
     PageToJSON,
-} from './';
+} from './Page';
 
 /**
  * 
@@ -47,6 +49,15 @@ export interface ApplicationListItemPagedResult {
      * @memberof ApplicationListItemPagedResult
      */
     page?: Page;
+}
+
+/**
+ * Check if a given object implements the ApplicationListItemPagedResult interface.
+ */
+export function instanceOfApplicationListItemPagedResult(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function ApplicationListItemPagedResultFromJSON(json: any): ApplicationListItemPagedResult {
@@ -79,5 +90,4 @@ export function ApplicationListItemPagedResultToJSON(value?: ApplicationListItem
         'page': PageToJSON(value.page),
     };
 }
-
 

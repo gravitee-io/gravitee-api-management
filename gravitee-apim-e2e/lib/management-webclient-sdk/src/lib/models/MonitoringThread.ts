@@ -32,6 +32,15 @@ export interface MonitoringThread {
     peak_count?: number;
 }
 
+/**
+ * Check if a given object implements the MonitoringThread interface.
+ */
+export function instanceOfMonitoringThread(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MonitoringThreadFromJSON(json: any): MonitoringThread {
     return MonitoringThreadFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function MonitoringThreadToJSON(value?: MonitoringThread | null): any {
         'peak_count': value.peak_count,
     };
 }
-
 

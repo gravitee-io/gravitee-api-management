@@ -13,23 +13,25 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  FormDataBodyPart,
+  ImportPageEntity,
+  NewPageEntity,
+  PageEntity,
+  PageType,
+  UpdatePageEntity,
+} from '../models';
 import {
-    FormDataBodyPart,
     FormDataBodyPartFromJSON,
     FormDataBodyPartToJSON,
-    ImportPageEntity,
     ImportPageEntityFromJSON,
     ImportPageEntityToJSON,
-    NewPageEntity,
     NewPageEntityFromJSON,
     NewPageEntityToJSON,
-    PageEntity,
     PageEntityFromJSON,
     PageEntityToJSON,
-    PageType,
     PageTypeFromJSON,
     PageTypeToJSON,
-    UpdatePageEntity,
     UpdatePageEntityFromJSON,
     UpdatePageEntityToJSON,
 } from '../models';
@@ -154,7 +156,7 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the API_DOCUMENTATION[UPDATE] permission to use this service
      * Attach a media to an API page 
      */
-    async attachApiPageMediaRaw(requestParameters: AttachApiPageMediaRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async attachApiPageMediaRaw(requestParameters: AttachApiPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling attachApiPageMedia.');
         }
@@ -171,7 +173,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling attachApiPageMedia.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -193,8 +195,8 @@ export class APIPagesApi extends runtime.BaseAPI {
         }
 
         if (requestParameters.file !== undefined) {
-            formParams.append('file', requestParameters.file as any);
-        }
+            formParams.append('file', new Blob([JSON.stringify(FormDataBodyPartToJSON(requestParameters.file))], { type: "application/json", }));
+                    }
 
         if (requestParameters.fileName !== undefined) {
             formParams.append('fileName', requestParameters.fileName as any);
@@ -206,7 +208,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: formParams,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -215,8 +217,8 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the API_DOCUMENTATION[UPDATE] permission to use this service
      * Attach a media to an API page 
      */
-    async attachApiPageMedia(requestParameters: AttachApiPageMediaRequest): Promise<PageEntity> {
-        const response = await this.attachApiPageMediaRaw(requestParameters);
+    async attachApiPageMedia(requestParameters: AttachApiPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.attachApiPageMediaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -224,7 +226,7 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the MANAGE_PAGES permission to use this service
      * Create a page
      */
-    async createApiPageRaw(requestParameters: CreateApiPageRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async createApiPageRaw(requestParameters: CreateApiPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling createApiPage.');
         }
@@ -241,7 +243,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newPageEntity','Required parameter requestParameters.newPageEntity was null or undefined when calling createApiPage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -256,7 +258,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewPageEntityToJSON(requestParameters.newPageEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -265,8 +267,8 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the MANAGE_PAGES permission to use this service
      * Create a page
      */
-    async createApiPage(requestParameters: CreateApiPageRequest): Promise<PageEntity> {
-        const response = await this.createApiPageRaw(requestParameters);
+    async createApiPage(requestParameters: CreateApiPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.createApiPageRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -274,7 +276,7 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the MANAGE_PAGES permission to use this service
      * Delete a page
      */
-    async deleteApiPageRaw(requestParameters: DeleteApiPageRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteApiPageRaw(requestParameters: DeleteApiPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling deleteApiPage.');
         }
@@ -291,7 +293,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApiPage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -303,7 +305,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -312,15 +314,15 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the MANAGE_PAGES permission to use this service
      * Delete a page
      */
-    async deleteApiPage(requestParameters: DeleteApiPageRequest): Promise<void> {
-        await this.deleteApiPageRaw(requestParameters);
+    async deleteApiPage(requestParameters: DeleteApiPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteApiPageRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGE_PAGES permission to use this service
      * Refresh all pages by calling their associated fetcher
      */
-    async fetchAllApiPagesRaw(requestParameters: FetchAllApiPagesRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async fetchAllApiPagesRaw(requestParameters: FetchAllApiPagesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling fetchAllApiPages.');
         }
@@ -333,7 +335,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling fetchAllApiPages.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -345,7 +347,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -354,8 +356,8 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the MANAGE_PAGES permission to use this service
      * Refresh all pages by calling their associated fetcher
      */
-    async fetchAllApiPages(requestParameters: FetchAllApiPagesRequest): Promise<PageEntity> {
-        const response = await this.fetchAllApiPagesRaw(requestParameters);
+    async fetchAllApiPages(requestParameters: FetchAllApiPagesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.fetchAllApiPagesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -363,7 +365,7 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the MANAGE_PAGES permission to use this service
      * Refresh page by calling the associated fetcher
      */
-    async fetchApiPageRaw(requestParameters: FetchApiPageRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async fetchApiPageRaw(requestParameters: FetchApiPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling fetchApiPage.');
         }
@@ -380,7 +382,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling fetchApiPage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -392,7 +394,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -401,8 +403,8 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the MANAGE_PAGES permission to use this service
      * Refresh page by calling the associated fetcher
      */
-    async fetchApiPage(requestParameters: FetchApiPageRequest): Promise<PageEntity> {
-        const response = await this.fetchApiPageRaw(requestParameters);
+    async fetchApiPage(requestParameters: FetchApiPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.fetchApiPageRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -410,7 +412,7 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get a page
      */
-    async getApiPageRaw(requestParameters: GetApiPageRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async getApiPageRaw(requestParameters: GetApiPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling getApiPage.');
         }
@@ -427,7 +429,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiPage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.portal !== undefined) {
             queryParameters['portal'] = requestParameters.portal;
@@ -451,7 +453,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -460,8 +462,8 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get a page
      */
-    async getApiPage(requestParameters: GetApiPageRequest): Promise<PageEntity> {
-        const response = await this.getApiPageRaw(requestParameters);
+    async getApiPage(requestParameters: GetApiPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.getApiPageRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -469,7 +471,7 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get the page\'s content
      */
-    async getApiPageContentRaw(requestParameters: GetApiPageContentRequest): Promise<runtime.ApiResponse<string>> {
+    async getApiPageContentRaw(requestParameters: GetApiPageContentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling getApiPageContent.');
         }
@@ -486,7 +488,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiPageContent.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -498,7 +500,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -507,8 +509,8 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get the page\'s content
      */
-    async getApiPageContent(requestParameters: GetApiPageContentRequest): Promise<string> {
-        const response = await this.getApiPageContentRaw(requestParameters);
+    async getApiPageContent(requestParameters: GetApiPageContentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getApiPageContentRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -516,7 +518,7 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the API_DOCUMENTATION[READ] permission to use this service
      * Retrieve all media for an API page
      */
-    async getApiPageMediaRaw(requestParameters: GetApiPageMediaRequest): Promise<runtime.ApiResponse<void>> {
+    async getApiPageMediaRaw(requestParameters: GetApiPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling getApiPageMedia.');
         }
@@ -533,7 +535,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiPageMedia.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -545,7 +547,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -554,15 +556,15 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the API_DOCUMENTATION[READ] permission to use this service
      * Retrieve all media for an API page
      */
-    async getApiPageMedia(requestParameters: GetApiPageMediaRequest): Promise<void> {
-        await this.getApiPageMediaRaw(requestParameters);
+    async getApiPageMedia(requestParameters: GetApiPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getApiPageMediaRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the READ permission to use this service
      * List pages
      */
-    async getApiPagesRaw(requestParameters: GetApiPagesRequest): Promise<runtime.ApiResponse<Array<PageEntity>>> {
+    async getApiPagesRaw(requestParameters: GetApiPagesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<PageEntity>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiPages.');
         }
@@ -575,7 +577,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiPages.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.homepage !== undefined) {
             queryParameters['homepage'] = requestParameters.homepage;
@@ -615,7 +617,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PageEntityFromJSON));
     }
@@ -624,8 +626,8 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * List pages
      */
-    async getApiPages(requestParameters: GetApiPagesRequest): Promise<Array<PageEntity>> {
-        const response = await this.getApiPagesRaw(requestParameters);
+    async getApiPages(requestParameters: GetApiPagesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<PageEntity>> {
+        const response = await this.getApiPagesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -633,7 +635,7 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must be ADMIN to use this service
      * Import pages
      */
-    async importApiPageFilesRaw(requestParameters: ImportApiPageFilesRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async importApiPageFilesRaw(requestParameters: ImportApiPageFilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling importApiPageFiles.');
         }
@@ -650,7 +652,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('importPageEntity','Required parameter requestParameters.importPageEntity was null or undefined when calling importApiPageFiles.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -665,7 +667,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: ImportPageEntityToJSON(requestParameters.importPageEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -674,8 +676,8 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must be ADMIN to use this service
      * Import pages
      */
-    async importApiPageFiles(requestParameters: ImportApiPageFilesRequest): Promise<PageEntity> {
-        const response = await this.importApiPageFilesRaw(requestParameters);
+    async importApiPageFiles(requestParameters: ImportApiPageFilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.importApiPageFilesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -683,7 +685,7 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the MANAGE_PAGES permission to use this service
      * Update a page
      */
-    async partialUpdateApiPageRaw(requestParameters: PartialUpdateApiPageRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async partialUpdateApiPageRaw(requestParameters: PartialUpdateApiPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling partialUpdateApiPage.');
         }
@@ -700,7 +702,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling partialUpdateApiPage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -715,7 +717,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdatePageEntityToJSON(requestParameters.updatePageEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -724,8 +726,8 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the MANAGE_PAGES permission to use this service
      * Update a page
      */
-    async partialUpdateApiPage(requestParameters: PartialUpdateApiPageRequest): Promise<PageEntity> {
-        const response = await this.partialUpdateApiPageRaw(requestParameters);
+    async partialUpdateApiPage(requestParameters: PartialUpdateApiPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.partialUpdateApiPageRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -733,7 +735,7 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the MANAGE_PAGES permission to use this service
      * Update a page
      */
-    async updateApiPageRaw(requestParameters: UpdateApiPageRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async updateApiPageRaw(requestParameters: UpdateApiPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling updateApiPage.');
         }
@@ -754,7 +756,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updatePageEntity','Required parameter requestParameters.updatePageEntity was null or undefined when calling updateApiPage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -769,7 +771,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdatePageEntityToJSON(requestParameters.updatePageEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -778,8 +780,8 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the MANAGE_PAGES permission to use this service
      * Update a page
      */
-    async updateApiPage(requestParameters: UpdateApiPageRequest): Promise<PageEntity> {
-        const response = await this.updateApiPageRaw(requestParameters);
+    async updateApiPage(requestParameters: UpdateApiPageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.updateApiPageRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -787,7 +789,7 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must be ADMIN to use this service
      * Import pages
      */
-    async updateApiPageImportFilesRaw(requestParameters: UpdateApiPageImportFilesRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async updateApiPageImportFilesRaw(requestParameters: UpdateApiPageImportFilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling updateApiPageImportFiles.');
         }
@@ -804,7 +806,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('importPageEntity','Required parameter requestParameters.importPageEntity was null or undefined when calling updateApiPageImportFiles.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -819,7 +821,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: ImportPageEntityToJSON(requestParameters.importPageEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -828,8 +830,8 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must be ADMIN to use this service
      * Import pages
      */
-    async updateApiPageImportFiles(requestParameters: UpdateApiPageImportFilesRequest): Promise<PageEntity> {
-        const response = await this.updateApiPageImportFilesRaw(requestParameters);
+    async updateApiPageImportFiles(requestParameters: UpdateApiPageImportFilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.updateApiPageImportFilesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -837,7 +839,7 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the MANAGE_PAGES permission to use this service
      * Put the page\'s content
      */
-    async updatePageContentRaw(requestParameters: UpdatePageContentRequest): Promise<runtime.ApiResponse<void>> {
+    async updatePageContentRaw(requestParameters: UpdatePageContentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling updatePageContent.');
         }
@@ -858,7 +860,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('body','Required parameter requestParameters.body was null or undefined when calling updatePageContent.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -873,7 +875,7 @@ export class APIPagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.body as any,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -882,8 +884,8 @@ export class APIPagesApi extends runtime.BaseAPI {
      * User must have the MANAGE_PAGES permission to use this service
      * Put the page\'s content
      */
-    async updatePageContent(requestParameters: UpdatePageContentRequest): Promise<void> {
-        await this.updatePageContentRaw(requestParameters);
+    async updatePageContent(requestParameters: UpdatePageContentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.updatePageContentRaw(requestParameters, initOverrides);
     }
 
 }

@@ -38,6 +38,15 @@ export interface VirtualHost {
     path?: string;
 }
 
+/**
+ * Check if a given object implements the VirtualHost interface.
+ */
+export function instanceOfVirtualHost(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function VirtualHostFromJSON(json: any): VirtualHost {
     return VirtualHostFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function VirtualHostToJSON(value?: VirtualHost | null): any {
         'path': value.path,
     };
 }
-
 

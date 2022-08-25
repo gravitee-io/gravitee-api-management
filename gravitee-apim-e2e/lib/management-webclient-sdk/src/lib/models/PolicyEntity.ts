@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { PluginEntity } from './PluginEntity';
 import {
-    PluginEntity,
     PluginEntityFromJSON,
     PluginEntityFromJSONTyped,
     PluginEntityToJSON,
-    PolicyDevelopmentEntity,
+} from './PluginEntity';
+import type { PolicyDevelopmentEntity } from './PolicyDevelopmentEntity';
+import {
     PolicyDevelopmentEntityFromJSON,
     PolicyDevelopmentEntityFromJSONTyped,
     PolicyDevelopmentEntityToJSON,
-    PolicyType,
+} from './PolicyDevelopmentEntity';
+import type { PolicyType } from './PolicyType';
+import {
     PolicyTypeFromJSON,
     PolicyTypeFromJSONTyped,
     PolicyTypeToJSON,
-} from './';
+} from './PolicyType';
 
 /**
  * 
@@ -83,6 +87,15 @@ export interface PolicyEntity {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the PolicyEntity interface.
+ */
+export function instanceOfPolicyEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PolicyEntityFromJSON(json: any): PolicyEntity {
     return PolicyEntityFromJSONTyped(json, false);
 }
@@ -123,5 +136,4 @@ export function PolicyEntityToJSON(value?: PolicyEntity | null): any {
         'version': value.version,
     };
 }
-
 

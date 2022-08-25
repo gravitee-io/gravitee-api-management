@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { MediaType } from './MediaType';
 import {
-    MediaType,
     MediaTypeFromJSON,
     MediaTypeFromJSONTyped,
     MediaTypeToJSON,
-} from './';
+} from './MediaType';
 
 /**
  * 
@@ -44,6 +44,15 @@ export interface HttpHeaders {
      * @memberof HttpHeaders
      */
     empty?: boolean;
+}
+
+/**
+ * Check if a given object implements the HttpHeaders interface.
+ */
+export function instanceOfHttpHeaders(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function HttpHeadersFromJSON(json: any): HttpHeaders {
@@ -78,5 +87,4 @@ export function HttpHeadersToJSON(value?: HttpHeaders | null): any {
         'empty': value.empty,
     };
 }
-
 

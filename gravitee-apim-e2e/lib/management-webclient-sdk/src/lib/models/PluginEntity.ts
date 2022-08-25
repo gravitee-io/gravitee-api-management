@@ -68,6 +68,15 @@ export interface PluginEntity {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the PluginEntity interface.
+ */
+export function instanceOfPluginEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PluginEntityFromJSON(json: any): PluginEntity {
     return PluginEntityFromJSONTyped(json, false);
 }
@@ -108,5 +117,4 @@ export function PluginEntityToJSON(value?: PluginEntity | null): any {
         'version': value.version,
     };
 }
-
 

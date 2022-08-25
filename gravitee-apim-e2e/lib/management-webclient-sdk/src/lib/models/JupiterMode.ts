@@ -32,6 +32,15 @@ export interface JupiterMode {
     isDefault?: string;
 }
 
+/**
+ * Check if a given object implements the JupiterMode interface.
+ */
+export function instanceOfJupiterMode(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function JupiterModeFromJSON(json: any): JupiterMode {
     return JupiterModeFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function JupiterModeToJSON(value?: JupiterMode | null): any {
         'isDefault': value.isDefault,
     };
 }
-
 

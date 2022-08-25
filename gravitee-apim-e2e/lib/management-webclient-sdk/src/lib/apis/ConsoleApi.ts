@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ConsoleConfigEntity,
+  ConsoleSettingsEntity,
+} from '../models';
 import {
-    ConsoleConfigEntity,
     ConsoleConfigEntityFromJSON,
     ConsoleConfigEntityToJSON,
-    ConsoleSettingsEntity,
     ConsoleSettingsEntityFromJSON,
     ConsoleSettingsEntityToJSON,
 } from '../models';
@@ -40,12 +42,12 @@ export class ConsoleApi extends runtime.BaseAPI {
      * Every users can use this service
      * Get the console configuration needed for runtime
      */
-    async getConsoleConfigRaw(requestParameters: GetConsoleConfigRequest): Promise<runtime.ApiResponse<ConsoleConfigEntity>> {
+    async getConsoleConfigRaw(requestParameters: GetConsoleConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ConsoleConfigEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getConsoleConfig.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -57,7 +59,7 @@ export class ConsoleApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ConsoleConfigEntityFromJSON(jsonValue));
     }
@@ -66,15 +68,15 @@ export class ConsoleApi extends runtime.BaseAPI {
      * Every users can use this service
      * Get the console configuration needed for runtime
      */
-    async getConsoleConfig(requestParameters: GetConsoleConfigRequest): Promise<ConsoleConfigEntity> {
-        const response = await this.getConsoleConfigRaw(requestParameters);
+    async getConsoleConfig(requestParameters: GetConsoleConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ConsoleConfigEntity> {
+        const response = await this.getConsoleConfigRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Save the console configuration
      */
-    async saveConsoleConfigRaw(requestParameters: SaveConsoleConfigRequest): Promise<runtime.ApiResponse<ConsoleSettingsEntity>> {
+    async saveConsoleConfigRaw(requestParameters: SaveConsoleConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ConsoleSettingsEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling saveConsoleConfig.');
         }
@@ -83,7 +85,7 @@ export class ConsoleApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('consoleSettingsEntity','Required parameter requestParameters.consoleSettingsEntity was null or undefined when calling saveConsoleConfig.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -98,7 +100,7 @@ export class ConsoleApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: ConsoleSettingsEntityToJSON(requestParameters.consoleSettingsEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ConsoleSettingsEntityFromJSON(jsonValue));
     }
@@ -106,8 +108,8 @@ export class ConsoleApi extends runtime.BaseAPI {
     /**
      * Save the console configuration
      */
-    async saveConsoleConfig(requestParameters: SaveConsoleConfigRequest): Promise<ConsoleSettingsEntity> {
-        const response = await this.saveConsoleConfigRaw(requestParameters);
+    async saveConsoleConfig(requestParameters: SaveConsoleConfigRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ConsoleSettingsEntity> {
+        const response = await this.saveConsoleConfigRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

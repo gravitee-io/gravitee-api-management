@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum IdentityProviderActivationReferenceType {
-    ENVIRONMENT = 'ENVIRONMENT',
-    ORGANIZATION = 'ORGANIZATION'
-}
+export const IdentityProviderActivationReferenceType = {
+    ENVIRONMENT: 'ENVIRONMENT',
+    ORGANIZATION: 'ORGANIZATION'
+} as const;
+export type IdentityProviderActivationReferenceType = typeof IdentityProviderActivationReferenceType[keyof typeof IdentityProviderActivationReferenceType];
+
 
 export function IdentityProviderActivationReferenceTypeFromJSON(json: any): IdentityProviderActivationReferenceType {
     return IdentityProviderActivationReferenceTypeFromJSONTyped(json, false);

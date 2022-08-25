@@ -26,6 +26,15 @@ export interface AuditTrail {
     enabled?: boolean;
 }
 
+/**
+ * Check if a given object implements the AuditTrail interface.
+ */
+export function instanceOfAuditTrail(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function AuditTrailFromJSON(json: any): AuditTrail {
     return AuditTrailFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function AuditTrailToJSON(value?: AuditTrail | null): any {
         'enabled': value.enabled,
     };
 }
-
 

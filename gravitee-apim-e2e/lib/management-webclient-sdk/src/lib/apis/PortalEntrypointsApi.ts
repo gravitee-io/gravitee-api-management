@@ -13,8 +13,10 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  EntrypointEntity,
+} from '../models';
 import {
-    EntrypointEntity,
     EntrypointEntityFromJSON,
     EntrypointEntityToJSON,
 } from '../models';
@@ -31,7 +33,7 @@ export class PortalEntrypointsApi extends runtime.BaseAPI {
 
     /**
      */
-    async getPortalEntrypointsRaw(requestParameters: GetPortalEntrypointsRequest): Promise<runtime.ApiResponse<Array<EntrypointEntity>>> {
+    async getPortalEntrypointsRaw(requestParameters: GetPortalEntrypointsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<EntrypointEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPortalEntrypoints.');
         }
@@ -40,7 +42,7 @@ export class PortalEntrypointsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPortalEntrypoints.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -52,15 +54,15 @@ export class PortalEntrypointsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(EntrypointEntityFromJSON));
     }
 
     /**
      */
-    async getPortalEntrypoints(requestParameters: GetPortalEntrypointsRequest): Promise<Array<EntrypointEntity>> {
-        const response = await this.getPortalEntrypointsRaw(requestParameters);
+    async getPortalEntrypoints(requestParameters: GetPortalEntrypointsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<EntrypointEntity>> {
+        const response = await this.getPortalEntrypointsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ApiQualityRuleEntity,
+  NewApiQualityRuleEntity,
+  UpdateApiQualityRuleEntity,
+} from '../models';
 import {
-    ApiQualityRuleEntity,
     ApiQualityRuleEntityFromJSON,
     ApiQualityRuleEntityToJSON,
-    NewApiQualityRuleEntity,
     NewApiQualityRuleEntityFromJSON,
     NewApiQualityRuleEntityToJSON,
-    UpdateApiQualityRuleEntity,
     UpdateApiQualityRuleEntityFromJSON,
     UpdateApiQualityRuleEntityToJSON,
 } from '../models';
@@ -55,7 +57,7 @@ export class APIQualityApi extends runtime.BaseAPI {
      * User must have the API_QUALITY_RULE[CREATE] permission to use this service
      * Create a new quality rules for an API
      */
-    async createApiQualityRuleRaw(requestParameters: CreateApiQualityRuleRequest): Promise<runtime.ApiResponse<ApiQualityRuleEntity>> {
+    async createApiQualityRuleRaw(requestParameters: CreateApiQualityRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiQualityRuleEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling createApiQualityRule.');
         }
@@ -72,7 +74,7 @@ export class APIQualityApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newApiQualityRuleEntity','Required parameter requestParameters.newApiQualityRuleEntity was null or undefined when calling createApiQualityRule.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -87,7 +89,7 @@ export class APIQualityApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewApiQualityRuleEntityToJSON(requestParameters.newApiQualityRuleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiQualityRuleEntityFromJSON(jsonValue));
     }
@@ -96,8 +98,8 @@ export class APIQualityApi extends runtime.BaseAPI {
      * User must have the API_QUALITY_RULE[CREATE] permission to use this service
      * Create a new quality rules for an API
      */
-    async createApiQualityRule(requestParameters: CreateApiQualityRuleRequest): Promise<ApiQualityRuleEntity> {
-        const response = await this.createApiQualityRuleRaw(requestParameters);
+    async createApiQualityRule(requestParameters: CreateApiQualityRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiQualityRuleEntity> {
+        const response = await this.createApiQualityRuleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -105,7 +107,7 @@ export class APIQualityApi extends runtime.BaseAPI {
      * User must have the API_QUALITY_RULE[READ] permission to use this service
      * List quality rules for an API
      */
-    async getApiQualityRulesRaw(requestParameters: GetApiQualityRulesRequest): Promise<runtime.ApiResponse<Array<ApiQualityRuleEntity>>> {
+    async getApiQualityRulesRaw(requestParameters: GetApiQualityRulesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApiQualityRuleEntity>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiQualityRules.');
         }
@@ -118,7 +120,7 @@ export class APIQualityApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiQualityRules.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -130,7 +132,7 @@ export class APIQualityApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApiQualityRuleEntityFromJSON));
     }
@@ -139,8 +141,8 @@ export class APIQualityApi extends runtime.BaseAPI {
      * User must have the API_QUALITY_RULE[READ] permission to use this service
      * List quality rules for an API
      */
-    async getApiQualityRules(requestParameters: GetApiQualityRulesRequest): Promise<Array<ApiQualityRuleEntity>> {
-        const response = await this.getApiQualityRulesRaw(requestParameters);
+    async getApiQualityRules(requestParameters: GetApiQualityRulesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApiQualityRuleEntity>> {
+        const response = await this.getApiQualityRulesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -148,7 +150,7 @@ export class APIQualityApi extends runtime.BaseAPI {
      * User must have the API_QUALITY_RULE[UPDATE] permission to use this service
      * Update an existing quality rules for an API
      */
-    async updateApiQualityRuleRaw(requestParameters: UpdateApiQualityRuleRequest): Promise<runtime.ApiResponse<ApiQualityRuleEntity>> {
+    async updateApiQualityRuleRaw(requestParameters: UpdateApiQualityRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiQualityRuleEntity>> {
         if (requestParameters.qualityRule === null || requestParameters.qualityRule === undefined) {
             throw new runtime.RequiredError('qualityRule','Required parameter requestParameters.qualityRule was null or undefined when calling updateApiQualityRule.');
         }
@@ -169,7 +171,7 @@ export class APIQualityApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateApiQualityRuleEntity','Required parameter requestParameters.updateApiQualityRuleEntity was null or undefined when calling updateApiQualityRule.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -184,7 +186,7 @@ export class APIQualityApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateApiQualityRuleEntityToJSON(requestParameters.updateApiQualityRuleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiQualityRuleEntityFromJSON(jsonValue));
     }
@@ -193,8 +195,8 @@ export class APIQualityApi extends runtime.BaseAPI {
      * User must have the API_QUALITY_RULE[UPDATE] permission to use this service
      * Update an existing quality rules for an API
      */
-    async updateApiQualityRule(requestParameters: UpdateApiQualityRuleRequest): Promise<ApiQualityRuleEntity> {
-        const response = await this.updateApiQualityRuleRaw(requestParameters);
+    async updateApiQualityRule(requestParameters: UpdateApiQualityRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiQualityRuleEntity> {
+        const response = await this.updateApiQualityRuleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

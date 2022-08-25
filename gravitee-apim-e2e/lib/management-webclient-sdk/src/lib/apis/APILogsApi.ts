@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ApiRequest,
+  ApiRequestItemSearchLogResponse,
+} from '../models';
 import {
-    ApiRequest,
     ApiRequestFromJSON,
     ApiRequestToJSON,
-    ApiRequestItemSearchLogResponse,
     ApiRequestItemSearchLogResponseFromJSON,
     ApiRequestItemSearchLogResponseToJSON,
 } from '../models';
@@ -64,7 +66,7 @@ export class APILogsApi extends runtime.BaseAPI {
     /**
      * Export API logs as CSV
      */
-    async exportApiLogsAsCSVRaw(requestParameters: ExportApiLogsAsCSVRequest): Promise<runtime.ApiResponse<string>> {
+    async exportApiLogsAsCSVRaw(requestParameters: ExportApiLogsAsCSVRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling exportApiLogsAsCSV.');
         }
@@ -77,7 +79,7 @@ export class APILogsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling exportApiLogsAsCSV.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -117,7 +119,7 @@ export class APILogsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -125,15 +127,15 @@ export class APILogsApi extends runtime.BaseAPI {
     /**
      * Export API logs as CSV
      */
-    async exportApiLogsAsCSV(requestParameters: ExportApiLogsAsCSVRequest): Promise<string> {
-        const response = await this.exportApiLogsAsCSVRaw(requestParameters);
+    async exportApiLogsAsCSV(requestParameters: ExportApiLogsAsCSVRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.exportApiLogsAsCSVRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get a specific log
      */
-    async getApiLogRaw(requestParameters: GetApiLogRequest): Promise<runtime.ApiResponse<ApiRequest>> {
+    async getApiLogRaw(requestParameters: GetApiLogRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiRequest>> {
         if (requestParameters.log === null || requestParameters.log === undefined) {
             throw new runtime.RequiredError('log','Required parameter requestParameters.log was null or undefined when calling getApiLog.');
         }
@@ -150,7 +152,7 @@ export class APILogsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiLog.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.timestamp !== undefined) {
             queryParameters['timestamp'] = requestParameters.timestamp;
@@ -166,7 +168,7 @@ export class APILogsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiRequestFromJSON(jsonValue));
     }
@@ -174,15 +176,15 @@ export class APILogsApi extends runtime.BaseAPI {
     /**
      * Get a specific log
      */
-    async getApiLog(requestParameters: GetApiLogRequest): Promise<ApiRequest> {
-        const response = await this.getApiLogRaw(requestParameters);
+    async getApiLog(requestParameters: GetApiLogRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiRequest> {
+        const response = await this.getApiLogRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get API logs
      */
-    async getApiLogsRaw(requestParameters: GetApiLogsRequest): Promise<runtime.ApiResponse<ApiRequestItemSearchLogResponse>> {
+    async getApiLogsRaw(requestParameters: GetApiLogsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiRequestItemSearchLogResponse>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiLogs.');
         }
@@ -195,7 +197,7 @@ export class APILogsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiLogs.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -235,7 +237,7 @@ export class APILogsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiRequestItemSearchLogResponseFromJSON(jsonValue));
     }
@@ -243,8 +245,8 @@ export class APILogsApi extends runtime.BaseAPI {
     /**
      * Get API logs
      */
-    async getApiLogs(requestParameters: GetApiLogsRequest): Promise<ApiRequestItemSearchLogResponse> {
-        const response = await this.getApiLogsRaw(requestParameters);
+    async getApiLogs(requestParameters: GetApiLogsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiRequestItemSearchLogResponse> {
+        const response = await this.getApiLogsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

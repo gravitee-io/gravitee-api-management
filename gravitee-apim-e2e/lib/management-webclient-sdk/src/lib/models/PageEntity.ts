@@ -12,28 +12,36 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AccessControlEntity } from './AccessControlEntity';
 import {
-    AccessControlEntity,
     AccessControlEntityFromJSON,
     AccessControlEntityFromJSONTyped,
     AccessControlEntityToJSON,
-    PageMediaEntity,
+} from './AccessControlEntity';
+import type { PageMediaEntity } from './PageMediaEntity';
+import {
     PageMediaEntityFromJSON,
     PageMediaEntityFromJSONTyped,
     PageMediaEntityToJSON,
-    PageRevisionId,
+} from './PageMediaEntity';
+import type { PageRevisionId } from './PageRevisionId';
+import {
     PageRevisionIdFromJSON,
     PageRevisionIdFromJSONTyped,
     PageRevisionIdToJSON,
-    PageSourceEntity,
+} from './PageRevisionId';
+import type { PageSourceEntity } from './PageSourceEntity';
+import {
     PageSourceEntityFromJSON,
     PageSourceEntityFromJSONTyped,
     PageSourceEntityToJSON,
-    Visibility,
+} from './PageSourceEntity';
+import type { Visibility } from './Visibility';
+import {
     VisibilityFromJSON,
     VisibilityFromJSONTyped,
     VisibilityToJSON,
-} from './';
+} from './Visibility';
 
 /**
  * 
@@ -193,6 +201,15 @@ export interface PageEntity {
     visibility?: Visibility;
 }
 
+/**
+ * Check if a given object implements the PageEntity interface.
+ */
+export function instanceOfPageEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PageEntityFromJSON(json: any): PageEntity {
     return PageEntityFromJSONTyped(json, false);
 }
@@ -266,5 +283,4 @@ export function PageEntityToJSON(value?: PageEntity | null): any {
         'visibility': VisibilityToJSON(value.visibility),
     };
 }
-
 

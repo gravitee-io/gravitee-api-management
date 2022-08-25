@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  NewTopApiEntity,
+  TopApiEntity,
+  UpdateTopApiEntity,
+} from '../models';
 import {
-    NewTopApiEntity,
     NewTopApiEntityFromJSON,
     NewTopApiEntityToJSON,
-    TopApiEntity,
     TopApiEntityFromJSON,
     TopApiEntityToJSON,
-    UpdateTopApiEntity,
     UpdateTopApiEntityFromJSON,
     UpdateTopApiEntityToJSON,
 } from '../models';
@@ -57,7 +59,7 @@ export class TopAPIsApi extends runtime.BaseAPI {
      * User must have the PORTAL_TOP_APIS[CREATE] permission to use this service
      * Create a top API
      */
-    async createTopApiRaw(requestParameters: CreateTopApiRequest): Promise<runtime.ApiResponse<Array<TopApiEntity>>> {
+    async createTopApiRaw(requestParameters: CreateTopApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TopApiEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createTopApi.');
         }
@@ -70,7 +72,7 @@ export class TopAPIsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTopApiEntity','Required parameter requestParameters.newTopApiEntity was null or undefined when calling createTopApi.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -85,7 +87,7 @@ export class TopAPIsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewTopApiEntityToJSON(requestParameters.newTopApiEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TopApiEntityFromJSON));
     }
@@ -94,8 +96,8 @@ export class TopAPIsApi extends runtime.BaseAPI {
      * User must have the PORTAL_TOP_APIS[CREATE] permission to use this service
      * Create a top API
      */
-    async createTopApi(requestParameters: CreateTopApiRequest): Promise<Array<TopApiEntity>> {
-        const response = await this.createTopApiRaw(requestParameters);
+    async createTopApi(requestParameters: CreateTopApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TopApiEntity>> {
+        const response = await this.createTopApiRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -103,7 +105,7 @@ export class TopAPIsApi extends runtime.BaseAPI {
      * User must have the PORTAL_TOP_APIS[DELETE] permission to use this service
      * Delete an existing top API
      */
-    async deleteTopApiRaw(requestParameters: DeleteTopApiRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteTopApiRaw(requestParameters: DeleteTopApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.topAPI === null || requestParameters.topAPI === undefined) {
             throw new runtime.RequiredError('topAPI','Required parameter requestParameters.topAPI was null or undefined when calling deleteTopApi.');
         }
@@ -116,7 +118,7 @@ export class TopAPIsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteTopApi.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -128,7 +130,7 @@ export class TopAPIsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -137,15 +139,15 @@ export class TopAPIsApi extends runtime.BaseAPI {
      * User must have the PORTAL_TOP_APIS[DELETE] permission to use this service
      * Delete an existing top API
      */
-    async deleteTopApi(requestParameters: DeleteTopApiRequest): Promise<void> {
-        await this.deleteTopApiRaw(requestParameters);
+    async deleteTopApi(requestParameters: DeleteTopApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteTopApiRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the PORTAL_TOP_APIS[READ] permission to use this service
      * List of top APIs
      */
-    async getTopApisRaw(requestParameters: GetTopApisRequest): Promise<runtime.ApiResponse<Array<TopApiEntity>>> {
+    async getTopApisRaw(requestParameters: GetTopApisRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TopApiEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getTopApis.');
         }
@@ -154,7 +156,7 @@ export class TopAPIsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTopApis.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -166,7 +168,7 @@ export class TopAPIsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TopApiEntityFromJSON));
     }
@@ -175,8 +177,8 @@ export class TopAPIsApi extends runtime.BaseAPI {
      * User must have the PORTAL_TOP_APIS[READ] permission to use this service
      * List of top APIs
      */
-    async getTopApis(requestParameters: GetTopApisRequest): Promise<Array<TopApiEntity>> {
-        const response = await this.getTopApisRaw(requestParameters);
+    async getTopApis(requestParameters: GetTopApisRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TopApiEntity>> {
+        const response = await this.getTopApisRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -184,7 +186,7 @@ export class TopAPIsApi extends runtime.BaseAPI {
      * User must have the PORTAL_TOP_APIS[UPDATE] permission to use this service
      * Update a top API
      */
-    async updateTopApiRaw(requestParameters: UpdateTopApiRequest): Promise<runtime.ApiResponse<Array<TopApiEntity>>> {
+    async updateTopApiRaw(requestParameters: UpdateTopApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TopApiEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateTopApi.');
         }
@@ -197,7 +199,7 @@ export class TopAPIsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateTopApiEntity','Required parameter requestParameters.updateTopApiEntity was null or undefined when calling updateTopApi.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -212,7 +214,7 @@ export class TopAPIsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.updateTopApiEntity.map(UpdateTopApiEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TopApiEntityFromJSON));
     }
@@ -221,8 +223,8 @@ export class TopAPIsApi extends runtime.BaseAPI {
      * User must have the PORTAL_TOP_APIS[UPDATE] permission to use this service
      * Update a top API
      */
-    async updateTopApi(requestParameters: UpdateTopApiRequest): Promise<Array<TopApiEntity>> {
-        const response = await this.updateTopApiRaw(requestParameters);
+    async updateTopApi(requestParameters: UpdateTopApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TopApiEntity>> {
+        const response = await this.updateTopApiRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

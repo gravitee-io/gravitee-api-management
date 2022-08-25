@@ -12,52 +12,72 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApiLifecycleState } from './ApiLifecycleState';
 import {
-    ApiLifecycleState,
     ApiLifecycleStateFromJSON,
     ApiLifecycleStateFromJSONTyped,
     ApiLifecycleStateToJSON,
-    ApiMetadataEntity,
+} from './ApiLifecycleState';
+import type { ApiMetadataEntity } from './ApiMetadataEntity';
+import {
     ApiMetadataEntityFromJSON,
     ApiMetadataEntityFromJSONTyped,
     ApiMetadataEntityToJSON,
-    ApiServicesV4,
+} from './ApiMetadataEntity';
+import type { ApiServicesV4 } from './ApiServicesV4';
+import {
     ApiServicesV4FromJSON,
     ApiServicesV4FromJSONTyped,
     ApiServicesV4ToJSON,
-    EndpointGroupV4,
+} from './ApiServicesV4';
+import type { EndpointGroupV4 } from './EndpointGroupV4';
+import {
     EndpointGroupV4FromJSON,
     EndpointGroupV4FromJSONTyped,
     EndpointGroupV4ToJSON,
-    FlowV4,
+} from './EndpointGroupV4';
+import type { FlowV4 } from './FlowV4';
+import {
     FlowV4FromJSON,
     FlowV4FromJSONTyped,
     FlowV4ToJSON,
-    ListenerV4,
+} from './FlowV4';
+import type { ListenerV4 } from './ListenerV4';
+import {
     ListenerV4FromJSON,
     ListenerV4FromJSONTyped,
     ListenerV4ToJSON,
-    PlanEntityV4,
+} from './ListenerV4';
+import type { PlanEntityV4 } from './PlanEntityV4';
+import {
     PlanEntityV4FromJSON,
     PlanEntityV4FromJSONTyped,
     PlanEntityV4ToJSON,
-    PropertyEntityV4,
+} from './PlanEntityV4';
+import type { PropertyEntityV4 } from './PropertyEntityV4';
+import {
     PropertyEntityV4FromJSON,
     PropertyEntityV4FromJSONTyped,
     PropertyEntityV4ToJSON,
-    ResourceV4,
+} from './PropertyEntityV4';
+import type { ResourceV4 } from './ResourceV4';
+import {
     ResourceV4FromJSON,
     ResourceV4FromJSONTyped,
     ResourceV4ToJSON,
-    ResponseTemplateV4,
+} from './ResourceV4';
+import type { ResponseTemplateV4 } from './ResponseTemplateV4';
+import {
     ResponseTemplateV4FromJSON,
     ResponseTemplateV4FromJSONTyped,
     ResponseTemplateV4ToJSON,
-    Visibility,
+} from './ResponseTemplateV4';
+import type { Visibility } from './Visibility';
+import {
     VisibilityFromJSON,
     VisibilityFromJSONTyped,
     VisibilityToJSON,
-} from './';
+} from './Visibility';
 
 /**
  * 
@@ -235,6 +255,53 @@ export interface UpdateApiEntityV4 {
     visibility: Visibility;
 }
 
+
+/**
+ * @export
+ */
+export const UpdateApiEntityV4DefinitionVersionEnum = {
+    _1_0_0: '1.0.0',
+    _2_0_0: '2.0.0',
+    _4_0_0: '4.0.0'
+} as const;
+export type UpdateApiEntityV4DefinitionVersionEnum = typeof UpdateApiEntityV4DefinitionVersionEnum[keyof typeof UpdateApiEntityV4DefinitionVersionEnum];
+
+/**
+ * @export
+ */
+export const UpdateApiEntityV4FlowModeEnum = {
+    DEFAULT: 'DEFAULT',
+    BEST_MATCH: 'BEST_MATCH'
+} as const;
+export type UpdateApiEntityV4FlowModeEnum = typeof UpdateApiEntityV4FlowModeEnum[keyof typeof UpdateApiEntityV4FlowModeEnum];
+
+/**
+ * @export
+ */
+export const UpdateApiEntityV4TypeEnum = {
+    SYNC: 'SYNC',
+    ASYNC: 'ASYNC'
+} as const;
+export type UpdateApiEntityV4TypeEnum = typeof UpdateApiEntityV4TypeEnum[keyof typeof UpdateApiEntityV4TypeEnum];
+
+
+/**
+ * Check if a given object implements the UpdateApiEntityV4 interface.
+ */
+export function instanceOfUpdateApiEntityV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "apiVersion" in value;
+    isInstance = isInstance && "definitionVersion" in value;
+    isInstance = isInstance && "description" in value;
+    isInstance = isInstance && "endpointGroups" in value;
+    isInstance = isInstance && "listeners" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "type" in value;
+    isInstance = isInstance && "visibility" in value;
+
+    return isInstance;
+}
+
 export function UpdateApiEntityV4FromJSON(json: any): UpdateApiEntityV4 {
     return UpdateApiEntityV4FromJSONTyped(json, false);
 }
@@ -315,31 +382,4 @@ export function UpdateApiEntityV4ToJSON(value?: UpdateApiEntityV4 | null): any {
         'visibility': VisibilityToJSON(value.visibility),
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum UpdateApiEntityV4DefinitionVersionEnum {
-    _100 = '1.0.0',
-    _200 = '2.0.0',
-    _400 = '4.0.0'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum UpdateApiEntityV4FlowModeEnum {
-    DEFAULT = 'DEFAULT',
-    BESTMATCH = 'BEST_MATCH'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum UpdateApiEntityV4TypeEnum {
-    SYNC = 'SYNC',
-    ASYNC = 'ASYNC'
-}
-
 
