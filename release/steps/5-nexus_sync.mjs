@@ -40,7 +40,6 @@ if (response.status === 201) {
   console.log(
     chalk.greenBright(
       'Do not forget to:\n' +
-        '- add docker images to Snyk\n' +
         `- merge gravitee-docs PR if exists for ${releasingVersion}\n` +
         docPullRequests +
         'Release is done! Congrats 🏆',
