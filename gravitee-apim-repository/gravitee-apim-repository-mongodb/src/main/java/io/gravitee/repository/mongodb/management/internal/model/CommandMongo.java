@@ -19,7 +19,7 @@ import java.util.Date;
 import java.util.List;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "commands")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}commands")
 public class CommandMongo extends Auditable {
 
     private String id;

@@ -23,7 +23,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "tickets")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}tickets")
 public class TicketMongo {
 
     @Id

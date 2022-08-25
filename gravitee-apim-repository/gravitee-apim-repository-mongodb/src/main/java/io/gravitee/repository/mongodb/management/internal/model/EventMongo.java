@@ -25,7 +25,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "events")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}events")
 public class EventMongo extends Auditable {
 
     @Id

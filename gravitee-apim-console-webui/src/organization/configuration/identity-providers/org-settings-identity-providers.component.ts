@@ -140,7 +140,11 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
           const activatedIdps = this.tableData.filter((idp) => idp.activated === true).map((idp) => ({ identityProvider: idp.id }));
           return this.organizationService.updateActivatedIdentityProviders(activatedIdps);
         }),
-        tap(() => this.snackBarService.success(`Identity Provider ${identityProvider.name} successfully deleted!`)),
+        tap(() =>
+          this.snackBarService.success(
+            `Identity Provider ${identityProvider.name} successfully ${identityProvider.activated ? 'activated' : 'deactivated'}!`,
+          ),
+        ),
       )
       .subscribe(() => this.ngOnInit());
   }

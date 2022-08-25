@@ -16,13 +16,14 @@
 // eslint-disable-next-line
 /* global setInterval:false, clearInterval:false, screen:false */
 import angular from 'angular';
-import { StateDeclaration, TransitionService } from '@uirouter/angularjs';
+import { StateDeclaration, TransitionService, Transition } from '@uirouter/angularjs';
 import { GioPendoService } from '@gravitee/ui-analytics';
 
 import EnvironmentService from '../services/environment.service';
 import PortalConfigService from '../services/portalConfig.service';
 import UserService from '../services/user.service';
 import ConsoleSettingsService from '../services/consoleSettings.service';
+import NotificationService from '../services/notification.service';
 
 function runBlock(
   $rootScope,
@@ -40,6 +41,7 @@ function runBlock(
   EnvironmentService: EnvironmentService,
   PortalConfigService: PortalConfigService,
   ConsoleSettingsService: ConsoleSettingsService,
+  NotificationService: NotificationService,
   ngGioPendoService: GioPendoService,
 ) {
   'ngInject';
@@ -109,10 +111,10 @@ function runBlock(
         );
       },
     },
-    async (trans) => {
-      const params = Object.assign({}, trans.params());
-      const stateService = trans.router.stateService;
-      const toState = trans.to();
+    async (transition: Transition) => {
+      const params = Object.assign({}, transition.params());
+      const stateService = transition.router.stateService;
+      const toState = transition.to();
 
       let shouldReload = true;
       if (!params.environmentId) {
@@ -126,8 +128,15 @@ function runBlock(
           return stateService.target(toState, params, { reload: shouldReload });
         });
       } else {
-        params.environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
-        return stateService.target(toState, params, { reload: shouldReload });
+        const environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
+
+        if (environmentId) {
+          params.environmentId = environmentId;
+          return stateService.target(toState, params, { reload: shouldReload });
+        } else {
+          NotificationService.showError('You are not allowed to access APIM because you do not have any role on any environment');
+          transition.abort();
+        }
       }
     },
   );

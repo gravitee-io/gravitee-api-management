@@ -16,8 +16,12 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -132,6 +136,37 @@ public class FilteringServiceTest {
                     publishedApi4.getId()
                 )
             );
+    }
+
+    @Test
+    public void shouldNotApplyAnyFilterIfEmptyApiList() {
+        Set<String> apis = emptySet();
+        Collection<String> filteredList = filteringService.filterApis(
+            GraviteeContext.getExecutionContext(),
+            apis,
+            FilteringService.FilterType.TRENDINGS,
+            null
+        );
+        assertSame(apis, filteredList);
+
+        verifyNoInteractions(subscriptionService);
+    }
+
+    @Test
+    public void shouldNotApplyAnyFilterIfNoFilter() {
+        Collection<String> filteredList = filteringService.filterApis(GraviteeContext.getExecutionContext(), mockApis, null, null);
+        assertSame(mockApis, filteredList);
+    }
+
+    @Test
+    public void shouldNotApplyAnyFilterIfAllFilter() {
+        Collection<String> filteredList = filteringService.filterApis(
+            GraviteeContext.getExecutionContext(),
+            mockApis,
+            FilteringService.FilterType.ALL,
+            null
+        );
+        assertSame(mockApis, filteredList);
     }
 
     @Test

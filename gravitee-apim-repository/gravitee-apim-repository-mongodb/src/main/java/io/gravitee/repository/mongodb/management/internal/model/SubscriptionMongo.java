@@ -24,7 +24,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "subscriptions")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}subscriptions")
 public class SubscriptionMongo extends Auditable {
 
     /**

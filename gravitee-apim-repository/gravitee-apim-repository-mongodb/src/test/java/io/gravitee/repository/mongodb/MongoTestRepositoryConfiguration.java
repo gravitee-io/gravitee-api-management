@@ -19,12 +19,18 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import java.util.Arrays;
+import java.util.Properties;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
@@ -35,7 +41,7 @@ import org.testcontainers.utility.DockerImageName;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ComponentScan("io.gravitee.repository.mongodb.management")
+@ComponentScan("io.gravitee.repository.mongodb")
 @EnableMongoRepositories
 public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
@@ -47,6 +53,18 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
     @Inject
     private MongoDBContainer mongoDBContainer;
 
+    public MongoTestRepositoryConfiguration(ConfigurableEnvironment environment) {
+        super(environment);
+        environment.getPropertySources().addFirst(new PropertiesPropertySource("graviteeTest", graviteeProperties()));
+    }
+
+    public static Properties graviteeProperties() {
+        final YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
+        final Resource yamlResource = new ClassPathResource("graviteeTest.yml");
+        yaml.setResources(yamlResource);
+        return yaml.getObject();
+    }
+
     @Bean(destroyMethod = "stop")
     public MongoDBContainer mongoDBContainer() {
         MongoDBContainer mongoDb = new MongoDBContainer(DockerImageName.parse("mongo:" + mongoVersion));
@@ -55,11 +73,6 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
         LOG.info("Running tests with MongoDB version: {}", getMongoFullVersion(mongoDb.getContainerInfo().getConfig().getEnv()));
 
         return mongoDb;
-    }
-
-    @Override
-    protected String getDatabaseName() {
-        return "test";
     }
 
     @Override

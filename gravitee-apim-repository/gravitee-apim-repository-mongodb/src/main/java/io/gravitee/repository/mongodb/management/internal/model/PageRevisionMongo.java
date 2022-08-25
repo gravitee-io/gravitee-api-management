@@ -23,7 +23,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "page_revisions")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}page_revisions")
 public class PageRevisionMongo extends Auditable {
 
     @Id

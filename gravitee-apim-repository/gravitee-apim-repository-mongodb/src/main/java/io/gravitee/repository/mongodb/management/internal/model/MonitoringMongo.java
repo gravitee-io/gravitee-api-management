@@ -23,7 +23,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "node_monitoring")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}node_monitoring")
 public class MonitoringMongo {
 
     @Id

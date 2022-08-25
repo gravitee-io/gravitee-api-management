@@ -20,7 +20,7 @@ import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "client_registration_providers")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}client_registration_providers")
 public class ClientRegistrationProviderMongo extends Auditable {
 
     /**
