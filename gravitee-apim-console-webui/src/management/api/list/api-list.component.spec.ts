@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HarnessLoader } from '@angular/cdk/testing';
+import { ComponentFixture, fakeAsync, TestBed } from '@angular/core/testing';
+import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 import { ApiListModule } from './api-list.module';
 import { ApiListComponent } from './api-list.component';
@@ -28,37 +30,67 @@ import { User as DeprecatedUser } from '../../../entities/user';
 
 describe('ApisListComponent', () => {
   const fakeUiRouter = { go: jest.fn() };
-
   let fixture: ComponentFixture<ApiListComponent>;
+  let apiListComponent: ApiListComponent;
+  let loader: HarnessLoader;
 
   beforeEach(async () => {
     const currentUser = new DeprecatedUser();
     currentUser.userPermissions = ['environment-api-c'];
 
     await TestBed.configureTestingModule({
-      imports: [ApiListModule, MatIconTestingModule, GioUiRouterTestingModule],
+      imports: [ApiListModule, MatIconTestingModule, GioUiRouterTestingModule, NoopAnimationsModule],
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     }).compileComponents();
     fixture = TestBed.createComponent(ApiListComponent);
+
+    fixture.detectChanges();
+    apiListComponent = await fixture.componentInstance;
+    loader = TestbedHarnessEnvironment.loader(fixture);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should display an empty table', fakeAsync(async () => {
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#apisTable' }));
+
+    const headerRows = await table.getHeaderRows();
+    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+    const rows = await table.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+
+    expect(headerCells).toEqual([
+      {
+        name: 'Name',
+      },
+    ]);
+    expect(rowCells).toEqual([['There is no apis (yet).']]);
+  }));
+
   describe('onAddApiClick', () => {
-    let loader: HarnessLoader;
-
-    beforeEach(async () => {
-      fixture.detectChanges();
-      loader = TestbedHarnessEnvironment.loader(fixture);
-    });
-
     it('should navigate to new apis page on click to add button', async () => {
       const routerSpy = jest.spyOn(fakeUiRouter, 'go');
 
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="add-api"]' })).then((button) => button.click());
 
       expect(routerSpy).toHaveBeenCalledWith('management.apis.new');
+    });
+  });
+
+  describe('onEditApiClick', () => {
+    it('should navigate to new apis page on click to add button', () => {
+      const routerSpy = jest.spyOn(fakeUiRouter, 'go');
+      const api = { id: 'api-id', name: 'api#1' };
+
+      apiListComponent.onEditActionClicked(api);
+
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.portal.general', { apiId: api.id });
     });
   });
 });
