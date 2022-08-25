@@ -17,4 +17,13 @@
 -->
 <div class="title">
     <h1>Apis</h1>
+    <button
+      (click)="onAddApiClick()"
+      mat-raised-button
+      color="primary"
+      aria-label="add-api"
+      *gioPermission="{ anyOf: ['environment-api-c'] }"
+    >
+      <mat-icon>add</mat-icon> Add Api
+    </button>
 </div>
