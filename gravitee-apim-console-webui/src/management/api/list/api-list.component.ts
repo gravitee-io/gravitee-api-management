@@ -16,7 +16,10 @@
 import { Component, Inject } from '@angular/core';
 import { StateService } from '@uirouter/core';
 
+import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
+
+type ApisTableDS = { id: string; name: string }[];
 
 @Component({
   selector: 'api-list',
@@ -24,7 +27,19 @@ import { UIRouterState } from '../../../ajs-upgraded-providers';
   styles: [require('./api-list.component.scss')],
 })
 export class ApiListComponent {
+  displayedColumns = ['name'];
+
+  apisTableDSUnpaginatedLength = 0;
+  apisTableDS: ApisTableDS = [];
+  filters: GioTableWrapperFilters = {
+    pagination: { index: 1, size: 10 },
+    searchTerm: '',
+  };
   constructor(@Inject(UIRouterState) private readonly $state: StateService) {}
+
+  onEditActionClicked(_api: ApisTableDS[number]) {
+    this.$state.go('management.apis.detail.portal.general', { apiId: _api.id });
+  }
 
   onAddApiClick() {
     this.$state.go('management.apis.new');

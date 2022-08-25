@@ -17,14 +17,16 @@ import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatTableModule } from '@angular/material/table';
 
 import { ApiListComponent } from './api-list.component';
 
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   declarations: [ApiListComponent],
   exports: [ApiListComponent],
-  imports: [CommonModule, MatButtonModule, GioIconsModule, GioPermissionModule],
+  imports: [CommonModule, MatButtonModule, MatTableModule, GioIconsModule, GioTableWrapperModule, GioPermissionModule],
 })
 export class ApiListModule {}
