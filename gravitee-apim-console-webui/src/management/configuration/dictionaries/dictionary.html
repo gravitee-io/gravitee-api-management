@@ -136,18 +136,7 @@
         <br />
 
         <div ng-if="$ctrl.dictionary.provider">
-          <h6>
-            Configuration
-
-            <md-button
-              ng-if="$ctrl.dictionary.provider.type == 'HTTP'"
-              class="md-icon-button"
-              aria-label="Expected HTTP provider output"
-              ng-click="$ctrl.showExpectedProviderOutput()"
-            >
-              <ng-md-icon class="no-top" icon="info" style="fill: #b1bdc5"></ng-md-icon>
-            </md-button>
-          </h6>
+          <h6>Configuration</h6>
 
           <div ng-if="$ctrl.dictionary.provider.type == 'HTTP'" layout="column" layout-sm="column">
             <md-input-container class="md-block" flex-gt-sm>

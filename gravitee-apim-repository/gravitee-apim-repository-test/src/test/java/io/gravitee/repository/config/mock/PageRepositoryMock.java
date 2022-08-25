@@ -16,6 +16,7 @@
 package io.gravitee.repository.config.mock;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -385,5 +386,11 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         // search autoFetch
         when(pageRepository.search(argThat(criteria -> criteria != null && Boolean.TRUE.equals(criteria.getUseAutoFetch()))))
             .thenReturn(Arrays.asList(findApiPage));
+
+        // find homepage to check accessControl list
+        Page homePage = new Page();
+        homePage.setId("home");
+        homePage.setAccessControls(emptySet());
+        when(pageRepository.findById("home")).thenReturn(of(homePage));
     }
 }

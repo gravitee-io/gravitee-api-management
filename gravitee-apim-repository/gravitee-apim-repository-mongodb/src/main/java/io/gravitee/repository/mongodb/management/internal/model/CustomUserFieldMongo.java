@@ -24,7 +24,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "custom_user_fields")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}custom_user_fields")
 public class CustomUserFieldMongo extends Auditable {
 
     @Id

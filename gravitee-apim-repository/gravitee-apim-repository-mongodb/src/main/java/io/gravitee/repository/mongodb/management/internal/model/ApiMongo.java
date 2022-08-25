@@ -30,7 +30,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "apis")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}apis")
 public class ApiMongo extends Auditable {
 
     @Id

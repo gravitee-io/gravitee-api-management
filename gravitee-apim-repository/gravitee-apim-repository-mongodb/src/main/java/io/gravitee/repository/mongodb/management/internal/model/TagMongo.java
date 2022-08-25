@@ -25,7 +25,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "tags")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}tags")
 public class TagMongo {
 
     @Id

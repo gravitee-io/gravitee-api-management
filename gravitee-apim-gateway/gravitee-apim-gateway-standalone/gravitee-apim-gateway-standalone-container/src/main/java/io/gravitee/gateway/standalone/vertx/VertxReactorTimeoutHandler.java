@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.Reactor;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServerRequest;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,6 +46,11 @@ public class VertxReactorTimeoutHandler extends VertxReactorHandler {
         this.handler = handler;
         this.vertx = vertx;
         this.timeout = timeout;
+    }
+
+    @Override
+    public void handle(HttpServerRequest httpServerRequest) {
+        handler.handle(httpServerRequest);
     }
 
     protected void route(final Request request, final Response response) {

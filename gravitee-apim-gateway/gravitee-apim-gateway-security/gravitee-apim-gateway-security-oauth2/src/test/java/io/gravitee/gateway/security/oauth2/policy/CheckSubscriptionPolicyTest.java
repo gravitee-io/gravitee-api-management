@@ -108,37 +108,6 @@ public class CheckSubscriptionPolicyTest {
     }
 
     @Test
-    public void shouldReturnUnauthorized_badClient() throws PolicyException, TechnicalException {
-        CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
-
-        PolicyChain policyChain = mock(PolicyChain.class);
-
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
-        when(executionContext.request()).thenReturn(request);
-
-        SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
-        when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
-
-        Subscription subscription = mock(Subscription.class);
-        when(subscription.getClientId()).thenReturn("my-bad-client-id");
-
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(Collections.singletonList(subscription));
-
-        policy.execute(policyChain, executionContext);
-
-        verify(policyChain, times(1))
-            .failWith(
-                argThat(
-                    result ->
-                        result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
-                        CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())
-                )
-            );
-    }
-
-    @Test
     public void shouldContinue() throws PolicyException, TechnicalException {
         CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
 
@@ -155,7 +124,6 @@ public class CheckSubscriptionPolicyTest {
         when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
 
         Subscription subscription = mock(Subscription.class);
-        when(subscription.getClientId()).thenReturn("my-client-id");
         when(subscription.getPlan()).thenReturn("plan-id");
 
         when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(Collections.singletonList(subscription));
@@ -163,38 +131,6 @@ public class CheckSubscriptionPolicyTest {
         policy.execute(policyChain, executionContext);
 
         verify(policyChain, times(1)).doNext(request, response);
-    }
-
-    @Test
-    public void shouldReturnUnauthorized_badPlan() throws PolicyException, TechnicalException {
-        CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
-
-        PolicyChain policyChain = mock(PolicyChain.class);
-
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(true);
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
-        when(executionContext.request()).thenReturn(request);
-
-        SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
-        when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
-
-        Subscription subscription = mock(Subscription.class);
-        when(subscription.getPlan()).thenReturn("plan2-id");
-
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(Collections.singletonList(subscription));
-
-        policy.execute(policyChain, executionContext);
-
-        verify(policyChain, times(1))
-            .failWith(
-                argThat(
-                    result ->
-                        result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
-                        CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())
-                )
-            );
     }
 
     ArgumentMatcher<PolicyResult> statusCode(int statusCode) {

@@ -29,9 +29,11 @@ import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
+@RunWith(MockitoJUnitRunner.class)
 public class SecurityPolicyResolverTest {
 
     private SecurityPolicyResolver securityPolicyResolver;
@@ -50,7 +52,6 @@ public class SecurityPolicyResolverTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         securityPolicyResolver = new SecurityPolicyResolver(policyManager, handlerSelector);
 
         when(executionContext.request()).thenReturn(request);
@@ -64,7 +65,7 @@ public class SecurityPolicyResolverTest {
 
         Policy policy = mock(Policy.class);
         when(policyManager.create(StreamType.ON_REQUEST, new PolicyMetadata("my-policy", null))).thenReturn(policy);
-        when(handlerSelector.select(request)).thenReturn(securityProvider);
+        when(handlerSelector.select(executionContext)).thenReturn(securityProvider);
 
         List<Policy> policies = securityPolicyResolver.resolve(StreamType.ON_REQUEST, executionContext);
 

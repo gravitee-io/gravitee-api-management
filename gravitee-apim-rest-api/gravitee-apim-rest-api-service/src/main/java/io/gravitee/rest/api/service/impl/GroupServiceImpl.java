@@ -593,7 +593,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         removeFromAPIPlans(groupId, updatedDate, api.getId());
 
                         //remove from API pages
-                        removeGroupFromPages(groupId, updatedDate, api.getId());
+                        PageCriteria apiPageCriteria = new PageCriteria.Builder()
+                            .referenceId(api.getId())
+                            .referenceType(PageReferenceType.API.name())
+                            .build();
+                        removeGroupFromPages(groupId, updatedDate, apiPageCriteria);
 
                         //remove idp group mapping using this group
                         removeIDPGroupMapping(groupId, updatedDate);
@@ -622,7 +626,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             );
 
             //remove from portal pages
-            removeGroupFromPages(groupId, updatedDate, null);
+            PageCriteria environmentPageCriteria = new PageCriteria.Builder()
+                .referenceId(executionContext.getEnvironmentId())
+                .referenceType(PageReferenceType.ENVIRONMENT.name())
+                .build();
+            removeGroupFromPages(groupId, updatedDate, environmentPageCriteria);
 
             //remove group
             groupRepository.delete(groupId);
@@ -694,14 +702,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         }
     }
 
-    private void removeGroupFromPages(String groupId, Date updatedDate, String apiId) {
+    private void removeGroupFromPages(String groupId, Date updatedDate, PageCriteria pageCriteria) {
         try {
-            PageCriteria.Builder criteriaBuilder = new PageCriteria.Builder();
-            if (apiId != null) {
-                criteriaBuilder.referenceId(apiId);
-            }
-            final List<Page> apiPages = this.pageRepository.search(criteriaBuilder.build());
-            for (Page page : apiPages) {
+            final List<Page> pages = this.pageRepository.search(pageCriteria);
+            for (Page page : pages) {
                 if (page.getAccessControls() != null) {
                     Set<AccessControl> accessControlsToRemove = page
                         .getAccessControls()

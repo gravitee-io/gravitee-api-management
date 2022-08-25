@@ -130,6 +130,7 @@ interface EnvSettings {
     };
   };
   portal: {
+    url: string;
     entrypoint: string;
     apikeyHeader: string;
     support: {
