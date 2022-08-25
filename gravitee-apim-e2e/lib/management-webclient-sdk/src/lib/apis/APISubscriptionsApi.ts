@@ -13,29 +13,31 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ApiKeyEntity,
+  ApplicationEntity,
+  ProcessSubscriptionEntity,
+  Subscription,
+  SubscriptionEntityPageResult,
+  SubscriptionStatus,
+  TransferSubscriptionEntity,
+  UpdateSubscriptionEntity,
+} from '../models';
 import {
-    ApiKeyEntity,
     ApiKeyEntityFromJSON,
     ApiKeyEntityToJSON,
-    ApplicationEntity,
     ApplicationEntityFromJSON,
     ApplicationEntityToJSON,
-    ProcessSubscriptionEntity,
     ProcessSubscriptionEntityFromJSON,
     ProcessSubscriptionEntityToJSON,
-    Subscription,
     SubscriptionFromJSON,
     SubscriptionToJSON,
-    SubscriptionEntityPageResult,
     SubscriptionEntityPageResultFromJSON,
     SubscriptionEntityPageResultToJSON,
-    SubscriptionStatus,
     SubscriptionStatusFromJSON,
     SubscriptionStatusToJSON,
-    TransferSubscriptionEntity,
     TransferSubscriptionEntityFromJSON,
     TransferSubscriptionEntityToJSON,
-    UpdateSubscriptionEntity,
     UpdateSubscriptionEntityFromJSON,
     UpdateSubscriptionEntityToJSON,
 } from '../models';
@@ -176,7 +178,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Change the status of a subscription
      */
-    async changeApiSubscriptionStatusRaw(requestParameters: ChangeApiSubscriptionStatusRequest): Promise<runtime.ApiResponse<Subscription>> {
+    async changeApiSubscriptionStatusRaw(requestParameters: ChangeApiSubscriptionStatusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
         if (requestParameters.subscription === null || requestParameters.subscription === undefined) {
             throw new runtime.RequiredError('subscription','Required parameter requestParameters.subscription was null or undefined when calling changeApiSubscriptionStatus.');
         }
@@ -197,7 +199,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling changeApiSubscriptionStatus.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.status !== undefined) {
             queryParameters['status'] = requestParameters.status;
@@ -213,7 +215,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionFromJSON(jsonValue));
     }
@@ -222,8 +224,8 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Change the status of a subscription
      */
-    async changeApiSubscriptionStatus(requestParameters: ChangeApiSubscriptionStatusRequest): Promise<Subscription> {
-        const response = await this.changeApiSubscriptionStatusRaw(requestParameters);
+    async changeApiSubscriptionStatus(requestParameters: ChangeApiSubscriptionStatusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.changeApiSubscriptionStatusRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -231,7 +233,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_SUBSCRIPTIONS permission to use this service
      * Subscribe to a plan
      */
-    async createSubscriptionToApiRaw(requestParameters: CreateSubscriptionToApiRequest): Promise<runtime.ApiResponse<Subscription>> {
+    async createSubscriptionToApiRaw(requestParameters: CreateSubscriptionToApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling createSubscriptionToApi.');
         }
@@ -252,7 +254,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createSubscriptionToApi.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.application !== undefined) {
             queryParameters['application'] = requestParameters.application;
@@ -276,7 +278,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionFromJSON(jsonValue));
     }
@@ -285,15 +287,15 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_SUBSCRIPTIONS permission to use this service
      * Subscribe to a plan
      */
-    async createSubscriptionToApi(requestParameters: CreateSubscriptionToApiRequest): Promise<Subscription> {
-        const response = await this.createSubscriptionToApiRaw(requestParameters);
+    async createSubscriptionToApi(requestParameters: CreateSubscriptionToApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.createSubscriptionToApiRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Export API logs as CSV
      */
-    async exportApiSubscriptionsLogsAsCSVRaw(requestParameters: ExportApiSubscriptionsLogsAsCSVRequest): Promise<runtime.ApiResponse<string>> {
+    async exportApiSubscriptionsLogsAsCSVRaw(requestParameters: ExportApiSubscriptionsLogsAsCSVRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling exportApiSubscriptionsLogsAsCSV.');
         }
@@ -306,7 +308,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling exportApiSubscriptionsLogsAsCSV.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.plan) {
             queryParameters['plan'] = requestParameters.plan.join(runtime.COLLECTION_FORMATS["csv"]);
@@ -342,7 +344,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -350,8 +352,8 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
     /**
      * Export API logs as CSV
      */
-    async exportApiSubscriptionsLogsAsCSV(requestParameters: ExportApiSubscriptionsLogsAsCSVRequest): Promise<string> {
-        const response = await this.exportApiSubscriptionsLogsAsCSVRaw(requestParameters);
+    async exportApiSubscriptionsLogsAsCSV(requestParameters: ExportApiSubscriptionsLogsAsCSVRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.exportApiSubscriptionsLogsAsCSVRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -359,7 +361,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_API_KEYS permission to use this service
      * List all API Keys for a subscription
      */
-    async getApiKeysForApiSubscriptionRaw(requestParameters: GetApiKeysForApiSubscriptionRequest): Promise<runtime.ApiResponse<Array<ApiKeyEntity>>> {
+    async getApiKeysForApiSubscriptionRaw(requestParameters: GetApiKeysForApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApiKeyEntity>>> {
         if (requestParameters.subscription === null || requestParameters.subscription === undefined) {
             throw new runtime.RequiredError('subscription','Required parameter requestParameters.subscription was null or undefined when calling getApiKeysForApiSubscription.');
         }
@@ -376,7 +378,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiKeysForApiSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -388,7 +390,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApiKeyEntityFromJSON));
     }
@@ -397,8 +399,8 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_API_KEYS permission to use this service
      * List all API Keys for a subscription
      */
-    async getApiKeysForApiSubscription(requestParameters: GetApiKeysForApiSubscriptionRequest): Promise<Array<ApiKeyEntity>> {
-        const response = await this.getApiKeysForApiSubscriptionRaw(requestParameters);
+    async getApiKeysForApiSubscription(requestParameters: GetApiKeysForApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApiKeyEntity>> {
+        const response = await this.getApiKeysForApiSubscriptionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -406,7 +408,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_SUBSCRIPTIONS permission to use this service
      * List subscribers for the API
      */
-    async getApiSubscribersRaw(requestParameters: GetApiSubscribersRequest): Promise<runtime.ApiResponse<Array<ApplicationEntity>>> {
+    async getApiSubscribersRaw(requestParameters: GetApiSubscribersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApplicationEntity>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiSubscribers.');
         }
@@ -419,7 +421,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiSubscribers.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -431,7 +433,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApplicationEntityFromJSON));
     }
@@ -440,8 +442,8 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_SUBSCRIPTIONS permission to use this service
      * List subscribers for the API
      */
-    async getApiSubscribers(requestParameters: GetApiSubscribersRequest): Promise<Array<ApplicationEntity>> {
-        const response = await this.getApiSubscribersRaw(requestParameters);
+    async getApiSubscribers(requestParameters: GetApiSubscribersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApplicationEntity>> {
+        const response = await this.getApiSubscribersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -449,7 +451,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Get a subscription
      */
-    async getApiSubscriptionRaw(requestParameters: GetApiSubscriptionRequest): Promise<runtime.ApiResponse<Subscription>> {
+    async getApiSubscriptionRaw(requestParameters: GetApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
         if (requestParameters.subscription === null || requestParameters.subscription === undefined) {
             throw new runtime.RequiredError('subscription','Required parameter requestParameters.subscription was null or undefined when calling getApiSubscription.');
         }
@@ -466,7 +468,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -478,7 +480,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionFromJSON(jsonValue));
     }
@@ -487,8 +489,8 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Get a subscription
      */
-    async getApiSubscription(requestParameters: GetApiSubscriptionRequest): Promise<Subscription> {
-        const response = await this.getApiSubscriptionRaw(requestParameters);
+    async getApiSubscription(requestParameters: GetApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.getApiSubscriptionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -496,7 +498,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the READ_SUBSCRIPTION permission to use this service
      * List subscriptions for the API
      */
-    async getApiSubscriptionsRaw(requestParameters: GetApiSubscriptionsRequest): Promise<runtime.ApiResponse<SubscriptionEntityPageResult>> {
+    async getApiSubscriptionsRaw(requestParameters: GetApiSubscriptionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubscriptionEntityPageResult>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiSubscriptions.');
         }
@@ -509,7 +511,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiSubscriptions.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.plan) {
             queryParameters['plan'] = requestParameters.plan.join(runtime.COLLECTION_FORMATS["csv"]);
@@ -549,7 +551,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionEntityPageResultFromJSON(jsonValue));
     }
@@ -558,8 +560,8 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the READ_SUBSCRIPTION permission to use this service
      * List subscriptions for the API
      */
-    async getApiSubscriptions(requestParameters: GetApiSubscriptionsRequest): Promise<SubscriptionEntityPageResult> {
-        const response = await this.getApiSubscriptionsRaw(requestParameters);
+    async getApiSubscriptions(requestParameters: GetApiSubscriptionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubscriptionEntityPageResult> {
+        const response = await this.getApiSubscriptionsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -567,7 +569,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Update a subscription
      */
-    async processApiSubscriptionRaw(requestParameters: ProcessApiSubscriptionRequest): Promise<runtime.ApiResponse<Subscription>> {
+    async processApiSubscriptionRaw(requestParameters: ProcessApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
         if (requestParameters.subscription === null || requestParameters.subscription === undefined) {
             throw new runtime.RequiredError('subscription','Required parameter requestParameters.subscription was null or undefined when calling processApiSubscription.');
         }
@@ -588,7 +590,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('processSubscriptionEntity','Required parameter requestParameters.processSubscriptionEntity was null or undefined when calling processApiSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -603,7 +605,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: ProcessSubscriptionEntityToJSON(requestParameters.processSubscriptionEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionFromJSON(jsonValue));
     }
@@ -612,8 +614,8 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Update a subscription
      */
-    async processApiSubscription(requestParameters: ProcessApiSubscriptionRequest): Promise<Subscription> {
-        const response = await this.processApiSubscriptionRaw(requestParameters);
+    async processApiSubscription(requestParameters: ProcessApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.processApiSubscriptionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -621,7 +623,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the API_SUBSCRIPTION permission to use this service
      * Reactivate an API key
      */
-    async reactivateApiKeyForApiSubscriptionRaw(requestParameters: ReactivateApiKeyForApiSubscriptionRequest): Promise<runtime.ApiResponse<void>> {
+    async reactivateApiKeyForApiSubscriptionRaw(requestParameters: ReactivateApiKeyForApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.apikey === null || requestParameters.apikey === undefined) {
             throw new runtime.RequiredError('apikey','Required parameter requestParameters.apikey was null or undefined when calling reactivateApiKeyForApiSubscription.');
         }
@@ -642,7 +644,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling reactivateApiKeyForApiSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -654,7 +656,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -663,15 +665,15 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the API_SUBSCRIPTION permission to use this service
      * Reactivate an API key
      */
-    async reactivateApiKeyForApiSubscription(requestParameters: ReactivateApiKeyForApiSubscriptionRequest): Promise<void> {
-        await this.reactivateApiKeyForApiSubscriptionRaw(requestParameters);
+    async reactivateApiKeyForApiSubscription(requestParameters: ReactivateApiKeyForApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.reactivateApiKeyForApiSubscriptionRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGE_API_KEYS permission to use this service
      * Renew an API key
      */
-    async renewSubscriptionApiKeysForApiSubscriptionRaw(requestParameters: RenewSubscriptionApiKeysForApiSubscriptionRequest): Promise<runtime.ApiResponse<ApiKeyEntity>> {
+    async renewSubscriptionApiKeysForApiSubscriptionRaw(requestParameters: RenewSubscriptionApiKeysForApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiKeyEntity>> {
         if (requestParameters.subscription === null || requestParameters.subscription === undefined) {
             throw new runtime.RequiredError('subscription','Required parameter requestParameters.subscription was null or undefined when calling renewSubscriptionApiKeysForApiSubscription.');
         }
@@ -688,7 +690,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling renewSubscriptionApiKeysForApiSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.customApiKey !== undefined) {
             queryParameters['customApiKey'] = requestParameters.customApiKey;
@@ -704,7 +706,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiKeyEntityFromJSON(jsonValue));
     }
@@ -713,8 +715,8 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_API_KEYS permission to use this service
      * Renew an API key
      */
-    async renewSubscriptionApiKeysForApiSubscription(requestParameters: RenewSubscriptionApiKeysForApiSubscriptionRequest): Promise<ApiKeyEntity> {
-        const response = await this.renewSubscriptionApiKeysForApiSubscriptionRaw(requestParameters);
+    async renewSubscriptionApiKeysForApiSubscription(requestParameters: RenewSubscriptionApiKeysForApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiKeyEntity> {
+        const response = await this.renewSubscriptionApiKeysForApiSubscriptionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -722,7 +724,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the API_SUBSCRIPTION:DELETE permission to use this service
      * Revoke API key
      */
-    async revokeApiKeyForApiSubscriptionRaw(requestParameters: RevokeApiKeyForApiSubscriptionRequest): Promise<runtime.ApiResponse<void>> {
+    async revokeApiKeyForApiSubscriptionRaw(requestParameters: RevokeApiKeyForApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.apikey === null || requestParameters.apikey === undefined) {
             throw new runtime.RequiredError('apikey','Required parameter requestParameters.apikey was null or undefined when calling revokeApiKeyForApiSubscription.');
         }
@@ -743,7 +745,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling revokeApiKeyForApiSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -755,7 +757,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -764,15 +766,15 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the API_SUBSCRIPTION:DELETE permission to use this service
      * Revoke API key
      */
-    async revokeApiKeyForApiSubscription(requestParameters: RevokeApiKeyForApiSubscriptionRequest): Promise<void> {
-        await this.revokeApiKeyForApiSubscriptionRaw(requestParameters);
+    async revokeApiKeyForApiSubscription(requestParameters: RevokeApiKeyForApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.revokeApiKeyForApiSubscriptionRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the API_SUBSCRIPTION update permission to use this service
      * Transfer a subscription
      */
-    async transferApiSubscriptionRaw(requestParameters: TransferApiSubscriptionRequest): Promise<runtime.ApiResponse<Subscription>> {
+    async transferApiSubscriptionRaw(requestParameters: TransferApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
         if (requestParameters.subscription === null || requestParameters.subscription === undefined) {
             throw new runtime.RequiredError('subscription','Required parameter requestParameters.subscription was null or undefined when calling transferApiSubscription.');
         }
@@ -793,7 +795,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('transferSubscriptionEntity','Required parameter requestParameters.transferSubscriptionEntity was null or undefined when calling transferApiSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -808,7 +810,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: TransferSubscriptionEntityToJSON(requestParameters.transferSubscriptionEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionFromJSON(jsonValue));
     }
@@ -817,8 +819,8 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the API_SUBSCRIPTION update permission to use this service
      * Transfer a subscription
      */
-    async transferApiSubscription(requestParameters: TransferApiSubscriptionRequest): Promise<Subscription> {
-        const response = await this.transferApiSubscriptionRaw(requestParameters);
+    async transferApiSubscription(requestParameters: TransferApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.transferApiSubscriptionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -826,7 +828,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the API_SUBSCRIPTION:UPDATE permission to use this service
      * Update API Key
      */
-    async updateApiKeyForApiSubscriptionRaw(requestParameters: UpdateApiKeyForApiSubscriptionRequest): Promise<runtime.ApiResponse<ApiKeyEntity>> {
+    async updateApiKeyForApiSubscriptionRaw(requestParameters: UpdateApiKeyForApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiKeyEntity>> {
         if (requestParameters.apikey === null || requestParameters.apikey === undefined) {
             throw new runtime.RequiredError('apikey','Required parameter requestParameters.apikey was null or undefined when calling updateApiKeyForApiSubscription.');
         }
@@ -851,7 +853,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('apiKeyEntity','Required parameter requestParameters.apiKeyEntity was null or undefined when calling updateApiKeyForApiSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -866,7 +868,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: ApiKeyEntityToJSON(requestParameters.apiKeyEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiKeyEntityFromJSON(jsonValue));
     }
@@ -875,8 +877,8 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the API_SUBSCRIPTION:UPDATE permission to use this service
      * Update API Key
      */
-    async updateApiKeyForApiSubscription(requestParameters: UpdateApiKeyForApiSubscriptionRequest): Promise<ApiKeyEntity> {
-        const response = await this.updateApiKeyForApiSubscriptionRaw(requestParameters);
+    async updateApiKeyForApiSubscription(requestParameters: UpdateApiKeyForApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiKeyEntity> {
+        const response = await this.updateApiKeyForApiSubscriptionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -884,7 +886,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Update a subscription
      */
-    async updateApiSubscriptionRaw(requestParameters: UpdateApiSubscriptionRequest): Promise<runtime.ApiResponse<Subscription>> {
+    async updateApiSubscriptionRaw(requestParameters: UpdateApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
         if (requestParameters.subscription === null || requestParameters.subscription === undefined) {
             throw new runtime.RequiredError('subscription','Required parameter requestParameters.subscription was null or undefined when calling updateApiSubscription.');
         }
@@ -905,7 +907,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateSubscriptionEntity','Required parameter requestParameters.updateSubscriptionEntity was null or undefined when calling updateApiSubscription.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -920,7 +922,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateSubscriptionEntityToJSON(requestParameters.updateSubscriptionEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionFromJSON(jsonValue));
     }
@@ -929,8 +931,8 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_PLANS permission to use this service
      * Update a subscription
      */
-    async updateApiSubscription(requestParameters: UpdateApiSubscriptionRequest): Promise<Subscription> {
-        const response = await this.updateApiSubscriptionRaw(requestParameters);
+    async updateApiSubscription(requestParameters: UpdateApiSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.updateApiSubscriptionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -938,7 +940,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the API_SUBSCRIPTION:READ permission to use this service
      * Check a subscription can be created with given api key, and application
      */
-    async verifyApiKeyCreationRaw(requestParameters: VerifyApiKeyCreationRequest): Promise<runtime.ApiResponse<boolean>> {
+    async verifyApiKeyCreationRaw(requestParameters: VerifyApiKeyCreationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<boolean>> {
         if (requestParameters.key === null || requestParameters.key === undefined) {
             throw new runtime.RequiredError('key','Required parameter requestParameters.key was null or undefined when calling verifyApiKeyCreation.');
         }
@@ -959,7 +961,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling verifyApiKeyCreation.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.key !== undefined) {
             queryParameters['key'] = requestParameters.key;
@@ -979,7 +981,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -988,18 +990,18 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the API_SUBSCRIPTION:READ permission to use this service
      * Check a subscription can be created with given api key, and application
      */
-    async verifyApiKeyCreation(requestParameters: VerifyApiKeyCreationRequest): Promise<boolean> {
-        const response = await this.verifyApiKeyCreationRaw(requestParameters);
+    async verifyApiKeyCreation(requestParameters: VerifyApiKeyCreationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<boolean> {
+        const response = await this.verifyApiKeyCreationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
 }
 
 /**
-    * @export
-    * @enum {string}
-    */
-export enum GetApiSubscriptionsExpandEnum {
-    Keys = 'keys',
-    Security = 'security'
-}
+ * @export
+ */
+export const GetApiSubscriptionsExpandEnum = {
+    KEYS: 'keys',
+    SECURITY: 'security'
+} as const;
+export type GetApiSubscriptionsExpandEnum = typeof GetApiSubscriptionsExpandEnum[keyof typeof GetApiSubscriptionsExpandEnum];

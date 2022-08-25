@@ -44,6 +44,30 @@ export interface StringConditionAllOf {
     ignoreCase?: boolean;
 }
 
+
+/**
+ * @export
+ */
+export const StringConditionAllOfOperatorEnum = {
+    EQUALS: 'EQUALS',
+    NOT_EQUALS: 'NOT_EQUALS',
+    STARTS_WITH: 'STARTS_WITH',
+    ENDS_WITH: 'ENDS_WITH',
+    CONTAINS: 'CONTAINS',
+    MATCHES: 'MATCHES'
+} as const;
+export type StringConditionAllOfOperatorEnum = typeof StringConditionAllOfOperatorEnum[keyof typeof StringConditionAllOfOperatorEnum];
+
+
+/**
+ * Check if a given object implements the StringConditionAllOf interface.
+ */
+export function instanceOfStringConditionAllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function StringConditionAllOfFromJSON(json: any): StringConditionAllOf {
     return StringConditionAllOfFromJSONTyped(json, false);
 }
@@ -76,18 +100,4 @@ export function StringConditionAllOfToJSON(value?: StringConditionAllOf | null):
         'ignoreCase': value.ignoreCase,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum StringConditionAllOfOperatorEnum {
-    EQUALS = 'EQUALS',
-    NOTEQUALS = 'NOT_EQUALS',
-    STARTSWITH = 'STARTS_WITH',
-    ENDSWITH = 'ENDS_WITH',
-    CONTAINS = 'CONTAINS',
-    MATCHES = 'MATCHES'
-}
-
 

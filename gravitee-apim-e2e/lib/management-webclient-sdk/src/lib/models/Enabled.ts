@@ -26,6 +26,15 @@ export interface Enabled {
     enabled?: boolean;
 }
 
+/**
+ * Check if a given object implements the Enabled interface.
+ */
+export function instanceOfEnabled(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function EnabledFromJSON(json: any): Enabled {
     return EnabledFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function EnabledToJSON(value?: Enabled | null): any {
         'enabled': value.enabled,
     };
 }
-
 

@@ -104,13 +104,13 @@ describe('API workflow', () => {
           orgId,
           api: createdApi.id,
           newPlanEntity: PlansFaker.newPlan({
-            security: PlanSecurityType.KEYLESS,
+            security: PlanSecurityType.KEY_LESS,
             validation: PlanValidationType.MANUAL,
           }),
         }),
       );
       expect(createdPlan.status).toEqual(PlanStatus.STAGING);
-      expect(createdPlan.security).toEqual(PlanSecurityType.KEYLESS);
+      expect(createdPlan.security).toEqual(PlanSecurityType.KEY_LESS);
     });
 
     test('should publish a plan ', async () => {

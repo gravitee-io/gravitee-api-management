@@ -26,6 +26,15 @@ export interface PropertyProjectionAllOf {
     property?: string;
 }
 
+/**
+ * Check if a given object implements the PropertyProjectionAllOf interface.
+ */
+export function instanceOfPropertyProjectionAllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PropertyProjectionAllOfFromJSON(json: any): PropertyProjectionAllOf {
     return PropertyProjectionAllOfFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function PropertyProjectionAllOfToJSON(value?: PropertyProjectionAllOf | 
         'property': value.property,
     };
 }
-
 

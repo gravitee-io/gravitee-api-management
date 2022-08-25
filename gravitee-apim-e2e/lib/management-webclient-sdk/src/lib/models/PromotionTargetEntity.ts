@@ -56,6 +56,18 @@ export interface PromotionTargetEntity {
     organizationId: string;
 }
 
+/**
+ * Check if a given object implements the PromotionTargetEntity interface.
+ */
+export function instanceOfPromotionTargetEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "installationId" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "organizationId" in value;
+
+    return isInstance;
+}
+
 export function PromotionTargetEntityFromJSON(json: any): PromotionTargetEntity {
     return PromotionTargetEntityFromJSONTyped(json, false);
 }
@@ -92,5 +104,4 @@ export function PromotionTargetEntityToJSON(value?: PromotionTargetEntity | null
         'organizationId': value.organizationId,
     };
 }
-
 

@@ -32,6 +32,15 @@ export interface ConsoleAnalyticsPendo {
     enabled?: boolean;
 }
 
+/**
+ * Check if a given object implements the ConsoleAnalyticsPendo interface.
+ */
+export function instanceOfConsoleAnalyticsPendo(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ConsoleAnalyticsPendoFromJSON(json: any): ConsoleAnalyticsPendo {
     return ConsoleAnalyticsPendoFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function ConsoleAnalyticsPendoToJSON(value?: ConsoleAnalyticsPendo | null
         'enabled': value.enabled,
     };
 }
-
 

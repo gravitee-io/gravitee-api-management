@@ -11,19 +11,21 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum SubscriptionStatus {
-    PENDING = 'PENDING',
-    REJECTED = 'REJECTED',
-    ACCEPTED = 'ACCEPTED',
-    CLOSED = 'CLOSED',
-    PAUSED = 'PAUSED',
-    RESUMED = 'RESUMED'
-}
+export const SubscriptionStatus = {
+    PENDING: 'PENDING',
+    REJECTED: 'REJECTED',
+    ACCEPTED: 'ACCEPTED',
+    CLOSED: 'CLOSED',
+    PAUSED: 'PAUSED',
+    RESUMED: 'RESUMED'
+} as const;
+export type SubscriptionStatus = typeof SubscriptionStatus[keyof typeof SubscriptionStatus];
+
 
 export function SubscriptionStatusFromJSON(json: any): SubscriptionStatus {
     return SubscriptionStatusFromJSONTyped(json, false);

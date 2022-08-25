@@ -26,6 +26,15 @@ export interface Documentation {
     url?: string;
 }
 
+/**
+ * Check if a given object implements the Documentation interface.
+ */
+export function instanceOfDocumentation(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function DocumentationFromJSON(json: any): Documentation {
     return DocumentationFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function DocumentationToJSON(value?: Documentation | null): any {
         'url': value.url,
     };
 }
-
 

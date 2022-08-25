@@ -32,6 +32,15 @@ export interface NewApiHeaderEntity {
     value?: string;
 }
 
+/**
+ * Check if a given object implements the NewApiHeaderEntity interface.
+ */
+export function instanceOfNewApiHeaderEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function NewApiHeaderEntityFromJSON(json: any): NewApiHeaderEntity {
     return NewApiHeaderEntityFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function NewApiHeaderEntityToJSON(value?: NewApiHeaderEntity | null): any
         'value': value.value,
     };
 }
-
 

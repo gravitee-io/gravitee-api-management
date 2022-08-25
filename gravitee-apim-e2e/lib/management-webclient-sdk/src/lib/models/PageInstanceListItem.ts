@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { InstanceListItem } from './InstanceListItem';
 import {
-    InstanceListItem,
     InstanceListItemFromJSON,
     InstanceListItemFromJSONTyped,
     InstanceListItemToJSON,
-} from './';
+} from './InstanceListItem';
 
 /**
  * 
@@ -49,6 +49,15 @@ export interface PageInstanceListItem {
      * @memberof PageInstanceListItem
      */
     totalElements?: number;
+}
+
+/**
+ * Check if a given object implements the PageInstanceListItem interface.
+ */
+export function instanceOfPageInstanceListItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PageInstanceListItemFromJSON(json: any): PageInstanceListItem {
@@ -83,5 +92,4 @@ export function PageInstanceListItemToJSON(value?: PageInstanceListItem | null):
         'totalElements': value.totalElements,
     };
 }
-
 

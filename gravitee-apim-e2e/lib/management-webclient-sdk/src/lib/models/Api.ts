@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { User } from './User';
 import {
-    User,
     UserFromJSON,
     UserFromJSONTyped,
     UserToJSON,
-} from './';
+} from './User';
 
 /**
  * 
@@ -49,6 +49,15 @@ export interface Api {
      * @memberof Api
      */
     version?: string;
+}
+
+/**
+ * Check if a given object implements the Api interface.
+ */
+export function instanceOfApi(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function ApiFromJSON(json: any): Api {
@@ -83,5 +92,4 @@ export function ApiToJSON(value?: Api | null): any {
         'version': value.version,
     };
 }
-
 

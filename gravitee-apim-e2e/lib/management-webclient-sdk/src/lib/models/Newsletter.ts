@@ -26,6 +26,15 @@ export interface Newsletter {
     enabled?: boolean;
 }
 
+/**
+ * Check if a given object implements the Newsletter interface.
+ */
+export function instanceOfNewsletter(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function NewsletterFromJSON(json: any): Newsletter {
     return NewsletterFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function NewsletterToJSON(value?: Newsletter | null): any {
         'enabled': value.enabled,
     };
 }
-
 

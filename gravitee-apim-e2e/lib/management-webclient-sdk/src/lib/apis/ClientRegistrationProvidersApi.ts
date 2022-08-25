@@ -13,17 +13,19 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ClientRegistrationProviderEntity,
+  ClientRegistrationProviderListItem,
+  NewClientRegistrationProviderEntity,
+  UpdateClientRegistrationProviderEntity,
+} from '../models';
 import {
-    ClientRegistrationProviderEntity,
     ClientRegistrationProviderEntityFromJSON,
     ClientRegistrationProviderEntityToJSON,
-    ClientRegistrationProviderListItem,
     ClientRegistrationProviderListItemFromJSON,
     ClientRegistrationProviderListItemToJSON,
-    NewClientRegistrationProviderEntity,
     NewClientRegistrationProviderEntityFromJSON,
     NewClientRegistrationProviderEntityToJSON,
-    UpdateClientRegistrationProviderEntity,
     UpdateClientRegistrationProviderEntityFromJSON,
     UpdateClientRegistrationProviderEntityToJSON,
 } from '../models';
@@ -67,7 +69,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[CREATE] permission to use this service
      * Create a client registration provider
      */
-    async createClientRegistrationProviderRaw(requestParameters: CreateClientRegistrationProviderRequest): Promise<runtime.ApiResponse<ClientRegistrationProviderEntity>> {
+    async createClientRegistrationProviderRaw(requestParameters: CreateClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ClientRegistrationProviderEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createClientRegistrationProvider.');
         }
@@ -80,7 +82,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newClientRegistrationProviderEntity','Required parameter requestParameters.newClientRegistrationProviderEntity was null or undefined when calling createClientRegistrationProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -95,7 +97,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewClientRegistrationProviderEntityToJSON(requestParameters.newClientRegistrationProviderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ClientRegistrationProviderEntityFromJSON(jsonValue));
     }
@@ -104,8 +106,8 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[CREATE] permission to use this service
      * Create a client registration provider
      */
-    async createClientRegistrationProvider(requestParameters: CreateClientRegistrationProviderRequest): Promise<ClientRegistrationProviderEntity> {
-        const response = await this.createClientRegistrationProviderRaw(requestParameters);
+    async createClientRegistrationProvider(requestParameters: CreateClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ClientRegistrationProviderEntity> {
+        const response = await this.createClientRegistrationProviderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -113,7 +115,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[DELETE] permission to use this service
      * Delete a client registration provider
      */
-    async deleteClientRegistrationProviderRaw(requestParameters: DeleteClientRegistrationProviderRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteClientRegistrationProviderRaw(requestParameters: DeleteClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.clientRegistrationProvider === null || requestParameters.clientRegistrationProvider === undefined) {
             throw new runtime.RequiredError('clientRegistrationProvider','Required parameter requestParameters.clientRegistrationProvider was null or undefined when calling deleteClientRegistrationProvider.');
         }
@@ -126,7 +128,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteClientRegistrationProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -138,7 +140,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -147,15 +149,15 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[DELETE] permission to use this service
      * Delete a client registration provider
      */
-    async deleteClientRegistrationProvider(requestParameters: DeleteClientRegistrationProviderRequest): Promise<void> {
-        await this.deleteClientRegistrationProviderRaw(requestParameters);
+    async deleteClientRegistrationProvider(requestParameters: DeleteClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteClientRegistrationProviderRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service
      * Get a client registration provider
      */
-    async getClientRegistrationProviderRaw(requestParameters: GetClientRegistrationProviderRequest): Promise<runtime.ApiResponse<ClientRegistrationProviderEntity>> {
+    async getClientRegistrationProviderRaw(requestParameters: GetClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ClientRegistrationProviderEntity>> {
         if (requestParameters.clientRegistrationProvider === null || requestParameters.clientRegistrationProvider === undefined) {
             throw new runtime.RequiredError('clientRegistrationProvider','Required parameter requestParameters.clientRegistrationProvider was null or undefined when calling getClientRegistrationProvider.');
         }
@@ -168,7 +170,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getClientRegistrationProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -180,7 +182,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ClientRegistrationProviderEntityFromJSON(jsonValue));
     }
@@ -189,8 +191,8 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service
      * Get a client registration provider
      */
-    async getClientRegistrationProvider(requestParameters: GetClientRegistrationProviderRequest): Promise<ClientRegistrationProviderEntity> {
-        const response = await this.getClientRegistrationProviderRaw(requestParameters);
+    async getClientRegistrationProvider(requestParameters: GetClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ClientRegistrationProviderEntity> {
+        const response = await this.getClientRegistrationProviderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -198,7 +200,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service
      * Get the list of client registration providers
      */
-    async getClientRegistrationProvidersRaw(requestParameters: GetClientRegistrationProvidersRequest): Promise<runtime.ApiResponse<Array<ClientRegistrationProviderListItem>>> {
+    async getClientRegistrationProvidersRaw(requestParameters: GetClientRegistrationProvidersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ClientRegistrationProviderListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getClientRegistrationProviders.');
         }
@@ -207,7 +209,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getClientRegistrationProviders.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -219,7 +221,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ClientRegistrationProviderListItemFromJSON));
     }
@@ -228,8 +230,8 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service
      * Get the list of client registration providers
      */
-    async getClientRegistrationProviders(requestParameters: GetClientRegistrationProvidersRequest): Promise<Array<ClientRegistrationProviderListItem>> {
-        const response = await this.getClientRegistrationProvidersRaw(requestParameters);
+    async getClientRegistrationProviders(requestParameters: GetClientRegistrationProvidersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ClientRegistrationProviderListItem>> {
+        const response = await this.getClientRegistrationProvidersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -237,7 +239,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[UPDATE] permission to use this service
      * Update a client registration provider
      */
-    async updateClientRegistrationProviderRaw(requestParameters: UpdateClientRegistrationProviderRequest): Promise<runtime.ApiResponse<ClientRegistrationProviderEntity>> {
+    async updateClientRegistrationProviderRaw(requestParameters: UpdateClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ClientRegistrationProviderEntity>> {
         if (requestParameters.clientRegistrationProvider === null || requestParameters.clientRegistrationProvider === undefined) {
             throw new runtime.RequiredError('clientRegistrationProvider','Required parameter requestParameters.clientRegistrationProvider was null or undefined when calling updateClientRegistrationProvider.');
         }
@@ -254,7 +256,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateClientRegistrationProviderEntity','Required parameter requestParameters.updateClientRegistrationProviderEntity was null or undefined when calling updateClientRegistrationProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -269,7 +271,7 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateClientRegistrationProviderEntityToJSON(requestParameters.updateClientRegistrationProviderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ClientRegistrationProviderEntityFromJSON(jsonValue));
     }
@@ -278,8 +280,8 @@ export class ClientRegistrationProvidersApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[UPDATE] permission to use this service
      * Update a client registration provider
      */
-    async updateClientRegistrationProvider(requestParameters: UpdateClientRegistrationProviderRequest): Promise<ClientRegistrationProviderEntity> {
-        const response = await this.updateClientRegistrationProviderRaw(requestParameters);
+    async updateClientRegistrationProvider(requestParameters: UpdateClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ClientRegistrationProviderEntity> {
+        const response = await this.updateClientRegistrationProviderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

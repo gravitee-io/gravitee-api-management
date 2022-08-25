@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  AuditType,
+  MetadataPageAuditEntity,
+} from '../models';
 import {
-    AuditType,
     AuditTypeFromJSON,
     AuditTypeToJSON,
-    MetadataPageAuditEntity,
     MetadataPageAuditEntityFromJSON,
     MetadataPageAuditEntityToJSON,
 } from '../models';
@@ -52,7 +54,7 @@ export class APIAuditsApi extends runtime.BaseAPI {
      * User must have the API_AUDIT[READ] permission to use this service
      * List available audit event type for API
      */
-    async getApiAuditEventsRaw(requestParameters: GetApiAuditEventsRequest): Promise<runtime.ApiResponse<void>> {
+    async getApiAuditEventsRaw(requestParameters: GetApiAuditEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiAuditEvents.');
         }
@@ -65,7 +67,7 @@ export class APIAuditsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiAuditEvents.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -77,7 +79,7 @@ export class APIAuditsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -86,15 +88,15 @@ export class APIAuditsApi extends runtime.BaseAPI {
      * User must have the API_AUDIT[READ] permission to use this service
      * List available audit event type for API
      */
-    async getApiAuditEvents(requestParameters: GetApiAuditEventsRequest): Promise<void> {
-        await this.getApiAuditEventsRaw(requestParameters);
+    async getApiAuditEvents(requestParameters: GetApiAuditEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getApiAuditEventsRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the API_AUDIT[READ] permission to use this service
      * Retrieve audit logs for the API
      */
-    async getApiAuditsRaw(requestParameters: GetApiAuditsRequest): Promise<runtime.ApiResponse<MetadataPageAuditEntity>> {
+    async getApiAuditsRaw(requestParameters: GetApiAuditsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MetadataPageAuditEntity>> {
         if (requestParameters.api2 === null || requestParameters.api2 === undefined) {
             throw new runtime.RequiredError('api2','Required parameter requestParameters.api2 was null or undefined when calling getApiAudits.');
         }
@@ -107,7 +109,7 @@ export class APIAuditsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiAudits.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.environment !== undefined) {
             queryParameters['environment'] = requestParameters.environment;
@@ -155,7 +157,7 @@ export class APIAuditsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => MetadataPageAuditEntityFromJSON(jsonValue));
     }
@@ -164,8 +166,8 @@ export class APIAuditsApi extends runtime.BaseAPI {
      * User must have the API_AUDIT[READ] permission to use this service
      * Retrieve audit logs for the API
      */
-    async getApiAudits(requestParameters: GetApiAuditsRequest): Promise<MetadataPageAuditEntity> {
-        const response = await this.getApiAuditsRaw(requestParameters);
+    async getApiAudits(requestParameters: GetApiAuditsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MetadataPageAuditEntity> {
+        const response = await this.getApiAuditsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

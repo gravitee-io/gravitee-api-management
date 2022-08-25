@@ -26,6 +26,15 @@ export interface AlertEventRuleEntity {
     event?: string;
 }
 
+/**
+ * Check if a given object implements the AlertEventRuleEntity interface.
+ */
+export function instanceOfAlertEventRuleEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function AlertEventRuleEntityFromJSON(json: any): AlertEventRuleEntity {
     return AlertEventRuleEntityFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function AlertEventRuleEntityToJSON(value?: AlertEventRuleEntity | null):
         'event': value.event,
     };
 }
-
 

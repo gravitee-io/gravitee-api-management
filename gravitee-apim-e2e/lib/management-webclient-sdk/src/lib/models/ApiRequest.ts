@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Request } from './Request';
 import {
-    Request,
     RequestFromJSON,
     RequestFromJSONTyped,
     RequestToJSON,
-    Response,
+} from './Request';
+import type { Response } from './Response';
+import {
     ResponseFromJSON,
     ResponseFromJSONTyped,
     ResponseToJSON,
-} from './';
+} from './Response';
 
 /**
  * 
@@ -211,6 +213,34 @@ export interface ApiRequest {
     user?: string;
 }
 
+
+/**
+ * @export
+ */
+export const ApiRequestMethodEnum = {
+    CONNECT: 'CONNECT',
+    DELETE: 'DELETE',
+    GET: 'GET',
+    HEAD: 'HEAD',
+    OPTIONS: 'OPTIONS',
+    PATCH: 'PATCH',
+    POST: 'POST',
+    PUT: 'PUT',
+    TRACE: 'TRACE',
+    OTHER: 'OTHER'
+} as const;
+export type ApiRequestMethodEnum = typeof ApiRequestMethodEnum[keyof typeof ApiRequestMethodEnum];
+
+
+/**
+ * Check if a given object implements the ApiRequest interface.
+ */
+export function instanceOfApiRequest(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiRequestFromJSON(json: any): ApiRequest {
     return ApiRequestFromJSONTyped(json, false);
 }
@@ -295,22 +325,4 @@ export function ApiRequestToJSON(value?: ApiRequest | null): any {
         'user': value.user,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ApiRequestMethodEnum {
-    CONNECT = 'CONNECT',
-    DELETE = 'DELETE',
-    GET = 'GET',
-    HEAD = 'HEAD',
-    OPTIONS = 'OPTIONS',
-    PATCH = 'PATCH',
-    POST = 'POST',
-    PUT = 'PUT',
-    TRACE = 'TRACE',
-    OTHER = 'OTHER'
-}
-
 

@@ -26,6 +26,15 @@ export interface Company {
     name?: string;
 }
 
+/**
+ * Check if a given object implements the Company interface.
+ */
+export function instanceOfCompany(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function CompanyFromJSON(json: any): Company {
     return CompanyFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function CompanyToJSON(value?: Company | null): any {
         'name': value.name,
     };
 }
-
 

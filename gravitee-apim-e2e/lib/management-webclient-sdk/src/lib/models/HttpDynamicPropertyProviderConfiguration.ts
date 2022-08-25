@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { HttpDynamicPropertyProviderConfigurationAllOf } from './HttpDynamicPropertyProviderConfigurationAllOf';
 import {
-    HttpDynamicPropertyProviderConfigurationAllOf,
     HttpDynamicPropertyProviderConfigurationAllOfFromJSON,
     HttpDynamicPropertyProviderConfigurationAllOfFromJSONTyped,
     HttpDynamicPropertyProviderConfigurationAllOfToJSON,
-    HttpHeader,
+} from './HttpDynamicPropertyProviderConfigurationAllOf';
+import type { HttpHeader } from './HttpHeader';
+import {
     HttpHeaderFromJSON,
     HttpHeaderFromJSONTyped,
     HttpHeaderToJSON,
-} from './';
+} from './HttpHeader';
 
 /**
  * 
@@ -67,6 +69,36 @@ export interface HttpDynamicPropertyProviderConfiguration {
     body?: string;
 }
 
+
+/**
+ * @export
+ */
+export const HttpDynamicPropertyProviderConfigurationMethodEnum = {
+    CONNECT: 'CONNECT',
+    DELETE: 'DELETE',
+    GET: 'GET',
+    HEAD: 'HEAD',
+    OPTIONS: 'OPTIONS',
+    PATCH: 'PATCH',
+    POST: 'POST',
+    PUT: 'PUT',
+    TRACE: 'TRACE',
+    OTHER: 'OTHER'
+} as const;
+export type HttpDynamicPropertyProviderConfigurationMethodEnum = typeof HttpDynamicPropertyProviderConfigurationMethodEnum[keyof typeof HttpDynamicPropertyProviderConfigurationMethodEnum];
+
+
+/**
+ * Check if a given object implements the HttpDynamicPropertyProviderConfiguration interface.
+ */
+export function instanceOfHttpDynamicPropertyProviderConfiguration(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "url" in value;
+    isInstance = isInstance && "specification" in value;
+
+    return isInstance;
+}
+
 export function HttpDynamicPropertyProviderConfigurationFromJSON(json: any): HttpDynamicPropertyProviderConfiguration {
     return HttpDynamicPropertyProviderConfigurationFromJSONTyped(json, false);
 }
@@ -103,22 +135,4 @@ export function HttpDynamicPropertyProviderConfigurationToJSON(value?: HttpDynam
         'body': value.body,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum HttpDynamicPropertyProviderConfigurationMethodEnum {
-    CONNECT = 'CONNECT',
-    DELETE = 'DELETE',
-    GET = 'GET',
-    HEAD = 'HEAD',
-    OPTIONS = 'OPTIONS',
-    PATCH = 'PATCH',
-    POST = 'POST',
-    PUT = 'PUT',
-    TRACE = 'TRACE',
-    OTHER = 'OTHER'
-}
-
 

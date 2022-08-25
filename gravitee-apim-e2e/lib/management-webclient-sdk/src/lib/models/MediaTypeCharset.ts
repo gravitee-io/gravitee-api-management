@@ -26,6 +26,15 @@ export interface MediaTypeCharset {
     registered?: boolean;
 }
 
+/**
+ * Check if a given object implements the MediaTypeCharset interface.
+ */
+export function instanceOfMediaTypeCharset(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MediaTypeCharsetFromJSON(json: any): MediaTypeCharset {
     return MediaTypeCharsetFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function MediaTypeCharsetToJSON(value?: MediaTypeCharset | null): any {
         'registered': value.registered,
     };
 }
-
 

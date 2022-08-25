@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { SubscriptionStatus } from './SubscriptionStatus';
 import {
-    SubscriptionStatus,
     SubscriptionStatusFromJSON,
     SubscriptionStatusFromJSONTyped,
     SubscriptionStatusToJSON,
-} from './';
+} from './SubscriptionStatus';
 
 /**
  * 
@@ -147,6 +147,15 @@ export interface SubscriptionEntity {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the SubscriptionEntity interface.
+ */
+export function instanceOfSubscriptionEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function SubscriptionEntityFromJSON(json: any): SubscriptionEntity {
     return SubscriptionEntityFromJSONTyped(json, false);
 }
@@ -211,5 +220,4 @@ export function SubscriptionEntityToJSON(value?: SubscriptionEntity | null): any
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

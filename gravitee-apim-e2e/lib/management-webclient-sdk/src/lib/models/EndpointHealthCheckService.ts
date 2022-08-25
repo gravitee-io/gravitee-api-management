@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { HealthCheckStep } from './HealthCheckStep';
 import {
-    HealthCheckStep,
     HealthCheckStepFromJSON,
     HealthCheckStepFromJSONTyped,
     HealthCheckStepToJSON,
-} from './';
+} from './HealthCheckStep';
 
 /**
  * 
@@ -49,6 +49,15 @@ export interface EndpointHealthCheckService {
      * @memberof EndpointHealthCheckService
      */
     steps?: Array<HealthCheckStep>;
+}
+
+/**
+ * Check if a given object implements the EndpointHealthCheckService interface.
+ */
+export function instanceOfEndpointHealthCheckService(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function EndpointHealthCheckServiceFromJSON(json: any): EndpointHealthCheckService {
@@ -83,5 +92,4 @@ export function EndpointHealthCheckServiceToJSON(value?: EndpointHealthCheckServ
         'steps': value.steps === undefined ? undefined : ((value.steps as Array<any>).map(HealthCheckStepToJSON)),
     };
 }
-
 

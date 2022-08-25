@@ -87,7 +87,7 @@ describe('Add condition on flows and test them', () => {
       envId,
       api: createdApi.id,
       newPlanEntity: PlansFaker.newPlan({
-        security: PlanSecurityType.KEYLESS,
+        security: PlanSecurityType.KEY_LESS,
         status: PlanStatus.PUBLISHED,
         flows: [
           fakeTestingFlow({
@@ -158,7 +158,7 @@ const fakeTestingFlow = ({ name, path, condition }: { name: string; path: string
     name: `[Testing flow] ${name}`,
     path_operator: {
       path,
-      operator: PathOperatorOperatorEnum.STARTSWITH,
+      operator: PathOperatorOperatorEnum.STARTS_WITH,
     },
     condition,
     consumers: [],

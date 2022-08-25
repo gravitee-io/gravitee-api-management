@@ -38,6 +38,16 @@ export interface TenantEntity {
     name: string;
 }
 
+/**
+ * Check if a given object implements the TenantEntity interface.
+ */
+export function instanceOfTenantEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function TenantEntityFromJSON(json: any): TenantEntity {
     return TenantEntityFromJSONTyped(json, false);
 }
@@ -68,5 +78,4 @@ export function TenantEntityToJSON(value?: TenantEntity | null): any {
         'name': value.name,
     };
 }
-
 

@@ -38,6 +38,15 @@ export interface UpdateApiQualityRuleEntity {
     quality_rule?: string;
 }
 
+/**
+ * Check if a given object implements the UpdateApiQualityRuleEntity interface.
+ */
+export function instanceOfUpdateApiQualityRuleEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function UpdateApiQualityRuleEntityFromJSON(json: any): UpdateApiQualityRuleEntity {
     return UpdateApiQualityRuleEntityFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function UpdateApiQualityRuleEntityToJSON(value?: UpdateApiQualityRuleEnt
         'quality_rule': value.quality_rule,
     };
 }
-
 

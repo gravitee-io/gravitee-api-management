@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum NotificationTemplateType {
-    EMAIL = 'EMAIL',
-    PORTAL = 'PORTAL'
-}
+export const NotificationTemplateType = {
+    EMAIL: 'EMAIL',
+    PORTAL: 'PORTAL'
+} as const;
+export type NotificationTemplateType = typeof NotificationTemplateType[keyof typeof NotificationTemplateType];
+
 
 export function NotificationTemplateTypeFromJSON(json: any): NotificationTemplateType {
     return NotificationTemplateTypeFromJSONTyped(json, false);

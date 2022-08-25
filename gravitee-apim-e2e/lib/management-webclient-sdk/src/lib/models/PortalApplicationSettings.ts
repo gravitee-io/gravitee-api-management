@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApplicationTypes } from './ApplicationTypes';
 import {
-    ApplicationTypes,
     ApplicationTypesFromJSON,
     ApplicationTypesFromJSONTyped,
     ApplicationTypesToJSON,
-    ClientRegistration,
+} from './ApplicationTypes';
+import type { ClientRegistration } from './ClientRegistration';
+import {
     ClientRegistrationFromJSON,
     ClientRegistrationFromJSONTyped,
     ClientRegistrationToJSON,
-} from './';
+} from './ClientRegistration';
 
 /**
  * 
@@ -41,6 +43,15 @@ export interface PortalApplicationSettings {
      * @memberof PortalApplicationSettings
      */
     types?: ApplicationTypes;
+}
+
+/**
+ * Check if a given object implements the PortalApplicationSettings interface.
+ */
+export function instanceOfPortalApplicationSettings(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PortalApplicationSettingsFromJSON(json: any): PortalApplicationSettings {
@@ -71,5 +82,4 @@ export function PortalApplicationSettingsToJSON(value?: PortalApplicationSetting
         'types': ApplicationTypesToJSON(value.types),
     };
 }
-
 

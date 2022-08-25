@@ -85,7 +85,7 @@ describe('Portal: Business Error - subscriptions', () => {
       envId,
       orgId,
       api: createdApi.id,
-      newPlanEntity: PlansFaker.newPlan({ security: PlanSecurityType.APIKEY, validation: PlanValidationType.AUTO }),
+      newPlanEntity: PlansFaker.newPlan({ security: PlanSecurityType.API_KEY, validation: PlanValidationType.AUTO }),
     });
 
     // publish the api plan
@@ -132,7 +132,7 @@ describe('Portal: Business Error - subscriptions', () => {
           envId,
           orgId,
           api: createdApi.id,
-          newPlanEntity: PlansFaker.newPlan({ security: PlanSecurityType.APIKEY, validation: PlanValidationType.AUTO }),
+          newPlanEntity: PlansFaker.newPlan({ security: PlanSecurityType.API_KEY, validation: PlanValidationType.AUTO }),
         });
 
         // publish the api plan

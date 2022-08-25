@@ -11,17 +11,19 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum AuditType {
-    ORGANIZATION = 'ORGANIZATION',
-    ENVIRONMENT = 'ENVIRONMENT',
-    APPLICATION = 'APPLICATION',
-    API = 'API'
-}
+export const AuditType = {
+    ORGANIZATION: 'ORGANIZATION',
+    ENVIRONMENT: 'ENVIRONMENT',
+    APPLICATION: 'APPLICATION',
+    API: 'API'
+} as const;
+export type AuditType = typeof AuditType[keyof typeof AuditType];
+
 
 export function AuditTypeFromJSON(json: any): AuditType {
     return AuditTypeFromJSONTyped(json, false);

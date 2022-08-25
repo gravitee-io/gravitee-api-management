@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  MetadataEntity,
+  NewMetadataEntity,
+  UpdateMetadataEntity,
+} from '../models';
 import {
-    MetadataEntity,
     MetadataEntityFromJSON,
     MetadataEntityToJSON,
-    NewMetadataEntity,
     NewMetadataEntityFromJSON,
     NewMetadataEntityToJSON,
-    UpdateMetadataEntity,
     UpdateMetadataEntityFromJSON,
     UpdateMetadataEntityToJSON,
 } from '../models';
@@ -57,7 +59,7 @@ export class MetadataApi extends runtime.BaseAPI {
      * User must have the PORTAL_METADATA[CREATE] permission to use this service
      * Create a platform metadata
      */
-    async createMetadataRaw(requestParameters: CreateMetadataRequest): Promise<runtime.ApiResponse<MetadataEntity>> {
+    async createMetadataRaw(requestParameters: CreateMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MetadataEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createMetadata.');
         }
@@ -70,7 +72,7 @@ export class MetadataApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newMetadataEntity','Required parameter requestParameters.newMetadataEntity was null or undefined when calling createMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -85,7 +87,7 @@ export class MetadataApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewMetadataEntityToJSON(requestParameters.newMetadataEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => MetadataEntityFromJSON(jsonValue));
     }
@@ -94,8 +96,8 @@ export class MetadataApi extends runtime.BaseAPI {
      * User must have the PORTAL_METADATA[CREATE] permission to use this service
      * Create a platform metadata
      */
-    async createMetadata(requestParameters: CreateMetadataRequest): Promise<MetadataEntity> {
-        const response = await this.createMetadataRaw(requestParameters);
+    async createMetadata(requestParameters: CreateMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MetadataEntity> {
+        const response = await this.createMetadataRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -103,7 +105,7 @@ export class MetadataApi extends runtime.BaseAPI {
      * User must have the PORTAL_METADATA[DELETE] permission to use this service
      * Delete a platform metadata
      */
-    async deleteMetadataRaw(requestParameters: DeleteMetadataRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteMetadataRaw(requestParameters: DeleteMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.metadata === null || requestParameters.metadata === undefined) {
             throw new runtime.RequiredError('metadata','Required parameter requestParameters.metadata was null or undefined when calling deleteMetadata.');
         }
@@ -116,7 +118,7 @@ export class MetadataApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -128,7 +130,7 @@ export class MetadataApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -137,15 +139,15 @@ export class MetadataApi extends runtime.BaseAPI {
      * User must have the PORTAL_METADATA[DELETE] permission to use this service
      * Delete a platform metadata
      */
-    async deleteMetadata(requestParameters: DeleteMetadataRequest): Promise<void> {
-        await this.deleteMetadataRaw(requestParameters);
+    async deleteMetadata(requestParameters: DeleteMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteMetadataRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the PORTAL_METADATA[READ] permission to use this service
      * Retrieve the list of platform metadata
      */
-    async getMetadatasRaw(requestParameters: GetMetadatasRequest): Promise<runtime.ApiResponse<Array<MetadataEntity>>> {
+    async getMetadatasRaw(requestParameters: GetMetadatasRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<MetadataEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getMetadatas.');
         }
@@ -154,7 +156,7 @@ export class MetadataApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getMetadatas.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -166,7 +168,7 @@ export class MetadataApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(MetadataEntityFromJSON));
     }
@@ -175,8 +177,8 @@ export class MetadataApi extends runtime.BaseAPI {
      * User must have the PORTAL_METADATA[READ] permission to use this service
      * Retrieve the list of platform metadata
      */
-    async getMetadatas(requestParameters: GetMetadatasRequest): Promise<Array<MetadataEntity>> {
-        const response = await this.getMetadatasRaw(requestParameters);
+    async getMetadatas(requestParameters: GetMetadatasRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<MetadataEntity>> {
+        const response = await this.getMetadatasRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -184,7 +186,7 @@ export class MetadataApi extends runtime.BaseAPI {
      * User must have the PORTAL_METADATA[UPDATE] permission to use this service
      * Update a platform metadata
      */
-    async updateMetadataRaw(requestParameters: UpdateMetadataRequest): Promise<runtime.ApiResponse<MetadataEntity>> {
+    async updateMetadataRaw(requestParameters: UpdateMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MetadataEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateMetadata.');
         }
@@ -197,7 +199,7 @@ export class MetadataApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateMetadataEntity','Required parameter requestParameters.updateMetadataEntity was null or undefined when calling updateMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -212,7 +214,7 @@ export class MetadataApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateMetadataEntityToJSON(requestParameters.updateMetadataEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => MetadataEntityFromJSON(jsonValue));
     }
@@ -221,8 +223,8 @@ export class MetadataApi extends runtime.BaseAPI {
      * User must have the PORTAL_METADATA[UPDATE] permission to use this service
      * Update a platform metadata
      */
-    async updateMetadata(requestParameters: UpdateMetadataRequest): Promise<MetadataEntity> {
-        const response = await this.updateMetadataRaw(requestParameters);
+    async updateMetadata(requestParameters: UpdateMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MetadataEntity> {
+        const response = await this.updateMetadataRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

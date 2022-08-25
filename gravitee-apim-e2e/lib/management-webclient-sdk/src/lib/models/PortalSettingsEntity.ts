@@ -12,72 +12,108 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Analytics } from './Analytics';
 import {
-    Analytics,
     AnalyticsFromJSON,
     AnalyticsFromJSONTyped,
     AnalyticsToJSON,
-    Api,
+} from './Analytics';
+import type { Api } from './Api';
+import {
     ApiFromJSON,
     ApiFromJSONTyped,
     ApiToJSON,
-    ApiQualityMetrics,
+} from './Api';
+import type { ApiQualityMetrics } from './ApiQualityMetrics';
+import {
     ApiQualityMetricsFromJSON,
     ApiQualityMetricsFromJSONTyped,
     ApiQualityMetricsToJSON,
-    ApiReview,
+} from './ApiQualityMetrics';
+import type { ApiReview } from './ApiReview';
+import {
     ApiReviewFromJSON,
     ApiReviewFromJSONTyped,
     ApiReviewToJSON,
-    Company,
+} from './ApiReview';
+import type { Company } from './Company';
+import {
     CompanyFromJSON,
     CompanyFromJSONTyped,
     CompanyToJSON,
-    Dashboards,
+} from './Company';
+import type { ConsoleSettingsEntityMetadata } from './ConsoleSettingsEntityMetadata';
+import {
+    ConsoleSettingsEntityMetadataFromJSON,
+    ConsoleSettingsEntityMetadataFromJSONTyped,
+    ConsoleSettingsEntityMetadataToJSON,
+} from './ConsoleSettingsEntityMetadata';
+import type { Dashboards } from './Dashboards';
+import {
     DashboardsFromJSON,
     DashboardsFromJSONTyped,
     DashboardsToJSON,
-    Documentation,
+} from './Dashboards';
+import type { Documentation } from './Documentation';
+import {
     DocumentationFromJSON,
     DocumentationFromJSONTyped,
     DocumentationToJSON,
-    Email,
+} from './Documentation';
+import type { Email } from './Email';
+import {
     EmailFromJSON,
     EmailFromJSONTyped,
     EmailToJSON,
-    OpenAPIDocViewer,
+} from './Email';
+import type { OpenAPIDocViewer } from './OpenAPIDocViewer';
+import {
     OpenAPIDocViewerFromJSON,
     OpenAPIDocViewerFromJSONTyped,
     OpenAPIDocViewerToJSON,
-    PlanSettings,
+} from './OpenAPIDocViewer';
+import type { PlanSettings } from './PlanSettings';
+import {
     PlanSettingsFromJSON,
     PlanSettingsFromJSONTyped,
     PlanSettingsToJSON,
-    Portal,
+} from './PlanSettings';
+import type { Portal } from './Portal';
+import {
     PortalFromJSON,
     PortalFromJSONTyped,
     PortalToJSON,
-    PortalApplicationSettings,
+} from './Portal';
+import type { PortalApplicationSettings } from './PortalApplicationSettings';
+import {
     PortalApplicationSettingsFromJSON,
     PortalApplicationSettingsFromJSONTyped,
     PortalApplicationSettingsToJSON,
-    PortalAuthentication,
+} from './PortalApplicationSettings';
+import type { PortalAuthentication } from './PortalAuthentication';
+import {
     PortalAuthenticationFromJSON,
     PortalAuthenticationFromJSONTyped,
     PortalAuthenticationToJSON,
-    PortalCors,
+} from './PortalAuthentication';
+import type { PortalCors } from './PortalCors';
+import {
     PortalCorsFromJSON,
     PortalCorsFromJSONTyped,
     PortalCorsToJSON,
-    PortalReCaptcha,
+} from './PortalCors';
+import type { PortalReCaptcha } from './PortalReCaptcha';
+import {
     PortalReCaptchaFromJSON,
     PortalReCaptchaFromJSONTyped,
     PortalReCaptchaToJSON,
-    PortalScheduler,
+} from './PortalReCaptcha';
+import type { PortalScheduler } from './PortalScheduler';
+import {
     PortalSchedulerFromJSON,
     PortalSchedulerFromJSONTyped,
     PortalSchedulerToJSON,
-} from './';
+} from './PortalScheduler';
 
 /**
  * 
@@ -153,10 +189,10 @@ export interface PortalSettingsEntity {
     email?: Email;
     /**
      * 
-     * @type {{ [key: string]: Array<string>; }}
+     * @type {ConsoleSettingsEntityMetadata}
      * @memberof PortalSettingsEntity
      */
-    readonly metadata?: { [key: string]: Array<string>; };
+    metadata?: ConsoleSettingsEntityMetadata;
     /**
      * 
      * @type {OpenAPIDocViewer}
@@ -189,6 +225,15 @@ export interface PortalSettingsEntity {
     scheduler?: PortalScheduler;
 }
 
+/**
+ * Check if a given object implements the PortalSettingsEntity interface.
+ */
+export function instanceOfPortalSettingsEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PortalSettingsEntityFromJSON(json: any): PortalSettingsEntity {
     return PortalSettingsEntityFromJSONTyped(json, false);
 }
@@ -210,7 +255,7 @@ export function PortalSettingsEntityFromJSONTyped(json: any, ignoreDiscriminator
         'dashboards': !exists(json, 'dashboards') ? undefined : DashboardsFromJSON(json['dashboards']),
         'documentation': !exists(json, 'documentation') ? undefined : DocumentationFromJSON(json['documentation']),
         'email': !exists(json, 'email') ? undefined : EmailFromJSON(json['email']),
-        'metadata': !exists(json, 'metadata') ? undefined : json['metadata'],
+        'metadata': !exists(json, 'metadata') ? undefined : ConsoleSettingsEntityMetadataFromJSON(json['metadata']),
         'openAPIDocViewer': !exists(json, 'openAPIDocViewer') ? undefined : OpenAPIDocViewerFromJSON(json['openAPIDocViewer']),
         'plan': !exists(json, 'plan') ? undefined : PlanSettingsFromJSON(json['plan']),
         'portal': !exists(json, 'portal') ? undefined : PortalFromJSON(json['portal']),
@@ -239,6 +284,7 @@ export function PortalSettingsEntityToJSON(value?: PortalSettingsEntity | null):
         'dashboards': DashboardsToJSON(value.dashboards),
         'documentation': DocumentationToJSON(value.documentation),
         'email': EmailToJSON(value.email),
+        'metadata': ConsoleSettingsEntityMetadataToJSON(value.metadata),
         'openAPIDocViewer': OpenAPIDocViewerToJSON(value.openAPIDocViewer),
         'plan': PlanSettingsToJSON(value.plan),
         'portal': PortalToJSON(value.portal),
@@ -246,5 +292,4 @@ export function PortalSettingsEntityToJSON(value?: PortalSettingsEntity | null):
         'scheduler': PortalSchedulerToJSON(value.scheduler),
     };
 }
-
 

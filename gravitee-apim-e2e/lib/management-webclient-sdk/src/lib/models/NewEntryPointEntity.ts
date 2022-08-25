@@ -32,6 +32,17 @@ export interface NewEntryPointEntity {
     value: string;
 }
 
+/**
+ * Check if a given object implements the NewEntryPointEntity interface.
+ */
+export function instanceOfNewEntryPointEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "tags" in value;
+    isInstance = isInstance && "value" in value;
+
+    return isInstance;
+}
+
 export function NewEntryPointEntityFromJSON(json: any): NewEntryPointEntity {
     return NewEntryPointEntityFromJSONTyped(json, false);
 }
@@ -60,5 +71,4 @@ export function NewEntryPointEntityToJSON(value?: NewEntryPointEntity | null): a
         'value': value.value,
     };
 }
-
 

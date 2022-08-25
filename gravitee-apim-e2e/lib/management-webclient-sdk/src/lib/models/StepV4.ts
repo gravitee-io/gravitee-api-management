@@ -56,6 +56,18 @@ export interface StepV4 {
     policy: string;
 }
 
+/**
+ * Check if a given object implements the StepV4 interface.
+ */
+export function instanceOfStepV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "description" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "policy" in value;
+
+    return isInstance;
+}
+
 export function StepV4FromJSON(json: any): StepV4 {
     return StepV4FromJSONTyped(json, false);
 }
@@ -92,5 +104,4 @@ export function StepV4ToJSON(value?: StepV4 | null): any {
         'policy': value.policy,
     };
 }
-
 

@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AggregationConditionAllOf } from './AggregationConditionAllOf';
 import {
-    AggregationConditionAllOf,
     AggregationConditionAllOfFromJSON,
     AggregationConditionAllOfFromJSONTyped,
     AggregationConditionAllOfToJSON,
-    Condition,
+} from './AggregationConditionAllOf';
+import type { Condition } from './Condition';
+import {
     ConditionFromJSON,
     ConditionFromJSONTyped,
     ConditionToJSON,
-    Projection,
+} from './Condition';
+import type { Projection } from './Projection';
+import {
     ProjectionFromJSON,
     ProjectionFromJSONTyped,
     ProjectionToJSON,
-} from './';
+} from './Projection';
 
 /**
  * 
@@ -71,6 +75,61 @@ export interface AggregationCondition extends Condition {
     duration: number;
 }
 
+
+/**
+ * @export
+ */
+export const AggregationConditionFunctionEnum = {
+    COUNT: 'COUNT',
+    AVG: 'AVG',
+    MIN: 'MIN',
+    MAX: 'MAX',
+    P50: 'P50',
+    P90: 'P90',
+    P95: 'P95',
+    P99: 'P99'
+} as const;
+export type AggregationConditionFunctionEnum = typeof AggregationConditionFunctionEnum[keyof typeof AggregationConditionFunctionEnum];
+
+/**
+ * @export
+ */
+export const AggregationConditionOperatorEnum = {
+    LT: 'LT',
+    LTE: 'LTE',
+    GTE: 'GTE',
+    GT: 'GT'
+} as const;
+export type AggregationConditionOperatorEnum = typeof AggregationConditionOperatorEnum[keyof typeof AggregationConditionOperatorEnum];
+
+/**
+ * @export
+ */
+export const AggregationConditionTimeUnitEnum = {
+    NANOSECONDS: 'NANOSECONDS',
+    MICROSECONDS: 'MICROSECONDS',
+    MILLISECONDS: 'MILLISECONDS',
+    SECONDS: 'SECONDS',
+    MINUTES: 'MINUTES',
+    HOURS: 'HOURS',
+    DAYS: 'DAYS'
+} as const;
+export type AggregationConditionTimeUnitEnum = typeof AggregationConditionTimeUnitEnum[keyof typeof AggregationConditionTimeUnitEnum];
+
+
+/**
+ * Check if a given object implements the AggregationCondition interface.
+ */
+export function instanceOfAggregationCondition(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "_function" in value;
+    isInstance = isInstance && "operator" in value;
+    isInstance = isInstance && "threshold" in value;
+    isInstance = isInstance && "duration" in value;
+
+    return isInstance;
+}
+
 export function AggregationConditionFromJSON(json: any): AggregationCondition {
     return AggregationConditionFromJSONTyped(json, false);
 }
@@ -107,43 +166,4 @@ export function AggregationConditionToJSON(value?: AggregationCondition | null):
         'duration': value.duration,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum AggregationConditionFunctionEnum {
-    COUNT = 'COUNT',
-    AVG = 'AVG',
-    MIN = 'MIN',
-    MAX = 'MAX',
-    P50 = 'P50',
-    P90 = 'P90',
-    P95 = 'P95',
-    P99 = 'P99'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum AggregationConditionOperatorEnum {
-    LT = 'LT',
-    LTE = 'LTE',
-    GTE = 'GTE',
-    GT = 'GT'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum AggregationConditionTimeUnitEnum {
-    NANOSECONDS = 'NANOSECONDS',
-    MICROSECONDS = 'MICROSECONDS',
-    MILLISECONDS = 'MILLISECONDS',
-    SECONDS = 'SECONDS',
-    MINUTES = 'MINUTES',
-    HOURS = 'HOURS',
-    DAYS = 'DAYS'
-}
-
 

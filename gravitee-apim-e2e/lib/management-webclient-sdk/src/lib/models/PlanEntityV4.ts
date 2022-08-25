@@ -12,24 +12,30 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { FlowV4 } from './FlowV4';
 import {
-    FlowV4,
     FlowV4FromJSON,
     FlowV4FromJSONTyped,
     FlowV4ToJSON,
-    PlanSecurityV4,
+} from './FlowV4';
+import type { PlanSecurityV4 } from './PlanSecurityV4';
+import {
     PlanSecurityV4FromJSON,
     PlanSecurityV4FromJSONTyped,
     PlanSecurityV4ToJSON,
-    PlanTypeV4,
+} from './PlanSecurityV4';
+import type { PlanTypeV4 } from './PlanTypeV4';
+import {
     PlanTypeV4FromJSON,
     PlanTypeV4FromJSONTyped,
     PlanTypeV4ToJSON,
-    PlanValidationTypeV4,
+} from './PlanTypeV4';
+import type { PlanValidationTypeV4 } from './PlanValidationTypeV4';
+import {
     PlanValidationTypeV4FromJSON,
     PlanValidationTypeV4FromJSONTyped,
     PlanValidationTypeV4ToJSON,
-} from './';
+} from './PlanValidationTypeV4';
 
 /**
  * A list of plans to apply on the API
@@ -171,6 +177,28 @@ export interface PlanEntityV4 {
     validation?: PlanValidationTypeV4;
 }
 
+
+/**
+ * @export
+ */
+export const PlanEntityV4StatusEnum = {
+    STAGING: 'STAGING',
+    PUBLISHED: 'PUBLISHED',
+    DEPRECATED: 'DEPRECATED',
+    CLOSED: 'CLOSED'
+} as const;
+export type PlanEntityV4StatusEnum = typeof PlanEntityV4StatusEnum[keyof typeof PlanEntityV4StatusEnum];
+
+
+/**
+ * Check if a given object implements the PlanEntityV4 interface.
+ */
+export function instanceOfPlanEntityV4(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PlanEntityV4FromJSON(json: any): PlanEntityV4 {
     return PlanEntityV4FromJSONTyped(json, false);
 }
@@ -239,16 +267,4 @@ export function PlanEntityV4ToJSON(value?: PlanEntityV4 | null): any {
         'validation': PlanValidationTypeV4ToJSON(value.validation),
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum PlanEntityV4StatusEnum {
-    STAGING = 'STAGING',
-    PUBLISHED = 'PUBLISHED',
-    DEPRECATED = 'DEPRECATED',
-    CLOSED = 'CLOSED'
-}
-
 

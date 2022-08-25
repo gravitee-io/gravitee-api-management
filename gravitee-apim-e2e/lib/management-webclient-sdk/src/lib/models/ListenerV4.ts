@@ -11,26 +11,34 @@
  * Do not edit the class manually.
  */
 
-import { exists, mapValues } from '../runtime';
 import {
-     ListenerHttpV4FromJSONTyped,
-     ListenerTcpV4FromJSONTyped,
-     ListenerSubscriptionV4FromJSONTyped
-} from './';
+    ListenerHttpV4,
+    instanceOfListenerHttpV4,
+    ListenerHttpV4FromJSON,
+    ListenerHttpV4FromJSONTyped,
+    ListenerHttpV4ToJSON,
+} from './ListenerHttpV4';
+import {
+    ListenerSubscriptionV4,
+    instanceOfListenerSubscriptionV4,
+    ListenerSubscriptionV4FromJSON,
+    ListenerSubscriptionV4FromJSONTyped,
+    ListenerSubscriptionV4ToJSON,
+} from './ListenerSubscriptionV4';
+import {
+    ListenerTcpV4,
+    instanceOfListenerTcpV4,
+    ListenerTcpV4FromJSON,
+    ListenerTcpV4FromJSONTyped,
+    ListenerTcpV4ToJSON,
+} from './ListenerTcpV4';
 
 /**
+ * @type ListenerV4
  * A list of listeners used to describe our you api could be reached.
  * @export
- * @interface ListenerV4
  */
-export interface ListenerV4 {
-    /**
-     * 
-     * @type {string}
-     * @memberof ListenerV4
-     */
-    type: ListenerV4TypeEnum;
-}
+export type ListenerV4 = { type: 'http' } & ListenerHttpV4 | { type: 'subscription' } & ListenerSubscriptionV4 | { type: 'tcp' } & ListenerTcpV4;
 
 export function ListenerV4FromJSON(json: any): ListenerV4 {
     return ListenerV4FromJSONTyped(json, false);
@@ -40,21 +48,16 @@ export function ListenerV4FromJSONTyped(json: any, ignoreDiscriminator: boolean)
     if ((json === undefined) || (json === null)) {
         return json;
     }
-    if (!ignoreDiscriminator) {
-        if (json['type'] === 'http') {
-            return ListenerHttpV4FromJSONTyped(json, true);
-        }
-        if (json['type'] === 'tcp') {
-            return ListenerTcpV4FromJSONTyped(json, true);
-        }
-        if (json['type'] === 'subscription') {
-            return ListenerSubscriptionV4FromJSONTyped(json, true);
-        }
+    switch (json['type']) {
+        case 'http':
+            return {...ListenerHttpV4FromJSONTyped(json, true), type: 'http'};
+        case 'subscription':
+            return {...ListenerSubscriptionV4FromJSONTyped(json, true), type: 'subscription'};
+        case 'tcp':
+            return {...ListenerTcpV4FromJSONTyped(json, true), type: 'tcp'};
+        default:
+            throw new Error(`No variant of ListenerV4 exists with 'type=${json['type']}'`);
     }
-    return {
-        
-        'type': json['type'],
-    };
 }
 
 export function ListenerV4ToJSON(value?: ListenerV4 | null): any {
@@ -64,20 +67,16 @@ export function ListenerV4ToJSON(value?: ListenerV4 | null): any {
     if (value === null) {
         return null;
     }
-    return {
-        
-        'type': value.type,
-    };
-}
+    switch (value['type']) {
+        case 'http':
+            return ListenerHttpV4ToJSON(value);
+        case 'subscription':
+            return ListenerSubscriptionV4ToJSON(value);
+        case 'tcp':
+            return ListenerTcpV4ToJSON(value);
+        default:
+            throw new Error(`No variant of ListenerV4 exists with 'type=${value['type']}'`);
+    }
 
-/**
-* @export
-* @enum {string}
-*/
-export enum ListenerV4TypeEnum {
-    HTTP = 'HTTP',
-    SUBSCRIPTION = 'SUBSCRIPTION',
-    TCP = 'TCP'
 }
-
 

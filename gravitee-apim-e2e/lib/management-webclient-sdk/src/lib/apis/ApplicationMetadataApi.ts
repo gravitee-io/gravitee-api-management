@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ApplicationMetadataEntity,
+  NewApplicationMetadataEntity,
+  UpdateApplicationMetadataEntity,
+} from '../models';
 import {
-    ApplicationMetadataEntity,
     ApplicationMetadataEntityFromJSON,
     ApplicationMetadataEntityToJSON,
-    NewApplicationMetadataEntity,
     NewApplicationMetadataEntityFromJSON,
     NewApplicationMetadataEntityToJSON,
-    UpdateApplicationMetadataEntity,
     UpdateApplicationMetadataEntityFromJSON,
     UpdateApplicationMetadataEntityToJSON,
 } from '../models';
@@ -69,7 +71,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[CREATE] permission to use this service
      * Create an application metadata
      */
-    async createApplicationMetadataRaw(requestParameters: CreateApplicationMetadataRequest): Promise<runtime.ApiResponse<ApplicationMetadataEntity>> {
+    async createApplicationMetadataRaw(requestParameters: CreateApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationMetadataEntity>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling createApplicationMetadata.');
         }
@@ -86,7 +88,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newApplicationMetadataEntity','Required parameter requestParameters.newApplicationMetadataEntity was null or undefined when calling createApplicationMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -101,7 +103,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewApplicationMetadataEntityToJSON(requestParameters.newApplicationMetadataEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationMetadataEntityFromJSON(jsonValue));
     }
@@ -110,8 +112,8 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[CREATE] permission to use this service
      * Create an application metadata
      */
-    async createApplicationMetadata(requestParameters: CreateApplicationMetadataRequest): Promise<ApplicationMetadataEntity> {
-        const response = await this.createApplicationMetadataRaw(requestParameters);
+    async createApplicationMetadata(requestParameters: CreateApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationMetadataEntity> {
+        const response = await this.createApplicationMetadataRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -119,7 +121,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[DELETE] permission to use this service
      * Delete a metadata
      */
-    async deleteApplicationMetadataRaw(requestParameters: DeleteApplicationMetadataRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteApplicationMetadataRaw(requestParameters: DeleteApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.metadata === null || requestParameters.metadata === undefined) {
             throw new runtime.RequiredError('metadata','Required parameter requestParameters.metadata was null or undefined when calling deleteApplicationMetadata.');
         }
@@ -136,7 +138,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApplicationMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -148,7 +150,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -157,15 +159,15 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[DELETE] permission to use this service
      * Delete a metadata
      */
-    async deleteApplicationMetadata(requestParameters: DeleteApplicationMetadataRequest): Promise<void> {
-        await this.deleteApplicationMetadataRaw(requestParameters);
+    async deleteApplicationMetadata(requestParameters: DeleteApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteApplicationMetadataRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the APPLICATION_METADATA[READ] permission to use this service
      * A metadata for an application and metadata id
      */
-    async getApplicationMetadataRaw(requestParameters: GetApplicationMetadataRequest): Promise<runtime.ApiResponse<ApplicationMetadataEntity>> {
+    async getApplicationMetadataRaw(requestParameters: GetApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationMetadataEntity>> {
         if (requestParameters.metadata === null || requestParameters.metadata === undefined) {
             throw new runtime.RequiredError('metadata','Required parameter requestParameters.metadata was null or undefined when calling getApplicationMetadata.');
         }
@@ -182,7 +184,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -194,7 +196,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationMetadataEntityFromJSON(jsonValue));
     }
@@ -203,8 +205,8 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[READ] permission to use this service
      * A metadata for an application and metadata id
      */
-    async getApplicationMetadata(requestParameters: GetApplicationMetadataRequest): Promise<ApplicationMetadataEntity> {
-        const response = await this.getApplicationMetadataRaw(requestParameters);
+    async getApplicationMetadata(requestParameters: GetApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationMetadataEntity> {
+        const response = await this.getApplicationMetadataRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -212,7 +214,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[READ] permission to use this service
      * List metadata for an application
      */
-    async getApplicationMetadatasRaw(requestParameters: GetApplicationMetadatasRequest): Promise<runtime.ApiResponse<Array<ApplicationMetadataEntity>>> {
+    async getApplicationMetadatasRaw(requestParameters: GetApplicationMetadatasRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApplicationMetadataEntity>>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationMetadatas.');
         }
@@ -225,7 +227,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationMetadatas.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -237,7 +239,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApplicationMetadataEntityFromJSON));
     }
@@ -246,8 +248,8 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[READ] permission to use this service
      * List metadata for an application
      */
-    async getApplicationMetadatas(requestParameters: GetApplicationMetadatasRequest): Promise<Array<ApplicationMetadataEntity>> {
-        const response = await this.getApplicationMetadatasRaw(requestParameters);
+    async getApplicationMetadatas(requestParameters: GetApplicationMetadatasRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApplicationMetadataEntity>> {
+        const response = await this.getApplicationMetadatasRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -255,7 +257,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[UPDATE] permission to use this service
      * Update an application metadata
      */
-    async updateApplicationMetadataRaw(requestParameters: UpdateApplicationMetadataRequest): Promise<runtime.ApiResponse<ApplicationMetadataEntity>> {
+    async updateApplicationMetadataRaw(requestParameters: UpdateApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApplicationMetadataEntity>> {
         if (requestParameters.metadata === null || requestParameters.metadata === undefined) {
             throw new runtime.RequiredError('metadata','Required parameter requestParameters.metadata was null or undefined when calling updateApplicationMetadata.');
         }
@@ -276,7 +278,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateApplicationMetadataEntity','Required parameter requestParameters.updateApplicationMetadataEntity was null or undefined when calling updateApplicationMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -291,7 +293,7 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateApplicationMetadataEntityToJSON(requestParameters.updateApplicationMetadataEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationMetadataEntityFromJSON(jsonValue));
     }
@@ -300,8 +302,8 @@ export class ApplicationMetadataApi extends runtime.BaseAPI {
      * User must have the APPLICATION_METADATA[UPDATE] permission to use this service
      * Update an application metadata
      */
-    async updateApplicationMetadata(requestParameters: UpdateApplicationMetadataRequest): Promise<ApplicationMetadataEntity> {
-        const response = await this.updateApplicationMetadataRaw(requestParameters);
+    async updateApplicationMetadata(requestParameters: UpdateApplicationMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApplicationMetadataEntity> {
+        const response = await this.updateApplicationMetadataRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

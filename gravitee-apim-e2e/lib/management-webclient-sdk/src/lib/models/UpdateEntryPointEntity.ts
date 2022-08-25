@@ -38,6 +38,17 @@ export interface UpdateEntryPointEntity {
     value: string;
 }
 
+/**
+ * Check if a given object implements the UpdateEntryPointEntity interface.
+ */
+export function instanceOfUpdateEntryPointEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "tags" in value;
+    isInstance = isInstance && "value" in value;
+
+    return isInstance;
+}
+
 export function UpdateEntryPointEntityFromJSON(json: any): UpdateEntryPointEntity {
     return UpdateEntryPointEntityFromJSONTyped(json, false);
 }
@@ -68,5 +79,4 @@ export function UpdateEntryPointEntityToJSON(value?: UpdateEntryPointEntity | nu
         'value': value.value,
     };
 }
-
 

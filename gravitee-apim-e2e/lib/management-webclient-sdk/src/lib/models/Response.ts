@@ -12,6 +12,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { RequestHeaders } from './RequestHeaders';
+import {
+    RequestHeadersFromJSON,
+    RequestHeadersFromJSONTyped,
+    RequestHeadersToJSON,
+} from './RequestHeaders';
+
 /**
  * 
  * @export
@@ -26,16 +33,25 @@ export interface Response {
     body?: string;
     /**
      * 
-     * @type {{ [key: string]: Array<string>; }}
+     * @type {RequestHeaders}
      * @memberof Response
      */
-    headers?: { [key: string]: Array<string>; };
+    headers?: RequestHeaders;
     /**
      * 
      * @type {number}
      * @memberof Response
      */
     status?: number;
+}
+
+/**
+ * Check if a given object implements the Response interface.
+ */
+export function instanceOfResponse(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function ResponseFromJSON(json: any): Response {
@@ -49,7 +65,7 @@ export function ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
     return {
         
         'body': !exists(json, 'body') ? undefined : json['body'],
-        'headers': !exists(json, 'headers') ? undefined : json['headers'],
+        'headers': !exists(json, 'headers') ? undefined : RequestHeadersFromJSON(json['headers']),
         'status': !exists(json, 'status') ? undefined : json['status'],
     };
 }
@@ -64,9 +80,8 @@ export function ResponseToJSON(value?: Response | null): any {
     return {
         
         'body': value.body,
-        'headers': value.headers,
+        'headers': RequestHeadersToJSON(value.headers),
         'status': value.status,
     };
 }
-
 

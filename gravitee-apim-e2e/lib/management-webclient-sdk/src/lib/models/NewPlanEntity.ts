@@ -12,32 +12,42 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Flow } from './Flow';
 import {
-    Flow,
     FlowFromJSON,
     FlowFromJSONTyped,
     FlowToJSON,
-    PlanSecurityType,
+} from './Flow';
+import type { PlanSecurityType } from './PlanSecurityType';
+import {
     PlanSecurityTypeFromJSON,
     PlanSecurityTypeFromJSONTyped,
     PlanSecurityTypeToJSON,
-    PlanStatus,
+} from './PlanSecurityType';
+import type { PlanStatus } from './PlanStatus';
+import {
     PlanStatusFromJSON,
     PlanStatusFromJSONTyped,
     PlanStatusToJSON,
-    PlanType,
+} from './PlanStatus';
+import type { PlanType } from './PlanType';
+import {
     PlanTypeFromJSON,
     PlanTypeFromJSONTyped,
     PlanTypeToJSON,
-    PlanValidationType,
+} from './PlanType';
+import type { PlanValidationType } from './PlanValidationType';
+import {
     PlanValidationTypeFromJSON,
     PlanValidationTypeFromJSONTyped,
     PlanValidationTypeToJSON,
-    Rule,
+} from './PlanValidationType';
+import type { Rule } from './Rule';
+import {
     RuleFromJSON,
     RuleFromJSONTyped,
     RuleToJSON,
-} from './';
+} from './Rule';
 
 /**
  * 
@@ -167,6 +177,23 @@ export interface NewPlanEntity {
     validation: PlanValidationType;
 }
 
+/**
+ * Check if a given object implements the NewPlanEntity interface.
+ */
+export function instanceOfNewPlanEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "description" in value;
+    isInstance = isInstance && "flows" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "paths" in value;
+    isInstance = isInstance && "security" in value;
+    isInstance = isInstance && "status" in value;
+    isInstance = isInstance && "type" in value;
+    isInstance = isInstance && "validation" in value;
+
+    return isInstance;
+}
+
 export function NewPlanEntityFromJSON(json: any): NewPlanEntity {
     return NewPlanEntityFromJSONTyped(json, false);
 }
@@ -231,5 +258,4 @@ export function NewPlanEntityToJSON(value?: NewPlanEntity | null): any {
         'validation': PlanValidationTypeToJSON(value.validation),
     };
 }
-
 

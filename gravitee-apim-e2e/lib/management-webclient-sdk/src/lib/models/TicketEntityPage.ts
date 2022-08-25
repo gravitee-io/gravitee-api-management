@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { TicketEntity } from './TicketEntity';
 import {
-    TicketEntity,
     TicketEntityFromJSON,
     TicketEntityFromJSONTyped,
     TicketEntityToJSON,
-} from './';
+} from './TicketEntity';
 
 /**
  * 
@@ -49,6 +49,15 @@ export interface TicketEntityPage {
      * @memberof TicketEntityPage
      */
     totalElements?: number;
+}
+
+/**
+ * Check if a given object implements the TicketEntityPage interface.
+ */
+export function instanceOfTicketEntityPage(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function TicketEntityPageFromJSON(json: any): TicketEntityPage {
@@ -83,5 +92,4 @@ export function TicketEntityPageToJSON(value?: TicketEntityPage | null): any {
         'totalElements': value.totalElements,
     };
 }
-
 

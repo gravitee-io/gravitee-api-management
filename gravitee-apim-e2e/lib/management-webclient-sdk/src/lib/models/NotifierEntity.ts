@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { PluginEntity } from './PluginEntity';
 import {
-    PluginEntity,
     PluginEntityFromJSON,
     PluginEntityFromJSONTyped,
     PluginEntityToJSON,
-} from './';
+} from './PluginEntity';
 
 /**
  * 
@@ -57,6 +57,15 @@ export interface NotifierEntity {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the NotifierEntity interface.
+ */
+export function instanceOfNotifierEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function NotifierEntityFromJSON(json: any): NotifierEntity {
     return NotifierEntityFromJSONTyped(json, false);
 }
@@ -91,5 +100,4 @@ export function NotifierEntityToJSON(value?: NotifierEntity | null): any {
         'version': value.version,
     };
 }
-
 

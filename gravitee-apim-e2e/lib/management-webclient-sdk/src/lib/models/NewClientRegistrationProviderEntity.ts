@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { InitialAccessTokenType } from './InitialAccessTokenType';
 import {
-    InitialAccessTokenType,
     InitialAccessTokenTypeFromJSON,
     InitialAccessTokenTypeFromJSONTyped,
     InitialAccessTokenTypeToJSON,
-} from './';
+} from './InitialAccessTokenType';
 
 /**
  * 
@@ -99,6 +99,18 @@ export interface NewClientRegistrationProviderEntity {
     software_id?: string;
 }
 
+/**
+ * Check if a given object implements the NewClientRegistrationProviderEntity interface.
+ */
+export function instanceOfNewClientRegistrationProviderEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "discovery_endpoint" in value;
+    isInstance = isInstance && "initial_access_token_type" in value;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function NewClientRegistrationProviderEntityFromJSON(json: any): NewClientRegistrationProviderEntity {
     return NewClientRegistrationProviderEntityFromJSONTyped(json, false);
 }
@@ -147,5 +159,4 @@ export function NewClientRegistrationProviderEntityToJSON(value?: NewClientRegis
         'software_id': value.software_id,
     };
 }
-
 

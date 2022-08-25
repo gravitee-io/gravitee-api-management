@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { expect, test } from '@jest/globals';
-import { ApiResponse } from 'lib/management-webclient-sdk/src/lib/runtime';
+import { ApiResponse, ResponseError } from 'lib/management-webclient-sdk/src/lib/runtime';
 
 interface PortalBusinessError {
   code: string;
@@ -32,19 +32,20 @@ export async function fail(
     await promise;
     throw new Error(`The test didn't fail as expected!`);
   } catch (error) {
-    if (error.status == undefined) {
-      throw error;
+    const response = error.response ? error.response : error;
+    if (response == undefined || response.status == undefined) {
+      throw response;
     }
-    if (error.status !== expectedStatus) {
-      console.debug(error);
+    if (response.status !== expectedStatus) {
+      console.debug(response);
     }
-    expect(error.status).toEqual(expectedStatus);
+    expect(response.status).toEqual(expectedStatus);
     if (expectedError != null) {
       if (typeof expectedError === 'string') {
-        const { message } = await error.json();
+        const { message } = await response.json();
         expect(message).toEqual(expectedError);
       } else {
-        const { errors } = await error.json();
+        const { errors } = await response.json();
         if (Array.isArray(expectedError)) {
           expect(errors).toHaveLength(expectedError.length);
           expect(errors).toEqual(expect.arrayContaining(expectedError.map((expectedError) => expect.objectContaining(expectedError))));
@@ -65,11 +66,12 @@ export async function authorized<T>(promise: Promise<ApiResponse<T>>, unexpected
     const response = await promise;
     expect(response.raw.status).not.toEqual(unexpectedStatus);
   } catch (error) {
-    if (error.status == undefined) {
-      throw error;
+    const response = error.response ? error.response : error;
+    if (response == undefined || response.status == undefined) {
+      throw response;
     }
-    expect(error.status).toBeDefined();
-    expect(error.status).not.toEqual(unexpectedStatus);
+    expect(response.status).toBeDefined();
+    expect(response.status).not.toEqual(unexpectedStatus);
   }
 }
 

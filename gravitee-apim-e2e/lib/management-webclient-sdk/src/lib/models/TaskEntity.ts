@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { TaskType } from './TaskType';
 import {
-    TaskType,
     TaskTypeFromJSON,
     TaskTypeFromJSONTyped,
     TaskTypeToJSON,
-} from './';
+} from './TaskType';
 
 /**
  * 
@@ -43,6 +43,15 @@ export interface TaskEntity {
      * @memberof TaskEntity
      */
     type?: TaskType;
+}
+
+/**
+ * Check if a given object implements the TaskEntity interface.
+ */
+export function instanceOfTaskEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function TaskEntityFromJSON(json: any): TaskEntity {
@@ -75,5 +84,4 @@ export function TaskEntityToJSON(value?: TaskEntity | null): any {
         'type': TaskTypeToJSON(value.type),
     };
 }
-
 

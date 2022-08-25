@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  DashboardEntity,
+  NewDashboardEntity,
+  UpdateDashboardEntity,
+} from '../models';
 import {
-    DashboardEntity,
     DashboardEntityFromJSON,
     DashboardEntityToJSON,
-    NewDashboardEntity,
     NewDashboardEntityFromJSON,
     NewDashboardEntityToJSON,
-    UpdateDashboardEntity,
     UpdateDashboardEntityFromJSON,
     UpdateDashboardEntityToJSON,
 } from '../models';
@@ -65,7 +67,7 @@ export class DashboardsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[CREATE] permission to use this service
      * Create a platform dashboard
      */
-    async createDashboardRaw(requestParameters: CreateDashboardRequest): Promise<runtime.ApiResponse<DashboardEntity>> {
+    async createDashboardRaw(requestParameters: CreateDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DashboardEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createDashboard.');
         }
@@ -78,7 +80,7 @@ export class DashboardsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newDashboardEntity','Required parameter requestParameters.newDashboardEntity was null or undefined when calling createDashboard.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -93,7 +95,7 @@ export class DashboardsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewDashboardEntityToJSON(requestParameters.newDashboardEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DashboardEntityFromJSON(jsonValue));
     }
@@ -102,8 +104,8 @@ export class DashboardsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[CREATE] permission to use this service
      * Create a platform dashboard
      */
-    async createDashboard(requestParameters: CreateDashboardRequest): Promise<DashboardEntity> {
-        const response = await this.createDashboardRaw(requestParameters);
+    async createDashboard(requestParameters: CreateDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DashboardEntity> {
+        const response = await this.createDashboardRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -111,7 +113,7 @@ export class DashboardsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[DELETE] permission to use this service
      * Delete a platform dashboard
      */
-    async deleteDashboardRaw(requestParameters: DeleteDashboardRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteDashboardRaw(requestParameters: DeleteDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.dashboardId === null || requestParameters.dashboardId === undefined) {
             throw new runtime.RequiredError('dashboardId','Required parameter requestParameters.dashboardId was null or undefined when calling deleteDashboard.');
         }
@@ -124,7 +126,7 @@ export class DashboardsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteDashboard.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -136,7 +138,7 @@ export class DashboardsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -145,15 +147,15 @@ export class DashboardsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[DELETE] permission to use this service
      * Delete a platform dashboard
      */
-    async deleteDashboard(requestParameters: DeleteDashboardRequest): Promise<void> {
-        await this.deleteDashboardRaw(requestParameters);
+    async deleteDashboard(requestParameters: DeleteDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteDashboardRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_DASHBOARD[READ] permission to use this service
      * Retrieve a platform dashboard
      */
-    async getDashboardRaw(requestParameters: GetDashboardRequest): Promise<runtime.ApiResponse<DashboardEntity>> {
+    async getDashboardRaw(requestParameters: GetDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DashboardEntity>> {
         if (requestParameters.dashboardId === null || requestParameters.dashboardId === undefined) {
             throw new runtime.RequiredError('dashboardId','Required parameter requestParameters.dashboardId was null or undefined when calling getDashboard.');
         }
@@ -166,7 +168,7 @@ export class DashboardsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getDashboard.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -178,7 +180,7 @@ export class DashboardsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DashboardEntityFromJSON(jsonValue));
     }
@@ -187,15 +189,15 @@ export class DashboardsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[READ] permission to use this service
      * Retrieve a platform dashboard
      */
-    async getDashboard(requestParameters: GetDashboardRequest): Promise<DashboardEntity> {
-        const response = await this.getDashboardRaw(requestParameters);
+    async getDashboard(requestParameters: GetDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DashboardEntity> {
+        const response = await this.getDashboardRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Retrieve the list of platform dashboards
      */
-    async getDashboardsRaw(requestParameters: GetDashboardsRequest): Promise<runtime.ApiResponse<Array<DashboardEntity>>> {
+    async getDashboardsRaw(requestParameters: GetDashboardsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<DashboardEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getDashboards.');
         }
@@ -204,7 +206,7 @@ export class DashboardsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getDashboards.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.referenceType !== undefined) {
             queryParameters['reference_type'] = requestParameters.referenceType;
@@ -220,7 +222,7 @@ export class DashboardsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(DashboardEntityFromJSON));
     }
@@ -228,8 +230,8 @@ export class DashboardsApi extends runtime.BaseAPI {
     /**
      * Retrieve the list of platform dashboards
      */
-    async getDashboards(requestParameters: GetDashboardsRequest): Promise<Array<DashboardEntity>> {
-        const response = await this.getDashboardsRaw(requestParameters);
+    async getDashboards(requestParameters: GetDashboardsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<DashboardEntity>> {
+        const response = await this.getDashboardsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -237,7 +239,7 @@ export class DashboardsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[UPDATE] permission to use this service
      * Update a platform dashboard
      */
-    async updateDashboardRaw(requestParameters: UpdateDashboardRequest): Promise<runtime.ApiResponse<DashboardEntity>> {
+    async updateDashboardRaw(requestParameters: UpdateDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DashboardEntity>> {
         if (requestParameters.dashboardId === null || requestParameters.dashboardId === undefined) {
             throw new runtime.RequiredError('dashboardId','Required parameter requestParameters.dashboardId was null or undefined when calling updateDashboard.');
         }
@@ -254,7 +256,7 @@ export class DashboardsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateDashboardEntity','Required parameter requestParameters.updateDashboardEntity was null or undefined when calling updateDashboard.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -269,7 +271,7 @@ export class DashboardsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateDashboardEntityToJSON(requestParameters.updateDashboardEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DashboardEntityFromJSON(jsonValue));
     }
@@ -278,20 +280,20 @@ export class DashboardsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[UPDATE] permission to use this service
      * Update a platform dashboard
      */
-    async updateDashboard(requestParameters: UpdateDashboardRequest): Promise<DashboardEntity> {
-        const response = await this.updateDashboardRaw(requestParameters);
+    async updateDashboard(requestParameters: UpdateDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DashboardEntity> {
+        const response = await this.updateDashboardRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
 }
 
 /**
-    * @export
-    * @enum {string}
-    */
-export enum GetDashboardsReferenceTypeEnum {
-    PLATFORM = 'PLATFORM',
-    API = 'API',
-    APPLICATION = 'APPLICATION',
-    HOME = 'HOME'
-}
+ * @export
+ */
+export const GetDashboardsReferenceTypeEnum = {
+    PLATFORM: 'PLATFORM',
+    API: 'API',
+    APPLICATION: 'APPLICATION',
+    HOME: 'HOME'
+} as const;
+export type GetDashboardsReferenceTypeEnum = typeof GetDashboardsReferenceTypeEnum[keyof typeof GetDashboardsReferenceTypeEnum];

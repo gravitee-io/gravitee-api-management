@@ -56,6 +56,15 @@ export interface Step {
     policy?: string;
 }
 
+/**
+ * Check if a given object implements the Step interface.
+ */
+export function instanceOfStep(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function StepFromJSON(json: any): Step {
     return StepFromJSONTyped(json, false);
 }
@@ -92,5 +101,4 @@ export function StepToJSON(value?: Step | null): any {
         'policy': value.policy,
     };
 }
-
 

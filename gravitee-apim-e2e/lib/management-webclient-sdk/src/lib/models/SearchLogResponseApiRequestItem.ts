@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApiRequestItem } from './ApiRequestItem';
 import {
-    ApiRequestItem,
     ApiRequestItemFromJSON,
     ApiRequestItemFromJSONTyped,
     ApiRequestItemToJSON,
-} from './';
+} from './ApiRequestItem';
 
 /**
  * 
@@ -43,6 +43,15 @@ export interface SearchLogResponseApiRequestItem {
      * @memberof SearchLogResponseApiRequestItem
      */
     total?: number;
+}
+
+/**
+ * Check if a given object implements the SearchLogResponseApiRequestItem interface.
+ */
+export function instanceOfSearchLogResponseApiRequestItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function SearchLogResponseApiRequestItemFromJSON(json: any): SearchLogResponseApiRequestItem {
@@ -75,5 +84,4 @@ export function SearchLogResponseApiRequestItemToJSON(value?: SearchLogResponseA
         'total': value.total,
     };
 }
-
 

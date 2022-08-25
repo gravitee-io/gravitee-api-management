@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApiStatus } from './ApiStatus';
 import {
-    ApiStatus,
     ApiStatusFromJSON,
     ApiStatusFromJSONTyped,
     ApiStatusToJSON,
-} from './';
+} from './ApiStatus';
 
 /**
  * 
@@ -31,6 +31,15 @@ export interface Dashboards {
      * @memberof Dashboards
      */
     apiStatus?: ApiStatus;
+}
+
+/**
+ * Check if a given object implements the Dashboards interface.
+ */
+export function instanceOfDashboards(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function DashboardsFromJSON(json: any): Dashboards {
@@ -59,5 +68,4 @@ export function DashboardsToJSON(value?: Dashboards | null): any {
         'apiStatus': ApiStatusToJSON(value.apiStatus),
     };
 }
-
 

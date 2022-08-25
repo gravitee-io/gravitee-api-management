@@ -13,23 +13,25 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  AnalyticsAverageType,
+  ApiMetrics,
+  HealthcheckField,
+  HealthcheckType,
+  Log,
+  SearchLogResponse,
+} from '../models';
 import {
-    AnalyticsAverageType,
     AnalyticsAverageTypeFromJSON,
     AnalyticsAverageTypeToJSON,
-    ApiMetrics,
     ApiMetricsFromJSON,
     ApiMetricsToJSON,
-    HealthcheckField,
     HealthcheckFieldFromJSON,
     HealthcheckFieldToJSON,
-    HealthcheckType,
     HealthcheckTypeFromJSON,
     HealthcheckTypeToJSON,
-    Log,
     LogFromJSON,
     LogToJSON,
-    SearchLogResponse,
     SearchLogResponseFromJSON,
     SearchLogResponseToJSON,
 } from '../models';
@@ -79,7 +81,7 @@ export class APIHealthApi extends runtime.BaseAPI {
     /**
      * Health-check statistics for API
      */
-    async getApiHealthRaw(requestParameters: GetApiHealthRequest): Promise<runtime.ApiResponse<ApiMetrics>> {
+    async getApiHealthRaw(requestParameters: GetApiHealthRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiMetrics>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiHealth.');
         }
@@ -92,7 +94,7 @@ export class APIHealthApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiHealth.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.type !== undefined) {
             queryParameters['type'] = requestParameters.type;
@@ -112,7 +114,7 @@ export class APIHealthApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiMetricsFromJSON(jsonValue));
     }
@@ -120,15 +122,15 @@ export class APIHealthApi extends runtime.BaseAPI {
     /**
      * Health-check statistics for API
      */
-    async getApiHealth(requestParameters: GetApiHealthRequest): Promise<ApiMetrics> {
-        const response = await this.getApiHealthRaw(requestParameters);
+    async getApiHealth(requestParameters: GetApiHealthRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiMetrics> {
+        const response = await this.getApiHealthRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Health-check average statistics for API
      */
-    async getApiHealthAverageRaw(requestParameters: GetApiHealthAverageRequest): Promise<runtime.ApiResponse<void>> {
+    async getApiHealthAverageRaw(requestParameters: GetApiHealthAverageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.type === null || requestParameters.type === undefined) {
             throw new runtime.RequiredError('type','Required parameter requestParameters.type was null or undefined when calling getApiHealthAverage.');
         }
@@ -145,7 +147,7 @@ export class APIHealthApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiHealthAverage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -173,7 +175,7 @@ export class APIHealthApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -181,14 +183,14 @@ export class APIHealthApi extends runtime.BaseAPI {
     /**
      * Health-check average statistics for API
      */
-    async getApiHealthAverage(requestParameters: GetApiHealthAverageRequest): Promise<void> {
-        await this.getApiHealthAverageRaw(requestParameters);
+    async getApiHealthAverage(requestParameters: GetApiHealthAverageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getApiHealthAverageRaw(requestParameters, initOverrides);
     }
 
     /**
      * Health-check log
      */
-    async getApiHealthCheckLogRaw(requestParameters: GetApiHealthCheckLogRequest): Promise<runtime.ApiResponse<Log>> {
+    async getApiHealthCheckLogRaw(requestParameters: GetApiHealthCheckLogRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Log>> {
         if (requestParameters.log === null || requestParameters.log === undefined) {
             throw new runtime.RequiredError('log','Required parameter requestParameters.log was null or undefined when calling getApiHealthCheckLog.');
         }
@@ -205,7 +207,7 @@ export class APIHealthApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiHealthCheckLog.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -217,7 +219,7 @@ export class APIHealthApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => LogFromJSON(jsonValue));
     }
@@ -225,15 +227,15 @@ export class APIHealthApi extends runtime.BaseAPI {
     /**
      * Health-check log
      */
-    async getApiHealthCheckLog(requestParameters: GetApiHealthCheckLogRequest): Promise<Log> {
-        const response = await this.getApiHealthCheckLogRaw(requestParameters);
+    async getApiHealthCheckLog(requestParameters: GetApiHealthCheckLogRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Log> {
+        const response = await this.getApiHealthCheckLogRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Health-check logs
      */
-    async getApiHealthCheckLogsRaw(requestParameters: GetApiHealthCheckLogsRequest): Promise<runtime.ApiResponse<SearchLogResponse>> {
+    async getApiHealthCheckLogsRaw(requestParameters: GetApiHealthCheckLogsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SearchLogResponse>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiHealthCheckLogs.');
         }
@@ -246,7 +248,7 @@ export class APIHealthApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiHealthCheckLogs.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -282,7 +284,7 @@ export class APIHealthApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => SearchLogResponseFromJSON(jsonValue));
     }
@@ -290,8 +292,8 @@ export class APIHealthApi extends runtime.BaseAPI {
     /**
      * Health-check logs
      */
-    async getApiHealthCheckLogs(requestParameters: GetApiHealthCheckLogsRequest): Promise<SearchLogResponse> {
-        const response = await this.getApiHealthCheckLogsRaw(requestParameters);
+    async getApiHealthCheckLogs(requestParameters: GetApiHealthCheckLogsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SearchLogResponse> {
+        const response = await this.getApiHealthCheckLogsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

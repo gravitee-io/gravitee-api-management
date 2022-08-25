@@ -64,6 +64,7 @@ export const forManagementAsSimpleUser = () => {
 export const forManagement = (auth: BasicAuthentication = ADMIN_USER, headers = {}) => {
   return new ManagementConfiguration({
     basePath: process.env.MANAGEMENT_BASE_URL,
+    // @ts-ignore
     fetchApi,
     ...auth,
     headers: { ...defaultHeaders, ...headers },

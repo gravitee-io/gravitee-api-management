@@ -12,60 +12,90 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Alert } from './Alert';
 import {
-    Alert,
     AlertFromJSON,
     AlertFromJSONTyped,
     AlertToJSON,
-    ConsoleAnalyticsPendo,
+} from './Alert';
+import type { ConsoleAnalyticsPendo } from './ConsoleAnalyticsPendo';
+import {
     ConsoleAnalyticsPendoFromJSON,
     ConsoleAnalyticsPendoFromJSONTyped,
     ConsoleAnalyticsPendoToJSON,
-    ConsoleAuthentication,
+} from './ConsoleAnalyticsPendo';
+import type { ConsoleAuthentication } from './ConsoleAuthentication';
+import {
     ConsoleAuthenticationFromJSON,
     ConsoleAuthenticationFromJSONTyped,
     ConsoleAuthenticationToJSON,
-    ConsoleCors,
+} from './ConsoleAuthentication';
+import type { ConsoleCors } from './ConsoleCors';
+import {
     ConsoleCorsFromJSON,
     ConsoleCorsFromJSONTyped,
     ConsoleCorsToJSON,
-    ConsoleReCaptcha,
+} from './ConsoleCors';
+import type { ConsoleReCaptcha } from './ConsoleReCaptcha';
+import {
     ConsoleReCaptchaFromJSON,
     ConsoleReCaptchaFromJSONTyped,
     ConsoleReCaptchaToJSON,
-    ConsoleScheduler,
+} from './ConsoleReCaptcha';
+import type { ConsoleScheduler } from './ConsoleScheduler';
+import {
     ConsoleSchedulerFromJSON,
     ConsoleSchedulerFromJSONTyped,
     ConsoleSchedulerToJSON,
-    Email,
+} from './ConsoleScheduler';
+import type { ConsoleSettingsEntityMetadata } from './ConsoleSettingsEntityMetadata';
+import {
+    ConsoleSettingsEntityMetadataFromJSON,
+    ConsoleSettingsEntityMetadataFromJSONTyped,
+    ConsoleSettingsEntityMetadataToJSON,
+} from './ConsoleSettingsEntityMetadata';
+import type { Email } from './Email';
+import {
     EmailFromJSON,
     EmailFromJSONTyped,
     EmailToJSON,
-    JupiterMode,
+} from './Email';
+import type { JupiterMode } from './JupiterMode';
+import {
     JupiterModeFromJSON,
     JupiterModeFromJSONTyped,
     JupiterModeToJSON,
-    Logging,
+} from './JupiterMode';
+import type { Logging } from './Logging';
+import {
     LoggingFromJSON,
     LoggingFromJSONTyped,
     LoggingToJSON,
-    Maintenance,
+} from './Logging';
+import type { Maintenance } from './Maintenance';
+import {
     MaintenanceFromJSON,
     MaintenanceFromJSONTyped,
     MaintenanceToJSON,
-    Management,
+} from './Maintenance';
+import type { Management } from './Management';
+import {
     ManagementFromJSON,
     ManagementFromJSONTyped,
     ManagementToJSON,
-    Newsletter,
+} from './Management';
+import type { Newsletter } from './Newsletter';
+import {
     NewsletterFromJSON,
     NewsletterFromJSONTyped,
     NewsletterToJSON,
-    Theme,
+} from './Newsletter';
+import type { Theme } from './Theme';
+import {
     ThemeFromJSON,
     ThemeFromJSONTyped,
     ThemeToJSON,
-} from './';
+} from './Theme';
 
 /**
  * 
@@ -129,10 +159,10 @@ export interface ConsoleSettingsEntity {
     management?: Management;
     /**
      * 
-     * @type {{ [key: string]: Array<string>; }}
+     * @type {ConsoleSettingsEntityMetadata}
      * @memberof ConsoleSettingsEntity
      */
-    readonly metadata?: { [key: string]: Array<string>; };
+    metadata?: ConsoleSettingsEntityMetadata;
     /**
      * 
      * @type {Newsletter}
@@ -159,6 +189,15 @@ export interface ConsoleSettingsEntity {
     theme?: Theme;
 }
 
+/**
+ * Check if a given object implements the ConsoleSettingsEntity interface.
+ */
+export function instanceOfConsoleSettingsEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ConsoleSettingsEntityFromJSON(json: any): ConsoleSettingsEntity {
     return ConsoleSettingsEntityFromJSONTyped(json, false);
 }
@@ -178,7 +217,7 @@ export function ConsoleSettingsEntityFromJSONTyped(json: any, ignoreDiscriminato
         'logging': !exists(json, 'logging') ? undefined : LoggingFromJSON(json['logging']),
         'maintenance': !exists(json, 'maintenance') ? undefined : MaintenanceFromJSON(json['maintenance']),
         'management': !exists(json, 'management') ? undefined : ManagementFromJSON(json['management']),
-        'metadata': !exists(json, 'metadata') ? undefined : json['metadata'],
+        'metadata': !exists(json, 'metadata') ? undefined : ConsoleSettingsEntityMetadataFromJSON(json['metadata']),
         'newsletter': !exists(json, 'newsletter') ? undefined : NewsletterFromJSON(json['newsletter']),
         'reCaptcha': !exists(json, 'reCaptcha') ? undefined : ConsoleReCaptchaFromJSON(json['reCaptcha']),
         'scheduler': !exists(json, 'scheduler') ? undefined : ConsoleSchedulerFromJSON(json['scheduler']),
@@ -204,11 +243,11 @@ export function ConsoleSettingsEntityToJSON(value?: ConsoleSettingsEntity | null
         'logging': LoggingToJSON(value.logging),
         'maintenance': MaintenanceToJSON(value.maintenance),
         'management': ManagementToJSON(value.management),
+        'metadata': ConsoleSettingsEntityMetadataToJSON(value.metadata),
         'newsletter': NewsletterToJSON(value.newsletter),
         'reCaptcha': ConsoleReCaptchaToJSON(value.reCaptcha),
         'scheduler': ConsoleSchedulerToJSON(value.scheduler),
         'theme': ThemeToJSON(value.theme),
     };
 }
-
 

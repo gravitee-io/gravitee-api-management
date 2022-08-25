@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  InstanceEntity,
+  MonitoringData,
+  PageInstanceListItem,
+} from '../models';
 import {
-    InstanceEntity,
     InstanceEntityFromJSON,
     InstanceEntityToJSON,
-    MonitoringData,
     MonitoringDataFromJSON,
     MonitoringDataToJSON,
-    PageInstanceListItem,
     PageInstanceListItemFromJSON,
     PageInstanceListItemToJSON,
 } from '../models';
@@ -56,7 +58,7 @@ export class GatewayApi extends runtime.BaseAPI {
     /**
      * Get a gateway instance
      */
-    async getInstanceRaw(requestParameters: GetInstanceRequest): Promise<runtime.ApiResponse<InstanceEntity>> {
+    async getInstanceRaw(requestParameters: GetInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<InstanceEntity>> {
         if (requestParameters.instance === null || requestParameters.instance === undefined) {
             throw new runtime.RequiredError('instance','Required parameter requestParameters.instance was null or undefined when calling getInstance.');
         }
@@ -69,7 +71,7 @@ export class GatewayApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getInstance.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -81,7 +83,7 @@ export class GatewayApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => InstanceEntityFromJSON(jsonValue));
     }
@@ -89,15 +91,15 @@ export class GatewayApi extends runtime.BaseAPI {
     /**
      * Get a gateway instance
      */
-    async getInstance(requestParameters: GetInstanceRequest): Promise<InstanceEntity> {
-        const response = await this.getInstanceRaw(requestParameters);
+    async getInstance(requestParameters: GetInstanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<InstanceEntity> {
+        const response = await this.getInstanceRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get monitoring metrics for a gateway instance
      */
-    async getInstanceMonitoringRaw(requestParameters: GetInstanceMonitoringRequest): Promise<runtime.ApiResponse<MonitoringData>> {
+    async getInstanceMonitoringRaw(requestParameters: GetInstanceMonitoringRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MonitoringData>> {
         if (requestParameters.gatewayId === null || requestParameters.gatewayId === undefined) {
             throw new runtime.RequiredError('gatewayId','Required parameter requestParameters.gatewayId was null or undefined when calling getInstanceMonitoring.');
         }
@@ -114,7 +116,7 @@ export class GatewayApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getInstanceMonitoring.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -126,7 +128,7 @@ export class GatewayApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => MonitoringDataFromJSON(jsonValue));
     }
@@ -134,15 +136,15 @@ export class GatewayApi extends runtime.BaseAPI {
     /**
      * Get monitoring metrics for a gateway instance
      */
-    async getInstanceMonitoring(requestParameters: GetInstanceMonitoringRequest): Promise<MonitoringData> {
-        const response = await this.getInstanceMonitoringRaw(requestParameters);
+    async getInstanceMonitoring(requestParameters: GetInstanceMonitoringRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MonitoringData> {
+        const response = await this.getInstanceMonitoringRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List gateway instances
      */
-    async getInstancesRaw(requestParameters: GetInstancesRequest): Promise<runtime.ApiResponse<PageInstanceListItem>> {
+    async getInstancesRaw(requestParameters: GetInstancesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageInstanceListItem>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getInstances.');
         }
@@ -151,7 +153,7 @@ export class GatewayApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getInstances.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.includeStopped !== undefined) {
             queryParameters['includeStopped'] = requestParameters.includeStopped;
@@ -183,7 +185,7 @@ export class GatewayApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageInstanceListItemFromJSON(jsonValue));
     }
@@ -191,8 +193,8 @@ export class GatewayApi extends runtime.BaseAPI {
     /**
      * List gateway instances
      */
-    async getInstances(requestParameters: GetInstancesRequest): Promise<PageInstanceListItem> {
-        const response = await this.getInstancesRaw(requestParameters);
+    async getInstances(requestParameters: GetInstancesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageInstanceListItem> {
+        const response = await this.getInstancesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

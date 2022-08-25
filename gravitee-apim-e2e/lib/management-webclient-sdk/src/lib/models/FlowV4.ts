@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Selector } from './Selector';
 import {
-    Selector,
     SelectorFromJSON,
     SelectorFromJSONTyped,
     SelectorToJSON,
-    StepV4,
+} from './Selector';
+import type { StepV4 } from './StepV4';
+import {
     StepV4FromJSON,
     StepV4FromJSONTyped,
     StepV4ToJSON,
-} from './';
+} from './StepV4';
 
 /**
  * A list of flows containing the policies configuration.
@@ -79,6 +81,15 @@ export interface FlowV4 {
     tags?: Array<string>;
 }
 
+/**
+ * Check if a given object implements the FlowV4 interface.
+ */
+export function instanceOfFlowV4(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function FlowV4FromJSON(json: any): FlowV4 {
     return FlowV4FromJSONTyped(json, false);
 }
@@ -119,5 +130,4 @@ export function FlowV4ToJSON(value?: FlowV4 | null): any {
         'tags': value.tags,
     };
 }
-
 

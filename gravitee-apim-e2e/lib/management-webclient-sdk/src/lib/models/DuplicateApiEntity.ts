@@ -38,6 +38,16 @@ export interface DuplicateApiEntity {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the DuplicateApiEntity interface.
+ */
+export function instanceOfDuplicateApiEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "context_path" in value;
+
+    return isInstance;
+}
+
 export function DuplicateApiEntityFromJSON(json: any): DuplicateApiEntity {
     return DuplicateApiEntityFromJSONTyped(json, false);
 }
@@ -68,5 +78,4 @@ export function DuplicateApiEntityToJSON(value?: DuplicateApiEntity | null): any
         'version': value.version,
     };
 }
-
 

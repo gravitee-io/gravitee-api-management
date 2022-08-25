@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { HealthCheckRequest } from './HealthCheckRequest';
 import {
-    HealthCheckRequest,
     HealthCheckRequestFromJSON,
     HealthCheckRequestFromJSONTyped,
     HealthCheckRequestToJSON,
-    HealthCheckResponse,
+} from './HealthCheckRequest';
+import type { HealthCheckResponse } from './HealthCheckResponse';
+import {
     HealthCheckResponseFromJSON,
     HealthCheckResponseFromJSONTyped,
     HealthCheckResponseToJSON,
-} from './';
+} from './HealthCheckResponse';
 
 /**
  * 
@@ -47,6 +49,15 @@ export interface HealthCheckStep {
      * @memberof HealthCheckStep
      */
     response?: HealthCheckResponse;
+}
+
+/**
+ * Check if a given object implements the HealthCheckStep interface.
+ */
+export function instanceOfHealthCheckStep(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function HealthCheckStepFromJSON(json: any): HealthCheckStep {
@@ -79,5 +90,4 @@ export function HealthCheckStepToJSON(value?: HealthCheckStep | null): any {
         'response': HealthCheckResponseToJSON(value.response),
     };
 }
-
 

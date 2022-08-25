@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * Type's name
  * @export
- * @enum {string}
  */
-export enum MembershipMemberType {
-    USER = 'USER',
-    GROUP = 'GROUP'
-}
+export const MembershipMemberType = {
+    USER: 'USER',
+    GROUP: 'GROUP'
+} as const;
+export type MembershipMemberType = typeof MembershipMemberType[keyof typeof MembershipMemberType];
+
 
 export function MembershipMemberTypeFromJSON(json: any): MembershipMemberType {
     return MembershipMemberTypeFromJSONTyped(json, false);

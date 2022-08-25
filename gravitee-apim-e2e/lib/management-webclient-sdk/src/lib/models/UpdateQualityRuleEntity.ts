@@ -50,6 +50,17 @@ export interface UpdateQualityRuleEntity {
     weight?: number;
 }
 
+/**
+ * Check if a given object implements the UpdateQualityRuleEntity interface.
+ */
+export function instanceOfUpdateQualityRuleEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "description" in value;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function UpdateQualityRuleEntityFromJSON(json: any): UpdateQualityRuleEntity {
     return UpdateQualityRuleEntityFromJSONTyped(json, false);
 }
@@ -84,5 +95,4 @@ export function UpdateQualityRuleEntityToJSON(value?: UpdateQualityRuleEntity | 
         'weight': value.weight,
     };
 }
-
 

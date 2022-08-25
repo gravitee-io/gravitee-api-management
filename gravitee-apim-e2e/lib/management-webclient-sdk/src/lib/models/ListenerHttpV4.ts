@@ -12,39 +12,49 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Cors } from './Cors';
 import {
-    Cors,
     CorsFromJSON,
     CorsFromJSONTyped,
     CorsToJSON,
-    EntrypointV4,
+} from './Cors';
+import type { EntrypointV4 } from './EntrypointV4';
+import {
     EntrypointV4FromJSON,
     EntrypointV4FromJSONTyped,
     EntrypointV4ToJSON,
-    ListenerHttpV4AllOf,
+} from './EntrypointV4';
+import type { ListenerHttpV4AllOf } from './ListenerHttpV4AllOf';
+import {
     ListenerHttpV4AllOfFromJSON,
     ListenerHttpV4AllOfFromJSONTyped,
     ListenerHttpV4AllOfToJSON,
-    ListenerV4,
-    ListenerV4FromJSON,
-    ListenerV4FromJSONTyped,
-    ListenerV4ToJSON,
-    Logging,
+} from './ListenerHttpV4AllOf';
+import type { Logging } from './Logging';
+import {
     LoggingFromJSON,
     LoggingFromJSONTyped,
     LoggingToJSON,
-    PathV4,
+} from './Logging';
+import type { PathV4 } from './PathV4';
+import {
     PathV4FromJSON,
     PathV4FromJSONTyped,
     PathV4ToJSON,
-} from './';
+} from './PathV4';
 
 /**
  * 
  * @export
  * @interface ListenerHttpV4
  */
-export interface ListenerHttpV4 extends ListenerV4 {
+export interface ListenerHttpV4 {
+    /**
+     * 
+     * @type {string}
+     * @memberof ListenerHttpV4
+     */
+    type: string;
     /**
      * 
      * @type {Array<PathV4>}
@@ -77,6 +87,18 @@ export interface ListenerHttpV4 extends ListenerV4 {
     logging?: Logging;
 }
 
+/**
+ * Check if a given object implements the ListenerHttpV4 interface.
+ */
+export function instanceOfListenerHttpV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "type" in value;
+    isInstance = isInstance && "paths" in value;
+    isInstance = isInstance && "entrypoints" in value;
+
+    return isInstance;
+}
+
 export function ListenerHttpV4FromJSON(json: any): ListenerHttpV4 {
     return ListenerHttpV4FromJSONTyped(json, false);
 }
@@ -86,7 +108,8 @@ export function ListenerHttpV4FromJSONTyped(json: any, ignoreDiscriminator: bool
         return json;
     }
     return {
-        ...ListenerV4FromJSONTyped(json, ignoreDiscriminator),
+        
+        'type': json['type'],
         'paths': ((json['paths'] as Array<any>).map(PathV4FromJSON)),
         'pathMappings': !exists(json, 'pathMappings') ? undefined : json['pathMappings'],
         'entrypoints': ((json['entrypoints'] as Array<any>).map(EntrypointV4FromJSON)),
@@ -103,7 +126,8 @@ export function ListenerHttpV4ToJSON(value?: ListenerHttpV4 | null): any {
         return null;
     }
     return {
-        ...ListenerV4ToJSON(value),
+        
+        'type': value.type,
         'paths': ((value.paths as Array<any>).map(PathV4ToJSON)),
         'pathMappings': value.pathMappings,
         'entrypoints': ((value.entrypoints as Array<any>).map(EntrypointV4ToJSON)),
@@ -111,6 +135,4 @@ export function ListenerHttpV4ToJSON(value?: ListenerHttpV4 | null): any {
         'logging': LoggingToJSON(value.logging),
     };
 }
-
-
 

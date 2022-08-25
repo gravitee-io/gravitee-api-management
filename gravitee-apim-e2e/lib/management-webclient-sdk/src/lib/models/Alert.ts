@@ -26,6 +26,15 @@ export interface Alert {
     enabled?: boolean;
 }
 
+/**
+ * Check if a given object implements the Alert interface.
+ */
+export function instanceOfAlert(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function AlertFromJSON(json: any): Alert {
     return AlertFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function AlertToJSON(value?: Alert | null): any {
         'enabled': value.enabled,
     };
 }
-
 

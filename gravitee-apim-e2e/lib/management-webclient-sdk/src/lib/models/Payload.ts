@@ -44,6 +44,18 @@ export interface Payload {
     state?: string;
 }
 
+/**
+ * Check if a given object implements the Payload interface.
+ */
+export function instanceOfPayload(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "clientId" in value;
+    isInstance = isInstance && "code" in value;
+    isInstance = isInstance && "redirectUri" in value;
+
+    return isInstance;
+}
+
 export function PayloadFromJSON(json: any): Payload {
     return PayloadFromJSONTyped(json, false);
 }
@@ -76,5 +88,4 @@ export function PayloadToJSON(value?: Payload | null): any {
         'state': value.state,
     };
 }
-
 

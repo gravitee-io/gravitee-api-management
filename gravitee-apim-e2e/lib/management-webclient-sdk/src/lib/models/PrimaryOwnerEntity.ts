@@ -44,6 +44,15 @@ export interface PrimaryOwnerEntity {
     type?: string;
 }
 
+/**
+ * Check if a given object implements the PrimaryOwnerEntity interface.
+ */
+export function instanceOfPrimaryOwnerEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PrimaryOwnerEntityFromJSON(json: any): PrimaryOwnerEntity {
     return PrimaryOwnerEntityFromJSONTyped(json, false);
 }
@@ -76,5 +85,4 @@ export function PrimaryOwnerEntityToJSON(value?: PrimaryOwnerEntity | null): any
         'type': value.type,
     };
 }
-
 

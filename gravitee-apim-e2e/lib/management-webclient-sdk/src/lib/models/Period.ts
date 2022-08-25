@@ -44,6 +44,18 @@ export interface Period {
     zoneId: string;
 }
 
+/**
+ * Check if a given object implements the Period interface.
+ */
+export function instanceOfPeriod(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "beginHour" in value;
+    isInstance = isInstance && "endHour" in value;
+    isInstance = isInstance && "zoneId" in value;
+
+    return isInstance;
+}
+
 export function PeriodFromJSON(json: any): Period {
     return PeriodFromJSONTyped(json, false);
 }
@@ -76,5 +88,4 @@ export function PeriodToJSON(value?: Period | null): any {
         'zoneId': value.zoneId,
     };
 }
-
 

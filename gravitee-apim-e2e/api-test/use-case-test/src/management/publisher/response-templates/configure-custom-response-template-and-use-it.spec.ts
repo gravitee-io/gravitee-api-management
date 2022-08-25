@@ -40,13 +40,13 @@ describe('Configure custom response templates and use it', () => {
         envId,
         orgId,
         body: ApisFaker.apiImport({
-          plans: [PlansFaker.plan({ security: PlanSecurityType.KEYLESS, status: PlanStatus.PUBLISHED })],
+          plans: [PlansFaker.plan({ security: PlanSecurityType.KEY_LESS, status: PlanStatus.PUBLISHED })],
           flows: [
             {
               name: '',
               path_operator: {
                 path: '/',
-                operator: PathOperatorOperatorEnum.STARTSWITH,
+                operator: PathOperatorOperatorEnum.STARTS_WITH,
               },
               condition: '',
               consumers: [],
@@ -142,13 +142,13 @@ describe('Configure custom response templates and use it', () => {
         envId,
         orgId,
         body: ApisFaker.apiImport({
-          plans: [PlansFaker.plan({ security: PlanSecurityType.KEYLESS, status: PlanStatus.PUBLISHED })],
+          plans: [PlansFaker.plan({ security: PlanSecurityType.KEY_LESS, status: PlanStatus.PUBLISHED })],
           flows: [
             {
               name: '',
               path_operator: {
                 path: '/',
-                operator: PathOperatorOperatorEnum.STARTSWITH,
+                operator: PathOperatorOperatorEnum.STARTS_WITH,
               },
               condition: '',
               consumers: [],

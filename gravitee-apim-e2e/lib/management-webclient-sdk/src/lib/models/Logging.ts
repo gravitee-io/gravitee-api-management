@@ -44,6 +44,50 @@ export interface Logging {
     scope?: LoggingScopeEnum;
 }
 
+
+/**
+ * @export
+ */
+export const LoggingContentEnum = {
+    NONE: 'NONE',
+    HEADERS: 'HEADERS',
+    PAYLOADS: 'PAYLOADS',
+    HEADERS_PAYLOADS: 'HEADERS_PAYLOADS'
+} as const;
+export type LoggingContentEnum = typeof LoggingContentEnum[keyof typeof LoggingContentEnum];
+
+/**
+ * @export
+ */
+export const LoggingModeEnum = {
+    NONE: 'NONE',
+    CLIENT: 'CLIENT',
+    PROXY: 'PROXY',
+    CLIENT_PROXY: 'CLIENT_PROXY'
+} as const;
+export type LoggingModeEnum = typeof LoggingModeEnum[keyof typeof LoggingModeEnum];
+
+/**
+ * @export
+ */
+export const LoggingScopeEnum = {
+    NONE: 'NONE',
+    REQUEST: 'REQUEST',
+    RESPONSE: 'RESPONSE',
+    REQUEST_RESPONSE: 'REQUEST_RESPONSE'
+} as const;
+export type LoggingScopeEnum = typeof LoggingScopeEnum[keyof typeof LoggingScopeEnum];
+
+
+/**
+ * Check if a given object implements the Logging interface.
+ */
+export function instanceOfLogging(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function LoggingFromJSON(json: any): Logging {
     return LoggingFromJSONTyped(json, false);
 }
@@ -76,36 +120,4 @@ export function LoggingToJSON(value?: Logging | null): any {
         'scope': value.scope,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum LoggingContentEnum {
-    NONE = 'NONE',
-    HEADERS = 'HEADERS',
-    PAYLOADS = 'PAYLOADS',
-    HEADERSPAYLOADS = 'HEADERS_PAYLOADS'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum LoggingModeEnum {
-    NONE = 'NONE',
-    CLIENT = 'CLIENT',
-    PROXY = 'PROXY',
-    CLIENTPROXY = 'CLIENT_PROXY'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum LoggingScopeEnum {
-    NONE = 'NONE',
-    REQUEST = 'REQUEST',
-    RESPONSE = 'RESPONSE',
-    REQUESTRESPONSE = 'REQUEST_RESPONSE'
-}
-
 

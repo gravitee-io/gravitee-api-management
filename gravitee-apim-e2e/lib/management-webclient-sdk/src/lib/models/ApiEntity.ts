@@ -12,64 +12,90 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApiEntrypointEntity } from './ApiEntrypointEntity';
 import {
-    ApiEntrypointEntity,
     ApiEntrypointEntityFromJSON,
     ApiEntrypointEntityFromJSONTyped,
     ApiEntrypointEntityToJSON,
-    ApiLifecycleState,
+} from './ApiEntrypointEntity';
+import type { ApiLifecycleState } from './ApiLifecycleState';
+import {
     ApiLifecycleStateFromJSON,
     ApiLifecycleStateFromJSONTyped,
     ApiLifecycleStateToJSON,
-    DefinitionContext,
+} from './ApiLifecycleState';
+import type { DefinitionContext } from './DefinitionContext';
+import {
     DefinitionContextFromJSON,
     DefinitionContextFromJSONTyped,
     DefinitionContextToJSON,
-    Flow,
+} from './DefinitionContext';
+import type { Flow } from './Flow';
+import {
     FlowFromJSON,
     FlowFromJSONTyped,
     FlowToJSON,
-    PlanEntity,
+} from './Flow';
+import type { PlanEntity } from './PlanEntity';
+import {
     PlanEntityFromJSON,
     PlanEntityFromJSONTyped,
     PlanEntityToJSON,
-    PrimaryOwnerEntity,
+} from './PlanEntity';
+import type { PrimaryOwnerEntity } from './PrimaryOwnerEntity';
+import {
     PrimaryOwnerEntityFromJSON,
     PrimaryOwnerEntityFromJSONTyped,
     PrimaryOwnerEntityToJSON,
-    Property,
+} from './PrimaryOwnerEntity';
+import type { Property } from './Property';
+import {
     PropertyFromJSON,
     PropertyFromJSONTyped,
     PropertyToJSON,
-    Proxy,
+} from './Property';
+import type { Proxy } from './Proxy';
+import {
     ProxyFromJSON,
     ProxyFromJSONTyped,
     ProxyToJSON,
-    Resource,
+} from './Proxy';
+import type { Resource } from './Resource';
+import {
     ResourceFromJSON,
     ResourceFromJSONTyped,
     ResourceToJSON,
-    ResponseTemplate,
+} from './Resource';
+import type { ResponseTemplate } from './ResponseTemplate';
+import {
     ResponseTemplateFromJSON,
     ResponseTemplateFromJSONTyped,
     ResponseTemplateToJSON,
-    Rule,
+} from './ResponseTemplate';
+import type { Rule } from './Rule';
+import {
     RuleFromJSON,
     RuleFromJSONTyped,
     RuleToJSON,
-    Services,
+} from './Rule';
+import type { Services } from './Services';
+import {
     ServicesFromJSON,
     ServicesFromJSONTyped,
     ServicesToJSON,
-    Visibility,
+} from './Services';
+import type { Visibility } from './Visibility';
+import {
     VisibilityFromJSON,
     VisibilityFromJSONTyped,
     VisibilityToJSON,
-    WorkflowState,
+} from './Visibility';
+import type { WorkflowState } from './WorkflowState';
+import {
     WorkflowStateFromJSON,
     WorkflowStateFromJSONTyped,
     WorkflowStateToJSON,
-} from './';
+} from './WorkflowState';
 
 /**
  * 
@@ -301,6 +327,48 @@ export interface ApiEntity {
     workflow_state?: WorkflowState;
 }
 
+
+/**
+ * @export
+ */
+export const ApiEntityExecutionModeEnum = {
+    V3: 'V3',
+    JUPITER: 'JUPITER'
+} as const;
+export type ApiEntityExecutionModeEnum = typeof ApiEntityExecutionModeEnum[keyof typeof ApiEntityExecutionModeEnum];
+
+/**
+ * @export
+ */
+export const ApiEntityFlowModeEnum = {
+    DEFAULT: 'DEFAULT',
+    BEST_MATCH: 'BEST_MATCH'
+} as const;
+export type ApiEntityFlowModeEnum = typeof ApiEntityFlowModeEnum[keyof typeof ApiEntityFlowModeEnum];
+
+/**
+ * @export
+ */
+export const ApiEntityStateEnum = {
+    INITIALIZED: 'INITIALIZED',
+    STOPPED: 'STOPPED',
+    STOPPING: 'STOPPING',
+    STARTED: 'STARTED',
+    CLOSED: 'CLOSED'
+} as const;
+export type ApiEntityStateEnum = typeof ApiEntityStateEnum[keyof typeof ApiEntityStateEnum];
+
+
+/**
+ * Check if a given object implements the ApiEntity interface.
+ */
+export function instanceOfApiEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "proxy" in value;
+
+    return isInstance;
+}
+
 export function ApiEntityFromJSON(json: any): ApiEntity {
     return ApiEntityFromJSONTyped(json, false);
 }
@@ -399,33 +467,4 @@ export function ApiEntityToJSON(value?: ApiEntity | null): any {
         'workflow_state': WorkflowStateToJSON(value.workflow_state),
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ApiEntityExecutionModeEnum {
-    V3 = 'V3',
-    JUPITER = 'JUPITER'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum ApiEntityFlowModeEnum {
-    DEFAULT = 'DEFAULT',
-    BESTMATCH = 'BEST_MATCH'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum ApiEntityStateEnum {
-    INITIALIZED = 'INITIALIZED',
-    STOPPED = 'STOPPED',
-    STOPPING = 'STOPPING',
-    STARTED = 'STARTED',
-    CLOSED = 'CLOSED'
-}
-
 

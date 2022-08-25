@@ -41,7 +41,7 @@ describe('Add policies to flows and use them', () => {
       orgId,
       envId,
       body: ApisFaker.apiImport({
-        plans: [PlansFaker.plan({ security: PlanSecurityType.KEYLESS, status: PlanStatus.PUBLISHED })],
+        plans: [PlansFaker.plan({ security: PlanSecurityType.KEY_LESS, status: PlanStatus.PUBLISHED })],
         proxy: ApisFaker.proxy({
           groups: [
             {
@@ -57,7 +57,7 @@ describe('Add policies to flows and use them', () => {
                 },
               ],
               load_balancing: {
-                type: LoadBalancerTypeEnum.ROUNDROBIN,
+                type: LoadBalancerTypeEnum.ROUND_ROBIN,
               },
               http: {
                 connectTimeout: 5000,
@@ -89,7 +89,7 @@ describe('Add policies to flows and use them', () => {
             name: '',
             path_operator: {
               path: '/',
-              operator: PathOperatorOperatorEnum.STARTSWITH,
+              operator: PathOperatorOperatorEnum.STARTS_WITH,
             },
             condition: '',
             consumers: [],

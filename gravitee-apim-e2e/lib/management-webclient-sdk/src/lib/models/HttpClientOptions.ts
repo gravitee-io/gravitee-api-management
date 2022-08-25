@@ -80,6 +80,26 @@ export interface HttpClientOptions {
     version?: HttpClientOptionsVersionEnum;
 }
 
+
+/**
+ * @export
+ */
+export const HttpClientOptionsVersionEnum = {
+    _1_1: 'HTTP_1_1',
+    _2: 'HTTP_2'
+} as const;
+export type HttpClientOptionsVersionEnum = typeof HttpClientOptionsVersionEnum[keyof typeof HttpClientOptionsVersionEnum];
+
+
+/**
+ * Check if a given object implements the HttpClientOptions interface.
+ */
+export function instanceOfHttpClientOptions(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function HttpClientOptionsFromJSON(json: any): HttpClientOptions {
     return HttpClientOptionsFromJSONTyped(json, false);
 }
@@ -124,14 +144,4 @@ export function HttpClientOptionsToJSON(value?: HttpClientOptions | null): any {
         'version': value.version,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum HttpClientOptionsVersionEnum {
-    _11 = 'HTTP_1_1',
-    _2 = 'HTTP_2'
-}
-
 

@@ -11,17 +11,19 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum PlanStatus {
-    STAGING = 'STAGING',
-    PUBLISHED = 'PUBLISHED',
-    CLOSED = 'CLOSED',
-    DEPRECATED = 'DEPRECATED'
-}
+export const PlanStatus = {
+    STAGING: 'STAGING',
+    PUBLISHED: 'PUBLISHED',
+    CLOSED: 'CLOSED',
+    DEPRECATED: 'DEPRECATED'
+} as const;
+export type PlanStatus = typeof PlanStatus[keyof typeof PlanStatus];
+
 
 export function PlanStatusFromJSON(json: any): PlanStatus {
     return PlanStatusFromJSONTyped(json, false);

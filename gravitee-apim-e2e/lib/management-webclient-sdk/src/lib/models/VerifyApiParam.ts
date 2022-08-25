@@ -26,6 +26,16 @@ export interface VerifyApiParam {
     context_path: string;
 }
 
+/**
+ * Check if a given object implements the VerifyApiParam interface.
+ */
+export function instanceOfVerifyApiParam(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "context_path" in value;
+
+    return isInstance;
+}
+
 export function VerifyApiParamFromJSON(json: any): VerifyApiParam {
     return VerifyApiParamFromJSONTyped(json, false);
 }
@@ -52,5 +62,4 @@ export function VerifyApiParamToJSON(value?: VerifyApiParam | null): any {
         'context_path': value.context_path,
     };
 }
-
 

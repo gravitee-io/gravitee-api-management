@@ -11,17 +11,19 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum DashboardReferenceType {
-    API = 'API',
-    APPLICATION = 'APPLICATION',
-    PLATFORM = 'PLATFORM',
-    HOME = 'HOME'
-}
+export const DashboardReferenceType = {
+    API: 'API',
+    APPLICATION: 'APPLICATION',
+    PLATFORM: 'PLATFORM',
+    HOME: 'HOME'
+} as const;
+export type DashboardReferenceType = typeof DashboardReferenceType[keyof typeof DashboardReferenceType];
+
 
 export function DashboardReferenceTypeFromJSON(json: any): DashboardReferenceType {
     return DashboardReferenceTypeFromJSONTyped(json, false);

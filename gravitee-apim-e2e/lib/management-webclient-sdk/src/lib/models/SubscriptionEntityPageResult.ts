@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Page } from './Page';
 import {
-    Page,
     PageFromJSON,
     PageFromJSONTyped,
     PageToJSON,
-    SubscriptionEntity,
+} from './Page';
+import type { SubscriptionEntity } from './SubscriptionEntity';
+import {
     SubscriptionEntityFromJSON,
     SubscriptionEntityFromJSONTyped,
     SubscriptionEntityToJSON,
-} from './';
+} from './SubscriptionEntity';
 
 /**
  * 
@@ -47,6 +49,15 @@ export interface SubscriptionEntityPageResult {
      * @memberof SubscriptionEntityPageResult
      */
     page?: Page;
+}
+
+/**
+ * Check if a given object implements the SubscriptionEntityPageResult interface.
+ */
+export function instanceOfSubscriptionEntityPageResult(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function SubscriptionEntityPageResultFromJSON(json: any): SubscriptionEntityPageResult {
@@ -79,5 +90,4 @@ export function SubscriptionEntityPageResultToJSON(value?: SubscriptionEntityPag
         'page': PageToJSON(value.page),
     };
 }
-
 

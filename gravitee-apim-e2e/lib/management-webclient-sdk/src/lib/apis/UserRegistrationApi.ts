@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  NewExternalUserEntity,
+  RegisterUserEntity,
+  UserEntity,
+} from '../models';
 import {
-    NewExternalUserEntity,
     NewExternalUserEntityFromJSON,
     NewExternalUserEntityToJSON,
-    RegisterUserEntity,
     RegisterUserEntityFromJSON,
     RegisterUserEntityToJSON,
-    UserEntity,
     UserEntityFromJSON,
     UserEntityToJSON,
 } from '../models';
@@ -56,7 +58,7 @@ export class UserRegistrationApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Finalize user registration
      */
-    async finalizeUserRegistrationRaw(requestParameters: FinalizeUserRegistrationRequest): Promise<runtime.ApiResponse<UserEntity>> {
+    async finalizeUserRegistrationRaw(requestParameters: FinalizeUserRegistrationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling finalizeUserRegistration.');
         }
@@ -65,7 +67,7 @@ export class UserRegistrationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling finalizeUserRegistration.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -80,7 +82,7 @@ export class UserRegistrationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: RegisterUserEntityToJSON(requestParameters.registerUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -89,8 +91,8 @@ export class UserRegistrationApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Finalize user registration
      */
-    async finalizeUserRegistration(requestParameters: FinalizeUserRegistrationRequest): Promise<UserEntity> {
-        const response = await this.finalizeUserRegistrationRaw(requestParameters);
+    async finalizeUserRegistration(requestParameters: FinalizeUserRegistrationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.finalizeUserRegistrationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -98,12 +100,12 @@ export class UserRegistrationApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Finalize user registration
      */
-    async finalizeUserRegistration1Raw(requestParameters: FinalizeUserRegistration1Request): Promise<runtime.ApiResponse<UserEntity>> {
+    async finalizeUserRegistration1Raw(requestParameters: FinalizeUserRegistration1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling finalizeUserRegistration1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -118,7 +120,7 @@ export class UserRegistrationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: RegisterUserEntityToJSON(requestParameters.registerUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -127,8 +129,8 @@ export class UserRegistrationApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Finalize user registration
      */
-    async finalizeUserRegistration1(requestParameters: FinalizeUserRegistration1Request): Promise<UserEntity> {
-        const response = await this.finalizeUserRegistration1Raw(requestParameters);
+    async finalizeUserRegistration1(requestParameters: FinalizeUserRegistration1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.finalizeUserRegistration1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -136,7 +138,7 @@ export class UserRegistrationApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Register a user
      */
-    async registerUserRaw(requestParameters: RegisterUserRequest): Promise<runtime.ApiResponse<UserEntity>> {
+    async registerUserRaw(requestParameters: RegisterUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling registerUser.');
         }
@@ -145,7 +147,7 @@ export class UserRegistrationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling registerUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -160,7 +162,7 @@ export class UserRegistrationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewExternalUserEntityToJSON(requestParameters.newExternalUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -169,8 +171,8 @@ export class UserRegistrationApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Register a user
      */
-    async registerUser(requestParameters: RegisterUserRequest): Promise<UserEntity> {
-        const response = await this.registerUserRaw(requestParameters);
+    async registerUser(requestParameters: RegisterUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.registerUserRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -178,12 +180,12 @@ export class UserRegistrationApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Register a user
      */
-    async registerUser1Raw(requestParameters: RegisterUser1Request): Promise<runtime.ApiResponse<UserEntity>> {
+    async registerUser1Raw(requestParameters: RegisterUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling registerUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -198,7 +200,7 @@ export class UserRegistrationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewExternalUserEntityToJSON(requestParameters.newExternalUserEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserEntityFromJSON(jsonValue));
     }
@@ -207,8 +209,8 @@ export class UserRegistrationApi extends runtime.BaseAPI {
      * User registration must be enabled
      * Register a user
      */
-    async registerUser1(requestParameters: RegisterUser1Request): Promise<UserEntity> {
-        const response = await this.registerUser1Raw(requestParameters);
+    async registerUser1(requestParameters: RegisterUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserEntity> {
+        const response = await this.registerUser1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

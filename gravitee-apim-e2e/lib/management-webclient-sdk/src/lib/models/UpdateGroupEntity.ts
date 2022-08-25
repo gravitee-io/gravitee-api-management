@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { GroupEventRuleEntity } from './GroupEventRuleEntity';
 import {
-    GroupEventRuleEntity,
     GroupEventRuleEntityFromJSON,
     GroupEventRuleEntityFromJSONTyped,
     GroupEventRuleEntityToJSON,
-} from './';
+} from './GroupEventRuleEntity';
 
 /**
  * 
@@ -81,6 +81,16 @@ export interface UpdateGroupEntity {
     system_invitation?: boolean;
 }
 
+/**
+ * Check if a given object implements the UpdateGroupEntity interface.
+ */
+export function instanceOfUpdateGroupEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function UpdateGroupEntityFromJSON(json: any): UpdateGroupEntity {
     return UpdateGroupEntityFromJSONTyped(json, false);
 }
@@ -123,5 +133,4 @@ export function UpdateGroupEntityToJSON(value?: UpdateGroupEntity | null): any {
         'system_invitation': value.system_invitation,
     };
 }
-
 

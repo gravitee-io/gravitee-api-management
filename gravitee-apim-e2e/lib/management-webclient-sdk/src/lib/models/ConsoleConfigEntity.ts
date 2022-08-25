@@ -12,52 +12,72 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Alert } from './Alert';
 import {
-    Alert,
     AlertFromJSON,
     AlertFromJSONTyped,
     AlertToJSON,
-    ConsoleAnalyticsPendo,
+} from './Alert';
+import type { ConsoleAnalyticsPendo } from './ConsoleAnalyticsPendo';
+import {
     ConsoleAnalyticsPendoFromJSON,
     ConsoleAnalyticsPendoFromJSONTyped,
     ConsoleAnalyticsPendoToJSON,
-    ConsoleAuthentication,
+} from './ConsoleAnalyticsPendo';
+import type { ConsoleAuthentication } from './ConsoleAuthentication';
+import {
     ConsoleAuthenticationFromJSON,
     ConsoleAuthenticationFromJSONTyped,
     ConsoleAuthenticationToJSON,
-    ConsoleReCaptcha,
+} from './ConsoleAuthentication';
+import type { ConsoleReCaptcha } from './ConsoleReCaptcha';
+import {
     ConsoleReCaptchaFromJSON,
     ConsoleReCaptchaFromJSONTyped,
     ConsoleReCaptchaToJSON,
-    ConsoleScheduler,
+} from './ConsoleReCaptcha';
+import type { ConsoleScheduler } from './ConsoleScheduler';
+import {
     ConsoleSchedulerFromJSON,
     ConsoleSchedulerFromJSONTyped,
     ConsoleSchedulerToJSON,
-    JupiterMode,
+} from './ConsoleScheduler';
+import type { JupiterMode } from './JupiterMode';
+import {
     JupiterModeFromJSON,
     JupiterModeFromJSONTyped,
     JupiterModeToJSON,
-    Logging,
+} from './JupiterMode';
+import type { Logging } from './Logging';
+import {
     LoggingFromJSON,
     LoggingFromJSONTyped,
     LoggingToJSON,
-    Maintenance,
+} from './Logging';
+import type { Maintenance } from './Maintenance';
+import {
     MaintenanceFromJSON,
     MaintenanceFromJSONTyped,
     MaintenanceToJSON,
-    Management,
+} from './Maintenance';
+import type { Management } from './Management';
+import {
     ManagementFromJSON,
     ManagementFromJSONTyped,
     ManagementToJSON,
-    Newsletter,
+} from './Management';
+import type { Newsletter } from './Newsletter';
+import {
     NewsletterFromJSON,
     NewsletterFromJSONTyped,
     NewsletterToJSON,
-    Theme,
+} from './Newsletter';
+import type { Theme } from './Theme';
+import {
     ThemeFromJSON,
     ThemeFromJSONTyped,
     ThemeToJSON,
-} from './';
+} from './Theme';
 
 /**
  * 
@@ -133,6 +153,15 @@ export interface ConsoleConfigEntity {
     theme?: Theme;
 }
 
+/**
+ * Check if a given object implements the ConsoleConfigEntity interface.
+ */
+export function instanceOfConsoleConfigEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ConsoleConfigEntityFromJSON(json: any): ConsoleConfigEntity {
     return ConsoleConfigEntityFromJSONTyped(json, false);
 }
@@ -179,5 +208,4 @@ export function ConsoleConfigEntityToJSON(value?: ConsoleConfigEntity | null): a
         'theme': ThemeToJSON(value.theme),
     };
 }
-
 

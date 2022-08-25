@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { GroupEventRuleEntity } from './GroupEventRuleEntity';
 import {
-    GroupEventRuleEntity,
     GroupEventRuleEntityFromJSON,
     GroupEventRuleEntityFromJSONTyped,
     GroupEventRuleEntityToJSON,
-} from './';
+} from './GroupEventRuleEntity';
 
 /**
  * 
@@ -117,6 +117,15 @@ export interface GroupEntity {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the GroupEntity interface.
+ */
+export function instanceOfGroupEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function GroupEntityFromJSON(json: any): GroupEntity {
     return GroupEntityFromJSONTyped(json, false);
 }
@@ -171,5 +180,4 @@ export function GroupEntityToJSON(value?: GroupEntity | null): any {
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

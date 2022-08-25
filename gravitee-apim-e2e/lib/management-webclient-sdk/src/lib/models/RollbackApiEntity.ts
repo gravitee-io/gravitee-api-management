@@ -12,52 +12,72 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApiLifecycleState } from './ApiLifecycleState';
 import {
-    ApiLifecycleState,
     ApiLifecycleStateFromJSON,
     ApiLifecycleStateFromJSONTyped,
     ApiLifecycleStateToJSON,
-    ApiMetadataEntity,
+} from './ApiLifecycleState';
+import type { ApiMetadataEntity } from './ApiMetadataEntity';
+import {
     ApiMetadataEntityFromJSON,
     ApiMetadataEntityFromJSONTyped,
     ApiMetadataEntityToJSON,
-    Flow,
+} from './ApiMetadataEntity';
+import type { Flow } from './Flow';
+import {
     FlowFromJSON,
     FlowFromJSONTyped,
     FlowToJSON,
-    Plan,
+} from './Flow';
+import type { Plan } from './Plan';
+import {
     PlanFromJSON,
     PlanFromJSONTyped,
     PlanToJSON,
-    Property,
+} from './Plan';
+import type { Property } from './Property';
+import {
     PropertyFromJSON,
     PropertyFromJSONTyped,
     PropertyToJSON,
-    Proxy,
+} from './Property';
+import type { Proxy } from './Proxy';
+import {
     ProxyFromJSON,
     ProxyFromJSONTyped,
     ProxyToJSON,
-    Resource,
+} from './Proxy';
+import type { Resource } from './Resource';
+import {
     ResourceFromJSON,
     ResourceFromJSONTyped,
     ResourceToJSON,
-    ResponseTemplate,
+} from './Resource';
+import type { ResponseTemplate } from './ResponseTemplate';
+import {
     ResponseTemplateFromJSON,
     ResponseTemplateFromJSONTyped,
     ResponseTemplateToJSON,
-    Rule,
+} from './ResponseTemplate';
+import type { Rule } from './Rule';
+import {
     RuleFromJSON,
     RuleFromJSONTyped,
     RuleToJSON,
-    Services,
+} from './Rule';
+import type { Services } from './Services';
+import {
     ServicesFromJSON,
     ServicesFromJSONTyped,
     ServicesToJSON,
-    Visibility,
+} from './Services';
+import type { Visibility } from './Visibility';
+import {
     VisibilityFromJSON,
     VisibilityFromJSONTyped,
     VisibilityToJSON,
-} from './';
+} from './Visibility';
 
 /**
  * 
@@ -229,6 +249,35 @@ export interface RollbackApiEntity {
     visibility: Visibility;
 }
 
+
+/**
+ * @export
+ */
+export const RollbackApiEntityFlowModeEnum = {
+    DEFAULT: 'DEFAULT',
+    BEST_MATCH: 'BEST_MATCH'
+} as const;
+export type RollbackApiEntityFlowModeEnum = typeof RollbackApiEntityFlowModeEnum[keyof typeof RollbackApiEntityFlowModeEnum];
+
+
+/**
+ * Check if a given object implements the RollbackApiEntity interface.
+ */
+export function instanceOfRollbackApiEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "description" in value;
+    isInstance = isInstance && "flows" in value;
+    isInstance = isInstance && "id" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "paths" in value;
+    isInstance = isInstance && "plans" in value;
+    isInstance = isInstance && "proxy" in value;
+    isInstance = isInstance && "version" in value;
+    isInstance = isInstance && "visibility" in value;
+
+    return isInstance;
+}
+
 export function RollbackApiEntityFromJSON(json: any): RollbackApiEntity {
     return RollbackApiEntityFromJSONTyped(json, false);
 }
@@ -307,14 +356,4 @@ export function RollbackApiEntityToJSON(value?: RollbackApiEntity | null): any {
         'visibility': VisibilityToJSON(value.visibility),
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum RollbackApiEntityFlowModeEnum {
-    DEFAULT = 'DEFAULT',
-    BESTMATCH = 'BEST_MATCH'
-}
-
 

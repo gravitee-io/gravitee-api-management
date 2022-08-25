@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { PolicyType } from './PolicyType';
 import {
-    PolicyType,
     PolicyTypeFromJSON,
     PolicyTypeFromJSONTyped,
     PolicyTypeToJSON,
-} from './';
+} from './PolicyType';
 
 /**
  * 
@@ -93,6 +93,15 @@ export interface PolicyListItem {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the PolicyListItem interface.
+ */
+export function instanceOfPolicyListItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PolicyListItemFromJSON(json: any): PolicyListItem {
     return PolicyListItemFromJSONTyped(json, false);
 }
@@ -139,5 +148,4 @@ export function PolicyListItemToJSON(value?: PolicyListItem | null): any {
         'version': value.version,
     };
 }
-
 

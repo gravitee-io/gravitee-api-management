@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  InvitationEntity,
+  NewInvitationEntity,
+  UpdateInvitationEntity,
+} from '../models';
 import {
-    InvitationEntity,
     InvitationEntityFromJSON,
     InvitationEntityToJSON,
-    NewInvitationEntity,
     NewInvitationEntityFromJSON,
     NewInvitationEntityToJSON,
-    UpdateInvitationEntity,
     UpdateInvitationEntityFromJSON,
     UpdateInvitationEntityToJSON,
 } from '../models';
@@ -62,7 +64,7 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[CREATE] permission to use this service
      * Create an invitation to join a group
      */
-    async createGroupInvitationRaw(requestParameters: CreateGroupInvitationRequest): Promise<runtime.ApiResponse<InvitationEntity>> {
+    async createGroupInvitationRaw(requestParameters: CreateGroupInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<InvitationEntity>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling createGroupInvitation.');
         }
@@ -79,7 +81,7 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newInvitationEntity','Required parameter requestParameters.newInvitationEntity was null or undefined when calling createGroupInvitation.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -94,7 +96,7 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewInvitationEntityToJSON(requestParameters.newInvitationEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => InvitationEntityFromJSON(jsonValue));
     }
@@ -103,8 +105,8 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[CREATE] permission to use this service
      * Create an invitation to join a group
      */
-    async createGroupInvitation(requestParameters: CreateGroupInvitationRequest): Promise<InvitationEntity> {
-        const response = await this.createGroupInvitationRaw(requestParameters);
+    async createGroupInvitation(requestParameters: CreateGroupInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<InvitationEntity> {
+        const response = await this.createGroupInvitationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -112,7 +114,7 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[DELETE] permission to use this service
      * Delete an invitation to join a group
      */
-    async deleteGroupInvitationRaw(requestParameters: DeleteGroupInvitationRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteGroupInvitationRaw(requestParameters: DeleteGroupInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.invitation === null || requestParameters.invitation === undefined) {
             throw new runtime.RequiredError('invitation','Required parameter requestParameters.invitation was null or undefined when calling deleteGroupInvitation.');
         }
@@ -129,7 +131,7 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteGroupInvitation.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -141,7 +143,7 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -150,15 +152,15 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[DELETE] permission to use this service
      * Delete an invitation to join a group
      */
-    async deleteGroupInvitation(requestParameters: DeleteGroupInvitationRequest): Promise<void> {
-        await this.deleteGroupInvitationRaw(requestParameters);
+    async deleteGroupInvitation(requestParameters: DeleteGroupInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteGroupInvitationRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the GROUP_INVITATION[READ] permission to use this service
      * List existing invitations of a group
      */
-    async getGroupInvitationsRaw(requestParameters: GetGroupInvitationsRequest): Promise<runtime.ApiResponse<Array<InvitationEntity>>> {
+    async getGroupInvitationsRaw(requestParameters: GetGroupInvitationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<InvitationEntity>>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling getGroupInvitations.');
         }
@@ -171,7 +173,7 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getGroupInvitations.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -183,7 +185,7 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(InvitationEntityFromJSON));
     }
@@ -192,8 +194,8 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[READ] permission to use this service
      * List existing invitations of a group
      */
-    async getGroupInvitations(requestParameters: GetGroupInvitationsRequest): Promise<Array<InvitationEntity>> {
-        const response = await this.getGroupInvitationsRaw(requestParameters);
+    async getGroupInvitations(requestParameters: GetGroupInvitationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<InvitationEntity>> {
+        const response = await this.getGroupInvitationsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -201,7 +203,7 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[UPDATE] permission to use this service
      * Update an invitation to join a group
      */
-    async updateGroupInvitationRaw(requestParameters: UpdateGroupInvitationRequest): Promise<runtime.ApiResponse<InvitationEntity>> {
+    async updateGroupInvitationRaw(requestParameters: UpdateGroupInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<InvitationEntity>> {
         if (requestParameters.invitation === null || requestParameters.invitation === undefined) {
             throw new runtime.RequiredError('invitation','Required parameter requestParameters.invitation was null or undefined when calling updateGroupInvitation.');
         }
@@ -222,7 +224,7 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateInvitationEntity','Required parameter requestParameters.updateInvitationEntity was null or undefined when calling updateGroupInvitation.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -237,7 +239,7 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateInvitationEntityToJSON(requestParameters.updateInvitationEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => InvitationEntityFromJSON(jsonValue));
     }
@@ -246,8 +248,8 @@ export class GroupInvitationsApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[UPDATE] permission to use this service
      * Update an invitation to join a group
      */
-    async updateGroupInvitation(requestParameters: UpdateGroupInvitationRequest): Promise<InvitationEntity> {
-        const response = await this.updateGroupInvitationRaw(requestParameters);
+    async updateGroupInvitation(requestParameters: UpdateGroupInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<InvitationEntity> {
+        const response = await this.updateGroupInvitationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

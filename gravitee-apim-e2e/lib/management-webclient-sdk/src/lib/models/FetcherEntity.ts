@@ -50,6 +50,15 @@ export interface FetcherEntity {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the FetcherEntity interface.
+ */
+export function instanceOfFetcherEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function FetcherEntityFromJSON(json: any): FetcherEntity {
     return FetcherEntityFromJSONTyped(json, false);
 }
@@ -84,5 +93,4 @@ export function FetcherEntityToJSON(value?: FetcherEntity | null): any {
         'version': value.version,
     };
 }
-
 

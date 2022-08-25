@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Condition } from './Condition';
 import {
-    Condition,
     ConditionFromJSON,
     ConditionFromJSONTyped,
     ConditionToJSON,
-    Projection,
+} from './Condition';
+import type { Projection } from './Projection';
+import {
     ProjectionFromJSON,
     ProjectionFromJSONTyped,
     ProjectionToJSON,
-    ThresholdConditionAllOf,
+} from './Projection';
+import type { ThresholdConditionAllOf } from './ThresholdConditionAllOf';
+import {
     ThresholdConditionAllOfFromJSON,
     ThresholdConditionAllOfFromJSONTyped,
     ThresholdConditionAllOfToJSON,
-} from './';
+} from './ThresholdConditionAllOf';
 
 /**
  * 
@@ -51,6 +55,31 @@ export interface ThresholdCondition extends Condition {
      * @memberof ThresholdCondition
      */
     threshold: number;
+}
+
+
+/**
+ * @export
+ */
+export const ThresholdConditionOperatorEnum = {
+    LT: 'LT',
+    LTE: 'LTE',
+    GTE: 'GTE',
+    GT: 'GT'
+} as const;
+export type ThresholdConditionOperatorEnum = typeof ThresholdConditionOperatorEnum[keyof typeof ThresholdConditionOperatorEnum];
+
+
+/**
+ * Check if a given object implements the ThresholdCondition interface.
+ */
+export function instanceOfThresholdCondition(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "property" in value;
+    isInstance = isInstance && "operator" in value;
+    isInstance = isInstance && "threshold" in value;
+
+    return isInstance;
 }
 
 export function ThresholdConditionFromJSON(json: any): ThresholdCondition {
@@ -83,16 +112,4 @@ export function ThresholdConditionToJSON(value?: ThresholdCondition | null): any
         'threshold': value.threshold,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ThresholdConditionOperatorEnum {
-    LT = 'LT',
-    LTE = 'LTE',
-    GTE = 'GTE',
-    GT = 'GT'
-}
-
 

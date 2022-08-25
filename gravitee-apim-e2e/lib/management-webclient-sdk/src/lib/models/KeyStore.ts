@@ -32,6 +32,28 @@ export interface KeyStore {
     type?: KeyStoreTypeEnum;
 }
 
+
+/**
+ * @export
+ */
+export const KeyStoreTypeEnum = {
+    PEM: 'PEM',
+    PKCS12: 'PKCS12',
+    JKS: 'JKS',
+    NONE: 'None'
+} as const;
+export type KeyStoreTypeEnum = typeof KeyStoreTypeEnum[keyof typeof KeyStoreTypeEnum];
+
+
+/**
+ * Check if a given object implements the KeyStore interface.
+ */
+export function instanceOfKeyStore(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function KeyStoreFromJSON(json: any): KeyStore {
     return KeyStoreFromJSONTyped(json, false);
 }
@@ -69,16 +91,4 @@ export function KeyStoreToJSON(value?: KeyStore | null): any {
         'type': value.type,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum KeyStoreTypeEnum {
-    PEM = 'PEM',
-    PKCS12 = 'PKCS12',
-    JKS = 'JKS',
-    None = 'None'
-}
-
 

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { InvitationReferenceType } from './InvitationReferenceType';
 import {
-    InvitationReferenceType,
     InvitationReferenceTypeFromJSON,
     InvitationReferenceTypeFromJSONTyped,
     InvitationReferenceTypeToJSON,
-} from './';
+} from './InvitationReferenceType';
 
 /**
  * 
@@ -57,6 +57,18 @@ export interface NewInvitationEntity {
     reference_type: InvitationReferenceType;
 }
 
+/**
+ * Check if a given object implements the NewInvitationEntity interface.
+ */
+export function instanceOfNewInvitationEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "email" in value;
+    isInstance = isInstance && "reference_id" in value;
+    isInstance = isInstance && "reference_type" in value;
+
+    return isInstance;
+}
+
 export function NewInvitationEntityFromJSON(json: any): NewInvitationEntity {
     return NewInvitationEntityFromJSONTyped(json, false);
 }
@@ -91,5 +103,4 @@ export function NewInvitationEntityToJSON(value?: NewInvitationEntity | null): a
         'reference_type': InvitationReferenceTypeToJSON(value.reference_type),
     };
 }
-
 

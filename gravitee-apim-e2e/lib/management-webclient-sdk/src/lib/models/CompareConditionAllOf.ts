@@ -44,6 +44,28 @@ export interface CompareConditionAllOf {
     property2?: string;
 }
 
+
+/**
+ * @export
+ */
+export const CompareConditionAllOfOperatorEnum = {
+    LT: 'LT',
+    LTE: 'LTE',
+    GTE: 'GTE',
+    GT: 'GT'
+} as const;
+export type CompareConditionAllOfOperatorEnum = typeof CompareConditionAllOfOperatorEnum[keyof typeof CompareConditionAllOfOperatorEnum];
+
+
+/**
+ * Check if a given object implements the CompareConditionAllOf interface.
+ */
+export function instanceOfCompareConditionAllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function CompareConditionAllOfFromJSON(json: any): CompareConditionAllOf {
     return CompareConditionAllOfFromJSONTyped(json, false);
 }
@@ -76,16 +98,4 @@ export function CompareConditionAllOfToJSON(value?: CompareConditionAllOf | null
         'property2': value.property2,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum CompareConditionAllOfOperatorEnum {
-    LT = 'LT',
-    LTE = 'LTE',
-    GTE = 'GTE',
-    GT = 'GT'
-}
-
 

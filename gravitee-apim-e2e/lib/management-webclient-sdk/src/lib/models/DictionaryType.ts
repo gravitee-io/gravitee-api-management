@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum DictionaryType {
-    MANUAL = 'MANUAL',
-    DYNAMIC = 'DYNAMIC'
-}
+export const DictionaryType = {
+    MANUAL: 'MANUAL',
+    DYNAMIC: 'DYNAMIC'
+} as const;
+export type DictionaryType = typeof DictionaryType[keyof typeof DictionaryType];
+
 
 export function DictionaryTypeFromJSON(json: any): DictionaryType {
     return DictionaryTypeFromJSONTyped(json, false);

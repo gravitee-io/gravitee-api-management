@@ -32,6 +32,15 @@ export interface ApiStateEntity {
     is_synchronized?: boolean;
 }
 
+/**
+ * Check if a given object implements the ApiStateEntity interface.
+ */
+export function instanceOfApiStateEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiStateEntityFromJSON(json: any): ApiStateEntity {
     return ApiStateEntityFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function ApiStateEntityToJSON(value?: ApiStateEntity | null): any {
         'is_synchronized': value.is_synchronized,
     };
 }
-
 

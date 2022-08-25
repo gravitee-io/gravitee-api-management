@@ -32,6 +32,15 @@ export interface AccessControlEntity {
     referenceType?: string;
 }
 
+/**
+ * Check if a given object implements the AccessControlEntity interface.
+ */
+export function instanceOfAccessControlEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function AccessControlEntityFromJSON(json: any): AccessControlEntity {
     return AccessControlEntityFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function AccessControlEntityToJSON(value?: AccessControlEntity | null): a
         'referenceType': value.referenceType,
     };
 }
-
 

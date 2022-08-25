@@ -11,16 +11,18 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum InstanceState {
-    STARTED = 'STARTED',
-    UNKNOWN = 'UNKNOWN',
-    STOPPED = 'STOPPED'
-}
+export const InstanceState = {
+    STARTED: 'STARTED',
+    UNKNOWN: 'UNKNOWN',
+    STOPPED: 'STOPPED'
+} as const;
+export type InstanceState = typeof InstanceState[keyof typeof InstanceState];
+
 
 export function InstanceStateFromJSON(json: any): InstanceState {
     return InstanceStateFromJSONTyped(json, false);

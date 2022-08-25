@@ -32,6 +32,15 @@ export interface PromotionRequestEntity {
     targetEnvName?: string;
 }
 
+/**
+ * Check if a given object implements the PromotionRequestEntity interface.
+ */
+export function instanceOfPromotionRequestEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PromotionRequestEntityFromJSON(json: any): PromotionRequestEntity {
     return PromotionRequestEntityFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function PromotionRequestEntityToJSON(value?: PromotionRequestEntity | nu
         'targetEnvName': value.targetEnvName,
     };
 }
-
 

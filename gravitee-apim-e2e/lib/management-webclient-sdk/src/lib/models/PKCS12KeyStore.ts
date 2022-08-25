@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { JKSKeyStoreAllOf } from './JKSKeyStoreAllOf';
 import {
-    JKSKeyStoreAllOf,
     JKSKeyStoreAllOfFromJSON,
     JKSKeyStoreAllOfFromJSONTyped,
     JKSKeyStoreAllOfToJSON,
-    KeyStore,
+} from './JKSKeyStoreAllOf';
+import type { KeyStore } from './KeyStore';
+import {
     KeyStoreFromJSON,
     KeyStoreFromJSONTyped,
     KeyStoreToJSON,
-} from './';
+} from './KeyStore';
 
 /**
  * 
@@ -47,6 +49,17 @@ export interface PKCS12KeyStore extends KeyStore {
      * @memberof PKCS12KeyStore
      */
     password?: string;
+}
+
+
+
+/**
+ * Check if a given object implements the PKCS12KeyStore interface.
+ */
+export function instanceOfPKCS12KeyStore(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PKCS12KeyStoreFromJSON(json: any): PKCS12KeyStore {
@@ -79,6 +92,4 @@ export function PKCS12KeyStoreToJSON(value?: PKCS12KeyStore | null): any {
         'password': value.password,
     };
 }
-
-
 

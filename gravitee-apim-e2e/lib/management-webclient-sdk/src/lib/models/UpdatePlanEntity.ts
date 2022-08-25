@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Flow } from './Flow';
 import {
-    Flow,
     FlowFromJSON,
     FlowFromJSONTyped,
     FlowToJSON,
-    PlanValidationType,
+} from './Flow';
+import type { PlanValidationType } from './PlanValidationType';
+import {
     PlanValidationTypeFromJSON,
     PlanValidationTypeFromJSONTyped,
     PlanValidationTypeToJSON,
-    Rule,
+} from './PlanValidationType';
+import type { Rule } from './Rule';
+import {
     RuleFromJSON,
     RuleFromJSONTyped,
     RuleToJSON,
-} from './';
+} from './Rule';
 
 /**
  * 
@@ -131,6 +135,20 @@ export interface UpdatePlanEntity {
     validation: PlanValidationType;
 }
 
+/**
+ * Check if a given object implements the UpdatePlanEntity interface.
+ */
+export function instanceOfUpdatePlanEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "description" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "order" in value;
+    isInstance = isInstance && "paths" in value;
+    isInstance = isInstance && "validation" in value;
+
+    return isInstance;
+}
+
 export function UpdatePlanEntityFromJSON(json: any): UpdatePlanEntity {
     return UpdatePlanEntityFromJSONTyped(json, false);
 }
@@ -187,5 +205,4 @@ export function UpdatePlanEntityToJSON(value?: UpdatePlanEntity | null): any {
         'validation': PlanValidationTypeToJSON(value.validation),
     };
 }
-
 

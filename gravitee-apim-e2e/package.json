@@ -27,7 +27,7 @@
         "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",
         "prettier:fix": "prettier --write \"**/*.{js,ts,html,css,scss,json}\"",
         "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\"",
-        "update:sdk:management": "sh ./scripts/update-management-sdk.sh",
+        "update:sdk:management": "./scripts/update-management-sdk.mjs",
         "update:sdk:portal": "sh ./scripts/update-portal-sdk.sh"
     },
     "license": "MIT License",
@@ -48,7 +48,8 @@
         "node-fetch": "2.6.7",
         "prettier": "2.5.1",
         "ts-jest": "27.1.5",
-        "typescript": "4.5.2"
+        "typescript": "4.5.2",
+        "zx": "^7.0.8"
     },
     "dependencies": {
         "@faker-js/faker": "6.2.0",

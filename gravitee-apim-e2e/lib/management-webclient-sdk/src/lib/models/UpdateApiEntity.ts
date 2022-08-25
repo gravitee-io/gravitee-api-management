@@ -12,52 +12,72 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApiLifecycleState } from './ApiLifecycleState';
 import {
-    ApiLifecycleState,
     ApiLifecycleStateFromJSON,
     ApiLifecycleStateFromJSONTyped,
     ApiLifecycleStateToJSON,
-    ApiMetadataEntity,
+} from './ApiLifecycleState';
+import type { ApiMetadataEntity } from './ApiMetadataEntity';
+import {
     ApiMetadataEntityFromJSON,
     ApiMetadataEntityFromJSONTyped,
     ApiMetadataEntityToJSON,
-    Flow,
+} from './ApiMetadataEntity';
+import type { Flow } from './Flow';
+import {
     FlowFromJSON,
     FlowFromJSONTyped,
     FlowToJSON,
-    PlanEntity,
+} from './Flow';
+import type { PlanEntity } from './PlanEntity';
+import {
     PlanEntityFromJSON,
     PlanEntityFromJSONTyped,
     PlanEntityToJSON,
-    PropertyEntity,
+} from './PlanEntity';
+import type { PropertyEntity } from './PropertyEntity';
+import {
     PropertyEntityFromJSON,
     PropertyEntityFromJSONTyped,
     PropertyEntityToJSON,
-    Proxy,
+} from './PropertyEntity';
+import type { Proxy } from './Proxy';
+import {
     ProxyFromJSON,
     ProxyFromJSONTyped,
     ProxyToJSON,
-    Resource,
+} from './Proxy';
+import type { Resource } from './Resource';
+import {
     ResourceFromJSON,
     ResourceFromJSONTyped,
     ResourceToJSON,
-    ResponseTemplate,
+} from './Resource';
+import type { ResponseTemplate } from './ResponseTemplate';
+import {
     ResponseTemplateFromJSON,
     ResponseTemplateFromJSONTyped,
     ResponseTemplateToJSON,
-    Rule,
+} from './ResponseTemplate';
+import type { Rule } from './Rule';
+import {
     RuleFromJSON,
     RuleFromJSONTyped,
     RuleToJSON,
-    Services,
+} from './Rule';
+import type { Services } from './Services';
+import {
     ServicesFromJSON,
     ServicesFromJSONTyped,
     ServicesToJSON,
-    Visibility,
+} from './Services';
+import type { Visibility } from './Visibility';
+import {
     VisibilityFromJSON,
     VisibilityFromJSONTyped,
     VisibilityToJSON,
-} from './';
+} from './Visibility';
 
 /**
  * 
@@ -235,6 +255,40 @@ export interface UpdateApiEntity {
     visibility: Visibility;
 }
 
+
+/**
+ * @export
+ */
+export const UpdateApiEntityExecutionModeEnum = {
+    V3: 'V3',
+    JUPITER: 'JUPITER'
+} as const;
+export type UpdateApiEntityExecutionModeEnum = typeof UpdateApiEntityExecutionModeEnum[keyof typeof UpdateApiEntityExecutionModeEnum];
+
+/**
+ * @export
+ */
+export const UpdateApiEntityFlowModeEnum = {
+    DEFAULT: 'DEFAULT',
+    BEST_MATCH: 'BEST_MATCH'
+} as const;
+export type UpdateApiEntityFlowModeEnum = typeof UpdateApiEntityFlowModeEnum[keyof typeof UpdateApiEntityFlowModeEnum];
+
+
+/**
+ * Check if a given object implements the UpdateApiEntity interface.
+ */
+export function instanceOfUpdateApiEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "description" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "proxy" in value;
+    isInstance = isInstance && "version" in value;
+    isInstance = isInstance && "visibility" in value;
+
+    return isInstance;
+}
+
 export function UpdateApiEntityFromJSON(json: any): UpdateApiEntity {
     return UpdateApiEntityFromJSONTyped(json, false);
 }
@@ -315,22 +369,4 @@ export function UpdateApiEntityToJSON(value?: UpdateApiEntity | null): any {
         'visibility': VisibilityToJSON(value.visibility),
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum UpdateApiEntityExecutionModeEnum {
-    V3 = 'V3',
-    JUPITER = 'JUPITER'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum UpdateApiEntityFlowModeEnum {
-    DEFAULT = 'DEFAULT',
-    BESTMATCH = 'BEST_MATCH'
-}
-
 

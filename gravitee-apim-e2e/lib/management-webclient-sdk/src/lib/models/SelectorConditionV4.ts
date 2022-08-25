@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Selector } from './Selector';
 import {
-    Selector,
     SelectorFromJSON,
     SelectorFromJSONTyped,
     SelectorToJSON,
-    SelectorConditionV4AllOf,
+} from './Selector';
+import type { SelectorConditionV4AllOf } from './SelectorConditionV4AllOf';
+import {
     SelectorConditionV4AllOfFromJSON,
     SelectorConditionV4AllOfFromJSONTyped,
     SelectorConditionV4AllOfToJSON,
-} from './';
+} from './SelectorConditionV4AllOf';
 
 /**
  * 
@@ -35,6 +37,18 @@ export interface SelectorConditionV4 extends Selector {
      * @memberof SelectorConditionV4
      */
     condition: string;
+}
+
+
+
+/**
+ * Check if a given object implements the SelectorConditionV4 interface.
+ */
+export function instanceOfSelectorConditionV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "condition" in value;
+
+    return isInstance;
 }
 
 export function SelectorConditionV4FromJSON(json: any): SelectorConditionV4 {
@@ -63,6 +77,4 @@ export function SelectorConditionV4ToJSON(value?: SelectorConditionV4 | null): a
         'condition': value.condition,
     };
 }
-
-
 

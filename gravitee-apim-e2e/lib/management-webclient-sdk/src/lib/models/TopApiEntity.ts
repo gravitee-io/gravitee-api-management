@@ -56,6 +56,15 @@ export interface TopApiEntity {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the TopApiEntity interface.
+ */
+export function instanceOfTopApiEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function TopApiEntityFromJSON(json: any): TopApiEntity {
     return TopApiEntityFromJSONTyped(json, false);
 }
@@ -92,5 +101,4 @@ export function TopApiEntityToJSON(value?: TopApiEntity | null): any {
         'version': value.version,
     };
 }
-
 

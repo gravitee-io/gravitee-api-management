@@ -32,6 +32,15 @@ export interface PortalScheduler {
     tasks?: number;
 }
 
+/**
+ * Check if a given object implements the PortalScheduler interface.
+ */
+export function instanceOfPortalScheduler(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PortalSchedulerFromJSON(json: any): PortalScheduler {
     return PortalSchedulerFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function PortalSchedulerToJSON(value?: PortalScheduler | null): any {
         'tasks': value.tasks,
     };
 }
-
 

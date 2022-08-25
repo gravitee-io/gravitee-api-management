@@ -12,6 +12,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { RequestHeaders } from './RequestHeaders';
+import {
+    RequestHeadersFromJSON,
+    RequestHeadersFromJSONTyped,
+    RequestHeadersToJSON,
+} from './RequestHeaders';
+
 /**
  * 
  * @export
@@ -26,10 +33,10 @@ export interface Request {
     body?: string;
     /**
      * 
-     * @type {{ [key: string]: Array<string>; }}
+     * @type {RequestHeaders}
      * @memberof Request
      */
-    headers?: { [key: string]: Array<string>; };
+    headers?: RequestHeaders;
     /**
      * 
      * @type {string}
@@ -44,6 +51,34 @@ export interface Request {
     uri?: string;
 }
 
+
+/**
+ * @export
+ */
+export const RequestMethodEnum = {
+    CONNECT: 'CONNECT',
+    DELETE: 'DELETE',
+    GET: 'GET',
+    HEAD: 'HEAD',
+    OPTIONS: 'OPTIONS',
+    PATCH: 'PATCH',
+    POST: 'POST',
+    PUT: 'PUT',
+    TRACE: 'TRACE',
+    OTHER: 'OTHER'
+} as const;
+export type RequestMethodEnum = typeof RequestMethodEnum[keyof typeof RequestMethodEnum];
+
+
+/**
+ * Check if a given object implements the Request interface.
+ */
+export function instanceOfRequest(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function RequestFromJSON(json: any): Request {
     return RequestFromJSONTyped(json, false);
 }
@@ -55,7 +90,7 @@ export function RequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
     return {
         
         'body': !exists(json, 'body') ? undefined : json['body'],
-        'headers': !exists(json, 'headers') ? undefined : json['headers'],
+        'headers': !exists(json, 'headers') ? undefined : RequestHeadersFromJSON(json['headers']),
         'method': !exists(json, 'method') ? undefined : json['method'],
         'uri': !exists(json, 'uri') ? undefined : json['uri'],
     };
@@ -71,27 +106,9 @@ export function RequestToJSON(value?: Request | null): any {
     return {
         
         'body': value.body,
-        'headers': value.headers,
+        'headers': RequestHeadersToJSON(value.headers),
         'method': value.method,
         'uri': value.uri,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum RequestMethodEnum {
-    CONNECT = 'CONNECT',
-    DELETE = 'DELETE',
-    GET = 'GET',
-    HEAD = 'HEAD',
-    OPTIONS = 'OPTIONS',
-    PATCH = 'PATCH',
-    POST = 'POST',
-    PUT = 'PUT',
-    TRACE = 'TRACE',
-    OTHER = 'OTHER'
-}
-
 

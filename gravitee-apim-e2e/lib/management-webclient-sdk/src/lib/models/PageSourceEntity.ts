@@ -32,6 +32,15 @@ export interface PageSourceEntity {
     type?: string;
 }
 
+/**
+ * Check if a given object implements the PageSourceEntity interface.
+ */
+export function instanceOfPageSourceEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PageSourceEntityFromJSON(json: any): PageSourceEntity {
     return PageSourceEntityFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function PageSourceEntityToJSON(value?: PageSourceEntity | null): any {
         'type': value.type,
     };
 }
-
 

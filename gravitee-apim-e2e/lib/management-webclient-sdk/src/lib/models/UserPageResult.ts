@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Page } from './Page';
 import {
-    Page,
     PageFromJSON,
     PageFromJSONTyped,
     PageToJSON,
-    UserEntity,
+} from './Page';
+import type { UserEntity } from './UserEntity';
+import {
     UserEntityFromJSON,
     UserEntityFromJSONTyped,
     UserEntityToJSON,
-} from './';
+} from './UserEntity';
 
 /**
  * 
@@ -47,6 +49,15 @@ export interface UserPageResult {
      * @memberof UserPageResult
      */
     page?: Page;
+}
+
+/**
+ * Check if a given object implements the UserPageResult interface.
+ */
+export function instanceOfUserPageResult(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function UserPageResultFromJSON(json: any): UserPageResult {
@@ -79,5 +90,4 @@ export function UserPageResultToJSON(value?: UserPageResult | null): any {
         'page': PageToJSON(value.page),
     };
 }
-
 

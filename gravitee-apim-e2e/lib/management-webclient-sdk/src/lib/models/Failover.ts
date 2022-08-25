@@ -38,6 +38,25 @@ export interface Failover {
     retryTimeout?: number;
 }
 
+
+/**
+ * @export
+ */
+export const FailoverCasesEnum = {
+    TIMEOUT: 'TIMEOUT'
+} as const;
+export type FailoverCasesEnum = typeof FailoverCasesEnum[keyof typeof FailoverCasesEnum];
+
+
+/**
+ * Check if a given object implements the Failover interface.
+ */
+export function instanceOfFailover(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function FailoverFromJSON(json: any): Failover {
     return FailoverFromJSONTyped(json, false);
 }
@@ -68,13 +87,4 @@ export function FailoverToJSON(value?: Failover | null): any {
         'retryTimeout': value.retryTimeout,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum FailoverCasesEnum {
-    TIMEOUT = 'TIMEOUT'
-}
-
 

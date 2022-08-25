@@ -11,18 +11,20 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum TaskType {
-    SUBSCRIPTIONAPPROVAL = 'SUBSCRIPTION_APPROVAL',
-    INREVIEW = 'IN_REVIEW',
-    REQUESTFORCHANGES = 'REQUEST_FOR_CHANGES',
-    USERREGISTRATIONAPPROVAL = 'USER_REGISTRATION_APPROVAL',
-    PROMOTIONAPPROVAL = 'PROMOTION_APPROVAL'
-}
+export const TaskType = {
+    SUBSCRIPTION_APPROVAL: 'SUBSCRIPTION_APPROVAL',
+    IN_REVIEW: 'IN_REVIEW',
+    REQUEST_FOR_CHANGES: 'REQUEST_FOR_CHANGES',
+    USER_REGISTRATION_APPROVAL: 'USER_REGISTRATION_APPROVAL',
+    PROMOTION_APPROVAL: 'PROMOTION_APPROVAL'
+} as const;
+export type TaskType = typeof TaskType[keyof typeof TaskType];
+
 
 export function TaskTypeFromJSON(json: any): TaskType {
     return TaskTypeFromJSONTyped(json, false);

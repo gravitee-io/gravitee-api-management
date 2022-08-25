@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Enabled } from './Enabled';
 import {
-    Enabled,
     EnabledFromJSON,
     EnabledFromJSONTyped,
     EnabledToJSON,
-} from './';
+} from './Enabled';
 
 /**
  * 
@@ -43,6 +43,15 @@ export interface OpenAPIDocType {
      * @memberof OpenAPIDocType
      */
     swagger?: Enabled;
+}
+
+/**
+ * Check if a given object implements the OpenAPIDocType interface.
+ */
+export function instanceOfOpenAPIDocType(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function OpenAPIDocTypeFromJSON(json: any): OpenAPIDocType {
@@ -75,5 +84,4 @@ export function OpenAPIDocTypeToJSON(value?: OpenAPIDocType | null): any {
         'swagger': EnabledToJSON(value.swagger),
     };
 }
-
 

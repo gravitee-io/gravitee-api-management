@@ -63,7 +63,7 @@ describeIfJupiter('Create an API with multiple JWT plans and use then', () => {
             name: '',
             path_operator: {
               path: '/',
-              operator: PathOperatorOperatorEnum.STARTSWITH,
+              operator: PathOperatorOperatorEnum.STARTS_WITH,
             },
             condition: '',
             consumers: [],

@@ -11,18 +11,20 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum ApiLifecycleState {
-    CREATED = 'CREATED',
-    PUBLISHED = 'PUBLISHED',
-    UNPUBLISHED = 'UNPUBLISHED',
-    DEPRECATED = 'DEPRECATED',
-    ARCHIVED = 'ARCHIVED'
-}
+export const ApiLifecycleState = {
+    CREATED: 'CREATED',
+    PUBLISHED: 'PUBLISHED',
+    UNPUBLISHED: 'UNPUBLISHED',
+    DEPRECATED: 'DEPRECATED',
+    ARCHIVED: 'ARCHIVED'
+} as const;
+export type ApiLifecycleState = typeof ApiLifecycleState[keyof typeof ApiLifecycleState];
+
 
 export function ApiLifecycleStateFromJSON(json: any): ApiLifecycleState {
     return ApiLifecycleStateFromJSONTyped(json, false);

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ThemeCssType } from './ThemeCssType';
 import {
-    ThemeCssType,
     ThemeCssTypeFromJSON,
     ThemeCssTypeFromJSONTyped,
     ThemeCssTypeToJSON,
-} from './';
+} from './ThemeCssType';
 
 /**
  * 
@@ -57,6 +57,15 @@ export interface ThemeCssDefinition {
     value?: string;
 }
 
+/**
+ * Check if a given object implements the ThemeCssDefinition interface.
+ */
+export function instanceOfThemeCssDefinition(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ThemeCssDefinitionFromJSON(json: any): ThemeCssDefinition {
     return ThemeCssDefinitionFromJSONTyped(json, false);
 }
@@ -91,5 +100,4 @@ export function ThemeCssDefinitionToJSON(value?: ThemeCssDefinition | null): any
         'value': value.value,
     };
 }
-
 

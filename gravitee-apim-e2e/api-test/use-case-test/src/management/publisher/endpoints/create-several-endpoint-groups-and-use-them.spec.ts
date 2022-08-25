@@ -39,7 +39,7 @@ describe('Create several endpoint groups and use them', () => {
       envId,
       orgId,
       body: ApisFaker.apiImport({
-        plans: [PlansFaker.plan({ security: PlanSecurityType.KEYLESS, status: PlanStatus.PUBLISHED })],
+        plans: [PlansFaker.plan({ security: PlanSecurityType.KEY_LESS, status: PlanStatus.PUBLISHED })],
       }),
     });
 
@@ -71,7 +71,7 @@ describe('Create several endpoint groups and use them', () => {
                 },
               ],
               load_balancing: {
-                type: LoadBalancerTypeEnum.ROUNDROBIN,
+                type: LoadBalancerTypeEnum.ROUND_ROBIN,
               },
               http: {
                 connectTimeout: 5000,
@@ -97,7 +97,7 @@ describe('Create several endpoint groups and use them', () => {
                 },
               ],
               load_balancing: {
-                type: LoadBalancerTypeEnum.ROUNDROBIN,
+                type: LoadBalancerTypeEnum.ROUND_ROBIN,
               },
               services: {
                 discovery: {
@@ -122,7 +122,7 @@ describe('Create several endpoint groups and use them', () => {
             name: '',
             path_operator: {
               path: '/',
-              operator: PathOperatorOperatorEnum.STARTSWITH,
+              operator: PathOperatorOperatorEnum.STARTS_WITH,
             },
             condition: '',
             consumers: [],

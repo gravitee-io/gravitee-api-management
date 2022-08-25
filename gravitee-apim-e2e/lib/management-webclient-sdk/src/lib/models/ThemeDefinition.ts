@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ThemeComponentDefinition } from './ThemeComponentDefinition';
 import {
-    ThemeComponentDefinition,
     ThemeComponentDefinitionFromJSON,
     ThemeComponentDefinitionFromJSONTyped,
     ThemeComponentDefinitionToJSON,
-} from './';
+} from './ThemeComponentDefinition';
 
 /**
  * 
@@ -31,6 +31,15 @@ export interface ThemeDefinition {
      * @memberof ThemeDefinition
      */
     data?: Array<ThemeComponentDefinition>;
+}
+
+/**
+ * Check if a given object implements the ThemeDefinition interface.
+ */
+export function instanceOfThemeDefinition(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function ThemeDefinitionFromJSON(json: any): ThemeDefinition {
@@ -59,5 +68,4 @@ export function ThemeDefinitionToJSON(value?: ThemeDefinition | null): any {
         'data': value.data === undefined ? undefined : ((value.data as Array<any>).map(ThemeComponentDefinitionToJSON)),
     };
 }
-
 

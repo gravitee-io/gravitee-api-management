@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum HealthcheckField {
-    ENDPOINT = 'ENDPOINT',
-    GATEWAY = 'GATEWAY'
-}
+export const HealthcheckField = {
+    ENDPOINT: 'ENDPOINT',
+    GATEWAY: 'GATEWAY'
+} as const;
+export type HealthcheckField = typeof HealthcheckField[keyof typeof HealthcheckField];
+
 
 export function HealthcheckFieldFromJSON(json: any): HealthcheckField {
     return HealthcheckFieldFromJSONTyped(json, false);

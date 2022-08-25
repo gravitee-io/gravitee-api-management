@@ -12,33 +12,48 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { EntrypointV4 } from './EntrypointV4';
 import {
-    EntrypointV4,
     EntrypointV4FromJSON,
     EntrypointV4FromJSONTyped,
     EntrypointV4ToJSON,
-    ListenerSubscriptionV4AllOf,
+} from './EntrypointV4';
+import type { ListenerSubscriptionV4AllOf } from './ListenerSubscriptionV4AllOf';
+import {
     ListenerSubscriptionV4AllOfFromJSON,
     ListenerSubscriptionV4AllOfFromJSONTyped,
     ListenerSubscriptionV4AllOfToJSON,
-    ListenerV4,
-    ListenerV4FromJSON,
-    ListenerV4FromJSONTyped,
-    ListenerV4ToJSON,
-} from './';
+} from './ListenerSubscriptionV4AllOf';
 
 /**
  * 
  * @export
  * @interface ListenerTcpV4
  */
-export interface ListenerTcpV4 extends ListenerV4 {
+export interface ListenerTcpV4 {
+    /**
+     * 
+     * @type {string}
+     * @memberof ListenerTcpV4
+     */
+    type: string;
     /**
      * 
      * @type {Array<EntrypointV4>}
      * @memberof ListenerTcpV4
      */
     entrypoints: Array<EntrypointV4>;
+}
+
+/**
+ * Check if a given object implements the ListenerTcpV4 interface.
+ */
+export function instanceOfListenerTcpV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "type" in value;
+    isInstance = isInstance && "entrypoints" in value;
+
+    return isInstance;
 }
 
 export function ListenerTcpV4FromJSON(json: any): ListenerTcpV4 {
@@ -50,7 +65,8 @@ export function ListenerTcpV4FromJSONTyped(json: any, ignoreDiscriminator: boole
         return json;
     }
     return {
-        ...ListenerV4FromJSONTyped(json, ignoreDiscriminator),
+        
+        'type': json['type'],
         'entrypoints': ((json['entrypoints'] as Array<any>).map(EntrypointV4FromJSON)),
     };
 }
@@ -63,10 +79,9 @@ export function ListenerTcpV4ToJSON(value?: ListenerTcpV4 | null): any {
         return null;
     }
     return {
-        ...ListenerV4ToJSON(value),
+        
+        'type': value.type,
         'entrypoints': ((value.entrypoints as Array<any>).map(EntrypointV4ToJSON)),
     };
 }
-
-
 

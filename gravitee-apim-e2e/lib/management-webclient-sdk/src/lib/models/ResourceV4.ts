@@ -44,6 +44,18 @@ export interface ResourceV4 {
     type: string;
 }
 
+/**
+ * Check if a given object implements the ResourceV4 interface.
+ */
+export function instanceOfResourceV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "configuration" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "type" in value;
+
+    return isInstance;
+}
+
 export function ResourceV4FromJSON(json: any): ResourceV4 {
     return ResourceV4FromJSONTyped(json, false);
 }
@@ -76,5 +88,4 @@ export function ResourceV4ToJSON(value?: ResourceV4 | null): any {
         'type': value.type,
     };
 }
-
 

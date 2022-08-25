@@ -32,6 +32,15 @@ export interface GroupSimpleEntity {
     name?: string;
 }
 
+/**
+ * Check if a given object implements the GroupSimpleEntity interface.
+ */
+export function instanceOfGroupSimpleEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function GroupSimpleEntityFromJSON(json: any): GroupSimpleEntity {
     return GroupSimpleEntityFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function GroupSimpleEntityToJSON(value?: GroupSimpleEntity | null): any {
         'name': value.name,
     };
 }
-
 

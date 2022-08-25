@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Selector } from './Selector';
 import {
-    Selector,
     SelectorFromJSON,
     SelectorFromJSONTyped,
     SelectorToJSON,
-    SelectorChannelV4AllOf,
+} from './Selector';
+import type { SelectorChannelV4AllOf } from './SelectorChannelV4AllOf';
+import {
     SelectorChannelV4AllOfFromJSON,
     SelectorChannelV4AllOfFromJSONTyped,
     SelectorChannelV4AllOfToJSON,
-} from './';
+} from './SelectorChannelV4AllOf';
 
 /**
  * 
@@ -47,6 +49,37 @@ export interface SelectorChannelV4 extends Selector {
      * @memberof SelectorChannelV4
      */
     channelOperator: SelectorChannelV4ChannelOperatorEnum;
+}
+
+
+/**
+ * @export
+ */
+export const SelectorChannelV4OperationsEnum = {
+    SUB: 'SUB',
+    PUB: 'PUB'
+} as const;
+export type SelectorChannelV4OperationsEnum = typeof SelectorChannelV4OperationsEnum[keyof typeof SelectorChannelV4OperationsEnum];
+
+/**
+ * @export
+ */
+export const SelectorChannelV4ChannelOperatorEnum = {
+    STARTS_WITH: 'STARTS_WITH',
+    EQUALS: 'EQUALS'
+} as const;
+export type SelectorChannelV4ChannelOperatorEnum = typeof SelectorChannelV4ChannelOperatorEnum[keyof typeof SelectorChannelV4ChannelOperatorEnum];
+
+
+/**
+ * Check if a given object implements the SelectorChannelV4 interface.
+ */
+export function instanceOfSelectorChannelV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "channel" in value;
+    isInstance = isInstance && "channelOperator" in value;
+
+    return isInstance;
 }
 
 export function SelectorChannelV4FromJSON(json: any): SelectorChannelV4 {
@@ -79,22 +112,4 @@ export function SelectorChannelV4ToJSON(value?: SelectorChannelV4 | null): any {
         'channelOperator': value.channelOperator,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum SelectorChannelV4OperationsEnum {
-    SUB = 'SUB',
-    PUB = 'PUB'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum SelectorChannelV4ChannelOperatorEnum {
-    STARTSWITH = 'STARTS_WITH',
-    EQUALS = 'EQUALS'
-}
-
 

@@ -32,6 +32,16 @@ export interface PlanSecurityV4 {
     type: string;
 }
 
+/**
+ * Check if a given object implements the PlanSecurityV4 interface.
+ */
+export function instanceOfPlanSecurityV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "type" in value;
+
+    return isInstance;
+}
+
 export function PlanSecurityV4FromJSON(json: any): PlanSecurityV4 {
     return PlanSecurityV4FromJSONTyped(json, false);
 }
@@ -60,5 +70,4 @@ export function PlanSecurityV4ToJSON(value?: PlanSecurityV4 | null): any {
         'type': value.type,
     };
 }
-
 

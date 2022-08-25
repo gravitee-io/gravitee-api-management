@@ -44,6 +44,15 @@ export interface PolicyDevelopmentEntity {
     on_response_method?: string;
 }
 
+/**
+ * Check if a given object implements the PolicyDevelopmentEntity interface.
+ */
+export function instanceOfPolicyDevelopmentEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PolicyDevelopmentEntityFromJSON(json: any): PolicyDevelopmentEntity {
     return PolicyDevelopmentEntityFromJSONTyped(json, false);
 }
@@ -76,5 +85,4 @@ export function PolicyDevelopmentEntityToJSON(value?: PolicyDevelopmentEntity | 
         'on_response_method': value.on_response_method,
     };
 }
-
 

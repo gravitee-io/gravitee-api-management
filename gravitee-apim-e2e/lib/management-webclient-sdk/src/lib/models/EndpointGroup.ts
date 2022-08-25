@@ -12,36 +12,48 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Endpoint } from './Endpoint';
 import {
-    Endpoint,
     EndpointFromJSON,
     EndpointFromJSONTyped,
     EndpointToJSON,
-    HttpClientOptions,
+} from './Endpoint';
+import type { HttpClientOptions } from './HttpClientOptions';
+import {
     HttpClientOptionsFromJSON,
     HttpClientOptionsFromJSONTyped,
     HttpClientOptionsToJSON,
-    HttpClientSslOptions,
+} from './HttpClientOptions';
+import type { HttpClientSslOptions } from './HttpClientSslOptions';
+import {
     HttpClientSslOptionsFromJSON,
     HttpClientSslOptionsFromJSONTyped,
     HttpClientSslOptionsToJSON,
-    HttpHeader,
+} from './HttpClientSslOptions';
+import type { HttpHeader } from './HttpHeader';
+import {
     HttpHeaderFromJSON,
     HttpHeaderFromJSONTyped,
     HttpHeaderToJSON,
-    HttpProxy,
+} from './HttpHeader';
+import type { HttpProxy } from './HttpProxy';
+import {
     HttpProxyFromJSON,
     HttpProxyFromJSONTyped,
     HttpProxyToJSON,
-    LoadBalancer,
+} from './HttpProxy';
+import type { LoadBalancer } from './LoadBalancer';
+import {
     LoadBalancerFromJSON,
     LoadBalancerFromJSONTyped,
     LoadBalancerToJSON,
-    Services,
+} from './LoadBalancer';
+import type { Services } from './Services';
+import {
     ServicesFromJSON,
     ServicesFromJSONTyped,
     ServicesToJSON,
-} from './';
+} from './Services';
 
 /**
  * 
@@ -99,6 +111,15 @@ export interface EndpointGroup {
     ssl?: HttpClientSslOptions;
 }
 
+/**
+ * Check if a given object implements the EndpointGroup interface.
+ */
+export function instanceOfEndpointGroup(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function EndpointGroupFromJSON(json: any): EndpointGroup {
     return EndpointGroupFromJSONTyped(json, false);
 }
@@ -139,5 +160,4 @@ export function EndpointGroupToJSON(value?: EndpointGroup | null): any {
         'ssl': HttpClientSslOptionsToJSON(value.ssl),
     };
 }
-
 

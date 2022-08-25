@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Flow } from './Flow';
 import {
-    Flow,
     FlowFromJSON,
     FlowFromJSONTyped,
     FlowToJSON,
-} from './';
+} from './Flow';
 
 /**
  * 
@@ -75,6 +75,27 @@ export interface OrganizationEntity {
     name: string;
 }
 
+
+/**
+ * @export
+ */
+export const OrganizationEntityFlowModeEnum = {
+    DEFAULT: 'DEFAULT',
+    BEST_MATCH: 'BEST_MATCH'
+} as const;
+export type OrganizationEntityFlowModeEnum = typeof OrganizationEntityFlowModeEnum[keyof typeof OrganizationEntityFlowModeEnum];
+
+
+/**
+ * Check if a given object implements the OrganizationEntity interface.
+ */
+export function instanceOfOrganizationEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function OrganizationEntityFromJSON(json: any): OrganizationEntity {
     return OrganizationEntityFromJSONTyped(json, false);
 }
@@ -115,14 +136,4 @@ export function OrganizationEntityToJSON(value?: OrganizationEntity | null): any
         'name': value.name,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum OrganizationEntityFlowModeEnum {
-    DEFAULT = 'DEFAULT',
-    BESTMATCH = 'BEST_MATCH'
-}
-
 

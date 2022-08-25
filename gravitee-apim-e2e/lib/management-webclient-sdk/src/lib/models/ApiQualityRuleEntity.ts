@@ -50,6 +50,15 @@ export interface ApiQualityRuleEntity {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the ApiQualityRuleEntity interface.
+ */
+export function instanceOfApiQualityRuleEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiQualityRuleEntityFromJSON(json: any): ApiQualityRuleEntity {
     return ApiQualityRuleEntityFromJSONTyped(json, false);
 }
@@ -84,5 +93,4 @@ export function ApiQualityRuleEntityToJSON(value?: ApiQualityRuleEntity | null):
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Consumer } from './Consumer';
 import {
-    Consumer,
     ConsumerFromJSON,
     ConsumerFromJSONTyped,
     ConsumerToJSON,
-    PathOperator,
+} from './Consumer';
+import type { PathOperator } from './PathOperator';
+import {
     PathOperatorFromJSON,
     PathOperatorFromJSONTyped,
     PathOperatorToJSON,
-    Step,
+} from './PathOperator';
+import type { Step } from './Step';
+import {
     StepFromJSON,
     StepFromJSONTyped,
     StepToJSON,
-} from './';
+} from './Step';
 
 /**
  * 
@@ -83,6 +87,34 @@ export interface Flow {
     pre?: Array<Step>;
 }
 
+
+/**
+ * @export
+ */
+export const FlowMethodsEnum = {
+    CONNECT: 'CONNECT',
+    DELETE: 'DELETE',
+    GET: 'GET',
+    HEAD: 'HEAD',
+    OPTIONS: 'OPTIONS',
+    PATCH: 'PATCH',
+    POST: 'POST',
+    PUT: 'PUT',
+    TRACE: 'TRACE',
+    OTHER: 'OTHER'
+} as const;
+export type FlowMethodsEnum = typeof FlowMethodsEnum[keyof typeof FlowMethodsEnum];
+
+
+/**
+ * Check if a given object implements the Flow interface.
+ */
+export function instanceOfFlow(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function FlowFromJSON(json: any): Flow {
     return FlowFromJSONTyped(json, false);
 }
@@ -123,22 +155,4 @@ export function FlowToJSON(value?: Flow | null): any {
         'pre': value.pre === undefined ? undefined : ((value.pre as Array<any>).map(StepToJSON)),
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum FlowMethodsEnum {
-    CONNECT = 'CONNECT',
-    DELETE = 'DELETE',
-    GET = 'GET',
-    HEAD = 'HEAD',
-    OPTIONS = 'OPTIONS',
-    PATCH = 'PATCH',
-    POST = 'POST',
-    PUT = 'PUT',
-    TRACE = 'TRACE',
-    OTHER = 'OTHER'
-}
-
 

@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum PlanTypeV4 {
-    API = 'API',
-    CATALOG = 'CATALOG'
-}
+export const PlanTypeV4 = {
+    API: 'API',
+    CATALOG: 'CATALOG'
+} as const;
+export type PlanTypeV4 = typeof PlanTypeV4[keyof typeof PlanTypeV4];
+
 
 export function PlanTypeV4FromJSON(json: any): PlanTypeV4 {
     return PlanTypeV4FromJSONTyped(json, false);

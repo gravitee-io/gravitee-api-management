@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { IdentityProviderType } from './IdentityProviderType';
 import {
-    IdentityProviderType,
     IdentityProviderTypeFromJSON,
     IdentityProviderTypeFromJSONTyped,
     IdentityProviderTypeToJSON,
-} from './';
+} from './IdentityProviderType';
 
 /**
  * 
@@ -123,6 +123,15 @@ export interface SocialIdentityProviderEntity {
     userLogoutEndpoint?: string;
 }
 
+/**
+ * Check if a given object implements the SocialIdentityProviderEntity interface.
+ */
+export function instanceOfSocialIdentityProviderEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function SocialIdentityProviderEntityFromJSON(json: any): SocialIdentityProviderEntity {
     return SocialIdentityProviderEntityFromJSONTyped(json, false);
 }
@@ -179,5 +188,4 @@ export function SocialIdentityProviderEntityToJSON(value?: SocialIdentityProvide
         'userLogoutEndpoint': value.userLogoutEndpoint,
     };
 }
-
 

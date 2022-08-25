@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Period } from './Period';
 import {
-    Period,
     PeriodFromJSON,
     PeriodFromJSONTyped,
     PeriodToJSON,
-} from './';
+} from './Period';
 
 /**
  * 
@@ -43,6 +43,15 @@ export interface Notification {
      * @memberof Notification
      */
     type?: string;
+}
+
+/**
+ * Check if a given object implements the Notification interface.
+ */
+export function instanceOfNotification(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function NotificationFromJSON(json: any): Notification {
@@ -75,5 +84,4 @@ export function NotificationToJSON(value?: Notification | null): any {
         'type': value.type,
     };
 }
-
 

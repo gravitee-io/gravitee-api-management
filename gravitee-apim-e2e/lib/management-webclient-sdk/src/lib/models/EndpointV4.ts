@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { EndpointServicesV4 } from './EndpointServicesV4';
 import {
-    EndpointServicesV4,
     EndpointServicesV4FromJSON,
     EndpointServicesV4FromJSONTyped,
     EndpointServicesV4ToJSON,
-} from './';
+} from './EndpointServicesV4';
 
 /**
  * 
@@ -36,7 +36,7 @@ export interface EndpointV4 {
      * @type {boolean}
      * @memberof EndpointV4
      */
-    inheritConfig?: boolean;
+    inheritConfiguration?: boolean;
     /**
      * 
      * @type {string}
@@ -63,6 +63,17 @@ export interface EndpointV4 {
     weight?: number;
 }
 
+/**
+ * Check if a given object implements the EndpointV4 interface.
+ */
+export function instanceOfEndpointV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "type" in value;
+
+    return isInstance;
+}
+
 export function EndpointV4FromJSON(json: any): EndpointV4 {
     return EndpointV4FromJSONTyped(json, false);
 }
@@ -74,7 +85,7 @@ export function EndpointV4FromJSONTyped(json: any, ignoreDiscriminator: boolean)
     return {
         
         'configuration': !exists(json, 'configuration') ? undefined : json['configuration'],
-        'inheritConfig': !exists(json, 'inheritConfig') ? undefined : json['inheritConfig'],
+        'inheritConfiguration': !exists(json, 'inheritConfiguration') ? undefined : json['inheritConfiguration'],
         'name': json['name'],
         'services': !exists(json, 'services') ? undefined : EndpointServicesV4FromJSON(json['services']),
         'type': json['type'],
@@ -92,12 +103,11 @@ export function EndpointV4ToJSON(value?: EndpointV4 | null): any {
     return {
         
         'configuration': value.configuration,
-        'inheritConfig': value.inheritConfig,
+        'inheritConfiguration': value.inheritConfiguration,
         'name': value.name,
         'services': EndpointServicesV4ToJSON(value.services),
         'type': value.type,
         'weight': value.weight,
     };
 }
-
 

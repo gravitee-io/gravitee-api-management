@@ -38,6 +38,16 @@ export interface ApiMembership {
     role: string;
 }
 
+/**
+ * Check if a given object implements the ApiMembership interface.
+ */
+export function instanceOfApiMembership(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "role" in value;
+
+    return isInstance;
+}
+
 export function ApiMembershipFromJSON(json: any): ApiMembership {
     return ApiMembershipFromJSONTyped(json, false);
 }
@@ -68,5 +78,4 @@ export function ApiMembershipToJSON(value?: ApiMembership | null): any {
         'role': value.role,
     };
 }
-
 

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { GroupMemberEntity } from './GroupMemberEntity';
 import {
-    GroupMemberEntity,
     GroupMemberEntityFromJSON,
     GroupMemberEntityFromJSONTyped,
     GroupMemberEntityToJSON,
-} from './';
+} from './GroupMemberEntity';
 
 /**
  * 
@@ -32,6 +32,15 @@ export interface ApiGroupsWithMembersMap {
      * @memberof ApiGroupsWithMembersMap
      */
     empty?: boolean;
+}
+
+/**
+ * Check if a given object implements the ApiGroupsWithMembersMap interface.
+ */
+export function instanceOfApiGroupsWithMembersMap(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function ApiGroupsWithMembersMapFromJSON(json: any): ApiGroupsWithMembersMap {
@@ -62,5 +71,4 @@ export function ApiGroupsWithMembersMapToJSON(value?: ApiGroupsWithMembersMap | 
         'empty': value.empty,
     };
 }
-
 

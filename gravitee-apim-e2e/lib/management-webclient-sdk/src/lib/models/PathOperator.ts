@@ -32,6 +32,26 @@ export interface PathOperator {
     path?: string;
 }
 
+
+/**
+ * @export
+ */
+export const PathOperatorOperatorEnum = {
+    STARTS_WITH: 'STARTS_WITH',
+    EQUALS: 'EQUALS'
+} as const;
+export type PathOperatorOperatorEnum = typeof PathOperatorOperatorEnum[keyof typeof PathOperatorOperatorEnum];
+
+
+/**
+ * Check if a given object implements the PathOperator interface.
+ */
+export function instanceOfPathOperator(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PathOperatorFromJSON(json: any): PathOperator {
     return PathOperatorFromJSONTyped(json, false);
 }
@@ -60,14 +80,4 @@ export function PathOperatorToJSON(value?: PathOperator | null): any {
         'path': value.path,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum PathOperatorOperatorEnum {
-    STARTSWITH = 'STARTS_WITH',
-    EQUALS = 'EQUALS'
-}
-
 

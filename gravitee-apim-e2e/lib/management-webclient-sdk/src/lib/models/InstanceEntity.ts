@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { InstanceState } from './InstanceState';
 import {
-    InstanceState,
     InstanceStateFromJSON,
     InstanceStateFromJSONTyped,
     InstanceStateToJSON,
-    PluginEntity,
+} from './InstanceState';
+import type { PluginEntity } from './PluginEntity';
+import {
     PluginEntityFromJSON,
     PluginEntityFromJSONTyped,
     PluginEntityToJSON,
-} from './';
+} from './PluginEntity';
 
 /**
  * 
@@ -133,6 +135,15 @@ export interface InstanceEntity {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the InstanceEntity interface.
+ */
+export function instanceOfInstanceEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function InstanceEntityFromJSON(json: any): InstanceEntity {
     return InstanceEntityFromJSONTyped(json, false);
 }
@@ -191,5 +202,4 @@ export function InstanceEntityToJSON(value?: InstanceEntity | null): any {
         'version': value.version,
     };
 }
-
 

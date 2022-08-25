@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AuditTrail } from './AuditTrail';
 import {
-    AuditTrail,
     AuditTrailFromJSON,
     AuditTrailFromJSONTyped,
     AuditTrailToJSON,
-} from './';
+} from './AuditTrail';
 
 /**
  * 
@@ -37,6 +37,15 @@ export interface Audit {
      * @memberof Audit
      */
     trail?: AuditTrail;
+}
+
+/**
+ * Check if a given object implements the Audit interface.
+ */
+export function instanceOfAudit(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function AuditFromJSON(json: any): Audit {
@@ -67,5 +76,4 @@ export function AuditToJSON(value?: Audit | null): any {
         'trail': AuditTrailToJSON(value.trail),
     };
 }
-
 

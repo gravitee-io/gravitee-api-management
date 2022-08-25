@@ -13,8 +13,10 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  MessageEntity,
+} from '../models';
 import {
-    MessageEntity,
     MessageEntityFromJSON,
     MessageEntityToJSON,
 } from '../models';
@@ -34,7 +36,7 @@ export class MessagesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_MESSAGE[CREATE] permission to use this service
      * Send a message to users depending on their profile
      */
-    async createMessageRaw(requestParameters: CreateMessageRequest): Promise<runtime.ApiResponse<number>> {
+    async createMessageRaw(requestParameters: CreateMessageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<number>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createMessage.');
         }
@@ -43,7 +45,7 @@ export class MessagesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createMessage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -58,7 +60,7 @@ export class MessagesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: MessageEntityToJSON(requestParameters.messageEntity),
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -67,8 +69,8 @@ export class MessagesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_MESSAGE[CREATE] permission to use this service
      * Send a message to users depending on their profile
      */
-    async createMessage(requestParameters: CreateMessageRequest): Promise<number> {
-        const response = await this.createMessageRaw(requestParameters);
+    async createMessage(requestParameters: CreateMessageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<number> {
+        const response = await this.createMessageRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

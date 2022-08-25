@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  GenericNotificationConfigEntity,
+  PortalNotificationConfigEntity,
+} from '../models';
 import {
-    GenericNotificationConfigEntity,
     GenericNotificationConfigEntityFromJSON,
     GenericNotificationConfigEntityToJSON,
-    PortalNotificationConfigEntity,
     PortalNotificationConfigEntityFromJSON,
     PortalNotificationConfigEntityToJSON,
 } from '../models';
@@ -65,7 +67,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
     /**
      * Create notification settings
      */
-    async createApplicationNotificationSettingsRaw(requestParameters: CreateApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<any>> {
+    async createApplicationNotificationSettingsRaw(requestParameters: CreateApplicationNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling createApplicationNotificationSettings.');
         }
@@ -78,7 +80,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createApplicationNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -93,7 +95,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: GenericNotificationConfigEntityToJSON(requestParameters.genericNotificationConfigEntity),
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -101,15 +103,15 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
     /**
      * Create notification settings
      */
-    async createApplicationNotificationSettings(requestParameters: CreateApplicationNotificationSettingsRequest): Promise<any> {
-        const response = await this.createApplicationNotificationSettingsRaw(requestParameters);
+    async createApplicationNotificationSettings(requestParameters: CreateApplicationNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<any> {
+        const response = await this.createApplicationNotificationSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Delete notification settings
      */
-    async deleteApplicationNotificationSettingsRaw(requestParameters: DeleteApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteApplicationNotificationSettingsRaw(requestParameters: DeleteApplicationNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.notificationId === null || requestParameters.notificationId === undefined) {
             throw new runtime.RequiredError('notificationId','Required parameter requestParameters.notificationId was null or undefined when calling deleteApplicationNotificationSettings.');
         }
@@ -126,7 +128,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApplicationNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -138,7 +140,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -146,14 +148,14 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
     /**
      * Delete notification settings
      */
-    async deleteApplicationNotificationSettings(requestParameters: DeleteApplicationNotificationSettingsRequest): Promise<void> {
-        await this.deleteApplicationNotificationSettingsRaw(requestParameters);
+    async deleteApplicationNotificationSettings(requestParameters: DeleteApplicationNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteApplicationNotificationSettingsRaw(requestParameters, initOverrides);
     }
 
     /**
      * Get notification settings
      */
-    async getApplicationNotificationSettingsRaw(requestParameters: GetApplicationNotificationSettingsRequest): Promise<runtime.ApiResponse<Array<any>>> {
+    async getApplicationNotificationSettingsRaw(requestParameters: GetApplicationNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<any>>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling getApplicationNotificationSettings.');
         }
@@ -166,7 +168,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApplicationNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -178,7 +180,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -186,15 +188,15 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
     /**
      * Get notification settings
      */
-    async getApplicationNotificationSettings(requestParameters: GetApplicationNotificationSettingsRequest): Promise<Array<any>> {
-        const response = await this.getApplicationNotificationSettingsRaw(requestParameters);
+    async getApplicationNotificationSettings(requestParameters: GetApplicationNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<any>> {
+        const response = await this.getApplicationNotificationSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Update generic notification settings
      */
-    async updateApplicationGeneralNotificationSettingsRaw(requestParameters: UpdateApplicationGeneralNotificationSettingsRequest): Promise<runtime.ApiResponse<GenericNotificationConfigEntity>> {
+    async updateApplicationGeneralNotificationSettingsRaw(requestParameters: UpdateApplicationGeneralNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GenericNotificationConfigEntity>> {
         if (requestParameters.notificationId === null || requestParameters.notificationId === undefined) {
             throw new runtime.RequiredError('notificationId','Required parameter requestParameters.notificationId was null or undefined when calling updateApplicationGeneralNotificationSettings.');
         }
@@ -211,7 +213,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateApplicationGeneralNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -226,7 +228,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: GenericNotificationConfigEntityToJSON(requestParameters.genericNotificationConfigEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => GenericNotificationConfigEntityFromJSON(jsonValue));
     }
@@ -234,15 +236,15 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
     /**
      * Update generic notification settings
      */
-    async updateApplicationGeneralNotificationSettings(requestParameters: UpdateApplicationGeneralNotificationSettingsRequest): Promise<GenericNotificationConfigEntity> {
-        const response = await this.updateApplicationGeneralNotificationSettingsRaw(requestParameters);
+    async updateApplicationGeneralNotificationSettings(requestParameters: UpdateApplicationGeneralNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GenericNotificationConfigEntity> {
+        const response = await this.updateApplicationGeneralNotificationSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Update portal notification settings
      */
-    async updateApplicationPortalNotificationSettingsRaw(requestParameters: UpdateApplicationPortalNotificationSettingsRequest): Promise<runtime.ApiResponse<PortalNotificationConfigEntity>> {
+    async updateApplicationPortalNotificationSettingsRaw(requestParameters: UpdateApplicationPortalNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PortalNotificationConfigEntity>> {
         if (requestParameters.application === null || requestParameters.application === undefined) {
             throw new runtime.RequiredError('application','Required parameter requestParameters.application was null or undefined when calling updateApplicationPortalNotificationSettings.');
         }
@@ -255,7 +257,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateApplicationPortalNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -270,7 +272,7 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: PortalNotificationConfigEntityToJSON(requestParameters.portalNotificationConfigEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PortalNotificationConfigEntityFromJSON(jsonValue));
     }
@@ -278,8 +280,8 @@ export class ApplicationNotificationsApi extends runtime.BaseAPI {
     /**
      * Update portal notification settings
      */
-    async updateApplicationPortalNotificationSettings(requestParameters: UpdateApplicationPortalNotificationSettingsRequest): Promise<PortalNotificationConfigEntity> {
-        const response = await this.updateApplicationPortalNotificationSettingsRaw(requestParameters);
+    async updateApplicationPortalNotificationSettings(requestParameters: UpdateApplicationPortalNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PortalNotificationConfigEntity> {
+        const response = await this.updateApplicationPortalNotificationSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

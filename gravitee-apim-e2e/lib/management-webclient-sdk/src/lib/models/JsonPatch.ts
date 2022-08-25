@@ -38,6 +38,29 @@ export interface JsonPatch {
     value?: any;
 }
 
+
+/**
+ * @export
+ */
+export const JsonPatchOperationEnum = {
+    ADD: 'ADD',
+    REMOVE: 'REMOVE',
+    REPLACE: 'REPLACE',
+    TEST: 'TEST'
+} as const;
+export type JsonPatchOperationEnum = typeof JsonPatchOperationEnum[keyof typeof JsonPatchOperationEnum];
+
+
+/**
+ * Check if a given object implements the JsonPatch interface.
+ */
+export function instanceOfJsonPatch(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "jsonPath" in value;
+
+    return isInstance;
+}
+
 export function JsonPatchFromJSON(json: any): JsonPatch {
     return JsonPatchFromJSONTyped(json, false);
 }
@@ -68,16 +91,4 @@ export function JsonPatchToJSON(value?: JsonPatch | null): any {
         'value': value.value,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum JsonPatchOperationEnum {
-    ADD = 'ADD',
-    REMOVE = 'REMOVE',
-    REPLACE = 'REPLACE',
-    TEST = 'TEST'
-}
-
 

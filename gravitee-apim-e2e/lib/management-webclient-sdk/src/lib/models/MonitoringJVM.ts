@@ -140,6 +140,15 @@ export interface MonitoringJVM {
     young_pool_used_in_bytes?: number;
 }
 
+/**
+ * Check if a given object implements the MonitoringJVM interface.
+ */
+export function instanceOfMonitoringJVM(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MonitoringJVMFromJSON(json: any): MonitoringJVM {
     return MonitoringJVMFromJSONTyped(json, false);
 }
@@ -204,5 +213,4 @@ export function MonitoringJVMToJSON(value?: MonitoringJVM | null): any {
         'young_pool_used_in_bytes': value.young_pool_used_in_bytes,
     };
 }
-
 

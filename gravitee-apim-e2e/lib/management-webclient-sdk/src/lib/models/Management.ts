@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Enabled } from './Enabled';
 import {
-    Enabled,
     EnabledFromJSON,
     EnabledFromJSONTyped,
     EnabledToJSON,
-} from './';
+} from './Enabled';
 
 /**
  * 
@@ -69,6 +69,15 @@ export interface Management {
     userCreation?: Enabled;
 }
 
+/**
+ * Check if a given object implements the Management interface.
+ */
+export function instanceOfManagement(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ManagementFromJSON(json: any): Management {
     return ManagementFromJSONTyped(json, false);
 }
@@ -107,5 +116,4 @@ export function ManagementToJSON(value?: Management | null): any {
         'userCreation': EnabledToJSON(value.userCreation),
     };
 }
-
 

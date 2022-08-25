@@ -11,16 +11,18 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum ApiKeyMode {
-    SHARED = 'SHARED',
-    EXCLUSIVE = 'EXCLUSIVE',
-    UNSPECIFIED = 'UNSPECIFIED'
-}
+export const ApiKeyMode = {
+    SHARED: 'SHARED',
+    EXCLUSIVE: 'EXCLUSIVE',
+    UNSPECIFIED: 'UNSPECIFIED'
+} as const;
+export type ApiKeyMode = typeof ApiKeyMode[keyof typeof ApiKeyMode];
+
 
 export function ApiKeyModeFromJSON(json: any): ApiKeyMode {
     return ApiKeyModeFromJSONTyped(json, false);

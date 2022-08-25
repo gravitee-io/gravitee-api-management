@@ -50,6 +50,15 @@ export interface UpdateRatingEntity {
     title?: string;
 }
 
+/**
+ * Check if a given object implements the UpdateRatingEntity interface.
+ */
+export function instanceOfUpdateRatingEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function UpdateRatingEntityFromJSON(json: any): UpdateRatingEntity {
     return UpdateRatingEntityFromJSONTyped(json, false);
 }
@@ -84,5 +93,4 @@ export function UpdateRatingEntityToJSON(value?: UpdateRatingEntity | null): any
         'title': value.title,
     };
 }
-
 

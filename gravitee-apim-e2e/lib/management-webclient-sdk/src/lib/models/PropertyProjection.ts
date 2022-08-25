@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Projection } from './Projection';
 import {
-    Projection,
     ProjectionFromJSON,
     ProjectionFromJSONTyped,
     ProjectionToJSON,
-    PropertyProjectionAllOf,
+} from './Projection';
+import type { PropertyProjectionAllOf } from './PropertyProjectionAllOf';
+import {
     PropertyProjectionAllOfFromJSON,
     PropertyProjectionAllOfFromJSONTyped,
     PropertyProjectionAllOfToJSON,
-} from './';
+} from './PropertyProjectionAllOf';
 
 /**
  * 
@@ -35,6 +37,18 @@ export interface PropertyProjection extends Projection {
      * @memberof PropertyProjection
      */
     property: string;
+}
+
+
+
+/**
+ * Check if a given object implements the PropertyProjection interface.
+ */
+export function instanceOfPropertyProjection(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "property" in value;
+
+    return isInstance;
 }
 
 export function PropertyProjectionFromJSON(json: any): PropertyProjection {
@@ -63,6 +77,4 @@ export function PropertyProjectionToJSON(value?: PropertyProjection | null): any
         'property': value.property,
     };
 }
-
-
 

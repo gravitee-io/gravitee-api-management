@@ -50,6 +50,35 @@ export interface ThresholdRangeConditionAllOf {
     thresholdHigh?: number;
 }
 
+
+/**
+ * @export
+ */
+export const ThresholdRangeConditionAllOfOperatorLowEnum = {
+    INCLUSIVE: 'INCLUSIVE',
+    EXCLUSIVE: 'EXCLUSIVE'
+} as const;
+export type ThresholdRangeConditionAllOfOperatorLowEnum = typeof ThresholdRangeConditionAllOfOperatorLowEnum[keyof typeof ThresholdRangeConditionAllOfOperatorLowEnum];
+
+/**
+ * @export
+ */
+export const ThresholdRangeConditionAllOfOperatorHighEnum = {
+    INCLUSIVE: 'INCLUSIVE',
+    EXCLUSIVE: 'EXCLUSIVE'
+} as const;
+export type ThresholdRangeConditionAllOfOperatorHighEnum = typeof ThresholdRangeConditionAllOfOperatorHighEnum[keyof typeof ThresholdRangeConditionAllOfOperatorHighEnum];
+
+
+/**
+ * Check if a given object implements the ThresholdRangeConditionAllOf interface.
+ */
+export function instanceOfThresholdRangeConditionAllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ThresholdRangeConditionAllOfFromJSON(json: any): ThresholdRangeConditionAllOf {
     return ThresholdRangeConditionAllOfFromJSONTyped(json, false);
 }
@@ -84,22 +113,4 @@ export function ThresholdRangeConditionAllOfToJSON(value?: ThresholdRangeConditi
         'thresholdHigh': value.thresholdHigh,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ThresholdRangeConditionAllOfOperatorLowEnum {
-    INCLUSIVE = 'INCLUSIVE',
-    EXCLUSIVE = 'EXCLUSIVE'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum ThresholdRangeConditionAllOfOperatorHighEnum {
-    INCLUSIVE = 'INCLUSIVE',
-    EXCLUSIVE = 'EXCLUSIVE'
-}
-
 

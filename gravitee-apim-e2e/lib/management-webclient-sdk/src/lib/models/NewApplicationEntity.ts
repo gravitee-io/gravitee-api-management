@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApiKeyMode } from './ApiKeyMode';
 import {
-    ApiKeyMode,
     ApiKeyModeFromJSON,
     ApiKeyModeFromJSONTyped,
     ApiKeyModeToJSON,
-    ApplicationSettings,
+} from './ApiKeyMode';
+import type { ApplicationSettings } from './ApplicationSettings';
+import {
     ApplicationSettingsFromJSON,
     ApplicationSettingsFromJSONTyped,
     ApplicationSettingsToJSON,
-} from './';
+} from './ApplicationSettings';
 
 /**
  * 
@@ -91,6 +93,17 @@ export interface NewApplicationEntity {
     type?: string;
 }
 
+/**
+ * Check if a given object implements the NewApplicationEntity interface.
+ */
+export function instanceOfNewApplicationEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "description" in value;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function NewApplicationEntityFromJSON(json: any): NewApplicationEntity {
     return NewApplicationEntityFromJSONTyped(json, false);
 }
@@ -135,5 +148,4 @@ export function NewApplicationEntityToJSON(value?: NewApplicationEntity | null):
         'type': value.type,
     };
 }
-
 

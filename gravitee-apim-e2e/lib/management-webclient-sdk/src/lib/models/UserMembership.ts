@@ -44,6 +44,15 @@ export interface UserMembership {
     type?: string;
 }
 
+/**
+ * Check if a given object implements the UserMembership interface.
+ */
+export function instanceOfUserMembership(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function UserMembershipFromJSON(json: any): UserMembership {
     return UserMembershipFromJSONTyped(json, false);
 }
@@ -76,5 +85,4 @@ export function UserMembershipToJSON(value?: UserMembership | null): any {
         'type': value.type,
     };
 }
-
 

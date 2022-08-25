@@ -26,6 +26,15 @@ export interface GrantedAuthority {
     authority?: string;
 }
 
+/**
+ * Check if a given object implements the GrantedAuthority interface.
+ */
+export function instanceOfGrantedAuthority(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function GrantedAuthorityFromJSON(json: any): GrantedAuthority {
     return GrantedAuthorityFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function GrantedAuthorityToJSON(value?: GrantedAuthority | null): any {
         'authority': value.authority,
     };
 }
-
 

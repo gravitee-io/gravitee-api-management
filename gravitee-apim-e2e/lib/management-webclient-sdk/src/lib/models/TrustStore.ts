@@ -32,6 +32,28 @@ export interface TrustStore {
     type?: TrustStoreTypeEnum;
 }
 
+
+/**
+ * @export
+ */
+export const TrustStoreTypeEnum = {
+    PEM: 'PEM',
+    PKCS12: 'PKCS12',
+    JKS: 'JKS',
+    NONE: 'None'
+} as const;
+export type TrustStoreTypeEnum = typeof TrustStoreTypeEnum[keyof typeof TrustStoreTypeEnum];
+
+
+/**
+ * Check if a given object implements the TrustStore interface.
+ */
+export function instanceOfTrustStore(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function TrustStoreFromJSON(json: any): TrustStore {
     return TrustStoreFromJSONTyped(json, false);
 }
@@ -69,16 +91,4 @@ export function TrustStoreToJSON(value?: TrustStore | null): any {
         'type': value.type,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum TrustStoreTypeEnum {
-    PEM = 'PEM',
-    PKCS12 = 'PKCS12',
-    JKS = 'JKS',
-    None = 'None'
-}
-
 

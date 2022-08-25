@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { SingleValueCondition } from './SingleValueCondition';
 import {
-    SingleValueCondition,
     SingleValueConditionFromJSON,
     SingleValueConditionFromJSONTyped,
     SingleValueConditionToJSON,
-} from './';
+} from './SingleValueCondition';
 
 /**
  * 
@@ -63,6 +63,42 @@ export interface RateConditionAllOf {
     sampleSize?: number;
 }
 
+
+/**
+ * @export
+ */
+export const RateConditionAllOfOperatorEnum = {
+    LT: 'LT',
+    LTE: 'LTE',
+    GTE: 'GTE',
+    GT: 'GT'
+} as const;
+export type RateConditionAllOfOperatorEnum = typeof RateConditionAllOfOperatorEnum[keyof typeof RateConditionAllOfOperatorEnum];
+
+/**
+ * @export
+ */
+export const RateConditionAllOfTimeUnitEnum = {
+    NANOSECONDS: 'NANOSECONDS',
+    MICROSECONDS: 'MICROSECONDS',
+    MILLISECONDS: 'MILLISECONDS',
+    SECONDS: 'SECONDS',
+    MINUTES: 'MINUTES',
+    HOURS: 'HOURS',
+    DAYS: 'DAYS'
+} as const;
+export type RateConditionAllOfTimeUnitEnum = typeof RateConditionAllOfTimeUnitEnum[keyof typeof RateConditionAllOfTimeUnitEnum];
+
+
+/**
+ * Check if a given object implements the RateConditionAllOf interface.
+ */
+export function instanceOfRateConditionAllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function RateConditionAllOfFromJSON(json: any): RateConditionAllOf {
     return RateConditionAllOfFromJSONTyped(json, false);
 }
@@ -99,29 +135,4 @@ export function RateConditionAllOfToJSON(value?: RateConditionAllOf | null): any
         'sampleSize': value.sampleSize,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum RateConditionAllOfOperatorEnum {
-    LT = 'LT',
-    LTE = 'LTE',
-    GTE = 'GTE',
-    GT = 'GT'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum RateConditionAllOfTimeUnitEnum {
-    NANOSECONDS = 'NANOSECONDS',
-    MICROSECONDS = 'MICROSECONDS',
-    MILLISECONDS = 'MILLISECONDS',
-    SECONDS = 'SECONDS',
-    MINUTES = 'MINUTES',
-    HOURS = 'HOURS',
-    DAYS = 'DAYS'
-}
-
 

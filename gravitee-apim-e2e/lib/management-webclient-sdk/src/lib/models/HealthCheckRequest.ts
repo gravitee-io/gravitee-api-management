@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { HttpHeader } from './HttpHeader';
 import {
-    HttpHeader,
     HttpHeaderFromJSON,
     HttpHeaderFromJSONTyped,
     HttpHeaderToJSON,
-} from './';
+} from './HttpHeader';
 
 /**
  * 
@@ -57,6 +57,34 @@ export interface HealthCheckRequest {
     path?: string;
 }
 
+
+/**
+ * @export
+ */
+export const HealthCheckRequestMethodEnum = {
+    CONNECT: 'CONNECT',
+    DELETE: 'DELETE',
+    GET: 'GET',
+    HEAD: 'HEAD',
+    OPTIONS: 'OPTIONS',
+    PATCH: 'PATCH',
+    POST: 'POST',
+    PUT: 'PUT',
+    TRACE: 'TRACE',
+    OTHER: 'OTHER'
+} as const;
+export type HealthCheckRequestMethodEnum = typeof HealthCheckRequestMethodEnum[keyof typeof HealthCheckRequestMethodEnum];
+
+
+/**
+ * Check if a given object implements the HealthCheckRequest interface.
+ */
+export function instanceOfHealthCheckRequest(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function HealthCheckRequestFromJSON(json: any): HealthCheckRequest {
     return HealthCheckRequestFromJSONTyped(json, false);
 }
@@ -91,22 +119,4 @@ export function HealthCheckRequestToJSON(value?: HealthCheckRequest | null): any
         'path': value.path,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum HealthCheckRequestMethodEnum {
-    CONNECT = 'CONNECT',
-    DELETE = 'DELETE',
-    GET = 'GET',
-    HEAD = 'HEAD',
-    OPTIONS = 'OPTIONS',
-    PATCH = 'PATCH',
-    POST = 'POST',
-    PUT = 'PUT',
-    TRACE = 'TRACE',
-    OTHER = 'OTHER'
-}
-
 

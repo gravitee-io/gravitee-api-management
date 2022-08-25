@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Log } from './Log';
 import {
-    Log,
     LogFromJSON,
     LogFromJSONTyped,
     LogToJSON,
-} from './';
+} from './Log';
 
 /**
  * 
@@ -43,6 +43,15 @@ export interface SearchLogResponse {
      * @memberof SearchLogResponse
      */
     total?: number;
+}
+
+/**
+ * Check if a given object implements the SearchLogResponse interface.
+ */
+export function instanceOfSearchLogResponse(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function SearchLogResponseFromJSON(json: any): SearchLogResponse {
@@ -75,5 +84,4 @@ export function SearchLogResponseToJSON(value?: SearchLogResponse | null): any {
         'total': value.total,
     };
 }
-
 

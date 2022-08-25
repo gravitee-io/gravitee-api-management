@@ -63,7 +63,7 @@ describe('Subscribe using shared API-Key and use it', () => {
       envId,
       orgId,
       body: ApisFaker.apiImport({
-        plans: [PlansFaker.plan({ security: PlanSecurityType.APIKEY, status: PlanStatus.PUBLISHED })],
+        plans: [PlansFaker.plan({ security: PlanSecurityType.API_KEY, status: PlanStatus.PUBLISHED })],
       }),
     });
 
@@ -71,7 +71,7 @@ describe('Subscribe using shared API-Key and use it', () => {
       envId,
       orgId,
       body: ApisFaker.apiImport({
-        plans: [PlansFaker.plan({ security: PlanSecurityType.APIKEY, status: PlanStatus.PUBLISHED })],
+        plans: [PlansFaker.plan({ security: PlanSecurityType.API_KEY, status: PlanStatus.PUBLISHED })],
       }),
     });
 

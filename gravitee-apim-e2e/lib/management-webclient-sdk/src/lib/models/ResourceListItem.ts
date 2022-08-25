@@ -56,6 +56,15 @@ export interface ResourceListItem {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the ResourceListItem interface.
+ */
+export function instanceOfResourceListItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ResourceListItemFromJSON(json: any): ResourceListItem {
     return ResourceListItemFromJSONTyped(json, false);
 }
@@ -92,5 +101,4 @@ export function ResourceListItemToJSON(value?: ResourceListItem | null): any {
         'version': value.version,
     };
 }
-
 

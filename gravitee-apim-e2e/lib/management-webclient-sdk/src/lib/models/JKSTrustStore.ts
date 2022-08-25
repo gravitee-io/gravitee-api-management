@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { JKSKeyStoreAllOf } from './JKSKeyStoreAllOf';
 import {
-    JKSKeyStoreAllOf,
     JKSKeyStoreAllOfFromJSON,
     JKSKeyStoreAllOfFromJSONTyped,
     JKSKeyStoreAllOfToJSON,
-    TrustStore,
+} from './JKSKeyStoreAllOf';
+import type { TrustStore } from './TrustStore';
+import {
     TrustStoreFromJSON,
     TrustStoreFromJSONTyped,
     TrustStoreToJSON,
-} from './';
+} from './TrustStore';
 
 /**
  * 
@@ -47,6 +49,17 @@ export interface JKSTrustStore extends TrustStore {
      * @memberof JKSTrustStore
      */
     password?: string;
+}
+
+
+
+/**
+ * Check if a given object implements the JKSTrustStore interface.
+ */
+export function instanceOfJKSTrustStore(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function JKSTrustStoreFromJSON(json: any): JKSTrustStore {
@@ -79,6 +92,4 @@ export function JKSTrustStoreToJSON(value?: JKSTrustStore | null): any {
         'password': value.password,
     };
 }
-
-
 

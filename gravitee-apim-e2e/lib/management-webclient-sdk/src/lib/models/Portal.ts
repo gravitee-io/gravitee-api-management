@@ -12,32 +12,42 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Enabled } from './Enabled';
 import {
-    Enabled,
     EnabledFromJSON,
     EnabledFromJSONTyped,
     EnabledToJSON,
-    PortalAnalytics,
+} from './Enabled';
+import type { PortalAnalytics } from './PortalAnalytics';
+import {
     PortalAnalyticsFromJSON,
     PortalAnalyticsFromJSONTyped,
     PortalAnalyticsToJSON,
-    PortalApis,
+} from './PortalAnalytics';
+import type { PortalApis } from './PortalApis';
+import {
     PortalApisFromJSON,
     PortalApisFromJSONTyped,
     PortalApisToJSON,
-    PortalRating,
+} from './PortalApis';
+import type { PortalRating } from './PortalRating';
+import {
     PortalRatingFromJSON,
     PortalRatingFromJSONTyped,
     PortalRatingToJSON,
-    PortalUploadMedia,
+} from './PortalRating';
+import type { PortalUploadMedia } from './PortalUploadMedia';
+import {
     PortalUploadMediaFromJSON,
     PortalUploadMediaFromJSONTyped,
     PortalUploadMediaToJSON,
-    PortalUserCreation,
+} from './PortalUploadMedia';
+import type { PortalUserCreation } from './PortalUserCreation';
+import {
     PortalUserCreationFromJSON,
     PortalUserCreationFromJSONTyped,
     PortalUserCreationToJSON,
-} from './';
+} from './PortalUserCreation';
 
 /**
  * 
@@ -107,6 +117,15 @@ export interface Portal {
     userCreation?: PortalUserCreation;
 }
 
+/**
+ * Check if a given object implements the Portal interface.
+ */
+export function instanceOfPortal(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PortalFromJSON(json: any): Portal {
     return PortalFromJSONTyped(json, false);
 }
@@ -151,5 +170,4 @@ export function PortalToJSON(value?: Portal | null): any {
         'userCreation': PortalUserCreationToJSON(value.userCreation),
     };
 }
-
 

@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ApiRequest,
+  PlatformRequestItemSearchLogResponse,
+} from '../models';
 import {
-    ApiRequest,
     ApiRequestFromJSON,
     ApiRequestToJSON,
-    PlatformRequestItemSearchLogResponse,
     PlatformRequestItemSearchLogResponseFromJSON,
     PlatformRequestItemSearchLogResponseToJSON,
 } from '../models';
@@ -62,7 +64,7 @@ export class PlatformLogsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_PLATFORM[READ] permission to use this service
      * Export platform logs as CSV
      */
-    async exportPlatformLogsAsCSVRaw(requestParameters: ExportPlatformLogsAsCSVRequest): Promise<runtime.ApiResponse<string>> {
+    async exportPlatformLogsAsCSVRaw(requestParameters: ExportPlatformLogsAsCSVRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling exportPlatformLogsAsCSV.');
         }
@@ -71,7 +73,7 @@ export class PlatformLogsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling exportPlatformLogsAsCSV.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -111,7 +113,7 @@ export class PlatformLogsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -120,8 +122,8 @@ export class PlatformLogsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_PLATFORM[READ] permission to use this service
      * Export platform logs as CSV
      */
-    async exportPlatformLogsAsCSV(requestParameters: ExportPlatformLogsAsCSVRequest): Promise<string> {
-        const response = await this.exportPlatformLogsAsCSVRaw(requestParameters);
+    async exportPlatformLogsAsCSV(requestParameters: ExportPlatformLogsAsCSVRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.exportPlatformLogsAsCSVRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -129,7 +131,7 @@ export class PlatformLogsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_PLATFORM[READ] permission to use this service
      * Get a specific log
      */
-    async getPlatformLogRaw(requestParameters: GetPlatformLogRequest): Promise<runtime.ApiResponse<ApiRequest>> {
+    async getPlatformLogRaw(requestParameters: GetPlatformLogRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiRequest>> {
         if (requestParameters.log === null || requestParameters.log === undefined) {
             throw new runtime.RequiredError('log','Required parameter requestParameters.log was null or undefined when calling getPlatformLog.');
         }
@@ -142,7 +144,7 @@ export class PlatformLogsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPlatformLog.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.timestamp !== undefined) {
             queryParameters['timestamp'] = requestParameters.timestamp;
@@ -158,7 +160,7 @@ export class PlatformLogsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiRequestFromJSON(jsonValue));
     }
@@ -167,8 +169,8 @@ export class PlatformLogsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_PLATFORM[READ] permission to use this service
      * Get a specific log
      */
-    async getPlatformLog(requestParameters: GetPlatformLogRequest): Promise<ApiRequest> {
-        const response = await this.getPlatformLogRaw(requestParameters);
+    async getPlatformLog(requestParameters: GetPlatformLogRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiRequest> {
+        const response = await this.getPlatformLogRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -176,7 +178,7 @@ export class PlatformLogsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_PLATFORM[READ] permission to use this service
      * Get platform logs
      */
-    async getPlatformLogsRaw(requestParameters: GetPlatformLogsRequest): Promise<runtime.ApiResponse<PlatformRequestItemSearchLogResponse>> {
+    async getPlatformLogsRaw(requestParameters: GetPlatformLogsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlatformRequestItemSearchLogResponse>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPlatformLogs.');
         }
@@ -185,7 +187,7 @@ export class PlatformLogsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPlatformLogs.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -225,7 +227,7 @@ export class PlatformLogsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlatformRequestItemSearchLogResponseFromJSON(jsonValue));
     }
@@ -234,8 +236,8 @@ export class PlatformLogsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_PLATFORM[READ] permission to use this service
      * Get platform logs
      */
-    async getPlatformLogs(requestParameters: GetPlatformLogsRequest): Promise<PlatformRequestItemSearchLogResponse> {
-        const response = await this.getPlatformLogsRaw(requestParameters);
+    async getPlatformLogs(requestParameters: GetPlatformLogsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlatformRequestItemSearchLogResponse> {
+        const response = await this.getPlatformLogsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

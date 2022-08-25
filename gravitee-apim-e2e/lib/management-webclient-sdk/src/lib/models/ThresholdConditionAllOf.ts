@@ -38,6 +38,28 @@ export interface ThresholdConditionAllOf {
     threshold?: number;
 }
 
+
+/**
+ * @export
+ */
+export const ThresholdConditionAllOfOperatorEnum = {
+    LT: 'LT',
+    LTE: 'LTE',
+    GTE: 'GTE',
+    GT: 'GT'
+} as const;
+export type ThresholdConditionAllOfOperatorEnum = typeof ThresholdConditionAllOfOperatorEnum[keyof typeof ThresholdConditionAllOfOperatorEnum];
+
+
+/**
+ * Check if a given object implements the ThresholdConditionAllOf interface.
+ */
+export function instanceOfThresholdConditionAllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ThresholdConditionAllOfFromJSON(json: any): ThresholdConditionAllOf {
     return ThresholdConditionAllOfFromJSONTyped(json, false);
 }
@@ -68,16 +90,4 @@ export function ThresholdConditionAllOfToJSON(value?: ThresholdConditionAllOf | 
         'threshold': value.threshold,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ThresholdConditionAllOfOperatorEnum {
-    LT = 'LT',
-    LTE = 'LTE',
-    GTE = 'GTE',
-    GT = 'GT'
-}
-
 

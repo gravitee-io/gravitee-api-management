@@ -26,6 +26,15 @@ export interface OrganizationFlowConfiguration {
     has_policies?: boolean;
 }
 
+/**
+ * Check if a given object implements the OrganizationFlowConfiguration interface.
+ */
+export function instanceOfOrganizationFlowConfiguration(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function OrganizationFlowConfigurationFromJSON(json: any): OrganizationFlowConfiguration {
     return OrganizationFlowConfigurationFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function OrganizationFlowConfigurationToJSON(value?: OrganizationFlowConf
         'has_policies': value.has_policies,
     };
 }
-
 

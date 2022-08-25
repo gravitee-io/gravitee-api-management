@@ -74,6 +74,16 @@ export interface NewPreRegisterUserEntity {
     sourceId?: string;
 }
 
+/**
+ * Check if a given object implements the NewPreRegisterUserEntity interface.
+ */
+export function instanceOfNewPreRegisterUserEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "email" in value;
+
+    return isInstance;
+}
+
 export function NewPreRegisterUserEntityFromJSON(json: any): NewPreRegisterUserEntity {
     return NewPreRegisterUserEntityFromJSONTyped(json, false);
 }
@@ -116,5 +126,4 @@ export function NewPreRegisterUserEntityToJSON(value?: NewPreRegisterUserEntity 
         'sourceId': value.sourceId,
     };
 }
-
 

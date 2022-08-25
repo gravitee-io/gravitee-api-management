@@ -11,17 +11,19 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum PlanSecurityTypeV4 {
-    KEYLESS = 'KEY_LESS',
-    APIKEY = 'API_KEY',
-    OAUTH2 = 'OAUTH2',
-    JWT = 'JWT'
-}
+export const PlanSecurityTypeV4 = {
+    KEY_LESS: 'key-less',
+    API_KEY: 'api-key',
+    OAUTH2: 'oauth2',
+    JWT: 'jwt'
+} as const;
+export type PlanSecurityTypeV4 = typeof PlanSecurityTypeV4[keyof typeof PlanSecurityTypeV4];
+
 
 export function PlanSecurityTypeV4FromJSON(json: any): PlanSecurityTypeV4 {
     return PlanSecurityTypeV4FromJSONTyped(json, false);

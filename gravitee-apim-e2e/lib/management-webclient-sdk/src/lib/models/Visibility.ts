@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * The visibility of the API regarding the portal.
  * @export
- * @enum {string}
  */
-export enum Visibility {
-    PUBLIC = 'PUBLIC',
-    PRIVATE = 'PRIVATE'
-}
+export const Visibility = {
+    PUBLIC: 'PUBLIC',
+    PRIVATE: 'PRIVATE'
+} as const;
+export type Visibility = typeof Visibility[keyof typeof Visibility];
+
 
 export function VisibilityFromJSON(json: any): Visibility {
     return VisibilityFromJSONTyped(json, false);

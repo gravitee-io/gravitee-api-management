@@ -26,6 +26,15 @@ export interface OAuth2Authentication {
     clientId?: string;
 }
 
+/**
+ * Check if a given object implements the OAuth2Authentication interface.
+ */
+export function instanceOfOAuth2Authentication(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function OAuth2AuthenticationFromJSON(json: any): OAuth2Authentication {
     return OAuth2AuthenticationFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function OAuth2AuthenticationToJSON(value?: OAuth2Authentication | null):
         'clientId': value.clientId,
     };
 }
-
 

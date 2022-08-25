@@ -50,6 +50,15 @@ export interface ClientRegistrationProviderListItem {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the ClientRegistrationProviderListItem interface.
+ */
+export function instanceOfClientRegistrationProviderListItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ClientRegistrationProviderListItemFromJSON(json: any): ClientRegistrationProviderListItem {
     return ClientRegistrationProviderListItemFromJSONTyped(json, false);
 }
@@ -84,5 +93,4 @@ export function ClientRegistrationProviderListItemToJSON(value?: ClientRegistrat
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

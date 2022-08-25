@@ -38,6 +38,17 @@ export interface RoleMappingEntity {
     organizations: Array<string>;
 }
 
+/**
+ * Check if a given object implements the RoleMappingEntity interface.
+ */
+export function instanceOfRoleMappingEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "environments" in value;
+    isInstance = isInstance && "organizations" in value;
+
+    return isInstance;
+}
+
 export function RoleMappingEntityFromJSON(json: any): RoleMappingEntity {
     return RoleMappingEntityFromJSONTyped(json, false);
 }
@@ -68,5 +79,4 @@ export function RoleMappingEntityToJSON(value?: RoleMappingEntity | null): any {
         'organizations': value.organizations,
     };
 }
-
 

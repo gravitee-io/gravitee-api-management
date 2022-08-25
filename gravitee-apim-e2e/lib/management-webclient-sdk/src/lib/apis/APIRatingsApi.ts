@@ -13,23 +13,25 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  NewRatingAnswerEntity,
+  NewRatingEntity,
+  PageRatingEntity,
+  RatingEntity,
+  RatingSummaryEntity,
+  UpdateRatingEntity,
+} from '../models';
 import {
-    NewRatingAnswerEntity,
     NewRatingAnswerEntityFromJSON,
     NewRatingAnswerEntityToJSON,
-    NewRatingEntity,
     NewRatingEntityFromJSON,
     NewRatingEntityToJSON,
-    PageRatingEntity,
     PageRatingEntityFromJSON,
     PageRatingEntityToJSON,
-    RatingEntity,
     RatingEntityFromJSON,
     RatingEntityToJSON,
-    RatingSummaryEntity,
     RatingSummaryEntityFromJSON,
     RatingSummaryEntityToJSON,
-    UpdateRatingEntity,
     UpdateRatingEntityFromJSON,
     UpdateRatingEntityToJSON,
 } from '../models';
@@ -101,7 +103,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
      * User must have the API_RATING[CREATE] permission to use this service
      * Create a new rating for an API
      */
-    async createApiRatingRaw(requestParameters: CreateApiRatingRequest): Promise<runtime.ApiResponse<RatingEntity>> {
+    async createApiRatingRaw(requestParameters: CreateApiRatingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RatingEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling createApiRating.');
         }
@@ -118,7 +120,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newRatingEntity','Required parameter requestParameters.newRatingEntity was null or undefined when calling createApiRating.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -133,7 +135,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewRatingEntityToJSON(requestParameters.newRatingEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RatingEntityFromJSON(jsonValue));
     }
@@ -142,8 +144,8 @@ export class APIRatingsApi extends runtime.BaseAPI {
      * User must have the API_RATING[CREATE] permission to use this service
      * Create a new rating for an API
      */
-    async createApiRating(requestParameters: CreateApiRatingRequest): Promise<RatingEntity> {
-        const response = await this.createApiRatingRaw(requestParameters);
+    async createApiRating(requestParameters: CreateApiRatingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RatingEntity> {
+        const response = await this.createApiRatingRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -151,7 +153,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
      * User must have the API_RATING_ANSWER[CREATE] permission to use this service
      * Create an answer to a rating for an API
      */
-    async createApiRatingAnswerRaw(requestParameters: CreateApiRatingAnswerRequest): Promise<runtime.ApiResponse<RatingEntity>> {
+    async createApiRatingAnswerRaw(requestParameters: CreateApiRatingAnswerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RatingEntity>> {
         if (requestParameters.rating === null || requestParameters.rating === undefined) {
             throw new runtime.RequiredError('rating','Required parameter requestParameters.rating was null or undefined when calling createApiRatingAnswer.');
         }
@@ -172,7 +174,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newRatingAnswerEntity','Required parameter requestParameters.newRatingAnswerEntity was null or undefined when calling createApiRatingAnswer.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -187,7 +189,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewRatingAnswerEntityToJSON(requestParameters.newRatingAnswerEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RatingEntityFromJSON(jsonValue));
     }
@@ -196,8 +198,8 @@ export class APIRatingsApi extends runtime.BaseAPI {
      * User must have the API_RATING_ANSWER[CREATE] permission to use this service
      * Create an answer to a rating for an API
      */
-    async createApiRatingAnswer(requestParameters: CreateApiRatingAnswerRequest): Promise<RatingEntity> {
-        const response = await this.createApiRatingAnswerRaw(requestParameters);
+    async createApiRatingAnswer(requestParameters: CreateApiRatingAnswerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RatingEntity> {
+        const response = await this.createApiRatingAnswerRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -205,7 +207,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
      * User must have the API_RATING[DELETE] permission to use this service
      * Delete an existing rating for an API
      */
-    async deleteApiRatingRaw(requestParameters: DeleteApiRatingRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteApiRatingRaw(requestParameters: DeleteApiRatingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.rating === null || requestParameters.rating === undefined) {
             throw new runtime.RequiredError('rating','Required parameter requestParameters.rating was null or undefined when calling deleteApiRating.');
         }
@@ -222,7 +224,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApiRating.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -234,7 +236,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -243,15 +245,15 @@ export class APIRatingsApi extends runtime.BaseAPI {
      * User must have the API_RATING[DELETE] permission to use this service
      * Delete an existing rating for an API
      */
-    async deleteApiRating(requestParameters: DeleteApiRatingRequest): Promise<void> {
-        await this.deleteApiRatingRaw(requestParameters);
+    async deleteApiRating(requestParameters: DeleteApiRatingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteApiRatingRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the API_RATING_ANSWER[DELETE] permission to use this service
      * Delete an answer to a rating for an API
      */
-    async deleteApiRatingAnswerRaw(requestParameters: DeleteApiRatingAnswerRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteApiRatingAnswerRaw(requestParameters: DeleteApiRatingAnswerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.rating === null || requestParameters.rating === undefined) {
             throw new runtime.RequiredError('rating','Required parameter requestParameters.rating was null or undefined when calling deleteApiRatingAnswer.');
         }
@@ -272,7 +274,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApiRatingAnswer.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -284,7 +286,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -293,14 +295,14 @@ export class APIRatingsApi extends runtime.BaseAPI {
      * User must have the API_RATING_ANSWER[DELETE] permission to use this service
      * Delete an answer to a rating for an API
      */
-    async deleteApiRatingAnswer(requestParameters: DeleteApiRatingAnswerRequest): Promise<void> {
-        await this.deleteApiRatingAnswerRaw(requestParameters);
+    async deleteApiRatingAnswer(requestParameters: DeleteApiRatingAnswerRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteApiRatingAnswerRaw(requestParameters, initOverrides);
     }
 
     /**
      * List ratings for an API
      */
-    async getApiRatingRaw(requestParameters: GetApiRatingRequest): Promise<runtime.ApiResponse<PageRatingEntity>> {
+    async getApiRatingRaw(requestParameters: GetApiRatingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageRatingEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiRating.');
         }
@@ -313,7 +315,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiRating.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.pageNumber !== undefined) {
             queryParameters['pageNumber'] = requestParameters.pageNumber;
@@ -333,7 +335,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageRatingEntityFromJSON(jsonValue));
     }
@@ -341,15 +343,15 @@ export class APIRatingsApi extends runtime.BaseAPI {
     /**
      * List ratings for an API
      */
-    async getApiRating(requestParameters: GetApiRatingRequest): Promise<PageRatingEntity> {
-        const response = await this.getApiRatingRaw(requestParameters);
+    async getApiRating(requestParameters: GetApiRatingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageRatingEntity> {
+        const response = await this.getApiRatingRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Retrieve current rating for an API provided by the authenticated user
      */
-    async getApiRatingByApiAndUserRaw(requestParameters: GetApiRatingByApiAndUserRequest): Promise<runtime.ApiResponse<RatingEntity>> {
+    async getApiRatingByApiAndUserRaw(requestParameters: GetApiRatingByApiAndUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RatingEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiRatingByApiAndUser.');
         }
@@ -362,7 +364,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiRatingByApiAndUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -374,7 +376,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RatingEntityFromJSON(jsonValue));
     }
@@ -382,15 +384,15 @@ export class APIRatingsApi extends runtime.BaseAPI {
     /**
      * Retrieve current rating for an API provided by the authenticated user
      */
-    async getApiRatingByApiAndUser(requestParameters: GetApiRatingByApiAndUserRequest): Promise<RatingEntity> {
-        const response = await this.getApiRatingByApiAndUserRaw(requestParameters);
+    async getApiRatingByApiAndUser(requestParameters: GetApiRatingByApiAndUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RatingEntity> {
+        const response = await this.getApiRatingByApiAndUserRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the rating summary for an API
      */
-    async getApiRatingSummaryByApiRaw(requestParameters: GetApiRatingSummaryByApiRequest): Promise<runtime.ApiResponse<RatingSummaryEntity>> {
+    async getApiRatingSummaryByApiRaw(requestParameters: GetApiRatingSummaryByApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RatingSummaryEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiRatingSummaryByApi.');
         }
@@ -403,7 +405,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiRatingSummaryByApi.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -415,7 +417,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RatingSummaryEntityFromJSON(jsonValue));
     }
@@ -423,8 +425,8 @@ export class APIRatingsApi extends runtime.BaseAPI {
     /**
      * Get the rating summary for an API
      */
-    async getApiRatingSummaryByApi(requestParameters: GetApiRatingSummaryByApiRequest): Promise<RatingSummaryEntity> {
-        const response = await this.getApiRatingSummaryByApiRaw(requestParameters);
+    async getApiRatingSummaryByApi(requestParameters: GetApiRatingSummaryByApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RatingSummaryEntity> {
+        const response = await this.getApiRatingSummaryByApiRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -432,7 +434,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
      * User must have the API_RATING[UPDATE] permission to use this service
      * Update an existing rating for an API
      */
-    async updateApiRatingRaw(requestParameters: UpdateApiRatingRequest): Promise<runtime.ApiResponse<RatingEntity>> {
+    async updateApiRatingRaw(requestParameters: UpdateApiRatingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RatingEntity>> {
         if (requestParameters.rating === null || requestParameters.rating === undefined) {
             throw new runtime.RequiredError('rating','Required parameter requestParameters.rating was null or undefined when calling updateApiRating.');
         }
@@ -453,7 +455,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateRatingEntity','Required parameter requestParameters.updateRatingEntity was null or undefined when calling updateApiRating.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -468,7 +470,7 @@ export class APIRatingsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateRatingEntityToJSON(requestParameters.updateRatingEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RatingEntityFromJSON(jsonValue));
     }
@@ -477,8 +479,8 @@ export class APIRatingsApi extends runtime.BaseAPI {
      * User must have the API_RATING[UPDATE] permission to use this service
      * Update an existing rating for an API
      */
-    async updateApiRating(requestParameters: UpdateApiRatingRequest): Promise<RatingEntity> {
-        const response = await this.updateApiRatingRaw(requestParameters);
+    async updateApiRating(requestParameters: UpdateApiRatingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RatingEntity> {
+        const response = await this.updateApiRatingRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

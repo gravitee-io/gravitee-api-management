@@ -12,56 +12,78 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApiLifecycleState } from './ApiLifecycleState';
 import {
-    ApiLifecycleState,
     ApiLifecycleStateFromJSON,
     ApiLifecycleStateFromJSONTyped,
     ApiLifecycleStateToJSON,
-    ApiServicesV4,
+} from './ApiLifecycleState';
+import type { ApiServicesV4 } from './ApiServicesV4';
+import {
     ApiServicesV4FromJSON,
     ApiServicesV4FromJSONTyped,
     ApiServicesV4ToJSON,
-    EndpointGroupV4,
+} from './ApiServicesV4';
+import type { EndpointGroupV4 } from './EndpointGroupV4';
+import {
     EndpointGroupV4FromJSON,
     EndpointGroupV4FromJSONTyped,
     EndpointGroupV4ToJSON,
-    FlowV4,
+} from './EndpointGroupV4';
+import type { FlowV4 } from './FlowV4';
+import {
     FlowV4FromJSON,
     FlowV4FromJSONTyped,
     FlowV4ToJSON,
-    ListenerV4,
+} from './FlowV4';
+import type { ListenerV4 } from './ListenerV4';
+import {
     ListenerV4FromJSON,
     ListenerV4FromJSONTyped,
     ListenerV4ToJSON,
-    PlanEntityV4,
+} from './ListenerV4';
+import type { PlanEntityV4 } from './PlanEntityV4';
+import {
     PlanEntityV4FromJSON,
     PlanEntityV4FromJSONTyped,
     PlanEntityV4ToJSON,
-    PrimaryOwnerEntity,
+} from './PlanEntityV4';
+import type { PrimaryOwnerEntity } from './PrimaryOwnerEntity';
+import {
     PrimaryOwnerEntityFromJSON,
     PrimaryOwnerEntityFromJSONTyped,
     PrimaryOwnerEntityToJSON,
-    PropertyV4,
+} from './PrimaryOwnerEntity';
+import type { PropertyV4 } from './PropertyV4';
+import {
     PropertyV4FromJSON,
     PropertyV4FromJSONTyped,
     PropertyV4ToJSON,
-    ResourceV4,
+} from './PropertyV4';
+import type { ResourceV4 } from './ResourceV4';
+import {
     ResourceV4FromJSON,
     ResourceV4FromJSONTyped,
     ResourceV4ToJSON,
-    ResponseTemplateV4,
+} from './ResourceV4';
+import type { ResponseTemplateV4 } from './ResponseTemplateV4';
+import {
     ResponseTemplateV4FromJSON,
     ResponseTemplateV4FromJSONTyped,
     ResponseTemplateV4ToJSON,
-    Visibility,
+} from './ResponseTemplateV4';
+import type { Visibility } from './Visibility';
+import {
     VisibilityFromJSON,
     VisibilityFromJSONTyped,
     VisibilityToJSON,
-    WorkflowState,
+} from './Visibility';
+import type { WorkflowState } from './WorkflowState';
+import {
     WorkflowStateFromJSON,
     WorkflowStateFromJSONTyped,
     WorkflowStateToJSON,
-} from './';
+} from './WorkflowState';
 
 /**
  * 
@@ -269,6 +291,57 @@ export interface ApiEntityV4 {
     workflowState?: WorkflowState;
 }
 
+
+/**
+ * @export
+ */
+export const ApiEntityV4DefinitionVersionEnum = {
+    _1_0_0: '1.0.0',
+    _2_0_0: '2.0.0',
+    _4_0_0: '4.0.0'
+} as const;
+export type ApiEntityV4DefinitionVersionEnum = typeof ApiEntityV4DefinitionVersionEnum[keyof typeof ApiEntityV4DefinitionVersionEnum];
+
+/**
+ * @export
+ */
+export const ApiEntityV4FlowModeEnum = {
+    DEFAULT: 'DEFAULT',
+    BEST_MATCH: 'BEST_MATCH'
+} as const;
+export type ApiEntityV4FlowModeEnum = typeof ApiEntityV4FlowModeEnum[keyof typeof ApiEntityV4FlowModeEnum];
+
+/**
+ * @export
+ */
+export const ApiEntityV4StateEnum = {
+    INITIALIZED: 'INITIALIZED',
+    STOPPED: 'STOPPED',
+    STOPPING: 'STOPPING',
+    STARTED: 'STARTED',
+    CLOSED: 'CLOSED'
+} as const;
+export type ApiEntityV4StateEnum = typeof ApiEntityV4StateEnum[keyof typeof ApiEntityV4StateEnum];
+
+/**
+ * @export
+ */
+export const ApiEntityV4TypeEnum = {
+    SYNC: 'SYNC',
+    ASYNC: 'ASYNC'
+} as const;
+export type ApiEntityV4TypeEnum = typeof ApiEntityV4TypeEnum[keyof typeof ApiEntityV4TypeEnum];
+
+
+/**
+ * Check if a given object implements the ApiEntityV4 interface.
+ */
+export function instanceOfApiEntityV4(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiEntityV4FromJSON(json: any): ApiEntityV4 {
     return ApiEntityV4FromJSONTyped(json, false);
 }
@@ -359,42 +432,4 @@ export function ApiEntityV4ToJSON(value?: ApiEntityV4 | null): any {
         'workflowState': WorkflowStateToJSON(value.workflowState),
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ApiEntityV4DefinitionVersionEnum {
-    _100 = '1.0.0',
-    _200 = '2.0.0',
-    _400 = '4.0.0'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum ApiEntityV4FlowModeEnum {
-    DEFAULT = 'DEFAULT',
-    BESTMATCH = 'BEST_MATCH'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum ApiEntityV4StateEnum {
-    INITIALIZED = 'INITIALIZED',
-    STOPPED = 'STOPPED',
-    STOPPING = 'STOPPING',
-    STARTED = 'STARTED',
-    CLOSED = 'CLOSED'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum ApiEntityV4TypeEnum {
-    SYNC = 'SYNC',
-    ASYNC = 'ASYNC'
-}
-
 

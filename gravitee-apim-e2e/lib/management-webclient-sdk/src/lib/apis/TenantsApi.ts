@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  NewTenantEntity,
+  TenantEntity,
+  UpdateTenantEntity,
+} from '../models';
 import {
-    NewTenantEntity,
     NewTenantEntityFromJSON,
     NewTenantEntityToJSON,
-    TenantEntity,
     TenantEntityFromJSON,
     TenantEntityToJSON,
-    UpdateTenantEntity,
     UpdateTenantEntityFromJSON,
     UpdateTenantEntityToJSON,
 } from '../models';
@@ -76,7 +78,7 @@ export class TenantsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[CREATE] permission to use this service
      * Create a tenant
      */
-    async createTenantsRaw(requestParameters: CreateTenantsRequest): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async createTenantsRaw(requestParameters: CreateTenantsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createTenants.');
         }
@@ -85,7 +87,7 @@ export class TenantsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTenantEntity','Required parameter requestParameters.newTenantEntity was null or undefined when calling createTenants.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -100,7 +102,7 @@ export class TenantsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.newTenantEntity.map(NewTenantEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -109,8 +111,8 @@ export class TenantsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[CREATE] permission to use this service
      * Create a tenant
      */
-    async createTenants(requestParameters: CreateTenantsRequest): Promise<Array<TenantEntity>> {
-        const response = await this.createTenantsRaw(requestParameters);
+    async createTenants(requestParameters: CreateTenantsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.createTenantsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -118,7 +120,7 @@ export class TenantsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[CREATE] permission to use this service
      * Create a tenant
      */
-    async createTenants1Raw(requestParameters: CreateTenants1Request): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async createTenants1Raw(requestParameters: CreateTenants1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createTenants1.');
         }
@@ -131,7 +133,7 @@ export class TenantsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTenantEntity','Required parameter requestParameters.newTenantEntity was null or undefined when calling createTenants1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -146,7 +148,7 @@ export class TenantsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.newTenantEntity.map(NewTenantEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -155,8 +157,8 @@ export class TenantsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[CREATE] permission to use this service
      * Create a tenant
      */
-    async createTenants1(requestParameters: CreateTenants1Request): Promise<Array<TenantEntity>> {
-        const response = await this.createTenants1Raw(requestParameters);
+    async createTenants1(requestParameters: CreateTenants1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.createTenants1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -164,7 +166,7 @@ export class TenantsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[DELETE] permission to use this service
      * Delete a tenant
      */
-    async deleteTenantRaw(requestParameters: DeleteTenantRequest): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async deleteTenantRaw(requestParameters: DeleteTenantRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.tenant === null || requestParameters.tenant === undefined) {
             throw new runtime.RequiredError('tenant','Required parameter requestParameters.tenant was null or undefined when calling deleteTenant.');
         }
@@ -173,7 +175,7 @@ export class TenantsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteTenant.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -185,7 +187,7 @@ export class TenantsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -194,8 +196,8 @@ export class TenantsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[DELETE] permission to use this service
      * Delete a tenant
      */
-    async deleteTenant(requestParameters: DeleteTenantRequest): Promise<Array<TenantEntity>> {
-        const response = await this.deleteTenantRaw(requestParameters);
+    async deleteTenant(requestParameters: DeleteTenantRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.deleteTenantRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -203,7 +205,7 @@ export class TenantsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[DELETE] permission to use this service
      * Delete a tenant
      */
-    async deleteTenant1Raw(requestParameters: DeleteTenant1Request): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async deleteTenant1Raw(requestParameters: DeleteTenant1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.tenant === null || requestParameters.tenant === undefined) {
             throw new runtime.RequiredError('tenant','Required parameter requestParameters.tenant was null or undefined when calling deleteTenant1.');
         }
@@ -216,7 +218,7 @@ export class TenantsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteTenant1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -228,7 +230,7 @@ export class TenantsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -237,20 +239,20 @@ export class TenantsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[DELETE] permission to use this service
      * Delete a tenant
      */
-    async deleteTenant1(requestParameters: DeleteTenant1Request): Promise<Array<TenantEntity>> {
-        const response = await this.deleteTenant1Raw(requestParameters);
+    async deleteTenant1(requestParameters: DeleteTenant1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.deleteTenant1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List tenants
      */
-    async getTenantsRaw(requestParameters: GetTenantsRequest): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async getTenantsRaw(requestParameters: GetTenantsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTenants.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -262,7 +264,7 @@ export class TenantsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -270,15 +272,15 @@ export class TenantsApi extends runtime.BaseAPI {
     /**
      * List tenants
      */
-    async getTenants(requestParameters: GetTenantsRequest): Promise<Array<TenantEntity>> {
-        const response = await this.getTenantsRaw(requestParameters);
+    async getTenants(requestParameters: GetTenantsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.getTenantsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List tenants
      */
-    async getTenants1Raw(requestParameters: GetTenants1Request): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async getTenants1Raw(requestParameters: GetTenants1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getTenants1.');
         }
@@ -287,7 +289,7 @@ export class TenantsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTenants1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -299,7 +301,7 @@ export class TenantsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -307,8 +309,8 @@ export class TenantsApi extends runtime.BaseAPI {
     /**
      * List tenants
      */
-    async getTenants1(requestParameters: GetTenants1Request): Promise<Array<TenantEntity>> {
-        const response = await this.getTenants1Raw(requestParameters);
+    async getTenants1(requestParameters: GetTenants1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.getTenants1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -316,7 +318,7 @@ export class TenantsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[UPDATE] permission to use this service
      * Update a tenant
      */
-    async updateTenantsRaw(requestParameters: UpdateTenantsRequest): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async updateTenantsRaw(requestParameters: UpdateTenantsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateTenants.');
         }
@@ -325,7 +327,7 @@ export class TenantsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateTenantEntity','Required parameter requestParameters.updateTenantEntity was null or undefined when calling updateTenants.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -340,7 +342,7 @@ export class TenantsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.updateTenantEntity.map(UpdateTenantEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -349,8 +351,8 @@ export class TenantsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[UPDATE] permission to use this service
      * Update a tenant
      */
-    async updateTenants(requestParameters: UpdateTenantsRequest): Promise<Array<TenantEntity>> {
-        const response = await this.updateTenantsRaw(requestParameters);
+    async updateTenants(requestParameters: UpdateTenantsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.updateTenantsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -358,7 +360,7 @@ export class TenantsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[UPDATE] permission to use this service
      * Update a tenant
      */
-    async updateTenants1Raw(requestParameters: UpdateTenants1Request): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async updateTenants1Raw(requestParameters: UpdateTenants1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateTenants1.');
         }
@@ -371,7 +373,7 @@ export class TenantsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateTenantEntity','Required parameter requestParameters.updateTenantEntity was null or undefined when calling updateTenants1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -386,7 +388,7 @@ export class TenantsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.updateTenantEntity.map(UpdateTenantEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -395,8 +397,8 @@ export class TenantsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[UPDATE] permission to use this service
      * Update a tenant
      */
-    async updateTenants1(requestParameters: UpdateTenants1Request): Promise<Array<TenantEntity>> {
-        const response = await this.updateTenants1Raw(requestParameters);
+    async updateTenants1(requestParameters: UpdateTenants1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.updateTenants1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

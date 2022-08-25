@@ -13,8 +13,10 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  PromotionEntity,
+} from '../models';
 import {
-    PromotionEntity,
     PromotionEntityFromJSON,
     PromotionEntityToJSON,
 } from '../models';
@@ -39,7 +41,7 @@ export class PromotionsApi extends runtime.BaseAPI {
     /**
      * Process an API promotion by accepting or rejecting it
      */
-    async processPromotionRaw(requestParameters: ProcessPromotionRequest): Promise<runtime.ApiResponse<PromotionEntity>> {
+    async processPromotionRaw(requestParameters: ProcessPromotionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PromotionEntity>> {
         if (requestParameters.promotion === null || requestParameters.promotion === undefined) {
             throw new runtime.RequiredError('promotion','Required parameter requestParameters.promotion was null or undefined when calling processPromotion.');
         }
@@ -48,7 +50,7 @@ export class PromotionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling processPromotion.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -63,7 +65,7 @@ export class PromotionsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.body as any,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PromotionEntityFromJSON(jsonValue));
     }
@@ -71,15 +73,15 @@ export class PromotionsApi extends runtime.BaseAPI {
     /**
      * Process an API promotion by accepting or rejecting it
      */
-    async processPromotion(requestParameters: ProcessPromotionRequest): Promise<PromotionEntity> {
-        const response = await this.processPromotionRaw(requestParameters);
+    async processPromotion(requestParameters: ProcessPromotionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PromotionEntity> {
+        const response = await this.processPromotionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Search for Promotion
      */
-    async searchPromotionsRaw(requestParameters: SearchPromotionsRequest): Promise<runtime.ApiResponse<Array<PromotionEntity>>> {
+    async searchPromotionsRaw(requestParameters: SearchPromotionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<PromotionEntity>>> {
         if (requestParameters.statuses === null || requestParameters.statuses === undefined) {
             throw new runtime.RequiredError('statuses','Required parameter requestParameters.statuses was null or undefined when calling searchPromotions.');
         }
@@ -92,7 +94,7 @@ export class PromotionsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling searchPromotions.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.statuses) {
             queryParameters['statuses'] = requestParameters.statuses;
@@ -112,7 +114,7 @@ export class PromotionsApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PromotionEntityFromJSON));
     }
@@ -120,8 +122,8 @@ export class PromotionsApi extends runtime.BaseAPI {
     /**
      * Search for Promotion
      */
-    async searchPromotions(requestParameters: SearchPromotionsRequest): Promise<Array<PromotionEntity>> {
-        const response = await this.searchPromotionsRaw(requestParameters);
+    async searchPromotions(requestParameters: SearchPromotionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<PromotionEntity>> {
+        const response = await this.searchPromotionsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

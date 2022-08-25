@@ -32,6 +32,15 @@ export interface SubscribedApi {
     name?: string;
 }
 
+/**
+ * Check if a given object implements the SubscribedApi interface.
+ */
+export function instanceOfSubscribedApi(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function SubscribedApiFromJSON(json: any): SubscribedApi {
     return SubscribedApiFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function SubscribedApiToJSON(value?: SubscribedApi | null): any {
         'name': value.name,
     };
 }
-
 

@@ -12,28 +12,36 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ApiLifecycleState } from './ApiLifecycleState';
 import {
-    ApiLifecycleState,
     ApiLifecycleStateFromJSON,
     ApiLifecycleStateFromJSONTyped,
     ApiLifecycleStateToJSON,
-    PrimaryOwnerEntity,
+} from './ApiLifecycleState';
+import type { PrimaryOwnerEntity } from './PrimaryOwnerEntity';
+import {
     PrimaryOwnerEntityFromJSON,
     PrimaryOwnerEntityFromJSONTyped,
     PrimaryOwnerEntityToJSON,
-    VirtualHost,
+} from './PrimaryOwnerEntity';
+import type { VirtualHost } from './VirtualHost';
+import {
     VirtualHostFromJSON,
     VirtualHostFromJSONTyped,
     VirtualHostToJSON,
-    Visibility,
+} from './VirtualHost';
+import type { Visibility } from './Visibility';
+import {
     VisibilityFromJSON,
     VisibilityFromJSONTyped,
     VisibilityToJSON,
-    WorkflowState,
+} from './Visibility';
+import type { WorkflowState } from './WorkflowState';
+import {
     WorkflowStateFromJSON,
     WorkflowStateFromJSONTyped,
     WorkflowStateToJSON,
-} from './';
+} from './WorkflowState';
 
 /**
  * 
@@ -169,6 +177,29 @@ export interface ApiListItem {
     workflow_state?: WorkflowState;
 }
 
+
+/**
+ * @export
+ */
+export const ApiListItemStateEnum = {
+    INITIALIZED: 'INITIALIZED',
+    STOPPED: 'STOPPED',
+    STOPPING: 'STOPPING',
+    STARTED: 'STARTED',
+    CLOSED: 'CLOSED'
+} as const;
+export type ApiListItemStateEnum = typeof ApiListItemStateEnum[keyof typeof ApiListItemStateEnum];
+
+
+/**
+ * Check if a given object implements the ApiListItem interface.
+ */
+export function instanceOfApiListItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiListItemFromJSON(json: any): ApiListItem {
     return ApiListItemFromJSONTyped(json, false);
 }
@@ -235,17 +266,4 @@ export function ApiListItemToJSON(value?: ApiListItem | null): any {
         'workflow_state': WorkflowStateToJSON(value.workflow_state),
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ApiListItemStateEnum {
-    INITIALIZED = 'INITIALIZED',
-    STOPPED = 'STOPPED',
-    STOPPING = 'STOPPING',
-    STARTED = 'STARTED',
-    CLOSED = 'CLOSED'
-}
-
 

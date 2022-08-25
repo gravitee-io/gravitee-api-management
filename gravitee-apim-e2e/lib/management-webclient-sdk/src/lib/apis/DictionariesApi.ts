@@ -13,20 +13,22 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  DictionaryEntity,
+  DictionaryListItem,
+  LifecycleAction,
+  NewDictionaryEntity,
+  UpdateDictionaryEntity,
+} from '../models';
 import {
-    DictionaryEntity,
     DictionaryEntityFromJSON,
     DictionaryEntityToJSON,
-    DictionaryListItem,
     DictionaryListItemFromJSON,
     DictionaryListItemToJSON,
-    LifecycleAction,
     LifecycleActionFromJSON,
     LifecycleActionToJSON,
-    NewDictionaryEntity,
     NewDictionaryEntityFromJSON,
     NewDictionaryEntityToJSON,
-    UpdateDictionaryEntity,
     UpdateDictionaryEntityFromJSON,
     UpdateDictionaryEntityToJSON,
 } from '../models';
@@ -89,7 +91,7 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[CREATE] permission to use this service
      * Create a dictionary
      */
-    async createDictionaryRaw(requestParameters: CreateDictionaryRequest): Promise<runtime.ApiResponse<DictionaryEntity>> {
+    async createDictionaryRaw(requestParameters: CreateDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DictionaryEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createDictionary.');
         }
@@ -102,7 +104,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newDictionaryEntity','Required parameter requestParameters.newDictionaryEntity was null or undefined when calling createDictionary.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -117,7 +119,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewDictionaryEntityToJSON(requestParameters.newDictionaryEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DictionaryEntityFromJSON(jsonValue));
     }
@@ -126,8 +128,8 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[CREATE] permission to use this service
      * Create a dictionary
      */
-    async createDictionary(requestParameters: CreateDictionaryRequest): Promise<DictionaryEntity> {
-        const response = await this.createDictionaryRaw(requestParameters);
+    async createDictionary(requestParameters: CreateDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DictionaryEntity> {
+        const response = await this.createDictionaryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -135,7 +137,7 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[DELETE] permission to use this service
      * Delete a dictionary
      */
-    async deleteDictionaryRaw(requestParameters: DeleteDictionaryRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteDictionaryRaw(requestParameters: DeleteDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.dictionary === null || requestParameters.dictionary === undefined) {
             throw new runtime.RequiredError('dictionary','Required parameter requestParameters.dictionary was null or undefined when calling deleteDictionary.');
         }
@@ -148,7 +150,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteDictionary.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -160,7 +162,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -169,15 +171,15 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[DELETE] permission to use this service
      * Delete a dictionary
      */
-    async deleteDictionary(requestParameters: DeleteDictionaryRequest): Promise<void> {
-        await this.deleteDictionaryRaw(requestParameters);
+    async deleteDictionary(requestParameters: DeleteDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteDictionaryRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the DICTIONARY[UPDATE] permission to use this service
      * Deploy dictionary to API gateway
      */
-    async deployDictionaryRaw(requestParameters: DeployDictionaryRequest): Promise<runtime.ApiResponse<DictionaryEntity>> {
+    async deployDictionaryRaw(requestParameters: DeployDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DictionaryEntity>> {
         if (requestParameters.dictionary === null || requestParameters.dictionary === undefined) {
             throw new runtime.RequiredError('dictionary','Required parameter requestParameters.dictionary was null or undefined when calling deployDictionary.');
         }
@@ -190,7 +192,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deployDictionary.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -202,7 +204,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DictionaryEntityFromJSON(jsonValue));
     }
@@ -211,8 +213,8 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[UPDATE] permission to use this service
      * Deploy dictionary to API gateway
      */
-    async deployDictionary(requestParameters: DeployDictionaryRequest): Promise<DictionaryEntity> {
-        const response = await this.deployDictionaryRaw(requestParameters);
+    async deployDictionary(requestParameters: DeployDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DictionaryEntity> {
+        const response = await this.deployDictionaryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -220,7 +222,7 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[LIFECYCLE] permission to use this service
      * Manage the dictionary\'s lifecycle
      */
-    async doLifecycleActionRaw(requestParameters: DoLifecycleActionRequest): Promise<runtime.ApiResponse<DictionaryEntity>> {
+    async doLifecycleActionRaw(requestParameters: DoLifecycleActionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DictionaryEntity>> {
         if (requestParameters.action === null || requestParameters.action === undefined) {
             throw new runtime.RequiredError('action','Required parameter requestParameters.action was null or undefined when calling doLifecycleAction.');
         }
@@ -237,7 +239,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling doLifecycleAction.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.action !== undefined) {
             queryParameters['action'] = requestParameters.action;
@@ -253,7 +255,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DictionaryEntityFromJSON(jsonValue));
     }
@@ -262,8 +264,8 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[LIFECYCLE] permission to use this service
      * Manage the dictionary\'s lifecycle
      */
-    async doLifecycleAction(requestParameters: DoLifecycleActionRequest): Promise<DictionaryEntity> {
-        const response = await this.doLifecycleActionRaw(requestParameters);
+    async doLifecycleAction(requestParameters: DoLifecycleActionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DictionaryEntity> {
+        const response = await this.doLifecycleActionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -271,7 +273,7 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[READ] permission to use this service
      * Get the list of global dictionaries
      */
-    async getDictionariesRaw(requestParameters: GetDictionariesRequest): Promise<runtime.ApiResponse<Array<DictionaryListItem>>> {
+    async getDictionariesRaw(requestParameters: GetDictionariesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<DictionaryListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getDictionaries.');
         }
@@ -280,7 +282,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getDictionaries.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -292,7 +294,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(DictionaryListItemFromJSON));
     }
@@ -301,8 +303,8 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[READ] permission to use this service
      * Get the list of global dictionaries
      */
-    async getDictionaries(requestParameters: GetDictionariesRequest): Promise<Array<DictionaryListItem>> {
-        const response = await this.getDictionariesRaw(requestParameters);
+    async getDictionaries(requestParameters: GetDictionariesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<DictionaryListItem>> {
+        const response = await this.getDictionariesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -310,7 +312,7 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[READ] permission to use this service
      * Get a dictionary
      */
-    async getDictionaryRaw(requestParameters: GetDictionaryRequest): Promise<runtime.ApiResponse<DictionaryEntity>> {
+    async getDictionaryRaw(requestParameters: GetDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DictionaryEntity>> {
         if (requestParameters.dictionary === null || requestParameters.dictionary === undefined) {
             throw new runtime.RequiredError('dictionary','Required parameter requestParameters.dictionary was null or undefined when calling getDictionary.');
         }
@@ -323,7 +325,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getDictionary.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -335,7 +337,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DictionaryEntityFromJSON(jsonValue));
     }
@@ -344,8 +346,8 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[READ] permission to use this service
      * Get a dictionary
      */
-    async getDictionary(requestParameters: GetDictionaryRequest): Promise<DictionaryEntity> {
-        const response = await this.getDictionaryRaw(requestParameters);
+    async getDictionary(requestParameters: GetDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DictionaryEntity> {
+        const response = await this.getDictionaryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -353,7 +355,7 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[UPDATE] permission to use this service
      * Undeploy dictionary to API gateway
      */
-    async undeployDictionaryRaw(requestParameters: UndeployDictionaryRequest): Promise<runtime.ApiResponse<DictionaryEntity>> {
+    async undeployDictionaryRaw(requestParameters: UndeployDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DictionaryEntity>> {
         if (requestParameters.dictionary === null || requestParameters.dictionary === undefined) {
             throw new runtime.RequiredError('dictionary','Required parameter requestParameters.dictionary was null or undefined when calling undeployDictionary.');
         }
@@ -366,7 +368,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling undeployDictionary.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -378,7 +380,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DictionaryEntityFromJSON(jsonValue));
     }
@@ -387,8 +389,8 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[UPDATE] permission to use this service
      * Undeploy dictionary to API gateway
      */
-    async undeployDictionary(requestParameters: UndeployDictionaryRequest): Promise<DictionaryEntity> {
-        const response = await this.undeployDictionaryRaw(requestParameters);
+    async undeployDictionary(requestParameters: UndeployDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DictionaryEntity> {
+        const response = await this.undeployDictionaryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -396,7 +398,7 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[UPDATE] permission to use this service
      * Update a dictionary
      */
-    async updateDictionaryRaw(requestParameters: UpdateDictionaryRequest): Promise<runtime.ApiResponse<DictionaryEntity>> {
+    async updateDictionaryRaw(requestParameters: UpdateDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DictionaryEntity>> {
         if (requestParameters.dictionary === null || requestParameters.dictionary === undefined) {
             throw new runtime.RequiredError('dictionary','Required parameter requestParameters.dictionary was null or undefined when calling updateDictionary.');
         }
@@ -413,7 +415,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateDictionaryEntity','Required parameter requestParameters.updateDictionaryEntity was null or undefined when calling updateDictionary.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -428,7 +430,7 @@ export class DictionariesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateDictionaryEntityToJSON(requestParameters.updateDictionaryEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DictionaryEntityFromJSON(jsonValue));
     }
@@ -437,8 +439,8 @@ export class DictionariesApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[UPDATE] permission to use this service
      * Update a dictionary
      */
-    async updateDictionary(requestParameters: UpdateDictionaryRequest): Promise<DictionaryEntity> {
-        const response = await this.updateDictionaryRaw(requestParameters);
+    async updateDictionary(requestParameters: UpdateDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DictionaryEntity> {
+        const response = await this.updateDictionaryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

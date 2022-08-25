@@ -62,6 +62,15 @@ export interface ConnectorListItem {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the ConnectorListItem interface.
+ */
+export function instanceOfConnectorListItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ConnectorListItemFromJSON(json: any): ConnectorListItem {
     return ConnectorListItemFromJSONTyped(json, false);
 }
@@ -100,5 +109,4 @@ export function ConnectorListItemToJSON(value?: ConnectorListItem | null): any {
         'version': value.version,
     };
 }
-
 

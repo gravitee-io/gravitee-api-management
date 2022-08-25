@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  GroupMemberEntity,
+  GroupMembership,
+} from '../models';
 import {
-    GroupMemberEntity,
     GroupMemberEntityFromJSON,
     GroupMemberEntityToJSON,
-    GroupMembership,
     GroupMembershipFromJSON,
     GroupMembershipToJSON,
 } from '../models';
@@ -58,7 +60,7 @@ export class GroupMembershipsApi extends runtime.BaseAPI {
     /**
      * Add or update a group member
      */
-    async addOrUpdateGroupMemberRaw(requestParameters: AddOrUpdateGroupMemberRequest): Promise<runtime.ApiResponse<void>> {
+    async addOrUpdateGroupMemberRaw(requestParameters: AddOrUpdateGroupMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling addOrUpdateGroupMember.');
         }
@@ -75,7 +77,7 @@ export class GroupMembershipsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('groupMembership','Required parameter requestParameters.groupMembership was null or undefined when calling addOrUpdateGroupMember.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -90,7 +92,7 @@ export class GroupMembershipsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.groupMembership.map(GroupMembershipToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -98,14 +100,14 @@ export class GroupMembershipsApi extends runtime.BaseAPI {
     /**
      * Add or update a group member
      */
-    async addOrUpdateGroupMember(requestParameters: AddOrUpdateGroupMemberRequest): Promise<void> {
-        await this.addOrUpdateGroupMemberRaw(requestParameters);
+    async addOrUpdateGroupMember(requestParameters: AddOrUpdateGroupMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.addOrUpdateGroupMemberRaw(requestParameters, initOverrides);
     }
 
     /**
      * Remove a group member
      */
-    async deleteGroupMemberRaw(requestParameters: DeleteGroupMemberRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteGroupMemberRaw(requestParameters: DeleteGroupMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.member === null || requestParameters.member === undefined) {
             throw new runtime.RequiredError('member','Required parameter requestParameters.member was null or undefined when calling deleteGroupMember.');
         }
@@ -122,7 +124,7 @@ export class GroupMembershipsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteGroupMember.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -134,7 +136,7 @@ export class GroupMembershipsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -142,14 +144,14 @@ export class GroupMembershipsApi extends runtime.BaseAPI {
     /**
      * Remove a group member
      */
-    async deleteGroupMember(requestParameters: DeleteGroupMemberRequest): Promise<void> {
-        await this.deleteGroupMemberRaw(requestParameters);
+    async deleteGroupMember(requestParameters: DeleteGroupMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteGroupMemberRaw(requestParameters, initOverrides);
     }
 
     /**
      * List group members
      */
-    async getGroupMembersRaw(requestParameters: GetGroupMembersRequest): Promise<runtime.ApiResponse<Array<GroupMemberEntity>>> {
+    async getGroupMembersRaw(requestParameters: GetGroupMembersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<GroupMemberEntity>>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling getGroupMembers.');
         }
@@ -162,7 +164,7 @@ export class GroupMembershipsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getGroupMembers.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -174,7 +176,7 @@ export class GroupMembershipsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(GroupMemberEntityFromJSON));
     }
@@ -182,15 +184,15 @@ export class GroupMembershipsApi extends runtime.BaseAPI {
     /**
      * List group members
      */
-    async getGroupMembers(requestParameters: GetGroupMembersRequest): Promise<Array<GroupMemberEntity>> {
-        const response = await this.getGroupMembersRaw(requestParameters);
+    async getGroupMembers(requestParameters: GetGroupMembersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<GroupMemberEntity>> {
+        const response = await this.getGroupMembersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List group members with pagination
      */
-    async getGroupMembers1Raw(requestParameters: GetGroupMembers1Request): Promise<runtime.ApiResponse<Array<GroupMemberEntity>>> {
+    async getGroupMembers1Raw(requestParameters: GetGroupMembers1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<GroupMemberEntity>>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling getGroupMembers1.');
         }
@@ -203,7 +205,7 @@ export class GroupMembershipsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getGroupMembers1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.size !== undefined) {
             queryParameters['size'] = requestParameters.size;
@@ -223,7 +225,7 @@ export class GroupMembershipsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(GroupMemberEntityFromJSON));
     }
@@ -231,8 +233,8 @@ export class GroupMembershipsApi extends runtime.BaseAPI {
     /**
      * List group members with pagination
      */
-    async getGroupMembers1(requestParameters: GetGroupMembers1Request): Promise<Array<GroupMemberEntity>> {
-        const response = await this.getGroupMembers1Raw(requestParameters);
+    async getGroupMembers1(requestParameters: GetGroupMembers1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<GroupMemberEntity>> {
+        const response = await this.getGroupMembers1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

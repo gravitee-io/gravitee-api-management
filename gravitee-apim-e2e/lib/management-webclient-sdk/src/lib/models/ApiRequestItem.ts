@@ -86,6 +86,34 @@ export interface ApiRequestItem {
     user?: string;
 }
 
+
+/**
+ * @export
+ */
+export const ApiRequestItemMethodEnum = {
+    CONNECT: 'CONNECT',
+    DELETE: 'DELETE',
+    GET: 'GET',
+    HEAD: 'HEAD',
+    OPTIONS: 'OPTIONS',
+    PATCH: 'PATCH',
+    POST: 'POST',
+    PUT: 'PUT',
+    TRACE: 'TRACE',
+    OTHER: 'OTHER'
+} as const;
+export type ApiRequestItemMethodEnum = typeof ApiRequestItemMethodEnum[keyof typeof ApiRequestItemMethodEnum];
+
+
+/**
+ * Check if a given object implements the ApiRequestItem interface.
+ */
+export function instanceOfApiRequestItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiRequestItemFromJSON(json: any): ApiRequestItem {
     return ApiRequestItemFromJSONTyped(json, false);
 }
@@ -132,22 +160,4 @@ export function ApiRequestItemToJSON(value?: ApiRequestItem | null): any {
         'user': value.user,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ApiRequestItemMethodEnum {
-    CONNECT = 'CONNECT',
-    DELETE = 'DELETE',
-    GET = 'GET',
-    HEAD = 'HEAD',
-    OPTIONS = 'OPTIONS',
-    PATCH = 'PATCH',
-    POST = 'POST',
-    PUT = 'PUT',
-    TRACE = 'TRACE',
-    OTHER = 'OTHER'
-}
-
 

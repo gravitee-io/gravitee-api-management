@@ -50,6 +50,15 @@ export interface RatingAnswerEntity {
     userDisplayName?: string;
 }
 
+/**
+ * Check if a given object implements the RatingAnswerEntity interface.
+ */
+export function instanceOfRatingAnswerEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function RatingAnswerEntityFromJSON(json: any): RatingAnswerEntity {
     return RatingAnswerEntityFromJSONTyped(json, false);
 }
@@ -84,5 +93,4 @@ export function RatingAnswerEntityToJSON(value?: RatingAnswerEntity | null): any
         'userDisplayName': value.userDisplayName,
     };
 }
-
 

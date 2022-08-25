@@ -58,7 +58,7 @@ describe('Subscribe to API Key & JWT plans and use them', () => {
       body: ApisFaker.apiImport({
         plans: [
           // With a published API key plan
-          PlansFaker.plan({ security: PlanSecurityType.APIKEY, status: PlanStatus.PUBLISHED, order: 1 }),
+          PlansFaker.plan({ security: PlanSecurityType.API_KEY, status: PlanStatus.PUBLISHED, order: 1 }),
           // With a published JWT plan
           PlansFaker.plan({
             security: PlanSecurityType.JWT,
@@ -102,7 +102,7 @@ describe('Subscribe to API Key & JWT plans and use them', () => {
     createdApiKeyPlanPortalSubscription = await portalSubscriptionResource.createSubscription({
       subscriptionInput: {
         application: createdPortalApplication.id,
-        plan: createdApi.plans.find((p) => p.security === PlanSecurityType.APIKEY).id,
+        plan: createdApi.plans.find((p) => p.security === PlanSecurityType.API_KEY).id,
       },
     });
 
@@ -329,7 +329,7 @@ describe('Subscribe to Keyless plan and use it', () => {
         plans: [
           // With a published Keyless plan
           PlansFaker.plan({
-            security: PlanSecurityType.KEYLESS,
+            security: PlanSecurityType.KEY_LESS,
             status: PlanStatus.PUBLISHED,
           }),
         ],

@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum HealthcheckType {
-    AVAILABILITY = 'AVAILABILITY',
-    RESPONSETIME = 'RESPONSE_TIME'
-}
+export const HealthcheckType = {
+    AVAILABILITY: 'AVAILABILITY',
+    RESPONSE_TIME: 'RESPONSE_TIME'
+} as const;
+export type HealthcheckType = typeof HealthcheckType[keyof typeof HealthcheckType];
+
 
 export function HealthcheckTypeFromJSON(json: any): HealthcheckType {
     return HealthcheckTypeFromJSONTyped(json, false);

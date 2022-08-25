@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { NotificationConfigType } from './NotificationConfigType';
 import {
-    NotificationConfigType,
     NotificationConfigTypeFromJSON,
     NotificationConfigTypeFromJSONTyped,
     NotificationConfigTypeToJSON,
-} from './';
+} from './NotificationConfigType';
 
 /**
  * 
@@ -81,6 +81,15 @@ export interface GenericNotificationConfigEntity {
     useSystemProxy?: boolean;
 }
 
+/**
+ * Check if a given object implements the GenericNotificationConfigEntity interface.
+ */
+export function instanceOfGenericNotificationConfigEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function GenericNotificationConfigEntityFromJSON(json: any): GenericNotificationConfigEntity {
     return GenericNotificationConfigEntityFromJSONTyped(json, false);
 }
@@ -123,5 +132,4 @@ export function GenericNotificationConfigEntityToJSON(value?: GenericNotificatio
         'useSystemProxy': value.useSystemProxy,
     };
 }
-
 

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { MediaTypeCharset } from './MediaTypeCharset';
 import {
-    MediaTypeCharset,
     MediaTypeCharsetFromJSON,
     MediaTypeCharsetFromJSONTyped,
     MediaTypeCharsetToJSON,
-} from './';
+} from './MediaTypeCharset';
 
 /**
  * 
@@ -81,6 +81,15 @@ export interface MediaType {
     wildcardType?: boolean;
 }
 
+/**
+ * Check if a given object implements the MediaType interface.
+ */
+export function instanceOfMediaType(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MediaTypeFromJSON(json: any): MediaType {
     return MediaTypeFromJSONTyped(json, false);
 }
@@ -123,5 +132,4 @@ export function MediaTypeToJSON(value?: MediaType | null): any {
         'wildcardType': value.wildcardType,
     };
 }
-
 

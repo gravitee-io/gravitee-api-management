@@ -11,16 +11,18 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum MessageChannel {
-    MAIL = 'MAIL',
-    PORTAL = 'PORTAL',
-    HTTP = 'HTTP'
-}
+export const MessageChannel = {
+    MAIL: 'MAIL',
+    PORTAL: 'PORTAL',
+    HTTP: 'HTTP'
+} as const;
+export type MessageChannel = typeof MessageChannel[keyof typeof MessageChannel];
+
 
 export function MessageChannelFromJSON(json: any): MessageChannel {
     return MessageChannelFromJSONTyped(json, false);

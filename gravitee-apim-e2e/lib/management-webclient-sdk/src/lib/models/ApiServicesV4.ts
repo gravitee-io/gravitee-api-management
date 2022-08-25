@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ServiceV4 } from './ServiceV4';
 import {
-    ServiceV4,
     ServiceV4FromJSON,
     ServiceV4FromJSONTyped,
     ServiceV4ToJSON,
-} from './';
+} from './ServiceV4';
 
 /**
  * The configuration of API services like the dynamic properties.
@@ -31,6 +31,15 @@ export interface ApiServicesV4 {
      * @memberof ApiServicesV4
      */
     dynamicProperty?: ServiceV4;
+}
+
+/**
+ * Check if a given object implements the ApiServicesV4 interface.
+ */
+export function instanceOfApiServicesV4(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function ApiServicesV4FromJSON(json: any): ApiServicesV4 {
@@ -59,5 +68,4 @@ export function ApiServicesV4ToJSON(value?: ApiServicesV4 | null): any {
         'dynamicProperty': ServiceV4ToJSON(value.dynamicProperty),
     };
 }
-
 

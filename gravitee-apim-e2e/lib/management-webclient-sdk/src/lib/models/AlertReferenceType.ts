@@ -11,16 +11,18 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum AlertReferenceType {
-    API = 'API',
-    APPLICATION = 'APPLICATION',
-    ENVIRONMENT = 'ENVIRONMENT'
-}
+export const AlertReferenceType = {
+    API: 'API',
+    APPLICATION: 'APPLICATION',
+    ENVIRONMENT: 'ENVIRONMENT'
+} as const;
+export type AlertReferenceType = typeof AlertReferenceType[keyof typeof AlertReferenceType];
+
 
 export function AlertReferenceTypeFromJSON(json: any): AlertReferenceType {
     return AlertReferenceTypeFromJSONTyped(json, false);

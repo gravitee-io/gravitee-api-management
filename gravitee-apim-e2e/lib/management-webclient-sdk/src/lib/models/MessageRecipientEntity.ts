@@ -38,6 +38,15 @@ export interface MessageRecipientEntity {
     url?: string;
 }
 
+/**
+ * Check if a given object implements the MessageRecipientEntity interface.
+ */
+export function instanceOfMessageRecipientEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MessageRecipientEntityFromJSON(json: any): MessageRecipientEntity {
     return MessageRecipientEntityFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function MessageRecipientEntityToJSON(value?: MessageRecipientEntity | nu
         'url': value.url,
     };
 }
-
 

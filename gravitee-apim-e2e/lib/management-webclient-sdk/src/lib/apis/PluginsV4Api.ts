@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ConnectorListItem,
+  PlatformPluginEntity,
+} from '../models';
 import {
-    ConnectorListItem,
     ConnectorListItemFromJSON,
     ConnectorListItemToJSON,
-    PlatformPluginEntity,
     PlatformPluginEntityFromJSON,
     PlatformPluginEntityToJSON,
 } from '../models';
@@ -55,7 +57,7 @@ export class PluginsV4Api extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * List entrypoint plugins
      */
-    async getEntrypoint2Raw(requestParameters: GetEntrypoint2Request): Promise<runtime.ApiResponse<Array<ConnectorListItem>>> {
+    async getEntrypoint2Raw(requestParameters: GetEntrypoint2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ConnectorListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getEntrypoint2.');
         }
@@ -64,7 +66,7 @@ export class PluginsV4Api extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEntrypoint2.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.expand) {
             queryParameters['expand'] = requestParameters.expand;
@@ -80,7 +82,7 @@ export class PluginsV4Api extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ConnectorListItemFromJSON));
     }
@@ -89,8 +91,8 @@ export class PluginsV4Api extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * List entrypoint plugins
      */
-    async getEntrypoint2(requestParameters: GetEntrypoint2Request): Promise<Array<ConnectorListItem>> {
-        const response = await this.getEntrypoint2Raw(requestParameters);
+    async getEntrypoint2(requestParameters: GetEntrypoint2Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ConnectorListItem>> {
+        const response = await this.getEntrypoint2Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -98,7 +100,7 @@ export class PluginsV4Api extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * Get an entrypoint
      */
-    async getEntrypoint3Raw(requestParameters: GetEntrypoint3Request): Promise<runtime.ApiResponse<PlatformPluginEntity>> {
+    async getEntrypoint3Raw(requestParameters: GetEntrypoint3Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlatformPluginEntity>> {
         if (requestParameters.entrypoint === null || requestParameters.entrypoint === undefined) {
             throw new runtime.RequiredError('entrypoint','Required parameter requestParameters.entrypoint was null or undefined when calling getEntrypoint3.');
         }
@@ -111,7 +113,7 @@ export class PluginsV4Api extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEntrypoint3.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -123,7 +125,7 @@ export class PluginsV4Api extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlatformPluginEntityFromJSON(jsonValue));
     }
@@ -132,8 +134,8 @@ export class PluginsV4Api extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * Get an entrypoint
      */
-    async getEntrypoint3(requestParameters: GetEntrypoint3Request): Promise<PlatformPluginEntity> {
-        const response = await this.getEntrypoint3Raw(requestParameters);
+    async getEntrypoint3(requestParameters: GetEntrypoint3Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlatformPluginEntity> {
+        const response = await this.getEntrypoint3Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -141,7 +143,7 @@ export class PluginsV4Api extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * Get a entrypoint\'s documentation
      */
-    async getEntrypointDocRaw(requestParameters: GetEntrypointDocRequest): Promise<runtime.ApiResponse<string>> {
+    async getEntrypointDocRaw(requestParameters: GetEntrypointDocRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.entrypoint === null || requestParameters.entrypoint === undefined) {
             throw new runtime.RequiredError('entrypoint','Required parameter requestParameters.entrypoint was null or undefined when calling getEntrypointDoc.');
         }
@@ -154,7 +156,7 @@ export class PluginsV4Api extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEntrypointDoc.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -166,7 +168,7 @@ export class PluginsV4Api extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -175,8 +177,8 @@ export class PluginsV4Api extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * Get a entrypoint\'s documentation
      */
-    async getEntrypointDoc(requestParameters: GetEntrypointDocRequest): Promise<string> {
-        const response = await this.getEntrypointDocRaw(requestParameters);
+    async getEntrypointDoc(requestParameters: GetEntrypointDocRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getEntrypointDocRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -184,7 +186,7 @@ export class PluginsV4Api extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * Get a entrypoint\'s schema
      */
-    async getEntrypointSchemaRaw(requestParameters: GetEntrypointSchemaRequest): Promise<runtime.ApiResponse<string>> {
+    async getEntrypointSchemaRaw(requestParameters: GetEntrypointSchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
         if (requestParameters.entrypoint === null || requestParameters.entrypoint === undefined) {
             throw new runtime.RequiredError('entrypoint','Required parameter requestParameters.entrypoint was null or undefined when calling getEntrypointSchema.');
         }
@@ -197,7 +199,7 @@ export class PluginsV4Api extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEntrypointSchema.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -209,7 +211,7 @@ export class PluginsV4Api extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -218,8 +220,8 @@ export class PluginsV4Api extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_API[READ] permission to use this service
      * Get a entrypoint\'s schema
      */
-    async getEntrypointSchema(requestParameters: GetEntrypointSchemaRequest): Promise<string> {
-        const response = await this.getEntrypointSchemaRaw(requestParameters);
+    async getEntrypointSchema(requestParameters: GetEntrypointSchemaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.getEntrypointSchemaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

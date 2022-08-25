@@ -32,6 +32,15 @@ export interface UpdateTopApiEntity {
     order?: number;
 }
 
+/**
+ * Check if a given object implements the UpdateTopApiEntity interface.
+ */
+export function instanceOfUpdateTopApiEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function UpdateTopApiEntityFromJSON(json: any): UpdateTopApiEntity {
     return UpdateTopApiEntityFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function UpdateTopApiEntityToJSON(value?: UpdateTopApiEntity | null): any
         'order': value.order,
     };
 }
-
 

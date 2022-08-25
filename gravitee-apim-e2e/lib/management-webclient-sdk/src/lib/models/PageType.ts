@@ -11,23 +11,25 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum PageType {
-    ASCIIDOC = 'ASCIIDOC',
-    ASYNCAPI = 'ASYNCAPI',
-    MARKDOWN = 'MARKDOWN',
-    MARKDOWNTEMPLATE = 'MARKDOWN_TEMPLATE',
-    SWAGGER = 'SWAGGER',
-    FOLDER = 'FOLDER',
-    LINK = 'LINK',
-    ROOT = 'ROOT',
-    SYSTEMFOLDER = 'SYSTEM_FOLDER',
-    TRANSLATION = 'TRANSLATION'
-}
+export const PageType = {
+    ASCIIDOC: 'ASCIIDOC',
+    ASYNCAPI: 'ASYNCAPI',
+    MARKDOWN: 'MARKDOWN',
+    MARKDOWN_TEMPLATE: 'MARKDOWN_TEMPLATE',
+    SWAGGER: 'SWAGGER',
+    FOLDER: 'FOLDER',
+    LINK: 'LINK',
+    ROOT: 'ROOT',
+    SYSTEM_FOLDER: 'SYSTEM_FOLDER',
+    TRANSLATION: 'TRANSLATION'
+} as const;
+export type PageType = typeof PageType[keyof typeof PageType];
+
 
 export function PageTypeFromJSON(json: any): PageType {
     return PageTypeFromJSONTyped(json, false);

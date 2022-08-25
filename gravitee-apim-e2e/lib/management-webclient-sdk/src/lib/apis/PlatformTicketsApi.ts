@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  NewTicketEntity,
+  TicketEntity,
+  TicketEntityPage,
+} from '../models';
 import {
-    NewTicketEntity,
     NewTicketEntityFromJSON,
     NewTicketEntityToJSON,
-    TicketEntity,
     TicketEntityFromJSON,
     TicketEntityToJSON,
-    TicketEntityPage,
     TicketEntityPageFromJSON,
     TicketEntityPageToJSON,
 } from '../models';
@@ -77,7 +79,7 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
     /**
      * Create a platform ticket
      */
-    async createPlatformTicketRaw(requestParameters: CreatePlatformTicketRequest): Promise<runtime.ApiResponse<void>> {
+    async createPlatformTicketRaw(requestParameters: CreatePlatformTicketRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createPlatformTicket.');
         }
@@ -90,7 +92,7 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTicketEntity','Required parameter requestParameters.newTicketEntity was null or undefined when calling createPlatformTicket.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -105,7 +107,7 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewTicketEntityToJSON(requestParameters.newTicketEntity),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -113,14 +115,14 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
     /**
      * Create a platform ticket
      */
-    async createPlatformTicket(requestParameters: CreatePlatformTicketRequest): Promise<void> {
-        await this.createPlatformTicketRaw(requestParameters);
+    async createPlatformTicket(requestParameters: CreatePlatformTicketRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.createPlatformTicketRaw(requestParameters, initOverrides);
     }
 
     /**
      * Create a platform ticket
      */
-    async createPlatformTicket1Raw(requestParameters: CreatePlatformTicket1Request): Promise<runtime.ApiResponse<void>> {
+    async createPlatformTicket1Raw(requestParameters: CreatePlatformTicket1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createPlatformTicket1.');
         }
@@ -133,7 +135,7 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTicketEntity','Required parameter requestParameters.newTicketEntity was null or undefined when calling createPlatformTicket1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -148,7 +150,7 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewTicketEntityToJSON(requestParameters.newTicketEntity),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -156,14 +158,14 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
     /**
      * Create a platform ticket
      */
-    async createPlatformTicket1(requestParameters: CreatePlatformTicket1Request): Promise<void> {
-        await this.createPlatformTicket1Raw(requestParameters);
+    async createPlatformTicket1(requestParameters: CreatePlatformTicket1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.createPlatformTicket1Raw(requestParameters, initOverrides);
     }
 
     /**
      * Get a specific ticket
      */
-    async getTicketRaw(requestParameters: GetTicketRequest): Promise<runtime.ApiResponse<TicketEntity>> {
+    async getTicketRaw(requestParameters: GetTicketRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TicketEntity>> {
         if (requestParameters.ticket === null || requestParameters.ticket === undefined) {
             throw new runtime.RequiredError('ticket','Required parameter requestParameters.ticket was null or undefined when calling getTicket.');
         }
@@ -176,7 +178,7 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTicket.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -188,7 +190,7 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TicketEntityFromJSON(jsonValue));
     }
@@ -196,15 +198,15 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
     /**
      * Get a specific ticket
      */
-    async getTicket(requestParameters: GetTicketRequest): Promise<TicketEntity> {
-        const response = await this.getTicketRaw(requestParameters);
+    async getTicket(requestParameters: GetTicketRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TicketEntity> {
+        const response = await this.getTicketRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get a specific ticket
      */
-    async getTicket1Raw(requestParameters: GetTicket1Request): Promise<runtime.ApiResponse<TicketEntity>> {
+    async getTicket1Raw(requestParameters: GetTicket1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TicketEntity>> {
         if (requestParameters.ticket === null || requestParameters.ticket === undefined) {
             throw new runtime.RequiredError('ticket','Required parameter requestParameters.ticket was null or undefined when calling getTicket1.');
         }
@@ -217,7 +219,7 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTicket1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -229,7 +231,7 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TicketEntityFromJSON(jsonValue));
     }
@@ -237,15 +239,15 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
     /**
      * Get a specific ticket
      */
-    async getTicket1(requestParameters: GetTicket1Request): Promise<TicketEntity> {
-        const response = await this.getTicket1Raw(requestParameters);
+    async getTicket1(requestParameters: GetTicket1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TicketEntity> {
+        const response = await this.getTicket1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Search for platform tickets written by current user
      */
-    async getTicketsRaw(requestParameters: GetTicketsRequest): Promise<runtime.ApiResponse<TicketEntityPage>> {
+    async getTicketsRaw(requestParameters: GetTicketsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TicketEntityPage>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getTickets.');
         }
@@ -254,7 +256,7 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTickets.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.size !== undefined) {
             queryParameters['size'] = requestParameters.size;
@@ -286,7 +288,7 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TicketEntityPageFromJSON(jsonValue));
     }
@@ -294,15 +296,15 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
     /**
      * Search for platform tickets written by current user
      */
-    async getTickets(requestParameters: GetTicketsRequest): Promise<TicketEntityPage> {
-        const response = await this.getTicketsRaw(requestParameters);
+    async getTickets(requestParameters: GetTicketsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TicketEntityPage> {
+        const response = await this.getTicketsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Search for platform tickets written by current user
      */
-    async getTickets1Raw(requestParameters: GetTickets1Request): Promise<runtime.ApiResponse<TicketEntityPage>> {
+    async getTickets1Raw(requestParameters: GetTickets1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TicketEntityPage>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getTickets1.');
         }
@@ -311,7 +313,7 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTickets1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.size !== undefined) {
             queryParameters['size'] = requestParameters.size;
@@ -343,7 +345,7 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TicketEntityPageFromJSON(jsonValue));
     }
@@ -351,8 +353,8 @@ export class PlatformTicketsApi extends runtime.BaseAPI {
     /**
      * Search for platform tickets written by current user
      */
-    async getTickets1(requestParameters: GetTickets1Request): Promise<TicketEntityPage> {
-        const response = await this.getTickets1Raw(requestParameters);
+    async getTickets1(requestParameters: GetTickets1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TicketEntityPage> {
+        const response = await this.getTickets1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

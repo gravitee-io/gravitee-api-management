@@ -26,6 +26,15 @@ export interface ReviewEntity {
     message?: string;
 }
 
+/**
+ * Check if a given object implements the ReviewEntity interface.
+ */
+export function instanceOfReviewEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ReviewEntityFromJSON(json: any): ReviewEntity {
     return ReviewEntityFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function ReviewEntityToJSON(value?: ReviewEntity | null): any {
         'message': value.message,
     };
 }
-
 

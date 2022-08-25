@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { IdentityProviderType } from './IdentityProviderType';
 import {
-    IdentityProviderType,
     IdentityProviderTypeFromJSON,
     IdentityProviderTypeFromJSONTyped,
     IdentityProviderTypeToJSON,
-} from './';
+} from './IdentityProviderType';
 
 /**
  * 
@@ -75,6 +75,15 @@ export interface IdentityProviderListItem {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the IdentityProviderListItem interface.
+ */
+export function instanceOfIdentityProviderListItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function IdentityProviderListItemFromJSON(json: any): IdentityProviderListItem {
     return IdentityProviderListItemFromJSONTyped(json, false);
 }
@@ -115,5 +124,4 @@ export function IdentityProviderListItemToJSON(value?: IdentityProviderListItem 
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

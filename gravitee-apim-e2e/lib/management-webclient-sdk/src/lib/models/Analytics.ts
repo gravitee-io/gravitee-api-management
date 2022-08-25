@@ -26,6 +26,15 @@ export interface Analytics {
     clientTimeout?: number;
 }
 
+/**
+ * Check if a given object implements the Analytics interface.
+ */
+export function instanceOfAnalytics(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function AnalyticsFromJSON(json: any): Analytics {
     return AnalyticsFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function AnalyticsToJSON(value?: Analytics | null): any {
         'clientTimeout': value.clientTimeout,
     };
 }
-
 

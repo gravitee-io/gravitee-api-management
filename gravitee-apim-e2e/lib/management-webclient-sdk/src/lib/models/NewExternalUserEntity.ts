@@ -68,6 +68,16 @@ export interface NewExternalUserEntity {
     sourceId?: string;
 }
 
+/**
+ * Check if a given object implements the NewExternalUserEntity interface.
+ */
+export function instanceOfNewExternalUserEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "email" in value;
+
+    return isInstance;
+}
+
 export function NewExternalUserEntityFromJSON(json: any): NewExternalUserEntity {
     return NewExternalUserEntityFromJSONTyped(json, false);
 }
@@ -108,5 +118,4 @@ export function NewExternalUserEntityToJSON(value?: NewExternalUserEntity | null
         'sourceId': value.sourceId,
     };
 }
-
 

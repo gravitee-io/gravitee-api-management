@@ -13,8 +13,10 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  AlertMetric,
+} from '../models';
 import {
-    AlertMetric,
     AlertMetricFromJSON,
     AlertMetricToJSON,
 } from '../models';
@@ -32,7 +34,7 @@ export class AlertsApi extends runtime.BaseAPI {
     /**
      * List alert metrics
      */
-    async getAlertMetricsRaw(requestParameters: GetAlertMetricsRequest): Promise<runtime.ApiResponse<Array<AlertMetric>>> {
+    async getAlertMetricsRaw(requestParameters: GetAlertMetricsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AlertMetric>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getAlertMetrics.');
         }
@@ -41,7 +43,7 @@ export class AlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getAlertMetrics.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -53,7 +55,7 @@ export class AlertsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(AlertMetricFromJSON));
     }
@@ -61,8 +63,8 @@ export class AlertsApi extends runtime.BaseAPI {
     /**
      * List alert metrics
      */
-    async getAlertMetrics(requestParameters: GetAlertMetricsRequest): Promise<Array<AlertMetric>> {
-        const response = await this.getAlertMetricsRaw(requestParameters);
+    async getAlertMetrics(requestParameters: GetAlertMetricsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<AlertMetric>> {
+        const response = await this.getAlertMetricsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum Type {
-    INLINE = 'INLINE',
-    URL = 'URL'
-}
+export const Type = {
+    INLINE: 'INLINE',
+    URL: 'URL'
+} as const;
+export type Type = typeof Type[keyof typeof Type];
+
 
 export function TypeFromJSON(json: any): Type {
     return TypeFromJSONTyped(json, false);

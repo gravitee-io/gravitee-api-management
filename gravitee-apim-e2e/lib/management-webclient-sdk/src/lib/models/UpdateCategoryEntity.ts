@@ -86,6 +86,16 @@ export interface UpdateCategoryEntity {
     picture_url?: string;
 }
 
+/**
+ * Check if a given object implements the UpdateCategoryEntity interface.
+ */
+export function instanceOfUpdateCategoryEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function UpdateCategoryEntityFromJSON(json: any): UpdateCategoryEntity {
     return UpdateCategoryEntityFromJSONTyped(json, false);
 }
@@ -132,5 +142,4 @@ export function UpdateCategoryEntityToJSON(value?: UpdateCategoryEntity | null):
         'picture_url': value.picture_url,
     };
 }
-
 

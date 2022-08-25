@@ -80,6 +80,15 @@ export interface DashboardEntity {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the DashboardEntity interface.
+ */
+export function instanceOfDashboardEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function DashboardEntityFromJSON(json: any): DashboardEntity {
     return DashboardEntityFromJSONTyped(json, false);
 }
@@ -124,5 +133,4 @@ export function DashboardEntityToJSON(value?: DashboardEntity | null): any {
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

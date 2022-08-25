@@ -13,20 +13,22 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  AlertEventPage,
+  AlertStatusEntity,
+  AlertTriggerEntity,
+  NewAlertTriggerEntity,
+  UpdateAlertTriggerEntity,
+} from '../models';
 import {
-    AlertEventPage,
     AlertEventPageFromJSON,
     AlertEventPageToJSON,
-    AlertStatusEntity,
     AlertStatusEntityFromJSON,
     AlertStatusEntityToJSON,
-    AlertTriggerEntity,
     AlertTriggerEntityFromJSON,
     AlertTriggerEntityToJSON,
-    NewAlertTriggerEntity,
     NewAlertTriggerEntityFromJSON,
     NewAlertTriggerEntityToJSON,
-    UpdateAlertTriggerEntity,
     UpdateAlertTriggerEntityFromJSON,
     UpdateAlertTriggerEntityToJSON,
 } from '../models';
@@ -94,7 +96,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[UPDATE] permission to use this service
      * Associate the alert to multiple references (API, APPLICATION
      */
-    async associatePlatformAlertRaw(requestParameters: AssociatePlatformAlertRequest): Promise<runtime.ApiResponse<void>> {
+    async associatePlatformAlertRaw(requestParameters: AssociatePlatformAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.alert === null || requestParameters.alert === undefined) {
             throw new runtime.RequiredError('alert','Required parameter requestParameters.alert was null or undefined when calling associatePlatformAlert.');
         }
@@ -107,7 +109,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling associatePlatformAlert.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.type !== undefined) {
             queryParameters['type'] = requestParameters.type;
@@ -123,7 +125,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -132,15 +134,15 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[UPDATE] permission to use this service
      * Associate the alert to multiple references (API, APPLICATION
      */
-    async associatePlatformAlert(requestParameters: AssociatePlatformAlertRequest): Promise<void> {
-        await this.associatePlatformAlertRaw(requestParameters);
+    async associatePlatformAlert(requestParameters: AssociatePlatformAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.associatePlatformAlertRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ALERT[CREATE] permission to use this service
      * Create an alert for the platform
      */
-    async createPlatformAlertRaw(requestParameters: CreatePlatformAlertRequest): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
+    async createPlatformAlertRaw(requestParameters: CreatePlatformAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createPlatformAlert.');
         }
@@ -153,7 +155,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newAlertTriggerEntity','Required parameter requestParameters.newAlertTriggerEntity was null or undefined when calling createPlatformAlert.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -168,7 +170,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewAlertTriggerEntityToJSON(requestParameters.newAlertTriggerEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AlertTriggerEntityFromJSON(jsonValue));
     }
@@ -177,8 +179,8 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[CREATE] permission to use this service
      * Create an alert for the platform
      */
-    async createPlatformAlert(requestParameters: CreatePlatformAlertRequest): Promise<AlertTriggerEntity> {
-        const response = await this.createPlatformAlertRaw(requestParameters);
+    async createPlatformAlert(requestParameters: CreatePlatformAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AlertTriggerEntity> {
+        const response = await this.createPlatformAlertRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -186,7 +188,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[DELETE] permission to use this service
      * Delete an alert for the platform
      */
-    async deletePlatformAlertRaw(requestParameters: DeletePlatformAlertRequest): Promise<runtime.ApiResponse<void>> {
+    async deletePlatformAlertRaw(requestParameters: DeletePlatformAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.alert === null || requestParameters.alert === undefined) {
             throw new runtime.RequiredError('alert','Required parameter requestParameters.alert was null or undefined when calling deletePlatformAlert.');
         }
@@ -199,7 +201,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deletePlatformAlert.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -211,7 +213,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -220,15 +222,15 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[DELETE] permission to use this service
      * Delete an alert for the platform
      */
-    async deletePlatformAlert(requestParameters: DeletePlatformAlertRequest): Promise<void> {
-        await this.deletePlatformAlertRaw(requestParameters);
+    async deletePlatformAlert(requestParameters: DeletePlatformAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deletePlatformAlertRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * Retrieve the list of events for an alert
      */
-    async getPlatformAlertEventsRaw(requestParameters: GetPlatformAlertEventsRequest): Promise<runtime.ApiResponse<AlertEventPage>> {
+    async getPlatformAlertEventsRaw(requestParameters: GetPlatformAlertEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AlertEventPage>> {
         if (requestParameters.alert === null || requestParameters.alert === undefined) {
             throw new runtime.RequiredError('alert','Required parameter requestParameters.alert was null or undefined when calling getPlatformAlertEvents.');
         }
@@ -241,7 +243,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPlatformAlertEvents.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -269,7 +271,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AlertEventPageFromJSON(jsonValue));
     }
@@ -278,8 +280,8 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * Retrieve the list of events for an alert
      */
-    async getPlatformAlertEvents(requestParameters: GetPlatformAlertEventsRequest): Promise<AlertEventPage> {
-        const response = await this.getPlatformAlertEventsRaw(requestParameters);
+    async getPlatformAlertEvents(requestParameters: GetPlatformAlertEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AlertEventPage> {
+        const response = await this.getPlatformAlertEventsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -287,7 +289,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * Get alerting status
      */
-    async getPlatformAlertStatusRaw(requestParameters: GetPlatformAlertStatusRequest): Promise<runtime.ApiResponse<AlertStatusEntity>> {
+    async getPlatformAlertStatusRaw(requestParameters: GetPlatformAlertStatusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AlertStatusEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPlatformAlertStatus.');
         }
@@ -296,7 +298,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPlatformAlertStatus.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -308,7 +310,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AlertStatusEntityFromJSON(jsonValue));
     }
@@ -317,8 +319,8 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * Get alerting status
      */
-    async getPlatformAlertStatus(requestParameters: GetPlatformAlertStatusRequest): Promise<AlertStatusEntity> {
-        const response = await this.getPlatformAlertStatusRaw(requestParameters);
+    async getPlatformAlertStatus(requestParameters: GetPlatformAlertStatusRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AlertStatusEntity> {
+        const response = await this.getPlatformAlertStatusRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -326,7 +328,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * List configured alerts of the platform
      */
-    async getPlatformAlertsRaw(requestParameters: GetPlatformAlertsRequest): Promise<runtime.ApiResponse<Array<AlertTriggerEntity>>> {
+    async getPlatformAlertsRaw(requestParameters: GetPlatformAlertsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AlertTriggerEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPlatformAlerts.');
         }
@@ -335,7 +337,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPlatformAlerts.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.eventCounts !== undefined) {
             queryParameters['event_counts'] = requestParameters.eventCounts;
@@ -351,7 +353,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(AlertTriggerEntityFromJSON));
     }
@@ -360,8 +362,8 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * List configured alerts of the platform
      */
-    async getPlatformAlerts(requestParameters: GetPlatformAlertsRequest): Promise<Array<AlertTriggerEntity>> {
-        const response = await this.getPlatformAlertsRaw(requestParameters);
+    async getPlatformAlerts(requestParameters: GetPlatformAlertsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<AlertTriggerEntity>> {
+        const response = await this.getPlatformAlertsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -369,7 +371,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * List configured alerts of the platform
      */
-    async getPlatformAlertsAnalytics1Raw(requestParameters: GetPlatformAlertsAnalytics1Request): Promise<runtime.ApiResponse<Array<AlertTriggerEntity>>> {
+    async getPlatformAlertsAnalytics1Raw(requestParameters: GetPlatformAlertsAnalytics1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AlertTriggerEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPlatformAlertsAnalytics1.');
         }
@@ -378,7 +380,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPlatformAlertsAnalytics1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -398,7 +400,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(AlertTriggerEntityFromJSON));
     }
@@ -407,8 +409,8 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[READ] permission to use this service
      * List configured alerts of the platform
      */
-    async getPlatformAlertsAnalytics1(requestParameters: GetPlatformAlertsAnalytics1Request): Promise<Array<AlertTriggerEntity>> {
-        const response = await this.getPlatformAlertsAnalytics1Raw(requestParameters);
+    async getPlatformAlertsAnalytics1(requestParameters: GetPlatformAlertsAnalytics1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<AlertTriggerEntity>> {
+        const response = await this.getPlatformAlertsAnalytics1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -416,7 +418,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[UPDATE] permission to use this service
      * Update an alert for the platform
      */
-    async updatePlatformAlertRaw(requestParameters: UpdatePlatformAlertRequest): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
+    async updatePlatformAlertRaw(requestParameters: UpdatePlatformAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AlertTriggerEntity>> {
         if (requestParameters.alert === null || requestParameters.alert === undefined) {
             throw new runtime.RequiredError('alert','Required parameter requestParameters.alert was null or undefined when calling updatePlatformAlert.');
         }
@@ -433,7 +435,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateAlertTriggerEntity','Required parameter requestParameters.updateAlertTriggerEntity was null or undefined when calling updatePlatformAlert.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -448,7 +450,7 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateAlertTriggerEntityToJSON(requestParameters.updateAlertTriggerEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AlertTriggerEntityFromJSON(jsonValue));
     }
@@ -457,8 +459,8 @@ export class PlatformAlertsApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ALERT[UPDATE] permission to use this service
      * Update an alert for the platform
      */
-    async updatePlatformAlert(requestParameters: UpdatePlatformAlertRequest): Promise<AlertTriggerEntity> {
-        const response = await this.updatePlatformAlertRaw(requestParameters);
+    async updatePlatformAlert(requestParameters: UpdatePlatformAlertRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AlertTriggerEntity> {
+        const response = await this.updatePlatformAlertRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

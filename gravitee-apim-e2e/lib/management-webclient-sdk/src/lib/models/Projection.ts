@@ -30,6 +30,25 @@ export interface Projection {
     type?: ProjectionTypeEnum;
 }
 
+
+/**
+ * @export
+ */
+export const ProjectionTypeEnum = {
+    PROPERTY: 'PROPERTY'
+} as const;
+export type ProjectionTypeEnum = typeof ProjectionTypeEnum[keyof typeof ProjectionTypeEnum];
+
+
+/**
+ * Check if a given object implements the Projection interface.
+ */
+export function instanceOfProjection(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ProjectionFromJSON(json: any): Projection {
     return ProjectionFromJSONTyped(json, false);
 }
@@ -61,13 +80,4 @@ export function ProjectionToJSON(value?: Projection | null): any {
         'type': value.type,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ProjectionTypeEnum {
-    PROPERTY = 'PROPERTY'
-}
-
 

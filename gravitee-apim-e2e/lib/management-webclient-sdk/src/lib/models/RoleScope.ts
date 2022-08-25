@@ -11,19 +11,21 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum RoleScope {
-    API = 'API',
-    APPLICATION = 'APPLICATION',
-    GROUP = 'GROUP',
-    ENVIRONMENT = 'ENVIRONMENT',
-    ORGANIZATION = 'ORGANIZATION',
-    PLATFORM = 'PLATFORM'
-}
+export const RoleScope = {
+    API: 'API',
+    APPLICATION: 'APPLICATION',
+    GROUP: 'GROUP',
+    ENVIRONMENT: 'ENVIRONMENT',
+    ORGANIZATION: 'ORGANIZATION',
+    PLATFORM: 'PLATFORM'
+} as const;
+export type RoleScope = typeof RoleScope[keyof typeof RoleScope];
+
 
 export function RoleScopeFromJSON(json: any): RoleScope {
     return RoleScopeFromJSONTyped(json, false);

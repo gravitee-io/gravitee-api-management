@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { HttpHeader } from './HttpHeader';
 import {
-    HttpHeader,
     HttpHeaderFromJSON,
     HttpHeaderFromJSONTyped,
     HttpHeaderToJSON,
-} from './';
+} from './HttpHeader';
 
 /**
  * 
@@ -63,6 +63,34 @@ export interface HttpDynamicPropertyProviderConfigurationAllOf {
     body?: string;
 }
 
+
+/**
+ * @export
+ */
+export const HttpDynamicPropertyProviderConfigurationAllOfMethodEnum = {
+    CONNECT: 'CONNECT',
+    DELETE: 'DELETE',
+    GET: 'GET',
+    HEAD: 'HEAD',
+    OPTIONS: 'OPTIONS',
+    PATCH: 'PATCH',
+    POST: 'POST',
+    PUT: 'PUT',
+    TRACE: 'TRACE',
+    OTHER: 'OTHER'
+} as const;
+export type HttpDynamicPropertyProviderConfigurationAllOfMethodEnum = typeof HttpDynamicPropertyProviderConfigurationAllOfMethodEnum[keyof typeof HttpDynamicPropertyProviderConfigurationAllOfMethodEnum];
+
+
+/**
+ * Check if a given object implements the HttpDynamicPropertyProviderConfigurationAllOf interface.
+ */
+export function instanceOfHttpDynamicPropertyProviderConfigurationAllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function HttpDynamicPropertyProviderConfigurationAllOfFromJSON(json: any): HttpDynamicPropertyProviderConfigurationAllOf {
     return HttpDynamicPropertyProviderConfigurationAllOfFromJSONTyped(json, false);
 }
@@ -99,22 +127,4 @@ export function HttpDynamicPropertyProviderConfigurationAllOfToJSON(value?: Http
         'body': value.body,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum HttpDynamicPropertyProviderConfigurationAllOfMethodEnum {
-    CONNECT = 'CONNECT',
-    DELETE = 'DELETE',
-    GET = 'GET',
-    HEAD = 'HEAD',
-    OPTIONS = 'OPTIONS',
-    PATCH = 'PATCH',
-    POST = 'POST',
-    PUT = 'PUT',
-    TRACE = 'TRACE',
-    OTHER = 'OTHER'
-}
-
 

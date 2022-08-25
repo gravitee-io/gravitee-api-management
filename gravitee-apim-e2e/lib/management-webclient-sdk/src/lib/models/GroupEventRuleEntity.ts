@@ -26,6 +26,15 @@ export interface GroupEventRuleEntity {
     event?: string;
 }
 
+/**
+ * Check if a given object implements the GroupEventRuleEntity interface.
+ */
+export function instanceOfGroupEventRuleEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function GroupEventRuleEntityFromJSON(json: any): GroupEventRuleEntity {
     return GroupEventRuleEntityFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function GroupEventRuleEntityToJSON(value?: GroupEventRuleEntity | null):
         'event': value.event,
     };
 }
-
 

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { EventEntity } from './EventEntity';
 import {
-    EventEntity,
     EventEntityFromJSON,
     EventEntityFromJSONTyped,
     EventEntityToJSON,
-} from './';
+} from './EventEntity';
 
 /**
  * 
@@ -49,6 +49,15 @@ export interface EventEntityPage {
      * @memberof EventEntityPage
      */
     totalElements?: number;
+}
+
+/**
+ * Check if a given object implements the EventEntityPage interface.
+ */
+export function instanceOfEventEntityPage(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function EventEntityPageFromJSON(json: any): EventEntityPage {
@@ -83,5 +92,4 @@ export function EventEntityPageToJSON(value?: EventEntityPage | null): any {
         'totalElements': value.totalElements,
     };
 }
-
 

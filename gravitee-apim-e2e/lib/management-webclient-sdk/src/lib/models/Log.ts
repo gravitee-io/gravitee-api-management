@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Request } from './Request';
 import {
-    Request,
     RequestFromJSON,
     RequestFromJSONTyped,
     RequestToJSON,
-    Response,
+} from './Request';
+import type { Response } from './Response';
+import {
     ResponseFromJSON,
     ResponseFromJSONTyped,
     ResponseToJSON,
-} from './';
+} from './Response';
 
 /**
  * 
@@ -97,6 +99,15 @@ export interface Log {
     timestamp?: number;
 }
 
+/**
+ * Check if a given object implements the Log interface.
+ */
+export function instanceOfLog(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function LogFromJSON(json: any): Log {
     return LogFromJSONTyped(json, false);
 }
@@ -143,5 +154,4 @@ export function LogToJSON(value?: Log | null): any {
         'timestamp': value.timestamp,
     };
 }
-
 

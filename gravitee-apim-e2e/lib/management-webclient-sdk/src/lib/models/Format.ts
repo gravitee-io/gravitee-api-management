@@ -11,15 +11,17 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum Format {
-    WSDL = 'WSDL',
-    API = 'API'
-}
+export const Format = {
+    WSDL: 'WSDL',
+    API: 'API'
+} as const;
+export type Format = typeof Format[keyof typeof Format];
+
 
 export function FormatFromJSON(json: any): Format {
     return FormatFromJSONTyped(json, false);

@@ -44,6 +44,15 @@ export interface HttpRequest {
     path?: string;
 }
 
+/**
+ * Check if a given object implements the HttpRequest interface.
+ */
+export function instanceOfHttpRequest(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function HttpRequestFromJSON(json: any): HttpRequest {
     return HttpRequestFromJSONTyped(json, false);
 }
@@ -76,5 +85,4 @@ export function HttpRequestToJSON(value?: HttpRequest | null): any {
         'path': value.path,
     };
 }
-
 

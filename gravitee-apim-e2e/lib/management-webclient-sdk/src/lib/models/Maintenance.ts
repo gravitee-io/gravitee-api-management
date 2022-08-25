@@ -26,6 +26,15 @@ export interface Maintenance {
     enabled?: boolean;
 }
 
+/**
+ * Check if a given object implements the Maintenance interface.
+ */
+export function instanceOfMaintenance(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MaintenanceFromJSON(json: any): Maintenance {
     return MaintenanceFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function MaintenanceToJSON(value?: Maintenance | null): any {
         'enabled': value.enabled,
     };
 }
-
 

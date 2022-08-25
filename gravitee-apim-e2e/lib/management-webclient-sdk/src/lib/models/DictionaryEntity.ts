@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { DictionaryProviderEntity } from './DictionaryProviderEntity';
 import {
-    DictionaryProviderEntity,
     DictionaryProviderEntityFromJSON,
     DictionaryProviderEntityFromJSONTyped,
     DictionaryProviderEntityToJSON,
-    DictionaryTriggerEntity,
+} from './DictionaryProviderEntity';
+import type { DictionaryTriggerEntity } from './DictionaryTriggerEntity';
+import {
     DictionaryTriggerEntityFromJSON,
     DictionaryTriggerEntityFromJSONTyped,
     DictionaryTriggerEntityToJSON,
-    DictionaryType,
+} from './DictionaryTriggerEntity';
+import type { DictionaryType } from './DictionaryType';
+import {
     DictionaryTypeFromJSON,
     DictionaryTypeFromJSONTyped,
     DictionaryTypeToJSON,
-} from './';
+} from './DictionaryType';
 
 /**
  * 
@@ -101,6 +105,29 @@ export interface DictionaryEntity {
     updated_at?: Date;
 }
 
+
+/**
+ * @export
+ */
+export const DictionaryEntityStateEnum = {
+    INITIALIZED: 'INITIALIZED',
+    STOPPED: 'STOPPED',
+    STOPPING: 'STOPPING',
+    STARTED: 'STARTED',
+    CLOSED: 'CLOSED'
+} as const;
+export type DictionaryEntityStateEnum = typeof DictionaryEntityStateEnum[keyof typeof DictionaryEntityStateEnum];
+
+
+/**
+ * Check if a given object implements the DictionaryEntity interface.
+ */
+export function instanceOfDictionaryEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function DictionaryEntityFromJSON(json: any): DictionaryEntity {
     return DictionaryEntityFromJSONTyped(json, false);
 }
@@ -147,17 +174,4 @@ export function DictionaryEntityToJSON(value?: DictionaryEntity | null): any {
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum DictionaryEntityStateEnum {
-    INITIALIZED = 'INITIALIZED',
-    STOPPED = 'STOPPED',
-    STOPPING = 'STOPPING',
-    STARTED = 'STARTED',
-    CLOSED = 'CLOSED'
-}
-
 

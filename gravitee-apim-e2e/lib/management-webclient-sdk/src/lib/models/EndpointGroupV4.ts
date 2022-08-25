@@ -12,20 +12,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { EndpointGroupServicesV4 } from './EndpointGroupServicesV4';
 import {
-    EndpointGroupServicesV4,
     EndpointGroupServicesV4FromJSON,
     EndpointGroupServicesV4FromJSONTyped,
     EndpointGroupServicesV4ToJSON,
-    EndpointV4,
+} from './EndpointGroupServicesV4';
+import type { EndpointV4 } from './EndpointV4';
+import {
     EndpointV4FromJSON,
     EndpointV4FromJSONTyped,
     EndpointV4ToJSON,
-    LoadBalancerV4,
+} from './EndpointV4';
+import type { LoadBalancerV4 } from './LoadBalancerV4';
+import {
     LoadBalancerV4FromJSON,
     LoadBalancerV4FromJSONTyped,
     LoadBalancerV4ToJSON,
-} from './';
+} from './LoadBalancerV4';
 
 /**
  * A list of endpoint describing the endpoints to contact.
@@ -59,16 +63,27 @@ export interface EndpointGroupV4 {
     services?: EndpointGroupServicesV4;
     /**
      * 
-     * @type {any}
+     * @type {string}
      * @memberof EndpointGroupV4
      */
-    sharedConfiguration?: any;
+    sharedConfiguration?: string;
     /**
      * 
      * @type {string}
      * @memberof EndpointGroupV4
      */
     type: string;
+}
+
+/**
+ * Check if a given object implements the EndpointGroupV4 interface.
+ */
+export function instanceOfEndpointGroupV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "type" in value;
+
+    return isInstance;
 }
 
 export function EndpointGroupV4FromJSON(json: any): EndpointGroupV4 {
@@ -107,5 +122,4 @@ export function EndpointGroupV4ToJSON(value?: EndpointGroupV4 | null): any {
         'type': value.type,
     };
 }
-
 

@@ -32,6 +32,15 @@ export interface PortalAnalytics {
     trackingId?: string;
 }
 
+/**
+ * Check if a given object implements the PortalAnalytics interface.
+ */
+export function instanceOfPortalAnalytics(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PortalAnalyticsFromJSON(json: any): PortalAnalytics {
     return PortalAnalyticsFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function PortalAnalyticsToJSON(value?: PortalAnalytics | null): any {
         'trackingId': value.trackingId,
     };
 }
-
 

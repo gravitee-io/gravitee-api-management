@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  Analytics,
+  AnalyticsType,
+} from '../models';
 import {
-    Analytics,
     AnalyticsFromJSON,
     AnalyticsToJSON,
-    AnalyticsType,
     AnalyticsTypeFromJSON,
     AnalyticsTypeToJSON,
 } from '../models';
@@ -46,7 +48,7 @@ export class APIAnalyticsApi extends runtime.BaseAPI {
      * User must have the API_ANALYTICS[READ] permission to use this service
      * Get API analytics
      */
-    async getApiAnalyticsHitsRaw(requestParameters: GetApiAnalyticsHitsRequest): Promise<runtime.ApiResponse<Analytics>> {
+    async getApiAnalyticsHitsRaw(requestParameters: GetApiAnalyticsHitsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Analytics>> {
         if (requestParameters.type === null || requestParameters.type === undefined) {
             throw new runtime.RequiredError('type','Required parameter requestParameters.type was null or undefined when calling getApiAnalyticsHits.');
         }
@@ -63,7 +65,7 @@ export class APIAnalyticsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiAnalyticsHits.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.from !== undefined) {
             queryParameters['from'] = requestParameters.from;
@@ -111,7 +113,7 @@ export class APIAnalyticsApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AnalyticsFromJSON(jsonValue));
     }
@@ -120,8 +122,8 @@ export class APIAnalyticsApi extends runtime.BaseAPI {
      * User must have the API_ANALYTICS[READ] permission to use this service
      * Get API analytics
      */
-    async getApiAnalyticsHits(requestParameters: GetApiAnalyticsHitsRequest): Promise<Analytics> {
-        const response = await this.getApiAnalyticsHitsRaw(requestParameters);
+    async getApiAnalyticsHits(requestParameters: GetApiAnalyticsHitsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Analytics> {
+        const response = await this.getApiAnalyticsHitsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

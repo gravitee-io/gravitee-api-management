@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { RatingComment } from './RatingComment';
 import {
-    RatingComment,
     RatingCommentFromJSON,
     RatingCommentFromJSONTyped,
     RatingCommentToJSON,
-} from './';
+} from './RatingComment';
 
 /**
  * 
@@ -37,6 +37,15 @@ export interface PortalRating {
      * @memberof PortalRating
      */
     enabled?: boolean;
+}
+
+/**
+ * Check if a given object implements the PortalRating interface.
+ */
+export function instanceOfPortalRating(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function PortalRatingFromJSON(json: any): PortalRating {
@@ -67,5 +76,4 @@ export function PortalRatingToJSON(value?: PortalRating | null): any {
         'enabled': value.enabled,
     };
 }
-
 

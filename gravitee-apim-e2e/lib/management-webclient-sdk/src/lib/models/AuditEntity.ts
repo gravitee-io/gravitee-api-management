@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AuditReferenceType } from './AuditReferenceType';
 import {
-    AuditReferenceType,
     AuditReferenceTypeFromJSON,
     AuditReferenceTypeFromJSONTyped,
     AuditReferenceTypeToJSON,
-} from './';
+} from './AuditReferenceType';
 
 /**
  * 
@@ -75,6 +75,15 @@ export interface AuditEntity {
     user?: string;
 }
 
+/**
+ * Check if a given object implements the AuditEntity interface.
+ */
+export function instanceOfAuditEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function AuditEntityFromJSON(json: any): AuditEntity {
     return AuditEntityFromJSONTyped(json, false);
 }
@@ -115,5 +124,4 @@ export function AuditEntityToJSON(value?: AuditEntity | null): any {
         'user': value.user,
     };
 }
-
 

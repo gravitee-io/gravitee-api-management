@@ -38,6 +38,15 @@ export interface PageMediaEntity {
     mediaName?: string;
 }
 
+/**
+ * Check if a given object implements the PageMediaEntity interface.
+ */
+export function instanceOfPageMediaEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PageMediaEntityFromJSON(json: any): PageMediaEntity {
     return PageMediaEntityFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function PageMediaEntityToJSON(value?: PageMediaEntity | null): any {
         'mediaName': value.mediaName,
     };
 }
-
 

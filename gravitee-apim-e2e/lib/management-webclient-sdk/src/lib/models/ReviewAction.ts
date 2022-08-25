@@ -11,16 +11,18 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum ReviewAction {
-    ASK = 'ASK',
-    ACCEPT = 'ACCEPT',
-    REJECT = 'REJECT'
-}
+export const ReviewAction = {
+    ASK: 'ASK',
+    ACCEPT: 'ACCEPT',
+    REJECT: 'REJECT'
+} as const;
+export type ReviewAction = typeof ReviewAction[keyof typeof ReviewAction];
+
 
 export function ReviewActionFromJSON(json: any): ReviewAction {
     return ReviewActionFromJSONTyped(json, false);

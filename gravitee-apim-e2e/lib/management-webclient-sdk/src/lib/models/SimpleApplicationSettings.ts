@@ -32,6 +32,15 @@ export interface SimpleApplicationSettings {
     type?: string;
 }
 
+/**
+ * Check if a given object implements the SimpleApplicationSettings interface.
+ */
+export function instanceOfSimpleApplicationSettings(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function SimpleApplicationSettingsFromJSON(json: any): SimpleApplicationSettings {
     return SimpleApplicationSettingsFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function SimpleApplicationSettingsToJSON(value?: SimpleApplicationSetting
         'type': value.type,
     };
 }
-
 

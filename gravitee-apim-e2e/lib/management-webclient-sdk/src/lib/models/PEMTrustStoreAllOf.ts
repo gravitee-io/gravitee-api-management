@@ -32,6 +32,15 @@ export interface PEMTrustStoreAllOf {
     content?: string;
 }
 
+/**
+ * Check if a given object implements the PEMTrustStoreAllOf interface.
+ */
+export function instanceOfPEMTrustStoreAllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function PEMTrustStoreAllOfFromJSON(json: any): PEMTrustStoreAllOf {
     return PEMTrustStoreAllOfFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function PEMTrustStoreAllOfToJSON(value?: PEMTrustStoreAllOf | null): any
         'content': value.content,
     };
 }
-
 

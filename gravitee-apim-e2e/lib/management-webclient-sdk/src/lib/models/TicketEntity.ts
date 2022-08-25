@@ -62,6 +62,15 @@ export interface TicketEntity {
     subject?: string;
 }
 
+/**
+ * Check if a given object implements the TicketEntity interface.
+ */
+export function instanceOfTicketEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function TicketEntityFromJSON(json: any): TicketEntity {
     return TicketEntityFromJSONTyped(json, false);
 }
@@ -100,5 +109,4 @@ export function TicketEntityToJSON(value?: TicketEntity | null): any {
         'subject': value.subject,
     };
 }
-
 

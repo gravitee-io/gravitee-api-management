@@ -39,6 +39,34 @@ export interface Rule {
     methods?: Array<RuleMethodsEnum>;
 }
 
+
+/**
+ * @export
+ */
+export const RuleMethodsEnum = {
+    CONNECT: 'CONNECT',
+    DELETE: 'DELETE',
+    GET: 'GET',
+    HEAD: 'HEAD',
+    OPTIONS: 'OPTIONS',
+    PATCH: 'PATCH',
+    POST: 'POST',
+    PUT: 'PUT',
+    TRACE: 'TRACE',
+    OTHER: 'OTHER'
+} as const;
+export type RuleMethodsEnum = typeof RuleMethodsEnum[keyof typeof RuleMethodsEnum];
+
+
+/**
+ * Check if a given object implements the Rule interface.
+ */
+export function instanceOfRule(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function RuleFromJSON(json: any): Rule {
     return RuleFromJSONTyped(json, false);
 }
@@ -71,22 +99,4 @@ export function RuleToJSON(value?: Rule | null): any {
         'methods': value.methods,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum RuleMethodsEnum {
-    CONNECT = 'CONNECT',
-    DELETE = 'DELETE',
-    GET = 'GET',
-    HEAD = 'HEAD',
-    OPTIONS = 'OPTIONS',
-    PATCH = 'PATCH',
-    POST = 'POST',
-    PUT = 'PUT',
-    TRACE = 'TRACE',
-    OTHER = 'OTHER'
-}
-
 

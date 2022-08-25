@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ThemeDefinition } from './ThemeDefinition';
 import {
-    ThemeDefinition,
     ThemeDefinitionFromJSON,
     ThemeDefinitionFromJSONTyped,
     ThemeDefinitionToJSON,
-} from './';
+} from './ThemeDefinition';
 
 /**
  * 
@@ -69,6 +69,16 @@ export interface NewThemeEntity {
     optionalLogo?: string;
 }
 
+/**
+ * Check if a given object implements the NewThemeEntity interface.
+ */
+export function instanceOfNewThemeEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function NewThemeEntityFromJSON(json: any): NewThemeEntity {
     return NewThemeEntityFromJSONTyped(json, false);
 }
@@ -107,5 +117,4 @@ export function NewThemeEntityToJSON(value?: NewThemeEntity | null): any {
         'optionalLogo': value.optionalLogo,
     };
 }
-
 

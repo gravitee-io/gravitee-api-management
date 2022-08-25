@@ -56,6 +56,29 @@ export interface Hook {
     template?: string;
 }
 
+
+/**
+ * @export
+ */
+export const HookScopeEnum = {
+    API: 'API',
+    APPLICATION: 'APPLICATION',
+    PORTAL: 'PORTAL',
+    TEMPLATES_FOR_ACTION: 'TEMPLATES_FOR_ACTION',
+    TEMPLATES_FOR_ALERT: 'TEMPLATES_FOR_ALERT'
+} as const;
+export type HookScopeEnum = typeof HookScopeEnum[keyof typeof HookScopeEnum];
+
+
+/**
+ * Check if a given object implements the Hook interface.
+ */
+export function instanceOfHook(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function HookFromJSON(json: any): Hook {
     return HookFromJSONTyped(json, false);
 }
@@ -92,17 +115,4 @@ export function HookToJSON(value?: Hook | null): any {
         'template': value.template,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum HookScopeEnum {
-    API = 'API',
-    APPLICATION = 'APPLICATION',
-    PORTAL = 'PORTAL',
-    TEMPLATESFORACTION = 'TEMPLATES_FOR_ACTION',
-    TEMPLATESFORALERT = 'TEMPLATES_FOR_ALERT'
-}
-
 

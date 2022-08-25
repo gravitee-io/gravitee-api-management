@@ -26,6 +26,15 @@ export interface ApiStatus {
     enabled?: boolean;
 }
 
+/**
+ * Check if a given object implements the ApiStatus interface.
+ */
+export function instanceOfApiStatus(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ApiStatusFromJSON(json: any): ApiStatus {
     return ApiStatusFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function ApiStatusToJSON(value?: ApiStatus | null): any {
         'enabled': value.enabled,
     };
 }
-
 

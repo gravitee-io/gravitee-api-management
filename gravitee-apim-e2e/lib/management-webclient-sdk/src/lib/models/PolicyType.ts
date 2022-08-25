@@ -11,16 +11,18 @@
  * Do not edit the class manually.
  */
 
+
 /**
  * 
  * @export
- * @enum {string}
  */
-export enum PolicyType {
-    REQUEST = 'REQUEST',
-    RESPONSE = 'RESPONSE',
-    REQUESTRESPONSE = 'REQUEST_RESPONSE'
-}
+export const PolicyType = {
+    REQUEST: 'REQUEST',
+    RESPONSE: 'RESPONSE',
+    REQUEST_RESPONSE: 'REQUEST_RESPONSE'
+} as const;
+export type PolicyType = typeof PolicyType[keyof typeof PolicyType];
+
 
 export function PolicyTypeFromJSON(json: any): PolicyType {
     return PolicyTypeFromJSONTyped(json, false);

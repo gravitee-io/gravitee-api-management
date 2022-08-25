@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { EntrypointV4 } from './EntrypointV4';
 import {
-    EntrypointV4,
     EntrypointV4FromJSON,
     EntrypointV4FromJSONTyped,
     EntrypointV4ToJSON,
-} from './';
+} from './EntrypointV4';
 
 /**
  * 
@@ -27,10 +27,25 @@ import {
 export interface ListenerSubscriptionV4AllOf {
     /**
      * 
+     * @type {string}
+     * @memberof ListenerSubscriptionV4AllOf
+     */
+    type?: string;
+    /**
+     * 
      * @type {Array<EntrypointV4>}
      * @memberof ListenerSubscriptionV4AllOf
      */
     entrypoints?: Array<EntrypointV4>;
+}
+
+/**
+ * Check if a given object implements the ListenerSubscriptionV4AllOf interface.
+ */
+export function instanceOfListenerSubscriptionV4AllOf(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
 }
 
 export function ListenerSubscriptionV4AllOfFromJSON(json: any): ListenerSubscriptionV4AllOf {
@@ -43,6 +58,7 @@ export function ListenerSubscriptionV4AllOfFromJSONTyped(json: any, ignoreDiscri
     }
     return {
         
+        'type': !exists(json, 'type') ? undefined : json['type'],
         'entrypoints': !exists(json, 'entrypoints') ? undefined : ((json['entrypoints'] as Array<any>).map(EntrypointV4FromJSON)),
     };
 }
@@ -56,8 +72,8 @@ export function ListenerSubscriptionV4AllOfToJSON(value?: ListenerSubscriptionV4
     }
     return {
         
+        'type': value.type,
         'entrypoints': value.entrypoints === undefined ? undefined : ((value.entrypoints as Array<any>).map(EntrypointV4ToJSON)),
     };
 }
-
 

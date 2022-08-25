@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Flow } from './Flow';
 import {
-    Flow,
     FlowFromJSON,
     FlowFromJSONTyped,
     FlowToJSON,
-} from './';
+} from './Flow';
 
 /**
  * 
@@ -69,6 +69,27 @@ export interface UpdateOrganizationEntity {
     name: string;
 }
 
+
+/**
+ * @export
+ */
+export const UpdateOrganizationEntityFlowModeEnum = {
+    DEFAULT: 'DEFAULT',
+    BEST_MATCH: 'BEST_MATCH'
+} as const;
+export type UpdateOrganizationEntityFlowModeEnum = typeof UpdateOrganizationEntityFlowModeEnum[keyof typeof UpdateOrganizationEntityFlowModeEnum];
+
+
+/**
+ * Check if a given object implements the UpdateOrganizationEntity interface.
+ */
+export function instanceOfUpdateOrganizationEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function UpdateOrganizationEntityFromJSON(json: any): UpdateOrganizationEntity {
     return UpdateOrganizationEntityFromJSONTyped(json, false);
 }
@@ -107,14 +128,4 @@ export function UpdateOrganizationEntityToJSON(value?: UpdateOrganizationEntity 
         'name': value.name,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum UpdateOrganizationEntityFlowModeEnum {
-    DEFAULT = 'DEFAULT',
-    BESTMATCH = 'BEST_MATCH'
-}
-
 

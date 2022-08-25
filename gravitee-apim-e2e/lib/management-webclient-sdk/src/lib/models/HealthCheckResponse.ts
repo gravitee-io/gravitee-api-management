@@ -26,6 +26,15 @@ export interface HealthCheckResponse {
     assertions?: Array<string>;
 }
 
+/**
+ * Check if a given object implements the HealthCheckResponse interface.
+ */
+export function instanceOfHealthCheckResponse(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function HealthCheckResponseFromJSON(json: any): HealthCheckResponse {
     return HealthCheckResponseFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function HealthCheckResponseToJSON(value?: HealthCheckResponse | null): a
         'assertions': value.assertions,
     };
 }
-
 

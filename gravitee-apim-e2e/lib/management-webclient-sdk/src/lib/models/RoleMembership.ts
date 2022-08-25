@@ -32,6 +32,15 @@ export interface RoleMembership {
     reference?: string;
 }
 
+/**
+ * Check if a given object implements the RoleMembership interface.
+ */
+export function instanceOfRoleMembership(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function RoleMembershipFromJSON(json: any): RoleMembership {
     return RoleMembershipFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function RoleMembershipToJSON(value?: RoleMembership | null): any {
         'reference': value.reference,
     };
 }
-
 

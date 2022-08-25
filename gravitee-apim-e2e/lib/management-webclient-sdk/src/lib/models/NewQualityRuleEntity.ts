@@ -38,6 +38,17 @@ export interface NewQualityRuleEntity {
     weight?: number;
 }
 
+/**
+ * Check if a given object implements the NewQualityRuleEntity interface.
+ */
+export function instanceOfNewQualityRuleEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "description" in value;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function NewQualityRuleEntityFromJSON(json: any): NewQualityRuleEntity {
     return NewQualityRuleEntityFromJSONTyped(json, false);
 }
@@ -68,5 +79,4 @@ export function NewQualityRuleEntityToJSON(value?: NewQualityRuleEntity | null):
         'weight': value.weight,
     };
 }
-
 

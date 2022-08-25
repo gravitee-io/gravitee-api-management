@@ -12,24 +12,30 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { FlowV4 } from './FlowV4';
 import {
-    FlowV4,
     FlowV4FromJSON,
     FlowV4FromJSONTyped,
     FlowV4ToJSON,
-    PlanSecurityV4,
+} from './FlowV4';
+import type { PlanSecurityV4 } from './PlanSecurityV4';
+import {
     PlanSecurityV4FromJSON,
     PlanSecurityV4FromJSONTyped,
     PlanSecurityV4ToJSON,
-    PlanTypeV4,
+} from './PlanSecurityV4';
+import type { PlanTypeV4 } from './PlanTypeV4';
+import {
     PlanTypeV4FromJSON,
     PlanTypeV4FromJSONTyped,
     PlanTypeV4ToJSON,
-    PlanValidationTypeV4,
+} from './PlanTypeV4';
+import type { PlanValidationTypeV4 } from './PlanValidationTypeV4';
+import {
     PlanValidationTypeV4FromJSON,
     PlanValidationTypeV4FromJSONTyped,
     PlanValidationTypeV4ToJSON,
-} from './';
+} from './PlanValidationTypeV4';
 
 /**
  * 
@@ -147,6 +153,34 @@ export interface NewPlanEntityV4 {
     validation: PlanValidationTypeV4;
 }
 
+
+/**
+ * @export
+ */
+export const NewPlanEntityV4StatusEnum = {
+    STAGING: 'STAGING',
+    PUBLISHED: 'PUBLISHED',
+    DEPRECATED: 'DEPRECATED',
+    CLOSED: 'CLOSED'
+} as const;
+export type NewPlanEntityV4StatusEnum = typeof NewPlanEntityV4StatusEnum[keyof typeof NewPlanEntityV4StatusEnum];
+
+
+/**
+ * Check if a given object implements the NewPlanEntityV4 interface.
+ */
+export function instanceOfNewPlanEntityV4(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "description" in value;
+    isInstance = isInstance && "flows" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "status" in value;
+    isInstance = isInstance && "type" in value;
+    isInstance = isInstance && "validation" in value;
+
+    return isInstance;
+}
+
 export function NewPlanEntityV4FromJSON(json: any): NewPlanEntityV4 {
     return NewPlanEntityV4FromJSONTyped(json, false);
 }
@@ -207,16 +241,4 @@ export function NewPlanEntityV4ToJSON(value?: NewPlanEntityV4 | null): any {
         'validation': PlanValidationTypeV4ToJSON(value.validation),
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum NewPlanEntityV4StatusEnum {
-    STAGING = 'STAGING',
-    PUBLISHED = 'PUBLISHED',
-    DEPRECATED = 'DEPRECATED',
-    CLOSED = 'CLOSED'
-}
-
 

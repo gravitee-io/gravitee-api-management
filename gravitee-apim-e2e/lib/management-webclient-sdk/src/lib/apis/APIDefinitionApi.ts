@@ -13,8 +13,10 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  JsonPatch,
+} from '../models';
 import {
-    JsonPatch,
     JsonPatchFromJSON,
     JsonPatchToJSON,
 } from '../models';
@@ -42,7 +44,7 @@ export class APIDefinitionApi extends runtime.BaseAPI {
      * User must have the API_DEFINITION[READ] permission to use this service
      * Export the API definition in JSON format
      */
-    async getApiDefinitionRaw(requestParameters: GetApiDefinitionRequest): Promise<runtime.ApiResponse<any>> {
+    async getApiDefinitionRaw(requestParameters: GetApiDefinitionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiDefinition.');
         }
@@ -55,7 +57,7 @@ export class APIDefinitionApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiDefinition.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -67,7 +69,7 @@ export class APIDefinitionApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -76,8 +78,8 @@ export class APIDefinitionApi extends runtime.BaseAPI {
      * User must have the API_DEFINITION[READ] permission to use this service
      * Export the API definition in JSON format
      */
-    async getApiDefinition(requestParameters: GetApiDefinitionRequest): Promise<any> {
-        const response = await this.getApiDefinitionRaw(requestParameters);
+    async getApiDefinition(requestParameters: GetApiDefinitionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<any> {
+        const response = await this.getApiDefinitionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -85,7 +87,7 @@ export class APIDefinitionApi extends runtime.BaseAPI {
      * User must have the API_DEFINITION[UPDATE] permission to use this service
      * Update the API with json patches
      */
-    async patchRaw(requestParameters: PatchRequest): Promise<runtime.ApiResponse<any>> {
+    async patchRaw(requestParameters: PatchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling patch.');
         }
@@ -102,7 +104,7 @@ export class APIDefinitionApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('jsonPatch','Required parameter requestParameters.jsonPatch was null or undefined when calling patch.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.dryRun !== undefined) {
             queryParameters['dryRun'] = requestParameters.dryRun;
@@ -121,7 +123,7 @@ export class APIDefinitionApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.jsonPatch.map(JsonPatchToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -130,8 +132,8 @@ export class APIDefinitionApi extends runtime.BaseAPI {
      * User must have the API_DEFINITION[UPDATE] permission to use this service
      * Update the API with json patches
      */
-    async patch(requestParameters: PatchRequest): Promise<any> {
-        const response = await this.patchRaw(requestParameters);
+    async patch(requestParameters: PatchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<any> {
+        const response = await this.patchRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

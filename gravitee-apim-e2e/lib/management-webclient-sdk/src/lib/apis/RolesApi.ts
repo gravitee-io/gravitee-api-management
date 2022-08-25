@@ -13,23 +13,25 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  MembershipListItem,
+  NewRoleEntity,
+  RoleEntity,
+  RoleMembership,
+  RoleScope,
+  UpdateRoleEntity,
+} from '../models';
 import {
-    MembershipListItem,
     MembershipListItemFromJSON,
     MembershipListItemToJSON,
-    NewRoleEntity,
     NewRoleEntityFromJSON,
     NewRoleEntityToJSON,
-    RoleEntity,
     RoleEntityFromJSON,
     RoleEntityToJSON,
-    RoleMembership,
     RoleMembershipFromJSON,
     RoleMembershipToJSON,
-    RoleScope,
     RoleScopeFromJSON,
     RoleScopeToJSON,
-    UpdateRoleEntity,
     UpdateRoleEntityFromJSON,
     UpdateRoleEntityToJSON,
 } from '../models';
@@ -160,7 +162,7 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Add or update a role for a user
      */
-    async addRoleToUserRaw(requestParameters: AddRoleToUserRequest): Promise<runtime.ApiResponse<void>> {
+    async addRoleToUserRaw(requestParameters: AddRoleToUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling addRoleToUser.');
         }
@@ -177,7 +179,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('roleMembership','Required parameter requestParameters.roleMembership was null or undefined when calling addRoleToUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -192,7 +194,7 @@ export class RolesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: RoleMembershipToJSON(requestParameters.roleMembership),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -201,15 +203,15 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Add or update a role for a user
      */
-    async addRoleToUser(requestParameters: AddRoleToUserRequest): Promise<void> {
-        await this.addRoleToUserRaw(requestParameters);
+    async addRoleToUser(requestParameters: AddRoleToUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.addRoleToUserRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Add or update a role for a user
      */
-    async addRoleToUser1Raw(requestParameters: AddRoleToUser1Request): Promise<runtime.ApiResponse<void>> {
+    async addRoleToUser1Raw(requestParameters: AddRoleToUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling addRoleToUser1.');
         }
@@ -230,7 +232,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('roleMembership','Required parameter requestParameters.roleMembership was null or undefined when calling addRoleToUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -245,7 +247,7 @@ export class RolesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: RoleMembershipToJSON(requestParameters.roleMembership),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -254,15 +256,15 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Add or update a role for a user
      */
-    async addRoleToUser1(requestParameters: AddRoleToUser1Request): Promise<void> {
-        await this.addRoleToUser1Raw(requestParameters);
+    async addRoleToUser1(requestParameters: AddRoleToUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.addRoleToUser1Raw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ROLE[CREATE] permission to use this service
      * Create a role
      */
-    async createRoleRaw(requestParameters: CreateRoleRequest): Promise<runtime.ApiResponse<RoleEntity>> {
+    async createRoleRaw(requestParameters: CreateRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling createRole.');
         }
@@ -275,7 +277,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newRoleEntity','Required parameter requestParameters.newRoleEntity was null or undefined when calling createRole.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -290,7 +292,7 @@ export class RolesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewRoleEntityToJSON(requestParameters.newRoleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -299,8 +301,8 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[CREATE] permission to use this service
      * Create a role
      */
-    async createRole(requestParameters: CreateRoleRequest): Promise<RoleEntity> {
-        const response = await this.createRoleRaw(requestParameters);
+    async createRole(requestParameters: CreateRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.createRoleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -308,7 +310,7 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[CREATE] permission to use this service
      * Create a role
      */
-    async createRole1Raw(requestParameters: CreateRole1Request): Promise<runtime.ApiResponse<RoleEntity>> {
+    async createRole1Raw(requestParameters: CreateRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling createRole1.');
         }
@@ -325,7 +327,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newRoleEntity','Required parameter requestParameters.newRoleEntity was null or undefined when calling createRole1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -340,7 +342,7 @@ export class RolesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewRoleEntityToJSON(requestParameters.newRoleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -349,8 +351,8 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[CREATE] permission to use this service
      * Create a role
      */
-    async createRole1(requestParameters: CreateRole1Request): Promise<RoleEntity> {
-        const response = await this.createRole1Raw(requestParameters);
+    async createRole1(requestParameters: CreateRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.createRole1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -358,7 +360,7 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete a role
      */
-    async deleteRoleRaw(requestParameters: DeleteRoleRequest): Promise<runtime.ApiResponse<RoleEntity>> {
+    async deleteRoleRaw(requestParameters: DeleteRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling deleteRole.');
         }
@@ -371,7 +373,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteRole.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -383,7 +385,7 @@ export class RolesApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -392,8 +394,8 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete a role
      */
-    async deleteRole(requestParameters: DeleteRoleRequest): Promise<RoleEntity> {
-        const response = await this.deleteRoleRaw(requestParameters);
+    async deleteRole(requestParameters: DeleteRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.deleteRoleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -401,7 +403,7 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete a role
      */
-    async deleteRole1Raw(requestParameters: DeleteRole1Request): Promise<runtime.ApiResponse<RoleEntity>> {
+    async deleteRole1Raw(requestParameters: DeleteRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling deleteRole1.');
         }
@@ -418,7 +420,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteRole1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -430,7 +432,7 @@ export class RolesApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -439,8 +441,8 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete a role
      */
-    async deleteRole1(requestParameters: DeleteRole1Request): Promise<RoleEntity> {
-        const response = await this.deleteRole1Raw(requestParameters);
+    async deleteRole1(requestParameters: DeleteRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.deleteRole1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -448,7 +450,7 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete the role for a given user
      */
-    async deleteRoleForUserRaw(requestParameters: DeleteRoleForUserRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteRoleForUserRaw(requestParameters: DeleteRoleForUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling deleteRoleForUser.');
         }
@@ -465,7 +467,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteRoleForUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -477,7 +479,7 @@ export class RolesApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -486,15 +488,15 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete the role for a given user
      */
-    async deleteRoleForUser(requestParameters: DeleteRoleForUserRequest): Promise<void> {
-        await this.deleteRoleForUserRaw(requestParameters);
+    async deleteRoleForUser(requestParameters: DeleteRoleForUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteRoleForUserRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete the role for a given user
      */
-    async deleteRoleForUser1Raw(requestParameters: DeleteRoleForUser1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteRoleForUser1Raw(requestParameters: DeleteRoleForUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling deleteRoleForUser1.');
         }
@@ -515,7 +517,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteRoleForUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -527,7 +529,7 @@ export class RolesApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -536,15 +538,15 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete the role for a given user
      */
-    async deleteRoleForUser1(requestParameters: DeleteRoleForUser1Request): Promise<void> {
-        await this.deleteRoleForUser1Raw(requestParameters);
+    async deleteRoleForUser1(requestParameters: DeleteRoleForUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteRoleForUser1Raw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * Get a role
      */
-    async getRoleRaw(requestParameters: GetRoleRequest): Promise<runtime.ApiResponse<RoleEntity>> {
+    async getRoleRaw(requestParameters: GetRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling getRole.');
         }
@@ -557,7 +559,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getRole.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -569,7 +571,7 @@ export class RolesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -578,8 +580,8 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * Get a role
      */
-    async getRole(requestParameters: GetRoleRequest): Promise<RoleEntity> {
-        const response = await this.getRoleRaw(requestParameters);
+    async getRole(requestParameters: GetRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.getRoleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -587,7 +589,7 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * Get a role
      */
-    async getRole1Raw(requestParameters: GetRole1Request): Promise<runtime.ApiResponse<RoleEntity>> {
+    async getRole1Raw(requestParameters: GetRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling getRole1.');
         }
@@ -604,7 +606,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getRole1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -616,7 +618,7 @@ export class RolesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -625,20 +627,20 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * Get a role
      */
-    async getRole1(requestParameters: GetRole1Request): Promise<RoleEntity> {
-        const response = await this.getRole1Raw(requestParameters);
+    async getRole1(requestParameters: GetRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.getRole1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List availables role scopes
      */
-    async getRoleScopesRaw(requestParameters: GetRoleScopesRequest): Promise<runtime.ApiResponse<{ [key: string]: Array<string>; }>> {
+    async getRoleScopesRaw(requestParameters: GetRoleScopesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{ [key: string]: Array<string>; }>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getRoleScopes.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -650,7 +652,7 @@ export class RolesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -658,15 +660,15 @@ export class RolesApi extends runtime.BaseAPI {
     /**
      * List availables role scopes
      */
-    async getRoleScopes(requestParameters: GetRoleScopesRequest): Promise<{ [key: string]: Array<string>; }> {
-        const response = await this.getRoleScopesRaw(requestParameters);
+    async getRoleScopes(requestParameters: GetRoleScopesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{ [key: string]: Array<string>; }> {
+        const response = await this.getRoleScopesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List availables role scopes
      */
-    async getRoleScopes1Raw(requestParameters: GetRoleScopes1Request): Promise<runtime.ApiResponse<{ [key: string]: Array<string>; }>> {
+    async getRoleScopes1Raw(requestParameters: GetRoleScopes1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{ [key: string]: Array<string>; }>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getRoleScopes1.');
         }
@@ -675,7 +677,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getRoleScopes1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -687,7 +689,7 @@ export class RolesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -695,8 +697,8 @@ export class RolesApi extends runtime.BaseAPI {
     /**
      * List availables role scopes
      */
-    async getRoleScopes1(requestParameters: GetRoleScopes1Request): Promise<{ [key: string]: Array<string>; }> {
-        const response = await this.getRoleScopes1Raw(requestParameters);
+    async getRoleScopes1(requestParameters: GetRoleScopes1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{ [key: string]: Array<string>; }> {
+        const response = await this.getRoleScopes1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -704,7 +706,7 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List of roles
      */
-    async getRolesRaw(requestParameters: GetRolesRequest): Promise<runtime.ApiResponse<Array<RoleEntity>>> {
+    async getRolesRaw(requestParameters: GetRolesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<RoleEntity>>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling getRoles.');
         }
@@ -713,7 +715,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getRoles.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -725,7 +727,7 @@ export class RolesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RoleEntityFromJSON));
     }
@@ -734,8 +736,8 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List of roles
      */
-    async getRoles(requestParameters: GetRolesRequest): Promise<Array<RoleEntity>> {
-        const response = await this.getRolesRaw(requestParameters);
+    async getRoles(requestParameters: GetRolesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<RoleEntity>> {
+        const response = await this.getRolesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -743,7 +745,7 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List of roles
      */
-    async getRoles1Raw(requestParameters: GetRoles1Request): Promise<runtime.ApiResponse<Array<RoleEntity>>> {
+    async getRoles1Raw(requestParameters: GetRoles1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<RoleEntity>>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling getRoles1.');
         }
@@ -756,7 +758,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getRoles1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -768,7 +770,7 @@ export class RolesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RoleEntityFromJSON));
     }
@@ -777,8 +779,8 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List of roles
      */
-    async getRoles1(requestParameters: GetRoles1Request): Promise<Array<RoleEntity>> {
-        const response = await this.getRoles1Raw(requestParameters);
+    async getRoles1(requestParameters: GetRoles1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<RoleEntity>> {
+        const response = await this.getRoles1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -786,7 +788,7 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List users with the given role
      */
-    async getUsersPerRoleRaw(requestParameters: GetUsersPerRoleRequest): Promise<runtime.ApiResponse<Array<MembershipListItem>>> {
+    async getUsersPerRoleRaw(requestParameters: GetUsersPerRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<MembershipListItem>>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling getUsersPerRole.');
         }
@@ -799,7 +801,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUsersPerRole.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -811,7 +813,7 @@ export class RolesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(MembershipListItemFromJSON));
     }
@@ -820,8 +822,8 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List users with the given role
      */
-    async getUsersPerRole(requestParameters: GetUsersPerRoleRequest): Promise<Array<MembershipListItem>> {
-        const response = await this.getUsersPerRoleRaw(requestParameters);
+    async getUsersPerRole(requestParameters: GetUsersPerRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<MembershipListItem>> {
+        const response = await this.getUsersPerRoleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -829,7 +831,7 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List users with the given role
      */
-    async getUsersPerRole1Raw(requestParameters: GetUsersPerRole1Request): Promise<runtime.ApiResponse<Array<MembershipListItem>>> {
+    async getUsersPerRole1Raw(requestParameters: GetUsersPerRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<MembershipListItem>>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling getUsersPerRole1.');
         }
@@ -846,7 +848,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUsersPerRole1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -858,7 +860,7 @@ export class RolesApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(MembershipListItemFromJSON));
     }
@@ -867,8 +869,8 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List users with the given role
      */
-    async getUsersPerRole1(requestParameters: GetUsersPerRole1Request): Promise<Array<MembershipListItem>> {
-        const response = await this.getUsersPerRole1Raw(requestParameters);
+    async getUsersPerRole1(requestParameters: GetUsersPerRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<MembershipListItem>> {
+        const response = await this.getUsersPerRole1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -876,7 +878,7 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Update a role
      */
-    async updateRoleRaw(requestParameters: UpdateRoleRequest): Promise<runtime.ApiResponse<RoleEntity>> {
+    async updateRoleRaw(requestParameters: UpdateRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling updateRole.');
         }
@@ -893,7 +895,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateRoleEntity','Required parameter requestParameters.updateRoleEntity was null or undefined when calling updateRole.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -908,7 +910,7 @@ export class RolesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateRoleEntityToJSON(requestParameters.updateRoleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -917,8 +919,8 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Update a role
      */
-    async updateRole(requestParameters: UpdateRoleRequest): Promise<RoleEntity> {
-        const response = await this.updateRoleRaw(requestParameters);
+    async updateRole(requestParameters: UpdateRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.updateRoleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -926,7 +928,7 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Update a role
      */
-    async updateRole1Raw(requestParameters: UpdateRole1Request): Promise<runtime.ApiResponse<RoleEntity>> {
+    async updateRole1Raw(requestParameters: UpdateRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling updateRole1.');
         }
@@ -947,7 +949,7 @@ export class RolesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateRoleEntity','Required parameter requestParameters.updateRoleEntity was null or undefined when calling updateRole1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -962,7 +964,7 @@ export class RolesApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateRoleEntityToJSON(requestParameters.updateRoleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -971,8 +973,8 @@ export class RolesApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Update a role
      */
-    async updateRole1(requestParameters: UpdateRole1Request): Promise<RoleEntity> {
-        const response = await this.updateRole1Raw(requestParameters);
+    async updateRole1(requestParameters: UpdateRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.updateRole1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

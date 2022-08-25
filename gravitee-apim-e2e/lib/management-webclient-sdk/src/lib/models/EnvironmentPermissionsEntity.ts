@@ -44,6 +44,16 @@ export interface EnvironmentPermissionsEntity {
     permissions?: { [key: string]: Array<string>; };
 }
 
+/**
+ * Check if a given object implements the EnvironmentPermissionsEntity interface.
+ */
+export function instanceOfEnvironmentPermissionsEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "name" in value;
+
+    return isInstance;
+}
+
 export function EnvironmentPermissionsEntityFromJSON(json: any): EnvironmentPermissionsEntity {
     return EnvironmentPermissionsEntityFromJSONTyped(json, false);
 }
@@ -76,5 +86,4 @@ export function EnvironmentPermissionsEntityToJSON(value?: EnvironmentPermission
         'permissions': value.permissions,
     };
 }
-
 

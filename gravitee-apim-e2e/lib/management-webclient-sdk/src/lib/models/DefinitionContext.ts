@@ -32,6 +32,15 @@ export interface DefinitionContext {
     origin?: string;
 }
 
+/**
+ * Check if a given object implements the DefinitionContext interface.
+ */
+export function instanceOfDefinitionContext(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function DefinitionContextFromJSON(json: any): DefinitionContext {
     return DefinitionContextFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function DefinitionContextToJSON(value?: DefinitionContext | null): any {
         'origin': value.origin,
     };
 }
-
 

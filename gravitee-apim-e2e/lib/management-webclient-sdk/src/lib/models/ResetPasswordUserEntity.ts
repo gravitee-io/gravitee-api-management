@@ -44,6 +44,19 @@ export interface ResetPasswordUserEntity {
     token: string;
 }
 
+/**
+ * Check if a given object implements the ResetPasswordUserEntity interface.
+ */
+export function instanceOfResetPasswordUserEntity(value: object): boolean {
+    let isInstance = true;
+    isInstance = isInstance && "firstname" in value;
+    isInstance = isInstance && "lastname" in value;
+    isInstance = isInstance && "password" in value;
+    isInstance = isInstance && "token" in value;
+
+    return isInstance;
+}
+
 export function ResetPasswordUserEntityFromJSON(json: any): ResetPasswordUserEntity {
     return ResetPasswordUserEntityFromJSONTyped(json, false);
 }
@@ -76,5 +89,4 @@ export function ResetPasswordUserEntityToJSON(value?: ResetPasswordUserEntity | 
         'token': value.token,
     };
 }
-
 

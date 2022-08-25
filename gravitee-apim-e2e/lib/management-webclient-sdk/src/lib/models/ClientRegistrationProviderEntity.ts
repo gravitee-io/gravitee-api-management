@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { InitialAccessTokenType } from './InitialAccessTokenType';
 import {
-    InitialAccessTokenType,
     InitialAccessTokenTypeFromJSON,
     InitialAccessTokenTypeFromJSONTyped,
     InitialAccessTokenTypeToJSON,
-} from './';
+} from './InitialAccessTokenType';
 
 /**
  * 
@@ -117,6 +117,15 @@ export interface ClientRegistrationProviderEntity {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the ClientRegistrationProviderEntity interface.
+ */
+export function instanceOfClientRegistrationProviderEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ClientRegistrationProviderEntityFromJSON(json: any): ClientRegistrationProviderEntity {
     return ClientRegistrationProviderEntityFromJSONTyped(json, false);
 }
@@ -171,5 +180,4 @@ export function ClientRegistrationProviderEntityToJSON(value?: ClientRegistratio
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

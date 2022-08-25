@@ -13,200 +13,202 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  ApiHeaderEntity,
+  CategoryEntity,
+  ClientRegistrationProviderEntity,
+  ClientRegistrationProviderListItem,
+  CustomUserFieldEntity,
+  DashboardEntity,
+  DictionaryEntity,
+  DictionaryListItem,
+  EntrypointEntity,
+  GenericNotificationConfigEntity,
+  GroupEntity,
+  GroupMemberEntity,
+  GroupMembership,
+  Hook,
+  IdentityProviderEntity,
+  IdentityProviderListItem,
+  InvitationEntity,
+  LifecycleAction,
+  MembershipListItem,
+  MetadataEntity,
+  NewApiHeaderEntity,
+  NewCategoryEntity,
+  NewClientRegistrationProviderEntity,
+  NewDashboardEntity,
+  NewDictionaryEntity,
+  NewEntryPointEntity,
+  NewGroupEntity,
+  NewIdentityProviderEntity,
+  NewInvitationEntity,
+  NewMetadataEntity,
+  NewQualityRuleEntity,
+  NewRoleEntity,
+  NewTagEntity,
+  NewTenantEntity,
+  NewThemeEntity,
+  NewTopApiEntity,
+  NotificationTemplateEntity,
+  NotifierEntity,
+  OrganizationFlowConfiguration,
+  PlansConfigurationEntity,
+  PortalNotificationConfigEntity,
+  QualityRuleEntity,
+  RoleEntity,
+  RoleMembership,
+  RoleScope,
+  TagEntity,
+  TenantEntity,
+  ThemeEntity,
+  TopApiEntity,
+  UpdateApiHeaderEntity,
+  UpdateCategoryEntity,
+  UpdateClientRegistrationProviderEntity,
+  UpdateDashboardEntity,
+  UpdateDictionaryEntity,
+  UpdateEntryPointEntity,
+  UpdateGroupEntity,
+  UpdateIdentityProviderEntity,
+  UpdateInvitationEntity,
+  UpdateMetadataEntity,
+  UpdateQualityRuleEntity,
+  UpdateRoleEntity,
+  UpdateTagEntity,
+  UpdateTenantEntity,
+  UpdateThemeEntity,
+  UpdateTopApiEntity,
+} from '../models';
 import {
-    ApiHeaderEntity,
     ApiHeaderEntityFromJSON,
     ApiHeaderEntityToJSON,
-    CategoryEntity,
     CategoryEntityFromJSON,
     CategoryEntityToJSON,
-    ClientRegistrationProviderEntity,
     ClientRegistrationProviderEntityFromJSON,
     ClientRegistrationProviderEntityToJSON,
-    ClientRegistrationProviderListItem,
     ClientRegistrationProviderListItemFromJSON,
     ClientRegistrationProviderListItemToJSON,
-    CustomUserFieldEntity,
     CustomUserFieldEntityFromJSON,
     CustomUserFieldEntityToJSON,
-    DashboardEntity,
     DashboardEntityFromJSON,
     DashboardEntityToJSON,
-    DictionaryEntity,
     DictionaryEntityFromJSON,
     DictionaryEntityToJSON,
-    DictionaryListItem,
     DictionaryListItemFromJSON,
     DictionaryListItemToJSON,
-    EntrypointEntity,
     EntrypointEntityFromJSON,
     EntrypointEntityToJSON,
-    GenericNotificationConfigEntity,
     GenericNotificationConfigEntityFromJSON,
     GenericNotificationConfigEntityToJSON,
-    GroupEntity,
     GroupEntityFromJSON,
     GroupEntityToJSON,
-    GroupMemberEntity,
     GroupMemberEntityFromJSON,
     GroupMemberEntityToJSON,
-    GroupMembership,
     GroupMembershipFromJSON,
     GroupMembershipToJSON,
-    Hook,
     HookFromJSON,
     HookToJSON,
-    IdentityProviderEntity,
     IdentityProviderEntityFromJSON,
     IdentityProviderEntityToJSON,
-    IdentityProviderListItem,
     IdentityProviderListItemFromJSON,
     IdentityProviderListItemToJSON,
-    InvitationEntity,
     InvitationEntityFromJSON,
     InvitationEntityToJSON,
-    LifecycleAction,
     LifecycleActionFromJSON,
     LifecycleActionToJSON,
-    MembershipListItem,
     MembershipListItemFromJSON,
     MembershipListItemToJSON,
-    MetadataEntity,
     MetadataEntityFromJSON,
     MetadataEntityToJSON,
-    NewApiHeaderEntity,
     NewApiHeaderEntityFromJSON,
     NewApiHeaderEntityToJSON,
-    NewCategoryEntity,
     NewCategoryEntityFromJSON,
     NewCategoryEntityToJSON,
-    NewClientRegistrationProviderEntity,
     NewClientRegistrationProviderEntityFromJSON,
     NewClientRegistrationProviderEntityToJSON,
-    NewDashboardEntity,
     NewDashboardEntityFromJSON,
     NewDashboardEntityToJSON,
-    NewDictionaryEntity,
     NewDictionaryEntityFromJSON,
     NewDictionaryEntityToJSON,
-    NewEntryPointEntity,
     NewEntryPointEntityFromJSON,
     NewEntryPointEntityToJSON,
-    NewGroupEntity,
     NewGroupEntityFromJSON,
     NewGroupEntityToJSON,
-    NewIdentityProviderEntity,
     NewIdentityProviderEntityFromJSON,
     NewIdentityProviderEntityToJSON,
-    NewInvitationEntity,
     NewInvitationEntityFromJSON,
     NewInvitationEntityToJSON,
-    NewMetadataEntity,
     NewMetadataEntityFromJSON,
     NewMetadataEntityToJSON,
-    NewQualityRuleEntity,
     NewQualityRuleEntityFromJSON,
     NewQualityRuleEntityToJSON,
-    NewRoleEntity,
     NewRoleEntityFromJSON,
     NewRoleEntityToJSON,
-    NewTagEntity,
     NewTagEntityFromJSON,
     NewTagEntityToJSON,
-    NewTenantEntity,
     NewTenantEntityFromJSON,
     NewTenantEntityToJSON,
-    NewThemeEntity,
     NewThemeEntityFromJSON,
     NewThemeEntityToJSON,
-    NewTopApiEntity,
     NewTopApiEntityFromJSON,
     NewTopApiEntityToJSON,
-    NotificationTemplateEntity,
     NotificationTemplateEntityFromJSON,
     NotificationTemplateEntityToJSON,
-    NotifierEntity,
     NotifierEntityFromJSON,
     NotifierEntityToJSON,
-    OrganizationFlowConfiguration,
     OrganizationFlowConfigurationFromJSON,
     OrganizationFlowConfigurationToJSON,
-    PlansConfigurationEntity,
     PlansConfigurationEntityFromJSON,
     PlansConfigurationEntityToJSON,
-    PortalNotificationConfigEntity,
     PortalNotificationConfigEntityFromJSON,
     PortalNotificationConfigEntityToJSON,
-    QualityRuleEntity,
     QualityRuleEntityFromJSON,
     QualityRuleEntityToJSON,
-    RoleEntity,
     RoleEntityFromJSON,
     RoleEntityToJSON,
-    RoleMembership,
     RoleMembershipFromJSON,
     RoleMembershipToJSON,
-    RoleScope,
     RoleScopeFromJSON,
     RoleScopeToJSON,
-    TagEntity,
     TagEntityFromJSON,
     TagEntityToJSON,
-    TenantEntity,
     TenantEntityFromJSON,
     TenantEntityToJSON,
-    ThemeEntity,
     ThemeEntityFromJSON,
     ThemeEntityToJSON,
-    TopApiEntity,
     TopApiEntityFromJSON,
     TopApiEntityToJSON,
-    UpdateApiHeaderEntity,
     UpdateApiHeaderEntityFromJSON,
     UpdateApiHeaderEntityToJSON,
-    UpdateCategoryEntity,
     UpdateCategoryEntityFromJSON,
     UpdateCategoryEntityToJSON,
-    UpdateClientRegistrationProviderEntity,
     UpdateClientRegistrationProviderEntityFromJSON,
     UpdateClientRegistrationProviderEntityToJSON,
-    UpdateDashboardEntity,
     UpdateDashboardEntityFromJSON,
     UpdateDashboardEntityToJSON,
-    UpdateDictionaryEntity,
     UpdateDictionaryEntityFromJSON,
     UpdateDictionaryEntityToJSON,
-    UpdateEntryPointEntity,
     UpdateEntryPointEntityFromJSON,
     UpdateEntryPointEntityToJSON,
-    UpdateGroupEntity,
     UpdateGroupEntityFromJSON,
     UpdateGroupEntityToJSON,
-    UpdateIdentityProviderEntity,
     UpdateIdentityProviderEntityFromJSON,
     UpdateIdentityProviderEntityToJSON,
-    UpdateInvitationEntity,
     UpdateInvitationEntityFromJSON,
     UpdateInvitationEntityToJSON,
-    UpdateMetadataEntity,
     UpdateMetadataEntityFromJSON,
     UpdateMetadataEntityToJSON,
-    UpdateQualityRuleEntity,
     UpdateQualityRuleEntityFromJSON,
     UpdateQualityRuleEntityToJSON,
-    UpdateRoleEntity,
     UpdateRoleEntityFromJSON,
     UpdateRoleEntityToJSON,
-    UpdateTagEntity,
     UpdateTagEntityFromJSON,
     UpdateTagEntityToJSON,
-    UpdateTenantEntity,
     UpdateTenantEntityFromJSON,
     UpdateTenantEntityToJSON,
-    UpdateThemeEntity,
     UpdateThemeEntityFromJSON,
     UpdateThemeEntityToJSON,
-    UpdateTopApiEntity,
     UpdateTopApiEntityFromJSON,
     UpdateTopApiEntityToJSON,
 } from '../models';
@@ -1064,7 +1066,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Associate a group to existing APIs or Applications
      */
-    async addGroupMemberRaw(requestParameters: AddGroupMemberRequest): Promise<runtime.ApiResponse<GroupEntity>> {
+    async addGroupMemberRaw(requestParameters: AddGroupMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GroupEntity>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling addGroupMember.');
         }
@@ -1077,7 +1079,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling addGroupMember.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.type !== undefined) {
             queryParameters['type'] = requestParameters.type;
@@ -1093,7 +1095,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => GroupEntityFromJSON(jsonValue));
     }
@@ -1101,15 +1103,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Associate a group to existing APIs or Applications
      */
-    async addGroupMember(requestParameters: AddGroupMemberRequest): Promise<GroupEntity> {
-        const response = await this.addGroupMemberRaw(requestParameters);
+    async addGroupMember(requestParameters: AddGroupMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GroupEntity> {
+        const response = await this.addGroupMemberRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Add or update a group member
      */
-    async addOrUpdateGroupMemberRaw(requestParameters: AddOrUpdateGroupMemberRequest): Promise<runtime.ApiResponse<void>> {
+    async addOrUpdateGroupMemberRaw(requestParameters: AddOrUpdateGroupMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling addOrUpdateGroupMember.');
         }
@@ -1126,7 +1128,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('groupMembership','Required parameter requestParameters.groupMembership was null or undefined when calling addOrUpdateGroupMember.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1141,7 +1143,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.groupMembership.map(GroupMembershipToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1149,15 +1151,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Add or update a group member
      */
-    async addOrUpdateGroupMember(requestParameters: AddOrUpdateGroupMemberRequest): Promise<void> {
-        await this.addOrUpdateGroupMemberRaw(requestParameters);
+    async addOrUpdateGroupMember(requestParameters: AddOrUpdateGroupMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.addOrUpdateGroupMemberRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Add or update a role for a user
      */
-    async addRoleToUserRaw(requestParameters: AddRoleToUserRequest): Promise<runtime.ApiResponse<void>> {
+    async addRoleToUserRaw(requestParameters: AddRoleToUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling addRoleToUser.');
         }
@@ -1174,7 +1176,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('roleMembership','Required parameter requestParameters.roleMembership was null or undefined when calling addRoleToUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1189,7 +1191,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: RoleMembershipToJSON(requestParameters.roleMembership),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1198,15 +1200,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Add or update a role for a user
      */
-    async addRoleToUser(requestParameters: AddRoleToUserRequest): Promise<void> {
-        await this.addRoleToUserRaw(requestParameters);
+    async addRoleToUser(requestParameters: AddRoleToUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.addRoleToUserRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Add or update a role for a user
      */
-    async addRoleToUser1Raw(requestParameters: AddRoleToUser1Request): Promise<runtime.ApiResponse<void>> {
+    async addRoleToUser1Raw(requestParameters: AddRoleToUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling addRoleToUser1.');
         }
@@ -1227,7 +1229,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('roleMembership','Required parameter requestParameters.roleMembership was null or undefined when calling addRoleToUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1242,7 +1244,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: RoleMembershipToJSON(requestParameters.roleMembership),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -1251,15 +1253,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Add or update a role for a user
      */
-    async addRoleToUser1(requestParameters: AddRoleToUser1Request): Promise<void> {
-        await this.addRoleToUser1Raw(requestParameters);
+    async addRoleToUser1(requestParameters: AddRoleToUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.addRoleToUser1Raw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the PORTAL_API_HEADER[CREATE] permission to use this service
      * Create an API header
      */
-    async createApiHeaderRaw(requestParameters: CreateApiHeaderRequest): Promise<runtime.ApiResponse<ApiHeaderEntity>> {
+    async createApiHeaderRaw(requestParameters: CreateApiHeaderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiHeaderEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createApiHeader.');
         }
@@ -1272,7 +1274,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newApiHeaderEntity','Required parameter requestParameters.newApiHeaderEntity was null or undefined when calling createApiHeader.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1287,7 +1289,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewApiHeaderEntityToJSON(requestParameters.newApiHeaderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiHeaderEntityFromJSON(jsonValue));
     }
@@ -1296,8 +1298,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_API_HEADER[CREATE] permission to use this service
      * Create an API header
      */
-    async createApiHeader(requestParameters: CreateApiHeaderRequest): Promise<ApiHeaderEntity> {
-        const response = await this.createApiHeaderRaw(requestParameters);
+    async createApiHeader(requestParameters: CreateApiHeaderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiHeaderEntity> {
+        const response = await this.createApiHeaderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1305,7 +1307,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[CREATE] permission to use this service
      * Create a category
      */
-    async createCategoryRaw(requestParameters: CreateCategoryRequest): Promise<runtime.ApiResponse<CategoryEntity>> {
+    async createCategoryRaw(requestParameters: CreateCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CategoryEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createCategory.');
         }
@@ -1318,7 +1320,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newCategoryEntity','Required parameter requestParameters.newCategoryEntity was null or undefined when calling createCategory.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1333,7 +1335,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewCategoryEntityToJSON(requestParameters.newCategoryEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CategoryEntityFromJSON(jsonValue));
     }
@@ -1342,8 +1344,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[CREATE] permission to use this service
      * Create a category
      */
-    async createCategory(requestParameters: CreateCategoryRequest): Promise<CategoryEntity> {
-        const response = await this.createCategoryRaw(requestParameters);
+    async createCategory(requestParameters: CreateCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CategoryEntity> {
+        const response = await this.createCategoryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1351,7 +1353,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[CREATE] permission to use this service
      * Create a client registration provider
      */
-    async createClientRegistrationProviderRaw(requestParameters: CreateClientRegistrationProviderRequest): Promise<runtime.ApiResponse<ClientRegistrationProviderEntity>> {
+    async createClientRegistrationProviderRaw(requestParameters: CreateClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ClientRegistrationProviderEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createClientRegistrationProvider.');
         }
@@ -1364,7 +1366,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newClientRegistrationProviderEntity','Required parameter requestParameters.newClientRegistrationProviderEntity was null or undefined when calling createClientRegistrationProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1379,7 +1381,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewClientRegistrationProviderEntityToJSON(requestParameters.newClientRegistrationProviderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ClientRegistrationProviderEntityFromJSON(jsonValue));
     }
@@ -1388,8 +1390,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[CREATE] permission to use this service
      * Create a client registration provider
      */
-    async createClientRegistrationProvider(requestParameters: CreateClientRegistrationProviderRequest): Promise<ClientRegistrationProviderEntity> {
-        const response = await this.createClientRegistrationProviderRaw(requestParameters);
+    async createClientRegistrationProvider(requestParameters: CreateClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ClientRegistrationProviderEntity> {
+        const response = await this.createClientRegistrationProviderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1397,12 +1399,12 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the CUSTOM_USER_FIELDS[CREATE] permission to use this service
      * Create a Custom User Field
      */
-    async createCustomUserFieldRaw(requestParameters: CreateCustomUserFieldRequest): Promise<runtime.ApiResponse<CustomUserFieldEntity>> {
+    async createCustomUserFieldRaw(requestParameters: CreateCustomUserFieldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CustomUserFieldEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createCustomUserField.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1417,7 +1419,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: CustomUserFieldEntityToJSON(requestParameters.customUserFieldEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CustomUserFieldEntityFromJSON(jsonValue));
     }
@@ -1426,8 +1428,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the CUSTOM_USER_FIELDS[CREATE] permission to use this service
      * Create a Custom User Field
      */
-    async createCustomUserField(requestParameters: CreateCustomUserFieldRequest): Promise<CustomUserFieldEntity> {
-        const response = await this.createCustomUserFieldRaw(requestParameters);
+    async createCustomUserField(requestParameters: CreateCustomUserFieldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CustomUserFieldEntity> {
+        const response = await this.createCustomUserFieldRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1435,7 +1437,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[CREATE] permission to use this service
      * Create a platform dashboard
      */
-    async createDashboardRaw(requestParameters: CreateDashboardRequest): Promise<runtime.ApiResponse<DashboardEntity>> {
+    async createDashboardRaw(requestParameters: CreateDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DashboardEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createDashboard.');
         }
@@ -1448,7 +1450,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newDashboardEntity','Required parameter requestParameters.newDashboardEntity was null or undefined when calling createDashboard.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1463,7 +1465,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewDashboardEntityToJSON(requestParameters.newDashboardEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DashboardEntityFromJSON(jsonValue));
     }
@@ -1472,8 +1474,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[CREATE] permission to use this service
      * Create a platform dashboard
      */
-    async createDashboard(requestParameters: CreateDashboardRequest): Promise<DashboardEntity> {
-        const response = await this.createDashboardRaw(requestParameters);
+    async createDashboard(requestParameters: CreateDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DashboardEntity> {
+        const response = await this.createDashboardRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1481,7 +1483,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[CREATE] permission to use this service
      * Create a dictionary
      */
-    async createDictionaryRaw(requestParameters: CreateDictionaryRequest): Promise<runtime.ApiResponse<DictionaryEntity>> {
+    async createDictionaryRaw(requestParameters: CreateDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DictionaryEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createDictionary.');
         }
@@ -1494,7 +1496,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newDictionaryEntity','Required parameter requestParameters.newDictionaryEntity was null or undefined when calling createDictionary.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1509,7 +1511,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewDictionaryEntityToJSON(requestParameters.newDictionaryEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DictionaryEntityFromJSON(jsonValue));
     }
@@ -1518,8 +1520,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[CREATE] permission to use this service
      * Create a dictionary
      */
-    async createDictionary(requestParameters: CreateDictionaryRequest): Promise<DictionaryEntity> {
-        const response = await this.createDictionaryRaw(requestParameters);
+    async createDictionary(requestParameters: CreateDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DictionaryEntity> {
+        const response = await this.createDictionaryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1527,7 +1529,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[CREATE] permission to use this service
      * Create a platform entrypoint
      */
-    async createEntrypointRaw(requestParameters: CreateEntrypointRequest): Promise<runtime.ApiResponse<EntrypointEntity>> {
+    async createEntrypointRaw(requestParameters: CreateEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EntrypointEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createEntrypoint.');
         }
@@ -1536,7 +1538,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newEntryPointEntity','Required parameter requestParameters.newEntryPointEntity was null or undefined when calling createEntrypoint.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1551,7 +1553,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewEntryPointEntityToJSON(requestParameters.newEntryPointEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EntrypointEntityFromJSON(jsonValue));
     }
@@ -1560,8 +1562,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[CREATE] permission to use this service
      * Create a platform entrypoint
      */
-    async createEntrypoint(requestParameters: CreateEntrypointRequest): Promise<EntrypointEntity> {
-        const response = await this.createEntrypointRaw(requestParameters);
+    async createEntrypoint(requestParameters: CreateEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EntrypointEntity> {
+        const response = await this.createEntrypointRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1569,7 +1571,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[CREATE] permission to use this service
      * Create a platform entrypoint
      */
-    async createEntrypoint1Raw(requestParameters: CreateEntrypoint1Request): Promise<runtime.ApiResponse<EntrypointEntity>> {
+    async createEntrypoint1Raw(requestParameters: CreateEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EntrypointEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createEntrypoint1.');
         }
@@ -1582,7 +1584,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newEntryPointEntity','Required parameter requestParameters.newEntryPointEntity was null or undefined when calling createEntrypoint1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1597,7 +1599,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewEntryPointEntityToJSON(requestParameters.newEntryPointEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EntrypointEntityFromJSON(jsonValue));
     }
@@ -1606,8 +1608,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[CREATE] permission to use this service
      * Create a platform entrypoint
      */
-    async createEntrypoint1(requestParameters: CreateEntrypoint1Request): Promise<EntrypointEntity> {
-        const response = await this.createEntrypoint1Raw(requestParameters);
+    async createEntrypoint1(requestParameters: CreateEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EntrypointEntity> {
+        const response = await this.createEntrypoint1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1615,7 +1617,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * Create a new group.
      * Create group
      */
-    async createGroupRaw(requestParameters: CreateGroupRequest): Promise<runtime.ApiResponse<GroupEntity>> {
+    async createGroupRaw(requestParameters: CreateGroupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GroupEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createGroup.');
         }
@@ -1628,7 +1630,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newGroupEntity','Required parameter requestParameters.newGroupEntity was null or undefined when calling createGroup.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1643,7 +1645,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewGroupEntityToJSON(requestParameters.newGroupEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => GroupEntityFromJSON(jsonValue));
     }
@@ -1652,8 +1654,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * Create a new group.
      * Create group
      */
-    async createGroup(requestParameters: CreateGroupRequest): Promise<GroupEntity> {
-        const response = await this.createGroupRaw(requestParameters);
+    async createGroup(requestParameters: CreateGroupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GroupEntity> {
+        const response = await this.createGroupRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1661,7 +1663,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[CREATE] permission to use this service
      * Create an invitation to join a group
      */
-    async createGroupInvitationRaw(requestParameters: CreateGroupInvitationRequest): Promise<runtime.ApiResponse<InvitationEntity>> {
+    async createGroupInvitationRaw(requestParameters: CreateGroupInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<InvitationEntity>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling createGroupInvitation.');
         }
@@ -1678,7 +1680,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newInvitationEntity','Required parameter requestParameters.newInvitationEntity was null or undefined when calling createGroupInvitation.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1693,7 +1695,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewInvitationEntityToJSON(requestParameters.newInvitationEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => InvitationEntityFromJSON(jsonValue));
     }
@@ -1702,8 +1704,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[CREATE] permission to use this service
      * Create an invitation to join a group
      */
-    async createGroupInvitation(requestParameters: CreateGroupInvitationRequest): Promise<InvitationEntity> {
-        const response = await this.createGroupInvitationRaw(requestParameters);
+    async createGroupInvitation(requestParameters: CreateGroupInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<InvitationEntity> {
+        const response = await this.createGroupInvitationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1711,7 +1713,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service
      * Create an identity provider
      */
-    async createIdentityProviderRaw(requestParameters: CreateIdentityProviderRequest): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
+    async createIdentityProviderRaw(requestParameters: CreateIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createIdentityProvider.');
         }
@@ -1720,7 +1722,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newIdentityProviderEntity','Required parameter requestParameters.newIdentityProviderEntity was null or undefined when calling createIdentityProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1735,7 +1737,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewIdentityProviderEntityToJSON(requestParameters.newIdentityProviderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => IdentityProviderEntityFromJSON(jsonValue));
     }
@@ -1744,8 +1746,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service
      * Create an identity provider
      */
-    async createIdentityProvider(requestParameters: CreateIdentityProviderRequest): Promise<IdentityProviderEntity> {
-        const response = await this.createIdentityProviderRaw(requestParameters);
+    async createIdentityProvider(requestParameters: CreateIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IdentityProviderEntity> {
+        const response = await this.createIdentityProviderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1753,7 +1755,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service
      * Create an identity provider
      */
-    async createIdentityProvider1Raw(requestParameters: CreateIdentityProvider1Request): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
+    async createIdentityProvider1Raw(requestParameters: CreateIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createIdentityProvider1.');
         }
@@ -1766,7 +1768,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newIdentityProviderEntity','Required parameter requestParameters.newIdentityProviderEntity was null or undefined when calling createIdentityProvider1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1781,7 +1783,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewIdentityProviderEntityToJSON(requestParameters.newIdentityProviderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => IdentityProviderEntityFromJSON(jsonValue));
     }
@@ -1790,8 +1792,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service
      * Create an identity provider
      */
-    async createIdentityProvider1(requestParameters: CreateIdentityProvider1Request): Promise<IdentityProviderEntity> {
-        const response = await this.createIdentityProvider1Raw(requestParameters);
+    async createIdentityProvider1(requestParameters: CreateIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IdentityProviderEntity> {
+        const response = await this.createIdentityProvider1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1799,7 +1801,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_METADATA[CREATE] permission to use this service
      * Create a platform metadata
      */
-    async createMetadataRaw(requestParameters: CreateMetadataRequest): Promise<runtime.ApiResponse<MetadataEntity>> {
+    async createMetadataRaw(requestParameters: CreateMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MetadataEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createMetadata.');
         }
@@ -1812,7 +1814,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newMetadataEntity','Required parameter requestParameters.newMetadataEntity was null or undefined when calling createMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1827,7 +1829,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewMetadataEntityToJSON(requestParameters.newMetadataEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => MetadataEntityFromJSON(jsonValue));
     }
@@ -1836,8 +1838,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_METADATA[CREATE] permission to use this service
      * Create a platform metadata
      */
-    async createMetadata(requestParameters: CreateMetadataRequest): Promise<MetadataEntity> {
-        const response = await this.createMetadataRaw(requestParameters);
+    async createMetadata(requestParameters: CreateMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MetadataEntity> {
+        const response = await this.createMetadataRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1845,12 +1847,12 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[CREATE] permission to use this service
      * Create a notification template
      */
-    async createNotificationTemplateRaw(requestParameters: CreateNotificationTemplateRequest): Promise<runtime.ApiResponse<NotificationTemplateEntity>> {
+    async createNotificationTemplateRaw(requestParameters: CreateNotificationTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NotificationTemplateEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createNotificationTemplate.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1865,7 +1867,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NotificationTemplateEntityToJSON(requestParameters.notificationTemplateEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => NotificationTemplateEntityFromJSON(jsonValue));
     }
@@ -1874,15 +1876,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[CREATE] permission to use this service
      * Create a notification template
      */
-    async createNotificationTemplate(requestParameters: CreateNotificationTemplateRequest): Promise<NotificationTemplateEntity> {
-        const response = await this.createNotificationTemplateRaw(requestParameters);
+    async createNotificationTemplate(requestParameters: CreateNotificationTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NotificationTemplateEntity> {
+        const response = await this.createNotificationTemplateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Create notification settings
      */
-    async createPortalNotificationSettingRaw(requestParameters: CreatePortalNotificationSettingRequest): Promise<runtime.ApiResponse<any>> {
+    async createPortalNotificationSettingRaw(requestParameters: CreatePortalNotificationSettingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createPortalNotificationSetting.');
         }
@@ -1891,7 +1893,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createPortalNotificationSetting.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1906,7 +1908,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: GenericNotificationConfigEntityToJSON(requestParameters.genericNotificationConfigEntity),
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
@@ -1914,8 +1916,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Create notification settings
      */
-    async createPortalNotificationSetting(requestParameters: CreatePortalNotificationSettingRequest): Promise<any> {
-        const response = await this.createPortalNotificationSettingRaw(requestParameters);
+    async createPortalNotificationSetting(requestParameters: CreatePortalNotificationSettingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<any> {
+        const response = await this.createPortalNotificationSettingRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1923,7 +1925,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_QUALITY_RULE[CREATE] permission to use this service
      * Create a quality rule
      */
-    async createQualityRuleRaw(requestParameters: CreateQualityRuleRequest): Promise<runtime.ApiResponse<QualityRuleEntity>> {
+    async createQualityRuleRaw(requestParameters: CreateQualityRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<QualityRuleEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createQualityRule.');
         }
@@ -1936,7 +1938,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newQualityRuleEntity','Required parameter requestParameters.newQualityRuleEntity was null or undefined when calling createQualityRule.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1951,7 +1953,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewQualityRuleEntityToJSON(requestParameters.newQualityRuleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => QualityRuleEntityFromJSON(jsonValue));
     }
@@ -1960,8 +1962,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_QUALITY_RULE[CREATE] permission to use this service
      * Create a quality rule
      */
-    async createQualityRule(requestParameters: CreateQualityRuleRequest): Promise<QualityRuleEntity> {
-        const response = await this.createQualityRuleRaw(requestParameters);
+    async createQualityRule(requestParameters: CreateQualityRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<QualityRuleEntity> {
+        const response = await this.createQualityRuleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1969,7 +1971,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[CREATE] permission to use this service
      * Create a role
      */
-    async createRoleRaw(requestParameters: CreateRoleRequest): Promise<runtime.ApiResponse<RoleEntity>> {
+    async createRoleRaw(requestParameters: CreateRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling createRole.');
         }
@@ -1982,7 +1984,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newRoleEntity','Required parameter requestParameters.newRoleEntity was null or undefined when calling createRole.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1997,7 +1999,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewRoleEntityToJSON(requestParameters.newRoleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -2006,8 +2008,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[CREATE] permission to use this service
      * Create a role
      */
-    async createRole(requestParameters: CreateRoleRequest): Promise<RoleEntity> {
-        const response = await this.createRoleRaw(requestParameters);
+    async createRole(requestParameters: CreateRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.createRoleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2015,7 +2017,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[CREATE] permission to use this service
      * Create a role
      */
-    async createRole1Raw(requestParameters: CreateRole1Request): Promise<runtime.ApiResponse<RoleEntity>> {
+    async createRole1Raw(requestParameters: CreateRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling createRole1.');
         }
@@ -2032,7 +2034,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newRoleEntity','Required parameter requestParameters.newRoleEntity was null or undefined when calling createRole1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2047,7 +2049,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewRoleEntityToJSON(requestParameters.newRoleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -2056,8 +2058,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[CREATE] permission to use this service
      * Create a role
      */
-    async createRole1(requestParameters: CreateRole1Request): Promise<RoleEntity> {
-        const response = await this.createRole1Raw(requestParameters);
+    async createRole1(requestParameters: CreateRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.createRole1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2065,7 +2067,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[CREATE] permission to use this service
      * Create a sharding tag
      */
-    async createTagRaw(requestParameters: CreateTagRequest): Promise<runtime.ApiResponse<TagEntity>> {
+    async createTagRaw(requestParameters: CreateTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TagEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createTag.');
         }
@@ -2074,7 +2076,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTagEntity','Required parameter requestParameters.newTagEntity was null or undefined when calling createTag.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2089,7 +2091,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewTagEntityToJSON(requestParameters.newTagEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TagEntityFromJSON(jsonValue));
     }
@@ -2098,8 +2100,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[CREATE] permission to use this service
      * Create a sharding tag
      */
-    async createTag(requestParameters: CreateTagRequest): Promise<TagEntity> {
-        const response = await this.createTagRaw(requestParameters);
+    async createTag(requestParameters: CreateTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TagEntity> {
+        const response = await this.createTagRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2107,7 +2109,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[CREATE] permission to use this service
      * Create a sharding tag
      */
-    async createTag1Raw(requestParameters: CreateTag1Request): Promise<runtime.ApiResponse<TagEntity>> {
+    async createTag1Raw(requestParameters: CreateTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TagEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createTag1.');
         }
@@ -2120,7 +2122,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTagEntity','Required parameter requestParameters.newTagEntity was null or undefined when calling createTag1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2135,7 +2137,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewTagEntityToJSON(requestParameters.newTagEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TagEntityFromJSON(jsonValue));
     }
@@ -2144,8 +2146,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[CREATE] permission to use this service
      * Create a sharding tag
      */
-    async createTag1(requestParameters: CreateTag1Request): Promise<TagEntity> {
-        const response = await this.createTag1Raw(requestParameters);
+    async createTag1(requestParameters: CreateTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TagEntity> {
+        const response = await this.createTag1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2153,7 +2155,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[CREATE] permission to use this service
      * Create a tenant
      */
-    async createTenantsRaw(requestParameters: CreateTenantsRequest): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async createTenantsRaw(requestParameters: CreateTenantsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling createTenants.');
         }
@@ -2162,7 +2164,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTenantEntity','Required parameter requestParameters.newTenantEntity was null or undefined when calling createTenants.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2177,7 +2179,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.newTenantEntity.map(NewTenantEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -2186,8 +2188,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[CREATE] permission to use this service
      * Create a tenant
      */
-    async createTenants(requestParameters: CreateTenantsRequest): Promise<Array<TenantEntity>> {
-        const response = await this.createTenantsRaw(requestParameters);
+    async createTenants(requestParameters: CreateTenantsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.createTenantsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2195,7 +2197,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[CREATE] permission to use this service
      * Create a tenant
      */
-    async createTenants1Raw(requestParameters: CreateTenants1Request): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async createTenants1Raw(requestParameters: CreateTenants1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createTenants1.');
         }
@@ -2208,7 +2210,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTenantEntity','Required parameter requestParameters.newTenantEntity was null or undefined when calling createTenants1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2223,7 +2225,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.newTenantEntity.map(NewTenantEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -2232,14 +2234,14 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[CREATE] permission to use this service
      * Create a tenant
      */
-    async createTenants1(requestParameters: CreateTenants1Request): Promise<Array<TenantEntity>> {
-        const response = await this.createTenants1Raw(requestParameters);
+    async createTenants1(requestParameters: CreateTenants1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.createTenants1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async createThemeRaw(requestParameters: CreateThemeRequest): Promise<runtime.ApiResponse<ThemeEntity>> {
+    async createThemeRaw(requestParameters: CreateThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ThemeEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createTheme.');
         }
@@ -2252,7 +2254,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newThemeEntity','Required parameter requestParameters.newThemeEntity was null or undefined when calling createTheme.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2267,15 +2269,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewThemeEntityToJSON(requestParameters.newThemeEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ThemeEntityFromJSON(jsonValue));
     }
 
     /**
      */
-    async createTheme(requestParameters: CreateThemeRequest): Promise<ThemeEntity> {
-        const response = await this.createThemeRaw(requestParameters);
+    async createTheme(requestParameters: CreateThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ThemeEntity> {
+        const response = await this.createThemeRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2283,7 +2285,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_TOP_APIS[CREATE] permission to use this service
      * Create a top API
      */
-    async createTopApiRaw(requestParameters: CreateTopApiRequest): Promise<runtime.ApiResponse<Array<TopApiEntity>>> {
+    async createTopApiRaw(requestParameters: CreateTopApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TopApiEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling createTopApi.');
         }
@@ -2296,7 +2298,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('newTopApiEntity','Required parameter requestParameters.newTopApiEntity was null or undefined when calling createTopApi.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2311,7 +2313,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NewTopApiEntityToJSON(requestParameters.newTopApiEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TopApiEntityFromJSON));
     }
@@ -2320,8 +2322,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_TOP_APIS[CREATE] permission to use this service
      * Create a top API
      */
-    async createTopApi(requestParameters: CreateTopApiRequest): Promise<Array<TopApiEntity>> {
-        const response = await this.createTopApiRaw(requestParameters);
+    async createTopApi(requestParameters: CreateTopApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TopApiEntity>> {
+        const response = await this.createTopApiRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -2329,7 +2331,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_API_HEADER[DELETE] permission to use this service
      * Delete an API header
      */
-    async deleteApiHeaderRaw(requestParameters: DeleteApiHeaderRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteApiHeaderRaw(requestParameters: DeleteApiHeaderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.id === null || requestParameters.id === undefined) {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling deleteApiHeader.');
         }
@@ -2342,7 +2344,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteApiHeader.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2354,7 +2356,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2363,15 +2365,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_API_HEADER[DELETE] permission to use this service
      * Delete an API header
      */
-    async deleteApiHeader(requestParameters: DeleteApiHeaderRequest): Promise<void> {
-        await this.deleteApiHeaderRaw(requestParameters);
+    async deleteApiHeader(requestParameters: DeleteApiHeaderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteApiHeaderRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the PORTAL_CATEGORY[DELETE] permission to use this service
      * Delete the category
      */
-    async deleteCategoryRaw(requestParameters: DeleteCategoryRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteCategoryRaw(requestParameters: DeleteCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.categoryId === null || requestParameters.categoryId === undefined) {
             throw new runtime.RequiredError('categoryId','Required parameter requestParameters.categoryId was null or undefined when calling deleteCategory.');
         }
@@ -2384,7 +2386,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteCategory.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2396,7 +2398,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2405,15 +2407,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[DELETE] permission to use this service
      * Delete the category
      */
-    async deleteCategory(requestParameters: DeleteCategoryRequest): Promise<void> {
-        await this.deleteCategoryRaw(requestParameters);
+    async deleteCategory(requestParameters: DeleteCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteCategoryRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[DELETE] permission to use this service
      * Delete a client registration provider
      */
-    async deleteClientRegistrationProviderRaw(requestParameters: DeleteClientRegistrationProviderRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteClientRegistrationProviderRaw(requestParameters: DeleteClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.clientRegistrationProvider === null || requestParameters.clientRegistrationProvider === undefined) {
             throw new runtime.RequiredError('clientRegistrationProvider','Required parameter requestParameters.clientRegistrationProvider was null or undefined when calling deleteClientRegistrationProvider.');
         }
@@ -2426,7 +2428,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteClientRegistrationProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2438,7 +2440,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2447,15 +2449,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[DELETE] permission to use this service
      * Delete a client registration provider
      */
-    async deleteClientRegistrationProvider(requestParameters: DeleteClientRegistrationProviderRequest): Promise<void> {
-        await this.deleteClientRegistrationProviderRaw(requestParameters);
+    async deleteClientRegistrationProvider(requestParameters: DeleteClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteClientRegistrationProviderRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the CUSTOM_USER_FIELDS[DELETE] permission to use this service
      * Delete a Custom User Field
      */
-    async deleteCustomUserFieldRaw(requestParameters: DeleteCustomUserFieldRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteCustomUserFieldRaw(requestParameters: DeleteCustomUserFieldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.key === null || requestParameters.key === undefined) {
             throw new runtime.RequiredError('key','Required parameter requestParameters.key was null or undefined when calling deleteCustomUserField.');
         }
@@ -2464,7 +2466,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteCustomUserField.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2476,7 +2478,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2485,15 +2487,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the CUSTOM_USER_FIELDS[DELETE] permission to use this service
      * Delete a Custom User Field
      */
-    async deleteCustomUserField(requestParameters: DeleteCustomUserFieldRequest): Promise<void> {
-        await this.deleteCustomUserFieldRaw(requestParameters);
+    async deleteCustomUserField(requestParameters: DeleteCustomUserFieldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteCustomUserFieldRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_DASHBOARD[DELETE] permission to use this service
      * Delete a platform dashboard
      */
-    async deleteDashboardRaw(requestParameters: DeleteDashboardRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteDashboardRaw(requestParameters: DeleteDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.dashboardId === null || requestParameters.dashboardId === undefined) {
             throw new runtime.RequiredError('dashboardId','Required parameter requestParameters.dashboardId was null or undefined when calling deleteDashboard.');
         }
@@ -2506,7 +2508,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteDashboard.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2518,7 +2520,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2527,15 +2529,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[DELETE] permission to use this service
      * Delete a platform dashboard
      */
-    async deleteDashboard(requestParameters: DeleteDashboardRequest): Promise<void> {
-        await this.deleteDashboardRaw(requestParameters);
+    async deleteDashboard(requestParameters: DeleteDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteDashboardRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the DICTIONARY[DELETE] permission to use this service
      * Delete a dictionary
      */
-    async deleteDictionaryRaw(requestParameters: DeleteDictionaryRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteDictionaryRaw(requestParameters: DeleteDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.dictionary === null || requestParameters.dictionary === undefined) {
             throw new runtime.RequiredError('dictionary','Required parameter requestParameters.dictionary was null or undefined when calling deleteDictionary.');
         }
@@ -2548,7 +2550,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteDictionary.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2560,7 +2562,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2569,15 +2571,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[DELETE] permission to use this service
      * Delete a dictionary
      */
-    async deleteDictionary(requestParameters: DeleteDictionaryRequest): Promise<void> {
-        await this.deleteDictionaryRaw(requestParameters);
+    async deleteDictionary(requestParameters: DeleteDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteDictionaryRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ENTRYPOINT[DELETE] permission to use this service
      * Delete a platform entrypoint
      */
-    async deleteEntrypointRaw(requestParameters: DeleteEntrypointRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteEntrypointRaw(requestParameters: DeleteEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.entrypoint === null || requestParameters.entrypoint === undefined) {
             throw new runtime.RequiredError('entrypoint','Required parameter requestParameters.entrypoint was null or undefined when calling deleteEntrypoint.');
         }
@@ -2586,7 +2588,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteEntrypoint.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2598,7 +2600,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2607,15 +2609,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[DELETE] permission to use this service
      * Delete a platform entrypoint
      */
-    async deleteEntrypoint(requestParameters: DeleteEntrypointRequest): Promise<void> {
-        await this.deleteEntrypointRaw(requestParameters);
+    async deleteEntrypoint(requestParameters: DeleteEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteEntrypointRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ENTRYPOINT[DELETE] permission to use this service
      * Delete a platform entrypoint
      */
-    async deleteEntrypoint1Raw(requestParameters: DeleteEntrypoint1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteEntrypoint1Raw(requestParameters: DeleteEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.entrypoint === null || requestParameters.entrypoint === undefined) {
             throw new runtime.RequiredError('entrypoint','Required parameter requestParameters.entrypoint was null or undefined when calling deleteEntrypoint1.');
         }
@@ -2628,7 +2630,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteEntrypoint1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2640,7 +2642,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2649,14 +2651,14 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[DELETE] permission to use this service
      * Delete a platform entrypoint
      */
-    async deleteEntrypoint1(requestParameters: DeleteEntrypoint1Request): Promise<void> {
-        await this.deleteEntrypoint1Raw(requestParameters);
+    async deleteEntrypoint1(requestParameters: DeleteEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteEntrypoint1Raw(requestParameters, initOverrides);
     }
 
     /**
      * Delete an existing group
      */
-    async deleteGroupRaw(requestParameters: DeleteGroupRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteGroupRaw(requestParameters: DeleteGroupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling deleteGroup.');
         }
@@ -2669,7 +2671,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteGroup.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2681,7 +2683,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2689,15 +2691,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Delete an existing group
      */
-    async deleteGroup(requestParameters: DeleteGroupRequest): Promise<void> {
-        await this.deleteGroupRaw(requestParameters);
+    async deleteGroup(requestParameters: DeleteGroupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteGroupRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the GROUP_INVITATION[DELETE] permission to use this service
      * Delete an invitation to join a group
      */
-    async deleteGroupInvitationRaw(requestParameters: DeleteGroupInvitationRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteGroupInvitationRaw(requestParameters: DeleteGroupInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.invitation === null || requestParameters.invitation === undefined) {
             throw new runtime.RequiredError('invitation','Required parameter requestParameters.invitation was null or undefined when calling deleteGroupInvitation.');
         }
@@ -2714,7 +2716,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteGroupInvitation.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2726,7 +2728,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2735,14 +2737,14 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[DELETE] permission to use this service
      * Delete an invitation to join a group
      */
-    async deleteGroupInvitation(requestParameters: DeleteGroupInvitationRequest): Promise<void> {
-        await this.deleteGroupInvitationRaw(requestParameters);
+    async deleteGroupInvitation(requestParameters: DeleteGroupInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteGroupInvitationRaw(requestParameters, initOverrides);
     }
 
     /**
      * Remove a group member
      */
-    async deleteGroupMemberRaw(requestParameters: DeleteGroupMemberRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteGroupMemberRaw(requestParameters: DeleteGroupMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.member === null || requestParameters.member === undefined) {
             throw new runtime.RequiredError('member','Required parameter requestParameters.member was null or undefined when calling deleteGroupMember.');
         }
@@ -2759,7 +2761,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteGroupMember.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2771,7 +2773,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2779,15 +2781,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Remove a group member
      */
-    async deleteGroupMember(requestParameters: DeleteGroupMemberRequest): Promise<void> {
-        await this.deleteGroupMemberRaw(requestParameters);
+    async deleteGroupMember(requestParameters: DeleteGroupMemberRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteGroupMemberRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[DELETE] permission to use this service
      * Delete an identity provider
      */
-    async deleteIdentityProviderRaw(requestParameters: DeleteIdentityProviderRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteIdentityProviderRaw(requestParameters: DeleteIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.identityProvider === null || requestParameters.identityProvider === undefined) {
             throw new runtime.RequiredError('identityProvider','Required parameter requestParameters.identityProvider was null or undefined when calling deleteIdentityProvider.');
         }
@@ -2796,7 +2798,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteIdentityProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2808,7 +2810,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2817,15 +2819,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[DELETE] permission to use this service
      * Delete an identity provider
      */
-    async deleteIdentityProvider(requestParameters: DeleteIdentityProviderRequest): Promise<void> {
-        await this.deleteIdentityProviderRaw(requestParameters);
+    async deleteIdentityProvider(requestParameters: DeleteIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteIdentityProviderRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[DELETE] permission to use this service
      * Delete an identity provider
      */
-    async deleteIdentityProvider1Raw(requestParameters: DeleteIdentityProvider1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteIdentityProvider1Raw(requestParameters: DeleteIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.identityProvider === null || requestParameters.identityProvider === undefined) {
             throw new runtime.RequiredError('identityProvider','Required parameter requestParameters.identityProvider was null or undefined when calling deleteIdentityProvider1.');
         }
@@ -2838,7 +2840,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteIdentityProvider1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2850,7 +2852,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2859,15 +2861,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[DELETE] permission to use this service
      * Delete an identity provider
      */
-    async deleteIdentityProvider1(requestParameters: DeleteIdentityProvider1Request): Promise<void> {
-        await this.deleteIdentityProvider1Raw(requestParameters);
+    async deleteIdentityProvider1(requestParameters: DeleteIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteIdentityProvider1Raw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the PORTAL_METADATA[DELETE] permission to use this service
      * Delete a platform metadata
      */
-    async deleteMetadataRaw(requestParameters: DeleteMetadataRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteMetadataRaw(requestParameters: DeleteMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.metadata === null || requestParameters.metadata === undefined) {
             throw new runtime.RequiredError('metadata','Required parameter requestParameters.metadata was null or undefined when calling deleteMetadata.');
         }
@@ -2880,7 +2882,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2892,7 +2894,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2901,14 +2903,14 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_METADATA[DELETE] permission to use this service
      * Delete a platform metadata
      */
-    async deleteMetadata(requestParameters: DeleteMetadataRequest): Promise<void> {
-        await this.deleteMetadataRaw(requestParameters);
+    async deleteMetadata(requestParameters: DeleteMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteMetadataRaw(requestParameters, initOverrides);
     }
 
     /**
      * Delete notification settings
      */
-    async deleteNotificationSettingsRaw(requestParameters: DeleteNotificationSettingsRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteNotificationSettingsRaw(requestParameters: DeleteNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.notificationId === null || requestParameters.notificationId === undefined) {
             throw new runtime.RequiredError('notificationId','Required parameter requestParameters.notificationId was null or undefined when calling deleteNotificationSettings.');
         }
@@ -2921,7 +2923,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2933,7 +2935,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2941,15 +2943,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Delete notification settings
      */
-    async deleteNotificationSettings(requestParameters: DeleteNotificationSettingsRequest): Promise<void> {
-        await this.deleteNotificationSettingsRaw(requestParameters);
+    async deleteNotificationSettings(requestParameters: DeleteNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteNotificationSettingsRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_QUALITY_RULE[READ] permission to use this service
      * Delete a quality rule
      */
-    async deleteQualityRuleRaw(requestParameters: DeleteQualityRuleRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteQualityRuleRaw(requestParameters: DeleteQualityRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.id === null || requestParameters.id === undefined) {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling deleteQualityRule.');
         }
@@ -2962,7 +2964,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteQualityRule.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2974,7 +2976,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -2983,15 +2985,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_QUALITY_RULE[READ] permission to use this service
      * Delete a quality rule
      */
-    async deleteQualityRule(requestParameters: DeleteQualityRuleRequest): Promise<void> {
-        await this.deleteQualityRuleRaw(requestParameters);
+    async deleteQualityRule(requestParameters: DeleteQualityRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteQualityRuleRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete a role
      */
-    async deleteRoleRaw(requestParameters: DeleteRoleRequest): Promise<runtime.ApiResponse<RoleEntity>> {
+    async deleteRoleRaw(requestParameters: DeleteRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling deleteRole.');
         }
@@ -3004,7 +3006,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteRole.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3016,7 +3018,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -3025,8 +3027,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete a role
      */
-    async deleteRole(requestParameters: DeleteRoleRequest): Promise<RoleEntity> {
-        const response = await this.deleteRoleRaw(requestParameters);
+    async deleteRole(requestParameters: DeleteRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.deleteRoleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -3034,7 +3036,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete a role
      */
-    async deleteRole1Raw(requestParameters: DeleteRole1Request): Promise<runtime.ApiResponse<RoleEntity>> {
+    async deleteRole1Raw(requestParameters: DeleteRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling deleteRole1.');
         }
@@ -3051,7 +3053,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteRole1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3063,7 +3065,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -3072,8 +3074,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete a role
      */
-    async deleteRole1(requestParameters: DeleteRole1Request): Promise<RoleEntity> {
-        const response = await this.deleteRole1Raw(requestParameters);
+    async deleteRole1(requestParameters: DeleteRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.deleteRole1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -3081,7 +3083,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete the role for a given user
      */
-    async deleteRoleForUserRaw(requestParameters: DeleteRoleForUserRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteRoleForUserRaw(requestParameters: DeleteRoleForUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling deleteRoleForUser.');
         }
@@ -3098,7 +3100,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteRoleForUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3110,7 +3112,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -3119,15 +3121,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete the role for a given user
      */
-    async deleteRoleForUser(requestParameters: DeleteRoleForUserRequest): Promise<void> {
-        await this.deleteRoleForUserRaw(requestParameters);
+    async deleteRoleForUser(requestParameters: DeleteRoleForUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteRoleForUserRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete the role for a given user
      */
-    async deleteRoleForUser1Raw(requestParameters: DeleteRoleForUser1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteRoleForUser1Raw(requestParameters: DeleteRoleForUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling deleteRoleForUser1.');
         }
@@ -3148,7 +3150,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteRoleForUser1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3160,7 +3162,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -3169,15 +3171,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[DELETE] permission to use this service
      * Delete the role for a given user
      */
-    async deleteRoleForUser1(requestParameters: DeleteRoleForUser1Request): Promise<void> {
-        await this.deleteRoleForUser1Raw(requestParameters);
+    async deleteRoleForUser1(requestParameters: DeleteRoleForUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteRoleForUser1Raw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_TAG[DELETE] permission to use this service
      * Delete an existing sharding tag
      */
-    async deleteTagRaw(requestParameters: DeleteTagRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteTagRaw(requestParameters: DeleteTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.tag === null || requestParameters.tag === undefined) {
             throw new runtime.RequiredError('tag','Required parameter requestParameters.tag was null or undefined when calling deleteTag.');
         }
@@ -3186,7 +3188,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteTag.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3198,7 +3200,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -3207,15 +3209,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[DELETE] permission to use this service
      * Delete an existing sharding tag
      */
-    async deleteTag(requestParameters: DeleteTagRequest): Promise<void> {
-        await this.deleteTagRaw(requestParameters);
+    async deleteTag(requestParameters: DeleteTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteTagRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_TAG[DELETE] permission to use this service
      * Delete an existing sharding tag
      */
-    async deleteTag1Raw(requestParameters: DeleteTag1Request): Promise<runtime.ApiResponse<void>> {
+    async deleteTag1Raw(requestParameters: DeleteTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.tag === null || requestParameters.tag === undefined) {
             throw new runtime.RequiredError('tag','Required parameter requestParameters.tag was null or undefined when calling deleteTag1.');
         }
@@ -3228,7 +3230,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteTag1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3240,7 +3242,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -3249,15 +3251,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[DELETE] permission to use this service
      * Delete an existing sharding tag
      */
-    async deleteTag1(requestParameters: DeleteTag1Request): Promise<void> {
-        await this.deleteTag1Raw(requestParameters);
+    async deleteTag1(requestParameters: DeleteTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteTag1Raw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_TENANT[DELETE] permission to use this service
      * Delete a tenant
      */
-    async deleteTenantRaw(requestParameters: DeleteTenantRequest): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async deleteTenantRaw(requestParameters: DeleteTenantRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.tenant === null || requestParameters.tenant === undefined) {
             throw new runtime.RequiredError('tenant','Required parameter requestParameters.tenant was null or undefined when calling deleteTenant.');
         }
@@ -3266,7 +3268,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteTenant.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3278,7 +3280,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -3287,8 +3289,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[DELETE] permission to use this service
      * Delete a tenant
      */
-    async deleteTenant(requestParameters: DeleteTenantRequest): Promise<Array<TenantEntity>> {
-        const response = await this.deleteTenantRaw(requestParameters);
+    async deleteTenant(requestParameters: DeleteTenantRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.deleteTenantRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -3296,7 +3298,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[DELETE] permission to use this service
      * Delete a tenant
      */
-    async deleteTenant1Raw(requestParameters: DeleteTenant1Request): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async deleteTenant1Raw(requestParameters: DeleteTenant1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.tenant === null || requestParameters.tenant === undefined) {
             throw new runtime.RequiredError('tenant','Required parameter requestParameters.tenant was null or undefined when calling deleteTenant1.');
         }
@@ -3309,7 +3311,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteTenant1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3321,7 +3323,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -3330,14 +3332,14 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[DELETE] permission to use this service
      * Delete a tenant
      */
-    async deleteTenant1(requestParameters: DeleteTenant1Request): Promise<Array<TenantEntity>> {
-        const response = await this.deleteTenant1Raw(requestParameters);
+    async deleteTenant1(requestParameters: DeleteTenant1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.deleteTenant1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async deleteThemeRaw(requestParameters: DeleteThemeRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteThemeRaw(requestParameters: DeleteThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling deleteTheme.');
         }
@@ -3350,7 +3352,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteTheme.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3362,22 +3364,22 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async deleteTheme(requestParameters: DeleteThemeRequest): Promise<void> {
-        await this.deleteThemeRaw(requestParameters);
+    async deleteTheme(requestParameters: DeleteThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteThemeRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the PORTAL_TOP_APIS[DELETE] permission to use this service
      * Delete an existing top API
      */
-    async deleteTopApiRaw(requestParameters: DeleteTopApiRequest): Promise<runtime.ApiResponse<void>> {
+    async deleteTopApiRaw(requestParameters: DeleteTopApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.topAPI === null || requestParameters.topAPI === undefined) {
             throw new runtime.RequiredError('topAPI','Required parameter requestParameters.topAPI was null or undefined when calling deleteTopApi.');
         }
@@ -3390,7 +3392,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deleteTopApi.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3402,7 +3404,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -3411,15 +3413,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_TOP_APIS[DELETE] permission to use this service
      * Delete an existing top API
      */
-    async deleteTopApi(requestParameters: DeleteTopApiRequest): Promise<void> {
-        await this.deleteTopApiRaw(requestParameters);
+    async deleteTopApi(requestParameters: DeleteTopApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteTopApiRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the DICTIONARY[UPDATE] permission to use this service
      * Deploy dictionary to API gateway
      */
-    async deployDictionaryRaw(requestParameters: DeployDictionaryRequest): Promise<runtime.ApiResponse<DictionaryEntity>> {
+    async deployDictionaryRaw(requestParameters: DeployDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DictionaryEntity>> {
         if (requestParameters.dictionary === null || requestParameters.dictionary === undefined) {
             throw new runtime.RequiredError('dictionary','Required parameter requestParameters.dictionary was null or undefined when calling deployDictionary.');
         }
@@ -3432,7 +3434,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling deployDictionary.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3444,7 +3446,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DictionaryEntityFromJSON(jsonValue));
     }
@@ -3453,8 +3455,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[UPDATE] permission to use this service
      * Deploy dictionary to API gateway
      */
-    async deployDictionary(requestParameters: DeployDictionaryRequest): Promise<DictionaryEntity> {
-        const response = await this.deployDictionaryRaw(requestParameters);
+    async deployDictionary(requestParameters: DeployDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DictionaryEntity> {
+        const response = await this.deployDictionaryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -3462,7 +3464,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[LIFECYCLE] permission to use this service
      * Manage the dictionary\'s lifecycle
      */
-    async doLifecycleActionRaw(requestParameters: DoLifecycleActionRequest): Promise<runtime.ApiResponse<DictionaryEntity>> {
+    async doLifecycleActionRaw(requestParameters: DoLifecycleActionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DictionaryEntity>> {
         if (requestParameters.action === null || requestParameters.action === undefined) {
             throw new runtime.RequiredError('action','Required parameter requestParameters.action was null or undefined when calling doLifecycleAction.');
         }
@@ -3479,7 +3481,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling doLifecycleAction.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.action !== undefined) {
             queryParameters['action'] = requestParameters.action;
@@ -3495,7 +3497,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DictionaryEntityFromJSON(jsonValue));
     }
@@ -3504,15 +3506,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[LIFECYCLE] permission to use this service
      * Manage the dictionary\'s lifecycle
      */
-    async doLifecycleAction(requestParameters: DoLifecycleActionRequest): Promise<DictionaryEntity> {
-        const response = await this.doLifecycleActionRaw(requestParameters);
+    async doLifecycleAction(requestParameters: DoLifecycleActionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DictionaryEntity> {
+        const response = await this.doLifecycleActionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List API headers
      */
-    async getApiHeadersRaw(requestParameters: GetApiHeadersRequest): Promise<runtime.ApiResponse<Array<ApiHeaderEntity>>> {
+    async getApiHeadersRaw(requestParameters: GetApiHeadersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApiHeaderEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getApiHeaders.');
         }
@@ -3521,7 +3523,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiHeaders.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3533,7 +3535,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApiHeaderEntityFromJSON));
     }
@@ -3541,15 +3543,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * List API headers
      */
-    async getApiHeaders(requestParameters: GetApiHeadersRequest): Promise<Array<ApiHeaderEntity>> {
-        const response = await this.getApiHeadersRaw(requestParameters);
+    async getApiHeaders(requestParameters: GetApiHeadersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApiHeaderEntity>> {
+        const response = await this.getApiHeadersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Retrieve list of categories
      */
-    async getCategoriesRaw(requestParameters: GetCategoriesRequest): Promise<runtime.ApiResponse<Array<CategoryEntity>>> {
+    async getCategoriesRaw(requestParameters: GetCategoriesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CategoryEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getCategories.');
         }
@@ -3558,7 +3560,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCategories.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.include) {
             queryParameters['include'] = requestParameters.include;
@@ -3574,7 +3576,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CategoryEntityFromJSON));
     }
@@ -3582,8 +3584,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Retrieve list of categories
      */
-    async getCategories(requestParameters: GetCategoriesRequest): Promise<Array<CategoryEntity>> {
-        const response = await this.getCategoriesRaw(requestParameters);
+    async getCategories(requestParameters: GetCategoriesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CategoryEntity>> {
+        const response = await this.getCategoriesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -3591,7 +3593,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[READ] permission to use this service
      * Get the category
      */
-    async getCategoryRaw(requestParameters: GetCategoryRequest): Promise<runtime.ApiResponse<CategoryEntity>> {
+    async getCategoryRaw(requestParameters: GetCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CategoryEntity>> {
         if (requestParameters.categoryId === null || requestParameters.categoryId === undefined) {
             throw new runtime.RequiredError('categoryId','Required parameter requestParameters.categoryId was null or undefined when calling getCategory.');
         }
@@ -3604,7 +3606,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCategory.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3616,7 +3618,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CategoryEntityFromJSON(jsonValue));
     }
@@ -3625,8 +3627,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[READ] permission to use this service
      * Get the category
      */
-    async getCategory(requestParameters: GetCategoryRequest): Promise<CategoryEntity> {
-        const response = await this.getCategoryRaw(requestParameters);
+    async getCategory(requestParameters: GetCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CategoryEntity> {
+        const response = await this.getCategoryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -3634,7 +3636,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get the Category\'s background
      */
-    async getCategoryBackgroundRaw(requestParameters: GetCategoryBackgroundRequest): Promise<runtime.ApiResponse<Blob>> {
+    async getCategoryBackgroundRaw(requestParameters: GetCategoryBackgroundRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters.categoryId === null || requestParameters.categoryId === undefined) {
             throw new runtime.RequiredError('categoryId','Required parameter requestParameters.categoryId was null or undefined when calling getCategoryBackground.');
         }
@@ -3647,7 +3649,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCategoryBackground.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3659,7 +3661,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.BlobApiResponse(response);
     }
@@ -3668,8 +3670,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the READ permission to use this service
      * Get the Category\'s background
      */
-    async getCategoryBackground(requestParameters: GetCategoryBackgroundRequest): Promise<Blob> {
-        const response = await this.getCategoryBackgroundRaw(requestParameters);
+    async getCategoryBackground(requestParameters: GetCategoryBackgroundRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getCategoryBackgroundRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -3677,7 +3679,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[READ] permission to use this service
      * Get the category\'s picture
      */
-    async getCategoryPictureRaw(requestParameters: GetCategoryPictureRequest): Promise<runtime.ApiResponse<Blob>> {
+    async getCategoryPictureRaw(requestParameters: GetCategoryPictureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
         if (requestParameters.categoryId === null || requestParameters.categoryId === undefined) {
             throw new runtime.RequiredError('categoryId','Required parameter requestParameters.categoryId was null or undefined when calling getCategoryPicture.');
         }
@@ -3690,7 +3692,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCategoryPicture.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3702,7 +3704,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.BlobApiResponse(response);
     }
@@ -3711,8 +3713,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[READ] permission to use this service
      * Get the category\'s picture
      */
-    async getCategoryPicture(requestParameters: GetCategoryPictureRequest): Promise<Blob> {
-        const response = await this.getCategoryPictureRaw(requestParameters);
+    async getCategoryPicture(requestParameters: GetCategoryPictureRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getCategoryPictureRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -3720,7 +3722,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service
      * Get a client registration provider
      */
-    async getClientRegistrationProviderRaw(requestParameters: GetClientRegistrationProviderRequest): Promise<runtime.ApiResponse<ClientRegistrationProviderEntity>> {
+    async getClientRegistrationProviderRaw(requestParameters: GetClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ClientRegistrationProviderEntity>> {
         if (requestParameters.clientRegistrationProvider === null || requestParameters.clientRegistrationProvider === undefined) {
             throw new runtime.RequiredError('clientRegistrationProvider','Required parameter requestParameters.clientRegistrationProvider was null or undefined when calling getClientRegistrationProvider.');
         }
@@ -3733,7 +3735,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getClientRegistrationProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3745,7 +3747,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ClientRegistrationProviderEntityFromJSON(jsonValue));
     }
@@ -3754,8 +3756,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service
      * Get a client registration provider
      */
-    async getClientRegistrationProvider(requestParameters: GetClientRegistrationProviderRequest): Promise<ClientRegistrationProviderEntity> {
-        const response = await this.getClientRegistrationProviderRaw(requestParameters);
+    async getClientRegistrationProvider(requestParameters: GetClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ClientRegistrationProviderEntity> {
+        const response = await this.getClientRegistrationProviderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -3763,7 +3765,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service
      * Get the list of client registration providers
      */
-    async getClientRegistrationProvidersRaw(requestParameters: GetClientRegistrationProvidersRequest): Promise<runtime.ApiResponse<Array<ClientRegistrationProviderListItem>>> {
+    async getClientRegistrationProvidersRaw(requestParameters: GetClientRegistrationProvidersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ClientRegistrationProviderListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getClientRegistrationProviders.');
         }
@@ -3772,7 +3774,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getClientRegistrationProviders.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3784,7 +3786,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ClientRegistrationProviderListItemFromJSON));
     }
@@ -3793,15 +3795,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service
      * Get the list of client registration providers
      */
-    async getClientRegistrationProviders(requestParameters: GetClientRegistrationProvidersRequest): Promise<Array<ClientRegistrationProviderListItem>> {
-        const response = await this.getClientRegistrationProvidersRaw(requestParameters);
+    async getClientRegistrationProviders(requestParameters: GetClientRegistrationProvidersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ClientRegistrationProviderListItem>> {
+        const response = await this.getClientRegistrationProvidersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the list of available hooks
      */
-    async getConfigurationHooksRaw(requestParameters: GetConfigurationHooksRequest): Promise<runtime.ApiResponse<Array<Hook>>> {
+    async getConfigurationHooksRaw(requestParameters: GetConfigurationHooksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<Hook>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getConfigurationHooks.');
         }
@@ -3810,7 +3812,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getConfigurationHooks.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3822,7 +3824,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(HookFromJSON));
     }
@@ -3830,19 +3832,19 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Get the list of available hooks
      */
-    async getConfigurationHooks(requestParameters: GetConfigurationHooksRequest): Promise<Array<Hook>> {
-        const response = await this.getConfigurationHooksRaw(requestParameters);
+    async getConfigurationHooks(requestParameters: GetConfigurationHooksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<Hook>> {
+        const response = await this.getConfigurationHooksRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async getConfigurationSchemaFormRaw(requestParameters: GetConfigurationSchemaFormRequest): Promise<runtime.ApiResponse<void>> {
+    async getConfigurationSchemaFormRaw(requestParameters: GetConfigurationSchemaFormRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getConfigurationSchemaForm.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3854,27 +3856,27 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async getConfigurationSchemaForm(requestParameters: GetConfigurationSchemaFormRequest): Promise<void> {
-        await this.getConfigurationSchemaFormRaw(requestParameters);
+    async getConfigurationSchemaForm(requestParameters: GetConfigurationSchemaFormRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getConfigurationSchemaFormRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the CUSTOM_USER_FIELDS[READ] permission to use this service
      * List All Custom User Fields
      */
-    async getCustomUserFieldsRaw(requestParameters: GetCustomUserFieldsRequest): Promise<runtime.ApiResponse<Array<CustomUserFieldEntity>>> {
+    async getCustomUserFieldsRaw(requestParameters: GetCustomUserFieldsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CustomUserFieldEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getCustomUserFields.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3886,7 +3888,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CustomUserFieldEntityFromJSON));
     }
@@ -3895,8 +3897,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the CUSTOM_USER_FIELDS[READ] permission to use this service
      * List All Custom User Fields
      */
-    async getCustomUserFields(requestParameters: GetCustomUserFieldsRequest): Promise<Array<CustomUserFieldEntity>> {
-        const response = await this.getCustomUserFieldsRaw(requestParameters);
+    async getCustomUserFields(requestParameters: GetCustomUserFieldsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CustomUserFieldEntity>> {
+        const response = await this.getCustomUserFieldsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -3904,7 +3906,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[READ] permission to use this service
      * Retrieve a platform dashboard
      */
-    async getDashboardRaw(requestParameters: GetDashboardRequest): Promise<runtime.ApiResponse<DashboardEntity>> {
+    async getDashboardRaw(requestParameters: GetDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DashboardEntity>> {
         if (requestParameters.dashboardId === null || requestParameters.dashboardId === undefined) {
             throw new runtime.RequiredError('dashboardId','Required parameter requestParameters.dashboardId was null or undefined when calling getDashboard.');
         }
@@ -3917,7 +3919,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getDashboard.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -3929,7 +3931,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DashboardEntityFromJSON(jsonValue));
     }
@@ -3938,15 +3940,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[READ] permission to use this service
      * Retrieve a platform dashboard
      */
-    async getDashboard(requestParameters: GetDashboardRequest): Promise<DashboardEntity> {
-        const response = await this.getDashboardRaw(requestParameters);
+    async getDashboard(requestParameters: GetDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DashboardEntity> {
+        const response = await this.getDashboardRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Retrieve the list of platform dashboards
      */
-    async getDashboardsRaw(requestParameters: GetDashboardsRequest): Promise<runtime.ApiResponse<Array<DashboardEntity>>> {
+    async getDashboardsRaw(requestParameters: GetDashboardsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<DashboardEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getDashboards.');
         }
@@ -3955,7 +3957,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getDashboards.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.referenceType !== undefined) {
             queryParameters['reference_type'] = requestParameters.referenceType;
@@ -3971,7 +3973,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(DashboardEntityFromJSON));
     }
@@ -3979,8 +3981,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Retrieve the list of platform dashboards
      */
-    async getDashboards(requestParameters: GetDashboardsRequest): Promise<Array<DashboardEntity>> {
-        const response = await this.getDashboardsRaw(requestParameters);
+    async getDashboards(requestParameters: GetDashboardsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<DashboardEntity>> {
+        const response = await this.getDashboardsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -3988,7 +3990,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[READ] permission to use this service
      * Get the list of global dictionaries
      */
-    async getDictionariesRaw(requestParameters: GetDictionariesRequest): Promise<runtime.ApiResponse<Array<DictionaryListItem>>> {
+    async getDictionariesRaw(requestParameters: GetDictionariesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<DictionaryListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getDictionaries.');
         }
@@ -3997,7 +3999,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getDictionaries.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4009,7 +4011,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(DictionaryListItemFromJSON));
     }
@@ -4018,8 +4020,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[READ] permission to use this service
      * Get the list of global dictionaries
      */
-    async getDictionaries(requestParameters: GetDictionariesRequest): Promise<Array<DictionaryListItem>> {
-        const response = await this.getDictionariesRaw(requestParameters);
+    async getDictionaries(requestParameters: GetDictionariesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<DictionaryListItem>> {
+        const response = await this.getDictionariesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -4027,7 +4029,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[READ] permission to use this service
      * Get a dictionary
      */
-    async getDictionaryRaw(requestParameters: GetDictionaryRequest): Promise<runtime.ApiResponse<DictionaryEntity>> {
+    async getDictionaryRaw(requestParameters: GetDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DictionaryEntity>> {
         if (requestParameters.dictionary === null || requestParameters.dictionary === undefined) {
             throw new runtime.RequiredError('dictionary','Required parameter requestParameters.dictionary was null or undefined when calling getDictionary.');
         }
@@ -4040,7 +4042,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getDictionary.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4052,7 +4054,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DictionaryEntityFromJSON(jsonValue));
     }
@@ -4061,15 +4063,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[READ] permission to use this service
      * Get a dictionary
      */
-    async getDictionary(requestParameters: GetDictionaryRequest): Promise<DictionaryEntity> {
-        const response = await this.getDictionaryRaw(requestParameters);
+    async getDictionary(requestParameters: GetDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DictionaryEntity> {
+        const response = await this.getDictionaryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the list of enabled application types
      */
-    async getEnabledApplicationTypesRaw(requestParameters: GetEnabledApplicationTypesRequest): Promise<runtime.ApiResponse<void>> {
+    async getEnabledApplicationTypesRaw(requestParameters: GetEnabledApplicationTypesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getEnabledApplicationTypes.');
         }
@@ -4078,7 +4080,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEnabledApplicationTypes.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4090,7 +4092,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -4098,15 +4100,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Get the list of enabled application types
      */
-    async getEnabledApplicationTypes(requestParameters: GetEnabledApplicationTypesRequest): Promise<void> {
-        await this.getEnabledApplicationTypesRaw(requestParameters);
+    async getEnabledApplicationTypes(requestParameters: GetEnabledApplicationTypesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getEnabledApplicationTypesRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * Get a platform entrypoints
      */
-    async getEntrypointRaw(requestParameters: GetEntrypointRequest): Promise<runtime.ApiResponse<EntrypointEntity>> {
+    async getEntrypointRaw(requestParameters: GetEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EntrypointEntity>> {
         if (requestParameters.entrypoint === null || requestParameters.entrypoint === undefined) {
             throw new runtime.RequiredError('entrypoint','Required parameter requestParameters.entrypoint was null or undefined when calling getEntrypoint.');
         }
@@ -4115,7 +4117,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEntrypoint.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4127,7 +4129,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EntrypointEntityFromJSON(jsonValue));
     }
@@ -4136,8 +4138,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * Get a platform entrypoints
      */
-    async getEntrypoint(requestParameters: GetEntrypointRequest): Promise<EntrypointEntity> {
-        const response = await this.getEntrypointRaw(requestParameters);
+    async getEntrypoint(requestParameters: GetEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EntrypointEntity> {
+        const response = await this.getEntrypointRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -4145,7 +4147,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * Get a platform entrypoints
      */
-    async getEntrypoint1Raw(requestParameters: GetEntrypoint1Request): Promise<runtime.ApiResponse<EntrypointEntity>> {
+    async getEntrypoint1Raw(requestParameters: GetEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EntrypointEntity>> {
         if (requestParameters.entrypoint === null || requestParameters.entrypoint === undefined) {
             throw new runtime.RequiredError('entrypoint','Required parameter requestParameters.entrypoint was null or undefined when calling getEntrypoint1.');
         }
@@ -4158,7 +4160,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEntrypoint1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4170,7 +4172,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EntrypointEntityFromJSON(jsonValue));
     }
@@ -4179,8 +4181,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * Get a platform entrypoints
      */
-    async getEntrypoint1(requestParameters: GetEntrypoint1Request): Promise<EntrypointEntity> {
-        const response = await this.getEntrypoint1Raw(requestParameters);
+    async getEntrypoint1(requestParameters: GetEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EntrypointEntity> {
+        const response = await this.getEntrypoint1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -4188,12 +4190,12 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * List the platform entrypoints
      */
-    async getEntrypointsRaw(requestParameters: GetEntrypointsRequest): Promise<runtime.ApiResponse<Array<EntrypointEntity>>> {
+    async getEntrypointsRaw(requestParameters: GetEntrypointsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<EntrypointEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEntrypoints.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4205,7 +4207,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(EntrypointEntityFromJSON));
     }
@@ -4214,8 +4216,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * List the platform entrypoints
      */
-    async getEntrypoints(requestParameters: GetEntrypointsRequest): Promise<Array<EntrypointEntity>> {
-        const response = await this.getEntrypointsRaw(requestParameters);
+    async getEntrypoints(requestParameters: GetEntrypointsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<EntrypointEntity>> {
+        const response = await this.getEntrypointsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -4223,7 +4225,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * List the platform entrypoints
      */
-    async getEntrypoints1Raw(requestParameters: GetEntrypoints1Request): Promise<runtime.ApiResponse<Array<EntrypointEntity>>> {
+    async getEntrypoints1Raw(requestParameters: GetEntrypoints1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<EntrypointEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getEntrypoints1.');
         }
@@ -4232,7 +4234,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getEntrypoints1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4244,7 +4246,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(EntrypointEntityFromJSON));
     }
@@ -4253,14 +4255,14 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service
      * List the platform entrypoints
      */
-    async getEntrypoints1(requestParameters: GetEntrypoints1Request): Promise<Array<EntrypointEntity>> {
-        const response = await this.getEntrypoints1Raw(requestParameters);
+    async getEntrypoints1(requestParameters: GetEntrypoints1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<EntrypointEntity>> {
+        const response = await this.getEntrypoints1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async getFaviconRaw(requestParameters: GetFaviconRequest): Promise<runtime.ApiResponse<void>> {
+    async getFaviconRaw(requestParameters: GetFaviconRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling getFavicon.');
         }
@@ -4273,7 +4275,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getFavicon.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4285,20 +4287,20 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async getFavicon(requestParameters: GetFaviconRequest): Promise<void> {
-        await this.getFaviconRaw(requestParameters);
+    async getFavicon(requestParameters: GetFaviconRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getFaviconRaw(requestParameters, initOverrides);
     }
 
     /**
      */
-    async getGrammarRaw(requestParameters: GetGrammarRequest): Promise<runtime.ApiResponse<any>> {
+    async getGrammarRaw(requestParameters: GetGrammarRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getGrammar.');
         }
@@ -4307,7 +4309,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getGrammar.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4319,22 +4321,22 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.TextApiResponse(response) as any;
     }
 
     /**
      */
-    async getGrammar(requestParameters: GetGrammarRequest): Promise<any> {
-        const response = await this.getGrammarRaw(requestParameters);
+    async getGrammar(requestParameters: GetGrammarRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<any> {
+        const response = await this.getGrammarRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get a group
      */
-    async getGroupRaw(requestParameters: GetGroupRequest): Promise<runtime.ApiResponse<GroupEntity>> {
+    async getGroupRaw(requestParameters: GetGroupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GroupEntity>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling getGroup.');
         }
@@ -4347,7 +4349,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getGroup.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4359,7 +4361,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => GroupEntityFromJSON(jsonValue));
     }
@@ -4367,8 +4369,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Get a group
      */
-    async getGroup(requestParameters: GetGroupRequest): Promise<GroupEntity> {
-        const response = await this.getGroupRaw(requestParameters);
+    async getGroup(requestParameters: GetGroupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GroupEntity> {
+        const response = await this.getGroupRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -4376,7 +4378,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[READ] permission to use this service
      * List existing invitations of a group
      */
-    async getGroupInvitationsRaw(requestParameters: GetGroupInvitationsRequest): Promise<runtime.ApiResponse<Array<InvitationEntity>>> {
+    async getGroupInvitationsRaw(requestParameters: GetGroupInvitationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<InvitationEntity>>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling getGroupInvitations.');
         }
@@ -4389,7 +4391,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getGroupInvitations.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4401,7 +4403,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(InvitationEntityFromJSON));
     }
@@ -4410,15 +4412,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[READ] permission to use this service
      * List existing invitations of a group
      */
-    async getGroupInvitations(requestParameters: GetGroupInvitationsRequest): Promise<Array<InvitationEntity>> {
-        const response = await this.getGroupInvitationsRaw(requestParameters);
+    async getGroupInvitations(requestParameters: GetGroupInvitationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<InvitationEntity>> {
+        const response = await this.getGroupInvitationsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List group members
      */
-    async getGroupMembersRaw(requestParameters: GetGroupMembersRequest): Promise<runtime.ApiResponse<Array<GroupMemberEntity>>> {
+    async getGroupMembersRaw(requestParameters: GetGroupMembersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<GroupMemberEntity>>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling getGroupMembers.');
         }
@@ -4431,7 +4433,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getGroupMembers.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4443,7 +4445,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(GroupMemberEntityFromJSON));
     }
@@ -4451,15 +4453,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * List group members
      */
-    async getGroupMembers(requestParameters: GetGroupMembersRequest): Promise<Array<GroupMemberEntity>> {
-        const response = await this.getGroupMembersRaw(requestParameters);
+    async getGroupMembers(requestParameters: GetGroupMembersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<GroupMemberEntity>> {
+        const response = await this.getGroupMembersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List group members with pagination
      */
-    async getGroupMembers1Raw(requestParameters: GetGroupMembers1Request): Promise<runtime.ApiResponse<Array<GroupMemberEntity>>> {
+    async getGroupMembers1Raw(requestParameters: GetGroupMembers1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<GroupMemberEntity>>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling getGroupMembers1.');
         }
@@ -4472,7 +4474,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getGroupMembers1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.size !== undefined) {
             queryParameters['size'] = requestParameters.size;
@@ -4492,7 +4494,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(GroupMemberEntityFromJSON));
     }
@@ -4500,15 +4502,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * List group members with pagination
      */
-    async getGroupMembers1(requestParameters: GetGroupMembers1Request): Promise<Array<GroupMemberEntity>> {
-        const response = await this.getGroupMembers1Raw(requestParameters);
+    async getGroupMembers1(requestParameters: GetGroupMembers1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<GroupMemberEntity>> {
+        const response = await this.getGroupMembers1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List APIs or applications linked to this group
      */
-    async getGroupMembershipsRaw(requestParameters: GetGroupMembershipsRequest): Promise<runtime.ApiResponse<void>> {
+    async getGroupMembershipsRaw(requestParameters: GetGroupMembershipsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling getGroupMemberships.');
         }
@@ -4521,7 +4523,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getGroupMemberships.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.type !== undefined) {
             queryParameters['type'] = requestParameters.type;
@@ -4537,7 +4539,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -4545,15 +4547,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * List APIs or applications linked to this group
      */
-    async getGroupMemberships(requestParameters: GetGroupMembershipsRequest): Promise<void> {
-        await this.getGroupMembershipsRaw(requestParameters);
+    async getGroupMemberships(requestParameters: GetGroupMembershipsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getGroupMembershipsRaw(requestParameters, initOverrides);
     }
 
     /**
      * Find all groups, or a specific type of groups.Only administrators could see all groups.Only users with MANAGE_API permissions could see API groups.
      * Find groups
      */
-    async getGroupsRaw(requestParameters: GetGroupsRequest): Promise<runtime.ApiResponse<Array<GroupEntity>>> {
+    async getGroupsRaw(requestParameters: GetGroupsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<GroupEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getGroups.');
         }
@@ -4562,7 +4564,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getGroups.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4574,7 +4576,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(GroupEntityFromJSON));
     }
@@ -4583,8 +4585,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * Find all groups, or a specific type of groups.Only administrators could see all groups.Only users with MANAGE_API permissions could see API groups.
      * Find groups
      */
-    async getGroups(requestParameters: GetGroupsRequest): Promise<Array<GroupEntity>> {
-        const response = await this.getGroupsRaw(requestParameters);
+    async getGroups(requestParameters: GetGroupsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<GroupEntity>> {
+        const response = await this.getGroupsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -4592,7 +4594,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get an identity provider
      */
-    async getIdentityProviderRaw(requestParameters: GetIdentityProviderRequest): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
+    async getIdentityProviderRaw(requestParameters: GetIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
         if (requestParameters.identityProvider === null || requestParameters.identityProvider === undefined) {
             throw new runtime.RequiredError('identityProvider','Required parameter requestParameters.identityProvider was null or undefined when calling getIdentityProvider.');
         }
@@ -4601,7 +4603,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getIdentityProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4613,7 +4615,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => IdentityProviderEntityFromJSON(jsonValue));
     }
@@ -4622,8 +4624,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get an identity provider
      */
-    async getIdentityProvider(requestParameters: GetIdentityProviderRequest): Promise<IdentityProviderEntity> {
-        const response = await this.getIdentityProviderRaw(requestParameters);
+    async getIdentityProvider(requestParameters: GetIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IdentityProviderEntity> {
+        const response = await this.getIdentityProviderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -4631,7 +4633,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get an identity provider
      */
-    async getIdentityProvider1Raw(requestParameters: GetIdentityProvider1Request): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
+    async getIdentityProvider1Raw(requestParameters: GetIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
         if (requestParameters.identityProvider === null || requestParameters.identityProvider === undefined) {
             throw new runtime.RequiredError('identityProvider','Required parameter requestParameters.identityProvider was null or undefined when calling getIdentityProvider1.');
         }
@@ -4644,7 +4646,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getIdentityProvider1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4656,7 +4658,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => IdentityProviderEntityFromJSON(jsonValue));
     }
@@ -4665,8 +4667,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get an identity provider
      */
-    async getIdentityProvider1(requestParameters: GetIdentityProvider1Request): Promise<IdentityProviderEntity> {
-        const response = await this.getIdentityProvider1Raw(requestParameters);
+    async getIdentityProvider1(requestParameters: GetIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IdentityProviderEntity> {
+        const response = await this.getIdentityProvider1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -4674,12 +4676,12 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get the list of identity providers
      */
-    async getIdentityProvidersRaw(requestParameters: GetIdentityProvidersRequest): Promise<runtime.ApiResponse<Array<IdentityProviderListItem>>> {
+    async getIdentityProvidersRaw(requestParameters: GetIdentityProvidersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<IdentityProviderListItem>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getIdentityProviders.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4691,7 +4693,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(IdentityProviderListItemFromJSON));
     }
@@ -4700,8 +4702,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get the list of identity providers
      */
-    async getIdentityProviders(requestParameters: GetIdentityProvidersRequest): Promise<Array<IdentityProviderListItem>> {
-        const response = await this.getIdentityProvidersRaw(requestParameters);
+    async getIdentityProviders(requestParameters: GetIdentityProvidersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<IdentityProviderListItem>> {
+        const response = await this.getIdentityProvidersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -4709,7 +4711,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get the list of identity providers
      */
-    async getIdentityProviders1Raw(requestParameters: GetIdentityProviders1Request): Promise<runtime.ApiResponse<Array<IdentityProviderListItem>>> {
+    async getIdentityProviders1Raw(requestParameters: GetIdentityProviders1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<IdentityProviderListItem>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getIdentityProviders1.');
         }
@@ -4718,7 +4720,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getIdentityProviders1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4730,7 +4732,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(IdentityProviderListItemFromJSON));
     }
@@ -4739,14 +4741,14 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service
      * Get the list of identity providers
      */
-    async getIdentityProviders1(requestParameters: GetIdentityProviders1Request): Promise<Array<IdentityProviderListItem>> {
-        const response = await this.getIdentityProviders1Raw(requestParameters);
+    async getIdentityProviders1(requestParameters: GetIdentityProviders1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<IdentityProviderListItem>> {
+        const response = await this.getIdentityProviders1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async getLogoLightRaw(requestParameters: GetLogoLightRequest): Promise<runtime.ApiResponse<void>> {
+    async getLogoLightRaw(requestParameters: GetLogoLightRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling getLogoLight.');
         }
@@ -4759,7 +4761,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getLogoLight.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4771,22 +4773,22 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async getLogoLight(requestParameters: GetLogoLightRequest): Promise<void> {
-        await this.getLogoLightRaw(requestParameters);
+    async getLogoLight(requestParameters: GetLogoLightRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getLogoLightRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the PORTAL_METADATA[READ] permission to use this service
      * Retrieve the list of platform metadata
      */
-    async getMetadatasRaw(requestParameters: GetMetadatasRequest): Promise<runtime.ApiResponse<Array<MetadataEntity>>> {
+    async getMetadatasRaw(requestParameters: GetMetadatasRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<MetadataEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getMetadatas.');
         }
@@ -4795,7 +4797,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getMetadatas.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4807,7 +4809,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(MetadataEntityFromJSON));
     }
@@ -4816,8 +4818,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_METADATA[READ] permission to use this service
      * Retrieve the list of platform metadata
      */
-    async getMetadatas(requestParameters: GetMetadatasRequest): Promise<Array<MetadataEntity>> {
-        const response = await this.getMetadatasRaw(requestParameters);
+    async getMetadatas(requestParameters: GetMetadatasRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<MetadataEntity>> {
+        const response = await this.getMetadatasRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -4825,7 +4827,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[READ] permission to use this service
      * Get a specific notification template.
      */
-    async getNotificationTemplateRaw(requestParameters: GetNotificationTemplateRequest): Promise<runtime.ApiResponse<NotificationTemplateEntity>> {
+    async getNotificationTemplateRaw(requestParameters: GetNotificationTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NotificationTemplateEntity>> {
         if (requestParameters.notificationTemplateId === null || requestParameters.notificationTemplateId === undefined) {
             throw new runtime.RequiredError('notificationTemplateId','Required parameter requestParameters.notificationTemplateId was null or undefined when calling getNotificationTemplate.');
         }
@@ -4834,7 +4836,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getNotificationTemplate.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4846,7 +4848,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => NotificationTemplateEntityFromJSON(jsonValue));
     }
@@ -4855,8 +4857,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[READ] permission to use this service
      * Get a specific notification template.
      */
-    async getNotificationTemplate(requestParameters: GetNotificationTemplateRequest): Promise<NotificationTemplateEntity> {
-        const response = await this.getNotificationTemplateRaw(requestParameters);
+    async getNotificationTemplate(requestParameters: GetNotificationTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NotificationTemplateEntity> {
+        const response = await this.getNotificationTemplateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -4864,12 +4866,12 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[READ] permission to use this service
      * List all notification templates.
      */
-    async getNotificationTemplatesRaw(requestParameters: GetNotificationTemplatesRequest): Promise<runtime.ApiResponse<Array<NotificationTemplateEntity>>> {
+    async getNotificationTemplatesRaw(requestParameters: GetNotificationTemplatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<NotificationTemplateEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getNotificationTemplates.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.scope !== undefined) {
             queryParameters['scope'] = requestParameters.scope;
@@ -4889,7 +4891,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(NotificationTemplateEntityFromJSON));
     }
@@ -4898,15 +4900,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[READ] permission to use this service
      * List all notification templates.
      */
-    async getNotificationTemplates(requestParameters: GetNotificationTemplatesRequest): Promise<Array<NotificationTemplateEntity>> {
-        const response = await this.getNotificationTemplatesRaw(requestParameters);
+    async getNotificationTemplates(requestParameters: GetNotificationTemplatesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<NotificationTemplateEntity>> {
+        const response = await this.getNotificationTemplatesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List of available plan\'s type
      */
-    async getPlansConfigurationRaw(requestParameters: GetPlansConfigurationRequest): Promise<runtime.ApiResponse<PlansConfigurationEntity>> {
+    async getPlansConfigurationRaw(requestParameters: GetPlansConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PlansConfigurationEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPlansConfiguration.');
         }
@@ -4915,7 +4917,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPlansConfiguration.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4927,7 +4929,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PlansConfigurationEntityFromJSON(jsonValue));
     }
@@ -4935,19 +4937,19 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * List of available plan\'s type
      */
-    async getPlansConfiguration(requestParameters: GetPlansConfigurationRequest): Promise<PlansConfigurationEntity> {
-        const response = await this.getPlansConfigurationRaw(requestParameters);
+    async getPlansConfiguration(requestParameters: GetPlansConfigurationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PlansConfigurationEntity> {
+        const response = await this.getPlansConfigurationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async getPlatformFlowSchemaFormRaw(requestParameters: GetPlatformFlowSchemaFormRequest): Promise<runtime.ApiResponse<void>> {
+    async getPlatformFlowSchemaFormRaw(requestParameters: GetPlatformFlowSchemaFormRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPlatformFlowSchemaForm.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4959,21 +4961,21 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async getPlatformFlowSchemaForm(requestParameters: GetPlatformFlowSchemaFormRequest): Promise<void> {
-        await this.getPlatformFlowSchemaFormRaw(requestParameters);
+    async getPlatformFlowSchemaForm(requestParameters: GetPlatformFlowSchemaFormRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getPlatformFlowSchemaFormRaw(requestParameters, initOverrides);
     }
 
     /**
      * Get notification settings
      */
-    async getPortalNotificationSettingsRaw(requestParameters: GetPortalNotificationSettingsRequest): Promise<runtime.ApiResponse<Array<any>>> {
+    async getPortalNotificationSettingsRaw(requestParameters: GetPortalNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<any>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPortalNotificationSettings.');
         }
@@ -4982,7 +4984,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPortalNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -4994,7 +4996,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -5002,15 +5004,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Get notification settings
      */
-    async getPortalNotificationSettings(requestParameters: GetPortalNotificationSettingsRequest): Promise<Array<any>> {
-        const response = await this.getPortalNotificationSettingsRaw(requestParameters);
+    async getPortalNotificationSettings(requestParameters: GetPortalNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<any>> {
+        const response = await this.getPortalNotificationSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List of available notifiers
      */
-    async getPortalNotifiersRaw(requestParameters: GetPortalNotifiersRequest): Promise<runtime.ApiResponse<Array<NotifierEntity>>> {
+    async getPortalNotifiersRaw(requestParameters: GetPortalNotifiersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<NotifierEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getPortalNotifiers.');
         }
@@ -5019,7 +5021,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getPortalNotifiers.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5031,7 +5033,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(NotifierEntityFromJSON));
     }
@@ -5039,8 +5041,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * List of available notifiers
      */
-    async getPortalNotifiers(requestParameters: GetPortalNotifiersRequest): Promise<Array<NotifierEntity>> {
-        const response = await this.getPortalNotifiersRaw(requestParameters);
+    async getPortalNotifiers(requestParameters: GetPortalNotifiersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<NotifierEntity>> {
+        const response = await this.getPortalNotifiersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -5048,7 +5050,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_QUALITY_RULE[READ] permission to use this service
      * Get a quality rule
      */
-    async getQualityRuleRaw(requestParameters: GetQualityRuleRequest): Promise<runtime.ApiResponse<QualityRuleEntity>> {
+    async getQualityRuleRaw(requestParameters: GetQualityRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<QualityRuleEntity>> {
         if (requestParameters.id === null || requestParameters.id === undefined) {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getQualityRule.');
         }
@@ -5061,7 +5063,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getQualityRule.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5073,7 +5075,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => QualityRuleEntityFromJSON(jsonValue));
     }
@@ -5082,15 +5084,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_QUALITY_RULE[READ] permission to use this service
      * Get a quality rule
      */
-    async getQualityRule(requestParameters: GetQualityRuleRequest): Promise<QualityRuleEntity> {
-        const response = await this.getQualityRuleRaw(requestParameters);
+    async getQualityRule(requestParameters: GetQualityRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<QualityRuleEntity> {
+        const response = await this.getQualityRuleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List quality rules
      */
-    async getQualityRulesRaw(requestParameters: GetQualityRulesRequest): Promise<runtime.ApiResponse<Array<QualityRuleEntity>>> {
+    async getQualityRulesRaw(requestParameters: GetQualityRulesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<QualityRuleEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getQualityRules.');
         }
@@ -5099,7 +5101,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getQualityRules.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5111,7 +5113,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(QualityRuleEntityFromJSON));
     }
@@ -5119,8 +5121,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * List quality rules
      */
-    async getQualityRules(requestParameters: GetQualityRulesRequest): Promise<Array<QualityRuleEntity>> {
-        const response = await this.getQualityRulesRaw(requestParameters);
+    async getQualityRules(requestParameters: GetQualityRulesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<QualityRuleEntity>> {
+        const response = await this.getQualityRulesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -5128,7 +5130,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * Get a role
      */
-    async getRoleRaw(requestParameters: GetRoleRequest): Promise<runtime.ApiResponse<RoleEntity>> {
+    async getRoleRaw(requestParameters: GetRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling getRole.');
         }
@@ -5141,7 +5143,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getRole.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5153,7 +5155,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -5162,8 +5164,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * Get a role
      */
-    async getRole(requestParameters: GetRoleRequest): Promise<RoleEntity> {
-        const response = await this.getRoleRaw(requestParameters);
+    async getRole(requestParameters: GetRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.getRoleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -5171,7 +5173,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * Get a role
      */
-    async getRole1Raw(requestParameters: GetRole1Request): Promise<runtime.ApiResponse<RoleEntity>> {
+    async getRole1Raw(requestParameters: GetRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling getRole1.');
         }
@@ -5188,7 +5190,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getRole1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5200,7 +5202,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -5209,20 +5211,20 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * Get a role
      */
-    async getRole1(requestParameters: GetRole1Request): Promise<RoleEntity> {
-        const response = await this.getRole1Raw(requestParameters);
+    async getRole1(requestParameters: GetRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.getRole1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List availables role scopes
      */
-    async getRoleScopesRaw(requestParameters: GetRoleScopesRequest): Promise<runtime.ApiResponse<{ [key: string]: Array<string>; }>> {
+    async getRoleScopesRaw(requestParameters: GetRoleScopesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{ [key: string]: Array<string>; }>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getRoleScopes.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5234,7 +5236,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -5242,15 +5244,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * List availables role scopes
      */
-    async getRoleScopes(requestParameters: GetRoleScopesRequest): Promise<{ [key: string]: Array<string>; }> {
-        const response = await this.getRoleScopesRaw(requestParameters);
+    async getRoleScopes(requestParameters: GetRoleScopesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{ [key: string]: Array<string>; }> {
+        const response = await this.getRoleScopesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List availables role scopes
      */
-    async getRoleScopes1Raw(requestParameters: GetRoleScopes1Request): Promise<runtime.ApiResponse<{ [key: string]: Array<string>; }>> {
+    async getRoleScopes1Raw(requestParameters: GetRoleScopes1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{ [key: string]: Array<string>; }>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getRoleScopes1.');
         }
@@ -5259,7 +5261,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getRoleScopes1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5271,7 +5273,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -5279,8 +5281,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * List availables role scopes
      */
-    async getRoleScopes1(requestParameters: GetRoleScopes1Request): Promise<{ [key: string]: Array<string>; }> {
-        const response = await this.getRoleScopes1Raw(requestParameters);
+    async getRoleScopes1(requestParameters: GetRoleScopes1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{ [key: string]: Array<string>; }> {
+        const response = await this.getRoleScopes1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -5288,7 +5290,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List of roles
      */
-    async getRolesRaw(requestParameters: GetRolesRequest): Promise<runtime.ApiResponse<Array<RoleEntity>>> {
+    async getRolesRaw(requestParameters: GetRolesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<RoleEntity>>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling getRoles.');
         }
@@ -5297,7 +5299,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getRoles.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5309,7 +5311,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RoleEntityFromJSON));
     }
@@ -5318,8 +5320,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List of roles
      */
-    async getRoles(requestParameters: GetRolesRequest): Promise<Array<RoleEntity>> {
-        const response = await this.getRolesRaw(requestParameters);
+    async getRoles(requestParameters: GetRolesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<RoleEntity>> {
+        const response = await this.getRolesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -5327,7 +5329,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List of roles
      */
-    async getRoles1Raw(requestParameters: GetRoles1Request): Promise<runtime.ApiResponse<Array<RoleEntity>>> {
+    async getRoles1Raw(requestParameters: GetRoles1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<RoleEntity>>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling getRoles1.');
         }
@@ -5340,7 +5342,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getRoles1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5352,7 +5354,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RoleEntityFromJSON));
     }
@@ -5361,8 +5363,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List of roles
      */
-    async getRoles1(requestParameters: GetRoles1Request): Promise<Array<RoleEntity>> {
-        const response = await this.getRoles1Raw(requestParameters);
+    async getRoles1(requestParameters: GetRoles1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<RoleEntity>> {
+        const response = await this.getRoles1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -5370,7 +5372,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[READ] permission to use this service
      * Get a sharding tag
      */
-    async getTagRaw(requestParameters: GetTagRequest): Promise<runtime.ApiResponse<TagEntity>> {
+    async getTagRaw(requestParameters: GetTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TagEntity>> {
         if (requestParameters.tag === null || requestParameters.tag === undefined) {
             throw new runtime.RequiredError('tag','Required parameter requestParameters.tag was null or undefined when calling getTag.');
         }
@@ -5379,7 +5381,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTag.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5391,7 +5393,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TagEntityFromJSON(jsonValue));
     }
@@ -5400,8 +5402,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[READ] permission to use this service
      * Get a sharding tag
      */
-    async getTag(requestParameters: GetTagRequest): Promise<TagEntity> {
-        const response = await this.getTagRaw(requestParameters);
+    async getTag(requestParameters: GetTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TagEntity> {
+        const response = await this.getTagRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -5409,7 +5411,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[READ] permission to use this service
      * Get a sharding tag
      */
-    async getTag1Raw(requestParameters: GetTag1Request): Promise<runtime.ApiResponse<TagEntity>> {
+    async getTag1Raw(requestParameters: GetTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TagEntity>> {
         if (requestParameters.tag === null || requestParameters.tag === undefined) {
             throw new runtime.RequiredError('tag','Required parameter requestParameters.tag was null or undefined when calling getTag1.');
         }
@@ -5422,7 +5424,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTag1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5434,7 +5436,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TagEntityFromJSON(jsonValue));
     }
@@ -5443,20 +5445,20 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[READ] permission to use this service
      * Get a sharding tag
      */
-    async getTag1(requestParameters: GetTag1Request): Promise<TagEntity> {
-        const response = await this.getTag1Raw(requestParameters);
+    async getTag1(requestParameters: GetTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TagEntity> {
+        const response = await this.getTag1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List sharding tags
      */
-    async getTagsRaw(requestParameters: GetTagsRequest): Promise<runtime.ApiResponse<Array<TagEntity>>> {
+    async getTagsRaw(requestParameters: GetTagsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TagEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTags.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5468,7 +5470,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TagEntityFromJSON));
     }
@@ -5476,15 +5478,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * List sharding tags
      */
-    async getTags(requestParameters: GetTagsRequest): Promise<Array<TagEntity>> {
-        const response = await this.getTagsRaw(requestParameters);
+    async getTags(requestParameters: GetTagsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TagEntity>> {
+        const response = await this.getTagsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List sharding tags
      */
-    async getTags1Raw(requestParameters: GetTags1Request): Promise<runtime.ApiResponse<Array<TagEntity>>> {
+    async getTags1Raw(requestParameters: GetTags1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TagEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getTags1.');
         }
@@ -5493,7 +5495,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTags1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5505,7 +5507,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TagEntityFromJSON));
     }
@@ -5513,20 +5515,20 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * List sharding tags
      */
-    async getTags1(requestParameters: GetTags1Request): Promise<Array<TagEntity>> {
-        const response = await this.getTags1Raw(requestParameters);
+    async getTags1(requestParameters: GetTags1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TagEntity>> {
+        const response = await this.getTags1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List tenants
      */
-    async getTenantsRaw(requestParameters: GetTenantsRequest): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async getTenantsRaw(requestParameters: GetTenantsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTenants.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5538,7 +5540,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -5546,15 +5548,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * List tenants
      */
-    async getTenants(requestParameters: GetTenantsRequest): Promise<Array<TenantEntity>> {
-        const response = await this.getTenantsRaw(requestParameters);
+    async getTenants(requestParameters: GetTenantsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.getTenantsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * List tenants
      */
-    async getTenants1Raw(requestParameters: GetTenants1Request): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async getTenants1Raw(requestParameters: GetTenants1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getTenants1.');
         }
@@ -5563,7 +5565,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTenants1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5575,7 +5577,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -5583,14 +5585,14 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * List tenants
      */
-    async getTenants1(requestParameters: GetTenants1Request): Promise<Array<TenantEntity>> {
-        const response = await this.getTenants1Raw(requestParameters);
+    async getTenants1(requestParameters: GetTenants1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.getTenants1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async getThemeRaw(requestParameters: GetThemeRequest): Promise<runtime.ApiResponse<ThemeEntity>> {
+    async getThemeRaw(requestParameters: GetThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ThemeEntity>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling getTheme.');
         }
@@ -5603,7 +5605,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTheme.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5615,21 +5617,21 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ThemeEntityFromJSON(jsonValue));
     }
 
     /**
      */
-    async getTheme(requestParameters: GetThemeRequest): Promise<ThemeEntity> {
-        const response = await this.getThemeRaw(requestParameters);
+    async getTheme(requestParameters: GetThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ThemeEntity> {
+        const response = await this.getThemeRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async getThemeBackgroundRaw(requestParameters: GetThemeBackgroundRequest): Promise<runtime.ApiResponse<void>> {
+    async getThemeBackgroundRaw(requestParameters: GetThemeBackgroundRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling getThemeBackground.');
         }
@@ -5642,7 +5644,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getThemeBackground.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5654,20 +5656,20 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async getThemeBackground(requestParameters: GetThemeBackgroundRequest): Promise<void> {
-        await this.getThemeBackgroundRaw(requestParameters);
+    async getThemeBackground(requestParameters: GetThemeBackgroundRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getThemeBackgroundRaw(requestParameters, initOverrides);
     }
 
     /**
      */
-    async getThemeLogoRaw(requestParameters: GetThemeLogoRequest): Promise<runtime.ApiResponse<void>> {
+    async getThemeLogoRaw(requestParameters: GetThemeLogoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling getThemeLogo.');
         }
@@ -5680,7 +5682,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getThemeLogo.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5692,22 +5694,22 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async getThemeLogo(requestParameters: GetThemeLogoRequest): Promise<void> {
-        await this.getThemeLogoRaw(requestParameters);
+    async getThemeLogo(requestParameters: GetThemeLogoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getThemeLogoRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the PORTAL_TOP_APIS[READ] permission to use this service
      * List of top APIs
      */
-    async getTopApisRaw(requestParameters: GetTopApisRequest): Promise<runtime.ApiResponse<Array<TopApiEntity>>> {
+    async getTopApisRaw(requestParameters: GetTopApisRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TopApiEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getTopApis.');
         }
@@ -5716,7 +5718,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getTopApis.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5728,7 +5730,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TopApiEntityFromJSON));
     }
@@ -5737,8 +5739,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_TOP_APIS[READ] permission to use this service
      * List of top APIs
      */
-    async getTopApis(requestParameters: GetTopApisRequest): Promise<Array<TopApiEntity>> {
-        const response = await this.getTopApisRaw(requestParameters);
+    async getTopApis(requestParameters: GetTopApisRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TopApiEntity>> {
+        const response = await this.getTopApisRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -5746,7 +5748,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List users with the given role
      */
-    async getUsersPerRoleRaw(requestParameters: GetUsersPerRoleRequest): Promise<runtime.ApiResponse<Array<MembershipListItem>>> {
+    async getUsersPerRoleRaw(requestParameters: GetUsersPerRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<MembershipListItem>>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling getUsersPerRole.');
         }
@@ -5759,7 +5761,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUsersPerRole.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5771,7 +5773,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(MembershipListItemFromJSON));
     }
@@ -5780,8 +5782,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List users with the given role
      */
-    async getUsersPerRole(requestParameters: GetUsersPerRoleRequest): Promise<Array<MembershipListItem>> {
-        const response = await this.getUsersPerRoleRaw(requestParameters);
+    async getUsersPerRole(requestParameters: GetUsersPerRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<MembershipListItem>> {
+        const response = await this.getUsersPerRoleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -5789,7 +5791,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List users with the given role
      */
-    async getUsersPerRole1Raw(requestParameters: GetUsersPerRole1Request): Promise<runtime.ApiResponse<Array<MembershipListItem>>> {
+    async getUsersPerRole1Raw(requestParameters: GetUsersPerRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<MembershipListItem>>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling getUsersPerRole1.');
         }
@@ -5806,7 +5808,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getUsersPerRole1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5818,7 +5820,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(MembershipListItemFromJSON));
     }
@@ -5827,20 +5829,20 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[READ] permission to use this service
      * List users with the given role
      */
-    async getUsersPerRole1(requestParameters: GetUsersPerRole1Request): Promise<Array<MembershipListItem>> {
-        const response = await this.getUsersPerRole1Raw(requestParameters);
+    async getUsersPerRole1(requestParameters: GetUsersPerRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<MembershipListItem>> {
+        const response = await this.getUsersPerRole1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Get the global flow configuration of the organization
      */
-    async hasPoliciesRaw(requestParameters: HasPoliciesRequest): Promise<runtime.ApiResponse<OrganizationFlowConfiguration>> {
+    async hasPoliciesRaw(requestParameters: HasPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<OrganizationFlowConfiguration>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling hasPolicies.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5852,7 +5854,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => OrganizationFlowConfigurationFromJSON(jsonValue));
     }
@@ -5860,14 +5862,14 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Get the global flow configuration of the organization
      */
-    async hasPolicies(requestParameters: HasPoliciesRequest): Promise<OrganizationFlowConfiguration> {
-        const response = await this.hasPoliciesRaw(requestParameters);
+    async hasPolicies(requestParameters: HasPoliciesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<OrganizationFlowConfiguration> {
+        const response = await this.hasPoliciesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async resetThemeRaw(requestParameters: ResetThemeRequest): Promise<runtime.ApiResponse<ThemeEntity>> {
+    async resetThemeRaw(requestParameters: ResetThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ThemeEntity>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling resetTheme.');
         }
@@ -5880,7 +5882,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling resetTheme.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5892,15 +5894,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ThemeEntityFromJSON(jsonValue));
     }
 
     /**
      */
-    async resetTheme(requestParameters: ResetThemeRequest): Promise<ThemeEntity> {
-        const response = await this.resetThemeRaw(requestParameters);
+    async resetTheme(requestParameters: ResetThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ThemeEntity> {
+        const response = await this.resetThemeRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -5908,7 +5910,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[UPDATE] permission to use this service
      * Undeploy dictionary to API gateway
      */
-    async undeployDictionaryRaw(requestParameters: UndeployDictionaryRequest): Promise<runtime.ApiResponse<DictionaryEntity>> {
+    async undeployDictionaryRaw(requestParameters: UndeployDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DictionaryEntity>> {
         if (requestParameters.dictionary === null || requestParameters.dictionary === undefined) {
             throw new runtime.RequiredError('dictionary','Required parameter requestParameters.dictionary was null or undefined when calling undeployDictionary.');
         }
@@ -5921,7 +5923,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling undeployDictionary.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5933,7 +5935,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DictionaryEntityFromJSON(jsonValue));
     }
@@ -5942,8 +5944,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[UPDATE] permission to use this service
      * Undeploy dictionary to API gateway
      */
-    async undeployDictionary(requestParameters: UndeployDictionaryRequest): Promise<DictionaryEntity> {
-        const response = await this.undeployDictionaryRaw(requestParameters);
+    async undeployDictionary(requestParameters: UndeployDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DictionaryEntity> {
+        const response = await this.undeployDictionaryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -5951,7 +5953,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_API_HEADER[UPDATE] permission to use this service
      * Update an API header
      */
-    async updateApiHeaderRaw(requestParameters: UpdateApiHeaderRequest): Promise<runtime.ApiResponse<ApiHeaderEntity>> {
+    async updateApiHeaderRaw(requestParameters: UpdateApiHeaderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiHeaderEntity>> {
         if (requestParameters.id === null || requestParameters.id === undefined) {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling updateApiHeader.');
         }
@@ -5968,7 +5970,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateApiHeaderEntity','Required parameter requestParameters.updateApiHeaderEntity was null or undefined when calling updateApiHeader.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -5983,7 +5985,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateApiHeaderEntityToJSON(requestParameters.updateApiHeaderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiHeaderEntityFromJSON(jsonValue));
     }
@@ -5992,8 +5994,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_API_HEADER[UPDATE] permission to use this service
      * Update an API header
      */
-    async updateApiHeader(requestParameters: UpdateApiHeaderRequest): Promise<ApiHeaderEntity> {
-        const response = await this.updateApiHeaderRaw(requestParameters);
+    async updateApiHeader(requestParameters: UpdateApiHeaderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiHeaderEntity> {
+        const response = await this.updateApiHeaderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6001,7 +6003,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[UPDATE] permission to use this service
      * Update an existing category
      */
-    async updateCategoriesRaw(requestParameters: UpdateCategoriesRequest): Promise<runtime.ApiResponse<Array<CategoryEntity>>> {
+    async updateCategoriesRaw(requestParameters: UpdateCategoriesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CategoryEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateCategories.');
         }
@@ -6014,7 +6016,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateCategoryEntity','Required parameter requestParameters.updateCategoryEntity was null or undefined when calling updateCategories.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6029,7 +6031,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.updateCategoryEntity.map(UpdateCategoryEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CategoryEntityFromJSON));
     }
@@ -6038,8 +6040,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[UPDATE] permission to use this service
      * Update an existing category
      */
-    async updateCategories(requestParameters: UpdateCategoriesRequest): Promise<Array<CategoryEntity>> {
-        const response = await this.updateCategoriesRaw(requestParameters);
+    async updateCategories(requestParameters: UpdateCategoriesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CategoryEntity>> {
+        const response = await this.updateCategoriesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6047,7 +6049,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[UPDATE] permission to use this service
      * Update the category
      */
-    async updateCategoryRaw(requestParameters: UpdateCategoryRequest): Promise<runtime.ApiResponse<CategoryEntity>> {
+    async updateCategoryRaw(requestParameters: UpdateCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CategoryEntity>> {
         if (requestParameters.categoryId === null || requestParameters.categoryId === undefined) {
             throw new runtime.RequiredError('categoryId','Required parameter requestParameters.categoryId was null or undefined when calling updateCategory.');
         }
@@ -6064,7 +6066,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateCategoryEntity','Required parameter requestParameters.updateCategoryEntity was null or undefined when calling updateCategory.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6079,7 +6081,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateCategoryEntityToJSON(requestParameters.updateCategoryEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CategoryEntityFromJSON(jsonValue));
     }
@@ -6088,8 +6090,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CATEGORY[UPDATE] permission to use this service
      * Update the category
      */
-    async updateCategory(requestParameters: UpdateCategoryRequest): Promise<CategoryEntity> {
-        const response = await this.updateCategoryRaw(requestParameters);
+    async updateCategory(requestParameters: UpdateCategoryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CategoryEntity> {
+        const response = await this.updateCategoryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6097,7 +6099,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[UPDATE] permission to use this service
      * Update a client registration provider
      */
-    async updateClientRegistrationProviderRaw(requestParameters: UpdateClientRegistrationProviderRequest): Promise<runtime.ApiResponse<ClientRegistrationProviderEntity>> {
+    async updateClientRegistrationProviderRaw(requestParameters: UpdateClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ClientRegistrationProviderEntity>> {
         if (requestParameters.clientRegistrationProvider === null || requestParameters.clientRegistrationProvider === undefined) {
             throw new runtime.RequiredError('clientRegistrationProvider','Required parameter requestParameters.clientRegistrationProvider was null or undefined when calling updateClientRegistrationProvider.');
         }
@@ -6114,7 +6116,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateClientRegistrationProviderEntity','Required parameter requestParameters.updateClientRegistrationProviderEntity was null or undefined when calling updateClientRegistrationProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6129,7 +6131,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateClientRegistrationProviderEntityToJSON(requestParameters.updateClientRegistrationProviderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ClientRegistrationProviderEntityFromJSON(jsonValue));
     }
@@ -6138,8 +6140,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[UPDATE] permission to use this service
      * Update a client registration provider
      */
-    async updateClientRegistrationProvider(requestParameters: UpdateClientRegistrationProviderRequest): Promise<ClientRegistrationProviderEntity> {
-        const response = await this.updateClientRegistrationProviderRaw(requestParameters);
+    async updateClientRegistrationProvider(requestParameters: UpdateClientRegistrationProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ClientRegistrationProviderEntity> {
+        const response = await this.updateClientRegistrationProviderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6147,7 +6149,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the CUSTOM_USER_FIELDS[UPDATE] permission to use this service
      * Update a Custom User Field
      */
-    async updateCustomUserFieldRaw(requestParameters: UpdateCustomUserFieldRequest): Promise<runtime.ApiResponse<CustomUserFieldEntity>> {
+    async updateCustomUserFieldRaw(requestParameters: UpdateCustomUserFieldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CustomUserFieldEntity>> {
         if (requestParameters.key === null || requestParameters.key === undefined) {
             throw new runtime.RequiredError('key','Required parameter requestParameters.key was null or undefined when calling updateCustomUserField.');
         }
@@ -6156,7 +6158,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateCustomUserField.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6171,7 +6173,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: CustomUserFieldEntityToJSON(requestParameters.customUserFieldEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CustomUserFieldEntityFromJSON(jsonValue));
     }
@@ -6180,8 +6182,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the CUSTOM_USER_FIELDS[UPDATE] permission to use this service
      * Update a Custom User Field
      */
-    async updateCustomUserField(requestParameters: UpdateCustomUserFieldRequest): Promise<CustomUserFieldEntity> {
-        const response = await this.updateCustomUserFieldRaw(requestParameters);
+    async updateCustomUserField(requestParameters: UpdateCustomUserFieldRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CustomUserFieldEntity> {
+        const response = await this.updateCustomUserFieldRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6189,7 +6191,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[UPDATE] permission to use this service
      * Update a platform dashboard
      */
-    async updateDashboardRaw(requestParameters: UpdateDashboardRequest): Promise<runtime.ApiResponse<DashboardEntity>> {
+    async updateDashboardRaw(requestParameters: UpdateDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DashboardEntity>> {
         if (requestParameters.dashboardId === null || requestParameters.dashboardId === undefined) {
             throw new runtime.RequiredError('dashboardId','Required parameter requestParameters.dashboardId was null or undefined when calling updateDashboard.');
         }
@@ -6206,7 +6208,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateDashboardEntity','Required parameter requestParameters.updateDashboardEntity was null or undefined when calling updateDashboard.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6221,7 +6223,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateDashboardEntityToJSON(requestParameters.updateDashboardEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DashboardEntityFromJSON(jsonValue));
     }
@@ -6230,8 +6232,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_DASHBOARD[UPDATE] permission to use this service
      * Update a platform dashboard
      */
-    async updateDashboard(requestParameters: UpdateDashboardRequest): Promise<DashboardEntity> {
-        const response = await this.updateDashboardRaw(requestParameters);
+    async updateDashboard(requestParameters: UpdateDashboardRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DashboardEntity> {
+        const response = await this.updateDashboardRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6239,7 +6241,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[UPDATE] permission to use this service
      * Update a dictionary
      */
-    async updateDictionaryRaw(requestParameters: UpdateDictionaryRequest): Promise<runtime.ApiResponse<DictionaryEntity>> {
+    async updateDictionaryRaw(requestParameters: UpdateDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DictionaryEntity>> {
         if (requestParameters.dictionary === null || requestParameters.dictionary === undefined) {
             throw new runtime.RequiredError('dictionary','Required parameter requestParameters.dictionary was null or undefined when calling updateDictionary.');
         }
@@ -6256,7 +6258,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateDictionaryEntity','Required parameter requestParameters.updateDictionaryEntity was null or undefined when calling updateDictionary.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6271,7 +6273,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateDictionaryEntityToJSON(requestParameters.updateDictionaryEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DictionaryEntityFromJSON(jsonValue));
     }
@@ -6280,8 +6282,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the DICTIONARY[UPDATE] permission to use this service
      * Update a dictionary
      */
-    async updateDictionary(requestParameters: UpdateDictionaryRequest): Promise<DictionaryEntity> {
-        const response = await this.updateDictionaryRaw(requestParameters);
+    async updateDictionary(requestParameters: UpdateDictionaryRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DictionaryEntity> {
+        const response = await this.updateDictionaryRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6289,7 +6291,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[UPDATE] permission to use this service
      * Update a platform entrypoint
      */
-    async updateEntrypointRaw(requestParameters: UpdateEntrypointRequest): Promise<runtime.ApiResponse<EntrypointEntity>> {
+    async updateEntrypointRaw(requestParameters: UpdateEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EntrypointEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateEntrypoint.');
         }
@@ -6298,7 +6300,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateEntryPointEntity','Required parameter requestParameters.updateEntryPointEntity was null or undefined when calling updateEntrypoint.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6313,7 +6315,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateEntryPointEntityToJSON(requestParameters.updateEntryPointEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EntrypointEntityFromJSON(jsonValue));
     }
@@ -6322,8 +6324,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[UPDATE] permission to use this service
      * Update a platform entrypoint
      */
-    async updateEntrypoint(requestParameters: UpdateEntrypointRequest): Promise<EntrypointEntity> {
-        const response = await this.updateEntrypointRaw(requestParameters);
+    async updateEntrypoint(requestParameters: UpdateEntrypointRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EntrypointEntity> {
+        const response = await this.updateEntrypointRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6331,7 +6333,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[UPDATE] permission to use this service
      * Update a platform entrypoint
      */
-    async updateEntrypoint1Raw(requestParameters: UpdateEntrypoint1Request): Promise<runtime.ApiResponse<EntrypointEntity>> {
+    async updateEntrypoint1Raw(requestParameters: UpdateEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EntrypointEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateEntrypoint1.');
         }
@@ -6344,7 +6346,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateEntryPointEntity','Required parameter requestParameters.updateEntryPointEntity was null or undefined when calling updateEntrypoint1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6359,7 +6361,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateEntryPointEntityToJSON(requestParameters.updateEntryPointEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => EntrypointEntityFromJSON(jsonValue));
     }
@@ -6368,15 +6370,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ENTRYPOINT[UPDATE] permission to use this service
      * Update a platform entrypoint
      */
-    async updateEntrypoint1(requestParameters: UpdateEntrypoint1Request): Promise<EntrypointEntity> {
-        const response = await this.updateEntrypoint1Raw(requestParameters);
+    async updateEntrypoint1(requestParameters: UpdateEntrypoint1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EntrypointEntity> {
+        const response = await this.updateEntrypoint1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Update generic notification settings
      */
-    async updateGenericNotificationSettingsRaw(requestParameters: UpdateGenericNotificationSettingsRequest): Promise<runtime.ApiResponse<GenericNotificationConfigEntity>> {
+    async updateGenericNotificationSettingsRaw(requestParameters: UpdateGenericNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GenericNotificationConfigEntity>> {
         if (requestParameters.notificationId === null || requestParameters.notificationId === undefined) {
             throw new runtime.RequiredError('notificationId','Required parameter requestParameters.notificationId was null or undefined when calling updateGenericNotificationSettings.');
         }
@@ -6389,7 +6391,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateGenericNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6404,7 +6406,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: GenericNotificationConfigEntityToJSON(requestParameters.genericNotificationConfigEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => GenericNotificationConfigEntityFromJSON(jsonValue));
     }
@@ -6412,15 +6414,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Update generic notification settings
      */
-    async updateGenericNotificationSettings(requestParameters: UpdateGenericNotificationSettingsRequest): Promise<GenericNotificationConfigEntity> {
-        const response = await this.updateGenericNotificationSettingsRaw(requestParameters);
+    async updateGenericNotificationSettings(requestParameters: UpdateGenericNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GenericNotificationConfigEntity> {
+        const response = await this.updateGenericNotificationSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Update an existing group
      */
-    async updateGroupRaw(requestParameters: UpdateGroupRequest): Promise<runtime.ApiResponse<GroupEntity>> {
+    async updateGroupRaw(requestParameters: UpdateGroupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GroupEntity>> {
         if (requestParameters.group === null || requestParameters.group === undefined) {
             throw new runtime.RequiredError('group','Required parameter requestParameters.group was null or undefined when calling updateGroup.');
         }
@@ -6437,7 +6439,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateGroupEntity','Required parameter requestParameters.updateGroupEntity was null or undefined when calling updateGroup.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6452,7 +6454,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateGroupEntityToJSON(requestParameters.updateGroupEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => GroupEntityFromJSON(jsonValue));
     }
@@ -6460,8 +6462,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Update an existing group
      */
-    async updateGroup(requestParameters: UpdateGroupRequest): Promise<GroupEntity> {
-        const response = await this.updateGroupRaw(requestParameters);
+    async updateGroup(requestParameters: UpdateGroupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GroupEntity> {
+        const response = await this.updateGroupRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6469,7 +6471,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[UPDATE] permission to use this service
      * Update an invitation to join a group
      */
-    async updateGroupInvitationRaw(requestParameters: UpdateGroupInvitationRequest): Promise<runtime.ApiResponse<InvitationEntity>> {
+    async updateGroupInvitationRaw(requestParameters: UpdateGroupInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<InvitationEntity>> {
         if (requestParameters.invitation === null || requestParameters.invitation === undefined) {
             throw new runtime.RequiredError('invitation','Required parameter requestParameters.invitation was null or undefined when calling updateGroupInvitation.');
         }
@@ -6490,7 +6492,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateInvitationEntity','Required parameter requestParameters.updateInvitationEntity was null or undefined when calling updateGroupInvitation.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6505,7 +6507,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateInvitationEntityToJSON(requestParameters.updateInvitationEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => InvitationEntityFromJSON(jsonValue));
     }
@@ -6514,8 +6516,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the GROUP_INVITATION[UPDATE] permission to use this service
      * Update an invitation to join a group
      */
-    async updateGroupInvitation(requestParameters: UpdateGroupInvitationRequest): Promise<InvitationEntity> {
-        const response = await this.updateGroupInvitationRaw(requestParameters);
+    async updateGroupInvitation(requestParameters: UpdateGroupInvitationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<InvitationEntity> {
+        const response = await this.updateGroupInvitationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6523,7 +6525,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[UPDATE] permission to use this service
      * Update an identity provider
      */
-    async updateIdentityProviderRaw(requestParameters: UpdateIdentityProviderRequest): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
+    async updateIdentityProviderRaw(requestParameters: UpdateIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
         if (requestParameters.identityProvider === null || requestParameters.identityProvider === undefined) {
             throw new runtime.RequiredError('identityProvider','Required parameter requestParameters.identityProvider was null or undefined when calling updateIdentityProvider.');
         }
@@ -6536,7 +6538,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateIdentityProviderEntity','Required parameter requestParameters.updateIdentityProviderEntity was null or undefined when calling updateIdentityProvider.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6551,7 +6553,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateIdentityProviderEntityToJSON(requestParameters.updateIdentityProviderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => IdentityProviderEntityFromJSON(jsonValue));
     }
@@ -6560,8 +6562,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[UPDATE] permission to use this service
      * Update an identity provider
      */
-    async updateIdentityProvider(requestParameters: UpdateIdentityProviderRequest): Promise<IdentityProviderEntity> {
-        const response = await this.updateIdentityProviderRaw(requestParameters);
+    async updateIdentityProvider(requestParameters: UpdateIdentityProviderRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IdentityProviderEntity> {
+        const response = await this.updateIdentityProviderRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6569,7 +6571,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[UPDATE] permission to use this service
      * Update an identity provider
      */
-    async updateIdentityProvider1Raw(requestParameters: UpdateIdentityProvider1Request): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
+    async updateIdentityProvider1Raw(requestParameters: UpdateIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IdentityProviderEntity>> {
         if (requestParameters.identityProvider === null || requestParameters.identityProvider === undefined) {
             throw new runtime.RequiredError('identityProvider','Required parameter requestParameters.identityProvider was null or undefined when calling updateIdentityProvider1.');
         }
@@ -6586,7 +6588,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateIdentityProviderEntity','Required parameter requestParameters.updateIdentityProviderEntity was null or undefined when calling updateIdentityProvider1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6601,7 +6603,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateIdentityProviderEntityToJSON(requestParameters.updateIdentityProviderEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => IdentityProviderEntityFromJSON(jsonValue));
     }
@@ -6610,8 +6612,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the ORGANIZATION_IDENTITY_PROVIDER[UPDATE] permission to use this service
      * Update an identity provider
      */
-    async updateIdentityProvider1(requestParameters: UpdateIdentityProvider1Request): Promise<IdentityProviderEntity> {
-        const response = await this.updateIdentityProvider1Raw(requestParameters);
+    async updateIdentityProvider1(requestParameters: UpdateIdentityProvider1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IdentityProviderEntity> {
+        const response = await this.updateIdentityProvider1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6619,7 +6621,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_METADATA[UPDATE] permission to use this service
      * Update a platform metadata
      */
-    async updateMetadataRaw(requestParameters: UpdateMetadataRequest): Promise<runtime.ApiResponse<MetadataEntity>> {
+    async updateMetadataRaw(requestParameters: UpdateMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MetadataEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateMetadata.');
         }
@@ -6632,7 +6634,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateMetadataEntity','Required parameter requestParameters.updateMetadataEntity was null or undefined when calling updateMetadata.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6647,7 +6649,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateMetadataEntityToJSON(requestParameters.updateMetadataEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => MetadataEntityFromJSON(jsonValue));
     }
@@ -6656,8 +6658,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_METADATA[UPDATE] permission to use this service
      * Update a platform metadata
      */
-    async updateMetadata(requestParameters: UpdateMetadataRequest): Promise<MetadataEntity> {
-        const response = await this.updateMetadataRaw(requestParameters);
+    async updateMetadata(requestParameters: UpdateMetadataRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MetadataEntity> {
+        const response = await this.updateMetadataRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6665,7 +6667,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[UPDATE] permission to use this service
      * Update an existing notification template
      */
-    async updateNotificationTemplateRaw(requestParameters: UpdateNotificationTemplateRequest): Promise<runtime.ApiResponse<NotificationTemplateEntity>> {
+    async updateNotificationTemplateRaw(requestParameters: UpdateNotificationTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NotificationTemplateEntity>> {
         if (requestParameters.notificationTemplateId === null || requestParameters.notificationTemplateId === undefined) {
             throw new runtime.RequiredError('notificationTemplateId','Required parameter requestParameters.notificationTemplateId was null or undefined when calling updateNotificationTemplate.');
         }
@@ -6674,7 +6676,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateNotificationTemplate.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6689,7 +6691,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: NotificationTemplateEntityToJSON(requestParameters.notificationTemplateEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => NotificationTemplateEntityFromJSON(jsonValue));
     }
@@ -6698,15 +6700,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the NOTIFICATION_TEMPLATES[UPDATE] permission to use this service
      * Update an existing notification template
      */
-    async updateNotificationTemplate(requestParameters: UpdateNotificationTemplateRequest): Promise<NotificationTemplateEntity> {
-        const response = await this.updateNotificationTemplateRaw(requestParameters);
+    async updateNotificationTemplate(requestParameters: UpdateNotificationTemplateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NotificationTemplateEntity> {
+        const response = await this.updateNotificationTemplateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Update portal notification settings
      */
-    async updatePortalNotificationSettingsRaw(requestParameters: UpdatePortalNotificationSettingsRequest): Promise<runtime.ApiResponse<PortalNotificationConfigEntity>> {
+    async updatePortalNotificationSettingsRaw(requestParameters: UpdatePortalNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PortalNotificationConfigEntity>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updatePortalNotificationSettings.');
         }
@@ -6715,7 +6717,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updatePortalNotificationSettings.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6730,7 +6732,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: PortalNotificationConfigEntityToJSON(requestParameters.portalNotificationConfigEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PortalNotificationConfigEntityFromJSON(jsonValue));
     }
@@ -6738,8 +6740,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
     /**
      * Update portal notification settings
      */
-    async updatePortalNotificationSettings(requestParameters: UpdatePortalNotificationSettingsRequest): Promise<PortalNotificationConfigEntity> {
-        const response = await this.updatePortalNotificationSettingsRaw(requestParameters);
+    async updatePortalNotificationSettings(requestParameters: UpdatePortalNotificationSettingsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PortalNotificationConfigEntity> {
+        const response = await this.updatePortalNotificationSettingsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6747,7 +6749,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_QUALITY_RULE[READ] permission to use this service
      * Update a quality rule
      */
-    async updateQualityRuleRaw(requestParameters: UpdateQualityRuleRequest): Promise<runtime.ApiResponse<QualityRuleEntity>> {
+    async updateQualityRuleRaw(requestParameters: UpdateQualityRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<QualityRuleEntity>> {
         if (requestParameters.id === null || requestParameters.id === undefined) {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling updateQualityRule.');
         }
@@ -6764,7 +6766,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateQualityRuleEntity','Required parameter requestParameters.updateQualityRuleEntity was null or undefined when calling updateQualityRule.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6779,7 +6781,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateQualityRuleEntityToJSON(requestParameters.updateQualityRuleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => QualityRuleEntityFromJSON(jsonValue));
     }
@@ -6788,8 +6790,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_QUALITY_RULE[READ] permission to use this service
      * Update a quality rule
      */
-    async updateQualityRule(requestParameters: UpdateQualityRuleRequest): Promise<QualityRuleEntity> {
-        const response = await this.updateQualityRuleRaw(requestParameters);
+    async updateQualityRule(requestParameters: UpdateQualityRuleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<QualityRuleEntity> {
+        const response = await this.updateQualityRuleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6797,7 +6799,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Update a role
      */
-    async updateRoleRaw(requestParameters: UpdateRoleRequest): Promise<runtime.ApiResponse<RoleEntity>> {
+    async updateRoleRaw(requestParameters: UpdateRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling updateRole.');
         }
@@ -6814,7 +6816,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateRoleEntity','Required parameter requestParameters.updateRoleEntity was null or undefined when calling updateRole.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6829,7 +6831,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateRoleEntityToJSON(requestParameters.updateRoleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -6838,8 +6840,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Update a role
      */
-    async updateRole(requestParameters: UpdateRoleRequest): Promise<RoleEntity> {
-        const response = await this.updateRoleRaw(requestParameters);
+    async updateRole(requestParameters: UpdateRoleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.updateRoleRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6847,7 +6849,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Update a role
      */
-    async updateRole1Raw(requestParameters: UpdateRole1Request): Promise<runtime.ApiResponse<RoleEntity>> {
+    async updateRole1Raw(requestParameters: UpdateRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RoleEntity>> {
         if (requestParameters.scope === null || requestParameters.scope === undefined) {
             throw new runtime.RequiredError('scope','Required parameter requestParameters.scope was null or undefined when calling updateRole1.');
         }
@@ -6868,7 +6870,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateRoleEntity','Required parameter requestParameters.updateRoleEntity was null or undefined when calling updateRole1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6883,7 +6885,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateRoleEntityToJSON(requestParameters.updateRoleEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => RoleEntityFromJSON(jsonValue));
     }
@@ -6892,8 +6894,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_ROLE[UPDATE] permission to use this service
      * Update a role
      */
-    async updateRole1(requestParameters: UpdateRole1Request): Promise<RoleEntity> {
-        const response = await this.updateRole1Raw(requestParameters);
+    async updateRole1(requestParameters: UpdateRole1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RoleEntity> {
+        const response = await this.updateRole1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6901,7 +6903,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[UPDATE] permission to use this service
      * Update an existing sharding tag
      */
-    async updateTagRaw(requestParameters: UpdateTagRequest): Promise<runtime.ApiResponse<TagEntity>> {
+    async updateTagRaw(requestParameters: UpdateTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TagEntity>> {
         if (requestParameters.tag === null || requestParameters.tag === undefined) {
             throw new runtime.RequiredError('tag','Required parameter requestParameters.tag was null or undefined when calling updateTag.');
         }
@@ -6914,7 +6916,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateTagEntity','Required parameter requestParameters.updateTagEntity was null or undefined when calling updateTag.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6929,7 +6931,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateTagEntityToJSON(requestParameters.updateTagEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TagEntityFromJSON(jsonValue));
     }
@@ -6938,8 +6940,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[UPDATE] permission to use this service
      * Update an existing sharding tag
      */
-    async updateTag(requestParameters: UpdateTagRequest): Promise<TagEntity> {
-        const response = await this.updateTagRaw(requestParameters);
+    async updateTag(requestParameters: UpdateTagRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TagEntity> {
+        const response = await this.updateTagRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6947,7 +6949,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[UPDATE] permission to use this service
      * Update an existing sharding tag
      */
-    async updateTag1Raw(requestParameters: UpdateTag1Request): Promise<runtime.ApiResponse<TagEntity>> {
+    async updateTag1Raw(requestParameters: UpdateTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TagEntity>> {
         if (requestParameters.tag === null || requestParameters.tag === undefined) {
             throw new runtime.RequiredError('tag','Required parameter requestParameters.tag was null or undefined when calling updateTag1.');
         }
@@ -6964,7 +6966,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateTagEntity','Required parameter requestParameters.updateTagEntity was null or undefined when calling updateTag1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -6979,7 +6981,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateTagEntityToJSON(requestParameters.updateTagEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TagEntityFromJSON(jsonValue));
     }
@@ -6988,8 +6990,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TAG[UPDATE] permission to use this service
      * Update an existing sharding tag
      */
-    async updateTag1(requestParameters: UpdateTag1Request): Promise<TagEntity> {
-        const response = await this.updateTag1Raw(requestParameters);
+    async updateTag1(requestParameters: UpdateTag1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TagEntity> {
+        const response = await this.updateTag1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -6997,7 +6999,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[UPDATE] permission to use this service
      * Update a tenant
      */
-    async updateTenantsRaw(requestParameters: UpdateTenantsRequest): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async updateTenantsRaw(requestParameters: UpdateTenantsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateTenants.');
         }
@@ -7006,7 +7008,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateTenantEntity','Required parameter requestParameters.updateTenantEntity was null or undefined when calling updateTenants.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -7021,7 +7023,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.updateTenantEntity.map(UpdateTenantEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -7030,8 +7032,8 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[UPDATE] permission to use this service
      * Update a tenant
      */
-    async updateTenants(requestParameters: UpdateTenantsRequest): Promise<Array<TenantEntity>> {
-        const response = await this.updateTenantsRaw(requestParameters);
+    async updateTenants(requestParameters: UpdateTenantsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.updateTenantsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -7039,7 +7041,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[UPDATE] permission to use this service
      * Update a tenant
      */
-    async updateTenants1Raw(requestParameters: UpdateTenants1Request): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
+    async updateTenants1Raw(requestParameters: UpdateTenants1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TenantEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateTenants1.');
         }
@@ -7052,7 +7054,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateTenantEntity','Required parameter requestParameters.updateTenantEntity was null or undefined when calling updateTenants1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -7067,7 +7069,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.updateTenantEntity.map(UpdateTenantEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TenantEntityFromJSON));
     }
@@ -7076,14 +7078,14 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the MANAGEMENT_TENANT[UPDATE] permission to use this service
      * Update a tenant
      */
-    async updateTenants1(requestParameters: UpdateTenants1Request): Promise<Array<TenantEntity>> {
-        const response = await this.updateTenants1Raw(requestParameters);
+    async updateTenants1(requestParameters: UpdateTenants1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TenantEntity>> {
+        const response = await this.updateTenants1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async updateThemeRaw(requestParameters: UpdateThemeRequest): Promise<runtime.ApiResponse<ThemeEntity>> {
+    async updateThemeRaw(requestParameters: UpdateThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ThemeEntity>> {
         if (requestParameters.themeId === null || requestParameters.themeId === undefined) {
             throw new runtime.RequiredError('themeId','Required parameter requestParameters.themeId was null or undefined when calling updateTheme.');
         }
@@ -7100,7 +7102,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateThemeEntity','Required parameter requestParameters.updateThemeEntity was null or undefined when calling updateTheme.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -7115,15 +7117,15 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateThemeEntityToJSON(requestParameters.updateThemeEntity),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ThemeEntityFromJSON(jsonValue));
     }
 
     /**
      */
-    async updateTheme(requestParameters: UpdateThemeRequest): Promise<ThemeEntity> {
-        const response = await this.updateThemeRaw(requestParameters);
+    async updateTheme(requestParameters: UpdateThemeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ThemeEntity> {
+        const response = await this.updateThemeRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -7131,7 +7133,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_TOP_APIS[UPDATE] permission to use this service
      * Update a top API
      */
-    async updateTopApiRaw(requestParameters: UpdateTopApiRequest): Promise<runtime.ApiResponse<Array<TopApiEntity>>> {
+    async updateTopApiRaw(requestParameters: UpdateTopApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<TopApiEntity>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling updateTopApi.');
         }
@@ -7144,7 +7146,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateTopApiEntity','Required parameter requestParameters.updateTopApiEntity was null or undefined when calling updateTopApi.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -7159,7 +7161,7 @@ export class ConfigurationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.updateTopApiEntity.map(UpdateTopApiEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TopApiEntityFromJSON));
     }
@@ -7168,20 +7170,20 @@ export class ConfigurationApi extends runtime.BaseAPI {
      * User must have the PORTAL_TOP_APIS[UPDATE] permission to use this service
      * Update a top API
      */
-    async updateTopApi(requestParameters: UpdateTopApiRequest): Promise<Array<TopApiEntity>> {
-        const response = await this.updateTopApiRaw(requestParameters);
+    async updateTopApi(requestParameters: UpdateTopApiRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<TopApiEntity>> {
+        const response = await this.updateTopApiRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
 }
 
 /**
-    * @export
-    * @enum {string}
-    */
-export enum GetDashboardsReferenceTypeEnum {
-    PLATFORM = 'PLATFORM',
-    API = 'API',
-    APPLICATION = 'APPLICATION',
-    HOME = 'HOME'
-}
+ * @export
+ */
+export const GetDashboardsReferenceTypeEnum = {
+    PLATFORM: 'PLATFORM',
+    API: 'API',
+    APPLICATION: 'APPLICATION',
+    HOME: 'HOME'
+} as const;
+export type GetDashboardsReferenceTypeEnum = typeof GetDashboardsReferenceTypeEnum[keyof typeof GetDashboardsReferenceTypeEnum];

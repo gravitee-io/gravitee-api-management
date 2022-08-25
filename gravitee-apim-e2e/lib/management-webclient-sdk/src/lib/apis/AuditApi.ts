@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  AuditEntityMetadataPage,
+  AuditType,
+} from '../models';
 import {
-    AuditEntityMetadataPage,
     AuditEntityMetadataPageFromJSON,
     AuditEntityMetadataPageToJSON,
-    AuditType,
     AuditTypeFromJSON,
     AuditTypeToJSON,
 } from '../models';
@@ -67,12 +69,12 @@ export class AuditApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_AUDIT[READ] or ORGANIZATION_AUDIT[READ] permission to use this service
      * List available audit event type for the environment
      */
-    async getAuditEventsRaw(requestParameters: GetAuditEventsRequest): Promise<runtime.ApiResponse<Array<any>>> {
+    async getAuditEventsRaw(requestParameters: GetAuditEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<any>>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getAuditEvents.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -84,7 +86,7 @@ export class AuditApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -93,8 +95,8 @@ export class AuditApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_AUDIT[READ] or ORGANIZATION_AUDIT[READ] permission to use this service
      * List available audit event type for the environment
      */
-    async getAuditEvents(requestParameters: GetAuditEventsRequest): Promise<Array<any>> {
-        const response = await this.getAuditEventsRaw(requestParameters);
+    async getAuditEvents(requestParameters: GetAuditEventsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<any>> {
+        const response = await this.getAuditEventsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -102,7 +104,7 @@ export class AuditApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_AUDIT[READ] or ORGANIZATION_AUDIT[READ] permission to use this service
      * List available audit event type for the environment
      */
-    async getAuditEvents1Raw(requestParameters: GetAuditEvents1Request): Promise<runtime.ApiResponse<Array<any>>> {
+    async getAuditEvents1Raw(requestParameters: GetAuditEvents1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<any>>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getAuditEvents1.');
         }
@@ -111,7 +113,7 @@ export class AuditApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getAuditEvents1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -123,7 +125,7 @@ export class AuditApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse<any>(response);
     }
@@ -132,8 +134,8 @@ export class AuditApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_AUDIT[READ] or ORGANIZATION_AUDIT[READ] permission to use this service
      * List available audit event type for the environment
      */
-    async getAuditEvents1(requestParameters: GetAuditEvents1Request): Promise<Array<any>> {
-        const response = await this.getAuditEvents1Raw(requestParameters);
+    async getAuditEvents1(requestParameters: GetAuditEvents1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<any>> {
+        const response = await this.getAuditEvents1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -141,12 +143,12 @@ export class AuditApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_AUDIT[READ] or ORGANIZATION_AUDIT[READ] permission to use this service
      * Retrieve audit logs for the environment
      */
-    async getAuditsRaw(requestParameters: GetAuditsRequest): Promise<runtime.ApiResponse<AuditEntityMetadataPage>> {
+    async getAuditsRaw(requestParameters: GetAuditsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuditEntityMetadataPage>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getAudits.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.environment !== undefined) {
             queryParameters['environment'] = requestParameters.environment;
@@ -194,7 +196,7 @@ export class AuditApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AuditEntityMetadataPageFromJSON(jsonValue));
     }
@@ -203,8 +205,8 @@ export class AuditApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_AUDIT[READ] or ORGANIZATION_AUDIT[READ] permission to use this service
      * Retrieve audit logs for the environment
      */
-    async getAudits(requestParameters: GetAuditsRequest): Promise<AuditEntityMetadataPage> {
-        const response = await this.getAuditsRaw(requestParameters);
+    async getAudits(requestParameters: GetAuditsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuditEntityMetadataPage> {
+        const response = await this.getAuditsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -212,7 +214,7 @@ export class AuditApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_AUDIT[READ] or ORGANIZATION_AUDIT[READ] permission to use this service
      * Retrieve audit logs for the environment
      */
-    async getAudits1Raw(requestParameters: GetAudits1Request): Promise<runtime.ApiResponse<AuditEntityMetadataPage>> {
+    async getAudits1Raw(requestParameters: GetAudits1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuditEntityMetadataPage>> {
         if (requestParameters.envId === null || requestParameters.envId === undefined) {
             throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling getAudits1.');
         }
@@ -221,7 +223,7 @@ export class AuditApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getAudits1.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         if (requestParameters.environment !== undefined) {
             queryParameters['environment'] = requestParameters.environment;
@@ -269,7 +271,7 @@ export class AuditApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => AuditEntityMetadataPageFromJSON(jsonValue));
     }
@@ -278,8 +280,8 @@ export class AuditApi extends runtime.BaseAPI {
      * User must have the ENVIRONMENT_AUDIT[READ] or ORGANIZATION_AUDIT[READ] permission to use this service
      * Retrieve audit logs for the environment
      */
-    async getAudits1(requestParameters: GetAudits1Request): Promise<AuditEntityMetadataPage> {
-        const response = await this.getAudits1Raw(requestParameters);
+    async getAudits1(requestParameters: GetAudits1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuditEntityMetadataPage> {
+        const response = await this.getAudits1Raw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Getter
+@Getter(onMethod_ = @JsonValue)
 @Schema(enumAsRef = true, name = "PlanSecurityTypeV4")
 public enum PlanSecurityType {
     /**

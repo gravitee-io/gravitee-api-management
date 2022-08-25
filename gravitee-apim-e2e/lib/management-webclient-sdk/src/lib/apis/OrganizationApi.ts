@@ -13,14 +13,16 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  IdentityProviderActivationEntity,
+  OrganizationEntity,
+  UpdateOrganizationEntity,
+} from '../models';
 import {
-    IdentityProviderActivationEntity,
     IdentityProviderActivationEntityFromJSON,
     IdentityProviderActivationEntityToJSON,
-    OrganizationEntity,
     OrganizationEntityFromJSON,
     OrganizationEntityToJSON,
-    UpdateOrganizationEntity,
     UpdateOrganizationEntityFromJSON,
     UpdateOrganizationEntityToJSON,
 } from '../models';
@@ -47,12 +49,12 @@ export class OrganizationApi extends runtime.BaseAPI {
     /**
      * GET organization
      */
-    async getRaw(requestParameters: GetRequest): Promise<runtime.ApiResponse<OrganizationEntity>> {
+    async getRaw(requestParameters: GetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<OrganizationEntity>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling get.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -64,7 +66,7 @@ export class OrganizationApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => OrganizationEntityFromJSON(jsonValue));
     }
@@ -72,20 +74,20 @@ export class OrganizationApi extends runtime.BaseAPI {
     /**
      * GET organization
      */
-    async get(requestParameters: GetRequest): Promise<OrganizationEntity> {
-        const response = await this.getRaw(requestParameters);
+    async get(requestParameters: GetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<OrganizationEntity> {
+        const response = await this.getRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Update organization
      */
-    async updateRaw(requestParameters: UpdateRequest): Promise<runtime.ApiResponse<void>> {
+    async updateRaw(requestParameters: UpdateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling update.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -100,7 +102,7 @@ export class OrganizationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: UpdateOrganizationEntityToJSON(requestParameters.updateOrganizationEntity),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -108,19 +110,19 @@ export class OrganizationApi extends runtime.BaseAPI {
     /**
      * Update organization
      */
-    async update(requestParameters: UpdateRequest): Promise<void> {
-        await this.updateRaw(requestParameters);
+    async update(requestParameters: UpdateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.updateRaw(requestParameters, initOverrides);
     }
 
     /**
      * Update available organization identities
      */
-    async updateOrganizationIdentitiesRaw(requestParameters: UpdateOrganizationIdentitiesRequest): Promise<runtime.ApiResponse<void>> {
+    async updateOrganizationIdentitiesRaw(requestParameters: UpdateOrganizationIdentitiesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling updateOrganizationIdentities.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -135,7 +137,7 @@ export class OrganizationApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: requestParameters.identityProviderActivationEntity.map(IdentityProviderActivationEntityToJSON),
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -143,8 +145,8 @@ export class OrganizationApi extends runtime.BaseAPI {
     /**
      * Update available organization identities
      */
-    async updateOrganizationIdentities(requestParameters: UpdateOrganizationIdentitiesRequest): Promise<void> {
-        await this.updateOrganizationIdentitiesRaw(requestParameters);
+    async updateOrganizationIdentities(requestParameters: UpdateOrganizationIdentitiesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.updateOrganizationIdentitiesRaw(requestParameters, initOverrides);
     }
 
 }

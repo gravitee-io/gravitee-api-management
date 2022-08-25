@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { AuditEntity } from './AuditEntity';
 import {
-    AuditEntity,
     AuditEntityFromJSON,
     AuditEntityFromJSONTyped,
     AuditEntityToJSON,
-} from './';
+} from './AuditEntity';
 
 /**
  * 
@@ -57,6 +57,15 @@ export interface MetadataPageAuditEntity {
     totalElements?: number;
 }
 
+/**
+ * Check if a given object implements the MetadataPageAuditEntity interface.
+ */
+export function instanceOfMetadataPageAuditEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function MetadataPageAuditEntityFromJSON(json: any): MetadataPageAuditEntity {
     return MetadataPageAuditEntityFromJSONTyped(json, false);
 }
@@ -91,5 +100,4 @@ export function MetadataPageAuditEntityToJSON(value?: MetadataPageAuditEntity | 
         'totalElements': value.totalElements,
     };
 }
-
 

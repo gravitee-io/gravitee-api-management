@@ -32,6 +32,15 @@ export interface NewRatingAnswerEntity {
     ratingId?: string;
 }
 
+/**
+ * Check if a given object implements the NewRatingAnswerEntity interface.
+ */
+export function instanceOfNewRatingAnswerEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function NewRatingAnswerEntityFromJSON(json: any): NewRatingAnswerEntity {
     return NewRatingAnswerEntityFromJSONTyped(json, false);
 }
@@ -60,5 +69,4 @@ export function NewRatingAnswerEntityToJSON(value?: NewRatingAnswerEntity | null
         'ratingId': value.ratingId,
     };
 }
-
 

@@ -38,6 +38,15 @@ export interface UpdateSubscriptionEntity {
     starting_at?: Date;
 }
 
+/**
+ * Check if a given object implements the UpdateSubscriptionEntity interface.
+ */
+export function instanceOfUpdateSubscriptionEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function UpdateSubscriptionEntityFromJSON(json: any): UpdateSubscriptionEntity {
     return UpdateSubscriptionEntityFromJSONTyped(json, false);
 }
@@ -68,5 +77,4 @@ export function UpdateSubscriptionEntityToJSON(value?: UpdateSubscriptionEntity 
         'starting_at': value.starting_at === undefined ? undefined : (value.starting_at.toISOString()),
     };
 }
-
 

@@ -12,12 +12,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { InvitationReferenceType } from './InvitationReferenceType';
 import {
-    InvitationReferenceType,
     InvitationReferenceTypeFromJSON,
     InvitationReferenceTypeFromJSONTyped,
     InvitationReferenceTypeToJSON,
-} from './';
+} from './InvitationReferenceType';
 
 /**
  * 
@@ -75,6 +75,15 @@ export interface InvitationEntity {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the InvitationEntity interface.
+ */
+export function instanceOfInvitationEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function InvitationEntityFromJSON(json: any): InvitationEntity {
     return InvitationEntityFromJSONTyped(json, false);
 }
@@ -115,5 +124,4 @@ export function InvitationEntityToJSON(value?: InvitationEntity | null): any {
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

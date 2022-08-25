@@ -12,16 +12,18 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { EventType } from './EventType';
 import {
-    EventType,
     EventTypeFromJSON,
     EventTypeFromJSONTyped,
     EventTypeToJSON,
-    UserEntity,
+} from './EventType';
+import type { UserEntity } from './UserEntity';
+import {
     UserEntityFromJSON,
     UserEntityFromJSONTyped,
     UserEntityToJSON,
-} from './';
+} from './UserEntity';
 
 /**
  * 
@@ -85,6 +87,15 @@ export interface EventEntity {
     user?: UserEntity;
 }
 
+/**
+ * Check if a given object implements the EventEntity interface.
+ */
+export function instanceOfEventEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function EventEntityFromJSON(json: any): EventEntity {
     return EventEntityFromJSONTyped(json, false);
 }
@@ -127,5 +138,4 @@ export function EventEntityToJSON(value?: EventEntity | null): any {
         'user': UserEntityToJSON(value.user),
     };
 }
-
 

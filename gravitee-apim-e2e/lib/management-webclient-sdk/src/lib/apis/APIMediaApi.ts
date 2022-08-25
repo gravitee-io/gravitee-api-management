@@ -13,11 +13,13 @@
 
 
 import * as runtime from '../runtime';
+import type {
+  FormDataBodyPart,
+  PageEntity,
+} from '../models';
 import {
-    FormDataBodyPart,
     FormDataBodyPartFromJSON,
     FormDataBodyPartToJSON,
-    PageEntity,
     PageEntityFromJSON,
     PageEntityToJSON,
 } from '../models';
@@ -61,7 +63,7 @@ export class APIMediaApi extends runtime.BaseAPI {
      * User must have the API_DOCUMENTATION[UPDATE] permission to use this service
      * Attach a media to an API page 
      */
-    async attachApiPageMediaRaw(requestParameters: AttachApiPageMediaRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async attachApiPageMediaRaw(requestParameters: AttachApiPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling attachApiPageMedia.');
         }
@@ -78,7 +80,7 @@ export class APIMediaApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling attachApiPageMedia.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -100,8 +102,8 @@ export class APIMediaApi extends runtime.BaseAPI {
         }
 
         if (requestParameters.file !== undefined) {
-            formParams.append('file', requestParameters.file as any);
-        }
+            formParams.append('file', new Blob([JSON.stringify(FormDataBodyPartToJSON(requestParameters.file))], { type: "application/json", }));
+                    }
 
         if (requestParameters.fileName !== undefined) {
             formParams.append('fileName', requestParameters.fileName as any);
@@ -113,7 +115,7 @@ export class APIMediaApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: formParams,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -122,15 +124,15 @@ export class APIMediaApi extends runtime.BaseAPI {
      * User must have the API_DOCUMENTATION[UPDATE] permission to use this service
      * Attach a media to an API page 
      */
-    async attachApiPageMedia(requestParameters: AttachApiPageMediaRequest): Promise<PageEntity> {
-        const response = await this.attachApiPageMediaRaw(requestParameters);
+    async attachApiPageMedia(requestParameters: AttachApiPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.attachApiPageMediaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      * Retrieve a media for an API
      */
-    async getApiMediaImageRaw(requestParameters: GetApiMediaImageRequest): Promise<runtime.ApiResponse<void>> {
+    async getApiMediaImageRaw(requestParameters: GetApiMediaImageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiMediaImage.');
         }
@@ -147,7 +149,7 @@ export class APIMediaApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiMediaImage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -159,7 +161,7 @@ export class APIMediaApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -167,15 +169,15 @@ export class APIMediaApi extends runtime.BaseAPI {
     /**
      * Retrieve a media for an API
      */
-    async getApiMediaImage(requestParameters: GetApiMediaImageRequest): Promise<void> {
-        await this.getApiMediaImageRaw(requestParameters);
+    async getApiMediaImage(requestParameters: GetApiMediaImageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getApiMediaImageRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the API_DOCUMENTATION[READ] permission to use this service
      * Retrieve all media for an API page
      */
-    async getApiPageMediaRaw(requestParameters: GetApiPageMediaRequest): Promise<runtime.ApiResponse<void>> {
+    async getApiPageMediaRaw(requestParameters: GetApiPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.page === null || requestParameters.page === undefined) {
             throw new runtime.RequiredError('page','Required parameter requestParameters.page was null or undefined when calling getApiPageMedia.');
         }
@@ -192,7 +194,7 @@ export class APIMediaApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling getApiPageMedia.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -204,7 +206,7 @@ export class APIMediaApi extends runtime.BaseAPI {
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
-        });
+        }, initOverrides);
 
         return new runtime.VoidApiResponse(response);
     }
@@ -213,15 +215,15 @@ export class APIMediaApi extends runtime.BaseAPI {
      * User must have the API_DOCUMENTATION[READ] permission to use this service
      * Retrieve all media for an API page
      */
-    async getApiPageMedia(requestParameters: GetApiPageMediaRequest): Promise<void> {
-        await this.getApiPageMediaRaw(requestParameters);
+    async getApiPageMedia(requestParameters: GetApiPageMediaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.getApiPageMediaRaw(requestParameters, initOverrides);
     }
 
     /**
      * User must have the API_DOCUMENTATION[CREATE] permission to use this service
      * Create a media for an API
      */
-    async uploadApiMediaImageRaw(requestParameters: UploadApiMediaImageRequest): Promise<runtime.ApiResponse<PageEntity>> {
+    async uploadApiMediaImageRaw(requestParameters: UploadApiMediaImageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageEntity>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling uploadApiMediaImage.');
         }
@@ -234,7 +236,7 @@ export class APIMediaApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling uploadApiMediaImage.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -256,8 +258,8 @@ export class APIMediaApi extends runtime.BaseAPI {
         }
 
         if (requestParameters.file !== undefined) {
-            formParams.append('file', requestParameters.file as any);
-        }
+            formParams.append('file', new Blob([JSON.stringify(FormDataBodyPartToJSON(requestParameters.file))], { type: "application/json", }));
+                    }
 
         const response = await this.request({
             path: `/organizations/{orgId}/environments/{envId}/apis/{api}/media/upload`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
@@ -265,7 +267,7 @@ export class APIMediaApi extends runtime.BaseAPI {
             headers: headerParameters,
             query: queryParameters,
             body: formParams,
-        });
+        }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => PageEntityFromJSON(jsonValue));
     }
@@ -274,8 +276,8 @@ export class APIMediaApi extends runtime.BaseAPI {
      * User must have the API_DOCUMENTATION[CREATE] permission to use this service
      * Create a media for an API
      */
-    async uploadApiMediaImage(requestParameters: UploadApiMediaImageRequest): Promise<PageEntity> {
-        const response = await this.uploadApiMediaImageRaw(requestParameters);
+    async uploadApiMediaImage(requestParameters: UploadApiMediaImageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageEntity> {
+        const response = await this.uploadApiMediaImageRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

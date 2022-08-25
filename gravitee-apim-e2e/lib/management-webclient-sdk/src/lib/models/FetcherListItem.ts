@@ -50,6 +50,15 @@ export interface FetcherListItem {
     version?: string;
 }
 
+/**
+ * Check if a given object implements the FetcherListItem interface.
+ */
+export function instanceOfFetcherListItem(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function FetcherListItemFromJSON(json: any): FetcherListItem {
     return FetcherListItemFromJSONTyped(json, false);
 }
@@ -84,5 +93,4 @@ export function FetcherListItemToJSON(value?: FetcherListItem | null): any {
         'version': value.version,
     };
 }
-
 

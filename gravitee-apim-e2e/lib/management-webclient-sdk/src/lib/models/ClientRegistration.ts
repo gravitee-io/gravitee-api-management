@@ -26,6 +26,15 @@ export interface ClientRegistration {
     enabled?: boolean;
 }
 
+/**
+ * Check if a given object implements the ClientRegistration interface.
+ */
+export function instanceOfClientRegistration(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ClientRegistrationFromJSON(json: any): ClientRegistration {
     return ClientRegistrationFromJSONTyped(json, false);
 }
@@ -52,5 +61,4 @@ export function ClientRegistrationToJSON(value?: ClientRegistration | null): any
         'enabled': value.enabled,
     };
 }
-
 

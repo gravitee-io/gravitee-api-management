@@ -50,6 +50,15 @@ export interface GroupMemberEntity {
     updated_at?: Date;
 }
 
+/**
+ * Check if a given object implements the GroupMemberEntity interface.
+ */
+export function instanceOfGroupMemberEntity(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function GroupMemberEntityFromJSON(json: any): GroupMemberEntity {
     return GroupMemberEntityFromJSONTyped(json, false);
 }
@@ -84,5 +93,4 @@ export function GroupMemberEntityToJSON(value?: GroupMemberEntity | null): any {
         'updated_at': value.updated_at === undefined ? undefined : (value.updated_at.toISOString()),
     };
 }
-
 

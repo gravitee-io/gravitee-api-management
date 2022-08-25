@@ -32,6 +32,25 @@ export interface Consumer {
     consumerType?: ConsumerConsumerTypeEnum;
 }
 
+
+/**
+ * @export
+ */
+export const ConsumerConsumerTypeEnum = {
+    TAG: 'TAG'
+} as const;
+export type ConsumerConsumerTypeEnum = typeof ConsumerConsumerTypeEnum[keyof typeof ConsumerConsumerTypeEnum];
+
+
+/**
+ * Check if a given object implements the Consumer interface.
+ */
+export function instanceOfConsumer(value: object): boolean {
+    let isInstance = true;
+
+    return isInstance;
+}
+
 export function ConsumerFromJSON(json: any): Consumer {
     return ConsumerFromJSONTyped(json, false);
 }
@@ -60,13 +79,4 @@ export function ConsumerToJSON(value?: Consumer | null): any {
         'consumerType': value.consumerType,
     };
 }
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ConsumerConsumerTypeEnum {
-    TAG = 'TAG'
-}
-
 
