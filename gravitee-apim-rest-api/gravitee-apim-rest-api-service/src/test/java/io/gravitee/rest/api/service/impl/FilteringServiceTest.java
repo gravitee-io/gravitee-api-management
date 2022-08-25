@@ -141,7 +141,12 @@ public class FilteringServiceTest {
     @Test
     public void shouldNotApplyAnyFilterIfEmptyApiList() {
         Set<String> apis = emptySet();
-        Collection<String> filteredList = filteringService.filterApis(apis, FilteringService.FilterType.TRENDINGS, null);
+        Collection<String> filteredList = filteringService.filterApis(
+            GraviteeContext.getExecutionContext(),
+            apis,
+            FilteringService.FilterType.TRENDINGS,
+            null
+        );
         assertSame(apis, filteredList);
 
         verifyNoInteractions(subscriptionService);
@@ -149,13 +154,18 @@ public class FilteringServiceTest {
 
     @Test
     public void shouldNotApplyAnyFilterIfNoFilter() {
-        Collection<String> filteredList = filteringService.filterApis(mockApis, null, null);
+        Collection<String> filteredList = filteringService.filterApis(GraviteeContext.getExecutionContext(), mockApis, null, null);
         assertSame(mockApis, filteredList);
     }
 
     @Test
     public void shouldNotApplyAnyFilterIfAllFilter() {
-        Collection<String> filteredList = filteringService.filterApis(mockApis, FilteringService.FilterType.ALL, null);
+        Collection<String> filteredList = filteringService.filterApis(
+            GraviteeContext.getExecutionContext(),
+            mockApis,
+            FilteringService.FilterType.ALL,
+            null
+        );
         assertSame(mockApis, filteredList);
     }
 

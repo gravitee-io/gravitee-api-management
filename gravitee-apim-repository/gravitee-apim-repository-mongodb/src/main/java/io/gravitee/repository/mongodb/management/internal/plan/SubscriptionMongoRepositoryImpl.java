@@ -34,6 +34,7 @@ import java.util.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 /**
@@ -47,6 +48,9 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Value("${management.mongodb.prefix:}")
+    private String tablePrefix;
 
     @Override
     public Page<SubscriptionMongo> search(SubscriptionCriteria criteria, Pageable pageable) {
@@ -103,7 +107,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         }
 
         if (!isEmpty(criteria.getPlanSecurityTypes())) {
-            dataPipeline.add(lookup("plans", "plan", "_id", "subscribedPlan"));
+            dataPipeline.add(lookup(tablePrefix + "plans", "plan", "_id", "subscribedPlan"));
             dataPipeline.add(unwind("$subscribedPlan"));
             dataPipeline.add(match(in("subscribedPlan.security", criteria.getPlanSecurityTypes())));
         }

@@ -41,20 +41,12 @@ public class ApiKeyPlanBasedAuthenticationHandler implements AuthenticationHandl
     }
 
     @Override
-    public boolean canHandle(AuthenticationContext context) {
-        boolean handle = handler.canHandle(context);
-
-        if (!handle) {
+    public boolean canHandle(AuthenticationContext authenticationContext) {
+        if (!authenticationContext.contains(APIKEY_CONTEXT_ATTRIBUTE)) {
             return false;
         }
-
-        // Check that the plan associated to the api-key matches the current plan
-        Optional<ApiKey> optApikey = (Optional<ApiKey>) context.get(APIKEY_CONTEXT_ATTRIBUTE);
-        if (optApikey == null) {
-            return false;
-        }
-
-        return optApikey.map(apikey -> apikey.getPlan().equals(plan.getId())).orElse(true);
+        Optional<ApiKey> optApikey = (Optional<ApiKey>) authenticationContext.get(APIKEY_CONTEXT_ATTRIBUTE);
+        return optApikey.isPresent() && optApikey.get().getPlan().equals(plan.getId());
     }
 
     @Override

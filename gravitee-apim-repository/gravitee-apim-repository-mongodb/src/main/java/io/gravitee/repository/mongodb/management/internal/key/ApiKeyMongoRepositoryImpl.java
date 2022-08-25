@@ -26,6 +26,7 @@ import java.util.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 /**
@@ -36,6 +37,9 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Value("${management.mongodb.prefix:}")
+    private String tablePrefix;
 
     @Override
     public List<ApiKeyMongo> search(ApiKeyCriteria filter) {
@@ -61,7 +65,7 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
         }
 
         if (filter.getPlans() != null) {
-            pipeline.add(lookup("subscriptions", "subscriptions", "_id", "sub"));
+            pipeline.add(lookup(tablePrefix + "subscriptions", "subscriptions", "_id", "sub"));
             pipeline.add(unwind("$sub"));
             pipeline.add(match(in("sub.plan", filter.getPlans())));
         }
@@ -79,7 +83,7 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
     public List<ApiKeyMongo> findByKeyAndApi(String key, String api) {
         List<Bson> pipeline = List.of(
             match(eq("key", key)),
-            lookup("subscriptions", "subscriptions", "_id", "sub"),
+            lookup(tablePrefix + "subscriptions", "subscriptions", "_id", "sub"),
             unwind("$sub"),
             match(eq("sub.api", api))
         );
@@ -94,7 +98,7 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
     @Override
     public List<ApiKeyMongo> findByPlan(String plan) {
         List<Bson> pipeline = new ArrayList<>();
-        pipeline.add(lookup("subscriptions", "subscriptions", "_id", "sub"));
+        pipeline.add(lookup(tablePrefix + "subscriptions", "subscriptions", "_id", "sub"));
         pipeline.add(unwind("$sub"));
         pipeline.add(match(eq("sub.plan", plan)));
 

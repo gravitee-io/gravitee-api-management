@@ -63,8 +63,6 @@ public class SecurityPolicyResolverTest {
         when(securityProvider.name()).thenReturn("my-provider");
         when(securityProvider.handle(executionContext)).thenReturn(Collections.emptyList());
 
-        Policy policy = mock(Policy.class);
-        when(policyManager.create(StreamType.ON_REQUEST, new PolicyMetadata("my-policy", null))).thenReturn(policy);
         when(handlerSelector.select(executionContext)).thenReturn(securityProvider);
 
         List<Policy> policies = securityPolicyResolver.resolve(StreamType.ON_REQUEST, executionContext);

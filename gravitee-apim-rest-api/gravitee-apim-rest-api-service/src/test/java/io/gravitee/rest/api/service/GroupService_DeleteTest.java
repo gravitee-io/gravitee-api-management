@@ -162,7 +162,10 @@ public class GroupService_DeleteTest {
 
         when(
             pageRepository.search(
-                new PageCriteria.Builder().referenceId(ENVIRONMENT_ID).referenceType(PageReferenceType.ENVIRONMENT.name()).build()
+                new PageCriteria.Builder()
+                    .referenceId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .referenceType(PageReferenceType.ENVIRONMENT.name())
+                    .build()
             )
         )
             .thenReturn(Collections.emptyList());
@@ -241,7 +244,10 @@ public class GroupService_DeleteTest {
         page.setAccessControls(new HashSet<>(Set.of(accessControlToRemove, accessControlToKeep)));
         when(
             pageRepository.search(
-                new PageCriteria.Builder().referenceId(ENVIRONMENT_ID).referenceType(PageReferenceType.ENVIRONMENT.name()).build()
+                new PageCriteria.Builder()
+                    .referenceId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .referenceType(PageReferenceType.ENVIRONMENT.name())
+                    .build()
             )
         )
             .thenReturn(List.of(page));
