@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,6 +62,11 @@ public class NotificationParamsBuilder {
     }
 
     public NotificationParamsBuilder plan(PlanEntity plan) {
+        this.params.put(PARAM_PLAN, plan);
+        return this;
+    }
+
+    public NotificationParamsBuilder plan(GenericPlanEntity plan) {
         this.params.put(PARAM_PLAN, plan);
         return this;
     }

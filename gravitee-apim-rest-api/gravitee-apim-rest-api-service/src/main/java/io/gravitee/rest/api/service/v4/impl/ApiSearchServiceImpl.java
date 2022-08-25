@@ -28,10 +28,6 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.RoleService;
-import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -41,7 +37,6 @@ import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -118,11 +113,18 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     }
 
     @Override
-    public Set<GenericApiEntity> findByEnvironmentAndIdIn(final ExecutionContext executionContext, final Set<String> apiIds) {
+    public Set<GenericApiEntity> findGenericByEnvironmentAndIdIn(final ExecutionContext executionContext, final Set<String> apiIds) {
         if (apiIds.isEmpty()) {
             return Collections.emptySet();
         }
         ApiCriteria criteria = new ApiCriteria.Builder().ids(apiIds).environmentId(executionContext.getEnvironmentId()).build();
+        List<Api> apisFound = apiRepository.search(criteria);
+        return toGenericApis(executionContext, apisFound);
+    }
+
+    @Override
+    public Set<GenericApiEntity> findAllGenericByEnvironment(final ExecutionContext executionContext) {
+        ApiCriteria criteria = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build();
         List<Api> apisFound = apiRepository.search(criteria);
         return toGenericApis(executionContext, apisFound);
     }

@@ -18,7 +18,15 @@ package io.gravitee.rest.api.service.cockpit.services;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyCollection;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -27,16 +35,35 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.*;
+import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import io.gravitee.rest.api.model.NewPlanEntity;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.UpdatePageEntity;
+import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.api.SwaggerApiEntity;
+import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -61,6 +88,8 @@ public class ApiServiceCockpitImplTest {
     private static final String ENVIRONMENT_ID = "environment#id";
     private static final String PAGE_ID = "page#id";
     private static final String SWAGGER_DEFINITION = "";
+    private final ApiConverter apiConverter = new ApiConverter();
+    private final PageConverter pageConverter = new PageConverter();
 
     @Mock
     private ApiService apiService;
@@ -99,10 +128,6 @@ public class ApiServiceCockpitImplTest {
 
     @Captor
     private ArgumentCaptor<UpdatePageEntity> updatePageCaptor;
-
-    private final ApiConverter apiConverter = new ApiConverter();
-
-    private final PageConverter pageConverter = new PageConverter();
 
     @Before
     public void setUp() throws Exception {

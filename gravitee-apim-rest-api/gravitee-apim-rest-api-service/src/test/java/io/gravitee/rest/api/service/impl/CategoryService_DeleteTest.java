@@ -23,9 +23,9 @@ import static org.mockito.Mockito.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,7 +50,7 @@ public class CategoryService_DeleteTest {
     private AuditService mockAuditService;
 
     @Mock
-    private ApiService mockApiService;
+    private ApiCategoryService mockApiCategoryService;
 
     @Test
     public void shouldNotDeleteUnknownCategory() throws TechnicalException {
@@ -62,7 +62,7 @@ public class CategoryService_DeleteTest {
         verify(mockCategoryRepository, never()).delete(any());
         verify(mockAuditService, never())
             .createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), eq(CATEGORY_UPDATED), any(), any(), any());
-        verify(mockApiService, never()).deleteCategoryFromAPIs(eq(GraviteeContext.getExecutionContext()), eq("unknown"));
+        verify(mockApiCategoryService, never()).deleteCategoryFromAPIs(eq(GraviteeContext.getExecutionContext()), eq("unknown"));
     }
 
     @Test
@@ -78,6 +78,6 @@ public class CategoryService_DeleteTest {
         verify(mockCategoryRepository, times(1)).delete("known");
         verify(mockAuditService, times(1))
             .createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), eq(CATEGORY_DELETED), any(), any(), any());
-        verify(mockApiService, times(1)).deleteCategoryFromAPIs(eq(GraviteeContext.getExecutionContext()), eq("known"));
+        verify(mockApiCategoryService, times(1)).deleteCategoryFromAPIs(eq(GraviteeContext.getExecutionContext()), eq("known"));
     }
 }

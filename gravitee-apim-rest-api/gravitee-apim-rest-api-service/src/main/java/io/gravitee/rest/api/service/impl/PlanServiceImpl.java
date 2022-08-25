@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -73,6 +74,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     private PlanRepository planRepository;
 
     @Autowired
+    private PlanSearchService planSearchService;
+
+    @Autowired
     private SubscriptionService subscriptionService;
 
     @Autowired
@@ -101,60 +105,13 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     private FlowService flowService;
 
     @Override
-    public PlanEntity findById(final ExecutionContext executionContext, String plan) {
-        try {
-            logger.debug("Find plan by id : {}", plan);
-            return planRepository.findById(plan).map(this::convert).orElseThrow(() -> new PlanNotFoundException(plan));
-        } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find a plan by id: {}", plan, ex);
-            throw new TechnicalManagementException(String.format("An error occurs while trying to find a plan by id: %s", plan), ex);
-        }
+    public PlanEntity findById(final ExecutionContext executionContext, final String plan) {
+        return (PlanEntity) planSearchService.findById(executionContext, plan);
     }
 
     @Override
-    public Set<PlanEntity> findByIdIn(final ExecutionContext executionContext, Set<String> ids) {
-        try {
-            return planRepository.findByIdIn(ids).stream().map(this::convert).collect(Collectors.toSet());
-        } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error has occurred retrieving plans by ids", e);
-        }
-    }
-
-    @Override
-    public Set<PlanEntity> findByApi(final ExecutionContext executionContext, String api) {
-        try {
-            logger.debug("Find plan by api : {}", api);
-            return planRepository.findByApi(api).stream().map(this::convert).collect(Collectors.toSet());
-        } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find a plan by api: {}", api, ex);
-            throw new TechnicalManagementException(String.format("An error occurs while trying to find a plan by api: %s", api), ex);
-        }
-    }
-
-    @Override
-    public List<PlanEntity> search(final ExecutionContext executionContext, final PlanQuery query) {
-        Set<PlanEntity> planEntities;
-        if (query.getApi() != null) {
-            planEntities = findByApi(executionContext, query.getApi());
-        } else {
-            planEntities = emptySet();
-        }
-
-        return planEntities
-            .stream()
-            .filter(
-                p -> {
-                    boolean filtered = true;
-                    if (query.getName() != null) {
-                        filtered = p.getName().equals(query.getName());
-                    }
-                    if (filtered && query.getSecurity() != null) {
-                        filtered = p.getSecurity().equals(query.getSecurity());
-                    }
-                    return filtered;
-                }
-            )
-            .collect(Collectors.toList());
+    public Set<PlanEntity> findByApi(final ExecutionContext executionContext, final String api) {
+        return planSearchService.findByApi(executionContext, api).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
     }
 
     @Override
@@ -210,7 +167,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             if (planEntity.getId() == null) {
                 resultPlanEntity = create(executionContext, planConverter.toNewPlanEntity(planEntity));
             } else {
-                findById(executionContext, planEntity.getId());
+                planSearchService.findById(executionContext, planEntity.getId());
                 resultPlanEntity = update(executionContext, planConverter.toUpdatePlanEntity(planEntity));
             }
         } catch (PlanNotFoundException npe) {
@@ -637,17 +594,12 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Override
     public boolean anyPlanMismatchWithApi(List<String> planIds, String apiId) {
-        try {
-            return planRepository.findByIdIn(planIds).stream().map(Plan::getApi).filter(Objects::nonNull).anyMatch(id -> !id.equals(apiId));
-        } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error has occurred checking plans ownership", e);
-        }
+        return planSearchService.anyPlanMismatchWithApi(planIds, apiId);
     }
 
     @Override
     public Map<String, Object> findByIdAsMap(String id) throws TechnicalException {
-        Plan plan = planRepository.findById(id).orElseThrow(() -> new PlanNotFoundException(id));
-        return objectMapper.convertValue(plan, Map.class);
+        return planSearchService.findByIdAsMap(id);
     }
 
     private DefinitionVersion getApiDefinitionVersion(Api api) {

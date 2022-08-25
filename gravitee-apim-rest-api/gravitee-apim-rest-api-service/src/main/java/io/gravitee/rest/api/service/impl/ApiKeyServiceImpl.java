@@ -38,19 +38,19 @@ import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.ApiKeyGenerator;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.NotifierService;
-import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -65,6 +65,8 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.PlanService;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -108,10 +110,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     private ApplicationService applicationService;
 
     @Autowired
-    private ApiService apiService;
-
-    @Autowired
-    private PlanService planService;
+    private PlanSearchService planSearchService;
 
     @Autowired
     private AuditService auditService;
@@ -142,8 +141,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     @Override
     public ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey) {
-        final PlanEntity plan = planService.findById(executionContext, subscription.getPlan());
-        if (!PlanSecurityType.API_KEY.equals(plan.getSecurity())) {
+        final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
+        io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType = io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(
+            genericPlanEntity.getPlanSecurity().getType()
+        );
+        if (PlanSecurityType.API_KEY != planSecurityType) {
             throw new TechnicalManagementException("Invalid plan security.");
         }
         try {
@@ -753,12 +755,12 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     ) {
         subscriptions.forEach(
             subscription -> {
-                PlanEntity plan = planService.findById(executionContext, subscription.getPlan());
+                GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
                 GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, subscription.getApi());
                 PrimaryOwnerEntity owner = application.getPrimaryOwner();
                 Map<String, Object> params = paramsBuilder
                     .application(application)
-                    .plan(plan)
+                    .plan(genericPlanEntity)
                     .api(genericApiModel)
                     .owner(owner)
                     .apikey(key)

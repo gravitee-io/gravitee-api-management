@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
@@ -137,6 +138,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected PlanService planService;
+
+    @Autowired
+    protected PlanSearchService planSearchService;
 
     @Autowired
     protected SubscriptionService subscriptionService;
@@ -299,6 +303,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(parameterService);
         reset(metadataService);
         reset(planService);
+        reset(planSearchService);
         reset(subscriptionService);
         reset(entrypointService);
         reset(apiKeyService);
@@ -496,6 +501,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public PlanService planService() {
             return mock(PlanService.class);
+        }
+
+        @Bean
+        public PlanSearchService planSearchService() {
+            return mock(PlanSearchService.class);
         }
 
         @Bean

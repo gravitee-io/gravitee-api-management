@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.impl.PlanServiceImpl;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import java.util.ArrayList;
@@ -67,6 +68,9 @@ public class PlanService_CreateTest {
     @Spy
     @InjectMocks
     private PlanServiceImpl planService;
+
+    @Mock
+    private PlanSearchService planSearchService;
 
     @Mock
     private ApiRepository apiRepository;

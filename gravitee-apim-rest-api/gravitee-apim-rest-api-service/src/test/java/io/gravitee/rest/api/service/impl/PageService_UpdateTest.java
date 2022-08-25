@@ -34,10 +34,12 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -82,7 +84,7 @@ public class PageService_UpdateTest {
     private PageRevisionService pageRevisionService;
 
     @Mock
-    private PlanService planService;
+    private PlanSearchService planSearchService;
 
     @Mock
     private CategoryService categoryService;
@@ -575,15 +577,15 @@ public class PageService_UpdateTest {
         updatedPage.setVisibility("PUBLIC");
         doReturn(updatedPage).when(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID)));
 
-        PlanEntity plan = mock(PlanEntity.class);
-        when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
-        when(plan.getStatus()).thenReturn(planStatus);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newSet(plan));
+        PlanEntity planEntity = new PlanEntity();
+        planEntity.setGeneralConditions(PAGE_ID);
+        planEntity.setStatus(planStatus);
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
         verify(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID) && !p.isPublished()));
-        verify(planService).findByApi(eq(GraviteeContext.getExecutionContext()), argThat(p -> p.equals(API_ID)));
+        verify(planSearchService).findByApi(eq(GraviteeContext.getExecutionContext()), argThat(p -> p.equals(API_ID)));
     }
 
     @Test(expected = PageUsedByCategoryException.class)
@@ -608,7 +610,7 @@ public class PageService_UpdateTest {
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
-        verify(planService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)));
+        verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)));
     }
 
     @Test(expected = PageUsedAsGeneralConditionsException.class)
@@ -638,13 +640,13 @@ public class PageService_UpdateTest {
         updatePageEntity.setOrder(1);
         updatePageEntity.setVisibility(Visibility.PUBLIC);
 
-        PlanEntity plan = mock(PlanEntity.class);
-        when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
-        when(plan.getStatus()).thenReturn(planStatus);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Sets.newSet(plan));
+        PlanEntity planEntity = new PlanEntity();
+        planEntity.setGeneralConditions(PAGE_ID);
+        planEntity.setStatus(planStatus);
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
-        verify(planService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)));
+        verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), argThat(p -> p.equals(API_ID)));
     }
 }

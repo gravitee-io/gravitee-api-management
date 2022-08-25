@@ -25,7 +25,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
@@ -33,9 +32,9 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
-import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -58,6 +57,9 @@ public class PlanService_CreateOrUpdateTest {
     private PlanService planService = new PlanServiceImpl();
 
     @Mock
+    private PlanSearchService planSearchService;
+
+    @Mock
     private PlanRepository planRepository;
 
     @Mock
@@ -76,40 +78,40 @@ public class PlanService_CreateOrUpdateTest {
     private PlanEntity planEntity;
 
     @Test
-    public void shouldUpdateAndHaveId() throws TechnicalException {
+    public void shouldUpdateAndHaveId() {
         final PlanEntity expected = new PlanEntity();
         expected.setId("updated");
 
         when(this.planEntity.getId()).thenReturn(PLAN_ID);
         when(planMapper.toUpdatePlanEntity(planEntity)).thenCallRealMethod();
-        doReturn(new PlanEntity()).when(planService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        doReturn(new PlanEntity()).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
         doReturn(expected).when(planService).update(eq(GraviteeContext.getExecutionContext()), any(UpdatePlanEntity.class));
 
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), this.planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planService, times(1)).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        verify(planSearchService, times(1)).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
         verify(planService, times(1)).update(eq(GraviteeContext.getExecutionContext()), any(UpdatePlanEntity.class));
     }
 
     @Test
-    public void shouldCreateAndHaveId() throws TechnicalException {
+    public void shouldCreateAndHaveId() {
         final PlanEntity expected = new PlanEntity();
         expected.setId("created");
 
         when(planEntity.getId()).thenReturn(PLAN_ID);
-        doThrow(PlanNotFoundException.class).when(planService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        doThrow(PlanNotFoundException.class).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
         doReturn(expected).when(planService).create(eq(GraviteeContext.getExecutionContext()), any());
 
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planService, times(1)).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        verify(planSearchService, times(1)).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
         verify(planService, times(1)).create(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
-    public void shouldCreateAndHaveNoId() throws TechnicalException {
+    public void shouldCreateAndHaveNoId() {
         final PlanEntity expected = new PlanEntity();
         expected.setId("created");
 
@@ -124,7 +126,7 @@ public class PlanService_CreateOrUpdateTest {
     }
 
     @Test
-    public void shouldUpdateAndHaveNoId() throws TechnicalException {
+    public void shouldUpdateAndHaveNoId() {
         final PlanEntity expected = new PlanEntity();
         expected.setId("updated");
 

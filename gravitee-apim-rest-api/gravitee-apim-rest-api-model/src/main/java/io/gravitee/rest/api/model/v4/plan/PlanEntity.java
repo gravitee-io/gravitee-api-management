@@ -41,7 +41,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @Schema(name = "PlanEntityV4")
-public class PlanEntity {
+public class PlanEntity implements GenericPlanEntity {
 
     private String id;
     /**
@@ -90,4 +90,19 @@ public class PlanEntity {
     private boolean commentRequired;
     private String commentMessage;
     private String generalConditions;
+
+    @Override
+    public PlanSecurity getPlanSecurity() {
+        return security;
+    }
+
+    @Override
+    public PlanStatus getPlanStatus() {
+        return status;
+    }
+
+    @Override
+    public PlanValidationType getPlanValidation() {
+        return validation;
+    }
 }

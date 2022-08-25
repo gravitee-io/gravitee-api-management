@@ -36,11 +36,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Component
 public class ApiTemplateServiceImpl implements ApiTemplateService {
 
     private final ApiSearchService apiSearchService;
@@ -146,11 +148,10 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
                                 new StringReader(mapMetadata.toString()),
                                 Collections.singletonMap("api", genericApiModel)
                             );
-                    Map<String, String> metadataDecoded = Arrays
+                    return Arrays
                         .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
                         .map(entry -> entry.split("=", 2))
                         .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
-                    return metadataDecoded;
                 } catch (Exception ex) {
                     throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
                 }
@@ -163,18 +164,19 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
 
     private ProxyModelEntity convert(Proxy proxy) {
         ProxyModelEntity proxyModelEntity = new ProxyModelEntity();
+        if (proxy != null) {
+            proxyModelEntity.setCors(proxy.getCors());
+            proxyModelEntity.setFailover(proxy.getFailover());
+            proxyModelEntity.setGroups(proxy.getGroups());
+            proxyModelEntity.setLogging(proxy.getLogging());
+            proxyModelEntity.setPreserveHost(proxy.isPreserveHost());
+            proxyModelEntity.setStripContextPath(proxy.isStripContextPath());
+            proxyModelEntity.setVirtualHosts(proxy.getVirtualHosts());
 
-        proxyModelEntity.setCors(proxy.getCors());
-        proxyModelEntity.setFailover(proxy.getFailover());
-        proxyModelEntity.setGroups(proxy.getGroups());
-        proxyModelEntity.setLogging(proxy.getLogging());
-        proxyModelEntity.setPreserveHost(proxy.isPreserveHost());
-        proxyModelEntity.setStripContextPath(proxy.isStripContextPath());
-        proxyModelEntity.setVirtualHosts(proxy.getVirtualHosts());
-
-        //add a default context-path to preserve compatibility on old templates
-        if (proxy.getVirtualHosts() != null && !proxy.getVirtualHosts().isEmpty()) {
-            proxyModelEntity.setContextPath(proxy.getVirtualHosts().get(0).getPath());
+            //add a default context-path to preserve compatibility on old templates
+            if (proxy.getVirtualHosts() != null && !proxy.getVirtualHosts().isEmpty()) {
+                proxyModelEntity.setContextPath(proxy.getVirtualHosts().get(0).getPath());
+            }
         }
 
         return proxyModelEntity;

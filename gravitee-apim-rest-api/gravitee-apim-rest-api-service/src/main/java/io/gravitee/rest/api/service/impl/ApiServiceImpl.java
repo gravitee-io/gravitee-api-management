@@ -790,7 +790,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiEntity apiEntity = convert(executionContext, api, getPrimaryOwner(executionContext, api), null);
 
         // Compute entrypoints
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, api.getId());
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, apiEntity);
         apiEntity.setEntrypoints(apiEntrypoints);
 
         return apiEntity;
@@ -1677,10 +1677,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         sync =
                             plans
                                 .stream()
-                                .filter(plan -> (plan.getStatus() != PlanStatus.STAGING))
-                                .filter(plan -> plan.getNeedRedeployAt().after(api.getDeployedAt()))
-                                .count() ==
-                            0;
+                                .noneMatch(
+                                    plan -> plan.getStatus() != PlanStatus.STAGING && plan.getNeedRedeployAt().after(api.getDeployedAt())
+                                );
                     }
                 }
                 return sync;
@@ -1939,48 +1938,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiEntity migratedApi = apiv1toAPIV2Converter.migrateToV2(apiEntity, policies, plans);
 
         return this.update(executionContext, apiId, apiConverter.toUpdateApiEntity(migratedApi));
-    }
-
-    @Override
-    public void deleteCategoryFromAPIs(ExecutionContext executionContext, final String categoryId) {
-        apiRepository
-            .search(getDefaultApiCriteriaBuilder().category(categoryId).build())
-            .forEach(api -> removeCategory(executionContext, api, categoryId));
-    }
-
-    private void removeCategory(ExecutionContext executionContext, Api api, String categoryId) {
-        try {
-            Api apiSnapshot = new Api(api);
-            api.getCategories().remove(categoryId);
-            api.setUpdatedAt(new Date());
-            apiRepository.update(api);
-            apiNotificationService.triggerUpdateNotification(executionContext, api);
-            auditService.createApiAuditLog(
-                executionContext,
-                api.getId(),
-                Collections.emptyMap(),
-                API_UPDATED,
-                api.getUpdatedAt(),
-                apiSnapshot,
-                api
-            );
-        } catch (TechnicalException e) {
-            throw new TechnicalManagementException(
-                "An error has occurred while removing category " + categoryId + " from API " + api.getId(),
-                e
-            );
-        }
-    }
-
-    @Override
-    public void deleteTagFromAPIs(ExecutionContext executionContext, final String tagId) {
-        environmentService
-            .findByOrganization(executionContext.getOrganizationId())
-            .stream()
-            .map(ExecutionContext::new)
-            .flatMap(ctx -> findAllByEnvironment(ctx).stream())
-            .filter(api -> api.getTags() != null && api.getTags().contains(tagId))
-            .forEach(api -> removeTag(executionContext, api.getId(), tagId));
     }
 
     @Override
@@ -2430,34 +2387,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         return builder;
-    }
-
-    private void removeTag(ExecutionContext executionContext, String apiId, String tagId) throws TechnicalManagementException {
-        try {
-            Api api = this.findApiById(executionContext, apiId);
-            Api previousApi = new Api(api);
-            final io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                api.getDefinition(),
-                io.gravitee.definition.model.Api.class
-            );
-            if (apiDefinition.getTags().remove(tagId)) {
-                api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
-                Api updated = apiRepository.update(api);
-                apiNotificationService.triggerUpdateNotification(executionContext, api);
-                auditService.createApiAuditLog(
-                    executionContext,
-                    api.getId(),
-                    Collections.emptyMap(),
-                    API_UPDATED,
-                    api.getUpdatedAt(),
-                    previousApi,
-                    updated
-                );
-            }
-        } catch (Exception ex) {
-            LOGGER.error("An error occurs while removing tag from API: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while removing tag from API: " + apiId, ex);
-        }
     }
 
     private ApiEntity updateLifecycle(ExecutionContext executionContext, String apiId, LifecycleState lifecycleState, String username)

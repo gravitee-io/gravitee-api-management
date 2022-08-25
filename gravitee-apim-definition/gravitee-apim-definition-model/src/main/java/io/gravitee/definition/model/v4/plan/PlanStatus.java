@@ -50,7 +50,15 @@ public enum PlanStatus {
 
     public static PlanStatus valueOfLabel(final String label) {
         if (label != null) {
-            return maps.get(label);
+            PlanStatus planStatus = maps.get(label);
+            if (planStatus == null) {
+                try {
+                    planStatus = valueOf(label);
+                } catch (IllegalArgumentException e) {
+                    // Ignore this and return null
+                }
+            }
+            return planStatus;
         }
         return null;
     }

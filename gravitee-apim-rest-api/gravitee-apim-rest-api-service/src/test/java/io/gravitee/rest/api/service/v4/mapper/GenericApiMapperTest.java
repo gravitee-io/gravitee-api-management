@@ -31,7 +31,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class IndexableApiMapperTest {
+public class GenericApiMapperTest {
 
     @Mock
     private ApiMapper apiMapper;

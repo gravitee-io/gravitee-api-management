@@ -15,28 +15,27 @@
  */
 package io.gravitee.rest.api.service.v4.mapper;
 
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Component("ApiMapperV4")
+@Component("CategoryMapperV4")
 @Slf4j
 public class CategoryMapper {
 
     private final CategoryService categoryService;
 
-    public CategoryMapper(final CategoryService categoryService) {
+    public CategoryMapper(@Lazy final CategoryService categoryService) {
         this.categoryService = categoryService;
     }
 

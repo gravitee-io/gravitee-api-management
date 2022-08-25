@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.v4.listener.Listener;
@@ -34,6 +35,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Event;
@@ -60,6 +62,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -89,6 +92,7 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.PropertiesService;
@@ -107,6 +111,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -121,7 +126,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private final ApiRepository apiRepository;
     private final ApiMapper apiMapper;
-    private final GenericApiMapper indexableApiMapper;
     private final PrimaryOwnerService primaryOwnerService;
     private final ApiValidationService apiValidationService;
     private final ParameterService parameterService;
@@ -133,6 +137,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final FlowService flowService;
     private final SearchEngineService searchEngineService;
     private final PlanService planService;
+    private final PlanSearchService planSearchService;
     private final SubscriptionService subscriptionService;
     private final EventService eventService;
     private final PageService pageService;
@@ -147,7 +152,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public ApiServiceImpl(
         @Lazy final ApiRepository apiRepository,
         final ApiMapper apiMapper,
-        final GenericApiMapper genericApiMapper,
         final PrimaryOwnerService primaryOwnerService,
         final ApiValidationService apiValidationService,
         final ParameterService parameterService,
@@ -159,6 +163,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final FlowService flowService,
         @Lazy final SearchEngineService searchEngineService,
         final PlanService planService,
+        final PlanSearchService planSearchService,
         @Lazy final SubscriptionService subscriptionService,
         final EventService eventService,
         @Lazy final PageService pageService,
@@ -172,7 +177,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
-        this.indexableApiMapper = genericApiMapper;
         this.primaryOwnerService = primaryOwnerService;
         this.apiValidationService = apiValidationService;
         this.parameterService = parameterService;
@@ -184,6 +188,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.flowService = flowService;
         this.searchEngineService = searchEngineService;
         this.planService = planService;
+        this.planSearchService = planSearchService;
         this.subscriptionService = subscriptionService;
         this.eventService = eventService;
         this.pageService = pageService;
@@ -328,11 +333,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             this.propertiesService.encryptProperties(updateApiEntity.getProperties());
 
             if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED == updateApiEntity.getLifecycleState()) {
-                planService
+                planSearchService
                     .findByApi(executionContext, apiId)
                     .forEach(
                         plan -> {
-                            if (PlanStatus.PUBLISHED == plan.getStatus() || PlanStatus.STAGING == plan.getStatus()) {
+                            if (PlanStatus.PUBLISHED == plan.getPlanStatus() || PlanStatus.STAGING == plan.getPlanStatus()) {
                                 planService.deprecate(executionContext, plan.getId(), true);
                                 updateApiEntity
                                     .getPlans()
@@ -450,86 +455,92 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public void delete(final ExecutionContext executionContext, final String apiId) {
+    public void delete(ExecutionContext executionContext, String apiId, boolean closePlans) {
         try {
             log.debug("Delete API {}", apiId);
 
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
-
-            if (api.getLifecycleState() == LifecycleState.STARTED) {
+            if (DefinitionContext.isManagement(api.getOrigin()) && api.getLifecycleState() == LifecycleState.STARTED) {
                 throw new ApiRunningStateException(apiId);
-            } else {
-                // Delete plans
-                Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
-                Set<String> plansNotClosed = plans
-                    .stream()
-                    .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
-                    .map(PlanEntity::getName)
-                    .collect(toSet());
-
-                if (!plansNotClosed.isEmpty()) {
-                    throw new ApiNotDeletableException(plansNotClosed);
-                }
-
-                Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(executionContext, apiId);
-                subscriptions.forEach(sub -> subscriptionService.delete(executionContext, sub.getId()));
-
-                plans.forEach(plan -> planService.delete(executionContext, plan.getId()));
-
-                // Delete flows
-                flowService.save(FlowReferenceType.API, apiId, null);
-
-                // Delete events
-                final EventQuery query = new EventQuery();
-                query.setApi(apiId);
-                eventService.search(executionContext, query).forEach(event -> eventService.delete(event.getId()));
-
-                // https://github.com/gravitee-io/issues/issues/4130
-                // Ensure we are sending a last UNPUBLISH_API event because the gateway couldn't be aware that the API (and
-                // all its relative events) have been deleted.
-                Map<String, String> properties = new HashMap<>(2);
-                properties.put(Event.EventProperties.API_ID.getValue(), apiId);
-                if (getAuthenticatedUser() != null) {
-                    properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
-                }
-                eventService.createApiEvent(
-                    executionContext,
-                    singleton(executionContext.getEnvironmentId()),
-                    EventType.UNPUBLISH_API,
-                    null,
-                    properties
-                );
-
-                // Delete pages
-                pageService.deleteAllByApi(executionContext, apiId);
-
-                // Delete top API
-                topApiService.delete(executionContext, apiId);
-                // Delete API
-                apiRepository.delete(apiId);
-                // Delete memberships
-                membershipService.deleteReference(executionContext, MembershipReferenceType.API, apiId);
-                // Delete notifications
-                genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
-                portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
-                // Delete alerts
-                final List<AlertTriggerEntity> alerts = alertService.findByReferenceWithEventCounts(AlertReferenceType.API, apiId);
-                alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
-                // delete all reference on api quality rule
-                apiQualityRuleRepository.deleteByApi(apiId);
-                // Audit
-                auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
-                // remove from search engine
-                searchEngineService.delete(executionContext, apiMapper.toEntity(executionContext, api, null, null, false));
-
-                mediaService.deleteAllByApi(apiId);
-
-                apiMetadataService.deleteAllByApi(executionContext, apiId);
             }
+
+            Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
+            if (closePlans) {
+                plans =
+                    plans
+                        .stream()
+                        .filter(plan -> plan.getStatus() != PlanStatus.CLOSED)
+                        .map(plan -> planService.close(executionContext, plan.getId()))
+                        .collect(Collectors.toSet());
+            }
+
+            Set<String> plansNotClosed = plans
+                .stream()
+                .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
+                .map(PlanEntity::getName)
+                .collect(toSet());
+
+            if (!plansNotClosed.isEmpty()) {
+                throw new ApiNotDeletableException(plansNotClosed);
+            }
+
+            Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(executionContext, apiId);
+            subscriptions.forEach(sub -> subscriptionService.delete(executionContext, sub.getId()));
+
+            // Delete plans
+            plans.forEach(plan -> planService.delete(executionContext, plan.getId()));
+
+            // Delete flows
+            flowService.save(FlowReferenceType.API, apiId, null);
+
+            // Delete events
+            final EventQuery query = new EventQuery();
+            query.setApi(apiId);
+            eventService.search(executionContext, query).forEach(event -> eventService.delete(event.getId()));
+
+            // https://github.com/gravitee-io/issues/issues/4130
+            // Ensure we are sending a last UNPUBLISH_API event because the gateway couldn't be aware that the API (and
+            // all its relative events) have been deleted.
+            Map<String, String> properties = new HashMap<>(2);
+            properties.put(Event.EventProperties.API_ID.getValue(), apiId);
+            if (getAuthenticatedUser() != null) {
+                properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
+            }
+            eventService.createApiEvent(
+                executionContext,
+                singleton(executionContext.getEnvironmentId()),
+                EventType.UNPUBLISH_API,
+                null,
+                properties
+            );
+
+            // Delete pages
+            pageService.deleteAllByApi(executionContext, apiId);
+
+            // Delete top API
+            topApiService.delete(executionContext, apiId);
+            // Delete API
+            apiRepository.delete(apiId);
+            // Delete memberships
+            membershipService.deleteReference(executionContext, MembershipReferenceType.API, apiId);
+            // Delete notifications
+            genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
+            portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
+            // Delete alerts
+            final List<AlertTriggerEntity> alerts = alertService.findByReferenceWithEventCounts(AlertReferenceType.API, apiId);
+            alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
+            // delete all reference on api quality rule
+            apiQualityRuleRepository.deleteByApi(apiId);
+            // Audit
+            auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
+            // remove from search engine
+            searchEngineService.delete(executionContext, apiMapper.toEntity(executionContext, api, null, null, false));
+
+            mediaService.deleteAllByApi(apiId);
+
+            apiMetadataService.deleteAllByApi(executionContext, apiId);
         } catch (TechnicalException ex) {
-            String errorMsg = String.format("An error occurs while trying to delete API '%s'", apiId);
-            log.error(errorMsg, apiId, ex);
-            throw new TechnicalManagementException(errorMsg, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete API " + apiId, ex);
         }
     }
 

@@ -25,10 +25,14 @@ import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.rest.resource.ApiEventsResource;
+import io.gravitee.rest.api.management.rest.resource.ApiGroupsResource;
 import io.gravitee.rest.api.management.rest.resource.ApiMembersResource;
 import io.gravitee.rest.api.management.rest.resource.ApiMetadataResource;
 import io.gravitee.rest.api.management.rest.resource.ApiPagesResource;
 import io.gravitee.rest.api.management.rest.resource.ApiRatingResource;
+import io.gravitee.rest.api.management.rest.resource.ApiSubscribersResource;
+import io.gravitee.rest.api.management.rest.resource.ApiSubscriptionsResource;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -235,8 +239,8 @@ public class ApiResource extends AbstractResource {
     @ApiResponse(responseCode = "204", description = "API successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApi() {
-        apiServiceV4.delete(GraviteeContext.getExecutionContext(), api);
+    public Response deleteApi(@QueryParam("closePlans") boolean closePlans) {
+        apiServiceV4.delete(GraviteeContext.getExecutionContext(), api, closePlans);
 
         return Response.noContent().build();
     }
@@ -338,6 +342,16 @@ public class ApiResource extends AbstractResource {
         }
     }
 
+    @javax.ws.rs.Path("events")
+    public ApiEventsResource getApiEventsResource() {
+        return resourceContext.getResource(ApiEventsResource.class);
+    }
+
+    @javax.ws.rs.Path("groups")
+    public ApiGroupsResource getApiGroupsResource() {
+        return resourceContext.getResource(ApiGroupsResource.class);
+    }
+
     @javax.ws.rs.Path("members")
     public ApiMembersResource getApiMembersResource() {
         return resourceContext.getResource(ApiMembersResource.class);
@@ -356,6 +370,16 @@ public class ApiResource extends AbstractResource {
     @javax.ws.rs.Path("plans")
     public ApiPlansResource getApiPlansResource() {
         return resourceContext.getResource(ApiPlansResource.class);
+    }
+
+    @javax.ws.rs.Path("subscriptions")
+    public ApiSubscriptionsResource getApiSubscriptionsResource() {
+        return resourceContext.getResource(ApiSubscriptionsResource.class);
+    }
+
+    @javax.ws.rs.Path("subscribers")
+    public ApiSubscribersResource geApiSubscribersResource() {
+        return resourceContext.getResource(ApiSubscribersResource.class);
     }
 
     @javax.ws.rs.Path("ratings")

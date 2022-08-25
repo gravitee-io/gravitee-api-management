@@ -38,6 +38,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateTagNameException;
 import io.gravitee.rest.api.service.exceptions.TagNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.v4.ApiTagService;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
     private TagRepository tagRepository;
 
     @Autowired
-    private ApiService apiService;
+    private ApiTagService apiTagService;
 
     @Autowired
     private AuditService auditService;
@@ -205,7 +206,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
             if (tagOptional.isPresent()) {
                 tagRepository.delete(tagId);
                 // delete all reference on APIs
-                apiService.deleteTagFromAPIs(executionContext, tagId);
+                apiTagService.deleteTagFromAPIs(executionContext, tagId);
                 auditService.createOrganizationAuditLog(
                     executionContext,
                     executionContext.getOrganizationId(),
