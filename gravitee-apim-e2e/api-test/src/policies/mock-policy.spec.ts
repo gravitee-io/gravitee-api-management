@@ -92,11 +92,13 @@ describe('Mock policy', () => {
       );
       await succeed(apiManagementApiAsApiUser.deployApiRaw({ orgId, envId, api: createdApi.id }));
 
-      await fetchGatewaySuccess({ contextPath: createdApi.context_path })
-        .then((res) => res.json())
-        .then((body) => {
-          expect(body).toEqual(JSON.parse(mockContent));
-        });
+      await fetchGatewaySuccess({
+        contextPath: createdApi.context_path,
+        expectedResponseValidator: async (response) => {
+          const body = await response.json();
+          return body.message === JSON.parse(mockContent).message;
+        },
+      });
     });
   });
 
