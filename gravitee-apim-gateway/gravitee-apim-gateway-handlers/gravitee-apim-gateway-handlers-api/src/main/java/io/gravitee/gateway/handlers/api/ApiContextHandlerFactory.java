@@ -61,6 +61,7 @@ import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
+import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.resource.api.ResourceManager;
 import io.vertx.core.Vertx;
 import org.slf4j.Logger;
@@ -283,7 +284,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     }
 
     public AuthenticationHandlerEnhancer authenticationHandlerEnhancer(Api api) {
-        return new PlanBasedAuthenticationHandlerEnhancer(api);
+        return new PlanBasedAuthenticationHandlerEnhancer(api, applicationContext.getBean(SubscriptionRepository.class));
     }
 
     public AuthenticationHandlerSelector authenticationHandlerSelector(AuthenticationHandlerManager authenticationHandlerManager) {

@@ -34,13 +34,13 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
 
     private final Logger logger = LoggerFactory.getLogger(PlanBasedAuthenticationHandlerEnhancer.class);
 
-    @Autowired
     protected SubscriptionRepository subscriptionRepository;
 
     private final Api api;
 
-    public PlanBasedAuthenticationHandlerEnhancer(Api api) {
+    public PlanBasedAuthenticationHandlerEnhancer(Api api, SubscriptionRepository subscriptionRepository) {
         this.api = api;
+        this.subscriptionRepository = subscriptionRepository;
     }
 
     @Override
