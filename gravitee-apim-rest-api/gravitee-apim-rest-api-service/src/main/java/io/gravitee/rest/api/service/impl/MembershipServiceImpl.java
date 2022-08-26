@@ -772,16 +772,16 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 );
             Set<UserMembership> userMemberships = new HashSet<>(userMembershipMap.values());
 
-            // Find all application Ids and api Ids liked to all user groups
+            // Find all application Ids and api Ids linked to all user groups
             if (type.equals(MembershipReferenceType.APPLICATION) || type.equals(MembershipReferenceType.API)) {
                 String[] groupIds = groupService.findByUser(userId).stream().map(GroupEntity::getId).toArray(String[]::new);
 
                 List<String> resourceIds = new ArrayList<>();
 
-                if (type.equals(MembershipReferenceType.APPLICATION)) {
+                if (type.equals(MembershipReferenceType.APPLICATION) && groupIds.length > 0) {
                     Set<Application> groupApplications = applicationRepository.findByGroups(List.of(groupIds));
                     groupApplications.forEach(application -> resourceIds.add(application.getId()));
-                } else if (type.equals(MembershipReferenceType.API)) {
+                } else if (type.equals(MembershipReferenceType.API) && groupIds.length > 0) {
                     ApiCriteria criteria = new ApiCriteria.Builder().groups(groupIds).build();
                     Set<Api> groupApis = apiRepository.search(criteria, ApiFieldInclusionFilter.builder().build());
                     groupApis.forEach(api -> resourceIds.add(api.getId()));
