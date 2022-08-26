@@ -20,7 +20,7 @@ import { StateService } from '@uirouter/core';
 import { MatDialog } from '@angular/material/dialog';
 
 import { PagedResult } from '../../../entities/pagedResult';
-import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../services-ngx/application.service';
@@ -30,6 +30,7 @@ import {
   GioConfirmDialogData,
 } from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { GioRoleService } from '../../../shared/components/gio-role/gio-role.service';
+import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
 interface ApplicationTableFilters extends GioTableWrapperFilters {
   status?: 'ACTIVE' | 'ARCHIVED';
@@ -44,12 +45,6 @@ type TableData = {
   updated_at: number;
   status: string;
 };
-
-interface Sort {
-  active?: string;
-  /** The sort direction */
-  direction: 'asc' | 'desc' | '';
-}
 
 @Component({
   selector: 'env-application-list',
@@ -101,7 +96,7 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
     const initialPageNumber = this.$stateParams.page ? Number(this.$stateParams.page) : this.defaultFilters.pagination.index;
     const initialPageSize = this.$stateParams.size ? Number(this.$stateParams.size) : this.defaultFilters.pagination.size;
     this.currentStatus = this.getCurrentStatus();
-    const initialSort = this.toSort(this.$stateParams.order);
+    const initialSort = toSort(this.$stateParams.order, this.defaultFilters.sort);
     this.filters = {
       searchTerm: initialSearchValue,
       status: this.currentStatus,
@@ -125,7 +120,7 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
           this.$state.go('.', this.toQueryParams({ pagination, searchTerm, status, sort }), { notify: false });
         }),
         switchMap(({ pagination, searchTerm, status, sort }) => {
-          return this.applicationService.list(status, searchTerm, this.toOrder(sort), pagination.index, pagination.size).pipe(
+          return this.applicationService.list(status, searchTerm, toOrder(sort), pagination.index, pagination.size).pipe(
             // Return empty page result in case of error and does not interrupt the research observable
             catchError(() => of(new PagedResult<Application>())),
           );
@@ -136,7 +131,7 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
 
   private toQueryParams(filters: ApplicationTableFilters) {
     const { searchTerm, pagination, status, sort } = filters;
-    return { q: searchTerm, page: pagination.index, size: pagination.size, status, order: this.toOrder(sort) };
+    return { q: searchTerm, page: pagination.index, size: pagination.size, status, order: toOrder(sort) };
   }
 
   onAddApplicationClick() {
@@ -166,23 +161,6 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
     const sort: Sort = this.currentStatus === 'ACTIVE' ? { active: 'name', direction: 'asc' } : { active: 'updated_at', direction: 'desc' };
     const filters = { ...this.defaultFilters, status: this.currentStatus, sort };
     this.onFiltersChanged(filters);
-  }
-
-  private toOrder(sort: Sort): string {
-    if (sort == null) {
-      return undefined;
-    }
-    return 'desc' === sort.direction ? `-${sort.active}` : sort.active;
-  }
-
-  private toSort(order: string): Sort {
-    if (order == null || order.trim() === '') {
-      return this.defaultFilters.sort;
-    }
-    return {
-      active: order.startsWith('-') ? order.substring(1) : order,
-      direction: order.startsWith('-') ? 'desc' : 'asc',
-    };
   }
 
   onEditActionClicked(application: TableData) {

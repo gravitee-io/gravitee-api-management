@@ -16,7 +16,8 @@
 
 import { sortBy } from 'lodash';
 
-import { gioTableFilterCollection } from './gio-table-wrapper.util';
+import { Sort } from './gio-table-wrapper.component';
+import { gioTableFilterCollection, toOrder, toSort } from './gio-table-wrapper.util';
 
 describe('gioTableFilterCollection', () => {
   const ELEMENT_DATA: unknown[] = [
@@ -104,5 +105,36 @@ describe('gioTableFilterCollection', () => {
     });
 
     expect(collectionSorted).toEqual(sortBy(ELEMENT_DATA, 'symbol').reverse());
+  });
+
+  describe('toSort', () => {
+    const defaultSort: Sort = { direction: 'asc' };
+    const ascSort: Sort = { active: 'foo', direction: 'asc' };
+    const descSort: Sort = { active: 'foo', direction: 'desc' };
+
+    it.each`
+      order     | defaultValue   | expectedResult
+      ${null}   | ${defaultSort} | ${defaultSort}
+      ${''}     | ${defaultSort} | ${defaultSort}
+      ${' '}    | ${defaultSort} | ${defaultSort}
+      ${'foo'}  | ${defaultSort} | ${ascSort}
+      ${'-foo'} | ${defaultSort} | ${descSort}
+    `('should convert $order to Sort', ({ order, defaultValue, expectedResult }) => {
+      expect(expectedResult).toStrictEqual(toSort(order, defaultValue));
+    });
+  });
+
+  describe('toOrder', () => {
+    const ascSort: Sort = { active: 'foo', direction: 'asc' };
+    const descSort: Sort = { active: 'foo', direction: 'desc' };
+
+    it.each`
+      sort        | expectedResult
+      ${null}     | ${undefined}
+      ${ascSort}  | ${'foo'}
+      ${descSort} | ${'-foo'}
+    `('should convert $sort to $expectedResult', ({ sort, expectedResult }) => {
+      expect(expectedResult).toStrictEqual(toOrder(sort));
+    });
   });
 });
