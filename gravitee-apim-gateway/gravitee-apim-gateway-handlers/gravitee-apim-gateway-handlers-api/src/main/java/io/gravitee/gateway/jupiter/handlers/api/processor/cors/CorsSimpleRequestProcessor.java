@@ -47,8 +47,7 @@ public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
     public Completable execute(final MutableExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
-                Api api = ctx.getComponent(Api.class);
-                Cors cors = api.getProxy().getCors();
+                Cors cors = getCors(ctx);
                 handleSimpleCrossOriginRequest(cors, ctx.request(), ctx.response());
             }
         );

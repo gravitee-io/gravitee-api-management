@@ -39,6 +39,11 @@ public class DefaultSubscriptionAcceptor implements SubscriptionAcceptor {
     }
 
     @Override
+    public String apiId() {
+        return apiId;
+    }
+
+    @Override
     public ReactorHandler reactor() {
         return reactor;
     }

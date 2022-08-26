@@ -17,58 +17,36 @@ package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
 public class Logging implements Serializable {
 
     public static final LoggingMode DEFAULT_LOGGING_MODE = LoggingMode.NONE;
     public static final LoggingScope DEFAULT_LOGGING_SCOPE = LoggingScope.NONE;
     public static final LoggingContent DEFAULT_LOGGING_CONTENT = LoggingContent.NONE;
 
-    @JsonProperty("mode")
+    @JsonProperty
     private LoggingMode mode = DEFAULT_LOGGING_MODE;
 
-    @JsonProperty("scope")
+    @JsonProperty
     private LoggingScope scope = DEFAULT_LOGGING_SCOPE;
 
-    @JsonProperty("content")
+    @JsonProperty
     private LoggingContent content = DEFAULT_LOGGING_CONTENT;
 
-    @JsonProperty("condition")
+    @JsonProperty
     private String condition;
-
-    public LoggingMode getMode() {
-        return mode;
-    }
-
-    public void setMode(LoggingMode mode) {
-        this.mode = mode;
-    }
-
-    public String getCondition() {
-        return condition;
-    }
-
-    public void setCondition(String condition) {
-        this.condition = condition;
-    }
-
-    public LoggingContent getContent() {
-        return content;
-    }
-
-    public LoggingScope getScope() {
-        return scope;
-    }
-
-    public void setContent(LoggingContent content) {
-        this.content = content;
-    }
-
-    public void setScope(LoggingScope scope) {
-        this.scope = scope;
-    }
 }

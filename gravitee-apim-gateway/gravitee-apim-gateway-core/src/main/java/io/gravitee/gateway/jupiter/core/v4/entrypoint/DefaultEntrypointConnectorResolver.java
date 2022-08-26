@@ -16,7 +16,6 @@
 package io.gravitee.gateway.jupiter.core.v4.entrypoint;
 
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_LISTENER_TYPE;
-import static io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;

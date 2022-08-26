@@ -16,6 +16,10 @@
 package io.gravitee.gateway.jupiter.handlers.api.processor.cors;
 
 import io.gravitee.definition.model.Cors;
+import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import java.util.regex.Pattern;
 
@@ -48,5 +52,21 @@ public abstract class AbstractCorsRequestProcessor implements Processor {
             }
         }
         return false;
+    }
+
+    protected Cors getCors(final HttpExecutionContext ctx) {
+        try {
+            Api api = ctx.getComponent(io.gravitee.definition.model.v4.Api.class);
+            return api
+                .getListeners()
+                .stream()
+                .filter(listener -> listener.getType() == ListenerType.HTTP)
+                .map(listener -> ((HttpListener) listener).getCors())
+                .findFirst()
+                .orElse(null);
+        } catch (Exception e) {
+            io.gravitee.definition.model.Api api = ctx.getComponent(io.gravitee.definition.model.Api.class);
+            return api.getProxy().getCors();
+        }
     }
 }

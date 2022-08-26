@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
@@ -24,7 +25,6 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
-import io.gravitee.definition.model.v4.responsetemplate.ResponseTemplate;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import java.io.Serializable;
 import java.util.ArrayList;

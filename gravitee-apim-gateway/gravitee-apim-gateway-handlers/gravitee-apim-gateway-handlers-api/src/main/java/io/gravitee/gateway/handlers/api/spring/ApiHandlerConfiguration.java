@@ -201,12 +201,18 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
+    public io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory() {
+        return new io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory(configuration, node);
+    }
+
+    @Bean
     public ReactorFactory<io.gravitee.gateway.jupiter.handlers.api.v4.Api> asyncApiReactorFactory(
         PolicyFactory policyFactory,
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         EndpointConnectorPluginManager endpointConnectorPluginManager,
         @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
         OrganizationManager organizationManager,
+        io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory,
         io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         FlowResolverFactory v4FlowResolverFactory
     ) {
@@ -218,6 +224,7 @@ public class ApiHandlerConfiguration {
             endpointConnectorPluginManager,
             platformPolicyChainFactory,
             organizationManager,
+            v4ApiProcessorChainFactory,
             flowResolverFactory,
             v4FlowResolverFactory
         );

@@ -15,45 +15,63 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4;
 
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.gateway.core.component.CompositeComponentProvider;
-import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
-import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
-import io.gravitee.gateway.jupiter.api.invoker.Invoker;
-import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
-import io.gravitee.gateway.jupiter.core.context.MutableRequest;
-import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
-import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChain;
-import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory;
-import io.gravitee.gateway.jupiter.handlers.api.v4.security.SecurityChain;
-import io.gravitee.gateway.jupiter.policy.PolicyManager;
-import io.gravitee.reporter.api.http.Metrics;
-import io.reactivex.Completable;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.Date;
-
+import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
+import static io.gravitee.gateway.api.ExecutionContext.ATTR_INVOKER;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_REQUEST;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_RESPONSE;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
 import static io.reactivex.Completable.complete;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.gateway.core.component.CompositeComponentProvider;
+import io.gravitee.gateway.jupiter.api.ExecutionFailure;
+import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
+import io.gravitee.gateway.jupiter.api.invoker.Invoker;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableRequest;
+import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
+import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
+import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
+import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
+import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChain;
+import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.security.SecurityChain;
+import io.gravitee.gateway.jupiter.policy.PolicyManager;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionAcceptor;
+import io.gravitee.gateway.reactor.handler.Acceptor;
+import io.gravitee.gateway.reactor.handler.HttpAcceptor;
+import io.gravitee.reporter.api.http.Metrics;
+import io.reactivex.Completable;
+import io.reactivex.CompletableObserver;
+import java.util.Date;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class AsyncApiReactorTest {
@@ -63,11 +81,77 @@ class AsyncApiReactorTest {
     public static final String ORGANIZATION_ID = "organization-id";
     public static final String ENVIRONMENT_ID = "environment-id";
 
-    @InjectMocks
-    private AsyncApiReactor asyncApiReactor;
+    @Spy
+    Completable spyRequestPlatformFlowChain = Completable.complete();
+
+    @Spy
+    Completable spyMessageRequestPlatformFlowChain = Completable.complete();
+
+    @Spy
+    Completable spyResponsePlatformFlowChain = Completable.complete();
+
+    @Spy
+    Completable spyMessageResponsePlatformFlowChain = Completable.complete();
+
+    @Spy
+    Completable spyRequestPlanFlowChain = Completable.complete();
+
+    @Spy
+    Completable spyMessageRequestPlanFlowChain = Completable.complete();
+
+    @Spy
+    Completable spyResponsePlanFlowChain = Completable.complete();
+
+    @Spy
+    Completable spyMessageResponsePlanFlowChain = Completable.complete();
+
+    @Spy
+    Completable spyRequestApiFlowChain = Completable.complete();
+
+    @Spy
+    Completable spyMessageRequestApiFlowChain = Completable.complete();
+
+    @Spy
+    Completable spyResponseApiFlowChain = Completable.complete();
+
+    @Spy
+    Completable spyMessageResponseApiFlowChain = Completable.complete();
+
+    @Spy
+    Completable spyEntrypointRequest = Completable.complete();
+
+    @Spy
+    Completable spyEntrypointResponse = Completable.complete();
+
+    @Spy
+    Completable spyApiPreProcessorChain = Completable.complete();
+
+    @Spy
+    Completable spyApiPostProcessorChain = Completable.complete();
+
+    @Spy
+    Completable spyApiErrorProcessorChain = Completable.complete();
+
+    @Spy
+    Completable spyInvokerChain = Completable.complete();
+
+    @Spy
+    Completable spyInterruptionFailureException = Completable.error(new InterruptionFailureException(mock(ExecutionFailure.class)));
+
+    @Spy
+    Completable spyInterruptionException = Completable.error(new InterruptionException());
+
+    @Spy
+    Completable spySecurityChain = Completable.complete();
+
+    @Spy
+    Completable spyInterruptSecurityChain = Completable.error(new InterruptionFailureException(new ExecutionFailure(UNAUTHORIZED_401)));
 
     @Mock
     private Api api;
+
+    @Mock
+    private io.gravitee.definition.model.v4.Api apiDefinition;
 
     @Mock
     private CompositeComponentProvider apiComponentProvider;
@@ -88,7 +172,19 @@ class AsyncApiReactorTest {
     private FlowChainFactory v4FlowChainFactory;
 
     @Mock
-    private MutableExecutionContext executionContext;
+    private ApiProcessorChainFactory apiProcessorChainFactory;
+
+    @Mock
+    private ProcessorChain apiPreProcessorChain;
+
+    @Mock
+    private ProcessorChain apiPostProcessorChain;
+
+    @Mock
+    private ProcessorChain apiErrorProcessorChain;
+
+    @Mock
+    private MutableExecutionContext ctx;
 
     @Mock
     private MutableRequest request;
@@ -103,98 +199,193 @@ class AsyncApiReactorTest {
     private io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain platformFlowChain;
 
     @Mock
-    private FlowChain apiPlanFlowChain;
+    private io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChain apiPlanFlowChain;
 
     @Mock
-    private FlowChain apiFlowChain;
+    private io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChain apiFlowChain;
 
     @Mock
     private SecurityChain securityChain;
 
+    private AsyncApiReactor asyncApiReactor;
+
     @BeforeEach
-    public void init() {
-        lenient().when(executionContext.request()).thenReturn(request);
-        lenient().when(executionContext.response()).thenReturn(response);
+    public void init() throws Exception {
+        lenient().when(ctx.request()).thenReturn(request);
+        lenient().when(ctx.response()).thenReturn(response);
+        lenient().when(ctx.getAttribute(ATTR_INVOKER)).thenReturn(defaultInvoker);
+        lenient().when(request.contextPath()).thenReturn("/contextPath");
+        lenient().when(request.metrics()).thenReturn(mock(Metrics.class));
+        lenient().when(response.end()).thenReturn(Completable.complete());
+        lenient().when(ctx.response()).thenReturn(response);
+        lenient().when(ctx.componentProvider(any())).thenReturn(ctx);
+        lenient().when(ctx.templateVariableProviders(any())).thenReturn(ctx);
+        lenient().when(ctx.interruptWith(any())).thenReturn(spyInterruptionFailureException);
+        lenient().when(ctx.interrupt()).thenReturn(spyInterruptionException);
+
         lenient().when(request.contextPath()).thenReturn(CONTEXT_PATH);
-        lenient().when(request.metrics()).thenReturn(Metrics.on(System.currentTimeMillis()).build());
+        lenient().when(api.getDefinition()).thenReturn(apiDefinition);
         lenient().when(api.getId()).thenReturn(API_ID);
         lenient().when(api.getDeployedAt()).thenReturn(new Date());
         lenient().when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
         lenient().when(api.getEnvironmentId()).thenReturn(ENVIRONMENT_ID);
+        lenient().when(apiProcessorChainFactory.preProcessorChain(api)).thenReturn(apiPreProcessorChain);
+        lenient().when(apiProcessorChainFactory.postProcessorChain(api)).thenReturn(apiPostProcessorChain);
+        lenient().when(apiProcessorChainFactory.errorProcessorChain(api)).thenReturn(apiErrorProcessorChain);
+        lenient().when(flowChainFactory.createPlatformFlow(api)).thenReturn(platformFlowChain);
+        lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
+        lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.MESSAGE_REQUEST)).thenReturn(spyMessageRequestPlatformFlowChain);
+        lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+        lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.MESSAGE_RESPONSE)).thenReturn(spyMessageResponsePlatformFlowChain);
+        lenient().when(securityChain.execute(any())).thenReturn(spySecurityChain);
+        lenient().when(v4FlowChainFactory.createPlanFlow(api)).thenReturn(apiPlanFlowChain);
+        lenient().when(apiPlanFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlanFlowChain);
+        lenient().when(apiPlanFlowChain.execute(ctx, ExecutionPhase.MESSAGE_REQUEST)).thenReturn(spyMessageRequestPlanFlowChain);
+        lenient().when(apiPlanFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlanFlowChain);
+        lenient().when(apiPlanFlowChain.execute(ctx, ExecutionPhase.MESSAGE_RESPONSE)).thenReturn(spyMessageResponsePlanFlowChain);
+        lenient().when(v4FlowChainFactory.createApiFlow(api)).thenReturn(apiFlowChain);
+        lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
+        lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.MESSAGE_REQUEST)).thenReturn(spyMessageRequestApiFlowChain);
+        lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
+        lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.MESSAGE_RESPONSE)).thenReturn(spyMessageResponseApiFlowChain);
+
+        lenient().when(apiPreProcessorChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyApiPreProcessorChain);
+        lenient().when(apiPostProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyApiPostProcessorChain);
+        lenient().when(apiErrorProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyApiErrorProcessorChain);
+        lenient().when(defaultInvoker.invoke(any(ExecutionContext.class))).thenReturn(spyInvokerChain);
+        lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER)).thenReturn(defaultInvoker);
+        lenient().when(entrypointConnector.handleRequest(ctx)).thenReturn(spyEntrypointRequest);
+        lenient().when(entrypointConnector.handleResponse(ctx)).thenReturn(spyEntrypointResponse);
+
+        asyncApiReactor =
+            new AsyncApiReactor(
+                api,
+                apiComponentProvider,
+                policyManager,
+                asyncEntrypointResolver,
+                defaultInvoker,
+                apiProcessorChainFactory,
+                flowChainFactory,
+                v4FlowChainFactory
+            );
+        asyncApiReactor.doStart();
+        ReflectionTestUtils.setField(asyncApiReactor, "securityChain", securityChain);
     }
 
     @Test
-    public void shouldReturnAsyncApiType() {
+    void shouldReturnAsyncApiType() {
         ApiType apiType = asyncApiReactor.apiType();
         assertThat(apiType).isEqualTo(ApiType.ASYNC);
     }
 
     @Test
-    public void shouldPrepareContextAttributes() {
-        asyncApiReactor.handle(executionContext);
+    void shouldPrepareContextAttributes() throws Exception {
+        asyncApiReactor.handle(ctx).test().assertComplete();
 
-        verify(executionContext).setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, CONTEXT_PATH);
-        verify(executionContext).setAttribute(ContextAttributes.ATTR_API, API_ID);
-        verify(executionContext).setAttribute(ContextAttributes.ATTR_ORGANIZATION, ORGANIZATION_ID);
-        verify(executionContext).setAttribute(ContextAttributes.ATTR_ENVIRONMENT, ENVIRONMENT_ID);
-        verify(executionContext).setInternalAttribute(ContextAttributes.ATTR_API, api);
+        verify(ctx).setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, CONTEXT_PATH);
+        verify(ctx).setAttribute(ContextAttributes.ATTR_API, API_ID);
+        verify(ctx).setAttribute(ContextAttributes.ATTR_ORGANIZATION, ORGANIZATION_ID);
+        verify(ctx).setAttribute(ContextAttributes.ATTR_ENVIRONMENT, ENVIRONMENT_ID);
+        verify(ctx).setInternalAttribute(ContextAttributes.ATTR_API, api);
     }
 
     @Test
-    public void shouldReturn404WhenNoEntrypoint() {
+    void shouldEndResponseWith404WhenNoEntrypoint() {
         when(response.end()).thenReturn(Completable.complete());
-        when(asyncEntrypointResolver.resolve(executionContext)).thenReturn(null);
+        when(asyncEntrypointResolver.resolve(ctx)).thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(null);
 
-        asyncApiReactor.handle(executionContext).test();
+        asyncApiReactor.handle(ctx).test().assertComplete();
 
-        verify(response).status(404);
-        verify(response).reason("No entrypoint matches the incoming request");
+        verify(ctx)
+            .interruptWith(
+                argThat(
+                    argument -> {
+                        assertThat(argument.statusCode()).isEqualTo(404);
+                        assertThat(argument.message()).isEqualTo("No entrypoint matches the incoming request");
+                        return true;
+                    }
+                )
+            );
         verify(response).end();
     }
 
     @Test
-    public void shouldExecuteFlowChainWhenEntrypointFound() {
+    void shouldHandleRequest() {
         when(response.end()).thenReturn(Completable.complete());
-        when(asyncEntrypointResolver.resolve(executionContext)).thenReturn(entrypointConnector);
+        when(asyncEntrypointResolver.resolve(ctx)).thenReturn(entrypointConnector);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
 
-        ReflectionTestUtils.setField(asyncApiReactor, "platformFlowChain", platformFlowChain);
-        ReflectionTestUtils.setField(asyncApiReactor, "securityChain", securityChain);
-        ReflectionTestUtils.setField(asyncApiReactor, "apiPlanFlowChain", apiPlanFlowChain);
-        ReflectionTestUtils.setField(asyncApiReactor, "apiFlowChain", apiFlowChain);
-        when(platformFlowChain.execute(eq(executionContext), any(ExecutionPhase.class))).thenReturn(complete());
-        when(securityChain.execute(executionContext)).thenReturn(complete());
-        when(apiPlanFlowChain.execute(eq(executionContext), any(ExecutionPhase.class))).thenReturn(complete());
-        when(apiFlowChain.execute(eq(executionContext), any(ExecutionPhase.class))).thenReturn(complete());
-        when(entrypointConnector.handleRequest(eq(executionContext))).thenReturn(complete());
-        when(entrypointConnector.handleResponse(eq(executionContext))).thenReturn(complete());
+        asyncApiReactor.handle(ctx).test().assertComplete();
 
-        // TODO: we should test async reactor in the same way we did for sync reactor by subscribing to the reactive chain (to do in a dedicated task).
-        asyncApiReactor.handle(executionContext).test();
-
+        verify(platformFlowChain).execute(ctx, REQUEST);
+        verify(securityChain).execute(ctx);
+        verify(apiPreProcessorChain).execute(ctx, REQUEST);
+        verify(entrypointConnector).handleRequest(ctx);
+        verify(platformFlowChain).execute(ctx, MESSAGE_REQUEST);
+        verify(defaultInvoker).invoke(ctx);
+        verify(apiPostProcessorChain).execute(ctx, RESPONSE);
+        verify(platformFlowChain).execute(ctx, RESPONSE);
+        verify(platformFlowChain).execute(ctx, MESSAGE_RESPONSE);
+        verify(entrypointConnector).handleResponse(ctx);
         // verify flow chain has been executed in the right order
         InOrder inOrder = inOrder(
-            platformFlowChain,
-            securityChain,
-            apiPlanFlowChain,
-            apiFlowChain,
-            entrypointConnector,
-            entrypointConnector,
-            platformFlowChain
+            spyRequestPlatformFlowChain,
+            spySecurityChain,
+            spyApiPreProcessorChain,
+            spyEntrypointRequest,
+            spyRequestPlanFlowChain,
+            spyRequestApiFlowChain,
+            spyMessageRequestPlatformFlowChain,
+            spyMessageRequestPlanFlowChain,
+            spyMessageRequestApiFlowChain,
+            spyInvokerChain,
+            spyResponsePlanFlowChain,
+            spyResponseApiFlowChain,
+            spyMessageResponsePlanFlowChain,
+            spyMessageResponseApiFlowChain,
+            spyApiPostProcessorChain,
+            spyResponsePlatformFlowChain,
+            spyMessageResponsePlatformFlowChain,
+            spyEntrypointResponse
         );
-        inOrder.verify(platformFlowChain).execute(executionContext, REQUEST);
-        inOrder.verify(securityChain).execute(executionContext);
-        inOrder.verify(entrypointConnector).handleRequest(executionContext);
-        inOrder.verify(apiPlanFlowChain).execute(executionContext, REQUEST);
-        inOrder.verify(apiFlowChain).execute(executionContext, REQUEST);
-        inOrder.verify(platformFlowChain).execute(executionContext, MESSAGE_REQUEST);
-        inOrder.verify(apiPlanFlowChain).execute(executionContext, MESSAGE_REQUEST);
-        inOrder.verify(apiFlowChain).execute(executionContext, MESSAGE_REQUEST);
-        inOrder.verify(apiPlanFlowChain).execute(executionContext, RESPONSE);
-        inOrder.verify(apiFlowChain).execute(executionContext, RESPONSE);
-        inOrder.verify(platformFlowChain).execute(executionContext, RESPONSE);
-        inOrder.verify(apiPlanFlowChain).execute(executionContext, MESSAGE_RESPONSE);
-        inOrder.verify(apiFlowChain).execute(executionContext, MESSAGE_RESPONSE);
-        inOrder.verify(platformFlowChain).execute(executionContext, MESSAGE_RESPONSE);
-        inOrder.verify(entrypointConnector).handleResponse(executionContext);
+        inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyMessageRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyApiPreProcessorChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyMessageRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyRequestApiFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyInvokerChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyResponsePlanFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyMessageResponsePlanFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyResponseApiFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyMessageResponseApiFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyApiPostProcessorChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyMessageResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
+    }
+
+    @Test
+    void shouldReturnHttpAcceptors() {
+        HttpListener httpListener = new HttpListener();
+        Path path = new Path("host", "path");
+        httpListener.setPaths(List.of(path));
+        SubscriptionListener subscriptionListener = new SubscriptionListener();
+        when(apiDefinition.getListeners()).thenReturn(List.of(httpListener, subscriptionListener));
+
+        List<Acceptor<?>> acceptors = asyncApiReactor.acceptors();
+        assertThat(acceptors).hasSize(2);
+        Acceptor<?> acceptor1 = acceptors.get(0);
+        assertThat(acceptor1).isInstanceOf(HttpAcceptor.class);
+        HttpAcceptor httpAcceptor = (HttpAcceptor) acceptor1;
+        assertThat(httpAcceptor.path()).isEqualTo("path/");
+        assertThat(httpAcceptor.host()).isEqualTo(path.getHost());
+        Acceptor<?> acceptor2 = acceptors.get(1);
+        assertThat(acceptor2).isInstanceOf(SubscriptionAcceptor.class);
+        SubscriptionAcceptor subscriptionAcceptor = (SubscriptionAcceptor) acceptor2;
+        assertThat(subscriptionAcceptor.apiId()).isEqualTo(api.getId());
     }
 }
