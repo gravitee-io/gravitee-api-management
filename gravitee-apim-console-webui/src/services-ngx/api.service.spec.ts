@@ -118,4 +118,38 @@ describe('ApiService', () => {
       req.flush(mockApis);
     });
   });
+
+  describe('list', () => {
+    it('should call the API with pagination default params', (done) => {
+      const mockApis = [fakeApi()];
+
+      apiService.list().subscribe((response) => {
+        expect(response).toMatchObject(mockApis);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/_paged?page=1&size=10`,
+      });
+
+      req.flush(mockApis);
+    });
+
+    it('should call the API with pagination query and order', (done) => {
+      const mockApis = [fakeApi()];
+
+      apiService.list('toto', 'name').subscribe((response) => {
+        expect(response).toMatchObject(mockApis);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/_paged?page=1&size=10&query=toto&order=name`,
+      });
+
+      req.flush(mockApis);
+    });
+  });
 });
