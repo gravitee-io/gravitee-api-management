@@ -16,7 +16,7 @@
 
 import { cloneDeep, orderBy, toString } from 'lodash';
 
-import { GioTableWrapperFilters } from './gio-table-wrapper.component';
+import { GioTableWrapperFilters, Sort } from './gio-table-wrapper.component';
 
 export const gioTableFilterCollection = <T>(
   collection: T[],
@@ -48,4 +48,21 @@ export const gioTableFilterCollection = <T>(
   }
 
   return sortedCollection;
+};
+
+export const toSort = (order: string, defaultValue: Sort): Sort => {
+  if (order == null || order.trim() === '') {
+    return defaultValue;
+  }
+  return {
+    active: order.startsWith('-') ? order.substring(1) : order,
+    direction: order.startsWith('-') ? 'desc' : 'asc',
+  };
+};
+
+export const toOrder = (sort: Sort): string => {
+  if (sort == null) {
+    return undefined;
+  }
+  return 'desc' === sort.direction ? `-${sort.active}` : sort.active;
 };

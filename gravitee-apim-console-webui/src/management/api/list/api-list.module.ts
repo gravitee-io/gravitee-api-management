@@ -18,6 +18,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatTableModule } from '@angular/material/table';
+import { MatSortModule } from '@angular/material/sort';
 
 import { ApiListComponent } from './api-list.component';
 
@@ -27,6 +28,6 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
 @NgModule({
   declarations: [ApiListComponent],
   exports: [ApiListComponent],
-  imports: [CommonModule, MatButtonModule, MatTableModule, GioIconsModule, GioTableWrapperModule, GioPermissionModule],
+  imports: [CommonModule, MatButtonModule, MatSortModule, MatTableModule, GioIconsModule, GioTableWrapperModule, GioPermissionModule],
 })
 export class ApiListModule {}

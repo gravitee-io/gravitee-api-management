@@ -21,6 +21,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { MatSortHeaderHarness } from '@angular/material/sort/testing';
 
 import { ApiListModule } from './api-list.module';
 import { ApiListComponent } from './api-list.component';
@@ -86,6 +87,19 @@ describe('ApisListComponent', () => {
     expect(rowCells).toEqual([['🪐 Planets']]);
   }));
 
+  it('should order rows by name', fakeAsync(async () => {
+    const apis = [fakeApi({ name: 'Planets 🪐' }), fakeApi({ name: 'Unicorns 🦄' })];
+    await initComponent(apis);
+
+    const nameSort = await loader.getHarness(MatSortHeaderHarness.with({ selector: '#name' })).then((sortHarness) => sortHarness.host());
+    await nameSort.click();
+    expectApisListRequest(apis, null, 'name');
+
+    fixture.detectChanges();
+    await nameSort.click();
+    expectApisListRequest(apis, null, '-name');
+  }));
+
   describe('onAddApiClick', () => {
     beforeEach(fakeAsync(() => initComponent([fakeApi()])));
     it('should navigate to new apis page on click to add button', async () => {
@@ -125,12 +139,14 @@ describe('ApisListComponent', () => {
     return { headerCells, rowCells };
   }
 
-  function expectApisListRequest(apis: Api[] = [], q?: string, page = 1) {
+  function expectApisListRequest(apis: Api[] = [], q?: string, order?: string, page = 1) {
     // wait debounceTime
     fixture.detectChanges();
     tick(400);
 
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/_paged?page=${page}&size=10`);
+    const req = httpTestingController.expectOne(
+      `${CONSTANTS_TESTING.env.baseURL}/apis/_paged?page=${page}&size=10${q ? `&query=${q}` : ''}${order ? `&order=${order}` : ''}`,
+    );
     expect(req.request.method).toEqual('GET');
     req.flush(fakePagedResult(apis));
     httpTestingController.verify();

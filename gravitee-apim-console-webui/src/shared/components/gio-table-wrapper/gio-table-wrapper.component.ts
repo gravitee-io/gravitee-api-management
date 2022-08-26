@@ -32,14 +32,15 @@ import { isEqual } from 'lodash';
 import { merge, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, scan, startWith, takeUntil } from 'rxjs/operators';
 
+export interface Sort {
+  active?: string;
+  /** The sort direction */
+  direction: 'asc' | 'desc' | '';
+}
+
 export interface GioTableWrapperFilters {
   searchTerm: string;
-  sort?: {
-    /** The id of the column being sorted */
-    active?: string;
-    /** The sort direction */
-    direction: 'asc' | 'desc' | '';
-  };
+  sort?: Sort;
   pagination: {
     /** The pagination index start with 1 */
     index: number;

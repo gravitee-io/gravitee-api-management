@@ -28,7 +28,7 @@
   </button>
 </div>
 
-<gio-table-wrapper [length]="apisTableDSUnpaginatedLength" [filters]="filters">
+<gio-table-wrapper [length]="apisTableDSUnpaginatedLength" [filters]="filters" (filtersChange)="onFiltersChanged($event)">
   <table mat-table matSort [dataSource]="apisTableDS" id="apisTable" aria-label="Apis table">
     <!-- Display name Column -->
     <ng-container matColumnDef="name">
