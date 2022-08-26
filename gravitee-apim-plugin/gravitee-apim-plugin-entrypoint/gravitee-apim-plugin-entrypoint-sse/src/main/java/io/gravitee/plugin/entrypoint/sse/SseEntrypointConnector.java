@@ -15,8 +15,6 @@
  */
 package io.gravitee.plugin.entrypoint.sse;
 
-import static io.gravitee.common.http.MediaType.TEXT_EVENT_STREAM;
-
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
@@ -30,14 +28,16 @@ import io.gravitee.plugin.entrypoint.sse.configuration.SseEntrypointConnectorCon
 import io.gravitee.plugin.entrypoint.sse.model.SseEvent;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
-import io.reactivex.Maybe;
+import lombok.extern.slf4j.Slf4j;
+
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import lombok.extern.slf4j.Slf4j;
+
+import static io.gravitee.common.http.MediaType.TEXT_EVENT_STREAM;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -105,18 +105,16 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                // Set required sse headers.
-                ctx.response().headers().add(HttpHeaderNames.CONTENT_TYPE, "text/event-stream;charset=UTF-8");
-                ctx.response().headers().add(HttpHeaderNames.CONNECTION, "keep-alive");
-                ctx.response().headers().add(HttpHeaderNames.CACHE_CONTROL, "no-cache");
-                ctx.response().headers().add(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
+        return Completable.fromRunnable(() -> {
+            // Set required sse headers.
+            ctx.response().headers().add(HttpHeaderNames.CONTENT_TYPE, "text/event-stream;charset=UTF-8");
+            ctx.response().headers().add(HttpHeaderNames.CONNECTION, "keep-alive");
+            ctx.response().headers().add(HttpHeaderNames.CACHE_CONTROL, "no-cache");
+            ctx.response().headers().add(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
 
-                // Assign the chunks that come from the transformation of messages.
-                ctx.response().chunks(messagesToBuffers(ctx));
-            }
-        );
+            // Assign the chunks that come from the transformation of messages.
+            ctx.response().chunks(messagesToBuffers(ctx));
+        });
     }
 
     private Flowable<Buffer> messagesToBuffers(ExecutionContext ctx) {
@@ -129,7 +127,7 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
 
         return retryFlowable
             .concatWith(
-                heartBeatFlowable.ambWith(ctx.response().messages().concatMapMaybe(message -> Maybe.just(messageToBuffer(message))))
+                    heartBeatFlowable.ambWith(ctx.response().messages().map(this::messageToBuffer))
             )
             .onErrorReturn(this::errorToBuffer);
     }
@@ -156,7 +154,6 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
         if (configuration.isMetadataAsComment() && message.metadata() != null) {
             comments.putAll(message.metadata());
         }
-
         return Buffer.buffer(
             SseEvent.builder().id(message.id()).event("message").data(message.content().getBytes()).comments(comments).build().format()
         );

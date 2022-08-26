@@ -24,12 +24,14 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
+import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver;
 import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.jupiter.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
@@ -64,26 +66,27 @@ import org.springframework.core.ResolvableType;
  */
 public class AsyncReactorFactory implements ReactorFactory<Api> {
 
-    private final Logger logger = LoggerFactory.getLogger(AsyncReactorFactory.class);
     protected final ApplicationContext applicationContext;
     protected final Configuration configuration;
     protected final PolicyFactory policyFactory;
-
     protected final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
     protected final EndpointConnectorPluginManager endpointConnectorPluginManager;
     protected final PolicyChainFactory platformPolicyChainFactory;
     protected final OrganizationManager organizationManager;
+    protected final ApiProcessorChainFactory apiProcessorChainFactory;
     protected final io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory;
     protected final FlowResolverFactory v4FlowResolverFactory;
+    private final Logger logger = LoggerFactory.getLogger(AsyncReactorFactory.class);
 
     public AsyncReactorFactory(
         final ApplicationContext applicationContext,
         final Configuration configuration,
         final PolicyFactory policyFactory,
         final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        EndpointConnectorPluginManager endpointConnectorPluginManager,
+        final EndpointConnectorPluginManager endpointConnectorPluginManager,
         final PolicyChainFactory platformPolicyChainFactory,
         final OrganizationManager organizationManager,
+        final ApiProcessorChainFactory apiProcessorChainFactory,
         final io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         final FlowResolverFactory v4FlowResolverFactory
     ) {
@@ -94,6 +97,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
         this.endpointConnectorPluginManager = endpointConnectorPluginManager;
         this.platformPolicyChainFactory = platformPolicyChainFactory;
         this.organizationManager = organizationManager;
+        this.apiProcessorChainFactory = apiProcessorChainFactory;
         this.flowResolverFactory = flowResolverFactory;
         this.v4FlowResolverFactory = v4FlowResolverFactory;
     }
@@ -134,7 +138,6 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
                 );
 
                 customComponentProvider.add(ResourceManager.class, resourceLifecycleManager);
-                customComponentProvider.add(Api.class, api);
 
                 final CompositeComponentProvider apiComponentProvider = new CompositeComponentProvider(
                     customComponentProvider,
@@ -181,6 +184,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
                     policyManager,
                     new DefaultEntrypointConnectorResolver(api.getDefinition(), entrypointConnectorPluginManager),
                     new EndpointInvoker(new DefaultEndpointConnectorResolver(api.getDefinition(), endpointConnectorPluginManager)),
+                    apiProcessorChainFactory,
                     flowChainFactory,
                     v4FlowChainFactory
                 );

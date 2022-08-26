@@ -17,7 +17,6 @@ package io.gravitee.gateway.jupiter.handlers.api.processor.cors;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightInvoker;
@@ -57,8 +56,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
             () -> {
                 // Test if we are in the context of a preflight request
                 if (isPreflightRequest(ctx.request())) {
-                    Api api = ctx.getComponent(Api.class);
-                    Cors cors = api.getProxy().getCors();
+                    Cors cors = getCors(ctx);
                     handlePreflightRequest(cors, ctx.request(), ctx.response());
                     // If we don't want to run policies, exit request processing
                     if (!cors.isRunPolicies()) {
@@ -170,7 +168,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
     private boolean isRequestValid(final String incoming, final Set<String> configuredValues) {
         List<String> inputs = splitAndTrim(incoming);
         return (
-            ((inputs == null || (inputs.size() == 1 && inputs.get(0).isEmpty()))) ||
+            (inputs == null || (inputs.size() == 1 && inputs.get(0).isEmpty())) ||
             (configuredValues == null || configuredValues.isEmpty()) ||
             (configuredValues.containsAll(inputs))
         );

@@ -37,6 +37,7 @@ import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.GenericRequest;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
@@ -204,36 +205,14 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             .andThen(executeFlowChain(ctx, apiFlowChain, RESPONSE))
             // Execute post api processor chain
             .andThen(executeProcessorsChain(ctx, apiPostProcessorChain, RESPONSE))
-            .compose(upstream -> timeoutAndError(upstream, ctx))
+            .onErrorResumeNext(error -> processThrowable(ctx, error))
+            .compose(upstream -> timeout(upstream, ctx))
             // Platform post flows must always be executed
-            .andThen(executeFlowChain(ctx, platformFlowChain, RESPONSE).compose(upstream -> timeoutAndError(upstream, ctx)))
+            .andThen(executeFlowChain(ctx, platformFlowChain, RESPONSE).compose(upstream -> timeout(upstream, ctx)))
             // Catch all possible unexpected errors.
             .onErrorResumeNext(t -> handleUnexpectedError(ctx, t))
             // Finally, end the response.
             .andThen(endResponse(ctx));
-    }
-
-    private Completable timeoutAndError(Completable upstream, MutableExecutionContext ctx) {
-        // When timeout is configured with 0 or less, consider it as infinity: no timeout operator to use in the chain.
-        if (httpRequestTimeoutConfiguration.getHttpRequestTimeout() <= 0) {
-            return upstream.onErrorResumeNext(error -> processThrowable(ctx, error));
-        }
-        return Completable.defer(
-            () ->
-                upstream
-                    .timeout(
-                        Math.max(
-                            httpRequestTimeoutConfiguration.getHttpRequestTimeoutGraceDelay(),
-                            httpRequestTimeoutConfiguration.getHttpRequestTimeout() -
-                            (System.currentTimeMillis() - ctx.request().timestamp())
-                        ),
-                        TimeUnit.MILLISECONDS,
-                        ctx.interruptWith(
-                            new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key("REQUEST_TIMEOUT").message("Request timeout")
-                        )
-                    )
-                    .onErrorResumeNext(error -> processThrowable(ctx, error))
-        );
     }
 
     /**
@@ -315,6 +294,28 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     private Completable endResponse(MutableExecutionContext ctx) {
         return ctx.response().end();
+    }
+
+    private Completable timeout(final Completable upstream, MutableExecutionContext ctx) {
+        // When timeout is configured with 0 or less, consider it as infinity: no timeout operator to use in the chain.
+        if (httpRequestTimeoutConfiguration.getHttpRequestTimeout() <= 0) {
+            return upstream;
+        }
+        return Completable.defer(
+            () ->
+                upstream.timeout(
+                    Math.max(
+                        httpRequestTimeoutConfiguration.getHttpRequestTimeoutGraceDelay(),
+                        httpRequestTimeoutConfiguration.getHttpRequestTimeout() - (System.currentTimeMillis() - ctx.request().timestamp())
+                    ),
+                    TimeUnit.MILLISECONDS,
+                    ctx
+                        .interruptWith(
+                            new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key("REQUEST_TIMEOUT").message("Request timeout")
+                        )
+                        .onErrorResumeNext(error -> executeProcessorsChain(ctx, apiErrorProcessorChain, RESPONSE))
+                )
+        );
     }
 
     /**

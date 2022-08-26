@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.core.v4.endpoint;
 
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
@@ -37,8 +38,6 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("unchecked")
 public class DefaultEndpointConnectorResolver {
-
-    public static final String ATTR_INTERNAL_ENTRYPOINT_CONNECTOR = "entrypointConnector";
 
     private final Map<EndpointGroup, List<EndpointConnector>> connectorsByGroup;
 

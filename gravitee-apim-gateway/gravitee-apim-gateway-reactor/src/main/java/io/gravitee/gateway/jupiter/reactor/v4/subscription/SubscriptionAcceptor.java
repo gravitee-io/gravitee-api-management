@@ -25,5 +25,7 @@ import io.gravitee.gateway.reactor.handler.Acceptor;
  * @author GraviteeSource Team
  */
 public interface SubscriptionAcceptor extends Acceptor<SubscriptionAcceptor> {
-    boolean accept(Subscription subscription);
+    boolean accept(final Subscription subscription);
+
+    String apiId();
 }

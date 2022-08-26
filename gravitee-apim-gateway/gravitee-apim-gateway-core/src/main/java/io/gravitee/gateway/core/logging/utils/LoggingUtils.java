@@ -39,9 +39,7 @@ public final class LoggingUtils {
     private static Pattern EXCLUDED_CONTENT_TYPES_PATTERN;
 
     @Nullable
-    public static LoggingContext getLoggingContext(@Nonnull final Api api) {
-        final Logging logging = api.getProxy().getLogging();
-
+    public static LoggingContext getLoggingContext(final Logging logging) {
         if (logging != null) {
             final LoggingMode loggingMode = logging.getMode();
 
@@ -51,6 +49,11 @@ public final class LoggingUtils {
         }
 
         return null;
+    }
+
+    @Nullable
+    public static LoggingContext getLoggingContext(@Nonnull final Api api) {
+        return getLoggingContext(api.getProxy().getLogging());
     }
 
     public static int getMaxSizeLogMessage(ExecutionContext executionContext) {

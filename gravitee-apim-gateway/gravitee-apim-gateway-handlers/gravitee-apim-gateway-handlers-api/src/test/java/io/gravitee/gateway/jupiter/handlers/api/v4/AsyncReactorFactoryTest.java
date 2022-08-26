@@ -15,7 +15,9 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -51,7 +53,7 @@ public class AsyncReactorFactoryTest {
     public void init() {
         lenient().when(api.getDefinition()).thenReturn(definition);
 
-        factory = new AsyncReactorFactory(null, null, null, null, null, null, null, null, null);
+        factory = new AsyncReactorFactory(null, null, null, null, null, null, null, null, null, null);
     }
 
     @Test
