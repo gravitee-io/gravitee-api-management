@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
+import { catchError, tap } from 'rxjs/operators';
+import { of } from 'rxjs';
 
-import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
+import { Api } from '../../../entities/api';
+import { PagedResult } from '../../../entities/pagedResult';
+import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { ApiService } from '../../../services-ngx/api.service';
 
 type ApisTableDS = { id: string; name: string }[];
 
@@ -26,7 +31,7 @@ type ApisTableDS = { id: string; name: string }[];
   template: require('./api-list.component.html'),
   styles: [require('./api-list.component.scss')],
 })
-export class ApiListComponent {
+export class ApiListComponent implements OnInit {
   displayedColumns = ['name'];
 
   apisTableDSUnpaginatedLength = 0;
@@ -35,13 +40,35 @@ export class ApiListComponent {
     pagination: { index: 1, size: 10 },
     searchTerm: '',
   };
-  constructor(@Inject(UIRouterState) private readonly $state: StateService) {}
+  constructor(@Inject(UIRouterState) private readonly $state: StateService, private readonly apiService: ApiService) {}
 
-  onEditActionClicked(_api: ApisTableDS[number]) {
-    this.$state.go('management.apis.detail.portal.general', { apiId: _api.id });
+  ngOnInit(): void {
+    this.apiService
+      .list()
+      .pipe(
+        tap((apisPage) => {
+          this.apisTableDS = this.toApisTableDS(apisPage);
+          this.apisTableDSUnpaginatedLength = apisPage.page.total_elements;
+        }),
+        catchError(() => of(new PagedResult<Api>())),
+      )
+      .subscribe();
+  }
+
+  onEditActionClicked(api: ApisTableDS[number]) {
+    this.$state.go('management.apis.detail.portal.general', { apiId: api.id });
   }
 
   onAddApiClick() {
     this.$state.go('management.apis.new');
+  }
+
+  private toApisTableDS(api: PagedResult<Api>): ApisTableDS {
+    return api.page.total_elements > 0
+      ? api.data.map((api) => ({
+          id: api.id,
+          name: api.name,
+        }))
+      : [];
   }
 }

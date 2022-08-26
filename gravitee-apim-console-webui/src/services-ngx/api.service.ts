@@ -20,6 +20,7 @@ import { Observable } from 'rxjs';
 import { Api, UpdateApi } from '../entities/api';
 import { Constants } from '../entities/Constants';
 import { FlowSchema } from '../entities/flow/flowSchema';
+import { PagedResult } from '../entities/pagedResult';
 
 @Injectable({
   providedIn: 'root',
@@ -87,6 +88,17 @@ export class ApiService {
     return this.http.get<Api[]>(`${baseURL}/apis`, {
       params: {
         ...(params.order ? { order: params.order } : {}),
+      },
+    });
+  }
+
+  list(query?: string, order?: string, page = 1, size = 10): Observable<PagedResult<Api>> {
+    return this.http.get<PagedResult<Api>>(`${this.constants.env.baseURL}/apis/_paged`, {
+      params: {
+        page,
+        size,
+        ...(query ? { query } : {}),
+        ...(order ? { order } : {}),
       },
     });
   }

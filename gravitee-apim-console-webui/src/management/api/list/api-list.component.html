@@ -16,27 +16,20 @@
 
 -->
 <div class="title">
-    <h1>Apis</h1>
-    <button
-      (click)="onAddApiClick()"
-      mat-raised-button
-      color="primary"
-      aria-label="add-api"
-      *gioPermission="{ anyOf: ['environment-api-c'] }"
-    >
-      <mat-icon>add</mat-icon> Add Api
-    </button>
+  <h1>Apis</h1>
+  <button
+    (click)="onAddApiClick()"
+    mat-raised-button
+    color="primary"
+    aria-label="add-api"
+    *gioPermission="{ anyOf: ['environment-api-c'] }"
+  >
+    <mat-icon>add</mat-icon> Add Api
+  </button>
 </div>
 
-
 <gio-table-wrapper [length]="apisTableDSUnpaginatedLength" [filters]="filters">
-  <table
-    mat-table
-    matSort
-    [dataSource]="apisTableDS"
-    id="apisTable"
-    aria-label="Apis table"
-  >
+  <table mat-table matSort [dataSource]="apisTableDS" id="apisTable" aria-label="Apis table">
     <!-- Display name Column -->
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="name">Name</th>
@@ -56,4 +49,3 @@
     </tr>
   </table>
 </gio-table-wrapper>
-
