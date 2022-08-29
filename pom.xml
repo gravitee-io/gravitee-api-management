@@ -120,7 +120,7 @@
         <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
         <protobuf-java.version>3.19.3</protobuf-java.version>
         <reactor-adapter.version>3.4.6</reactor-adapter.version>
-        <snakeyaml.version>1.30</snakeyaml.version>
+        <snakeyaml.version>1.31</snakeyaml.version>
         <swagger-jaxrs2.version>2.1.13</swagger-jaxrs2.version>
         <swagger-core.version>2.1.13</swagger-core.version>
         <swagger-parser.version>2.0.30</swagger-parser.version>
