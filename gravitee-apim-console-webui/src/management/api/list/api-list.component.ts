@@ -20,7 +20,7 @@ import { BehaviorSubject, of, Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { Api } from '../../../entities/api';
+import { Api, ApiLifecycleState, ApiState } from '../../../entities/api';
 import { PagedResult } from '../../../entities/pagedResult';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ApiService } from '../../../services-ngx/api.service';
@@ -34,6 +34,9 @@ export type ApisTableDS = {
   owner: string;
   ownerEmail: string;
   picture: string;
+  state: ApiState;
+  lifecycleState: ApiLifecycleState;
+  workflowBadge?: { text: string; class: string };
 }[];
 
 @Component({
@@ -42,7 +45,7 @@ export type ApisTableDS = {
   styles: [require('./api-list.component.scss')],
 })
 export class ApiListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['picture', 'name', 'contextPath', 'tags', 'owner'];
+  displayedColumns = ['picture', 'name', 'states', 'contextPath', 'tags', 'owner'];
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
   filters: GioTableWrapperFilters = {
@@ -124,14 +127,29 @@ private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   private toApisTableDS(api: PagedResult<Api>): ApisTableDS {
     return api.page.total_elements > 0
-      ? api.data.map((api) => ({
-          id: api.id,
-          name: api.name,
-          contextPath: api.context_path,
-          tags: api.tags.join(', '),
-          owner: api?.owner?.displayName,
-          ownerEmail: api?.owner?.email,
-          picture: api.picture,}))
-      : [];
+        ? api.data.map((api) => ({
+            id: api.id,
+            name: api.name,
+            contextPath: api.context_path,
+            tags: api.tags.join(', '),
+            owner: api?.owner?.displayName,
+            ownerEmail: api?.owner?.email,
+            picture: api.picture,
+            state: api.state,
+            lifecycleState: api.lifecycle_state,
+            workflowBadge: this.getWorkflowBadge(api),
+          }))
+        : [];
+  }
+
+  private getWorkflowBadge(api) {
+    const state = api.lifecycle_state === 'DEPRECATED' ? api.lifecycle_state : api.workflow_state;
+    const toReadableState = {
+      DEPRECATED: { text: 'Deprecated', class: 'gio-badge-error' },
+      DRAFT: { text: 'Draft', class: 'gio-badge-primary' },
+      IN_REVIEW: { text: 'In Review', class: 'gio-badge-error' },
+      REQUEST_FOR_CHANGES: { text: 'Need changes', class: 'gio-badge-error' },
+    };
+    return toReadableState[state];
   }
 }

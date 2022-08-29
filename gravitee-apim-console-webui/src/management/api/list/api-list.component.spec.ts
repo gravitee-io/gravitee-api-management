@@ -32,7 +32,7 @@ import { User as DeprecatedUser } from '../../../entities/user';
 import { fakeApi } from '../../../entities/api/Api.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakePagedResult } from '../../../entities/pagedResult';
-import { Api } from '../../../entities/api';
+import { Api, ApiLifecycleState, ApiState } from '../../../entities/api';
 
 describe('ApisListComponent', () => {
   const fakeUiRouter = { go: jest.fn() };
@@ -69,7 +69,12 @@ describe('ApisListComponent', () => {
     const { headerCells, rowCells } = await computeApisTableCells();
     expect(headerCells).toEqual([
       {
+        contextPath: 'Context paths',
         name: 'Name',
+        owner: 'Owner',
+        picture: '',
+        states: '',
+        tags: 'Tags',
       },
     ]);
     expect(rowCells).toEqual([['There is no apis (yet).']]);
@@ -81,10 +86,15 @@ describe('ApisListComponent', () => {
     const { headerCells, rowCells } = await computeApisTableCells();
     expect(headerCells).toEqual([
       {
+        contextPath: 'Context paths',
         name: 'Name',
+        owner: 'Owner',
+        picture: '',
+        states: '',
+        tags: 'Tags',
       },
     ]);
-    expect(rowCells).toEqual([['🪐 Planets']]);
+    expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', 'admin']]);
   }));
 
   it('should order rows by name', fakeAsync(async () => {
@@ -123,6 +133,9 @@ describe('ApisListComponent', () => {
         owner: 'admin',
         ownerEmail: 'admin@gio.com',
         picture: null,
+        state: 'CREATED' as ApiState,
+        lifecycleState: 'PUBLISHED' as ApiLifecycleState,
+        workflowState: 'REVIEW_OK',
       };
 
       apiListComponent.onEditActionClicked(api);
