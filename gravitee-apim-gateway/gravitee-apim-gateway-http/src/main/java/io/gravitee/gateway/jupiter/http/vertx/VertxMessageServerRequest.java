@@ -31,11 +31,19 @@ import io.vertx.reactivex.core.http.HttpServerRequest;
  */
 public class VertxMessageServerRequest extends AbstractVertxServerRequest implements MutableMessageRequest {
 
+    private final Maybe<Buffer> body;
     private final MessageFlowable httpMessages;
 
     public VertxMessageServerRequest(final HttpServerRequest nativeRequest, IdGenerator idGenerator) {
         super(nativeRequest, idGenerator);
         httpMessages = new MessageFlowable();
+        body =
+            nativeRequest
+                .toFlowable()
+                .map(Buffer::buffer)
+                .doOnNext(buffer -> metrics().setRequestContentLength(metrics().getRequestContentLength() + buffer.length()))
+                .reduce(Buffer::appendBuffer)
+                .cache();
     }
 
     public VertxMessageServerResponse response() {
@@ -59,6 +67,6 @@ public class VertxMessageServerRequest extends AbstractVertxServerRequest implem
 
     @Override
     public Maybe<Buffer> body() {
-        return Maybe.empty();
+        return body;
     }
 }
