@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
@@ -32,6 +33,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
   exports: [ApiListComponent],
   imports: [
     CommonModule,
+    MatBadgeModule,
     MatButtonModule,
     MatSortModule,
     MatTableModule,

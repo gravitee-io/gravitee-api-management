@@ -1,3 +1,5 @@
+@use 'sass:map';
+
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 @use '../../../scss/gio-layout' as gio-layout;
@@ -27,9 +29,31 @@
 
 .mat-column-name {
   cursor: pointer;
+  padding: 0 4px;
+  width: 15%;
 }
 
 .mat-column-picture {
   width: 1%;
   padding: 0 4px;
+}
+
+.mat-column-states {
+  width: 1%;
+  padding: 0 4px;
+  white-space: nowrap;
+
+  .states {
+    &__api-started {
+      color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+    }
+
+    &__api-not-started {
+      color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+    }
+
+    &__api-workflow-badge {
+      vertical-align: top;
+    }
+  }
 }
