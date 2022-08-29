@@ -20,35 +20,42 @@ import static io.gravitee.common.http.MediaType.TEXT_EVENT_STREAM;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
+import io.gravitee.plugin.entrypoint.sse.configuration.SseEntrypointConnectorConfiguration;
 import io.gravitee.plugin.entrypoint.sse.model.SseEvent;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@NoArgsConstructor
 @Slf4j
 public class SseEntrypointConnector implements EntrypointAsyncConnector {
 
-    static final ApiType SUPPORTED_API = ApiType.ASYNC;
+    public static final int RETRY_MIN_VALUE = 1000;
+    public static final int RETRY_MAX_VALUE = 30000;
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
+    private final Random random;
+    private SseEntrypointConnectorConfiguration configuration;
 
-    @Override
-    public ApiType supportedApi() {
-        return SUPPORTED_API;
+    @SuppressWarnings("java:S2245")
+    public SseEntrypointConnector(final SseEntrypointConnectorConfiguration configuration) {
+        this.configuration = configuration;
+        if (this.configuration == null) {
+            this.configuration = new SseEntrypointConnectorConfiguration();
+        }
+        // Random doesn't require to be secured here and is only used for random retry time
+        this.random = new Random();
     }
 
     @Override
@@ -81,17 +88,15 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
                 ctx.response().headers().add(HttpHeaderNames.CONTENT_TYPE, "text/event-stream;charset=UTF-8");
                 ctx.response().headers().add(HttpHeaderNames.CONNECTION, "keep-alive");
                 ctx.response().headers().add(HttpHeaderNames.CACHE_CONTROL, "no-cache");
-                return ctx
-                    .response()
-                    .writeHeaders()
+                return sendRetry(ctx)
                     .andThen(ctx.response().messages())
                     .flatMapSingle(
                         message -> {
                             HashMap<String, Object> comments = new HashMap<>();
-                            if (message.headers() != null) {
+                            if (configuration.isHeadersAsComment() && message.headers() != null) {
                                 message.headers().toListValuesMap().forEach((key, value) -> comments.put(key, String.join(",", value)));
                             }
-                            if (message.metadata() != null) {
+                            if (configuration.isMetadataAsComment() && message.metadata() != null) {
                                 comments.putAll(message.metadata());
                             }
                             return ctx
@@ -135,5 +140,17 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
                     .andThen(ctx.response().end());
             }
         );
+    }
+
+    private Completable sendRetry(final MessageExecutionContext ctx) {
+        return ctx
+            .response()
+            .write(Buffer.buffer(SseEvent.builder().retry(generateRandomRetry()).build().format()))
+            .andThen(ctx.response().write(Buffer.buffer("\n\n")))
+            .andThen(ctx.response().writeHeaders());
+    }
+
+    private int generateRandomRetry() {
+        return random.nextInt(RETRY_MAX_VALUE - RETRY_MIN_VALUE) + RETRY_MIN_VALUE;
     }
 }

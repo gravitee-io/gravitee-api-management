@@ -34,11 +34,6 @@ public class MockEndpointConnectorFactory extends EndpointAsyncConnectorFactory 
     }
 
     @Override
-    public ApiType supportedApi() {
-        return MockEndpointConnector.SUPPORTED_API;
-    }
-
-    @Override
     public Set<ConnectorMode> supportedModes() {
         return MockEndpointConnector.SUPPORTED_MODES;
     }

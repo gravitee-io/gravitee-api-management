@@ -43,7 +43,7 @@ public class EndpointServiceImplTest {
     private static final String SCHEMA = "my-test-schema";
 
     @InjectMocks
-    private EndpointServiceImpl endpointService;
+    private EndpointPluginServiceImpl endpointService;
 
     @Mock
     private JsonSchemaService jsonSchemaService;

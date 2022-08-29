@@ -34,6 +34,7 @@
 
     <modules>
         <module>gravitee-apim-plugin-endpoint-handler</module>
+        <module>gravitee-apim-plugin-endpoint-kafka</module>
         <module>gravitee-apim-plugin-endpoint-mock</module>
     </modules>
 </project>

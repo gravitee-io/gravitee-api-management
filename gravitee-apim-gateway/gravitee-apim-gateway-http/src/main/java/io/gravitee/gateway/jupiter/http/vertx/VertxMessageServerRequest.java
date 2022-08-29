@@ -16,11 +16,13 @@
 package io.gravitee.gateway.jupiter.http.vertx;
 
 import io.gravitee.common.http.IdGenerator;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.context.MutableMessageRequest;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableTransformer;
+import io.reactivex.Maybe;
 import io.vertx.reactivex.core.http.HttpServerRequest;
 
 /**
@@ -53,5 +55,10 @@ public class VertxMessageServerRequest extends AbstractVertxServerRequest implem
     @Override
     public Completable onMessages(final FlowableTransformer<Message, Message> onMessages) {
         return httpMessages.onMessages(onMessages);
+    }
+
+    @Override
+    public Maybe<Buffer> body() {
+        return Maybe.empty();
     }
 }

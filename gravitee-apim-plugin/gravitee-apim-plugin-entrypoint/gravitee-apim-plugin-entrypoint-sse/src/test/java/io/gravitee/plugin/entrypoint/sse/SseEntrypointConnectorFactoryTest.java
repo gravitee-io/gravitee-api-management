@@ -48,10 +48,10 @@ class SseEntrypointConnectorFactoryTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "wrong", "", "  " })
-    void shouldCreateConnectorWithWrongConfiguration(String configuration) {
+    @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
+    void shouldNotCreateConnectorWithWrongConfiguration(String configuration) {
         SseEntrypointConnector connector = sseEntrypointConnectorFactory.createConnector(configuration);
-        assertThat(connector).isNotNull();
+        assertThat(connector).isNull();
     }
 
     @Test

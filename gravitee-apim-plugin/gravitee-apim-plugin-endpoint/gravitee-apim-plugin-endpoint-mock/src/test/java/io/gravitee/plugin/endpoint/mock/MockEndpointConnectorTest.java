@@ -37,6 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MockEndpointConnectorTest {
 
+    private final MockEndpointConnectorConfiguration configuration = new MockEndpointConnectorConfiguration();
     private MockEndpointConnector mockEndpointConnector;
 
     @Mock
@@ -44,8 +45,6 @@ class MockEndpointConnectorTest {
 
     @Mock
     private MessageResponse messageResponse;
-
-    private MockEndpointConnectorConfiguration configuration = new MockEndpointConnectorConfiguration();
 
     @BeforeEach
     public void setup() {
@@ -58,7 +57,7 @@ class MockEndpointConnectorTest {
 
     @Test
     @DisplayName("Should generate messages flow")
-    public void shouldGenerateMessagesFlow() {
+    void shouldGenerateMessagesFlow() {
         mockEndpointConnector.connect(messageExecutionContext).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
@@ -76,7 +75,7 @@ class MockEndpointConnectorTest {
 
     @Test
     @DisplayName("Should generate messages flow with a limited count of messages")
-    public void shouldGenerateLimitedMessagesFlow() throws InterruptedException {
+    void shouldGenerateLimitedMessagesFlow() throws InterruptedException {
         configuration.setMessageCount(5L);
 
         mockEndpointConnector.connect(messageExecutionContext).test().assertComplete();

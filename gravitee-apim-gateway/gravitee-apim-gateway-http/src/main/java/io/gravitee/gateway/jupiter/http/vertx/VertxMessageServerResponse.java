@@ -69,10 +69,6 @@ public class VertxMessageServerResponse extends AbstractVertxServerResponse impl
     public Completable end(final Buffer buffer) {
         return Completable.defer(
             () -> {
-                if (((VertxHttpServerRequest) serverRequest).isWebSocketUpgraded()) {
-                    return Completable.complete();
-                }
-
                 if (!opened()) {
                     return Completable.error(new IllegalStateException("The response is already ended"));
                 }

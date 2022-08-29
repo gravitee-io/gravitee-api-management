@@ -45,7 +45,7 @@ public class DefaultEndpointConnectorPluginManager
     }
 
     @Override
-    public void register(final EndpointConnectorPlugin plugin) {
+    public void register(final EndpointConnectorPlugin<?> plugin) {
         super.register(plugin);
 
         // Create endpoint

@@ -16,6 +16,9 @@
 package io.gravitee.definition.model.v4.endpointgroup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
@@ -51,7 +54,19 @@ public class Endpoint implements Serializable {
     private boolean inheritConfiguration;
 
     @Schema(implementation = Object.class)
+    @JsonRawValue
     private String configuration;
 
     private EndpointServices services;
+
+    @JsonSetter
+    public void setConfiguration(final JsonNode configuration) {
+        if (configuration != null) {
+            this.configuration = configuration.toString();
+        }
+    }
+
+    public void setConfiguration(final String configuration) {
+        this.configuration = configuration;
+    }
 }

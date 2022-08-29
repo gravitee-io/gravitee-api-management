@@ -15,14 +15,15 @@
  */
 package io.gravitee.plugin.endpoint.mock;
 
-import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
+import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
@@ -34,14 +35,8 @@ import lombok.AllArgsConstructor;
 public class MockEndpointConnector implements EndpointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
-    static final ApiType SUPPORTED_API = ApiType.ASYNC;
 
     protected final MockEndpointConnectorConfiguration configuration;
-
-    @Override
-    public ApiType supportedApi() {
-        return SUPPORTED_API;
-    }
 
     @Override
     public Set<ConnectorMode> supportedModes() {
@@ -56,7 +51,8 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
     private Flowable<Message> generateMessageFlow() {
         Flowable<Message> messageFlow = Flowable
             .interval(configuration.getMessageInterval(), TimeUnit.MILLISECONDS)
-            .map(value -> new MockMessage(configuration.getMessageContent() + " " + value));
+            .map(value -> configuration.getMessageContent() + " " + value)
+            .map(value -> DefaultMessage.builder().content(value.getBytes(StandardCharsets.UTF_8)).build());
         if (configuration.getMessageCount() != null) {
             return messageFlow.limit(configuration.getMessageCount());
         }

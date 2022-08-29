@@ -55,12 +55,15 @@ public class EndpointConnectorPluginHandler extends AbstractSimplePluginHandler<
         endpointPluginManager.register(endpointConnectorPlugin);
 
         // Once registered, the classloader should be released
-        // TODO: why do we need this here ?
-        try {
-            URLClassLoader classLoader = (URLClassLoader) endpointConnectorPlugin.endpointConnectorFactory().getClassLoader();
-            classLoader.close();
-        } catch (Exception e) {
-            logger.error("Unexpected exception while trying to release the connector classloader");
+        final ClassLoader policyClassLoader = endpointConnectorPlugin.endpointConnectorFactory().getClassLoader();
+
+        if (policyClassLoader instanceof URLClassLoader) {
+            URLClassLoader classLoader = (URLClassLoader) policyClassLoader;
+            try {
+                classLoader.close();
+            } catch (IOException e) {
+                logger.error("Unexpected exception while trying to release the policy classloader");
+            }
         }
     }
 

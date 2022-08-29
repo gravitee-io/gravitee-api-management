@@ -15,25 +15,22 @@
  */
 package io.gravitee.plugin.entrypoint.sse;
 
-import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.plugin.entrypoint.sse.configuration.SseEntrypointConnectorConfiguration;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class SseEntrypointConnectorFactory extends EntrypointAsyncConnectorFactory {
 
     public SseEntrypointConnectorFactory() {
         super(SseEntrypointConnectorConfiguration.class);
-    }
-
-    @Override
-    public ApiType supportedApi() {
-        return SseEntrypointConnector.SUPPORTED_API;
     }
 
     @Override
@@ -43,6 +40,11 @@ public class SseEntrypointConnectorFactory extends EntrypointAsyncConnectorFacto
 
     @Override
     public SseEntrypointConnector createConnector(final String configuration) {
-        return new SseEntrypointConnector();
+        try {
+            return new SseEntrypointConnector(getConfiguration(configuration));
+        } catch (PluginConfigurationException e) {
+            log.error("Can't create connector cause no valid configuration", e);
+            return null;
+        }
     }
 }

@@ -62,11 +62,11 @@ class SseEntrypointIntegrationTest extends AbstractGatewayTest {
             .test();
 
         obs
-            .awaitCount(3)
+            .awaitCount(5)
             .assertValueAt(
                 0,
                 chunk -> {
-                    assertOnChunk(chunk, 0);
+                    assertRetry(chunk);
                     return true;
                 }
             )
@@ -80,6 +80,21 @@ class SseEntrypointIntegrationTest extends AbstractGatewayTest {
             )
             .assertValueAt(
                 2,
+                chunk -> {
+                    assertOnChunk(chunk, 0);
+                    return true;
+                }
+            )
+            .assertValueAt(
+                3,
+                chunk -> {
+                    // A message is followed by a double return as per developed in SseEntrypointConnector
+                    assertThat(chunk).isEqualTo(Buffer.buffer("\n\n"));
+                    return true;
+                }
+            )
+            .assertValueAt(
+                4,
                 chunk -> {
                     assertOnChunk(chunk, 1);
                     return true;
@@ -102,6 +117,12 @@ class SseEntrypointIntegrationTest extends AbstractGatewayTest {
                 }
             );
         obs.assertNoErrors();
+    }
+
+    private void assertRetry(Buffer chunk) {
+        final String[] splitMessage = chunk.toString().split("\n");
+        assertThat(splitMessage).hasSize(1);
+        assertThat(splitMessage[0]).startsWith("retry: ");
     }
 
     private void assertOnChunk(Buffer chunk, int messageNumber) {
