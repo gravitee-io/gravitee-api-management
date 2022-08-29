@@ -64,7 +64,11 @@ describeIfJupiter('Gateway V4 - SSE entrypoint to mock endpoint', () => {
                 name: 'default',
                 type: 'mock',
                 weight: 1,
-                configuration: '{"messageInterval":100, "messageContent":"e2e test message","messageCount":3}',
+                configuration: {
+                  messageInterval: 100,
+                  messageContent: 'e2e test message',
+                  messageCount: 3,
+                },
               },
             ],
           },

@@ -28,12 +28,15 @@ import org.springframework.stereotype.Component;
 /**
  * @author GraviteeSource Team
  */
-@Component("EndpointServiceImplV4")
-public class EndpointServiceImpl
+@Component("EndpointPluginServiceImplV4")
+public class EndpointPluginServiceImpl
     extends AbstractPluginService<EndpointConnectorPlugin<?>, PlatformPluginEntity>
     implements EndpointService {
 
-    public EndpointServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<EndpointConnectorPlugin<?>> pluginManager) {
+    public EndpointPluginServiceImpl(
+        JsonSchemaService jsonSchemaService,
+        ConfigurablePluginManager<EndpointConnectorPlugin<?>> pluginManager
+    ) {
         super(jsonSchemaService, pluginManager);
     }
 

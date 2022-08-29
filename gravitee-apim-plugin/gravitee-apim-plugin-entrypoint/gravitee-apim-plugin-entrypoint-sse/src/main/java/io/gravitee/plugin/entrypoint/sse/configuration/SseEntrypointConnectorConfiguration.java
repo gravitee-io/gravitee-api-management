@@ -16,9 +16,24 @@
 package io.gravitee.plugin.entrypoint.sse.configuration;
 
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SseEntrypointConnectorConfiguration implements EntrypointConnectorConfiguration {}
+@Getter
+@Setter
+public class SseEntrypointConnectorConfiguration implements EntrypointConnectorConfiguration {
+
+    /**
+     * Allow sending messages metadata to client as SSE comments.
+     */
+    private boolean metadataAsComment = false;
+
+    /**
+     * Allow sending messages headers to client as SSE comments.
+     */
+    private boolean headersAsComment = false;
+}

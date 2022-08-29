@@ -551,7 +551,40 @@ jobs:
                       - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
                       - gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
                       - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
-                      - gravitee-apim-plugin/gravitee-apim-plugin-coverage/target/site/jacoco-aggregate/
+
+    test-plugin:
+      executor:
+        name: ubuntu
+        class: medium
+      steps:
+        - install-jdk-17-for-machine
+        - checkout
+        - attach_workspace:
+            at: .
+        - restore-maven-job-cache:
+            jobName: test-plugin
+        - restore_cache:
+            keys:
+              - gravitee-api-management-v7-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+        - run:
+            name: Run tests
+            command: |
+              mvn -U --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dplugin-modules -Dskip.validation=true -T 2C
+        - run:
+            name: Save test results
+            command: |
+              mkdir -p ~/test-results/junit/
+              find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+            when: always
+        - notify-on-failure
+        - save-maven-job-cache:
+            jobName: test-plugin
+        - store_test_results:
+            path: ~/test-results
+        - persist_to_workspace:
+            root: .
+            paths:
+              - gravitee-apim-plugin/gravitee-apim-plugin-coverage/target/site/jacoco-aggregate/
 
     test-repository:
         executor:
@@ -1733,10 +1766,19 @@ workflows:
                               - gravitee-apim-rest-api
                               - gravitee-apim-gateway
                               - gravitee-apim-definition
-                              - gravitee-apim-plugin
                   context: cicd-orchestrator
                   requires:
                       - test
+            - test-plugin:
+                context: cicd-orchestrator
+                requires:
+                  - build
+            - sonarcloud-analysis:
+                name: Sonar - gravitee-apim-plugin
+                working_directory: gravitee-apim-plugin
+                context: cicd-orchestrator
+                requires:
+                  - test-plugin
             - test-repository:
                   context: cicd-orchestrator
                   requires:

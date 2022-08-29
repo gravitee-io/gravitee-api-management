@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@SuppressWarnings("unchecked")
 public class DefaultEntrypointConnectorPluginManager
     extends AbstractConfigurablePluginManager<EntrypointConnectorPlugin<?>>
     implements EntrypointConnectorPluginManager {
@@ -47,7 +46,8 @@ public class DefaultEntrypointConnectorPluginManager
     }
 
     @Override
-    public void register(final EntrypointConnectorPlugin plugin) {
+    @SuppressWarnings("unchecked")
+    public void register(final EntrypointConnectorPlugin<?> plugin) {
         super.register(plugin);
 
         // Create entrypoint

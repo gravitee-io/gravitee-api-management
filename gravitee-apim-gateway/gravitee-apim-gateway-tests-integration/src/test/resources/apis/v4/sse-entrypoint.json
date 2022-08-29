@@ -30,7 +30,11 @@
           "type": "mock",
           "weight": 1,
           "inheritConfiguration": false,
-          "configuration": "{\"messageInterval\":500, \"messageContent\":\"Mock data\", \"messageCount\":12}"
+          "configuration": {
+            "messageInterval": 500,
+            "messageContent": "Mock data",
+            "messageCount": 12
+          }
         }
       ]
     }

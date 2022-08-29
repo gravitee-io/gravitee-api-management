@@ -17,6 +17,7 @@ package io.gravitee.plugin.entrypoint.sse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -44,7 +45,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-@Disabled("Failing tests disabled until issue #8291 is fixed")
 class SseEntrypointConnectorTest {
 
     @Mock
@@ -60,7 +60,12 @@ class SseEntrypointConnectorTest {
 
     @BeforeEach
     void beforeEach() {
-        sseEntrypointConnector = new SseEntrypointConnector();
+        lenient().when(mockMessageExecutionContext.request()).thenReturn(mockMessageRequest);
+        lenient().when(mockMessageExecutionContext.response()).thenReturn(mockMessageResponse);
+        lenient().when(mockMessageResponse.writeHeaders()).thenReturn(Completable.complete());
+        lenient().when(mockMessageResponse.write(any())).thenReturn(Completable.complete());
+        lenient().when(mockMessageResponse.end()).thenReturn(Completable.complete());
+        sseEntrypointConnector = new SseEntrypointConnector(null);
     }
 
     @Test
@@ -70,9 +75,8 @@ class SseEntrypointConnectorTest {
 
     @Test
     void shouldMatchesWithValidContext() {
-        when(mockMessageExecutionContext.request()).thenReturn(mockMessageRequest);
         HttpHeaders httpHeaders = HttpHeaders.create();
-        httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, "text/event-stream");
+        httpHeaders.set(HttpHeaderNames.ACCEPT, "text/event-stream");
         when(mockMessageRequest.headers()).thenReturn(httpHeaders);
         when(mockMessageRequest.method()).thenReturn(HttpMethod.GET);
 
@@ -141,7 +145,7 @@ class SseEntrypointConnectorTest {
         assertThat(httpHeaders.contains(HttpHeaderNames.CONNECTION)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CACHE_CONTROL)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CACHE_CONTROL)).isTrue();
-        verify(mockMessageResponse, times(6)).write(any());
+        verify(mockMessageResponse, times(8)).write(any());
     }
 
     @Test

@@ -157,6 +157,13 @@
             <scope>runtime</scope>
             <type>zip</type>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.endpoint</groupId>
+            <artifactId>gravitee-apim-plugin-endpoint-kafka</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
 
         <!-- Fetchers -->
         <dependency>

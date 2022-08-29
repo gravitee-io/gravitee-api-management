@@ -48,7 +48,7 @@ class MockEndpointConnectorFactoryTest {
 
     @ParameterizedTest
     @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
-    void shouldCreateConnectorWithWrongConfiguration(String configuration) {
+    void shouldNotCreateConnectorWithWrongConfiguration(String configuration) {
         MockEndpointConnector connector = mockEndpointConnectorFactory.createConnector(configuration);
         assertThat(connector).isNull();
     }
