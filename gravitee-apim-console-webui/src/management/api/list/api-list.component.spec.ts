@@ -115,7 +115,15 @@ describe('ApisListComponent', () => {
     beforeEach(fakeAsync(() => initComponent([fakeApi()])));
     it('should navigate to new apis page on click to add button', () => {
       const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-      const api = { id: 'api-id', name: 'api#1' };
+      const api = {
+        id: 'api-id',
+        name: 'api#1',
+        contextPath: '/api-1',
+        tags: null,
+        owner: 'admin',
+        ownerEmail: 'admin@gio.com',
+        picture: null,
+      };
 
       apiListComponent.onEditActionClicked(api);
 

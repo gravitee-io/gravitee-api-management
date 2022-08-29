@@ -26,7 +26,15 @@ import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wra
 import { ApiService } from '../../../services-ngx/api.service';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
-type ApisTableDS = { id: string; name: string }[];
+export type ApisTableDS = {
+  id: string;
+  name: string;
+  contextPath: string;
+  tags: string;
+  owner: string;
+  ownerEmail: string;
+  picture: string;
+}[];
 
 @Component({
   selector: 'api-list',
@@ -34,7 +42,7 @@ type ApisTableDS = { id: string; name: string }[];
   styles: [require('./api-list.component.scss')],
 })
 export class ApiListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['name'];
+  displayedColumns = ['picture', 'name', 'contextPath', 'tags', 'owner'];
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
   filters: GioTableWrapperFilters = {
@@ -119,7 +127,11 @@ private unsubscribe$: Subject<boolean> = new Subject<boolean>();
       ? api.data.map((api) => ({
           id: api.id,
           name: api.name,
-        }))
+          contextPath: api.context_path,
+          tags: api.tags.join(', '),
+          owner: api?.owner?.displayName,
+          ownerEmail: api?.owner?.email,
+          picture: api.picture,}))
       : [];
   }
 }
