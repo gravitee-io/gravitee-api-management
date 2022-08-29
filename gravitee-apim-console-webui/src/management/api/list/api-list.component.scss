@@ -19,6 +19,17 @@
   }
 }
 
+.mat-column-contextPath,
+.mat-column-tags,
+.mat-column-owner {
+  padding: 0 4px;
+}
+
 .mat-column-name {
   cursor: pointer;
+}
+
+.mat-column-picture {
+  width: 1%;
+  padding: 0 4px;
 }
