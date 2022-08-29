@@ -52,6 +52,7 @@
       <td mat-cell *matCellDef="let element">
         <mat-icon *ngIf="element.state === 'STARTED'" matTooltip="Started" class="states__api-started" size="20">play_circle</mat-icon>
         <mat-icon *ngIf="element.state !== 'STARTED'" matTooltip="Stopped" class="states__api-not-started" size="20">stop_circle</mat-icon>
+        <mat-icon *ngIf="!(element.isSynced$ | async)" matTooltip="API out of sync" class="states__api-is-not-synced" size="20">sync_problem</mat-icon>
         <mat-icon *ngIf="element.lifecycleState === 'PUBLISHED'" matTooltip="Published" class="states__api-published" size="20">cloud_done</mat-icon>
         <mat-icon *ngIf="element.lifecycleState !== 'PUBLISHED'" matTooltip="Unpublished" class="states__api-not-published" size="20">cloud_off</mat-icon>
         <span

@@ -152,4 +152,26 @@ describe('ApiService', () => {
       req.flush(mockApis);
     });
   });
+
+  describe('isAPISynchronized', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api#1';
+
+      apiService.isAPISynchronized(apiId).subscribe((response) => {
+        expect(response).toEqual({
+          api_id: apiId,
+          is_synchronized: true,
+        });
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/state`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush({
+        api_id: apiId,
+        is_synchronized: true,
+      });
+    });
+  });
 });
