@@ -27,11 +27,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author GraviteeSource Team
  */
 @AllArgsConstructor
+@Slf4j
 public class MockEndpointConnector implements EndpointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
@@ -45,7 +47,12 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
 
     @Override
     public Completable connect(MessageExecutionContext ctx) {
-        return Completable.fromRunnable(() -> ctx.response().messages(generateMessageFlow()));
+        return ctx
+            .request()
+            .messages()
+            .doOnNext(message -> log.info("Received message:\n" + message.content().toString()))
+            .ignoreElements()
+            .andThen(Completable.fromRunnable(() -> ctx.response().messages(generateMessageFlow())));
     }
 
     private Flowable<Message> generateMessageFlow() {

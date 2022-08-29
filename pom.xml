@@ -120,6 +120,7 @@
         <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
         <protobuf-java.version>3.19.3</protobuf-java.version>
         <reactor-adapter.version>3.4.6</reactor-adapter.version>
+        <slf4j-mock.version>2.2.0</slf4j-mock.version>
         <snakeyaml.version>1.31</snakeyaml.version>
         <swagger-jaxrs2.version>2.1.13</swagger-jaxrs2.version>
         <swagger-core.version>2.1.13</swagger-core.version>
@@ -755,6 +756,12 @@
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
                 <version>${asm.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.simplify4u</groupId>
+                <artifactId>slf4j-mock</artifactId>
+                <version>${slf4j-mock.version}</version>
             </dependency>
 
             <dependency>
