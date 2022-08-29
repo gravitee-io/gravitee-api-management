@@ -16,7 +16,7 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTableHarness } from '@angular/material/table/testing';
@@ -81,7 +81,8 @@ describe('ApisListComponent', () => {
   }));
 
   it('should display a table with one row', fakeAsync(async () => {
-    await initComponent([fakeApi()]);
+    const api = fakeApi();
+    await initComponent([api]);
 
     const { headerCells, rowCells } = await computeApisTableCells();
     expect(headerCells).toEqual([
@@ -94,20 +95,38 @@ describe('ApisListComponent', () => {
         tags: 'Tags',
       },
     ]);
-    expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', 'admin']]);
+    expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlesync_problemcloud_done', '/planets', '', 'admin']]);
   }));
 
   it('should order rows by name', fakeAsync(async () => {
-    const apis = [fakeApi({ name: 'Planets 🪐' }), fakeApi({ name: 'Unicorns 🦄' })];
+    const planetsApi = fakeApi({ id: '1', name: 'Planets 🪐' });
+    const unicornsApi = fakeApi({ id: '2', name: 'Unicorns 🦄' });
+    const apis = [planetsApi, unicornsApi];
     await initComponent(apis);
 
     const nameSort = await loader.getHarness(MatSortHeaderHarness.with({ selector: '#name' })).then((sortHarness) => sortHarness.host());
     await nameSort.click();
+    apis.map((api) => expectSyncedApi(api.id, true));
     expectApisListRequest(apis, null, 'name');
 
     fixture.detectChanges();
     await nameSort.click();
+    apis.map((api) => expectSyncedApi(api.id, true));
     expectApisListRequest(apis, null, '-name');
+  }));
+
+  it('should display out of sync api icon', fakeAsync(async () => {
+    const api = fakeApi();
+    const apis = [api];
+    await initComponent(apis);
+
+    const nameSort = await loader.getHarness(MatSortHeaderHarness.with({ selector: '#name' })).then((sortHarness) => sortHarness.host());
+    await nameSort.click();
+
+    expectSyncedApi(api.id, false);
+    expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toBeTruthy();
+    fixture.detectChanges();
+    expectApisListRequest(apis, null, 'name');
   }));
 
   describe('onAddApiClick', () => {
@@ -147,6 +166,7 @@ describe('ApisListComponent', () => {
   async function initComponent(apis: Api[]) {
     expectApisListRequest(apis);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    fixture.detectChanges();
   }
 
   async function computeApisTableCells() {
@@ -158,6 +178,16 @@ describe('ApisListComponent', () => {
     const rows = await table.getRows();
     const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
     return { headerCells, rowCells };
+  }
+
+  function expectSyncedApi(apiId: string, isSynced: boolean) {
+    // wait debounceTime
+    fixture.detectChanges();
+    tick(400);
+
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/state`);
+    expect(req.request.method).toEqual('GET');
+    req.flush({ api_id: apiId, is_synchronized: isSynced });
   }
 
   function expectApisListRequest(apis: Api[] = [], q?: string, order?: string, page = 1) {

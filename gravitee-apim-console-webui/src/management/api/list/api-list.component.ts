@@ -15,8 +15,8 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { BehaviorSubject, of, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
@@ -37,6 +37,7 @@ export type ApisTableDS = {
   state: ApiState;
   lifecycleState: ApiLifecycleState;
   workflowBadge?: { text: string; class: string };
+  isSynced$?: Observable<boolean>;
 }[];
 
 @Component({
@@ -52,7 +53,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     pagination: { index: 1, size: 10 },
     searchTerm: '',
   };
-private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
 
   constructor(
@@ -85,9 +86,9 @@ private unsubscribe$: Subject<boolean> = new Subject<boolean>();
         switchMap(({ pagination, searchTerm, sort }) => {
           return this.apiService.list(searchTerm, toOrder(sort), pagination.index, pagination.size).pipe(
             tap((apisPage) => {
-          this.apisTableDS = this.toApisTableDS(apisPage);
-          this.apisTableDSUnpaginatedLength = apisPage.page.total_elements;
-        }),
+              this.apisTableDS = this.toApisTableDS(apisPage);
+              this.apisTableDSUnpaginatedLength = apisPage.page.total_elements;
+            }),
             catchError(() => of(new PagedResult<Api>())),
           );
         }),
@@ -127,19 +128,20 @@ private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   private toApisTableDS(api: PagedResult<Api>): ApisTableDS {
     return api.page.total_elements > 0
-        ? api.data.map((api) => ({
-            id: api.id,
-            name: api.name,
-            contextPath: api.context_path,
-            tags: api.tags.join(', '),
-            owner: api?.owner?.displayName,
-            ownerEmail: api?.owner?.email,
-            picture: api.picture,
-            state: api.state,
-            lifecycleState: api.lifecycle_state,
-            workflowBadge: this.getWorkflowBadge(api),
-          }))
-        : [];
+      ? api.data.map((api) => ({
+          id: api.id,
+          name: api.name,
+          contextPath: api.context_path,
+          tags: api.tags.join(', '),
+          owner: api?.owner?.displayName,
+          ownerEmail: api?.owner?.email,
+          picture: api.picture,
+          state: api.state,
+          lifecycleState: api.lifecycle_state,
+          workflowBadge: this.getWorkflowBadge(api),
+          isSynced$: this.apiService.isAPISynchronized(api.id).pipe(map((a) => a.is_synchronized)),
+        }))
+      : [];
   }
 
   private getWorkflowBadge(api) {

@@ -121,3 +121,8 @@ export interface ApiResource {
 export type ApiLifecycleState = 'CREATED' | 'PUBLISHED' | 'UNPUBLISHED' | 'DEPRECATED' | 'ARCHIVED';
 
 export type ApiWorkflowState = 'DRAFT' | 'IN_REVIEW' | 'REQUEST_FOR_CHANGES' | 'REVIEW_OK';
+
+export interface ApiStateEntity {
+  api_id: string;
+  is_synchronized: boolean;
+}
