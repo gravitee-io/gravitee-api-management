@@ -19,7 +19,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.MessageRequest;
 import io.gravitee.gateway.jupiter.api.context.MessageResponse;
+import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import io.reactivex.Flowable;
@@ -28,8 +30,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
 
 /**
  * @author GraviteeSource Team
@@ -37,14 +41,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MockEndpointConnectorTest {
 
+    private static final String MESSAGE_TO_LOG = "message to log";
     private final MockEndpointConnectorConfiguration configuration = new MockEndpointConnectorConfiguration();
+
+    @InjectMocks
     private MockEndpointConnector mockEndpointConnector;
 
     @Mock
     private MessageExecutionContext messageExecutionContext;
 
     @Mock
+    private MessageRequest messageRequest;
+
+    @Mock
     private MessageResponse messageResponse;
+
+    @Mock
+    Logger logger;
 
     @BeforeEach
     public void setup() {
@@ -52,6 +65,9 @@ class MockEndpointConnectorTest {
         configuration.setMessageContent("test mock endpoint");
         mockEndpointConnector = new MockEndpointConnector(configuration);
 
+        when(messageRequest.messages()).thenReturn(Flowable.just(DefaultMessage.builder().content(MESSAGE_TO_LOG.getBytes()).build()));
+
+        when(messageExecutionContext.request()).thenReturn(messageRequest);
         when(messageExecutionContext.response()).thenReturn(messageResponse);
     }
 
@@ -71,6 +87,8 @@ class MockEndpointConnectorTest {
             .assertValueAt(0, message -> message.content().toString().equals("test mock endpoint 0"))
             .assertValueAt(1, message -> message.content().toString().equals("test mock endpoint 1"))
             .assertValueAt(2, message -> message.content().toString().equals("test mock endpoint 2"));
+
+        verify(logger).info("Received message:\n" + MESSAGE_TO_LOG);
     }
 
     @Test
@@ -84,5 +102,7 @@ class MockEndpointConnectorTest {
         verify(messageResponse).messages(messagesCaptor.capture());
 
         messagesCaptor.getValue().test().await().assertValueCount(5);
+
+        verify(logger).info("Received message:\n" + MESSAGE_TO_LOG);
     }
 }
