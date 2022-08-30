@@ -78,6 +78,7 @@ describe('ApisListComponent', () => {
           picture: '',
           states: '',
           tags: 'Tags',
+          visibility: 'Visibility',
         },
       ]);
       expect(rowCells).toEqual([['There is no apis (yet).']]);
@@ -96,9 +97,10 @@ describe('ApisListComponent', () => {
           picture: '',
           states: '',
           tags: 'Tags',
+          visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlesync_problemcloud_done', '/planets', '', 'admin']]);
+      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlesync_problemcloud_done', '/planets', '', 'admin', 'public']]);
     }));
 
     it('should order rows by name', fakeAsync(async () => {
@@ -158,6 +160,7 @@ describe('ApisListComponent', () => {
           state: 'CREATED' as ApiState,
           lifecycleState: 'PUBLISHED' as ApiLifecycleState,
           workflowState: 'REVIEW_OK',
+          visibility: { label: 'PUBLIC', icon: 'public' },
         };
 
         apiListComponent.onEditActionClicked(api);
@@ -205,9 +208,10 @@ describe('ApisListComponent', () => {
           qualityScore: 'Quality',
           states: '',
           tags: 'Tags',
+          visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', '100%', 'admin']]);
+      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', '100%', 'admin', 'public']]);
       expect(fixture.debugElement.query(By.css('.quality-score__good'))).toBeTruthy();
     }));
 

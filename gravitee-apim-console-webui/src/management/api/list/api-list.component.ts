@@ -40,6 +40,7 @@ export type ApisTableDS = {
   workflowBadge?: { text: string; class: string };
   isSynced$?: Observable<boolean>;
   qualityScore$?: Observable<{ score: number; class: string }>;
+  visibility: { label: string; icon: string };
 }[];
 
 @Component({
@@ -48,7 +49,7 @@ export type ApisTableDS = {
   styles: [require('./api-list.component.scss')],
 })
 export class ApiListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['picture', 'name', 'states', 'contextPath', 'tags', 'owner'];
+  displayedColumns = ['picture', 'name', 'states', 'contextPath', 'tags', 'owner', 'visibility'];
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
   filters: GioTableWrapperFilters = {
@@ -58,6 +59,10 @@ export class ApiListComponent implements OnInit, OnDestroy {
   isQualityDisplayed: boolean;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
+  private visibilitiesIcons = {
+    PUBLIC: 'public',
+    PRIVATE: 'lock',
+  };
 
   constructor(
     @Inject(UIRouterStateParams) private $stateParams,
@@ -151,6 +156,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
           qualityScore$: this.isQualityDisplayed
             ? this.apiService.getQualityMetrics(api.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
             : null,
+          visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
         }))
       : [];
   }
