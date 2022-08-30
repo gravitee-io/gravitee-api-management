@@ -93,11 +93,11 @@ export class ApiService {
   }
 
   list(query?: string, order?: string, page = 1, size = 10): Observable<PagedResult<Api>> {
-    return this.http.get<PagedResult<Api>>(`${this.constants.env.baseURL}/apis/_paged`, {
+    return this.http.post<PagedResult<Api>>(`${this.constants.env.baseURL}/apis/_search/_paged`, null, {
       params: {
         page,
         size,
-        ...(query ? { query } : {}),
+        q: query ? query : '*',
         ...(order ? { order } : {}),
       },
     });

@@ -129,8 +129,8 @@ describe('ApiService', () => {
       });
 
       const req = httpTestingController.expectOne({
-        method: 'GET',
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/_paged?page=1&size=10`,
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/_search/_paged?page=1&size=10&q=*`,
       });
 
       req.flush(mockApis);
@@ -145,8 +145,8 @@ describe('ApiService', () => {
       });
 
       const req = httpTestingController.expectOne({
-        method: 'GET',
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/_paged?page=1&size=10&query=toto&order=name`,
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/_search/_paged?page=1&size=10&q=toto&order=name`,
       });
 
       req.flush(mockApis);
