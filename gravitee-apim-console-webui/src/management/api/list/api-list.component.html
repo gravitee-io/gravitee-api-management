@@ -81,6 +81,18 @@
       </td>
     </ng-container>
 
+    <!-- Display Quality Score Column -->
+    <ng-container matColumnDef="qualityScore" *ngIf="isQualityDisplayed">
+      <th mat-header-cell *matHeaderCellDef id="qualityScore">Quality</th>
+      <td mat-cell *matCellDef="let element">
+        <span *ngIf="element.qualityScore$ | async as qualityScore"
+              class="quality-score"
+              [ngClass]="qualityScore.class">
+          {{qualityScore.score}}%
+        </span>
+      </td>
+    </ng-container>
+
     <!-- Display Owner Column -->
     <ng-container matColumnDef="owner">
       <th mat-header-cell *matHeaderCellDef id="owner">Owner</th>

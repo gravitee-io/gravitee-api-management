@@ -34,6 +34,11 @@ export const CONSTANTS_TESTING: Constants = {
   },
   env: {
     baseURL: 'https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT',
+    settings: {
+      apiQualityMetrics: {
+        enabled: false,
+      },
+    } as any,
   },
 };
 

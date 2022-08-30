@@ -61,3 +61,29 @@
     }
   }
 }
+
+.quality-score {
+  text-align: center;
+  min-width: 42px;
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 6px;
+  margin: 4px 0;
+  display: inline-block;
+  font-size: 0.8em;
+
+  &__good {
+    color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+    border-color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+  }
+
+  &__bad {
+    color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+    border-color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+  }
+
+  &__medium {
+    color: mat.get-color-from-palette(gio.$mat-warning-palette, 'default');
+    border-color: mat.get-color-from-palette(gio.$mat-warning-palette, 'default');
+  }
+}
