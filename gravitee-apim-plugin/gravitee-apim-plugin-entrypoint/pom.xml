@@ -35,6 +35,7 @@
     <modules>
         <module>gravitee-apim-plugin-entrypoint-handler</module>
         <module>gravitee-apim-plugin-entrypoint-sse</module>
+        <module>gravitee-apim-plugin-entrypoint-http-get</module>
         <module>gravitee-apim-plugin-entrypoint-http-post</module>
         <module>gravitee-apim-plugin-entrypoint-webhook</module>
         <module>gravitee-apim-plugin-entrypoint-websocket</module>

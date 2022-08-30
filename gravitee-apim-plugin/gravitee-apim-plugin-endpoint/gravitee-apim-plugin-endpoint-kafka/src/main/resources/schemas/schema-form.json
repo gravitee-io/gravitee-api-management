@@ -22,7 +22,7 @@
           "title": "enabled",
           "description": "Allow to enable or disable the consumer capability.",
           "type": "boolean",
-          "default": "true"
+          "default": true
         },
         "autoOffsetReset": {
           "title": "auto.offset.reset",
