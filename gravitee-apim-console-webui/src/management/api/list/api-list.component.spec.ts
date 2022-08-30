@@ -72,6 +72,7 @@ describe('ApisListComponent', () => {
       const { headerCells, rowCells } = await computeApisTableCells();
       expect(headerCells).toEqual([
         {
+          actions: '',
           contextPath: 'Context paths',
           name: 'Name',
           owner: 'Owner',
@@ -91,6 +92,7 @@ describe('ApisListComponent', () => {
       const { headerCells, rowCells } = await computeApisTableCells();
       expect(headerCells).toEqual([
         {
+          actions: '',
           contextPath: 'Context paths',
           name: 'Name',
           owner: 'Owner',
@@ -100,7 +102,7 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlesync_problemcloud_done', '/planets', '', 'admin', 'public']]);
+      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlesync_problemcloud_done', '/planets', '', 'admin', 'public', 'edit']]);
     }));
 
     it('should order rows by name', fakeAsync(async () => {
@@ -201,6 +203,7 @@ describe('ApisListComponent', () => {
       const { headerCells, rowCells } = await computeApisTableCells();
       expect(headerCells).toEqual([
         {
+          actions: '',
           contextPath: 'Context paths',
           name: 'Name',
           owner: 'Owner',
@@ -211,7 +214,7 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', '100%', 'admin', 'public']]);
+      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', '100%', 'admin', 'public', 'edit']]);
       expect(fixture.debugElement.query(By.css('.quality-score__good'))).toBeTruthy();
     }));
 
