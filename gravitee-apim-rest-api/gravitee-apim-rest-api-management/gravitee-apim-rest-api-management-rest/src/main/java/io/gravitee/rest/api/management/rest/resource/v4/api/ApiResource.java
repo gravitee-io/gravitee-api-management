@@ -21,7 +21,7 @@ import static io.gravitee.rest.api.management.rest.resource.param.LifecycleActio
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
@@ -265,7 +265,7 @@ public class ApiResource extends AbstractResource {
         if (listeners != null) {
             Optional<Listener> first = listeners.stream().filter(listener -> ListenerType.HTTP == listener.getType()).findFirst();
             if (first.isPresent()) {
-                ListenerHttp httpListener = (ListenerHttp) first.get();
+                HttpListener httpListener = (HttpListener) first.get();
                 if (httpListener.getPaths() != null && !httpListener.getPaths().isEmpty()) {
                     Path path = httpListener.getPaths().get(0);
                     Path filteredPath = new Path(path.getPath());

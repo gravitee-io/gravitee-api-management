@@ -17,13 +17,13 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.EntrypointPluginService;
-import io.gravitee.rest.api.service.v4.exception.ListenerHttpEntrypointMissingException;
-import io.gravitee.rest.api.service.v4.exception.ListenerHttpEntrypointMissingTypeException;
+import io.gravitee.rest.api.service.v4.exception.HttpListenerEntrypointMissingException;
+import io.gravitee.rest.api.service.v4.exception.HttpListenerEntrypointMissingTypeException;
 import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
@@ -71,7 +71,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                     switch (listener.getType()) {
                         case HTTP:
                             // TODO this need to be improved when entrypoint connector are implemented in order to check the configuration schema
-                            validateAndSanitizeHttpListener(executionContext, apiId, (ListenerHttp) listener);
+                            validateAndSanitizeHttpListener(executionContext, apiId, (HttpListener) listener);
                             break;
                         case TCP:
                         case SUBSCRIPTION:
@@ -99,26 +99,26 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     private void validateAndSanitizeHttpListener(
         final ExecutionContext executionContext,
         final String apiId,
-        final ListenerHttp listenerHttp
+        final HttpListener httpListener
     ) {
-        listenerHttp.setPaths(pathValidationService.validateAndSanitizePaths(executionContext, apiId, listenerHttp.getPaths()));
-        validatePathMappings(listenerHttp.getPathMappings());
+        httpListener.setPaths(pathValidationService.validateAndSanitizePaths(executionContext, apiId, httpListener.getPaths()));
+        validatePathMappings(httpListener.getPathMappings());
         // Validate and clean entrypoints
-        validateEntrypointsConfiguration(listenerHttp.getEntrypoints());
+        validateEntrypointsConfiguration(httpListener.getEntrypoints());
         // Validate and clean cors configuration
-        listenerHttp.setCors(corsValidationService.validateAndSanitize(listenerHttp.getCors()));
+        httpListener.setCors(corsValidationService.validateAndSanitize(httpListener.getCors()));
         // Validate and clean logging configuration
-        listenerHttp.setLogging(loggingValidationService.validateAndSanitize(executionContext, listenerHttp.getLogging()));
+        httpListener.setLogging(loggingValidationService.validateAndSanitize(executionContext, httpListener.getLogging()));
     }
 
     private void validateEntrypointsConfiguration(final List<Entrypoint> entrypoints) {
         if (entrypoints == null || entrypoints.isEmpty()) {
-            throw new ListenerHttpEntrypointMissingException();
+            throw new HttpListenerEntrypointMissingException();
         }
         entrypoints.forEach(
             entrypoint -> {
                 if (entrypoint.getType() == null) {
-                    throw new ListenerHttpEntrypointMissingTypeException();
+                    throw new HttpListenerEntrypointMissingTypeException();
                 }
                 String entrypointConfiguration = null;
                 if (entrypoint.getConfiguration() != null) {

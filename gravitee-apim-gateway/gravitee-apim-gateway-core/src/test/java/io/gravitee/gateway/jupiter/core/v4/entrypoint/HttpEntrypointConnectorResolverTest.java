@@ -23,7 +23,7 @@ import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
@@ -86,8 +86,8 @@ class HttpEntrypointConnectorResolverTest {
         final Entrypoint entrypoint2 = buildEntrypoint();
         final Entrypoint entrypoint3 = buildEntrypoint();
 
-        ((ListenerHttp) api.getListeners().get(0)).getEntrypoints().add(entrypoint2);
-        ((ListenerHttp) api.getListeners().get(0)).getEntrypoints().add(entrypoint3);
+        ((HttpListener) api.getListeners().get(0)).getEntrypoints().add(entrypoint2);
+        ((HttpListener) api.getListeners().get(0)).getEntrypoints().add(entrypoint3);
 
         final EntrypointConnector<HttpExecutionContext> entrypointConnector = mock(EntrypointConnector.class);
 
@@ -140,12 +140,12 @@ class HttpEntrypointConnectorResolverTest {
     }
 
     private Listener buildListener() {
-        final ListenerHttp listenerHttp = new ListenerHttp();
+        final HttpListener httpListener = new HttpListener();
         final ArrayList<Entrypoint> entrypoints = new ArrayList<>();
 
-        listenerHttp.setEntrypoints(entrypoints);
+        httpListener.setEntrypoints(entrypoints);
         entrypoints.add(buildEntrypoint());
-        return listenerHttp;
+        return httpListener;
     }
 
     private Entrypoint buildEntrypoint() {

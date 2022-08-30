@@ -37,7 +37,7 @@ import com.google.gson.Gson;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.ListenerType;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.fetcher.api.Fetcher;
 import io.gravitee.fetcher.api.FetcherConfiguration;
@@ -642,8 +642,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         .findFirst()
                         .map(
                             listener -> {
-                                ListenerHttp listenerHttp = (ListenerHttp) listener;
-                                return listenerHttp.getPaths().get(0).getPath();
+                                HttpListener httpListener = (HttpListener) listener;
+                                return httpListener.getPaths().get(0).getPath();
                             }
                         );
                     if (firstPathOpt.isPresent()) {

@@ -18,7 +18,7 @@ package io.gravitee.gateway.jupiter.core.v4.entrypoint;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
@@ -44,8 +44,8 @@ public class HttpEntrypointConnectorResolver {
                 .getListeners()
                 .stream()
                 .filter(listener -> listener.getType() == ListenerType.HTTP)
-                .map(ListenerHttp.class::cast)
-                .flatMap(listenerHttp -> listenerHttp.getEntrypoints().stream())
+                .map(HttpListener.class::cast)
+                .flatMap(httpListener -> httpListener.getEntrypoints().stream())
                 .map(
                     entrypoint ->
                         this.<EntrypointConnector<HttpExecutionContext>, HttpExecutionContext>createConnector(

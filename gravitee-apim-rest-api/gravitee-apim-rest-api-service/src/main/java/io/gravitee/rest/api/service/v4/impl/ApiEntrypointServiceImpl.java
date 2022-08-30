@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.ListenerType;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.model.EntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
@@ -28,7 +28,6 @@ import io.gravitee.rest.api.service.EntrypointService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -129,8 +128,8 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                 .filter(listener -> listener.getType() == ListenerType.HTTP)
                 .flatMap(
                     listener -> {
-                        ListenerHttp listenerHttp = (ListenerHttp) listener;
-                        return listenerHttp.getPaths().stream();
+                        HttpListener httpListener = (HttpListener) listener;
+                        return httpListener.getPaths().stream();
                     }
                 )
                 .map(

@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
@@ -201,11 +201,11 @@ public class ApiSearchServiceImplTest {
         assertThat(apiEntity.getType()).isEqualTo(ApiType.ASYNC);
         assertThat(apiEntity.getListeners()).isNotNull();
         assertThat(apiEntity.getListeners().size()).isEqualTo(1);
-        assertThat(apiEntity.getListeners().get(0)).isInstanceOf(ListenerHttp.class);
-        ListenerHttp listenerHttpCreated = (ListenerHttp) apiEntity.getListeners().get(0);
-        assertThat(listenerHttpCreated.getPaths().size()).isEqualTo(1);
-        assertThat(listenerHttpCreated.getPaths().get(0).getHost()).isNull();
-        assertThat(listenerHttpCreated.getPaths().get(0).getPath()).isEqualTo("/context");
+        assertThat(apiEntity.getListeners().get(0)).isInstanceOf(HttpListener.class);
+        HttpListener httpListenerCreated = (HttpListener) apiEntity.getListeners().get(0);
+        assertThat(httpListenerCreated.getPaths().size()).isEqualTo(1);
+        assertThat(httpListenerCreated.getPaths().get(0).getHost()).isNull();
+        assertThat(httpListenerCreated.getPaths().get(0).getPath()).isEqualTo("/context");
     }
 
     @Test
@@ -244,11 +244,11 @@ public class ApiSearchServiceImplTest {
         assertThat(apiEntity.getType()).isEqualTo(ApiType.ASYNC);
         assertThat(apiEntity.getListeners()).isNotNull();
         assertThat(apiEntity.getListeners().size()).isEqualTo(1);
-        assertThat(apiEntity.getListeners().get(0)).isInstanceOf(ListenerHttp.class);
-        ListenerHttp listenerHttpCreated = (ListenerHttp) apiEntity.getListeners().get(0);
-        assertThat(listenerHttpCreated.getPaths().size()).isEqualTo(1);
-        assertThat(listenerHttpCreated.getPaths().get(0).getHost()).isNull();
-        assertThat(listenerHttpCreated.getPaths().get(0).getPath()).isEqualTo("/context");
+        assertThat(apiEntity.getListeners().get(0)).isInstanceOf(HttpListener.class);
+        HttpListener httpListenerCreated = (HttpListener) apiEntity.getListeners().get(0);
+        assertThat(httpListenerCreated.getPaths().size()).isEqualTo(1);
+        assertThat(httpListenerCreated.getPaths().get(0).getHost()).isNull();
+        assertThat(httpListenerCreated.getPaths().get(0).getPath()).isEqualTo("/context");
         assertSame(apiFlows, apiEntity.getFlows());
         verify(flowServiceV4, times(1)).findByReference(FlowReferenceType.API, API_ID);
         verifyNoMoreInteractions(flowServiceV4);

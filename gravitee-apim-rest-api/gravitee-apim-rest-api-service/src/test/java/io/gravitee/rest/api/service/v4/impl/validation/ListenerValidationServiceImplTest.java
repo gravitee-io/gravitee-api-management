@@ -24,16 +24,16 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.EntrypointPluginService;
-import io.gravitee.rest.api.service.v4.exception.ListenerHttpEntrypointMissingException;
-import io.gravitee.rest.api.service.v4.exception.ListenerHttpEntrypointMissingTypeException;
-import io.gravitee.rest.api.service.v4.exception.ListenerHttpPathMissingException;
+import io.gravitee.rest.api.service.v4.exception.HttpListenerEntrypointMissingException;
+import io.gravitee.rest.api.service.v4.exception.HttpListenerEntrypointMissingTypeException;
+import io.gravitee.rest.api.service.v4.exception.HttpListenerPathMissingException;
 import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
@@ -99,9 +99,9 @@ public class ListenerValidationServiceImplTest {
     @Test
     public void shouldThrowDuplicatedExceptionWithDuplicatedType() {
         // Given
-        Listener listener1 = new ListenerHttp();
-        Listener listener2 = new ListenerHttp();
-        List<Listener> listeners = List.of(listener1, listener2);
+        Listener httpListener1 = new HttpListener();
+        Listener httpListener2 = new HttpListener();
+        List<Listener> listeners = List.of(httpListener1, httpListener2);
         // When
         assertThatExceptionOfType(ListenersDuplicatedException.class)
             .isThrownBy(() -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, listeners));
@@ -110,12 +110,12 @@ public class ListenerValidationServiceImplTest {
     @Test
     public void shouldReturnValidatedListeners() {
         // Given
-        ListenerHttp listener = new ListenerHttp();
-        listener.setPaths(List.of(new Path("path")));
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("type");
-        listener.setEntrypoints(List.of(entrypoint));
-        List<Listener> listeners = List.of(listener);
+        httpListener.setEntrypoints(List.of(entrypoint));
+        List<Listener> listeners = List.of(httpListener);
         // When
         List<Listener> validatedListeners = listenerValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
@@ -126,10 +126,10 @@ public class ListenerValidationServiceImplTest {
         assertThat(validatedListeners).isNotNull();
         assertThat(validatedListeners.size()).isEqualTo(1);
         Listener actual = validatedListeners.get(0);
-        assertThat(actual).isInstanceOf(ListenerHttp.class);
-        ListenerHttp actualListenerHttp = (ListenerHttp) actual;
-        assertThat(actualListenerHttp.getPaths().size()).isEqualTo(1);
-        Path path = actualListenerHttp.getPaths().get(0);
+        assertThat(actual).isInstanceOf(HttpListener.class);
+        HttpListener actualHttpListener = (HttpListener) actual;
+        assertThat(actualHttpListener.getPaths().size()).isEqualTo(1);
+        Path path = actualHttpListener.getPaths().get(0);
         assertThat(path.getHost()).isNull();
         assertThat(path.getPath()).isEqualTo("/path/");
     }
@@ -137,36 +137,36 @@ public class ListenerValidationServiceImplTest {
     @Test
     public void shouldThrowMissingPathExceptionWithDuplicatedType() {
         // Given
-        ListenerHttp listener = new ListenerHttp();
+        HttpListener httpListener = new HttpListener();
         // When
-        assertThatExceptionOfType(ListenerHttpPathMissingException.class)
+        assertThatExceptionOfType(HttpListenerPathMissingException.class)
             .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(listener))
+                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
             );
     }
 
     @Test
     public void shouldThrowMissingEntrypointExceptionWithDuplicatedType() {
         // Given
-        ListenerHttp listener = new ListenerHttp();
-        listener.setPaths(List.of(new Path("/path")));
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("/path")));
         // When
-        assertThatExceptionOfType(ListenerHttpEntrypointMissingException.class)
+        assertThatExceptionOfType(HttpListenerEntrypointMissingException.class)
             .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(listener))
+                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
             );
     }
 
     @Test
     public void shouldThrowMissingEntrypointTypeExceptionWithDuplicatedType() {
         // Given
-        ListenerHttp listener = new ListenerHttp();
-        listener.setPaths(List.of(new Path("/path")));
-        listener.setEntrypoints(List.of(new Entrypoint()));
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("/path")));
+        httpListener.setEntrypoints(List.of(new Entrypoint()));
         // When
-        assertThatExceptionOfType(ListenerHttpEntrypointMissingTypeException.class)
+        assertThatExceptionOfType(HttpListenerEntrypointMissingTypeException.class)
             .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(listener))
+                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
             );
     }
 }

@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.v4.listener.Listener;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -43,7 +43,6 @@ import io.gravitee.node.api.cache.EntryEvent;
 import io.gravitee.node.api.cache.EntryEventType;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.cache.standalone.StandaloneCache;
-import java.awt.print.Book;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -467,9 +466,9 @@ public class ApiManagerV4Test {
     }
 
     private Api buildTestApi() {
-        ListenerHttp listenerHttp = new ListenerHttp();
-        listenerHttp.setPaths(List.of(mock(Path.class)));
-        return new ApiBuilder().id("api-test").name("api-name-test").listeners(List.of(listenerHttp)).deployedAt(new Date()).build();
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(mock(Path.class)));
+        return new ApiBuilder().id("api-test").name("api-name-test").listeners(List.of(httpListener)).deployedAt(new Date()).build();
     }
 
     class ApiBuilder {

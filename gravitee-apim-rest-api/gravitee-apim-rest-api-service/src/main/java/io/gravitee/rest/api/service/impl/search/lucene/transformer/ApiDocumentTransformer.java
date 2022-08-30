@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.ListenerType;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -126,8 +126,8 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
                     .filter(listener -> listener.getType() == ListenerType.HTTP)
                     .flatMap(
                         listener -> {
-                            ListenerHttp listenerHttp = (ListenerHttp) listener;
-                            return listenerHttp.getPaths().stream();
+                            HttpListener httpListener = (HttpListener) listener;
+                            return httpListener.getPaths().stream();
                         }
                     )
                     .forEach(path -> appendPath(doc, pathIndex, path.getHost(), path.getPath()));

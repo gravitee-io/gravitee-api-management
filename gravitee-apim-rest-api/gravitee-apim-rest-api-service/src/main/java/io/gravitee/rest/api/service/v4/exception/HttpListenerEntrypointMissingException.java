@@ -24,7 +24,7 @@ import java.util.Map;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ListenerHttpEntrypointMissingTypeException extends AbstractManagementException {
+public class HttpListenerEntrypointMissingException extends AbstractManagementException {
 
     @Override
     public int getHttpStatusCode() {
@@ -33,7 +33,7 @@ public class ListenerHttpEntrypointMissingTypeException extends AbstractManageme
 
     @Override
     public String getTechnicalCode() {
-        return "listeners.http.entrypoints.type.missing";
+        return "listeners.http.entrypoints.missing";
     }
 
     @Override
@@ -43,6 +43,6 @@ public class ListenerHttpEntrypointMissingTypeException extends AbstractManageme
 
     @Override
     public String getMessage() {
-        return "The entrypoint type cannot be null or empty.";
+        return "At least one entrypoint is required for the listener HTTP.";
     }
 }

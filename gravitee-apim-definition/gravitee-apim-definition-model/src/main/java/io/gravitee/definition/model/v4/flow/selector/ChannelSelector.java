@@ -16,7 +16,6 @@
 package io.gravitee.definition.model.v4.flow.selector;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Operator;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
@@ -24,7 +23,6 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -36,20 +34,25 @@ import lombok.ToString;
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "SelectorHttpV4")
-public class SelectorHttp extends Selector {
+@Schema(name = "ChannelSelectorV4")
+public class ChannelSelector extends Selector {
+
+    private Set<@NotNull Operation> operations;
 
     @JsonProperty(required = true)
     @NotEmpty
-    private String path;
+    private String channel;
 
     @JsonProperty(required = true)
     @NotNull
-    private Operator pathOperator = Operator.STARTS_WITH;
+    private Operator channelOperator = Operator.STARTS_WITH;
 
-    private Set<HttpMethod> methods;
+    public ChannelSelector() {
+        super(SelectorType.CHANNEL);
+    }
 
-    public SelectorHttp() {
-        super(SelectorType.HTTP);
+    public enum Operation {
+        SUB,
+        PUB,
     }
 }

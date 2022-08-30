@@ -15,7 +15,7 @@
  */
 import faker from '@faker-js/faker';
 import {
-  ListenerHttpV4,
+  HttpListenerV4,
   ListenerV4,
   NewApiEntityV4,
   NewApiEntityV4DefinitionVersionEnum,
@@ -52,7 +52,7 @@ export class ApisV4Faker {
     };
   }
 
-  static newHttpListener(attributes?: Partial<ListenerHttpV4>): ListenerV4 {
+  static newHttpListener(attributes?: Partial<HttpListenerV4>): ListenerV4 {
     return {
       // @ts-ignore
       type: 'http',

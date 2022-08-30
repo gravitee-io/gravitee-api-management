@@ -25,7 +25,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
@@ -199,7 +199,7 @@ public class AsyncApiReactor
             .getListeners()
             .stream()
             .filter(listener -> ListenerType.HTTP == listener.getType())
-            .flatMap(listener -> ((ListenerHttp) listener).getPaths().stream())
+            .flatMap(listener -> ((HttpListener) listener).getPaths().stream())
             .map(path -> new DefaultHttpAcceptor(path.getHost(), path.getPath(), this))
             .collect(Collectors.toList());
     }

@@ -24,7 +24,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -95,12 +95,12 @@ public class ApisResourceTest extends AbstractResourceTest {
         apiEntity.setName("My beautiful api");
         apiEntity.setApiVersion("v1");
         apiEntity.setDescription("my description");
-        ListenerHttp listenerHttp = new ListenerHttp();
-        listenerHttp.setPaths(List.of(new Path("/context")));
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("/context")));
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("sse");
-        listenerHttp.setEntrypoints(List.of(entrypoint));
-        apiEntity.setListeners(List.of(listenerHttp));
+        httpListener.setEntrypoints(List.of(entrypoint));
+        apiEntity.setListeners(List.of(httpListener));
 
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
@@ -118,12 +118,12 @@ public class ApisResourceTest extends AbstractResourceTest {
         apiEntity.setName("My beautiful api");
         apiEntity.setApiVersion("v1");
         apiEntity.setDescription("my description");
-        ListenerHttp listenerHttp = new ListenerHttp();
-        listenerHttp.setPaths(List.of(new Path("/context")));
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("/context")));
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("sse");
-        listenerHttp.setEntrypoints(List.of(entrypoint));
-        apiEntity.setListeners(List.of(listenerHttp));
+        httpListener.setEntrypoints(List.of(entrypoint));
+        apiEntity.setListeners(List.of(httpListener));
 
         EndpointGroup endpoint = new EndpointGroup();
         endpoint.setName("default");
@@ -145,12 +145,12 @@ public class ApisResourceTest extends AbstractResourceTest {
         apiEntity.setApiVersion("v1");
         apiEntity.setType(ApiType.SYNC);
         apiEntity.setDescription("Ma description");
-        ListenerHttp listenerHttp = new ListenerHttp();
-        listenerHttp.setPaths(List.of(new Path("/context")));
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("/context")));
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("sse");
-        listenerHttp.setEntrypoints(List.of(entrypoint));
-        apiEntity.setListeners(List.of(listenerHttp));
+        httpListener.setEntrypoints(List.of(entrypoint));
+        apiEntity.setListeners(List.of(httpListener));
 
         EndpointGroup endpoint = new EndpointGroup();
         endpoint.setName("default");

@@ -24,7 +24,6 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -36,14 +35,20 @@ import lombok.ToString;
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "SelectorConditionV4")
-public class SelectorCondition extends Selector {
+@Schema(name = "HttpSelectorV4")
+public class HttpSelector extends Selector {
 
     @JsonProperty(required = true)
     @NotEmpty
-    private String condition;
+    private String path;
 
-    public SelectorCondition() {
-        super(SelectorType.CONDITION);
+    @JsonProperty(required = true)
+    @NotNull
+    private Operator pathOperator = Operator.STARTS_WITH;
+
+    private Set<HttpMethod> methods;
+
+    public HttpSelector() {
+        super(SelectorType.HTTP);
     }
 }

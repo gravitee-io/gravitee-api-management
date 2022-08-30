@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verify;
 
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.selector.SelectorHttp;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -68,10 +68,10 @@ public class FlowValidationServiceImplTest {
     @Test
     public void shouldReturnValidatedFlowsWithSelectorsAndWithoutSteps() {
         Flow flow = new Flow();
-        SelectorHttp selectorHttp = new SelectorHttp();
-        selectorHttp.setPath("/");
-        selectorHttp.setPathOperator(Operator.STARTS_WITH);
-        flow.setSelectors(List.of(selectorHttp));
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/");
+        httpSelector.setPathOperator(Operator.STARTS_WITH);
+        flow.setSelectors(List.of(httpSelector));
 
         List<Flow> flows = flowValidationService.validateAndSanitize(List.of(flow));
         assertThat(flows.size()).isEqualTo(1);
@@ -98,10 +98,10 @@ public class FlowValidationServiceImplTest {
     @Test
     public void shouldReturnValidatedFlowsWithSelectorsAndSteps() {
         Flow flow = new Flow();
-        SelectorHttp selectorHttp = new SelectorHttp();
-        selectorHttp.setPath("/");
-        selectorHttp.setPathOperator(Operator.STARTS_WITH);
-        flow.setSelectors(List.of(selectorHttp));
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/");
+        httpSelector.setPathOperator(Operator.STARTS_WITH);
+        flow.setSelectors(List.of(httpSelector));
 
         Step step = new Step();
         step.setPolicy("policy");
@@ -118,8 +118,8 @@ public class FlowValidationServiceImplTest {
     @Test
     public void shouldThrowValidationExceptionWithDuplicatedSelectors() {
         Flow flow = new Flow();
-        SelectorHttp selectorHttp = new SelectorHttp();
-        flow.setSelectors(List.of(selectorHttp, selectorHttp));
+        HttpSelector httpSelector = new HttpSelector();
+        flow.setSelectors(List.of(httpSelector, httpSelector));
 
         assertThatExceptionOfType(FlowSelectorsDuplicatedException.class)
             .isThrownBy(() -> flowValidationService.validateAndSanitize(List.of(flow)));

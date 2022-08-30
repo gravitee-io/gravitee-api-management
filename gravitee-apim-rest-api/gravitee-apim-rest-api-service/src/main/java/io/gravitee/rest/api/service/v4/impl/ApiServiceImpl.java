@@ -30,12 +30,11 @@ import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Event;
@@ -62,7 +61,6 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -97,7 +95,6 @@ import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.PropertiesService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
-import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -427,8 +424,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     .filter(listener -> ListenerType.HTTP == listener.getType())
                     .findFirst();
                 if (firstUpdateHttpListener.isPresent() && firstExistingHttpListener.isPresent()) {
-                    ListenerHttp updateHttpListener = (ListenerHttp) firstUpdateHttpListener.get();
-                    ListenerHttp existingHttpListener = (ListenerHttp) firstExistingHttpListener.get();
+                    HttpListener updateHttpListener = (HttpListener) firstUpdateHttpListener.get();
+                    HttpListener existingHttpListener = (HttpListener) firstExistingHttpListener.get();
                     // Audit API logging if option is enabled
                     auditApiLogging(
                         executionContext,

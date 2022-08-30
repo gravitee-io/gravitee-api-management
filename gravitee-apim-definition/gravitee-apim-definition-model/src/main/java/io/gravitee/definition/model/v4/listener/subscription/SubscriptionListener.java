@@ -20,12 +20,10 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.ArrayList;
 import java.util.List;
 import javax.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -37,14 +35,14 @@ import lombok.ToString;
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "ListenerSubscriptionV4")
-public class ListenerSubscription extends Listener {
+@Schema(name = "SubscriptionListenerV4")
+public class SubscriptionListener extends Listener {
 
     @JsonProperty("entrypoints")
     @NotEmpty
     private List<Entrypoint> entrypoints;
 
-    public ListenerSubscription() {
+    public SubscriptionListener() {
         super(ListenerType.SUBSCRIPTION);
     }
 }
