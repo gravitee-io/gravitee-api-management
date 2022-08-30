@@ -22,9 +22,9 @@ import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
-import io.gravitee.definition.model.v4.listener.subscription.ListenerSubscription;
-import io.gravitee.definition.model.v4.listener.tcp.ListenerTcp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
@@ -52,20 +52,20 @@ import lombok.experimental.FieldNameConstants;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = Listener.Fields.type)
 @JsonSubTypes(
     {
-        @JsonSubTypes.Type(value = ListenerHttp.class, name = HTTP_LABEL),
-        @JsonSubTypes.Type(value = ListenerSubscription.class, name = SUBSCRIPTION_LABEL),
-        @JsonSubTypes.Type(value = ListenerTcp.class, name = TCP_LABEL),
+        @JsonSubTypes.Type(value = HttpListener.class, name = HTTP_LABEL),
+        @JsonSubTypes.Type(value = SubscriptionListener.class, name = SUBSCRIPTION_LABEL),
+        @JsonSubTypes.Type(value = TcpListener.class, name = TCP_LABEL),
     }
 )
 @Schema(
     name = "ListenerV4",
     discriminatorProperty = "type",
     discriminatorMapping = {
-        @DiscriminatorMapping(value = HTTP_LABEL, schema = ListenerHttp.class),
-        @DiscriminatorMapping(value = TCP_LABEL, schema = ListenerTcp.class),
-        @DiscriminatorMapping(value = SUBSCRIPTION_LABEL, schema = ListenerSubscription.class),
+        @DiscriminatorMapping(value = HTTP_LABEL, schema = HttpListener.class),
+        @DiscriminatorMapping(value = TCP_LABEL, schema = TcpListener.class),
+        @DiscriminatorMapping(value = SUBSCRIPTION_LABEL, schema = SubscriptionListener.class),
     },
-    oneOf = { ListenerHttp.class, ListenerTcp.class, ListenerSubscription.class }
+    oneOf = { HttpListener.class, TcpListener.class, SubscriptionListener.class }
 )
 public abstract class Listener implements Serializable {
 

@@ -21,8 +21,8 @@ import static org.junit.Assert.assertNotNull;
 
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
-import io.gravitee.definition.model.v4.flow.selector.SelectorHttp;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
@@ -40,10 +40,10 @@ public class FlowMapperTest {
     private final FlowMapper flowMapper = new FlowMapper();
 
     private static List<Selector> selectors() {
-        SelectorHttp selectorHttp = new SelectorHttp();
-        selectorHttp.setPath("/");
-        selectorHttp.setPathOperator(Operator.STARTS_WITH);
-        return List.of(selectorHttp);
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/");
+        httpSelector.setPathOperator(Operator.STARTS_WITH);
+        return List.of(httpSelector);
     }
 
     private static Set<String> tags() {

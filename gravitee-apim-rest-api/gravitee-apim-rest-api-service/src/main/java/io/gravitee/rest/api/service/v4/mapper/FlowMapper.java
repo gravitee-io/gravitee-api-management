@@ -17,10 +17,10 @@ package io.gravitee.rest.api.service.v4.mapper;
 
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
+import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
-import io.gravitee.definition.model.v4.flow.selector.SelectorChannel;
-import io.gravitee.definition.model.v4.flow.selector.SelectorCondition;
-import io.gravitee.definition.model.v4.flow.selector.SelectorHttp;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.FlowStep;
@@ -120,30 +120,30 @@ public class FlowMapper {
     }
 
     private FlowSelector toRepository(final Selector definitionSelector) {
-        if (definitionSelector instanceof SelectorHttp) {
-            SelectorHttp definitionSelectorHttp = (SelectorHttp) definitionSelector;
+        if (definitionSelector instanceof HttpSelector) {
+            HttpSelector definitionHttpSelector = (HttpSelector) definitionSelector;
             FlowHttpSelector repositoryFlowHttpSelector = new FlowHttpSelector();
-            repositoryFlowHttpSelector.setMethods(definitionSelectorHttp.getMethods());
-            repositoryFlowHttpSelector.setPath(definitionSelectorHttp.getPath());
-            repositoryFlowHttpSelector.setPathOperator(FlowOperator.valueOf(definitionSelectorHttp.getPathOperator().name()));
+            repositoryFlowHttpSelector.setMethods(definitionHttpSelector.getMethods());
+            repositoryFlowHttpSelector.setPath(definitionHttpSelector.getPath());
+            repositoryFlowHttpSelector.setPathOperator(FlowOperator.valueOf(definitionHttpSelector.getPathOperator().name()));
             return repositoryFlowHttpSelector;
-        } else if (definitionSelector instanceof SelectorChannel) {
-            SelectorChannel definitionSelectorChannel = (SelectorChannel) definitionSelector;
+        } else if (definitionSelector instanceof ChannelSelector) {
+            ChannelSelector definitionChannelSelector = (ChannelSelector) definitionSelector;
             FlowChannelSelector repositoryFlowChannelSelector = new FlowChannelSelector();
-            repositoryFlowChannelSelector.setChannel(definitionSelectorChannel.getChannel());
-            repositoryFlowChannelSelector.setChannelOperator(FlowOperator.valueOf(definitionSelectorChannel.getChannelOperator().name()));
+            repositoryFlowChannelSelector.setChannel(definitionChannelSelector.getChannel());
+            repositoryFlowChannelSelector.setChannelOperator(FlowOperator.valueOf(definitionChannelSelector.getChannelOperator().name()));
             repositoryFlowChannelSelector.setOperations(
-                definitionSelectorChannel
+                definitionChannelSelector
                     .getOperations()
                     .stream()
                     .map(operation -> FlowChannelSelector.Operation.valueOf(operation.name()))
                     .collect(Collectors.toSet())
             );
             return repositoryFlowChannelSelector;
-        } else if (definitionSelector instanceof SelectorCondition) {
-            SelectorCondition definitionSelectorCondition = (SelectorCondition) definitionSelector;
+        } else if (definitionSelector instanceof ConditionSelector) {
+            ConditionSelector definitionConditionChannel = (ConditionSelector) definitionSelector;
             FlowConditionSelector repositoryFlowConditionSelector = new FlowConditionSelector();
-            repositoryFlowConditionSelector.setCondition(definitionSelectorCondition.getCondition());
+            repositoryFlowConditionSelector.setCondition(definitionConditionChannel.getCondition());
             return repositoryFlowConditionSelector;
         }
         throw new IllegalArgumentException(String.format("Unsupported definitionSelector %s", definitionSelector));
@@ -152,29 +152,29 @@ public class FlowMapper {
     private Selector toDefinition(final FlowSelector repositoryFlowSelector) {
         if (repositoryFlowSelector instanceof FlowHttpSelector) {
             FlowHttpSelector repositoryFlowHttpSelector = (FlowHttpSelector) repositoryFlowSelector;
-            SelectorHttp definitionSelectorHttp = new SelectorHttp();
-            definitionSelectorHttp.setMethods(repositoryFlowHttpSelector.getMethods());
-            definitionSelectorHttp.setPath(repositoryFlowHttpSelector.getPath());
-            definitionSelectorHttp.setPathOperator(Operator.valueOf(repositoryFlowHttpSelector.getPathOperator().name()));
-            return definitionSelectorHttp;
+            HttpSelector definitionHttpSelector = new HttpSelector();
+            definitionHttpSelector.setMethods(repositoryFlowHttpSelector.getMethods());
+            definitionHttpSelector.setPath(repositoryFlowHttpSelector.getPath());
+            definitionHttpSelector.setPathOperator(Operator.valueOf(repositoryFlowHttpSelector.getPathOperator().name()));
+            return definitionHttpSelector;
         } else if (repositoryFlowSelector instanceof FlowChannelSelector) {
             FlowChannelSelector repositoryFlowChannelSelector = (FlowChannelSelector) repositoryFlowSelector;
-            SelectorChannel definitionSelectorChannel = new SelectorChannel();
-            definitionSelectorChannel.setChannel(repositoryFlowChannelSelector.getChannel());
-            definitionSelectorChannel.setChannelOperator(Operator.valueOf(repositoryFlowChannelSelector.getChannelOperator().name()));
-            definitionSelectorChannel.setOperations(
+            ChannelSelector definitionChannelSelector = new ChannelSelector();
+            definitionChannelSelector.setChannel(repositoryFlowChannelSelector.getChannel());
+            definitionChannelSelector.setChannelOperator(Operator.valueOf(repositoryFlowChannelSelector.getChannelOperator().name()));
+            definitionChannelSelector.setOperations(
                 repositoryFlowChannelSelector
                     .getOperations()
                     .stream()
-                    .map(operation -> SelectorChannel.Operation.valueOf(operation.name()))
+                    .map(operation -> ChannelSelector.Operation.valueOf(operation.name()))
                     .collect(Collectors.toSet())
             );
-            return definitionSelectorChannel;
+            return definitionChannelSelector;
         } else if (repositoryFlowSelector instanceof FlowConditionSelector) {
             FlowConditionSelector repositoryFlowConditionSelector = (FlowConditionSelector) repositoryFlowSelector;
-            SelectorCondition definitionSelectorCondition = new SelectorCondition();
-            definitionSelectorCondition.setCondition(repositoryFlowConditionSelector.getCondition());
-            return definitionSelectorCondition;
+            ConditionSelector definitionConditionChannel = new ConditionSelector();
+            definitionConditionChannel.setCondition(repositoryFlowConditionSelector.getCondition());
+            return definitionConditionChannel;
         }
         throw new IllegalArgumentException(String.format("Unsupported flow selector %s", repositoryFlowSelector));
     }

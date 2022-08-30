@@ -23,14 +23,13 @@ import static org.mockito.Mockito.when;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.model.EntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.EntrypointService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -68,12 +67,12 @@ public class ApiEntrypointServiceImplTest {
     public void shouldReturnDefaultEntrypointWithoutApiV4Tags() {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        ListenerHttp listenerHttp = new ListenerHttp();
+        HttpListener httpListener = new HttpListener();
         Path path = new Path();
         path.setHost("host");
         path.setPath("path");
-        listenerHttp.setPaths(List.of(path));
-        apiEntity.setListeners(List.of(listenerHttp));
+        httpListener.setPaths(List.of(path));
+        apiEntity.setListeners(List.of(httpListener));
         when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn("https://default-entrypoint");
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
@@ -88,12 +87,12 @@ public class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        ListenerHttp listenerHttp = new ListenerHttp();
+        HttpListener httpListener = new HttpListener();
         Path path = new Path();
         path.setHost("host");
         path.setPath("path");
-        listenerHttp.setPaths(List.of(path));
-        apiEntity.setListeners(List.of(listenerHttp));
+        httpListener.setPaths(List.of(path));
+        apiEntity.setListeners(List.of(httpListener));
         when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn("https://default-entrypoint");
         EntrypointEntity entrypointEntity = new EntrypointEntity();
@@ -112,12 +111,12 @@ public class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        ListenerHttp listenerHttp = new ListenerHttp();
+        HttpListener httpListener = new HttpListener();
         Path path = new Path();
         path.setHost("host");
         path.setPath("path");
-        listenerHttp.setPaths(List.of(path));
-        apiEntity.setListeners(List.of(listenerHttp));
+        httpListener.setPaths(List.of(path));
+        apiEntity.setListeners(List.of(httpListener));
 
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));

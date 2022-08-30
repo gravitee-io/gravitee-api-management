@@ -38,7 +38,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -89,10 +89,10 @@ public class ApiResourceTest extends AbstractResourceTest {
         apiEntity = new ApiEntity();
         apiEntity.setId(API);
         apiEntity.setName(API);
-        ListenerHttp listenerHttp = new ListenerHttp();
-        listenerHttp.setPaths(List.of(new Path("my.fake.host", "/test")));
-        listenerHttp.setPathMappings(Set.of("/test"));
-        apiEntity.setListeners(List.of(listenerHttp));
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("my.fake.host", "/test")));
+        httpListener.setPathMappings(Set.of("/test"));
+        apiEntity.setListeners(List.of(httpListener));
         apiEntity.setProperties(List.of(new Property()));
         apiEntity.setServices(new ApiServices());
         apiEntity.setResources(List.of(new Resource()));
@@ -126,8 +126,8 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertNotNull(responseApi.getResponseTemplates());
         assertEquals(1, responseApi.getResponseTemplates().size());
         assertNotNull(responseApi.getListeners());
-        assertNotNull(((ListenerHttp) responseApi.getListeners().get(0)).getPathMappings());
-        assertNotNull(((ListenerHttp) responseApi.getListeners().get(0)).getPaths().get(0).getHost());
+        assertNotNull(((HttpListener) responseApi.getListeners().get(0)).getPathMappings());
+        assertNotNull(((HttpListener) responseApi.getListeners().get(0)).getPaths().get(0).getHost());
     }
 
     @Test
@@ -153,8 +153,8 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertNotNull(responseApi.getResponseTemplates());
         assertEquals(0, responseApi.getResponseTemplates().size());
         assertNotNull(responseApi.getListeners());
-        assertNull(((ListenerHttp) responseApi.getListeners().get(0)).getPathMappings());
-        assertNull(((ListenerHttp) responseApi.getListeners().get(0)).getPaths().get(0).getHost());
+        assertNull(((HttpListener) responseApi.getListeners().get(0)).getPathMappings());
+        assertNull(((HttpListener) responseApi.getListeners().get(0)).getPaths().get(0).getHost());
     }
 
     @Test
@@ -262,10 +262,10 @@ public class ApiResourceTest extends AbstractResourceTest {
         updateApiEntity.setDescription("api-description");
         updateApiEntity.setVisibility(Visibility.PUBLIC);
 
-        ListenerHttp listenerHttp = new ListenerHttp();
-        listenerHttp.setEntrypoints(List.of(new Entrypoint()));
-        listenerHttp.setPaths(List.of(new Path()));
-        updateApiEntity.setListeners(List.of(listenerHttp));
+        HttpListener httpListener = new HttpListener();
+        httpListener.setEntrypoints(List.of(new Entrypoint()));
+        httpListener.setPaths(List.of(new Path()));
+        updateApiEntity.setListeners(List.of(httpListener));
 
         Endpoint endpoint = new Endpoint();
         endpoint.setName("endpointName");

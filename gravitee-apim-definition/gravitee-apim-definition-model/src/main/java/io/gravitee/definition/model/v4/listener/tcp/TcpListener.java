@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.flow.selector;
+package io.gravitee.definition.model.v4.listener.tcp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Set;
+import java.util.List;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -36,25 +35,14 @@ import lombok.ToString;
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "SelectorChannelV4")
-public class SelectorChannel extends Selector {
+@Schema(name = "TcpListenerV4")
+public class TcpListener extends Listener {
 
-    private Set<@NotNull Operation> operations;
-
-    @JsonProperty(required = true)
+    @JsonProperty("entrypoints")
     @NotEmpty
-    private String channel;
+    private List<Entrypoint> entrypoints;
 
-    @JsonProperty(required = true)
-    @NotNull
-    private Operator channelOperator = Operator.STARTS_WITH;
-
-    public SelectorChannel() {
-        super(SelectorType.CHANNEL);
-    }
-
-    public enum Operation {
-        SUB,
-        PUB,
+    public TcpListener() {
+        super(ListenerType.TCP);
     }
 }

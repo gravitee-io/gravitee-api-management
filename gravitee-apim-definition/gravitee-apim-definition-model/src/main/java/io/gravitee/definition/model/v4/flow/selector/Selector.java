@@ -46,9 +46,9 @@ import lombok.experimental.FieldNameConstants;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = Selector.Fields.type)
 @JsonSubTypes(
     {
-        @JsonSubTypes.Type(value = SelectorHttp.class, name = HTTP_LABEL),
-        @JsonSubTypes.Type(value = SelectorChannel.class, name = CHANNEL_LABEL),
-        @JsonSubTypes.Type(value = SelectorCondition.class, name = CONDITION_LABEL),
+        @JsonSubTypes.Type(value = HttpSelector.class, name = HTTP_LABEL),
+        @JsonSubTypes.Type(value = ChannelSelector.class, name = CHANNEL_LABEL),
+        @JsonSubTypes.Type(value = ConditionSelector.class, name = CONDITION_LABEL),
     }
 )
 public abstract class Selector implements Serializable {

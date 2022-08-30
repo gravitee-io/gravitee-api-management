@@ -26,7 +26,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.responsetemplate.ResponseTemplate;
@@ -96,7 +96,7 @@ public class ApiMapperTest {
     public void shouldCreateEntityFromApiDefinition() throws JsonProcessingException {
         io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
         apiDefinition.setDefinitionVersion(DefinitionVersion.V4);
-        apiDefinition.setListeners(List.of(new ListenerHttp()));
+        apiDefinition.setListeners(List.of(new HttpListener()));
         apiDefinition.setEndpointGroups(List.of(new EndpointGroup()));
         apiDefinition.setServices(new ApiServices());
         apiDefinition.setResources(List.of(new Resource()));
@@ -234,7 +234,7 @@ public class ApiMapperTest {
         newApiEntity.setDescription("description");
         newApiEntity.setTags(Set.of("tag"));
         newApiEntity.setGroups(Set.of("group1"));
-        newApiEntity.setListeners(List.of(new ListenerHttp()));
+        newApiEntity.setListeners(List.of(new HttpListener()));
         newApiEntity.setEndpointGroups(List.of(new EndpointGroup()));
         newApiEntity.setFlowMode(FlowMode.DEFAULT);
         newApiEntity.setFlows(List.of(new Flow(), new Flow()));
@@ -262,7 +262,7 @@ public class ApiMapperTest {
         apiDefinition.setType(ApiType.ASYNC);
         apiDefinition.setApiVersion(api.getVersion());
         apiDefinition.setDefinitionVersion(DefinitionVersion.V4);
-        apiDefinition.setListeners(List.of(new ListenerHttp()));
+        apiDefinition.setListeners(List.of(new HttpListener()));
         apiDefinition.setEndpointGroups(List.of(new EndpointGroup()));
         apiDefinition.setTags(Set.of("tag"));
         apiDefinition.setFlowMode(FlowMode.DEFAULT);
@@ -289,7 +289,7 @@ public class ApiMapperTest {
         updateApiEntity.setCategories(Set.of("existingCatId", "existingCatKey", "unknownCat"));
         updateApiEntity.setLabels(List.of("label1", "label2"));
         updateApiEntity.setGroups(Set.of("group1", "group2"));
-        updateApiEntity.setListeners(List.of(new ListenerHttp()));
+        updateApiEntity.setListeners(List.of(new HttpListener()));
         updateApiEntity.setEndpointGroups(List.of(new EndpointGroup()));
         updateApiEntity.setFlowMode(FlowMode.DEFAULT);
         updateApiEntity.setFlows(List.of(new Flow(), new Flow()));
@@ -337,7 +337,7 @@ public class ApiMapperTest {
         apiDefinition.setApiVersion(api.getVersion());
         apiDefinition.setDefinitionVersion(DefinitionVersion.V4);
         apiDefinition.setTags(Set.of("tag1", "tag2"));
-        apiDefinition.setListeners(List.of(new ListenerHttp()));
+        apiDefinition.setListeners(List.of(new HttpListener()));
         apiDefinition.setEndpointGroups(List.of(new EndpointGroup()));
         apiDefinition.setProperties(List.of(new Property("propKey", "propValue", false)));
         apiDefinition.setResources(List.of(new Resource()));

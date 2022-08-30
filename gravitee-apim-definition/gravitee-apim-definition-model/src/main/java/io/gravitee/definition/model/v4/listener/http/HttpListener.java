@@ -18,15 +18,12 @@ package io.gravitee.definition.model.v4.listener.http;
 import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +32,6 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -47,8 +43,8 @@ import lombok.ToString;
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "ListenerHttpV4")
-public class ListenerHttp extends Listener {
+@Schema(name = "HttpListenerV4")
+public class HttpListener extends Listener {
 
     @NotEmpty
     @NotNull
@@ -67,7 +63,7 @@ public class ListenerHttp extends Listener {
 
     private Logging logging;
 
-    public ListenerHttp() {
+    public HttpListener() {
         super(ListenerType.HTTP);
     }
 

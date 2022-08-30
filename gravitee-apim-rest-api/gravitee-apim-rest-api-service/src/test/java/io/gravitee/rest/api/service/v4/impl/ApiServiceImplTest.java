@@ -49,7 +49,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -366,9 +366,9 @@ public class ApiServiceImplTest {
         newApiEntity.setApiVersion("v1");
         newApiEntity.setType(ApiType.SYNC);
         newApiEntity.setDescription("Ma description");
-        ListenerHttp listenerHttp = new ListenerHttp();
-        listenerHttp.setPaths(List.of(new Path("/context")));
-        newApiEntity.setListeners(List.of(listenerHttp));
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("/context")));
+        newApiEntity.setListeners(List.of(httpListener));
 
         final ApiEntity apiEntity = apiService.create(GraviteeContext.getExecutionContext(), newApiEntity, USER_NAME);
 
@@ -380,11 +380,11 @@ public class ApiServiceImplTest {
         assertThat(apiEntity.getDescription()).isEqualTo("Ma description");
         assertThat(apiEntity.getListeners()).isNotNull();
         assertThat(apiEntity.getListeners().size()).isEqualTo(1);
-        assertThat(apiEntity.getListeners().get(0)).isInstanceOf(ListenerHttp.class);
-        ListenerHttp listenerHttpCreated = (ListenerHttp) apiEntity.getListeners().get(0);
-        assertThat(listenerHttpCreated.getPaths().size()).isEqualTo(1);
-        assertThat(listenerHttpCreated.getPaths().get(0).getHost()).isNull();
-        assertThat(listenerHttpCreated.getPaths().get(0).getPath()).isEqualTo("/context");
+        assertThat(apiEntity.getListeners().get(0)).isInstanceOf(HttpListener.class);
+        HttpListener httpListenerCreated = (HttpListener) apiEntity.getListeners().get(0);
+        assertThat(httpListenerCreated.getPaths().size()).isEqualTo(1);
+        assertThat(httpListenerCreated.getPaths().get(0).getHost()).isNull();
+        assertThat(httpListenerCreated.getPaths().get(0).getPath()).isEqualTo("/context");
 
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
         verify(apiRepository, times(1)).create(any());
@@ -433,9 +433,9 @@ public class ApiServiceImplTest {
         newApiEntity.setApiVersion("v1");
         newApiEntity.setType(ApiType.SYNC);
         newApiEntity.setDescription("Ma description");
-        ListenerHttp listenerHttp = new ListenerHttp();
-        listenerHttp.setPaths(List.of(new Path("/context")));
-        newApiEntity.setListeners(List.of(listenerHttp));
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("/context")));
+        newApiEntity.setListeners(List.of(httpListener));
 
         List<Flow> apiFlows = List.of(new Flow(), new Flow());
         newApiEntity.setFlows(apiFlows);
@@ -450,11 +450,11 @@ public class ApiServiceImplTest {
         assertThat(apiEntity.getDescription()).isEqualTo("Ma description");
         assertThat(apiEntity.getListeners()).isNotNull();
         assertThat(apiEntity.getListeners().size()).isEqualTo(1);
-        assertThat(apiEntity.getListeners().get(0)).isInstanceOf(ListenerHttp.class);
-        ListenerHttp listenerHttpCreated = (ListenerHttp) apiEntity.getListeners().get(0);
-        assertThat(listenerHttpCreated.getPaths().size()).isEqualTo(1);
-        assertThat(listenerHttpCreated.getPaths().get(0).getHost()).isNull();
-        assertThat(listenerHttpCreated.getPaths().get(0).getPath()).isEqualTo("/context");
+        assertThat(apiEntity.getListeners().get(0)).isInstanceOf(HttpListener.class);
+        HttpListener httpListenerCreated = (HttpListener) apiEntity.getListeners().get(0);
+        assertThat(httpListenerCreated.getPaths().size()).isEqualTo(1);
+        assertThat(httpListenerCreated.getPaths().get(0).getHost()).isNull();
+        assertThat(httpListenerCreated.getPaths().get(0).getPath()).isEqualTo("/context");
 
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
         verify(apiRepository, times(1)).create(any());
@@ -872,17 +872,17 @@ public class ApiServiceImplTest {
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
 
-        ListenerHttp listenerHttp = new ListenerHttp();
-        listenerHttp.setPaths(singletonList(new Path("/old")));
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(singletonList(new Path("/old")));
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition("condition");
-        listenerHttp.setLogging(logging);
-        apiDefinition.setListeners(singletonList(listenerHttp));
+        httpListener.setLogging(logging);
+        apiDefinition.setListeners(singletonList(httpListener));
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
-        listenerHttp.setLogging(null);
-        updateApiEntity.setListeners(singletonList(listenerHttp));
+        httpListener.setLogging(null);
+        updateApiEntity.setListeners(singletonList(httpListener));
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
@@ -915,16 +915,16 @@ public class ApiServiceImplTest {
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
 
-        ListenerHttp listenerHttp = new ListenerHttp();
-        listenerHttp.setPaths(singletonList(new Path("/old")));
-        apiDefinition.setListeners(singletonList(listenerHttp));
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(singletonList(new Path("/old")));
+        apiDefinition.setListeners(singletonList(httpListener));
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition("condition");
-        listenerHttp.setLogging(logging);
-        updateApiEntity.setListeners(singletonList(listenerHttp));
+        httpListener.setLogging(logging);
+        updateApiEntity.setListeners(singletonList(httpListener));
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
@@ -957,17 +957,17 @@ public class ApiServiceImplTest {
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
 
-        ListenerHttp listenerHttp = new ListenerHttp();
-        listenerHttp.setPaths(singletonList(new Path("/old")));
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(singletonList(new Path("/old")));
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
         logging.setCondition("condition");
-        listenerHttp.setLogging(logging);
-        apiDefinition.setListeners(singletonList(listenerHttp));
+        httpListener.setLogging(logging);
+        apiDefinition.setListeners(singletonList(httpListener));
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
         logging.setCondition("condition2");
-        updateApiEntity.setListeners(singletonList(listenerHttp));
+        updateApiEntity.setListeners(singletonList(httpListener));
 
         ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
@@ -1060,7 +1060,7 @@ public class ApiServiceImplTest {
         updateApiEntity.setEndpointGroups(singletonList(endpointGroup));
         updateApiEntity.setLifecycleState(CREATED);
 
-        ListenerHttp listener = new ListenerHttp();
+        HttpListener listener = new HttpListener();
         listener.setPaths(singletonList(new Path(path)));
         updateApiEntity.setListeners(singletonList(listener));
     }

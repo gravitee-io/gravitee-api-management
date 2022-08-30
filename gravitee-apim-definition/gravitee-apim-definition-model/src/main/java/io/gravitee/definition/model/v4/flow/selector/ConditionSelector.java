@@ -13,36 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4.exception;
+package io.gravitee.definition.model.v4.flow.selector;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
-import java.util.Collections;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import javax.validation.constraints.NotEmpty;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ListenerHttpPathMissingException extends AbstractManagementException {
+@Getter
+@Setter
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@Schema(name = "ConditionSelectorV4")
+public class ConditionSelector extends Selector {
 
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
-    }
+    @JsonProperty(required = true)
+    @NotEmpty
+    private String condition;
 
-    @Override
-    public String getTechnicalCode() {
-        return "listeners.http.paths.missing";
-    }
-
-    @Override
-    public Map<String, String> getParameters() {
-        return Collections.emptyMap();
-    }
-
-    @Override
-    public String getMessage() {
-        return "At least one path is required for the listener HTTP.";
+    public ConditionSelector() {
+        super(SelectorType.CONDITION);
     }
 }

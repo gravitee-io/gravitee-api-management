@@ -19,15 +19,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.net.InternetDomainName;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.listener.http.ListenerHttp;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.v4.exception.HttpListenerPathMissingException;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
-import io.gravitee.rest.api.service.v4.exception.ListenerHttpPathMissingException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import io.gravitee.rest.api.service.v4.validation.PathValidationService;
 import java.io.IOException;
@@ -71,7 +71,7 @@ public class PathValidationServiceImpl implements PathValidationService {
     @Override
     public List<Path> validateAndSanitizePaths(final ExecutionContext executionContext, final String apiId, final List<Path> paths) {
         if (paths == null || paths.isEmpty()) {
-            throw new ListenerHttpPathMissingException();
+            throw new HttpListenerPathMissingException();
         }
         List<Path> sanitizedPaths = paths
             .stream()
@@ -145,11 +145,11 @@ public class PathValidationServiceImpl implements PathValidationService {
                     return apiDefinition
                         .getListeners()
                         .stream()
-                        .filter(listener -> listener instanceof ListenerHttp)
-                        .map(listener -> (ListenerHttp) listener)
+                        .filter(listener -> listener instanceof HttpListener)
+                        .map(listener -> (HttpListener) listener)
                         .flatMap(
-                            listenerHttp ->
-                                listenerHttp.getPaths().stream().map(path -> new Path(path.getHost(), sanitizePath(path.getPath())))
+                            httpListener ->
+                                httpListener.getPaths().stream().map(path -> new Path(path.getHost(), sanitizePath(path.getPath())))
                         )
                         .collect(Collectors.toList());
                 } catch (IOException ioe) {

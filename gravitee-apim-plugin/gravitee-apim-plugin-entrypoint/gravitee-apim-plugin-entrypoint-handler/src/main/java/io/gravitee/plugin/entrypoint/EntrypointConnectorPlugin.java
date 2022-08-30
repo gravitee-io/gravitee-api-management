@@ -20,13 +20,18 @@ import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorC
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 
 /**
+ * Interface describing a plugin for {@link io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector}
+ *
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface EntrypointConnectorPlugin<C extends EntrypointConnectorConfiguration> extends ConfigurablePlugin<C> {
     String PLUGIN_TYPE = "entrypoint-connector";
 
-    Class<? extends AbstractConnectorFactory<?>> entrypointConnectorFactory();
+    /**
+     * @return the factory <code>Class</code> used to create the associated connector
+     */
+    Class<? extends AbstractConnectorFactory> entrypointConnectorFactory();
 
     @Override
     default String type() {
