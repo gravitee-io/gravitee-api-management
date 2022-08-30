@@ -126,3 +126,8 @@ export interface ApiStateEntity {
   api_id: string;
   is_synchronized: boolean;
 }
+
+export interface ApiQualityMetrics {
+  score: number;
+  metricsPassed: Record<string, boolean>;
+}

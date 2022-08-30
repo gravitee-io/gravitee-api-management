@@ -174,4 +174,24 @@ describe('ApiService', () => {
       });
     });
   });
+
+  describe('getQualityMetrics', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api#1';
+
+      apiService.getQualityMetrics(apiId).subscribe((response) => {
+        expect(response).toEqual({
+          score: 80,
+        });
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/quality`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush({
+        score: 80,
+      });
+    });
+  });
 });

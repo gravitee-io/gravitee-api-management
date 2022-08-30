@@ -25,6 +25,7 @@ import { PagedResult } from '../../../entities/pagedResult';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ApiService } from '../../../services-ngx/api.service';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { Constants } from '../../../entities/Constants';
 
 export type ApisTableDS = {
   id: string;
@@ -38,6 +39,7 @@ export type ApisTableDS = {
   lifecycleState: ApiLifecycleState;
   workflowBadge?: { text: string; class: string };
   isSynced$?: Observable<boolean>;
+  qualityScore$?: Observable<{ score: number; class: string }>;
 }[];
 
 @Component({
@@ -53,12 +55,14 @@ export class ApiListComponent implements OnInit, OnDestroy {
     pagination: { index: 1, size: 10 },
     searchTerm: '',
   };
+  isQualityDisplayed: boolean;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
 
   constructor(
     @Inject(UIRouterStateParams) private $stateParams,
     @Inject(UIRouterState) private readonly $state: StateService,
+    @Inject('Constants') private readonly constants: Constants,
     private readonly apiService: ApiService,
   ) {}
 
@@ -69,6 +73,10 @@ export class ApiListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initFilters();
+    this.isQualityDisplayed = this.constants.env.settings.apiQualityMetrics && this.constants.env.settings.apiQualityMetrics.enabled;
+    if (this.isQualityDisplayed) {
+      this.displayedColumns.splice(5, 0, 'qualityScore');
+    }
 
     this.filters$
       .pipe(
@@ -140,6 +148,9 @@ export class ApiListComponent implements OnInit, OnDestroy {
           lifecycleState: api.lifecycle_state,
           workflowBadge: this.getWorkflowBadge(api),
           isSynced$: this.apiService.isAPISynchronized(api.id).pipe(map((a) => a.is_synchronized)),
+          qualityScore$: this.isQualityDisplayed
+            ? this.apiService.getQualityMetrics(api.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
+            : null,
         }))
       : [];
   }
@@ -153,5 +164,19 @@ export class ApiListComponent implements OnInit, OnDestroy {
       REQUEST_FOR_CHANGES: { text: 'Need changes', class: 'gio-badge-error' },
     };
     return toReadableState[state];
+  }
+
+  private getQualityScore(score: number) {
+    let qualityClass;
+    if (score !== undefined) {
+      if (score < 50) {
+        qualityClass = 'quality-score__bad';
+      } else if (score >= 50 && score < 80) {
+        qualityClass = 'quality-score__medium';
+      } else {
+        qualityClass = 'quality-score__good';
+      }
+    }
+    return { score, class: qualityClass };
   }
 }

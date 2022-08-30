@@ -16,9 +16,8 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 
-import { Api, ApiStateEntity, UpdateApi } from '../entities/api';
+import { Api, ApiQualityMetrics, ApiStateEntity, UpdateApi } from '../entities/api';
 import { Constants } from '../entities/Constants';
 import { FlowSchema } from '../entities/flow/flowSchema';
 import { PagedResult } from '../entities/pagedResult';
@@ -106,5 +105,9 @@ export class ApiService {
 
   isAPISynchronized(apiId: string): Observable<ApiStateEntity> {
     return this.http.get<ApiStateEntity>(`${this.constants.env.baseURL}/apis/${apiId}/state`);
+  }
+
+  getQualityMetrics(apiId: string): Observable<ApiQualityMetrics> {
+    return this.http.get<ApiQualityMetrics>(`${this.constants.env.baseURL}/apis/${apiId}/quality`);
   }
 }

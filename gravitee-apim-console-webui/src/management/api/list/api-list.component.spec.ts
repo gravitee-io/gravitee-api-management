@@ -22,6 +22,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatSortHeaderHarness } from '@angular/material/sort/testing';
+import { By } from '@angular/platform-browser';
 
 import { ApiListModule } from './api-list.module';
 import { ApiListComponent } from './api-list.component';
@@ -40,134 +41,205 @@ describe('ApisListComponent', () => {
   let apiListComponent: ApiListComponent;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
-
-  beforeEach(async () => {
-    const currentUser = new DeprecatedUser();
-    currentUser.userPermissions = ['environment-api-c'];
-
-    await TestBed.configureTestingModule({
-      imports: [ApiListModule, MatIconTestingModule, GioUiRouterTestingModule, NoopAnimationsModule, GioHttpTestingModule],
-      providers: [
-        { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: UIRouterStateParams, useValue: {} },
-        { provide: CurrentUserService, useValue: { currentUser } },
-      ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ApiListComponent);
-    apiListComponent = await fixture.componentInstance;
-    httpTestingController = TestBed.inject(HttpTestingController);
-  });
+  const fakeConstants = CONSTANTS_TESTING;
+  const currentUser = new DeprecatedUser();
+  currentUser.userPermissions = ['environment-api-c'];
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should display an empty table', fakeAsync(async () => {
-    await initComponent([]);
+  describe('without quality score', () => {
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [ApiListModule, MatIconTestingModule, GioUiRouterTestingModule, NoopAnimationsModule, GioHttpTestingModule],
+        providers: [
+          { provide: UIRouterState, useValue: fakeUiRouter },
+          { provide: UIRouterStateParams, useValue: {} },
+          { provide: CurrentUserService, useValue: { currentUser } },
+          { provide: 'Constants', useValue: fakeConstants },
+        ],
+      }).compileComponents();
 
-    const { headerCells, rowCells } = await computeApisTableCells();
-    expect(headerCells).toEqual([
-      {
-        contextPath: 'Context paths',
-        name: 'Name',
-        owner: 'Owner',
-        picture: '',
-        states: '',
-        tags: 'Tags',
-      },
-    ]);
-    expect(rowCells).toEqual([['There is no apis (yet).']]);
-  }));
-
-  it('should display a table with one row', fakeAsync(async () => {
-    const api = fakeApi();
-    await initComponent([api]);
-
-    const { headerCells, rowCells } = await computeApisTableCells();
-    expect(headerCells).toEqual([
-      {
-        contextPath: 'Context paths',
-        name: 'Name',
-        owner: 'Owner',
-        picture: '',
-        states: '',
-        tags: 'Tags',
-      },
-    ]);
-    expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlesync_problemcloud_done', '/planets', '', 'admin']]);
-  }));
-
-  it('should order rows by name', fakeAsync(async () => {
-    const planetsApi = fakeApi({ id: '1', name: 'Planets 🪐' });
-    const unicornsApi = fakeApi({ id: '2', name: 'Unicorns 🦄' });
-    const apis = [planetsApi, unicornsApi];
-    await initComponent(apis);
-
-    const nameSort = await loader.getHarness(MatSortHeaderHarness.with({ selector: '#name' })).then((sortHarness) => sortHarness.host());
-    await nameSort.click();
-    apis.map((api) => expectSyncedApi(api.id, true));
-    expectApisListRequest(apis, null, 'name');
-
-    fixture.detectChanges();
-    await nameSort.click();
-    apis.map((api) => expectSyncedApi(api.id, true));
-    expectApisListRequest(apis, null, '-name');
-  }));
-
-  it('should display out of sync api icon', fakeAsync(async () => {
-    const api = fakeApi();
-    const apis = [api];
-    await initComponent(apis);
-
-    const nameSort = await loader.getHarness(MatSortHeaderHarness.with({ selector: '#name' })).then((sortHarness) => sortHarness.host());
-    await nameSort.click();
-
-    expectSyncedApi(api.id, false);
-    expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toBeTruthy();
-    fixture.detectChanges();
-    expectApisListRequest(apis, null, 'name');
-  }));
-
-  describe('onAddApiClick', () => {
-    beforeEach(fakeAsync(() => initComponent([fakeApi()])));
-    it('should navigate to new apis page on click to add button', async () => {
-      const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="add-api"]' })).then((button) => button.click());
-
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.new');
+      fixture = TestBed.createComponent(ApiListComponent);
+      apiListComponent = await fixture.componentInstance;
+      httpTestingController = TestBed.inject(HttpTestingController);
     });
+
+    it('should display an empty table', fakeAsync(async () => {
+      await initComponent([]);
+
+      const { headerCells, rowCells } = await computeApisTableCells();
+      expect(headerCells).toEqual([
+        {
+          contextPath: 'Context paths',
+          name: 'Name',
+          owner: 'Owner',
+          picture: '',
+          states: '',
+          tags: 'Tags',
+        },
+      ]);
+      expect(rowCells).toEqual([['There is no apis (yet).']]);
+    }));
+
+    it('should display a table with one row', fakeAsync(async () => {
+      const api = fakeApi();
+      await initComponent([api]);
+
+      const { headerCells, rowCells } = await computeApisTableCells();
+      expect(headerCells).toEqual([
+        {
+          contextPath: 'Context paths',
+          name: 'Name',
+          owner: 'Owner',
+          picture: '',
+          states: '',
+          tags: 'Tags',
+        },
+      ]);
+      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlesync_problemcloud_done', '/planets', '', 'admin']]);
+    }));
+
+    it('should order rows by name', fakeAsync(async () => {
+      const planetsApi = fakeApi({ id: '1', name: 'Planets 🪐' });
+      const unicornsApi = fakeApi({ id: '2', name: 'Unicorns 🦄' });
+      const apis = [planetsApi, unicornsApi];
+      await initComponent(apis);
+
+      const nameSort = await loader.getHarness(MatSortHeaderHarness.with({ selector: '#name' })).then((sortHarness) => sortHarness.host());
+      await nameSort.click();
+      apis.map((api) => expectSyncedApi(api.id, true));
+      expectApisListRequest(apis, null, 'name');
+
+      fixture.detectChanges();
+      await nameSort.click();
+      apis.map((api) => expectSyncedApi(api.id, true));
+      expectApisListRequest(apis, null, '-name');
+    }));
+
+    it('should display out of sync api icon', fakeAsync(async () => {
+      const api = fakeApi();
+      const apis = [api];
+      await initComponent(apis);
+
+      const nameSort = await loader.getHarness(MatSortHeaderHarness.with({ selector: '#name' })).then((sortHarness) => sortHarness.host());
+      await nameSort.click();
+
+      expectSyncedApi(api.id, false);
+      expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toBeTruthy();
+      fixture.detectChanges();
+      expectApisListRequest(apis, null, 'name');
+    }));
+
+    describe('onAddApiClick', () => {
+      beforeEach(fakeAsync(() => initComponent([fakeApi()])));
+      it('should navigate to new apis page on click to add button', async () => {
+        const routerSpy = jest.spyOn(fakeUiRouter, 'go');
+
+        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="add-api"]' })).then((button) => button.click());
+
+        expect(routerSpy).toHaveBeenCalledWith('management.apis.new');
+      });
+    });
+
+    describe('onEditApiClick', () => {
+      beforeEach(fakeAsync(() => initComponent([fakeApi()])));
+      it('should navigate to new apis page on click to add button', () => {
+        const routerSpy = jest.spyOn(fakeUiRouter, 'go');
+        const api = {
+          id: 'api-id',
+          name: 'api#1',
+          contextPath: '/api-1',
+          tags: null,
+          owner: 'admin',
+          ownerEmail: 'admin@gio.com',
+          picture: null,
+          state: 'CREATED' as ApiState,
+          lifecycleState: 'PUBLISHED' as ApiLifecycleState,
+          workflowState: 'REVIEW_OK',
+        };
+
+        apiListComponent.onEditActionClicked(api);
+
+        expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.portal.general', { apiId: api.id });
+      });
+    });
+
+    async function initComponent(apis: Api[]) {
+      expectApisListRequest(apis);
+      loader = TestbedHarnessEnvironment.loader(fixture);
+      fixture.detectChanges();
+    }
   });
 
-  describe('onEditApiClick', () => {
-    beforeEach(fakeAsync(() => initComponent([fakeApi()])));
-    it('should navigate to new apis page on click to add button', () => {
-      const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-      const api = {
-        id: 'api-id',
-        name: 'api#1',
-        contextPath: '/api-1',
-        tags: null,
-        owner: 'admin',
-        ownerEmail: 'admin@gio.com',
-        picture: null,
-        state: 'CREATED' as ApiState,
-        lifecycleState: 'PUBLISHED' as ApiLifecycleState,
-        workflowState: 'REVIEW_OK',
-      };
+  describe('with quality score', () => {
+    beforeEach(async () => {
+      const withQualityEnabled = CONSTANTS_TESTING;
+      withQualityEnabled.env.settings.apiQualityMetrics.enabled = true;
 
-      apiListComponent.onEditActionClicked(api);
+      await TestBed.configureTestingModule({
+        imports: [ApiListModule, MatIconTestingModule, GioUiRouterTestingModule, NoopAnimationsModule, GioHttpTestingModule],
+        providers: [
+          { provide: UIRouterState, useValue: fakeUiRouter },
+          { provide: UIRouterStateParams, useValue: {} },
+          { provide: CurrentUserService, useValue: { currentUser } },
+          { provide: 'Constants', useValue: withQualityEnabled },
+        ],
+      }).compileComponents();
 
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.portal.general', { apiId: api.id });
+      fixture = TestBed.createComponent(ApiListComponent);
+      apiListComponent = await fixture.componentInstance;
+      httpTestingController = TestBed.inject(HttpTestingController);
     });
-  });
 
-  async function initComponent(apis: Api[]) {
-    expectApisListRequest(apis);
-    loader = TestbedHarnessEnvironment.loader(fixture);
-    fixture.detectChanges();
-  }
+    it('should display quality columns', fakeAsync(async () => {
+      await initComponent(fakeApi());
+      const { headerCells, rowCells } = await computeApisTableCells();
+      expect(headerCells).toEqual([
+        {
+          contextPath: 'Context paths',
+          name: 'Name',
+          owner: 'Owner',
+          picture: '',
+          qualityScore: 'Quality',
+          states: '',
+          tags: 'Tags',
+        },
+      ]);
+      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', '100%', 'admin']]);
+      expect(fixture.debugElement.query(By.css('.quality-score__good'))).toBeTruthy();
+    }));
+
+    it('should display bad quality score', fakeAsync(async () => {
+      await initComponent(fakeApi(), 0);
+      expect(fixture.debugElement.query(By.css('.quality-score__bad'))).toBeTruthy();
+    }));
+
+    it('should medium quality score', fakeAsync(async () => {
+      await initComponent(fakeApi(), 0.51);
+      expect(fixture.debugElement.query(By.css('.quality-score__medium'))).toBeTruthy();
+    }));
+
+    async function initComponent(api: Api, score = 1) {
+      expectApisListRequest([api]);
+      loader = TestbedHarnessEnvironment.loader(fixture);
+      expectSyncedApi(api.id, true);
+      expectQualityRequest(api.id, score);
+      fixture.detectChanges();
+    }
+
+    function expectQualityRequest(apiId: string, score: number) {
+      // wait debounceTime
+      fixture.detectChanges();
+      tick();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/quality`);
+      expect(req.request.method).toEqual('GET');
+      req.flush({ score });
+      httpTestingController.verify();
+    }
+  });
 
   async function computeApisTableCells() {
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#apisTable' }));
@@ -178,16 +250,6 @@ describe('ApisListComponent', () => {
     const rows = await table.getRows();
     const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
     return { headerCells, rowCells };
-  }
-
-  function expectSyncedApi(apiId: string, isSynced: boolean) {
-    // wait debounceTime
-    fixture.detectChanges();
-    tick(400);
-
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/state`);
-    expect(req.request.method).toEqual('GET');
-    req.flush({ api_id: apiId, is_synchronized: isSynced });
   }
 
   function expectApisListRequest(apis: Api[] = [], q?: string, order?: string, page = 1) {
@@ -201,5 +263,15 @@ describe('ApisListComponent', () => {
     expect(req.request.method).toEqual('GET');
     req.flush(fakePagedResult(apis));
     httpTestingController.verify();
+  }
+
+  function expectSyncedApi(apiId: string, isSynced: boolean) {
+    // wait debounceTime
+    fixture.detectChanges();
+    tick();
+
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/state`);
+    expect(req.request.method).toEqual('GET');
+    req.flush({ api_id: apiId, is_synchronized: isSynced });
   }
 });
