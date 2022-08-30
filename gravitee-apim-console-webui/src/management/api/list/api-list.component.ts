@@ -57,6 +57,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     searchTerm: '',
   };
   isQualityDisplayed: boolean;
+  searchLabel = 'Search APIs | name:"My api *" ownerName:admin';
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
   private visibilitiesIcons = {
