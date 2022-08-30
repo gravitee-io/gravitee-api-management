@@ -262,9 +262,9 @@ describe('ApisListComponent', () => {
     tick(400);
 
     const req = httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.env.baseURL}/apis/_paged?page=${page}&size=10${q ? `&query=${q}` : ''}${order ? `&order=${order}` : ''}`,
+      `${CONSTANTS_TESTING.env.baseURL}/apis/_search/_paged?page=${page}&size=10&q=${q ? q : '*'}${order ? `&order=${order}` : ''}`,
     );
-    expect(req.request.method).toEqual('GET');
+    expect(req.request.method).toEqual('POST');
     req.flush(fakePagedResult(apis));
     httpTestingController.verify();
   }
