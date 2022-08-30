@@ -28,7 +28,12 @@
   </button>
 </div>
 
-<gio-table-wrapper [length]="apisTableDSUnpaginatedLength" [filters]="filters" (filtersChange)="onFiltersChanged($event)">
+<gio-table-wrapper
+  [searchLabel]="searchLabel"
+  [length]="apisTableDSUnpaginatedLength"
+  [filters]="filters"
+  (filtersChange)="onFiltersChanged($event)"
+>
   <table mat-table matSort [dataSource]="apisTableDS" id="apisTable" aria-label="Apis table">
     <!-- Picture Column -->
     <ng-container matColumnDef="picture">
@@ -114,12 +119,7 @@
       <th mat-header-cell *matHeaderCellDef id="actions"></th>
       <td mat-cell *matCellDef="let element">
         <div class="actions__edit">
-          <button
-            (click)="onEditActionClicked(element)"
-            mat-icon-button
-            aria-label="Button to edit an API"
-            matTooltip="Edit API"
-          >
+          <button (click)="onEditActionClicked(element)" mat-icon-button aria-label="Button to edit an API" matTooltip="Edit API">
             <mat-icon>edit</mat-icon>
           </button>
         </div>

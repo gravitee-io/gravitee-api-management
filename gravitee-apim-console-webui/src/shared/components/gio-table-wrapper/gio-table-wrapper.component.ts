@@ -68,6 +68,9 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   @Input()
   filters: GioTableWrapperFilters = INITIAL_FILTERS_VALUE;
 
+  @Input()
+  searchLabel = 'Search';
+
   /** The current total number of items being paged (only for display) */
   @Input()
   length = 0;
