@@ -49,7 +49,7 @@ export type ApisTableDS = {
   styles: [require('./api-list.component.scss')],
 })
 export class ApiListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['picture', 'name', 'states', 'contextPath', 'tags', 'owner', 'visibility'];
+  displayedColumns = ['picture', 'name', 'states', 'contextPath', 'tags', 'owner', 'visibility', 'actions'];
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
   filters: GioTableWrapperFilters = {

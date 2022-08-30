@@ -70,7 +70,7 @@
     <!-- Display Context Path Column -->
     <ng-container matColumnDef="contextPath">
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="contextPath">Context paths</th>
-      <td mat-cell *matCellDef="let element" (click)="onEditActionClicked(element)">
+      <td mat-cell *matCellDef="let element">
         <a>{{ element.contextPath }}</a>
       </td>
     </ng-container>
@@ -106,6 +106,23 @@
       <th mat-header-cell *matHeaderCellDef id="visibility">Visibility</th>
       <td mat-cell *matCellDef="let element">
         <mat-icon class="visibility" size="20" [matTooltip]="element.visibility.label | titlecase">{{ element.visibility.icon }}</mat-icon>
+      </td>
+    </ng-container>
+
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef id="actions"></th>
+      <td mat-cell *matCellDef="let element">
+        <div class="actions__edit">
+          <button
+            (click)="onEditActionClicked(element)"
+            mat-icon-button
+            aria-label="Button to edit an API"
+            matTooltip="Edit API"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+        </div>
       </td>
     </ng-container>
 

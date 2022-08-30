@@ -33,7 +33,8 @@
   width: 15%;
 }
 
-.mat-column-picture {
+.mat-column-picture,
+.mat-column-actions {
   width: 1%;
   padding: 0 4px;
 }
@@ -95,4 +96,9 @@
   .visibility {
     color: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
   }
+}
+
+.actions__edit {
+  display: flex;
+  justify-content: center;
 }
