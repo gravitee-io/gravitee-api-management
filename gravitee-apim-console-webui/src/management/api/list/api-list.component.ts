@@ -58,6 +58,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
   };
   isQualityDisplayed: boolean;
   searchLabel = 'Search APIs | name:"My api *" ownerName:admin';
+  isLoadingData = true;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
   private visibilitiesIcons = {
@@ -102,6 +103,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             tap((apisPage) => {
               this.apisTableDS = this.toApisTableDS(apisPage);
               this.apisTableDSUnpaginatedLength = apisPage.page.total_elements;
+              this.isLoadingData = false;
             }),
             catchError(() => of(new PagedResult<Api>())),
           );
