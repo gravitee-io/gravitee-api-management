@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "APIs V4")
+@Tag(name = "🧪 V4 - APIs")
 @Slf4j
 public class ApisResource extends AbstractResource {
 
@@ -57,7 +57,10 @@ public class ApisResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create an API", description = "User must have API_PUBLISHER or ADMIN role to create an API.")
+    @Operation(
+        summary = "🧪 Create an API",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have API_PUBLISHER or ADMIN role to create an API."
+    )
     @ApiResponse(
         responseCode = "201",
         description = "API successfully created",

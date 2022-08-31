@@ -71,7 +71,7 @@ import javax.ws.rs.core.Response;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "API Plans V4")
+@Tag(name = "🧪 V4 - API Plans")
 public class ApiPlansResource extends AbstractResource {
 
     @Inject
@@ -90,7 +90,10 @@ public class ApiPlansResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "List plans for an API", description = "List all the plans accessible to the current user.")
+    @Operation(
+        summary = "🧪 List plans for an API",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>List all the plans accessible to the current user."
+    )
     @ApiResponse(
         responseCode = "200",
         description = "List accessible plans for current user",
@@ -141,7 +144,10 @@ public class ApiPlansResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a plan", description = "User must have the MANAGE_PLANS permission to use this service")
+    @Operation(
+        summary = "🧪 Create a plan",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the MANAGE_PLANS permission to use this service"
+    )
     @ApiResponse(
         responseCode = "201",
         description = "Plan successfully created",
@@ -162,7 +168,10 @@ public class ApiPlansResource extends AbstractResource {
     @Path("/{plan}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Update a plan", description = "User must have the MANAGE_PLANS permission to use this service")
+    @Operation(
+        summary = "🧪 Update a plan",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the MANAGE_PLANS permission to use this service"
+    )
     @ApiResponse(
         responseCode = "200",
         description = "Plan successfully updated",
@@ -198,7 +207,10 @@ public class ApiPlansResource extends AbstractResource {
     @GET
     @Path("/{plan}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get a plan", description = "User must have the READ permission to use this service")
+    @Operation(
+        summary = "🧪 Get a plan",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the READ permission to use this service"
+    )
     @ApiResponse(
         responseCode = "200",
         description = "Plan information",
@@ -227,7 +239,10 @@ public class ApiPlansResource extends AbstractResource {
     @DELETE
     @Path("/{plan}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Delete a plan", description = "User must have the MANAGE_PLANS permission to use this service")
+    @Operation(
+        summary = "🧪 Delete a plan",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the MANAGE_PLANS permission to use this service"
+    )
     @ApiResponse(responseCode = "204", description = "Plan successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = API_PLAN, acls = DELETE) })
@@ -246,7 +261,10 @@ public class ApiPlansResource extends AbstractResource {
     @POST
     @Path("/{plan}/_close")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Close  a plan", description = "User must have the MANAGE_PLANS permission to use this service")
+    @Operation(
+        summary = "🧪 Close  a plan",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the MANAGE_PLANS permission to use this service"
+    )
     @ApiResponse(
         responseCode = "204",
         description = "Plan successfully closed",
@@ -269,7 +287,10 @@ public class ApiPlansResource extends AbstractResource {
     @POST
     @Path("/{plan}/_publish")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Publicly publish plan", description = "User must have the MANAGE_PLANS permission to use this service")
+    @Operation(
+        summary = "🧪 Publicly publish plan",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the MANAGE_PLANS permission to use this service"
+    )
     @ApiResponse(
         responseCode = "204",
         description = "Plan successfully published",
@@ -292,9 +313,9 @@ public class ApiPlansResource extends AbstractResource {
     @Path("/{plan}/_depreciate")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Deprecated, use '_deprecate' instead. Deprecate a plan",
+        summary = "🧪 Deprecated, use '_deprecate' instead. Deprecate a plan",
         deprecated = true,
-        description = "User must have the API_PLAN[UPDATE] permission to use this service"
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the API_PLAN[UPDATE] permission to use this service"
     )
     @ApiResponse(
         responseCode = "204",
@@ -310,7 +331,10 @@ public class ApiPlansResource extends AbstractResource {
     @POST
     @Path("/{plan}/_deprecate")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Deprecate a plan", description = "User must have the API_PLAN[UPDATE] permission to use this service")
+    @Operation(
+        summary = "🧪 Deprecate a plan",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the API_PLAN[UPDATE] permission to use this service"
+    )
     @ApiResponse(
         responseCode = "204",
         description = "Plan successfully deprecated",
