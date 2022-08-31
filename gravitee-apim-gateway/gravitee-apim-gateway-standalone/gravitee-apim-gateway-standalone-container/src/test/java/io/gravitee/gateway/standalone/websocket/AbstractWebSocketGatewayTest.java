@@ -15,7 +15,11 @@
  */
 package io.gravitee.gateway.standalone.websocket;
 
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.gateway.standalone.AbstractGatewayTest;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,5 +33,29 @@ public abstract class AbstractWebSocketGatewayTest extends AbstractGatewayTest {
 
     static {
         System.setProperty("vertx.disableWebsockets", Boolean.FALSE.toString());
+    }
+
+    /**
+     * Override this method to set dynamically the API endpoint target.
+     *
+     * @return Override API endpoint target
+     */
+    protected String getApiEndpointTarget() {
+        return null;
+    }
+
+    @Override
+    public void before(Api api) {
+        super.before(api);
+
+        if (getApiEndpointTarget() != null) {
+            Set<EndpointGroup> groups = api.getProxy().getGroups();
+            if (!groups.isEmpty()) {
+                Set<Endpoint> endpoints = groups.iterator().next().getEndpoints();
+                if (!endpoints.isEmpty()) {
+                    endpoints.iterator().next().setTarget(getApiEndpointTarget());
+                }
+            }
+        }
     }
 }

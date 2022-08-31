@@ -35,6 +35,13 @@ import org.junit.rules.TestRule;
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketHeadersTest extends AbstractWebSocketGatewayTest {
 
+    private static final Integer WEBSOCKET_PORT = 16668;
+
+    @Override
+    protected String getApiEndpointTarget() {
+        return "http://localhost:" + WEBSOCKET_PORT;
+    }
+
     @Rule
     public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
 
@@ -57,7 +64,7 @@ public class WebsocketHeadersTest extends AbstractWebSocketGatewayTest {
                     event.writeTextMessage("PING");
                 }
             )
-            .listen(16664);
+            .listen(WEBSOCKET_PORT);
 
         // Wait for result
         final CountDownLatch latch = new CountDownLatch(1);
