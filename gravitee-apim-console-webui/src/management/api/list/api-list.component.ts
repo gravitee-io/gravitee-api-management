@@ -20,7 +20,7 @@ import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { Api, ApiLifecycleState, ApiState } from '../../../entities/api';
+import { Api, ApiLifecycleState, ApiOrigin, ApiState } from '../../../entities/api';
 import { PagedResult } from '../../../entities/pagedResult';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ApiService } from '../../../services-ngx/api.service';
@@ -41,6 +41,7 @@ export type ApisTableDS = {
   isNotSynced$?: Observable<boolean>;
   qualityScore$?: Observable<{ score: number; class: string }>;
   visibility: { label: string; icon: string };
+  origin: ApiOrigin;
 }[];
 
 @Component({
@@ -157,6 +158,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             ? this.apiService.getQualityMetrics(api.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
             : null,
           visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
+          origin: api.origin,
         }))
       : [];
   }

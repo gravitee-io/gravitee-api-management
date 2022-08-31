@@ -136,6 +136,7 @@ export function fakeUpdateApi(modifier?: Partial<UpdateApi> | ((baseApi: UpdateA
     disable_membership_notifications: false,
     flow_mode: 'DEFAULT',
     gravitee: '2.0.0',
+    origin: 'management',
   };
 
   if (isFunction(modifier)) {

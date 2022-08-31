@@ -193,6 +193,7 @@ export function fakeApi(modifier?: Partial<Api> | ((baseApi: Api) => Api)): Api 
     disable_membership_notifications: false,
     background_url:
       'https://master-apim-api.cloud.gravitee.io/management/organizations/DEFAULT/environments/DEFAULT/apis/aee23b1e-34b1-4551-a23b-1e34b165516a/background?hash=1642675655553',
+    origin: 'management',
   };
 
   if (isFunction(modifier)) {
