@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.standalone.websocket;
 
+import static org.junit.Assert.assertTrue;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
@@ -23,13 +25,10 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.WebSocket;
-import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 
@@ -72,7 +71,7 @@ public class WebsocketCloseTest extends AbstractWebSocketGatewayTest {
             event -> {
                 if (event.failed()) {
                     logger.error("An error occurred during websocket call", event.cause());
-                    Assert.fail();
+                    testContext.failNow("An error occurred during websocket call");
                 } else {
                     final WebSocket webSocket = event.result();
                     webSocket.closeHandler(__ -> testContext.completeNow());
@@ -82,6 +81,8 @@ public class WebsocketCloseTest extends AbstractWebSocketGatewayTest {
 
         testContext.awaitCompletion(10, TimeUnit.SECONDS);
         httpServer.close();
-        Assert.assertTrue(testContext.completed());
+
+        String failureMessage = testContext.causeOfFailure() != null ? testContext.causeOfFailure().getMessage() : null;
+        assertTrue(failureMessage, testContext.completed());
     }
 }
