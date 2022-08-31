@@ -38,7 +38,7 @@ export type ApisTableDS = {
   state: ApiState;
   lifecycleState: ApiLifecycleState;
   workflowBadge?: { text: string; class: string };
-  isSynced$?: Observable<boolean>;
+  isNotSynced$?: Observable<boolean>;
   qualityScore$?: Observable<{ score: number; class: string }>;
   visibility: { label: string; icon: string };
 }[];
@@ -153,7 +153,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
           state: api.state,
           lifecycleState: api.lifecycle_state,
           workflowBadge: this.getWorkflowBadge(api),
-          isSynced$: this.apiService.isAPISynchronized(api.id).pipe(map((a) => a.is_synchronized)),
+          isNotSynced$: this.apiService.isAPISynchronized(api.id).pipe(map((a) => !a.is_synchronized)),
           qualityScore$: this.isQualityDisplayed
             ? this.apiService.getQualityMetrics(api.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
             : null,

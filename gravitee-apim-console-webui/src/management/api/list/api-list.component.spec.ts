@@ -102,7 +102,7 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlesync_problemcloud_done', '/planets', '', 'admin', 'public', 'edit']]);
+      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', 'admin', 'public', 'edit']]);
     }));
 
     it('should order rows by name', fakeAsync(async () => {
@@ -126,13 +126,13 @@ describe('ApisListComponent', () => {
       const api = fakeApi();
       const apis = [api];
       await initComponent(apis);
+      expect(await loader.getAllHarnesses(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toHaveLength(0);
 
       const nameSort = await loader.getHarness(MatSortHeaderHarness.with({ selector: '#name' })).then((sortHarness) => sortHarness.host());
       await nameSort.click();
 
       expectSyncedApi(api.id, false);
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toBeTruthy();
-      fixture.detectChanges();
       expectApisListRequest(apis, null, 'name');
     }));
 
