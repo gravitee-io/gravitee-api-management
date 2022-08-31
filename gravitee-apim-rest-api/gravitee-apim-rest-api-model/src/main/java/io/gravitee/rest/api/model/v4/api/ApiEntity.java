@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model.v4.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -160,6 +161,9 @@ public class ApiEntity implements GenericApiEntity {
 
     @Schema(description = "the free list of labels associated with this API", example = "json, read_only, awesome")
     private List<String> labels;
+
+    @Schema(description = "the context where the api definition was created from")
+    private DefinitionContext definitionContext;
 
     @JsonIgnore
     private Map<String, Object> metadata = new HashMap<>();

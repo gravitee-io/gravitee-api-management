@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -86,6 +87,9 @@ public class ApiDocumentTransformerTest {
         metadatas.put("metadata2", "value2");
         metadatas.put("metadata3", "value3");
         toTransform.setMetadata(metadatas);
+        DefinitionContext context = new DefinitionContext();
+        context.setOrigin(DefinitionContext.ORIGIN_KUBERNETES);
+        toTransform.setDefinitionContext(context);
         return toTransform;
     }
 
@@ -105,5 +109,6 @@ public class ApiDocumentTransformerTest {
         assertThat(toTransform.getCreatedAt().getTime()).isEqualTo(((LongPoint) transformed.getField("createdAt")).numericValue());
         assertThat(toTransform.getUpdatedAt().getTime()).isEqualTo(((LongPoint) transformed.getField("updatedAt")).numericValue());
         assertThat(toTransform.getMetadata().values()).hasSameSizeAs(transformed.getFields("metadata"));
+        assertThat(toTransform.getDefinitionContext().getOrigin()).isEqualTo(transformed.get("origin"));
     }
 }
