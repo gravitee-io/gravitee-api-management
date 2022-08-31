@@ -67,8 +67,8 @@ export class ApiListComponent implements OnInit, OnDestroy {
   };
 
   constructor(
-    @Inject(UIRouterStateParams) private $stateParams,
-    @Inject(UIRouterState) private readonly $state: StateService,
+    @Inject(UIRouterStateParams) private ajsStateParams,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject('Constants') private readonly constants: Constants,
     private readonly apiService: ApiService,
   ) {}
@@ -92,22 +92,19 @@ export class ApiListComponent implements OnInit, OnDestroy {
         distinctUntilChanged(isEqual),
         tap(({ pagination, searchTerm, status, sort }) => {
           // Change url params
-          this.$state.go(
+          this.ajsState.go(
             '.',
             { q: searchTerm, page: pagination.index, size: pagination.size, status, order: toOrder(sort) },
             { notify: false },
           );
         }),
-        switchMap(({ pagination, searchTerm, sort }) => {
-          return this.apiService.list(searchTerm, toOrder(sort), pagination.index, pagination.size).pipe(
-            tap((apisPage) => {
-              this.apisTableDS = this.toApisTableDS(apisPage);
-              this.apisTableDSUnpaginatedLength = apisPage.page.total_elements;
-              this.isLoadingData = false;
-            }),
-            catchError(() => of(new PagedResult<Api>())),
-          );
+        switchMap(({ pagination, searchTerm, sort }) => this.apiService.list(searchTerm, toOrder(sort), pagination.index, pagination.size)),
+        tap((apisPage) => {
+          this.apisTableDS = this.toApisTableDS(apisPage);
+          this.apisTableDSUnpaginatedLength = apisPage.page.total_elements;
+          this.isLoadingData = false;
         }),
+        catchError(() => of(new PagedResult<Api>())),
       )
       .subscribe();
   }
@@ -118,18 +115,18 @@ export class ApiListComponent implements OnInit, OnDestroy {
   }
 
   onEditActionClicked(api: ApisTableDS[number]) {
-    this.$state.go('management.apis.detail.portal.general', { apiId: api.id });
+    this.ajsState.go('management.apis.detail.portal.general', { apiId: api.id });
   }
 
   onAddApiClick() {
-    this.$state.go('management.apis.new');
+    this.ajsState.go('management.apis.new');
   }
 
   private initFilters() {
-    const initialSearchValue = this.$stateParams.q ?? this.filters.searchTerm;
-    const initialPageNumber = this.$stateParams.page ? Number(this.$stateParams.page) : this.filters.pagination.index;
-    const initialPageSize = this.$stateParams.size ? Number(this.$stateParams.size) : this.filters.pagination.size;
-    const initialSort = toSort(this.$stateParams.order, this.filters.sort);
+    const initialSearchValue = this.ajsStateParams.q ?? this.filters.searchTerm;
+    const initialPageNumber = this.ajsStateParams.page ? Number(this.ajsStateParams.page) : this.filters.pagination.index;
+    const initialPageSize = this.ajsStateParams.size ? Number(this.ajsStateParams.size) : this.filters.pagination.size;
+    const initialSort = toSort(this.ajsStateParams.order, this.filters.sort);
     this.filters = {
       searchTerm: initialSearchValue,
       sort: initialSort,
