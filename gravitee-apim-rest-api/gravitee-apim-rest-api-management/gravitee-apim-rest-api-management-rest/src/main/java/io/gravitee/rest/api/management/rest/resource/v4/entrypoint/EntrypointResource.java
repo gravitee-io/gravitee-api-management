@@ -42,7 +42,7 @@ import javax.ws.rs.core.Context;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "Plugins V4")
+@Tag(name = "🧪 V4 - Plugins")
 public class EntrypointResource {
 
     @Context
@@ -53,7 +53,10 @@ public class EntrypointResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get an entrypoint", description = "User must have the ENVIRONMENT_API[READ] permission to use this service")
+    @Operation(
+        summary = "🧪 Get an entrypoint",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the ENVIRONMENT_API[READ] permission to use this service"
+    )
     @ApiResponse(
         responseCode = "200",
         description = "Entrypoint plugin",
@@ -70,8 +73,8 @@ public class EntrypointResource {
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Get a entrypoint's schema",
-        description = "User must have the ENVIRONMENT_API[READ] permission to use this service"
+        summary = "🧪 Get a entrypoint's schema",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the ENVIRONMENT_API[READ] permission to use this service"
     )
     @ApiResponse(
         responseCode = "200",
@@ -92,8 +95,8 @@ public class EntrypointResource {
     @Path("documentation")
     @Produces(MediaType.TEXT_PLAIN)
     @Operation(
-        summary = "Get a entrypoint's documentation",
-        description = "User must have the ENVIRONMENT_API[READ] permission to use this service"
+        summary = "🧪 Get a entrypoint's documentation",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the ENVIRONMENT_API[READ] permission to use this service"
     )
     @ApiResponse(
         responseCode = "200",

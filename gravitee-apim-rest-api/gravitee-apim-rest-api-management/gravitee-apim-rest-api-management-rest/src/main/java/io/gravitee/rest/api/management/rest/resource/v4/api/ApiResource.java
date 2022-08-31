@@ -84,7 +84,7 @@ import javax.ws.rs.core.UriBuilder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "APIs V4")
+@Tag(name = "🧪 V4 - APIs")
 public class ApiResource extends AbstractResource {
 
     @Context
@@ -103,8 +103,8 @@ public class ApiResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Get the API",
-        description = "User must have the READ permission on the API_DEFINITION to use this service on a private API."
+        summary = "🧪 Get the API",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the READ permission on the API_DEFINITION to use this service on a private API."
     )
     @ApiResponse(
         responseCode = "200",
@@ -131,7 +131,10 @@ public class ApiResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Update the API", description = "User must have the MANAGE_API permission to use this service")
+    @Operation(
+        summary = "🧪 Update the API",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the MANAGE_API permission to use this service"
+    )
     @ApiResponse(
         responseCode = "200",
         description = "API successfully updated",
@@ -203,8 +206,8 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @javax.ws.rs.Path("deploy")
     @Operation(
-        summary = "Deploy API to gateway instances",
-        description = "User must have the MANAGE_LIFECYCLE permission to use this service"
+        summary = "🧪 Deploy API to gateway instances",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the MANAGE_LIFECYCLE permission to use this service"
     )
     @ApiResponse(
         responseCode = "200",
@@ -235,7 +238,10 @@ public class ApiResource extends AbstractResource {
     }
 
     @DELETE
-    @Operation(summary = "Delete the API", description = "User must have the DELETE permission to use this service")
+    @Operation(
+        summary = "🧪 Delete the API",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the DELETE permission to use this service"
+    )
     @ApiResponse(responseCode = "204", description = "API successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
@@ -281,7 +287,10 @@ public class ApiResource extends AbstractResource {
     }
 
     @POST
-    @Operation(summary = "Manage the API's lifecycle", description = "User must have the MANAGE_LIFECYCLE permission to use this service")
+    @Operation(
+        summary = "🧪 Manage the API's lifecycle",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the MANAGE_LIFECYCLE permission to use this service"
+    )
     @ApiResponse(responseCode = "204")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })

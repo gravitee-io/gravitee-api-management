@@ -49,7 +49,7 @@ import javax.ws.rs.core.Context;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "Plugins V4")
+@Tag(name = "🧪 V4 - Plugins")
 public class EntrypointsResource {
 
     @Context
@@ -60,7 +60,10 @@ public class EntrypointsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "List entrypoint plugins", description = "User must have the ENVIRONMENT_API[READ] permission to use this service")
+    @Operation(
+        summary = "🧪 List entrypoint plugins",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the ENVIRONMENT_API[READ] permission to use this service"
+    )
     @ApiResponse(
         responseCode = "200",
         description = "List of entrypoints",
