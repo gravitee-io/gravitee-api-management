@@ -16,9 +16,9 @@
 package io.gravitee.gateway.handlers.api.security;
 
 import io.gravitee.definition.model.Plan;
+import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
-import io.gravitee.repository.management.model.ApiKey;
 import java.util.Optional;
 
 /**

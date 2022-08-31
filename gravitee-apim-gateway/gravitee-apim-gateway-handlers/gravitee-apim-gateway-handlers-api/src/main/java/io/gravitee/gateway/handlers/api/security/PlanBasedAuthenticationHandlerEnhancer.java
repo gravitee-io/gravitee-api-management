@@ -16,7 +16,6 @@
 package io.gravitee.gateway.handlers.api.security;
 
 import io.gravitee.definition.model.Api;
-import io.gravitee.gateway.handlers.api.policy.security.apikey.ApiKeyPlanBasedAuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationHandlerEnhancer;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -25,7 +24,6 @@ import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
