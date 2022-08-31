@@ -24,7 +24,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "audits")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}audits")
 public class AuditMongo extends Auditable {
 
     @Id

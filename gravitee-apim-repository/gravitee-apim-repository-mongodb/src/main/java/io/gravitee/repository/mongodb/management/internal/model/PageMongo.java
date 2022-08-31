@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -26,7 +27,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "pages")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}pages")
 public class PageMongo extends Auditable {
 
     @Id
@@ -52,7 +53,7 @@ public class PageMongo extends Auditable {
     private Map<String, String> configuration;
     private boolean homepage;
     private boolean excludedAccessControls;
-    private Set<AccessControlMongo> accessControls;
+    private Set<AccessControlMongo> accessControls = new HashSet<>();
     private List<PageMediaMongo> attachedMedia;
     private String parentId;
     private Map<String, String> metadata;

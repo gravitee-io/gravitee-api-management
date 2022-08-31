@@ -23,7 +23,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "roles")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}roles")
 public class RoleMongo extends Auditable {
 
     @Id

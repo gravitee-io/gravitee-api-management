@@ -23,7 +23,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "metadata")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}metadata")
 public class MetadataMongo extends Auditable {
 
     @Id

@@ -26,7 +26,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "genericnotificationconfigs")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}genericnotificationconfigs")
 public class GenericNotificationConfigMongo {
 
     @Id

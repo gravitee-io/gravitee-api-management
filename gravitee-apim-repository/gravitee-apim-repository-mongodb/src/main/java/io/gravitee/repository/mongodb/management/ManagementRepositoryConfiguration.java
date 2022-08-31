@@ -49,6 +49,10 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     @Qualifier("managementMongo")
     private MongoFactory mongoFactory;
 
+    public ManagementRepositoryConfiguration(Environment environment) {
+        super(environment);
+    }
+
     @Autowired
     private MappingMongoConverter mappingMongoConverter;
 

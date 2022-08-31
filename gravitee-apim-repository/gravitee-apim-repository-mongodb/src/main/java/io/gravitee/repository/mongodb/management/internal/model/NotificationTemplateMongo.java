@@ -22,7 +22,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "notificationTemplates")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}notificationTemplates")
 public class NotificationTemplateMongo extends Auditable {
 
     @Id

@@ -23,7 +23,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "apiheaders")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}apiheaders")
 public class ApiHeaderMongo extends Auditable {
 
     @Id

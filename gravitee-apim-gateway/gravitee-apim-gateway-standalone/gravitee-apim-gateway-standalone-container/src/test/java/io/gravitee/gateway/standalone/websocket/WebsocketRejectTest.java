@@ -15,26 +15,29 @@
  */
 package io.gravitee.gateway.standalone.websocket;
 
-import io.gravitee.common.http.HttpStatusCode;
+import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.UpgradeRejectedException;
-import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketRejectTest extends AbstractWebSocketGatewayTest {
+
+    private static final Integer WEBSOCKET_PORT = 16661;
+
+    @Override
+    protected String getApiEndpointTarget() {
+        return "http://localhost:" + WEBSOCKET_PORT;
+    }
 
     @Rule
     public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
@@ -43,20 +46,21 @@ public class WebsocketRejectTest extends AbstractWebSocketGatewayTest {
     public void websocket_rejected_request() throws InterruptedException {
         VertxTestContext testContext = new VertxTestContext();
 
-        httpServer.webSocketHandler(webSocket -> webSocket.reject(HttpStatusCode.UNAUTHORIZED_401)).listen(16664);
+        httpServer.webSocketHandler(webSocket -> webSocket.reject(UNAUTHORIZED_401)).listen(WEBSOCKET_PORT);
 
         httpClient.webSocket(
             "/test",
             event -> {
-                Assert.assertTrue(event.failed());
-                Assert.assertEquals(UpgradeRejectedException.class, event.cause().getClass());
-                Assert.assertEquals(HttpStatusCode.UNAUTHORIZED_401, ((UpgradeRejectedException) event.cause()).getStatus());
-
+                testContext.verify(() -> assertThat(event.failed()).isTrue());
+                testContext.verify(() -> assertThat(event.cause().getClass()).isEqualTo(UpgradeRejectedException.class));
+                testContext.verify(() -> assertThat(((UpgradeRejectedException) event.cause()).getStatus()).isEqualTo(UNAUTHORIZED_401));
                 testContext.completeNow();
             }
         );
 
         testContext.awaitCompletion(10, TimeUnit.SECONDS);
-        Assert.assertTrue(testContext.completed());
+
+        String failureMessage = testContext.causeOfFailure() != null ? testContext.causeOfFailure().getMessage() : null;
+        assertTrue(failureMessage, testContext.completed());
     }
 }

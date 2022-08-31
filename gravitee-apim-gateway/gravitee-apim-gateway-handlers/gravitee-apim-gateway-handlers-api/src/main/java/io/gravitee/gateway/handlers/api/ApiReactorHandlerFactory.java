@@ -42,10 +42,10 @@ import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.context.ApiTemplateVariableProvider;
 import io.gravitee.gateway.handlers.api.context.ContentTemplateVariableProvider;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.policy.security.PlanBasedAuthenticationHandlerEnhancer;
 import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
+import io.gravitee.gateway.handlers.api.security.PlanBasedAuthenticationHandlerEnhancer;
 import io.gravitee.gateway.jupiter.handlers.api.SyncApiReactor;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
@@ -83,6 +83,7 @@ import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
+import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.resource.api.ResourceManager;
 import io.vertx.core.Vertx;
 import java.util.ArrayList;
@@ -495,7 +496,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     }
 
     public AuthenticationHandlerEnhancer authenticationHandlerEnhancer(Api api) {
-        return new PlanBasedAuthenticationHandlerEnhancer(api.getDefinition());
+        return new PlanBasedAuthenticationHandlerEnhancer(api.getDefinition(), applicationContext.getBean(SubscriptionRepository.class));
     }
 
     public AuthenticationHandlerSelector authenticationHandlerSelector(AuthenticationHandlerManager authenticationHandlerManager) {

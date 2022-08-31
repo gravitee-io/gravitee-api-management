@@ -17,11 +17,15 @@ package io.gravitee.gateway.standalone.websocket;
 
 import static org.junit.Assert.assertTrue;
 
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.gateway.standalone.AbstractGatewayTest;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
@@ -75,5 +79,29 @@ public abstract class AbstractWebSocketGatewayTest extends AbstractGatewayTest {
         );
 
         assertTrue(latch.await(5, TimeUnit.SECONDS));
+    }
+
+    /**
+     * Override this method to set dynamically the API endpoint target.
+     *
+     * @return Override API endpoint target
+     */
+    protected String getApiEndpointTarget() {
+        return null;
+    }
+
+    @Override
+    public void before(Api api) {
+        super.before(api);
+
+        if (getApiEndpointTarget() != null) {
+            Set<EndpointGroup> groups = api.getProxy().getGroups();
+            if (!groups.isEmpty()) {
+                Set<Endpoint> endpoints = groups.iterator().next().getEndpoints();
+                if (!endpoints.isEmpty()) {
+                    endpoints.iterator().next().setTarget(getApiEndpointTarget());
+                }
+            }
+        }
     }
 }

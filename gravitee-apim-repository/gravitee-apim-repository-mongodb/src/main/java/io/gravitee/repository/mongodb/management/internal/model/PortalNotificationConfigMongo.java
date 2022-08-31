@@ -25,7 +25,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "portalnotificationconfigs")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}portalnotificationconfigs")
 public class PortalNotificationConfigMongo {
 
     @Id

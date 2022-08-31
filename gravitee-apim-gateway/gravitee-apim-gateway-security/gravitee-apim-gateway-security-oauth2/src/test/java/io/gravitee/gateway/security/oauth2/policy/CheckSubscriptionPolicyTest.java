@@ -174,7 +174,6 @@ public class CheckSubscriptionPolicyTest {
 
         ExecutionContext executionContext = mock(ExecutionContext.class);
         when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(true);
         when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
         when(executionContext.getAttribute(ExecutionContext.ATTR_API)).thenReturn("api-id");
         when(executionContext.request()).thenReturn(request);
@@ -184,7 +183,6 @@ public class CheckSubscriptionPolicyTest {
 
         // subscription found in cache, with an invalid plan
         Subscription subscription = mock(Subscription.class);
-        when(subscription.getPlan()).thenReturn("plan2-id");
         when(subscriptionService.getByApiAndClientIdAndPlan("api-id", "my-client-id", "plan-id")).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);

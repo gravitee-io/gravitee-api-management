@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import {afterAll, beforeAll, describe, expect} from '@jest/globals';
+import {ConfigurationApi} from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
 import {
-  forManagementAsAdminUser,
-  forManagementAsApiUser,
-  forPortalAsApplicationFrenchUser,
-  forPortalAsSimpleUser,
+    forManagementAsAdminUser,
+    forManagementAsApiUser,
+    forPortalAsApplicationFrenchUser,
+    forPortalAsSimpleUser,
 } from '@gravitee/utils/configuration';
-import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
-import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
-import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
-import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
-import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
-import { created, succeed, unauthorized } from '@lib/jest-utils';
+import {UsersApi} from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
+import {RoleScope} from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
+import {APIsApi} from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import {ApisFaker} from '@gravitee/fixtures/management/ApisFaker';
+import {ApiLifecycleState} from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import {Visibility} from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
+import {APIPagesApi} from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
+import {created, succeed, unauthorized} from '@lib/jest-utils';
 import { PageType } from '@gravitee/management-webclient-sdk/src/lib/models/PageType';
 import { ApiApi, GetPageByApiIdAndPageIdIncludeEnum } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApiApi';
 import { MetadataFormat } from '@gravitee/management-webclient-sdk/src/lib/models/MetadataFormat';

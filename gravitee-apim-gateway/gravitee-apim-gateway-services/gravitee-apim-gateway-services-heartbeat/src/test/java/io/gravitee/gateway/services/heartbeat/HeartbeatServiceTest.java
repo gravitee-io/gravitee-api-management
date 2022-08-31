@@ -52,6 +52,9 @@ public class HeartbeatServiceTest {
     private Topic<Event> topic;
 
     @Mock
+    private Topic<Event> topicFailure;
+
+    @Mock
     private Message<Event> message;
 
     @InjectMocks
@@ -86,7 +89,7 @@ public class HeartbeatServiceTest {
     }
 
     @Test
-    public void shouldNotRepublishEventWhenIllegalArgumentExceptionIsThrown() throws TechnicalException {
+    public void shouldPublishToFailureTopicWhenIllegalArgumentExceptionIsThrown() throws TechnicalException {
         Event event = new Event();
         event.setId(UUID.toString(UUID.random()));
         event.setProperties(new HashMap<>());
@@ -98,11 +101,13 @@ public class HeartbeatServiceTest {
         cut.onMessage(message);
 
         verifyNoInteractions(topic);
-        assertTrue(event.getProperties().isEmpty());
+        verify(topicFailure).publish(event);
+        assertTrue(event.getProperties().containsKey(EVENT_STATE_PROPERTY));
+        assertEquals("recreate", event.getProperties().get(EVENT_STATE_PROPERTY));
     }
 
     @Test
-    public void shouldNotRepublishEventWhenTechnicalExceptionIsThrown() throws TechnicalException {
+    public void shouldPublishToFailureTopicWhenTechnicalExceptionIsThrown() throws TechnicalException {
         Event event = new Event();
         event.setId(UUID.toString(UUID.random()));
         event.setProperties(new HashMap<>());
@@ -113,6 +118,8 @@ public class HeartbeatServiceTest {
         cut.onMessage(message);
 
         verifyNoInteractions(topic);
-        assertTrue(event.getProperties().isEmpty());
+        verify(topicFailure).publish(event);
+        assertTrue(event.getProperties().containsKey(EVENT_STATE_PROPERTY));
+        assertEquals("recreate", event.getProperties().get(EVENT_STATE_PROPERTY));
     }
 }
