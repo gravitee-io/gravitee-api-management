@@ -39,6 +39,13 @@ import org.junit.rules.TestRule;
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketBidirectionalTest extends AbstractWebSocketGatewayTest {
 
+    private static final Integer WEBSOCKET_PORT = 16666;
+
+    @Override
+    protected String getApiEndpointTarget() {
+        return "http://localhost:" + WEBSOCKET_PORT;
+    }
+
     @Rule
     public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
 
@@ -65,7 +72,7 @@ public class WebsocketBidirectionalTest extends AbstractWebSocketGatewayTest {
                     event.writeTextMessage("PING");
                 }
             )
-            .listen(16664);
+            .listen(WEBSOCKET_PORT);
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
 

@@ -35,10 +35,15 @@ import org.junit.rules.TestRule;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-// FIXME: These tests are flaky when run on CircleCI and need to be fixed
-@Ignore("These tests are flaky when run on CircleCI and need to be fixed")
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
+
+    private static final Integer WEBSOCKET_PORT = 16665;
+
+    @Override
+    protected String getApiEndpointTarget() {
+        return "http://localhost:" + WEBSOCKET_PORT;
+    }
 
     @Rule
     public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
@@ -56,7 +61,7 @@ public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
                     event.writeTextMessage("PING");
                 }
             )
-            .listen(16664);
+            .listen(WEBSOCKET_PORT);
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
 
