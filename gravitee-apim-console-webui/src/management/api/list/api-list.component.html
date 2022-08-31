@@ -66,6 +66,13 @@
         <mat-icon *ngIf="element.lifecycleState !== 'PUBLISHED'" matTooltip="Unpublished" class="states__api-not-published" size="20"
           >cloud_off</mat-icon
         >
+        <mat-icon
+          *ngIf="element.origin === 'kubernetes'"
+          matTooltip="Kubernetes Origin"
+          class="states__api-origin"
+          size="20"
+          svgIcon="gio:kubernetes"
+        ></mat-icon>
         <span *ngIf="element.workflowBadge" [ngClass]="element.workflowBadge.class" class="states__api-workflow-badge">
           {{ element.workflowBadge.text }}
         </span>

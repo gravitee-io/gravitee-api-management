@@ -33,7 +33,7 @@ import { User as DeprecatedUser } from '../../../entities/user';
 import { fakeApi } from '../../../entities/api/Api.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakePagedResult } from '../../../entities/pagedResult';
-import { Api, ApiLifecycleState, ApiState } from '../../../entities/api';
+import { Api, ApiLifecycleState, ApiOrigin, ApiState } from '../../../entities/api';
 
 describe('ApisListComponent', () => {
   const fakeUiRouter = { go: jest.fn() };
@@ -105,6 +105,16 @@ describe('ApisListComponent', () => {
       expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', 'admin', 'public', 'edit']]);
     }));
 
+    it('should display one row with kubernetes icon', fakeAsync(async () => {
+      await initComponent([fakeApi({ origin: 'kubernetes' })]);
+      expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-origin' }))).toBeTruthy();
+    }));
+
+    it('should display one row without kubernetes icon', fakeAsync(async () => {
+      await initComponent([fakeApi({ origin: 'management' })]);
+      expect(await loader.getAllHarnesses(MatIconHarness.with({ selector: '.states__api-origin' }))).toHaveLength(0);
+    }));
+
     it('should order rows by name', fakeAsync(async () => {
       const planetsApi = fakeApi({ id: '1', name: 'Planets 🪐' });
       const unicornsApi = fakeApi({ id: '2', name: 'Unicorns 🦄' });
@@ -163,6 +173,7 @@ describe('ApisListComponent', () => {
           lifecycleState: 'PUBLISHED' as ApiLifecycleState,
           workflowState: 'REVIEW_OK',
           visibility: { label: 'PUBLIC', icon: 'public' },
+          origin: 'management' as ApiOrigin,
         };
 
         apiListComponent.onEditActionClicked(api);
