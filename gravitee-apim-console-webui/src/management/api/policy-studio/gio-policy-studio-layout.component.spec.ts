@@ -20,6 +20,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
+import { omit } from 'lodash';
 
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
 import { toApiDefinition } from './models/ApiDefinition';
@@ -87,15 +88,18 @@ describe('GioPolicyStudioLayoutComponent', () => {
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}` });
 
       expect(req.request.body).toStrictEqual(
-        fakeUpdateApi({
-          background: undefined,
-          categories: undefined,
-          paths: undefined,
-          picture: undefined,
-          plans: [],
-          flows: api.flows,
-          execution_mode: undefined,
-        }),
+        omit(
+          fakeUpdateApi({
+            background: undefined,
+            categories: undefined,
+            paths: undefined,
+            picture: undefined,
+            plans: [],
+            flows: api.flows,
+            execution_mode: undefined,
+          }),
+          'origin',
+        ),
       );
     });
 

@@ -15,6 +15,7 @@
  */
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { omit } from 'lodash';
 
 import { ApiService } from './api.service';
 
@@ -82,7 +83,7 @@ describe('ApiService', () => {
       });
 
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}` });
-      expect(req.request.body).toEqual(apiToUpdate);
+      expect(req.request.body).toEqual(omit(apiToUpdate, 'origin'));
       req.flush({});
     });
   });
