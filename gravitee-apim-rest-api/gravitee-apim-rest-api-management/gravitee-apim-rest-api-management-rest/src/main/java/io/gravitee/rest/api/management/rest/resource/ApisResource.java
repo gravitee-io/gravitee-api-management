@@ -576,6 +576,10 @@ public class ApisResource extends AbstractResource {
             apiItem.setContextPath(api.getProxy().getVirtualHosts().get(0).getPath());
         }
 
+        if (api.getDefinitionContext() != null && !api.getDefinitionContext().getOrigin().isEmpty()) {
+            apiItem.setOrigin(api.getDefinitionContext().getOrigin());
+        }
+
         return apiItem;
     }
 

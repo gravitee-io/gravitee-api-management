@@ -15,34 +15,43 @@
  */
 package io.gravitee.rest.api.model.api;
 
+import static io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ApiListItem {
 
     @Schema(description = "Api's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
+    @EqualsAndHashCode.Include
     private String id;
 
     @Schema(description = "Api's name. Duplicate names can exists.", example = "My Api")
     private String name;
 
     @Schema(description = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
+    @EqualsAndHashCode.Include
     private String version;
 
     @Schema(description = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
@@ -107,242 +116,6 @@ public class ApiListItem {
     @Schema(description = "true if HealthCheck is enabled globally or on one endpoint")
     private boolean hasHealthCheckEnabled;
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Lifecycle.State getState() {
-        return state;
-    }
-
-    public void setState(Lifecycle.State state) {
-        this.state = state;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public Visibility getVisibility() {
-        return visibility;
-    }
-
-    public void setVisibility(Visibility visibility) {
-        this.visibility = visibility;
-    }
-
-    public PrimaryOwnerEntity getPrimaryOwner() {
-        return primaryOwner;
-    }
-
-    public void setPrimaryOwner(PrimaryOwnerEntity primaryOwner) {
-        this.primaryOwner = primaryOwner;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getPictureUrl() {
-        return pictureUrl;
-    }
-
-    public void setPictureUrl(String pictureUrl) {
-        this.pictureUrl = pictureUrl;
-    }
-
-    public List<VirtualHost> getVirtualHosts() {
-        return virtualHosts;
-    }
-
-    public void setVirtualHosts(List<VirtualHost> virtualHosts) {
-        this.virtualHosts = virtualHosts;
-    }
-
-    public Set<String> getCategories() {
-        return categories;
-    }
-
-    public void setCategories(Set<String> categories) {
-        this.categories = categories;
-    }
-
-    public List<String> getLabels() {
-        return labels;
-    }
-
-    public void setLabels(List<String> labels) {
-        this.labels = labels;
-    }
-
-    public Double getRate() {
-        return rate;
-    }
-
-    public void setRate(Double rate) {
-        this.rate = rate;
-    }
-
-    public int getNumberOfRatings() {
-        return numberOfRatings;
-    }
-
-    public void setNumberOfRatings(int numberOfRatings) {
-        this.numberOfRatings = numberOfRatings;
-    }
-
-    public Set<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(Set<String> tags) {
-        this.tags = tags;
-    }
-
-    public ApiLifecycleState getLifecycleState() {
-        return lifecycleState;
-    }
-
-    public void setLifecycleState(ApiLifecycleState lifecycleState) {
-        this.lifecycleState = lifecycleState;
-    }
-
-    public WorkflowState getWorkflowState() {
-        return workflowState;
-    }
-
-    public void setWorkflowState(WorkflowState workflowState) {
-        this.workflowState = workflowState;
-    }
-
-    public String getContextPath() {
-        return contextPath;
-    }
-
-    public void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
-    }
-
-    public boolean isHasHealthCheckEnabled() {
-        return hasHealthCheckEnabled;
-    }
-
-    public void setHasHealthCheckEnabled(boolean hasHealthCheckEnabled) {
-        this.hasHealthCheckEnabled = hasHealthCheckEnabled;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ApiListItem that = (ApiListItem) o;
-        return Objects.equals(id, that.id) && Objects.equals(version, that.version);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, version);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "ApiListItem{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", version='" +
-            version +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            ", visibility=" +
-            visibility +
-            ", state=" +
-            state +
-            ", primaryOwner=" +
-            primaryOwner +
-            ", role='" +
-            role +
-            '\'' +
-            ", pictureUrl='" +
-            pictureUrl +
-            '\'' +
-            ", virtualHosts=" +
-            virtualHosts +
-            ", categories=" +
-            categories +
-            ", labels=" +
-            labels +
-            ", rate=" +
-            rate +
-            ", numberOfRatings=" +
-            numberOfRatings +
-            ", tags=" +
-            tags +
-            ", lifecycleState=" +
-            lifecycleState +
-            ", workflowState=" +
-            workflowState +
-            ", contextPath='" +
-            contextPath +
-            '\'' +
-            ", hasHealthCheckEnabled='" +
-            hasHealthCheckEnabled +
-            '\'' +
-            '}'
-        );
-    }
+    @Schema(description = "The origin of the api (management, kubernetes, ...).")
+    private String origin = ORIGIN_MANAGEMENT;
 }
