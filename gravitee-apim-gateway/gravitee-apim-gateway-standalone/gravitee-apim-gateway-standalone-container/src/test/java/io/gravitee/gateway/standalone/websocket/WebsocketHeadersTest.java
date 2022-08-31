@@ -15,14 +15,20 @@
  */
 package io.gravitee.gateway.standalone.websocket;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.*;
-import java.util.concurrent.CountDownLatch;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.WebSocket;
+import io.vertx.core.http.WebSocketConnectOptions;
+import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -52,6 +58,8 @@ public class WebsocketHeadersTest extends AbstractWebSocketGatewayTest {
         final String customHeaderName = "Custom-Header";
         final String customHeaderValue = "My-Custom-Header-Value";
 
+        VertxTestContext testContext = new VertxTestContext();
+
         HttpServer httpServer = vertx.createHttpServer();
         httpServer
             .webSocketHandler(
@@ -59,15 +67,12 @@ public class WebsocketHeadersTest extends AbstractWebSocketGatewayTest {
                     event.accept();
                     String customHeader = event.headers().get(customHeaderName);
 
-                    Assert.assertNotNull(customHeader);
-                    Assert.assertEquals(customHeaderValue, customHeader);
+                    testContext.verify(() -> assertThat(customHeader).isNotNull());
+                    testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
                     event.writeTextMessage("PING");
                 }
             )
             .listen(WEBSOCKET_PORT);
-
-        // Wait for result
-        final CountDownLatch latch = new CountDownLatch(1);
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
 
@@ -79,21 +84,24 @@ public class WebsocketHeadersTest extends AbstractWebSocketGatewayTest {
             event -> {
                 if (event.failed()) {
                     logger.error("An error occurred during websocket call", event.cause());
-                    Assert.fail();
+                    testContext.failNow("An error occurred during websocket call");
                 } else {
                     final WebSocket webSocket = event.result();
                     webSocket.frameHandler(
                         frame -> {
-                            Assert.assertTrue(frame.isText());
-                            Assert.assertEquals("PING", frame.textData());
-                            latch.countDown();
+                            testContext.verify(() -> assertThat(frame.isText()).isTrue());
+                            testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                            testContext.completeNow();
                         }
                     );
                 }
             }
         );
 
-        Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
+        testContext.awaitCompletion(10, TimeUnit.SECONDS);
         httpServer.close();
+
+        String failureMessage = testContext.causeOfFailure() != null ? testContext.causeOfFailure().getMessage() : null;
+        assertTrue(failureMessage, testContext.completed());
     }
 }
