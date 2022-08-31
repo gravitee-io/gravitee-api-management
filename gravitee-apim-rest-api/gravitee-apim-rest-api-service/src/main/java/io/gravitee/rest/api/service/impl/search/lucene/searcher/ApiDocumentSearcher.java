@@ -110,6 +110,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_DESCRIPTION,
         FIELD_PATHS,
         FIELD_TAGS,
+        FIELD_ORIGIN,
     };
 
     private BooleanQuery.Builder buildApiQuery(ExecutionContext executionContext, Optional<Query> filterQuery) {
@@ -292,7 +293,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         String text = term.text();
         if (FIELD_CATEGORIES.equals(term.field())) {
             text = formatCategoryField(term.text());
-        } else if (!FIELD_PATHS.equals(term.field()) && !FIELD_TAGS.equals(term.field())) {
+        } else if (!FIELD_PATHS.equals(term.field()) && !FIELD_TAGS.equals(term.field()) && !FIELD_ORIGIN.equals(term.field())) {
             text = text.toLowerCase();
             field = field.concat("_lowercase");
         }
