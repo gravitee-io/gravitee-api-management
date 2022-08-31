@@ -147,7 +147,8 @@
     "webpack-dev-server": "4.7.3"
   },
   "engines": {
-    "node": ">=14.17"
+    "node": "^16.10",
+    "npm": "^7.24"
   },
   "scripts": {
     "build:prod": "webpack -c ./conf/webpack-dist.conf.js",
