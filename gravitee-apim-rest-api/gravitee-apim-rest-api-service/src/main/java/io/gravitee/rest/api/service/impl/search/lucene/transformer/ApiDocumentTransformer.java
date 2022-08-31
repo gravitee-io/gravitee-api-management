@@ -70,6 +70,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_METADATA = "metadata";
     public static final String FIELD_METADATA_SPLIT = "metadata_split";
     private static final Pattern SPECIAL_CHARS = Pattern.compile("[|\\-+!(){}^\"~*?:&\\/]");
+    public static final String FIELD_ORIGIN = "origin";
 
     @Override
     public Document transform(GenericApiEntity api) {
@@ -176,6 +177,10 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
                         doc.add(new TextField(FIELD_METADATA_SPLIT, metadataValue.toString(), Field.Store.NO));
                     }
                 );
+        }
+
+        if (api.getDefinitionContext() != null && api.getDefinitionContext().getOrigin() != null) {
+            doc.add(new StringField(FIELD_ORIGIN, api.getDefinitionContext().getOrigin(), Field.Store.NO));
         }
 
         return doc;

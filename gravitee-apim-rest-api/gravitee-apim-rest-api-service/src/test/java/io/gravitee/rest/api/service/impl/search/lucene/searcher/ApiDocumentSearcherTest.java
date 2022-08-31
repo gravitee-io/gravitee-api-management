@@ -63,4 +63,12 @@ public class ApiDocumentSearcherTest {
             builder.build().toString()
         );
     }
+
+    @Test
+    public void shouldCompleteQueryWithOrigin() {
+        Query query = QueryBuilder.create(ApiEntity.class).setQuery("origin:kubernetes").build();
+        BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        assertEquals("", searcher.completeQueryWithFilters(query, builder));
+        assertEquals("#(origin:\"kubernetes\" origin:kubernetes)", builder.build().toString());
+    }
 }
