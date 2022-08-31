@@ -105,7 +105,9 @@ describeIfJupiter('Gateway V4 - SSE entrypoint to mock endpoint', () => {
     test('Gateway call should return backend response', async () => {
       const messages = [];
       await fetchEventSourceGateway({ contextPath: `/${contextPath}` }, (ev) => {
-        messages.push(ev.data);
+        if (!ev.retry) {
+          messages.push(ev.data);
+        }
       });
       expect(messages).toHaveLength(3);
       expect(messages[0]).toBe('e2e test message 0');
