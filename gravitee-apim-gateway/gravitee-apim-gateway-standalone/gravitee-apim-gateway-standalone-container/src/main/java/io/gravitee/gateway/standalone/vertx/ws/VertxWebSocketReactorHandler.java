@@ -21,6 +21,7 @@ import io.gravitee.gateway.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.standalone.vertx.VertxReactorHandler;
 import io.gravitee.gateway.standalone.vertx.ws.utils.WebSocketUtils;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpVersion;
 
@@ -34,8 +35,8 @@ public class VertxWebSocketReactorHandler extends VertxReactorHandler {
 
     private final IdGenerator idGenerator;
 
-    public VertxWebSocketReactorHandler(final Reactor reactor, IdGenerator idGenerator) {
-        super(reactor, idGenerator);
+    public VertxWebSocketReactorHandler(final Reactor reactor, IdGenerator idGenerator, Vertx vertx, long requestTimeout) {
+        super(reactor, idGenerator, vertx, requestTimeout);
         this.idGenerator = idGenerator;
     }
 
@@ -43,7 +44,7 @@ public class VertxWebSocketReactorHandler extends VertxReactorHandler {
     public void handle(HttpServerRequest httpServerRequest) {
         if (isWebSocket(httpServerRequest)) {
             VertxHttpServerRequest request = new VertxWebSocketServerRequest(httpServerRequest, idGenerator);
-            route(request, request.create());
+            super.route(request, request.create());
         } else {
             super.handle(httpServerRequest);
         }
