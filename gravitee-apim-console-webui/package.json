@@ -20,7 +20,7 @@
     "@gravitee/ui-particles-angular": "3.6.0",
     "@gravitee/ui-policy-studio-angular": "3.0.1",
     "@highcharts/map-collection": "1.1.4",
-    "@toast-ui/editor": "2.5.2",
+    "@toast-ui/editor": "2.5.4",
     "@toast-ui/editor-plugin-code-syntax-highlight": "1.0.0",
     "@uirouter/angular": "9.1.0",
     "@uirouter/angular-hybrid": "12.0.0",
