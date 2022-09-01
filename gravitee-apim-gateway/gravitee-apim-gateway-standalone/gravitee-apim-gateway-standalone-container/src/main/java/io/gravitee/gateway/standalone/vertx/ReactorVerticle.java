@@ -76,13 +76,9 @@ public class ReactorVerticle extends AbstractVerticle {
         }
 
         if (websocketEnabled) {
-            handler = new VertxWebSocketReactorHandler(reactor, idGenerator);
+            handler = new VertxWebSocketReactorHandler(reactor, idGenerator, vertx, requestTimeout);
         } else {
-            handler = new VertxReactorHandler(reactor, idGenerator);
-        }
-
-        if (requestTimeout > 0) {
-            handler = new VertxReactorTimeoutHandler(reactor, handler, vertx, requestTimeout, idGenerator);
+            handler = new VertxReactorHandler(reactor, idGenerator, vertx, requestTimeout);
         }
 
         httpServer.requestHandler(handler);
