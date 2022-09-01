@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -81,7 +82,7 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                     config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
                     config.put(ProducerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
                     // Classes from reactivex have been imported because of issue with classloading from parent/plugin
-                    KafkaProducer<String, byte[]> producer = KafkaProducer.create(getVertx(ctx), config);
+                    KafkaProducer<String, byte[]> producer = createKafka(() -> KafkaProducer.create(getVertx(ctx), config));
                     return ctx
                         .request()
                         .messages()
@@ -95,7 +96,8 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                                             return producer.rxWrite(kafkaRecord);
                                         }
                                     )
-                        );
+                        )
+                        .andThen(producer.rxClose());
                 }
             );
         } else {
@@ -139,9 +141,8 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                                     config.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, instanceId);
                                     config.put(ConsumerConfig.CLIENT_ID_CONFIG, instanceId);
                                     // Classes from reactivex have been imported because of issue while loading reactivex classes due to classloading from node/plugin separation
-                                    KafkaConsumer<String, byte[]> consumer = KafkaConsumer.create(
-                                        getVertx(ctx),
-                                        new KafkaClientOptions().setConfig(config)
+                                    KafkaConsumer<String, byte[]> consumer = createKafka(
+                                        () -> KafkaConsumer.create(getVertx(ctx), new KafkaClientOptions().setConfig(config))
                                     );
                                     return consumer
                                         .subscribe(getTopics(ctx))
@@ -218,5 +219,25 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
         }
 
         return key;
+    }
+
+    /**
+     * In order to properly manage class loading while dealing with kafka, we need to erase the current thread classloader by <code>null</code> to force Kafka to use plugin classloader instead of node class loader
+     * See {@link org.apache.kafka.common.utils.Utils#getContextOrKafkaClassLoader}
+     *
+     * @param function use to create the Kafka object
+     * @param <T> reference to the kafka object class
+     * @return Kafka object
+     */
+    private <T> T createKafka(final Supplier<T> function) {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+
+        try {
+            // Required to load classes from the kafka classloader
+            Thread.currentThread().setContextClassLoader(null);
+            return function.get();
+        } finally {
+            Thread.currentThread().setContextClassLoader(classLoader);
+        }
     }
 }
