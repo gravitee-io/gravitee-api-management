@@ -25,7 +25,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "qualityrules")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}qualityrules")
 public class QualityRuleMongo extends Auditable {
 
     @Id

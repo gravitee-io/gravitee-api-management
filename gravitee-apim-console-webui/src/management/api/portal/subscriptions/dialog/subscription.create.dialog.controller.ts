@@ -78,8 +78,8 @@ function DialogSubscriptionCreateController(
   };
 
   this.searchApplication = function (searchedAppName) {
-    return ApplicationService.search(searchedAppName).then((response) => {
-      return response.data;
+    return ApplicationService.searchPage(searchedAppName).then((response) => {
+      return response.data.data;
     });
   };
 

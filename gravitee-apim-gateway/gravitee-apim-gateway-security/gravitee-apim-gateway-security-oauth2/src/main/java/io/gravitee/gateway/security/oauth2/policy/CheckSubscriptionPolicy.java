@@ -35,8 +35,6 @@ import java.util.Optional;
  */
 public class CheckSubscriptionPolicy implements Policy {
 
-    static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
-        ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
     static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
     static final String GATEWAY_OAUTH2_ACCESS_DENIED_KEY = "GATEWAY_OAUTH2_ACCESS_DENIED";
@@ -50,7 +48,6 @@ public class CheckSubscriptionPolicy implements Policy {
         String api = (String) executionContext.getAttribute(ExecutionContext.ATTR_API);
         String clientId = (String) executionContext.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
         String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
-        boolean selectionRuleBasedPlan = Boolean.TRUE.equals(executionContext.getAttribute(CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED));
 
         // client_id is mandatory
         if (clientId == null || clientId.trim().isEmpty()) {
@@ -72,16 +69,12 @@ public class CheckSubscriptionPolicy implements Policy {
         if (subscriptionOpt.isPresent()) {
             Subscription subscription = subscriptionOpt.get();
 
-            // FIXME : first condition is inconsistent, but is a workaround for some customer use cases
-            //      it has to be reworked according to https://github.com/gravitee-io/issues/issues/7824
-            if (!selectionRuleBasedPlan || plan.equals(subscription.getPlan())) {
-                if (subscription.isTimeValid(executionContext.request().timestamp())) {
-                    executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
-                    executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
-                    executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
-                    policyChain.doNext(executionContext.request(), executionContext.response());
-                    return;
-                }
+            if (subscription.isTimeValid(executionContext.request().timestamp())) {
+                executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
+                executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
+                executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
+                policyChain.doNext(executionContext.request(), executionContext.response());
+                return;
             }
         }
 

@@ -29,7 +29,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "keys")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}keys")
 public class ApiKeyMongo {
 
     /**

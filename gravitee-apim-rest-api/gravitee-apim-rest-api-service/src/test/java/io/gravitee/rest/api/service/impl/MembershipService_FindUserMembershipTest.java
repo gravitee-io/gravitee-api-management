@@ -41,6 +41,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -104,6 +105,8 @@ public class MembershipService_FindUserMembershipTest {
             io.gravitee.rest.api.model.MembershipReferenceType.API,
             USER_ID
         );
+
+        verify(mockApiRepository, never()).search(any(ApiCriteria.class), any(ApiFieldInclusionFilter.class));
 
         assertTrue(references.isEmpty());
     }
@@ -295,5 +298,30 @@ public class MembershipService_FindUserMembershipTest {
         assertEquals(1, references.size());
         assertEquals("applicationGroup1Id", references.get(0).getReference());
         assertEquals("APPLICATION", references.get(0).getType());
+    }
+
+    @Test
+    public void shouldGetEmptyResultIfNoApplicationNorGroups() throws Exception {
+        when(mockRoleService.findByScope(any(), any())).thenReturn(Collections.emptyList());
+        when(
+            mockMembershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                eq(USER_ID),
+                eq(MembershipMemberType.USER),
+                eq(MembershipReferenceType.APPLICATION)
+            )
+        )
+            .thenReturn(Collections.emptySet());
+
+        doReturn(Collections.emptySet()).when(mockGroupService).findByUser(USER_ID);
+
+        List<UserMembership> references = membershipService.findUserMembership(
+            GraviteeContext.getExecutionContext(),
+            io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION,
+            USER_ID
+        );
+
+        verify(mockApplicationRepository, never()).findByGroups(anyList());
+
+        assertTrue(references.isEmpty());
     }
 }

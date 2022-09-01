@@ -18,13 +18,12 @@ package io.gravitee.repository.mongodb.common;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeDozerMapper;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import io.gravitee.repository.mongodb.management.transaction.NoTransactionManager;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Proxy;
 import java.net.URI;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -38,7 +37,6 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.lang.NonNull;
-import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -48,8 +46,11 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractRepositoryConfiguration extends AbstractMongoClientConfiguration implements ApplicationContextAware {
 
-    @Autowired
-    private Environment environment;
+    protected final Environment environment;
+
+    protected AbstractRepositoryConfiguration(Environment environment) {
+        this.environment = environment;
+    }
 
     @Override
     public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
@@ -76,56 +77,23 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
         return new GraviteeDozerMapper();
     }
 
+    @Override
     protected Set<Class<?>> getInitialEntitySet() throws ClassNotFoundException {
         Collection<String> basePackages = getMappingBasePackages();
-        Set<Class<?>> initialEntitySet = new HashSet<Class<?>>();
+        Set<Class<?>> initialEntitySet = new HashSet<>();
 
         for (String basePackage : basePackages) {
             if (StringUtils.hasText(basePackage)) {
                 ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
                 componentProvider.addIncludeFilter(new AnnotationTypeFilter(Document.class));
                 componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
-                String prefix = environment.getProperty("management.mongodb.prefix", "");
 
                 for (BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
                     Class<?> entity = ClassUtils.forName(candidate.getBeanClassName(), this.getClass().getClassLoader());
                     initialEntitySet.add(entity);
-
-                    Document documentAnnotation = entity.getAnnotation(Document.class);
-                    configureCollectionName(documentAnnotation, prefix);
                 }
             }
         }
         return initialEntitySet;
-    }
-
-    public static void configureCollectionName(Annotation annotation, String prefix) {
-        if (StringUtils.hasText(prefix)) {
-            Object handler = Proxy.getInvocationHandler(annotation);
-            Field f;
-            try {
-                f = handler.getClass().getDeclaredField("memberValues");
-            } catch (NoSuchFieldException | SecurityException e) {
-                throw new IllegalStateException(e);
-            }
-            f.setAccessible(true);
-            Map<String, Object> memberValues;
-            try {
-                memberValues = (Map<String, Object>) f.get(handler);
-            } catch (IllegalArgumentException | IllegalAccessException e) {
-                throw new IllegalStateException(e);
-            }
-
-            String documentValue = memberValues.get("value").toString();
-            String documentCollection = memberValues.get("collection").toString();
-            String newValue;
-            if (StringUtils.hasText(documentValue)) {
-                newValue = prefix + documentValue;
-                memberValues.put("value", newValue);
-            } else if (StringUtils.hasText(documentCollection)) {
-                newValue = prefix + documentCollection;
-                memberValues.put("collection", newValue);
-            }
-        }
     }
 }

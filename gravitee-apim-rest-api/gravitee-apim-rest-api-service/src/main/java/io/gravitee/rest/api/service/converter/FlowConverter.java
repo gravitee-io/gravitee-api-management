@@ -15,21 +15,39 @@
  */
 package io.gravitee.rest.api.service.converter;
 
-import io.gravitee.definition.model.flow.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.flow.Consumer;
+import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.repository.management.model.flow.*;
+import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.definition.model.flow.PathOperator;
+import io.gravitee.definition.model.flow.Step;
+import io.gravitee.repository.management.model.flow.FlowConsumer;
+import io.gravitee.repository.management.model.flow.FlowConsumerType;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class FlowConverter {
+
+    private ObjectMapper objectMapper;
+
+    public FlowConverter(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public Flow toDefinition(io.gravitee.repository.management.model.flow.Flow model) {
         Flow flow = new Flow();
@@ -41,13 +59,13 @@ public class FlowConverter {
         pathOperator.setPath(model.getPath());
         pathOperator.setOperator(Operator.valueOf(model.getOperator().name()));
         flow.setPathOperator(pathOperator);
-        flow.setPre(model.getPre().stream().map(this::toDefinitionFlow).collect(Collectors.toList()));
-        flow.setPost(model.getPost().stream().map(this::toDefinitionFlow).collect(Collectors.toList()));
-        flow.setConsumers(model.getConsumers().stream().map(this::toDefinitionFlow).collect(Collectors.toList()));
+        flow.setPre(model.getPre().stream().map(this::toDefinitionStep).filter(Objects::nonNull).collect(Collectors.toList()));
+        flow.setPost(model.getPost().stream().map(this::toDefinitionStep).filter(Objects::nonNull).collect(Collectors.toList()));
+        flow.setConsumers(model.getConsumers().stream().map(this::toDefinitionConsumer).collect(Collectors.toList()));
         return flow;
     }
 
-    public io.gravitee.repository.management.model.flow.Flow toModel(
+    public io.gravitee.repository.management.model.flow.Flow toRepository(
         Flow flowDefinition,
         FlowReferenceType referenceType,
         String referenceId,
@@ -60,8 +78,8 @@ public class FlowConverter {
         flow.setOrder(order);
         flow.setReferenceType(referenceType);
         flow.setReferenceId(referenceId);
-        flow.setPost(flowDefinition.getPost().stream().map(this::convertStep).collect(Collectors.toList()));
-        flow.setPre(flowDefinition.getPre().stream().map(this::convertStep).collect(Collectors.toList()));
+        flow.setPost(flowDefinition.getPost().stream().map(this::toRepositoryStep).collect(Collectors.toList()));
+        flow.setPre(flowDefinition.getPre().stream().map(this::toRepositoryStep).collect(Collectors.toList()));
         flow.setPath(flowDefinition.getPath());
         flow.setOperator(FlowOperator.valueOf(flowDefinition.getOperator().name()));
         flow.setName(flowDefinition.getName());
@@ -70,27 +88,27 @@ public class FlowConverter {
         flow.setCondition(flowDefinition.getCondition());
         flow.setConsumers(
             flowDefinition.getConsumers() != null
-                ? flowDefinition.getConsumers().stream().map(this::convertConsumer).collect(Collectors.toList())
+                ? flowDefinition.getConsumers().stream().map(this::toRepositoryConsumer).collect(Collectors.toList())
                 : Collections.emptyList()
         );
         return flow;
     }
 
-    private FlowConsumer convertConsumer(Consumer consumer) {
+    private FlowConsumer toRepositoryConsumer(Consumer consumer) {
         FlowConsumer flowConsumer = new FlowConsumer();
         flowConsumer.setConsumerId(consumer.getConsumerId());
         flowConsumer.setConsumerType(FlowConsumerType.valueOf(consumer.getConsumerType().name()));
         return flowConsumer;
     }
 
-    private Consumer toDefinitionFlow(FlowConsumer flowConsumer) {
+    private Consumer toDefinitionConsumer(FlowConsumer flowConsumer) {
         Consumer consumer = new Consumer();
         consumer.setConsumerId(flowConsumer.getConsumerId());
         consumer.setConsumerType(ConsumerType.valueOf(flowConsumer.getConsumerType().name()));
         return consumer;
     }
 
-    private FlowStep convertStep(Step step) {
+    private FlowStep toRepositoryStep(Step step) {
         FlowStep flowStep = new FlowStep();
         flowStep.setPolicy(step.getPolicy());
         flowStep.setName(step.getName());
@@ -101,14 +119,12 @@ public class FlowConverter {
         return flowStep;
     }
 
-    private Step toDefinitionFlow(FlowStep flowStep) {
-        Step step = new Step();
-        step.setPolicy(flowStep.getPolicy());
-        step.setName(flowStep.getName());
-        step.setEnabled(flowStep.isEnabled());
-        step.setConfiguration(flowStep.getConfiguration());
-        step.setDescription(flowStep.getDescription());
-        step.setCondition(flowStep.getCondition());
-        return step;
+    protected Step toDefinitionStep(FlowStep flowStep) {
+        try {
+            return objectMapper.readValue(objectMapper.writeValueAsString(flowStep), Step.class);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to convert repository flow step to model", e);
+            return null;
+        }
     }
 }

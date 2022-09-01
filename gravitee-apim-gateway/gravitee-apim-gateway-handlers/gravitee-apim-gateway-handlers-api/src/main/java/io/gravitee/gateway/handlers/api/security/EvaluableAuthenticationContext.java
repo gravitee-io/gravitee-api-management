@@ -13,3 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.gravitee.gateway.handlers.api.security;
+
+import io.gravitee.gateway.security.core.AuthenticationContext;
+import java.util.Map;
+
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public class EvaluableAuthenticationContext {
+
+    private final AuthenticationContext authenticationContext;
+
+    EvaluableAuthenticationContext(AuthenticationContext authenticationContext) {
+        this.authenticationContext = authenticationContext;
+    }
+
+    public Map<String, Object> getAttributes() {
+        return authenticationContext.attributes();
+    }
+}

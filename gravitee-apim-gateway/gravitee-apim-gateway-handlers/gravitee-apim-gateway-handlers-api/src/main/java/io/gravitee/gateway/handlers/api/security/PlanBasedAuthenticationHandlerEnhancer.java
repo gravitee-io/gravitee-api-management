@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.policy.security;
+package io.gravitee.gateway.handlers.api.security;
 
 import io.gravitee.definition.model.Api;
-import io.gravitee.gateway.handlers.api.policy.security.apikey.ApiKeyPlanBasedAuthenticationHandler;
-import io.gravitee.gateway.handlers.api.policy.security.rule.SelectionRulePlanBasedAuthenticationHandler;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationHandlerEnhancer;
 import java.util.ArrayList;
@@ -34,10 +33,13 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
 
     private final Logger logger = LoggerFactory.getLogger(PlanBasedAuthenticationHandlerEnhancer.class);
 
+    protected SubscriptionService subscriptionService;
+
     private final Api api;
 
-    public PlanBasedAuthenticationHandlerEnhancer(Api api) {
+    public PlanBasedAuthenticationHandlerEnhancer(Api api, SubscriptionService subscriptionService) {
         this.api = api;
+        this.subscriptionService = subscriptionService;
     }
 
     @Override
@@ -63,15 +65,12 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
                             plan.getName()
                         );
 
-                        // Override the default api_key handler to validate the key against the current plan
-                        if (provider.name().equals("api_key")) {
-                            provider = new ApiKeyPlanBasedAuthenticationHandler(provider, plan);
-                        }
-
-                        if (plan.getSelectionRule() != null && !plan.getSelectionRule().isEmpty()) {
-                            providers.add(new SelectionRulePlanBasedAuthenticationHandler(provider, plan));
+                        if ("api_key".equals(provider.name())) {
+                            providers.add(new ApiKeyPlanBasedAuthenticationHandler(provider, plan, subscriptionService));
+                        } else if ("jwt".equals(provider.name())) {
+                            providers.add(new JwtPlanBasedAuthenticationHandler(provider, plan, subscriptionService));
                         } else {
-                            providers.add(new PlanBasedAuthenticationHandler(provider, plan));
+                            providers.add(new DefaultPlanBasedAuthenticationHandler(provider, plan));
                         }
                     }
                 }

@@ -23,7 +23,6 @@ import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -42,7 +41,7 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
 
     @Override
     public List<Policy> resolve(StreamType streamType, ExecutionContext context) {
-        final AuthenticationHandler authenticationHandler = authenticationHandlerSelector.select(context.request());
+        final AuthenticationHandler authenticationHandler = authenticationHandlerSelector.select(context);
 
         if (authenticationHandler == null) {
             // No authentication method selected, must send a 401
@@ -69,26 +68,23 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
         return securityPolicies
             .stream()
             .map(
-                new Function<AuthenticationPolicy, Policy>() {
-                    @Override
-                    public Policy apply(AuthenticationPolicy securityPolicy) {
-                        if (securityPolicy instanceof HookAuthenticationPolicy) {
-                            try {
-                                return createHookAuthenticationPolicy((HookAuthenticationPolicy) securityPolicy);
-                            } catch (Exception ex) {
-                                logger.error("Unexpected error while loading authentication policy", ex);
-                            }
-                        } else if (securityPolicy instanceof PluginAuthenticationPolicy) {
-                            final PolicyMetadata policyMetadata = new PolicyMetadata(
-                                ((PluginAuthenticationPolicy) securityPolicy).name(),
-                                ((PluginAuthenticationPolicy) securityPolicy).configuration()
-                            );
-                            policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, SECURITY_POLICY_STAGE);
-                            return create(StreamType.ON_REQUEST, policyMetadata);
+                securityPolicy -> {
+                    if (securityPolicy instanceof HookAuthenticationPolicy) {
+                        try {
+                            return createHookAuthenticationPolicy((HookAuthenticationPolicy) securityPolicy);
+                        } catch (Exception ex) {
+                            logger.error("Unexpected error while loading authentication policy", ex);
                         }
-
-                        return null;
+                    } else if (securityPolicy instanceof PluginAuthenticationPolicy) {
+                        final PolicyMetadata policyMetadata = new PolicyMetadata(
+                            ((PluginAuthenticationPolicy) securityPolicy).name(),
+                            ((PluginAuthenticationPolicy) securityPolicy).configuration()
+                        );
+                        policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, SECURITY_POLICY_STAGE);
+                        return create(StreamType.ON_REQUEST, policyMetadata);
                     }
+
+                    return null;
                 }
             )
             .filter(Objects::nonNull)

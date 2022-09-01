@@ -42,8 +42,7 @@ const apisResource = new APIsApi(forManagementAsApiUser());
 const applicationsResource = new ApplicationsApi(forManagementAsApiUser());
 const applicationSubscriptionsResource = new ApplicationSubscriptionsApi(forManagementAsApiUser());
 
-// FIXME : restore this test for gateway V3 when V3 behavior is fixed
-describeIfJupiter('Create an API with multiple JWT plans and use then', () => {
+describe('Create an API with multiple JWT plans and use then', () => {
   const MY_SECURE_GIVEN_KEY = 'MY_SECURE_GIVEN_KEY_eyJpc3MiOiJncmF2aXRl';
 
   let createdApi: ApiEntity;

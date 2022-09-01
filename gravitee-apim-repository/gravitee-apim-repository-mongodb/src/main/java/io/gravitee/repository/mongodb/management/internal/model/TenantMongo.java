@@ -24,7 +24,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "tenants")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}tenants")
 public class TenantMongo {
 
     @Id

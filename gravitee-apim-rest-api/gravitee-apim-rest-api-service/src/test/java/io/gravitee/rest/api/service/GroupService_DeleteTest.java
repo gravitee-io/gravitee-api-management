@@ -34,6 +34,7 @@ import io.gravitee.repository.management.model.AccessControl;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
@@ -159,7 +160,15 @@ public class GroupService_DeleteTest {
 
         when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID))).thenReturn(Collections.emptySet());
 
-        when(pageRepository.search(new PageCriteria.Builder().build())).thenReturn(Collections.emptyList());
+        when(
+            pageRepository.search(
+                new PageCriteria.Builder()
+                    .referenceId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .referenceType(PageReferenceType.ENVIRONMENT.name())
+                    .build()
+            )
+        )
+            .thenReturn(Collections.emptyList());
 
         groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
 
@@ -233,7 +242,15 @@ public class GroupService_DeleteTest {
         accessControlToRemove.setReferenceId(GROUP_ID);
         AccessControl accessControlToKeep = new AccessControl();
         page.setAccessControls(new HashSet<>(Set.of(accessControlToRemove, accessControlToKeep)));
-        when(pageRepository.search(new PageCriteria.Builder().build())).thenReturn(List.of(page));
+        when(
+            pageRepository.search(
+                new PageCriteria.Builder()
+                    .referenceId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                    .referenceType(PageReferenceType.ENVIRONMENT.name())
+                    .build()
+            )
+        )
+            .thenReturn(List.of(page));
 
         groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
 
