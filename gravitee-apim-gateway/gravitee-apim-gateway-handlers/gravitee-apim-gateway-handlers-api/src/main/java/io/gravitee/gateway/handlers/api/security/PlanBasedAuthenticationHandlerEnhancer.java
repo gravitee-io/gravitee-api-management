@@ -16,9 +16,9 @@
 package io.gravitee.gateway.handlers.api.security;
 
 import io.gravitee.definition.model.Api;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationHandlerEnhancer;
-import io.gravitee.repository.management.api.SubscriptionRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,13 +33,13 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
 
     private final Logger logger = LoggerFactory.getLogger(PlanBasedAuthenticationHandlerEnhancer.class);
 
-    protected SubscriptionRepository subscriptionRepository;
+    protected SubscriptionService subscriptionService;
 
     private final Api api;
 
-    public PlanBasedAuthenticationHandlerEnhancer(Api api, SubscriptionRepository subscriptionRepository) {
+    public PlanBasedAuthenticationHandlerEnhancer(Api api, SubscriptionService subscriptionService) {
         this.api = api;
-        this.subscriptionRepository = subscriptionRepository;
+        this.subscriptionService = subscriptionService;
     }
 
     @Override
@@ -66,9 +66,9 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
                         );
 
                         if ("api_key".equals(provider.name())) {
-                            providers.add(new ApiKeyPlanBasedAuthenticationHandler(provider, plan));
+                            providers.add(new ApiKeyPlanBasedAuthenticationHandler(provider, plan, subscriptionService));
                         } else if ("jwt".equals(provider.name())) {
-                            providers.add(new JwtPlanBasedAuthenticationHandler(provider, plan, subscriptionRepository));
+                            providers.add(new JwtPlanBasedAuthenticationHandler(provider, plan, subscriptionService));
                         } else {
                             providers.add(new DefaultPlanBasedAuthenticationHandler(provider, plan));
                         }

@@ -21,17 +21,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Plan;
+import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.LazyJwtToken;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.SubscriptionRepository;
-import io.gravitee.repository.management.api.search.SubscriptionCriteria;
-import io.gravitee.repository.management.model.Subscription;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,11 +48,11 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private SubscriptionRepository subscriptionRepository;
+    private SubscriptionService subscriptionService;
 
-    public JwtPlanBasedAuthenticationHandler(AuthenticationHandler handler, Plan plan, SubscriptionRepository subscriptionRepository) {
+    public JwtPlanBasedAuthenticationHandler(AuthenticationHandler handler, Plan plan, SubscriptionService subscriptionService) {
         super(handler, plan);
-        this.subscriptionRepository = subscriptionRepository;
+        this.subscriptionService = subscriptionService;
     }
 
     @Override
@@ -74,35 +71,18 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
     }
 
     private boolean canHandleSubscription(String api, String clientId, AuthenticationContext authenticationContext) {
-        try {
-            List<Subscription> subscriptions = subscriptionRepository.search(
-                new SubscriptionCriteria.Builder()
-                    .apis(Collections.singleton(api))
-                    .plans(Collections.singleton(plan.getId()))
-                    .clientId(clientId)
-                    .status(Subscription.Status.ACCEPTED)
-                    .build()
-            );
+        Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndClientIdAndPlan(api, clientId, plan.getId());
 
-            if (subscriptions != null && !subscriptions.isEmpty()) {
-                final Subscription subscription = subscriptions.get(0);
-                if (
-                    subscription != null &&
-                    (
-                        subscription.getEndingAt() == null ||
-                        subscription.getEndingAt().after(new Date(authenticationContext.request().timestamp()))
-                    )
-                ) {
-                    authenticationContext.setApplication(subscription.getApplication());
-                    authenticationContext.setPlan(subscription.getPlan());
-                    authenticationContext.setSubscription(subscription.getId());
-                    authenticationContext.request().metrics().setSecurityType(JWT);
-                    authenticationContext.request().metrics().setSecurityToken(clientId);
-                    return true;
-                }
+        if (subscriptionOpt.isPresent()) {
+            final Subscription subscription = subscriptionOpt.get();
+            if (subscription.isTimeValid(authenticationContext.request().timestamp())) {
+                authenticationContext.setApplication(subscription.getApplication());
+                authenticationContext.setPlan(subscription.getPlan());
+                authenticationContext.setSubscription(subscription.getId());
+                authenticationContext.request().metrics().setSecurityType(JWT);
+                authenticationContext.request().metrics().setSecurityToken(clientId);
+                return true;
             }
-        } catch (TechnicalException e) {
-            LOGGER.error("Failed to check JWT plan subscription", e);
         }
         return false;
     }
