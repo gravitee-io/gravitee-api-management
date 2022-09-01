@@ -17,16 +17,14 @@ package io.gravitee.plugin.endpoint.kafka;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageRequest;
-import io.gravitee.gateway.jupiter.api.context.MessageResponse;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
@@ -39,11 +37,7 @@ import io.reactivex.observers.TestObserver;
 import io.reactivex.subscribers.TestSubscriber;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.reactivex.core.Vertx;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -94,13 +88,13 @@ public class KafkaEndpointConnectorTest {
     private String topicId;
 
     @Mock
-    private MessageExecutionContext messageExecutionContext;
+    private ExecutionContext ctx;
 
     @Mock
-    private MessageResponse messageResponse;
+    private Response response;
 
     @Mock
-    private MessageRequest messageRequest;
+    private Request request;
 
     @BeforeEach
     public void beforeEach() throws ExecutionException, InterruptedException, TimeoutException {
@@ -108,9 +102,9 @@ public class KafkaEndpointConnectorTest {
         configuration.setBootstrapServers(kafka.getBootstrapServers());
         configuration.setTopics(topicId);
         kafkaEndpointConnector = new KafkaEndpointConnector(configuration);
-        lenient().when(messageExecutionContext.getComponent(any(Class.class))).thenReturn(vertx.getDelegate());
-        lenient().when(messageExecutionContext.response()).thenReturn(messageResponse);
-        lenient().when(messageExecutionContext.request()).thenReturn(messageRequest);
+        lenient().when(ctx.getComponent(any(Class.class))).thenReturn(vertx.getDelegate());
+        lenient().when(ctx.response()).thenReturn(response);
+        lenient().when(ctx.request()).thenReturn(request);
 
         AdminClient adminClient = AdminClient.create(
             ImmutableMap.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers())
@@ -128,7 +122,7 @@ public class KafkaEndpointConnectorTest {
     @Test
     void shouldPublishRequestMessages() {
         configuration.getConsumer().setEnabled(false);
-        when(messageRequest.messages())
+        when(request.messages())
             .thenReturn(
                 Flowable.just(
                     DefaultMessage
@@ -139,10 +133,10 @@ public class KafkaEndpointConnectorTest {
                 )
             );
 
-        TestObserver<Void> testObserver = kafkaEndpointConnector.connect(messageExecutionContext).test();
+        TestObserver<Void> testObserver = kafkaEndpointConnector.connect(ctx).test();
         testObserver.awaitTerminalEvent(10, TimeUnit.SECONDS);
         testObserver.assertComplete();
-        verify(messageRequest).messages();
+        verify(request).messages();
 
         Map<String, String> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
@@ -169,11 +163,11 @@ public class KafkaEndpointConnectorTest {
         configuration.getProducer().setEnabled(false);
         configuration.getConsumer().setAutoOffsetReset("earliest");
 
-        TestObserver<Void> testObserver = kafkaEndpointConnector.connect(messageExecutionContext).test();
+        TestObserver<Void> testObserver = kafkaEndpointConnector.connect(ctx).test();
         testObserver.awaitTerminalEvent(10, TimeUnit.SECONDS);
         testObserver.assertComplete();
 
-        verify(messageResponse).messages(messagesCaptor.capture());
+        verify(response).messages(messagesCaptor.capture());
         Flowable<Message> messageFlowable = messagesCaptor.getValue();
 
         TestSubscriber<Message> testSubscriber = messageFlowable.take(1).test();

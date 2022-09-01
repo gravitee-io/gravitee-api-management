@@ -20,16 +20,14 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.context.HttpResponse;
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.gravitee.gateway.jupiter.core.context.MutableMessageResponse;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableTransformer;
+import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.reactivex.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SubscriptionResponse implements MutableMessageResponse {
+public class SubscriptionResponse implements MutableResponse {
 
     private HttpHeaders headers = HttpHeaders.create();
 
@@ -94,6 +92,37 @@ public class SubscriptionResponse implements MutableMessageResponse {
     @Override
     public Completable onMessages(FlowableTransformer<Message, Message> onMessages) {
         return Completable.complete();
+    }
+
+    @Override
+    public Maybe<Buffer> body() {
+        return null;
+    }
+
+    @Override
+    public Single<Buffer> bodyOrEmpty() {
+        return null;
+    }
+
+    @Override
+    public void body(Buffer buffer) {}
+
+    @Override
+    public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
+        return null;
+    }
+
+    @Override
+    public void chunks(Flowable<Buffer> chunks) {}
+
+    @Override
+    public Flowable<Buffer> chunks() {
+        return null;
+    }
+
+    @Override
+    public Completable onChunks(FlowableTransformer<Buffer, Buffer> onChunks) {
+        return null;
     }
 
     @Override

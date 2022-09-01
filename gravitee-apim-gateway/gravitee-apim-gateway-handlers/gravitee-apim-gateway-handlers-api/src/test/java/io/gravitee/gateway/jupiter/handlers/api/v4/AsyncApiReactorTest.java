@@ -24,11 +24,11 @@ import static org.mockito.Mockito.*;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
-import io.gravitee.gateway.jupiter.core.context.MutableMessageExecutionContext;
-import io.gravitee.gateway.jupiter.core.context.MutableMessageRequest;
-import io.gravitee.gateway.jupiter.core.context.MutableMessageResponse;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableRequest;
+import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.core.v4.entrypoint.HttpEntrypointConnectorResolver;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
@@ -45,7 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-class ASyncApiReactorTest {
+class AsyncApiReactorTest {
 
     public static final String CONTEXT_PATH = "context-path";
     public static final String API_ID = "api-id";
@@ -74,13 +74,13 @@ class ASyncApiReactorTest {
     private FlowChainFactory flowChainFactory;
 
     @Mock
-    private MutableMessageExecutionContext messageExecutionContext;
+    private MutableExecutionContext executionContext;
 
     @Mock
-    private MutableMessageRequest messageRequest;
+    private MutableRequest request;
 
     @Mock
-    private MutableMessageResponse messageResponse;
+    private MutableResponse response;
 
     @Mock
     private EntrypointAsyncConnector entrypointConnector;
@@ -93,9 +93,9 @@ class ASyncApiReactorTest {
 
     @BeforeEach
     public void init() {
-        lenient().when(messageExecutionContext.request()).thenReturn(messageRequest);
-        lenient().when(messageExecutionContext.response()).thenReturn(messageResponse);
-        lenient().when(messageRequest.contextPath()).thenReturn(CONTEXT_PATH);
+        lenient().when(executionContext.request()).thenReturn(request);
+        lenient().when(executionContext.response()).thenReturn(response);
+        lenient().when(request.contextPath()).thenReturn(CONTEXT_PATH);
         lenient().when(api.getId()).thenReturn(API_ID);
         lenient().when(api.getDeployedAt()).thenReturn(new Date());
         lenient().when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
@@ -110,46 +110,46 @@ class ASyncApiReactorTest {
 
     @Test
     public void shouldPrepareContextAttributes() {
-        asyncApiReactor.handle(messageExecutionContext);
+        asyncApiReactor.handle(executionContext);
 
-        verify(messageExecutionContext).setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, CONTEXT_PATH);
-        verify(messageExecutionContext).setAttribute(ExecutionContext.ATTR_API, API_ID);
-        verify(messageExecutionContext).setAttribute(ExecutionContext.ATTR_ORGANIZATION, ORGANIZATION_ID);
-        verify(messageExecutionContext).setAttribute(ExecutionContext.ATTR_ENVIRONMENT, ENVIRONMENT_ID);
-        verify(messageExecutionContext).setInternalAttribute(ExecutionContext.ATTR_API, api);
+        verify(executionContext).setAttribute(GenericExecutionContext.ATTR_CONTEXT_PATH, CONTEXT_PATH);
+        verify(executionContext).setAttribute(GenericExecutionContext.ATTR_API, API_ID);
+        verify(executionContext).setAttribute(GenericExecutionContext.ATTR_ORGANIZATION, ORGANIZATION_ID);
+        verify(executionContext).setAttribute(GenericExecutionContext.ATTR_ENVIRONMENT, ENVIRONMENT_ID);
+        verify(executionContext).setInternalAttribute(GenericExecutionContext.ATTR_API, api);
     }
 
     @Test
     public void shouldReturn404WhenNoEntrypoint() {
-        when(asyncEntrypointResolver.resolve(messageExecutionContext)).thenReturn(null);
+        when(asyncEntrypointResolver.resolve(executionContext)).thenReturn(null);
 
-        asyncApiReactor.handle(messageExecutionContext).test();
+        asyncApiReactor.handle(executionContext).test();
 
-        verify(messageResponse).status(404);
-        verify(messageResponse).reason("No entrypoint matches the incoming request");
-        verify(messageResponse).end();
+        verify(response).status(404);
+        verify(response).reason("No entrypoint matches the incoming request");
+        verify(response).end();
     }
 
     @Test
     public void shouldExecuteFlowChainWhenEntrypointFound() {
-        when(asyncEntrypointResolver.resolve(messageExecutionContext)).thenReturn(entrypointConnector);
+        when(asyncEntrypointResolver.resolve(executionContext)).thenReturn(entrypointConnector);
 
         ReflectionTestUtils.setField(asyncApiReactor, "platformFlowChain", platformFlowChain);
         ReflectionTestUtils.setField(asyncApiReactor, "securityChain", securityChain);
-        when(platformFlowChain.execute(messageExecutionContext, REQUEST)).thenReturn(complete());
-        when(securityChain.execute(messageExecutionContext)).thenReturn(complete());
-        when(entrypointConnector.handleRequest(messageExecutionContext)).thenReturn(complete());
-        when(entrypointConnector.handleResponse(messageExecutionContext)).thenReturn(complete());
-        when(platformFlowChain.execute(messageExecutionContext, RESPONSE)).thenReturn(complete());
+        when(platformFlowChain.execute(executionContext, REQUEST)).thenReturn(complete());
+        when(securityChain.execute(executionContext)).thenReturn(complete());
+        when(entrypointConnector.handleRequest(executionContext)).thenReturn(complete());
+        when(entrypointConnector.handleResponse(executionContext)).thenReturn(complete());
+        when(platformFlowChain.execute(executionContext, RESPONSE)).thenReturn(complete());
 
-        asyncApiReactor.handle(messageExecutionContext).test();
+        asyncApiReactor.handle(executionContext).test();
 
         // verify flow chain has been executed in the right order
         InOrder inOrder = inOrder(platformFlowChain, securityChain, entrypointConnector, entrypointConnector, platformFlowChain);
-        inOrder.verify(platformFlowChain).execute(messageExecutionContext, REQUEST);
-        inOrder.verify(securityChain).execute(messageExecutionContext);
-        inOrder.verify(entrypointConnector).handleRequest(messageExecutionContext);
-        inOrder.verify(entrypointConnector).handleResponse(messageExecutionContext);
-        inOrder.verify(platformFlowChain).execute(messageExecutionContext, RESPONSE);
+        inOrder.verify(platformFlowChain).execute(executionContext, REQUEST);
+        inOrder.verify(securityChain).execute(executionContext);
+        inOrder.verify(entrypointConnector).handleRequest(executionContext);
+        inOrder.verify(entrypointConnector).handleResponse(executionContext);
+        inOrder.verify(platformFlowChain).execute(executionContext, RESPONSE);
     }
 }

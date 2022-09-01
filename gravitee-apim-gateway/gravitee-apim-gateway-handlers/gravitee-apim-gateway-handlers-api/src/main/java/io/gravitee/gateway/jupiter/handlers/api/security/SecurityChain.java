@@ -16,13 +16,13 @@
 package io.gravitee.gateway.jupiter.handlers.api.security;
 
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
-import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_FLOW_STAGE;
+import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_INTERNAL_FLOW_STAGE;
 import static io.reactivex.Completable.defer;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.Hookable;
 import io.gravitee.gateway.jupiter.api.hook.SecurityPlanHook;
 import io.gravitee.gateway.jupiter.core.hook.HookHelper;
@@ -93,7 +93,7 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
      * @return a {@link Completable} that completes if the request has been successfully handled by a {@link SecurityPlan} or returns
      * an error if no {@link SecurityPlan} can execute the request or the {@link SecurityPlan} failed.
      */
-    public Completable execute(HttpExecutionContext ctx) {
+    public Completable execute(ExecutionContext ctx) {
         return defer(
             () -> {
                 if (!Objects.equals(true, ctx.getAttribute(SKIP_SECURITY_CHAIN))) {
@@ -125,7 +125,7 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
         );
     }
 
-    private Single<Boolean> continueChain(HttpExecutionContext ctx, SecurityPlan securityPlan) {
+    private Single<Boolean> continueChain(ExecutionContext ctx, SecurityPlan securityPlan) {
         return securityPlan
             .canExecute(ctx)
             .flatMap(

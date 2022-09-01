@@ -18,10 +18,9 @@ package io.gravitee.gateway.jupiter.handlers.api.hook.logging;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
-import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.handlers.api.logging.LogHeadersCaptor;
 import io.gravitee.gateway.jupiter.handlers.api.logging.request.LogProxyRequest;
@@ -42,35 +41,33 @@ public class LoggingHook implements InvokerHook {
     }
 
     @Override
-    public Completable pre(String id, HttpExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
+    public Completable pre(String id, ExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
         return Completable.fromRunnable(
             () -> {
-                RequestExecutionContext requestExecutionContext = (RequestExecutionContext) ctx;
                 final Log log = ctx.request().metrics().getLog();
                 final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE);
 
                 if (log != null && loggingContext.proxyMode()) {
-                    final LogProxyRequest logRequest = new LogProxyRequest(loggingContext, requestExecutionContext.request());
+                    final LogProxyRequest logRequest = new LogProxyRequest(loggingContext, ctx.request());
                     log.setProxyRequest(logRequest);
-                    ((MutableRequestExecutionContext) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
+                    ((MutableExecutionContext) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
                 }
             }
         );
     }
 
     @Override
-    public Completable post(String id, HttpExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
+    public Completable post(String id, ExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
         return Completable.fromRunnable(
             () -> {
-                RequestExecutionContext requestExecutionContext = (RequestExecutionContext) ctx;
                 final Log log = ctx.request().metrics().getLog();
                 final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE);
 
                 if (log != null && loggingContext.proxyMode()) {
-                    final LogProxyResponse logResponse = new LogProxyResponse(loggingContext, requestExecutionContext.response());
+                    final LogProxyResponse logResponse = new LogProxyResponse(loggingContext, ctx.response());
                     log.setProxyResponse(logResponse);
 
-                    final MutableResponse response = ((MutableRequestExecutionContext) ctx).response();
+                    final MutableResponse response = ((MutableExecutionContext) ctx).response();
                     response.setHeaders(((LogHeadersCaptor) response.headers()).getDelegate());
                 }
             }
@@ -78,17 +75,12 @@ public class LoggingHook implements InvokerHook {
     }
 
     @Override
-    public Completable interrupt(String id, HttpExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
+    public Completable interrupt(String id, ExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
         return post(id, ctx, executionPhase);
     }
 
     @Override
-    public Completable interruptWith(
-        String id,
-        HttpExecutionContext ctx,
-        @Nullable ExecutionPhase executionPhase,
-        ExecutionFailure failure
-    ) {
+    public Completable interruptWith(String id, ExecutionContext ctx, @Nullable ExecutionPhase executionPhase, ExecutionFailure failure) {
         return post(id, ctx, executionPhase);
     }
 }

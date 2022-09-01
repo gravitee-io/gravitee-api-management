@@ -18,8 +18,8 @@ package io.gravitee.gateway.jupiter.policy.adapter.policy;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Completable;
@@ -46,12 +46,12 @@ public class PolicyAdapter implements Policy {
     }
 
     @Override
-    public Completable onRequest(RequestExecutionContext ctx) {
+    public Completable onRequest(HttpExecutionContext ctx) {
         return execute(ctx, ExecutionPhase.REQUEST);
     }
 
     @Override
-    public Completable onResponse(RequestExecutionContext ctx) {
+    public Completable onResponse(HttpExecutionContext ctx) {
         return execute(ctx, ExecutionPhase.RESPONSE);
     }
 
@@ -76,7 +76,7 @@ public class PolicyAdapter implements Policy {
      *
      * @return a {@link Completable} indicating the execution is completed.
      */
-    private Completable execute(final RequestExecutionContext ctx, final ExecutionPhase phase) {
+    private Completable execute(final HttpExecutionContext ctx, final ExecutionPhase phase) {
         final ExecutionContextAdapter adaptedCtx = ExecutionContextAdapter.create(ctx);
 
         Completable completable;
@@ -113,7 +113,7 @@ public class PolicyAdapter implements Policy {
             emitter -> {
                 try {
                     // Invoke the policy to get the appropriate read/write stream.
-                    final RequestExecutionContext ctx = adaptedCtx.getDelegate();
+                    final HttpExecutionContext ctx = adaptedCtx.getDelegate();
                     final ReadWriteStream<Buffer> stream = policy.stream(new PolicyChainAdapter(ctx, emitter), adaptedCtx);
 
                     if (stream == null) {
@@ -155,7 +155,7 @@ public class PolicyAdapter implements Policy {
         );
     }
 
-    private Maybe<Buffer> getBody(RequestExecutionContext ctx, ExecutionPhase phase) {
+    private Maybe<Buffer> getBody(HttpExecutionContext ctx, ExecutionPhase phase) {
         if (phase == ExecutionPhase.REQUEST) {
             return ctx.request().body();
         } else {
@@ -163,7 +163,7 @@ public class PolicyAdapter implements Policy {
         }
     }
 
-    private void setBody(RequestExecutionContext ctx, ExecutionPhase phase, Buffer newBuffer) {
+    private void setBody(HttpExecutionContext ctx, ExecutionPhase phase, Buffer newBuffer) {
         if (phase == ExecutionPhase.REQUEST) {
             ctx.request().body(newBuffer);
         } else {

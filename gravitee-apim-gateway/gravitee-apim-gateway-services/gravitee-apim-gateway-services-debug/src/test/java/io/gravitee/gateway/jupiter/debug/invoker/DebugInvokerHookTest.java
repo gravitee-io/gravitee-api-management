@@ -28,8 +28,7 @@ import io.gravitee.gateway.debug.core.invoker.InvokerResponse;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.gravitee.gateway.jupiter.debug.reactor.context.DebugRequestExecutionContext;
-import io.reactivex.Completable;
+import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
 import io.reactivex.Single;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +46,7 @@ class DebugInvokerHookTest {
     private DebugInvokerHook debugInvokerHook;
 
     @Mock
-    private DebugRequestExecutionContext debugCtx;
+    private DebugExecutionContext debugCtx;
 
     @BeforeEach
     public void beforeEach() {

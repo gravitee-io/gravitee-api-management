@@ -16,8 +16,8 @@
 package io.gravitee.gateway.jupiter.reactor.processor.alert;
 
 import io.gravitee.alert.api.event.Event;
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
@@ -86,7 +86,7 @@ public class AlertProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final HttpExecutionContext ctx) {
+    public Completable execute(final MutableExecutionContext ctx) {
         return Completable
             .fromRunnable(
                 () ->

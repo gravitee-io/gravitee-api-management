@@ -20,6 +20,7 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.reactivex.disposables.Disposable;
@@ -71,7 +72,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                         if (type == null || type.trim().isEmpty()) {
                             LOGGER.error("Unable to handle subscription without known type");
                         } else {
-                            MessageExecutionContext context = subscriptionExecutionRequestFactory.create(subscription);
+                            MutableExecutionContext context = subscriptionExecutionRequestFactory.create(subscription);
 
                             // This attribute is used by connectors
                             context.setInternalAttribute(ExecutionContext.ATTR_SUBSCRIPTION_TYPE, type);

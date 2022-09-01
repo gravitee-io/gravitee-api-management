@@ -19,6 +19,7 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.gateway.http.utils.WebSocketUtils;
+import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.http.vertx.ws.VertxWebSocket;
 import io.reactivex.Completable;
@@ -33,11 +34,12 @@ import io.vertx.reactivex.core.http.HttpServerRequest;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxHttpServerRequest extends AbstractVertxServerRequest implements MutableRequest {
+public class VertxHttpServerRequest extends AbstractVertxServerRequest {
 
     private final BodyChunksFlowable bodyChunksFlowable;
     protected Boolean isWebSocket = null;
     protected WebSocket webSocket;
+    private final MessageFlowable httpMessages;
 
     public VertxHttpServerRequest(final HttpServerRequest nativeRequest, IdGenerator idGenerator) {
         super(nativeRequest, idGenerator);
@@ -47,6 +49,7 @@ public class VertxHttpServerRequest extends AbstractVertxServerRequest implement
                 .toFlowable()
                 .doOnNext(buffer -> metrics().setRequestContentLength(metrics().getRequestContentLength() + buffer.length()))
                 .map(Buffer::buffer);
+        httpMessages = new MessageFlowable();
     }
 
     public VertxHttpServerResponse response() {
@@ -117,5 +120,20 @@ public class VertxHttpServerRequest extends AbstractVertxServerRequest implement
     @Override
     public Completable onChunks(final FlowableTransformer<Buffer, Buffer> onChunks) {
         return bodyChunksFlowable.onChunks(onChunks);
+    }
+
+    @Override
+    public void messages(final Flowable<Message> messages) {
+        httpMessages.messages(messages);
+    }
+
+    @Override
+    public Flowable<Message> messages() {
+        return httpMessages.messages();
+    }
+
+    @Override
+    public Completable onMessages(final FlowableTransformer<Message, Message> onMessages) {
+        return httpMessages.onMessages(onMessages);
     }
 }

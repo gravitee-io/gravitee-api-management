@@ -17,21 +17,13 @@ package io.gravitee.gateway.jupiter.handlers.api;
 
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
-import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INVOKER;
+import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_INVOKER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
@@ -44,10 +36,10 @@ import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
-import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
@@ -81,11 +73,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -147,7 +135,7 @@ class SyncApiReactorTest {
     ProcessorChain apiErrorProcessorChain;
 
     @Mock
-    MutableRequestExecutionContext requestExecutionContext;
+    MutableExecutionContext ctx;
 
     @Mock
     InvokerAdapter invokerAdapter;
@@ -249,10 +237,10 @@ class SyncApiReactorTest {
                 httpRequestTimeoutConfiguration
             );
 
-        lenient().when(requestExecutionContext.getAttribute(ATTR_INVOKER)).thenReturn(invokerAdapter);
+        lenient().when(ctx.getAttribute(ATTR_INVOKER)).thenReturn(invokerAdapter);
         lenient()
             .when(
-                requestExecutionContext.interruptWith(
+                ctx.interruptWith(
                     argThat(
                         argument ->
                             argument != null &&
@@ -365,21 +353,21 @@ class SyncApiReactorTest {
     @Test
     void shouldHandleRequest() throws Exception {
         when(api.getDeployedAt()).thenReturn(new Date());
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
-        when(apiPreProcessorChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
-        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
-        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPlanFlowChain);
-        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
-        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
-        when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
+        when(apiPreProcessorChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+        when(apiPlanFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
+        when(apiPlanFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPlanFlowChain);
+        when(apiFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
+        when(apiFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
+        when(apiPostProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
         fillRequestExecutionContext();
-        when(invokerAdapter.invoke(any(RequestExecutionContext.class))).thenReturn(spyInvokerAdapterChain);
+        when(invokerAdapter.invoke(any(ExecutionContext.class))).thenReturn(spyInvokerAdapterChain);
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);
         ReflectionTestUtils.setField(cut, "securityChain", securityChain);
 
-        TestObserver<Void> handleRequestObserver = cut.handle(requestExecutionContext).test();
+        TestObserver<Void> handleRequestObserver = cut.handle(ctx).test();
 
         handleRequestObserver.assertSubscribed();
         InOrder orderedChain = inOrder(
@@ -411,21 +399,21 @@ class SyncApiReactorTest {
     void shouldHandleRequestWhenTimeoutZeroOrLess(Long timeout) throws Exception {
         when(httpRequestTimeoutConfiguration.getHttpRequestTimeout()).thenReturn(timeout);
         when(api.getDeployedAt()).thenReturn(new Date());
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
-        when(apiPreProcessorChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
-        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
-        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPlanFlowChain);
-        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
-        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
-        when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
+        when(apiPreProcessorChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+        when(apiPlanFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
+        when(apiPlanFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPlanFlowChain);
+        when(apiFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
+        when(apiFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
+        when(apiPostProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
         fillRequestExecutionContext();
-        when(invokerAdapter.invoke(any(RequestExecutionContext.class))).thenReturn(spyInvokerAdapterChain);
+        when(invokerAdapter.invoke(any(ExecutionContext.class))).thenReturn(spyInvokerAdapterChain);
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);
         ReflectionTestUtils.setField(cut, "securityChain", securityChain);
 
-        TestObserver<Void> handleRequestObserver = cut.handle(requestExecutionContext).test();
+        TestObserver<Void> handleRequestObserver = cut.handle(ctx).test();
 
         handleRequestObserver.assertSubscribed();
         InOrder orderedChain = inOrder(
@@ -466,20 +454,20 @@ class SyncApiReactorTest {
     @Test
     void shouldHandleRequestWithLegacyInvoker() throws Exception {
         when(api.getDeployedAt()).thenReturn(new Date());
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
-        when(apiPreProcessorChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
-        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
-        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
-        when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
+        when(apiPreProcessorChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
+        when(apiPlanFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
+        when(apiFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
+        when(apiPostProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
         fillRequestExecutionContext();
         EndpointInvoker endpointInvoker = mock(EndpointInvoker.class);
-        lenient().when(requestExecutionContext.getAttribute(ATTR_INVOKER)).thenReturn(endpointInvoker);
+        lenient().when(ctx.getAttribute(ATTR_INVOKER)).thenReturn(endpointInvoker);
         ArgumentCaptor<Handler<ProxyConnection>> handlerArgumentCaptor = ArgumentCaptor.forClass(Handler.class);
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);
         ReflectionTestUtils.setField(cut, "securityChain", securityChain);
 
-        TestObserver<Void> handleRequestObserver = cut.handle(requestExecutionContext).test();
+        TestObserver<Void> handleRequestObserver = cut.handle(ctx).test();
 
         handleRequestObserver.assertSubscribed();
         verify(endpointInvoker).invoke(any(), any(), handlerArgumentCaptor.capture());
@@ -497,8 +485,7 @@ class SyncApiReactorTest {
 
     @Test
     void shouldNotApplyFlowChain_InterruptionFailureException() throws Exception {
-        when(apiErrorProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE))
-            .thenReturn(spyResponseApiErrorProcessorChain);
+        when(apiErrorProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiErrorProcessorChain);
 
         InOrder orderedChain = testFlowChainWithInvokeBackendError(spyInterruptionFailureException, InterruptionFailureException.class);
 
@@ -509,8 +496,7 @@ class SyncApiReactorTest {
 
     @Test
     void shouldNotApplyFlowChain_Throwable() throws Exception {
-        when(apiErrorProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE))
-            .thenReturn(spyResponseApiErrorProcessorChain);
+        when(apiErrorProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiErrorProcessorChain);
 
         InOrder orderedChain = testFlowChainWithInvokeBackendError(spyThrowable, Throwable.class);
 
@@ -521,21 +507,21 @@ class SyncApiReactorTest {
 
     InOrder testFlowChainWithInvokeBackendError(Completable spyInvokerAdapterError, Class<? extends Throwable> clazz) throws Exception {
         when(api.getDeployedAt()).thenReturn(new Date());
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
-        when(apiPreProcessorChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
-        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
-        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
-        when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
+        when(apiPreProcessorChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+        when(apiPlanFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
+        when(apiFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
+        when(apiPostProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
         fillRequestExecutionContext();
 
-        when(invokerAdapter.invoke(any(RequestExecutionContext.class))).thenReturn(spyInvokerAdapterError);
+        when(invokerAdapter.invoke(any(ExecutionContext.class))).thenReturn(spyInvokerAdapterError);
 
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);
         ReflectionTestUtils.setField(cut, "securityChain", securityChain);
 
-        TestObserver<Void> handleRequestObserver = cut.handle(requestExecutionContext).test();
+        TestObserver<Void> handleRequestObserver = cut.handle(ctx).test();
 
         InOrder orderedChain = inOrder(
             spyRequestPlatformFlowChain,
@@ -566,25 +552,24 @@ class SyncApiReactorTest {
 
     @Test
     void shouldInterruptChainBecauseOfTimeoutOnBackend() throws Exception {
-        when(apiErrorProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE))
-            .thenReturn(spyResponseApiErrorProcessorChain);
+        when(apiErrorProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiErrorProcessorChain);
 
         when(api.getDeployedAt()).thenReturn(new Date());
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
-        when(apiPreProcessorChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
-        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
-        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
-        when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
+        when(apiPreProcessorChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+        when(apiPlanFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
+        when(apiFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
+        when(apiPostProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
         fillRequestExecutionContext();
 
-        when(invokerAdapter.invoke(any(RequestExecutionContext.class))).thenReturn(spyTimeout);
+        when(invokerAdapter.invoke(any(ExecutionContext.class))).thenReturn(spyTimeout);
 
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);
         ReflectionTestUtils.setField(cut, "securityChain", securityChain);
 
-        TestObserver<Void> handleRequestObserver = cut.handle(requestExecutionContext).test();
+        TestObserver<Void> handleRequestObserver = cut.handle(ctx).test();
         testScheduler.advanceTimeBy(REQUEST_TIMEOUT + 30L, TimeUnit.MILLISECONDS);
 
         InOrder orderedChain = inOrder(
@@ -619,23 +604,22 @@ class SyncApiReactorTest {
 
     @Test
     void shouldInterruptChainBecauseOfTimeoutOnRequest() throws Exception {
-        when(apiErrorProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE))
-            .thenReturn(spyResponseApiErrorProcessorChain);
+        when(apiErrorProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiErrorProcessorChain);
 
         when(api.getDeployedAt()).thenReturn(new Date());
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
-        when(apiPreProcessorChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
-        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
-        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyTimeout);
-        when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
+        when(apiPreProcessorChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+        when(apiPlanFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
+        when(apiFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyTimeout);
+        when(apiPostProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
         fillRequestExecutionContext();
 
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);
         ReflectionTestUtils.setField(cut, "securityChain", securityChain);
 
-        TestObserver<Void> handleRequestObserver = cut.handle(requestExecutionContext).test();
+        TestObserver<Void> handleRequestObserver = cut.handle(ctx).test();
         testScheduler.advanceTimeBy(REQUEST_TIMEOUT + 30L, TimeUnit.MILLISECONDS);
 
         InOrder orderedChain = inOrder(
@@ -670,23 +654,22 @@ class SyncApiReactorTest {
 
     @Test
     void shouldInterruptChainBecauseOfTimeoutOnResponsePlatformPolicies() throws Exception {
-        when(apiErrorProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE))
-            .thenReturn(spyResponseApiErrorProcessorChain);
+        when(apiErrorProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiErrorProcessorChain);
 
         when(api.getDeployedAt()).thenReturn(new Date());
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
-        when(apiPreProcessorChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
-        when(apiPlanFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
-        when(apiFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
-        when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyTimeout);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
+        when(apiPreProcessorChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
+        when(apiPlanFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPlanFlowChain);
+        when(apiFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
+        when(apiPostProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyTimeout);
         fillRequestExecutionContext();
 
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spySecurityChain);
         ReflectionTestUtils.setField(cut, "securityChain", securityChain);
 
-        TestObserver<Void> handleRequestObserver = cut.handle(requestExecutionContext).test();
+        TestObserver<Void> handleRequestObserver = cut.handle(ctx).test();
         testScheduler.advanceTimeBy(REQUEST_TIMEOUT + 30L, TimeUnit.MILLISECONDS);
 
         InOrder orderedChain = inOrder(
@@ -721,18 +704,17 @@ class SyncApiReactorTest {
     @Test
     void shouldNotApplyFlowChain_SecurityChain() throws Exception {
         when(api.getDeployedAt()).thenReturn(new Date());
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
-        when(apiPreProcessorChain.execute(requestExecutionContext, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
-        when(platformFlowChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
-        when(apiPostProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
-        when(apiErrorProcessorChain.execute(requestExecutionContext, ExecutionPhase.RESPONSE))
-            .thenReturn(spyResponseApiErrorProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
+        when(apiPreProcessorChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiPreProcessorChain);
+        when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+        when(apiPostProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiPostProcessorChain);
+        when(apiErrorProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiErrorProcessorChain);
         fillRequestExecutionContext();
         cut.doStart();
         when(securityChain.execute(any())).thenReturn(spyInterruptSecurityChain);
         ReflectionTestUtils.setField(cut, "securityChain", securityChain);
 
-        TestObserver<Void> handleRequestObserver = cut.handle(requestExecutionContext).test();
+        TestObserver<Void> handleRequestObserver = cut.handle(ctx).test();
 
         InOrder orderedChain = inOrder(
             spyRequestPlatformFlowChain,
@@ -768,11 +750,11 @@ class SyncApiReactorTest {
         when(request.contextPath()).thenReturn("/contextPath");
         Metrics metrics = mock(Metrics.class);
         when(request.metrics()).thenReturn(metrics);
-        when(requestExecutionContext.request()).thenReturn(request);
+        when(ctx.request()).thenReturn(request);
         MutableResponse response = mock(MutableResponse.class);
         when(response.end()).thenReturn(Completable.complete());
-        when(requestExecutionContext.response()).thenReturn(response);
-        when(requestExecutionContext.componentProvider(any())).thenReturn(requestExecutionContext);
-        when(requestExecutionContext.templateVariableProviders(any())).thenReturn(requestExecutionContext);
+        when(ctx.response()).thenReturn(response);
+        when(ctx.componentProvider(any())).thenReturn(ctx);
+        when(ctx.templateVariableProviders(any())).thenReturn(ctx);
     }
 }

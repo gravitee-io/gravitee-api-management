@@ -24,9 +24,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.context.*;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
@@ -70,7 +68,7 @@ class PolicyAdapterTest {
     @Test
     public void shouldCompleteWhenExecuteRequest() throws PolicyException {
         final Policy policy = mock(Policy.class);
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
 
         when(policy.isRunnable()).thenReturn(true);
 
@@ -86,7 +84,7 @@ class PolicyAdapterTest {
     @Test
     public void shouldErrorWhenExceptionOccursDuringRequest() throws PolicyException {
         final Policy policy = mock(Policy.class);
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
 
         when(policy.isRunnable()).thenReturn(true);
         doThrow(new PolicyException(MOCK_EXCEPTION_MESSAGE))
@@ -103,7 +101,7 @@ class PolicyAdapterTest {
     @Test
     public void shouldCompleteWhenNullStream() throws PolicyException {
         final Policy policy = mock(Policy.class);
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
 
         when(policy.isStreamable()).thenReturn(true);
         when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(null);
@@ -121,8 +119,8 @@ class PolicyAdapterTest {
         final Buffer policyChunk1 = Buffer.buffer("policyChunk1");
         final Buffer policyChunk2 = Buffer.buffer("policyChunk2");
         final Policy policy = mock(Policy.class);
-        final io.gravitee.gateway.jupiter.api.context.Request request = mock(io.gravitee.gateway.jupiter.api.context.Request.class);
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final HttpRequest request = mock(HttpRequest.class);
+        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
         final ReadWriteStream<Buffer> stream = mock(ReadWriteStream.class);
         final ArgumentCaptor<Maybe<Buffer>> requestBodyCaptor = ArgumentCaptor.forClass(Maybe.class);
 
@@ -173,8 +171,8 @@ class PolicyAdapterTest {
         final Buffer policyChunk1 = Buffer.buffer("policyChunk1");
         final Buffer policyChunk2 = Buffer.buffer("policyChunk2");
         final Policy policy = mock(Policy.class);
-        final io.gravitee.gateway.jupiter.api.context.Response response = mock(io.gravitee.gateway.jupiter.api.context.Response.class);
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final HttpResponse response = mock(HttpResponse.class);
+        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
         final ReadWriteStream<Buffer> stream = mock(ReadWriteStream.class);
 
         when(ctx.response()).thenReturn(response);
@@ -221,8 +219,8 @@ class PolicyAdapterTest {
     @Test
     public void shouldErrorWhenExceptionOccursDuringStream() throws PolicyException {
         final Policy policy = mock(Policy.class);
-        final io.gravitee.gateway.jupiter.api.context.Request request = mock(io.gravitee.gateway.jupiter.api.context.Request.class);
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final HttpRequest request = mock(HttpRequest.class);
+        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
         final ReadWriteStream<Buffer> stream = mock(ReadWriteStream.class);
 
         when(ctx.request()).thenReturn(request);
@@ -240,11 +238,10 @@ class PolicyAdapterTest {
     @Test
     public void shouldRestoreContextWhenPolicyExecutionCompleted() throws PolicyException {
         final Policy policy = mock(Policy.class);
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_ADAPTED_CONTEXT))
-            .thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(GenericExecutionContext.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(policy.isRunnable()).thenReturn(true);
         mockPolicyExecution(policy);
 
@@ -259,11 +256,10 @@ class PolicyAdapterTest {
     @Test
     public void shouldRestoreContextWhenPolicyExecutionCancelled() throws PolicyException {
         final Policy policy = mock(Policy.class);
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_ADAPTED_CONTEXT))
-            .thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(GenericExecutionContext.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(policy.isRunnable()).thenReturn(true);
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
@@ -277,13 +273,12 @@ class PolicyAdapterTest {
     @Test
     public void shouldRestoreContextWhenPolicyExecutionError() throws PolicyException {
         final Policy policy = mock(Policy.class);
-        final io.gravitee.gateway.jupiter.api.context.Request request = mock(io.gravitee.gateway.jupiter.api.context.Request.class);
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final HttpRequest request = mock(HttpRequest.class);
+        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
         final ReadWriteStream<Buffer> stream = mock(ReadWriteStream.class);
 
-        when(ctx.getInternalAttribute(io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_ADAPTED_CONTEXT))
-            .thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(GenericExecutionContext.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(policy.isRunnable()).thenReturn(true);
         mockPolicyExecution(policy);
 

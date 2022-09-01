@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.jupiter.policy.adapter.context;
 
-import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_ADAPTED_CONTEXT;
-import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE;
+import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_ADAPTED_CONTEXT;
+import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE;
 
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.Request;
@@ -25,7 +25,7 @@ import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.tracing.api.Tracer;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -37,12 +37,12 @@ import java.util.Map;
  */
 public class ExecutionContextAdapter implements io.gravitee.gateway.api.ExecutionContext, MutableExecutionContext {
 
-    private final RequestExecutionContext ctx;
+    private final HttpExecutionContext ctx;
     private Request adaptedRequest;
     private Response adaptedResponse;
     private TemplateEngineAdapter adaptedTemplateEngine;
 
-    private ExecutionContextAdapter(RequestExecutionContext ctx) {
+    private ExecutionContextAdapter(HttpExecutionContext ctx) {
         this.ctx = ctx;
     }
 
@@ -53,7 +53,7 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
      * @param ctx the context to adapt for v3 compatibility mode.
      * @return the v3 compatible {@link io.gravitee.gateway.api.ExecutionContext}.
      */
-    public static ExecutionContextAdapter create(RequestExecutionContext ctx) {
+    public static ExecutionContextAdapter create(HttpExecutionContext ctx) {
         ExecutionContextAdapter adaptedCtx = ctx.getInternalAttribute(ATTR_ADAPTED_CONTEXT);
 
         if (adaptedCtx == null) {
@@ -64,7 +64,7 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
         return adaptedCtx;
     }
 
-    public RequestExecutionContext getDelegate() {
+    public HttpExecutionContext getDelegate() {
         return ctx;
     }
 

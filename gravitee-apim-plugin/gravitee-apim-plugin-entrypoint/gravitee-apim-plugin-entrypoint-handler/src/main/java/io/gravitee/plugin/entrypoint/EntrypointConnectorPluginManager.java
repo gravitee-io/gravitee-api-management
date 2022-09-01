@@ -28,7 +28,5 @@ public interface EntrypointConnectorPluginManager extends ConfigurablePluginMana
     /**
      * @return the factory <code>Class</code> according to the given plugin id
      */
-    <T extends AbstractConnectorFactory<U>, U extends EntrypointConnector<V>, V extends ExecutionContext> T getFactoryById(
-        final String entrypointPluginId
-    );
+    <T extends AbstractConnectorFactory<U>, U extends EntrypointConnector> T getFactoryById(final String entrypointPluginId);
 }

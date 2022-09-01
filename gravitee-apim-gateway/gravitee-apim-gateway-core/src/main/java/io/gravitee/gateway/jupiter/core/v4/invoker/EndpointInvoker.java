@@ -16,12 +16,9 @@
 package io.gravitee.gateway.jupiter.core.v4.invoker;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.v4.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver;
 import io.reactivex.Completable;
@@ -45,18 +42,8 @@ public class EndpointInvoker implements Invoker {
         return "endpoint-invoker";
     }
 
-    @Override
-    public Completable invoke(RequestExecutionContext ctx) {
-        return invoke((HttpExecutionContext) ctx);
-    }
-
-    @Override
-    public Completable invoke(MessageExecutionContext ctx) {
-        return invoke((HttpExecutionContext) ctx);
-    }
-
-    private Completable invoke(HttpExecutionContext ctx) {
-        final EndpointConnector<HttpExecutionContext> endpointConnector = endpointResolver.resolve(ctx);
+    public Completable invoke(ExecutionContext ctx) {
+        final EndpointConnector endpointConnector = endpointResolver.resolve(ctx);
 
         if (endpointConnector == null) {
             return ctx.interruptWith(

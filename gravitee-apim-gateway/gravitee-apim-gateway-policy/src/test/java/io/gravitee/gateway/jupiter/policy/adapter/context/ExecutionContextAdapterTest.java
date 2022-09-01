@@ -23,10 +23,11 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.core.processor.RuntimeProcessorFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
-import io.gravitee.gateway.jupiter.api.context.Request;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.Response;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
+import io.gravitee.gateway.jupiter.api.context.HttpResponse;
+import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -38,25 +39,18 @@ class ExecutionContextAdapterTest {
 
     @Test
     void shouldAddInternalExecutionFailureFromProcessorFailure() {
-        DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null);
-        ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(requestExecutionContext);
+        DefaultExecutionContext ctx = new DefaultExecutionContext(null, null);
+        ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(ctx);
 
         contextAdapter.setAttribute(ExecutionContext.ATTR_FAILURE_ATTRIBUTE, new RuntimeProcessorFailure("error"));
-        assertNotNull(
-            requestExecutionContext.getInternalAttribute(
-                io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE
-            )
-        );
+        assertNotNull(ctx.getInternalAttribute(GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE));
     }
 
     @Test
     void shouldGetProcessorFailureFromInternalExecutionFailure() {
-        DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null);
-        requestExecutionContext.setInternalAttribute(
-            io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE,
-            new ExecutionFailure(200)
-        );
-        ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(requestExecutionContext);
+        DefaultExecutionContext ctx = new DefaultExecutionContext(null, null);
+        ctx.setInternalAttribute(GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, new ExecutionFailure(200));
+        ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(ctx);
 
         Object adapterAttribute = contextAdapter.getAttribute(ExecutionContext.ATTR_FAILURE_ATTRIBUTE);
         assertNotNull(adapterAttribute);
@@ -66,24 +60,17 @@ class ExecutionContextAdapterTest {
 
     @Test
     void shouldRemoveInternalExecutionFailure() {
-        DefaultRequestExecutionContext requestExecutionContext = new DefaultRequestExecutionContext(null, null);
-        requestExecutionContext.setInternalAttribute(
-            io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE,
-            new ExecutionFailure(200)
-        );
-        ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(requestExecutionContext);
+        DefaultExecutionContext ctx = new DefaultExecutionContext(null, null);
+        ctx.setInternalAttribute(GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, new ExecutionFailure(200));
+        ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(ctx);
 
         contextAdapter.removeAttribute(ExecutionContext.ATTR_FAILURE_ATTRIBUTE);
-        assertNull(
-            requestExecutionContext.getInternalAttribute(
-                io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE
-            )
-        );
+        assertNull(ctx.getInternalAttribute(GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE));
     }
 
     @Test
     void shouldInstantiateAdaptedTemplateEngineOnce() {
-        final ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(mock(RequestExecutionContext.class));
+        final ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(mock(HttpExecutionContext.class));
         final TemplateEngine templateEngine = contextAdapter.getTemplateEngine();
 
         for (int i = 0; i < 10; i++) {
@@ -93,7 +80,7 @@ class ExecutionContextAdapterTest {
 
     @Test
     void shouldRestoreTemplateEngine() {
-        final ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(mock(RequestExecutionContext.class));
+        final ExecutionContextAdapter contextAdapter = ExecutionContextAdapter.create(mock(HttpExecutionContext.class));
         final TemplateEngineAdapter templateEngine = mock(TemplateEngineAdapter.class);
 
         ReflectionTestUtils.setField(contextAdapter, "adaptedTemplateEngine", templateEngine);
@@ -105,8 +92,8 @@ class ExecutionContextAdapterTest {
 
     @Test
     void shouldReplaceAdaptedRequest() {
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
-        final Request request = mock(Request.class);
+        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
+        final HttpRequest request = mock(HttpRequest.class);
 
         when(ctx.request()).thenReturn(request);
 
@@ -126,8 +113,8 @@ class ExecutionContextAdapterTest {
 
     @Test
     void shouldReplaceAdaptedResponse() {
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
-        final Response response = mock(Response.class);
+        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
+        final HttpResponse response = mock(HttpResponse.class);
 
         when(ctx.response()).thenReturn(response);
 

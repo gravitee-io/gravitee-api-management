@@ -16,17 +16,16 @@
 package io.gravitee.gateway.handlers.api.context;
 
 import static io.gravitee.gateway.handlers.api.context.ContentTemplateVariableProvider.*;
-import static io.gravitee.gateway.jupiter.api.context.RequestExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
-import static io.gravitee.gateway.jupiter.api.context.RequestExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
+import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
+import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
-import io.gravitee.gateway.jupiter.api.context.Request;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.api.context.HttpResponse;
 import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
 import io.gravitee.gateway.jupiter.api.el.EvaluableResponse;
 import io.reactivex.Completable;
@@ -58,7 +57,7 @@ class ContentTemplateVariableProviderTest {
     private final ContentTemplateVariableProvider cut = new ContentTemplateVariableProvider();
 
     @Mock
-    private RequestExecutionContext ctx;
+    private HttpExecutionContext ctx;
 
     @Mock
     private TemplateEngine templateEngine;
@@ -67,10 +66,10 @@ class ContentTemplateVariableProviderTest {
     private TemplateContext templateContext;
 
     @Mock
-    private Request request;
+    private HttpRequest request;
 
     @Mock
-    private Response response;
+    private HttpResponse response;
 
     @Mock
     private EvaluableRequest evaluableRequest;

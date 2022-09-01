@@ -21,12 +21,10 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightInvoker;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.HttpRequest;
-import io.gravitee.gateway.jupiter.api.context.HttpResponse;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericRequest;
+import io.gravitee.gateway.jupiter.api.context.GenericResponse;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.reactivex.Completable;
 import java.util.Arrays;
 import java.util.List;
@@ -54,7 +52,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
     }
 
     @Override
-    public Completable execute(final HttpExecutionContext ctx) {
+    public Completable execute(final MutableExecutionContext ctx) {
         return Completable.defer(
             () -> {
                 // Test if we are in the context of a preflight request
@@ -67,7 +65,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
                         return ctx.interrupt();
                     } else {
                         ctx.setAttribute("skip-security-chain", true);
-                        ctx.setAttribute(ExecutionContext.ATTR_INVOKER, new CorsPreflightInvoker());
+                        ctx.setAttribute(GenericExecutionContext.ATTR_INVOKER, new CorsPreflightInvoker());
                         return Completable.complete();
                     }
                 }
@@ -76,7 +74,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
         );
     }
 
-    private boolean isPreflightRequest(final HttpRequest request) {
+    private boolean isPreflightRequest(final GenericRequest request) {
         String originHeader = request.headers().get(HttpHeaderNames.ORIGIN);
         String accessControlRequestMethod = request.headers().get(HttpHeaderNames.ACCESS_CONTROL_REQUEST_METHOD);
         return request.method() == HttpMethod.OPTIONS && originHeader != null && accessControlRequestMethod != null;
@@ -88,7 +86,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
      * @param request Incoming Request
      * @param response Client response
      */
-    private void handlePreflightRequest(final Cors cors, final HttpRequest request, final HttpResponse response) {
+    private void handlePreflightRequest(final Cors cors, final GenericRequest request, final GenericResponse response) {
         // In case of pre-flight request, we are not able to define what is the calling application.
         // Define it as unknown
         request.metrics().setApplication("1");

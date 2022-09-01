@@ -16,8 +16,7 @@
 package io.gravitee.gateway.jupiter.handlers.api.processor.forward;
 
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.reactivex.Completable;
 
@@ -42,7 +41,7 @@ public class XForwardedPrefixProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final HttpExecutionContext ctx) {
+    public Completable execute(final MutableExecutionContext ctx) {
         return Completable.fromRunnable(
             () ->
                 // Override the X-Forwarded-Prefix with context path

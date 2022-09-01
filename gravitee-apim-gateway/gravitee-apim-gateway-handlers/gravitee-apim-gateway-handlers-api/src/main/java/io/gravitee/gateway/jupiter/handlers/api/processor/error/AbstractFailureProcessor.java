@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.processor.error;
 
-import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE;
+import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,11 +24,11 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericRequest;
+import io.gravitee.gateway.jupiter.api.context.GenericResponse;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.HttpRequest;
-import io.gravitee.gateway.jupiter.api.context.HttpResponse;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
@@ -55,9 +55,8 @@ public abstract class AbstractFailureProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final HttpExecutionContext executionContext) {
-        RequestExecutionContext requestExecutionContext = (RequestExecutionContext) executionContext;
-        ExecutionFailure executionFailure = requestExecutionContext.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
+    public Completable execute(final MutableExecutionContext ctx) {
+        ExecutionFailure executionFailure = ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
 
         if (executionFailure == null) {
             executionFailure =
@@ -67,16 +66,16 @@ public abstract class AbstractFailureProcessor implements Processor {
 
         // If no application has been associated to the request (for example in case security chain can not be processed
         // correctly) set the default application to track it.
-        if (requestExecutionContext.request().metrics().getApplication() == null) {
-            requestExecutionContext.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
+        if (ctx.request().metrics().getApplication() == null) {
+            ctx.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
         }
 
-        return processFailure(requestExecutionContext, executionFailure);
+        return processFailure(ctx, executionFailure);
     }
 
-    protected Completable processFailure(final RequestExecutionContext context, final ExecutionFailure executionFailure) {
-        final HttpRequest request = context.request();
-        final HttpResponse response = context.response();
+    protected Completable processFailure(final HttpExecutionContext context, final ExecutionFailure executionFailure) {
+        final GenericRequest request = context.request();
+        final GenericResponse response = context.response();
 
         request.metrics().setErrorKey(executionFailure.key());
         response.status(executionFailure.statusCode());

@@ -15,9 +15,11 @@
  */
 package io.gravitee.gateway.jupiter.reactor.processor;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.http.HttpHeaders;
@@ -25,7 +27,7 @@ import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.Completable;
@@ -71,7 +73,7 @@ class NotFoundProcessorChainFactoryTest {
             false
         );
         ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
-        DefaultRequestExecutionContext notFoundRequestContext = new DefaultRequestExecutionContext(request, response);
+        DefaultExecutionContext notFoundRequestContext = new DefaultExecutionContext(request, response);
 
         processorChain.execute(notFoundRequestContext, ExecutionPhase.RESPONSE).test().assertResult();
         verify(response).status(HttpStatusCode.NOT_FOUND_404);

@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.reactivex.Completable;
 import org.junit.jupiter.api.BeforeEach;
@@ -116,7 +116,7 @@ public class DefaultSubscriptionDispatcherTest {
     public void shouldHandleSubscriptionWithConfiguration() {
         DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
         ApiReactor reactor = mock(ApiReactor.class);
-        MessageExecutionContext context = mock(MessageExecutionContext.class);
+        MutableExecutionContext context = mock(MutableExecutionContext.class);
 
         when(acceptor.reactor()).thenReturn(reactor);
         when(reactor.handle(context)).thenReturn(Completable.complete());
@@ -142,7 +142,7 @@ public class DefaultSubscriptionDispatcherTest {
     public void shouldDisposeSubscription() {
         DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
         ApiReactor reactor = mock(ApiReactor.class);
-        MessageExecutionContext context = mock(MessageExecutionContext.class);
+        MutableExecutionContext context = mock(MutableExecutionContext.class);
 
         when(acceptor.reactor()).thenReturn(reactor);
         when(reactor.handle(context)).thenReturn(Completable.complete());
@@ -168,7 +168,7 @@ public class DefaultSubscriptionDispatcherTest {
     public void shouldDisposeSubscriptions() throws Exception {
         DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
         ApiReactor reactor = mock(ApiReactor.class);
-        MessageExecutionContext context = mock(MessageExecutionContext.class);
+        MutableExecutionContext context = mock(MutableExecutionContext.class);
 
         when(acceptor.reactor()).thenReturn(reactor);
         when(reactor.handle(context)).thenReturn(Completable.complete());

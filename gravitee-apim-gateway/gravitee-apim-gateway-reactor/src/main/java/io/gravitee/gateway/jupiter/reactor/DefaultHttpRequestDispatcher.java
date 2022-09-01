@@ -18,7 +18,6 @@ package io.gravitee.gateway.jupiter.reactor;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
@@ -31,19 +30,15 @@ import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
 import io.gravitee.gateway.http.vertx.grpc.VertxGrpcServerRequest;
 import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
-import io.gravitee.gateway.jupiter.core.context.MutableHttpExecutionContext;
-import io.gravitee.gateway.jupiter.core.context.MutableMessageExecutionContext;
-import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.hook.HookHelper;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
 import io.gravitee.gateway.jupiter.http.vertx.VertxHttpServerRequest;
-import io.gravitee.gateway.jupiter.http.vertx.VertxMessageServerRequest;
 import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultMessageExecutionContext;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
@@ -75,7 +70,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
-    public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
+    public static final String ATTR_ENTRYPOINT = GenericExecutionContext.ATTR_PREFIX + "entrypoint";
     private final Logger log = LoggerFactory.getLogger(DefaultHttpRequestDispatcher.class);
     private final GatewayConfiguration gatewayConfiguration;
     private final HttpAcceptorResolver httpAcceptorResolver;
@@ -135,7 +130,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
         final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path());
         if (httpAcceptor == null || httpAcceptor.reactor() == null) {
-            MutableRequestExecutionContext mutableCtx = prepareRequestExecutionContext(httpServerRequest);
+            MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
 
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
             return HookHelper
@@ -149,20 +144,12 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                 .andThen(handleNotFound(mutableCtx));
         } else if (httpAcceptor.reactor() instanceof ApiReactor) {
             ApiReactor apiReactor = (ApiReactor) httpAcceptor.reactor();
-            MutableHttpExecutionContext mutableCtx;
-            if (apiReactor.apiType() == ApiType.SYNC) {
-                mutableCtx = prepareRequestExecutionContext(httpServerRequest);
-            } else if (apiReactor.apiType() == ApiType.ASYNC) {
-                mutableCtx = prepareMessageExecutionContext(httpServerRequest);
-            } else {
-                return Completable.error(new IllegalAccessException("Unsupported api type"));
-            }
+            MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
 
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
-            MutableHttpExecutionContext finalMutableCtx = mutableCtx;
             return HookHelper
                 .hook(
-                    () -> preProcessorChain.execute(finalMutableCtx, ExecutionPhase.REQUEST),
+                    () -> preProcessorChain.execute(mutableCtx, ExecutionPhase.REQUEST),
                     preProcessorChain.getId(),
                     processorChainHooks,
                     mutableCtx,
@@ -173,13 +160,13 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                         () -> {
                             // Jupiter execution mode.
                             ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
-                            return handleJupiterRequest(finalMutableCtx, httpAcceptor)
+                            return handleJupiterRequest(mutableCtx, httpAcceptor)
                                 .andThen(
                                     HookHelper.hook(
-                                        () -> postProcessorChain.execute(finalMutableCtx, ExecutionPhase.RESPONSE),
+                                        () -> postProcessorChain.execute(mutableCtx, ExecutionPhase.RESPONSE),
                                         postProcessorChain.getId(),
                                         processorChainHooks,
-                                        finalMutableCtx,
+                                        mutableCtx,
                                         ExecutionPhase.RESPONSE
                                     )
                                 );
@@ -191,37 +178,22 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         return handleV3Request(httpServerRequest, httpAcceptor);
     }
 
-    private MutableRequestExecutionContext prepareRequestExecutionContext(final HttpServerRequest httpServerRequest) {
+    private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest) {
         VertxHttpServerRequest request = new VertxHttpServerRequest(httpServerRequest, idGenerator);
 
         // Set gateway tenants and zones in request metrics.
         prepareMetrics(request.metrics());
 
-        MutableRequestExecutionContext ctx = createRequestExecutionContext(request);
+        MutableExecutionContext ctx = createExecutionContext(request);
         ctx.componentProvider(globalComponentProvider);
         return ctx;
     }
 
-    protected DefaultRequestExecutionContext createRequestExecutionContext(VertxHttpServerRequest request) {
-        return new DefaultRequestExecutionContext(request, request.response());
+    protected DefaultExecutionContext createExecutionContext(VertxHttpServerRequest request) {
+        return new DefaultExecutionContext(request, request.response());
     }
 
-    private MutableMessageExecutionContext prepareMessageExecutionContext(final HttpServerRequest httpServerRequest) {
-        VertxMessageServerRequest request = new VertxMessageServerRequest(httpServerRequest, idGenerator);
-
-        // Set gateway tenants and zones in request metrics.
-        prepareMetrics(request.metrics());
-
-        MutableMessageExecutionContext ctx = createMessageExecutionContext(request);
-        ctx.componentProvider(globalComponentProvider);
-        return ctx;
-    }
-
-    protected DefaultMessageExecutionContext createMessageExecutionContext(VertxMessageServerRequest request) {
-        return new DefaultMessageExecutionContext(request, request.response());
-    }
-
-    private Completable handleNotFound(final MutableHttpExecutionContext ctx) {
+    private Completable handleNotFound(final MutableExecutionContext ctx) {
         ctx.request().contextPath(ctx.request().path());
         ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
         return HookHelper.hook(
@@ -233,7 +205,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         );
     }
 
-    private Completable handleJupiterRequest(final MutableHttpExecutionContext ctx, final HttpAcceptor handlerEntrypoint) {
+    private Completable handleJupiterRequest(final MutableExecutionContext ctx, final HttpAcceptor handlerEntrypoint) {
         ctx.request().contextPath(handlerEntrypoint.path());
         final ApiReactor apiReactor = (ApiReactor) handlerEntrypoint.reactor();
         return apiReactor.handle(ctx);

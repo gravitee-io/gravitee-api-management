@@ -18,7 +18,7 @@ package io.gravitee.gateway.tests.fakes.policies;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyConfiguration;
@@ -69,12 +69,12 @@ public class LatencyPolicy implements Policy {
     }
 
     @Override
-    public Completable onRequest(RequestExecutionContext ctx) {
+    public Completable onRequest(HttpExecutionContext ctx) {
         return Completable.timer(delay, TimeUnit.MILLISECONDS);
     }
 
     @Override
-    public Completable onResponse(RequestExecutionContext ctx) {
+    public Completable onResponse(HttpExecutionContext ctx) {
         return Completable.timer(delay, TimeUnit.MILLISECONDS);
     }
 

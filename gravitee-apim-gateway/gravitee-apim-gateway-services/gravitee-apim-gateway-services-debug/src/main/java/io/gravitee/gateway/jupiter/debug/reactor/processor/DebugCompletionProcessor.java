@@ -25,11 +25,10 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyStep;
-import io.gravitee.gateway.jupiter.debug.reactor.context.DebugRequestExecutionContext;
+import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
@@ -66,10 +65,10 @@ public class DebugCompletionProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final HttpExecutionContext ctx) {
+    public Completable execute(final MutableExecutionContext ctx) {
         return Completable.defer(
             () -> {
-                final DebugRequestExecutionContext debugContext = (DebugRequestExecutionContext) ctx;
+                final DebugExecutionContext debugContext = (DebugExecutionContext) ctx;
                 final DebugApi debugApi = (DebugApi) debugContext.getComponent(Api.class);
 
                 Optional<Event> eventOptional = eventRepository.findById(debugApi.getEventId());
@@ -97,7 +96,7 @@ public class DebugCompletionProcessor implements Processor {
     }
 
     private Single<io.gravitee.definition.model.debug.DebugApi> computeDebugApiEventPayload(
-        DebugRequestExecutionContext debugContext,
+        DebugExecutionContext debugContext,
         DebugApi debugApi
     ) {
         return Single.defer(
@@ -141,7 +140,7 @@ public class DebugCompletionProcessor implements Processor {
         return metrics;
     }
 
-    private PreprocessorStep createPreprocessorStep(DebugRequestExecutionContext debugContext) {
+    private PreprocessorStep createPreprocessorStep(DebugExecutionContext debugContext) {
         final PreprocessorStep preprocessorStep = new PreprocessorStep();
         preprocessorStep.setAttributes(debugContext.getInitialAttributes());
         preprocessorStep.setHeaders(debugContext.getInitialHeaders().toListValuesMap());

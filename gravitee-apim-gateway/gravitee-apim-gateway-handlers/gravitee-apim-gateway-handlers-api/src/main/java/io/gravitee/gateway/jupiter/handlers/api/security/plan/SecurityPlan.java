@@ -15,17 +15,17 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.security.plan;
 
-import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_API;
-import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_APPLICATION;
-import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_PLAN;
-import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_SUBSCRIPTION_ID;
+import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_API;
+import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_APPLICATION;
+import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_PLAN;
+import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_SUBSCRIPTION_ID;
 
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
 import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
@@ -100,14 +100,14 @@ public class SecurityPlan {
      * @param ctx the current execution context.
      * @return a {@link Completable} that completes when the security policy has been successfully executed or returns an error otherwise.
      */
-    public Completable execute(final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
+    public Completable execute(final GenericExecutionContext ctx, final ExecutionPhase executionPhase) {
         return executeSecurityPolicy(ctx, executionPhase).doOnSubscribe(disposable -> ctx.setAttribute(ATTR_PLAN, planId));
     }
 
-    private Completable executeSecurityPolicy(final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
+    private Completable executeSecurityPolicy(final GenericExecutionContext ctx, final ExecutionPhase executionPhase) {
         switch (executionPhase) {
             case REQUEST:
-                return policy.onRequest((RequestExecutionContext) ctx);
+                return policy.onRequest((HttpExecutionContext) ctx);
             case MESSAGE_REQUEST:
                 return policy.onMessageRequest((MessageExecutionContext) ctx);
             case RESPONSE:
@@ -133,7 +133,7 @@ public class SecurityPlan {
         return selectionRule;
     }
 
-    private Maybe<Boolean> matchSelectionRule(HttpExecutionContext ctx) {
+    private Maybe<Boolean> matchSelectionRule(GenericExecutionContext ctx) {
         if (selectionRule == null || selectionRule.isEmpty()) {
             return TRUE;
         }
@@ -141,7 +141,7 @@ public class SecurityPlan {
         return ctx.getTemplateEngine().eval(selectionRule, Boolean.class);
     }
 
-    private Maybe<Boolean> validateSubscription(HttpExecutionContext ctx, SecurityToken securityToken) {
+    private Maybe<Boolean> validateSubscription(GenericExecutionContext ctx, SecurityToken securityToken) {
         if (!policy.requireSubscription()) {
             return TRUE;
         }

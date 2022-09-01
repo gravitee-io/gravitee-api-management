@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler.context;
 
-import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_PREFIX;
+import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_PREFIX;
 
 import java.util.HashMap;
 

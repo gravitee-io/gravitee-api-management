@@ -31,7 +31,7 @@ import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyn
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
-import io.gravitee.gateway.jupiter.core.context.MutableMessageExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
@@ -56,9 +56,7 @@ import org.slf4j.LoggerFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SubscriptionReactor
-    extends AbstractLifecycleComponent<ReactorHandler>
-    implements ApiReactor<io.gravitee.definition.model.v4.Api, MutableMessageExecutionContext> {
+public class SubscriptionReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor {
 
     private static final Logger log = LoggerFactory.getLogger(SubscriptionReactor.class);
 
@@ -80,7 +78,7 @@ public class SubscriptionReactor
     }
 
     @Override
-    public Completable handle(final MutableMessageExecutionContext ctx) {
+    public Completable handle(final MutableExecutionContext ctx) {
         ctx.componentProvider(componentProvider);
 
         // Prepare attributes and metrics before handling the request.
@@ -89,9 +87,9 @@ public class SubscriptionReactor
         return handleRequest(ctx);
     }
 
-    private Completable handleRequest(final MutableMessageExecutionContext ctx) {
+    private Completable handleRequest(final MutableExecutionContext ctx) {
         Subscription subscription = ctx.getInternalAttribute(ExecutionContext.ATTR_SUBSCRIPTION);
-        AbstractConnectorFactory<? extends EntrypointConnector<?>> connectorFactory = entrypointConnectorPluginManager.getFactoryById(
+        AbstractConnectorFactory<? extends EntrypointConnector> connectorFactory = entrypointConnectorPluginManager.getFactoryById(
             ctx.getInternalAttribute(ExecutionContext.ATTR_SUBSCRIPTION_TYPE)
         );
 
@@ -120,7 +118,7 @@ public class SubscriptionReactor
             .onErrorResumeNext(t -> handleUnexpectedError(ctx, t));
     }
 
-    private Completable invokeBackend(final MutableMessageExecutionContext ctx) {
+    private Completable invokeBackend(final MutableExecutionContext ctx) {
         return defer(
             () -> {
                 Invoker invoker = getInvoker(ctx);
@@ -138,7 +136,7 @@ public class SubscriptionReactor
         return Completable.fromRunnable(() -> log.error("Unexpected error while handling subscription request", throwable));
     }
 
-    private Invoker getInvoker(MutableMessageExecutionContext ctx) {
+    private Invoker getInvoker(MutableExecutionContext ctx) {
         final Object invoker = ctx.getAttribute(ExecutionContext.ATTR_INVOKER);
 
         if (invoker == null) {

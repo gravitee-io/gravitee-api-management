@@ -22,9 +22,8 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
-import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.api.context.HttpResponse;
 import io.gravitee.gateway.jupiter.handlers.api.logging.LogHeadersCaptor;
-import io.reactivex.Flowable;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -33,9 +32,9 @@ import io.reactivex.Flowable;
 abstract class LogResponse extends io.gravitee.reporter.api.common.Response {
 
     protected final LoggingContext loggingContext;
-    protected final Response response;
+    protected final HttpResponse response;
 
-    public LogResponse(LoggingContext loggingContext, Response response) {
+    public LogResponse(LoggingContext loggingContext, HttpResponse response) {
         this.loggingContext = loggingContext;
         this.response = response;
 

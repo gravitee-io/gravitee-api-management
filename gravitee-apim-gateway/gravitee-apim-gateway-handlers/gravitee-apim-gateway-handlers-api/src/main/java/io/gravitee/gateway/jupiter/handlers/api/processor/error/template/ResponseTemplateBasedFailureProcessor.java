@@ -23,7 +23,7 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.AbstractFailureProcessor;
 import io.reactivex.Completable;
 import io.reactivex.Single;
@@ -55,7 +55,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     @Override
-    protected Completable processFailure(final RequestExecutionContext ctx, final ExecutionFailure executionFailure) {
+    protected Completable processFailure(final HttpExecutionContext ctx, final ExecutionFailure executionFailure) {
         if (executionFailure.key() != null) {
             Api api = ctx.getComponent(Api.class);
             Map<String, Map<String, ResponseTemplate>> templates = api.getResponseTemplates();
@@ -81,7 +81,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     private Completable handleAcceptHeader(
-        final RequestExecutionContext context,
+        final HttpExecutionContext context,
         final Map<String, ResponseTemplate> templates,
         final ExecutionFailure executionFailure
     ) {
@@ -109,7 +109,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     private Completable handleWildcardTemplate(
-        final RequestExecutionContext context,
+        final HttpExecutionContext context,
         final Map<String, ResponseTemplate> templates,
         final ExecutionFailure executionFailure
     ) {
@@ -123,7 +123,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     private Completable handleTemplate(
-        final RequestExecutionContext context,
+        final HttpExecutionContext context,
         final ResponseTemplate template,
         final ExecutionFailure executionFailure
     ) {

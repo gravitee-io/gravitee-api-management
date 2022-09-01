@@ -18,7 +18,7 @@ package io.gravitee.gateway.jupiter.policy.adapter.context;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.stream.WriteStream;
-import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.api.context.HttpResponse;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -26,9 +26,9 @@ import io.gravitee.gateway.jupiter.api.context.Response;
  */
 public class ResponseAdapter implements io.gravitee.gateway.api.Response {
 
-    private final Response response;
+    private final HttpResponse response;
 
-    public ResponseAdapter(Response response) {
+    public ResponseAdapter(HttpResponse response) {
         this.response = response;
     }
 

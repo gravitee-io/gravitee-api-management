@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.handlers.api.logging.response;
 
 import io.gravitee.gateway.core.logging.LoggingContext;
+import io.gravitee.gateway.jupiter.api.context.HttpResponse;
 
 /**
  * Allows to log the response status, headers and body returned to the client depending on what is configured on the {@link LoggingContext}.
@@ -25,7 +26,7 @@ import io.gravitee.gateway.core.logging.LoggingContext;
  */
 public class LogClientResponse extends LogResponse {
 
-    public LogClientResponse(LoggingContext loggingContext, io.gravitee.gateway.jupiter.api.context.Response response) {
+    public LogClientResponse(LoggingContext loggingContext, HttpResponse response) {
         super(loggingContext, response);
     }
 

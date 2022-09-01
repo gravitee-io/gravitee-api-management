@@ -39,7 +39,7 @@ public class DefaultEntrypointConnectorPluginManager
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultEntrypointConnectorPluginManager.class);
     private final EntrypointConnectorClassLoaderFactory classLoaderFactory;
-    private final Map<String, AbstractConnectorFactory<? extends EntrypointConnector<?>>> factories = new HashMap<>();
+    private final Map<String, AbstractConnectorFactory<? extends EntrypointConnector>> factories = new HashMap<>();
 
     public DefaultEntrypointConnectorPluginManager(final EntrypointConnectorClassLoaderFactory classLoaderFactory) {
         this.classLoaderFactory = classLoaderFactory;
@@ -53,10 +53,10 @@ public class DefaultEntrypointConnectorPluginManager
         // Create entrypoint
         PluginClassLoader pluginClassLoader = classLoaderFactory.getOrCreateClassLoader(plugin);
         try {
-            final Class<AbstractConnectorFactory<? extends EntrypointConnector<?>>> connectorFactoryClass = (Class<AbstractConnectorFactory<? extends EntrypointConnector<?>>>) pluginClassLoader.loadClass(
+            final Class<AbstractConnectorFactory<? extends EntrypointConnector>> connectorFactoryClass = (Class<AbstractConnectorFactory<? extends EntrypointConnector>>) pluginClassLoader.loadClass(
                 plugin.clazz()
             );
-            final AbstractConnectorFactory<? extends EntrypointConnector<?>> factory = connectorFactoryClass
+            final AbstractConnectorFactory<? extends EntrypointConnector> factory = connectorFactoryClass
                 .getDeclaredConstructor()
                 .newInstance();
             factories.put(plugin.id(), factory);
@@ -66,9 +66,7 @@ public class DefaultEntrypointConnectorPluginManager
     }
 
     @Override
-    public <T extends AbstractConnectorFactory<U>, U extends EntrypointConnector<V>, V extends ExecutionContext> T getFactoryById(
-        final String entrypointPluginId
-    ) {
+    public <T extends AbstractConnectorFactory<U>, U extends EntrypointConnector> T getFactoryById(final String entrypointPluginId) {
         return (T) factories.get(entrypointPluginId);
     }
 }

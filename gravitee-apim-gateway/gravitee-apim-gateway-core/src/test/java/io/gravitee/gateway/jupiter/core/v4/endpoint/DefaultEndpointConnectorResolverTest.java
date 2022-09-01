@@ -28,7 +28,7 @@ import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.plugin.endpoint.internal.DefaultEndpointConnectorPluginManager;
 import java.util.ArrayList;
 import java.util.Set;
@@ -42,7 +42,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 class DefaultEndpointConnectorResolverTest {
 
@@ -53,16 +52,16 @@ class DefaultEndpointConnectorResolverTest {
     protected static final ApiType SUPPORTED_API_TYPE = ApiType.ASYNC;
 
     @Mock
-    private HttpExecutionContext ctx;
+    private ExecutionContext ctx;
 
     @Mock
     private DefaultEndpointConnectorPluginManager pluginManager;
 
     @Mock
-    private EntrypointConnector<HttpExecutionContext> entrypointConnector;
+    private EntrypointConnector entrypointConnector;
 
     @Mock
-    private AbstractConnectorFactory<EndpointConnector<HttpExecutionContext>> connectorFactory;
+    private AbstractConnectorFactory<EndpointConnector> connectorFactory;
 
     @BeforeEach
     void init() {
@@ -76,14 +75,14 @@ class DefaultEndpointConnectorResolverTest {
     @Test
     void shouldResolveEndpointConnector() {
         final Api api = buildApi();
-        final EndpointConnector<HttpExecutionContext> endpointConnector = mock(EndpointConnector.class);
+        final EndpointConnector endpointConnector = mock(EndpointConnector.class);
 
         when(endpointConnector.supportedModes()).thenReturn(SUPPORTED_MODES);
         when(endpointConnector.supportedApi()).thenReturn(SUPPORTED_API_TYPE);
         when(connectorFactory.createConnector(ENDPOINT_CONFIG)).thenReturn(endpointConnector);
 
         final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
-        final EndpointConnector<HttpExecutionContext> resolvedEndpointConnector = cut.resolve(ctx);
+        final EndpointConnector resolvedEndpointConnector = cut.resolve(ctx);
 
         assertSame(endpointConnector, resolvedEndpointConnector);
     }
@@ -97,7 +96,7 @@ class DefaultEndpointConnectorResolverTest {
 
         api.getEndpointGroups().get(0).getEndpoints().add(endpoint2);
         api.getEndpointGroups().get(0).getEndpoints().add(endpoint3);
-        final EndpointConnector<HttpExecutionContext> endpointConnector = mock(EndpointConnector.class);
+        final EndpointConnector endpointConnector = mock(EndpointConnector.class);
 
         when(endpointConnector.supportedModes()).thenReturn(SUPPORTED_MODES);
         when(endpointConnector.supportedApi()).thenReturn(SUPPORTED_API_TYPE);
@@ -107,7 +106,7 @@ class DefaultEndpointConnectorResolverTest {
             .thenReturn(mock(EndpointConnector.class));
 
         final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
-        final EndpointConnector<HttpExecutionContext> resolvedEndpointConnector = cut.resolve(ctx);
+        final EndpointConnector resolvedEndpointConnector = cut.resolve(ctx);
 
         assertSame(endpointConnector, resolvedEndpointConnector);
         verify(connectorFactory, times(3)).createConnector(ENDPOINT_CONFIG);
@@ -120,7 +119,7 @@ class DefaultEndpointConnectorResolverTest {
         api.getEndpointGroups().add(buildEndpointGroup());
         api.getEndpointGroups().add(buildEndpointGroup());
 
-        final EndpointConnector<HttpExecutionContext> endpointConnector = mock(EndpointConnector.class);
+        final EndpointConnector endpointConnector = mock(EndpointConnector.class);
 
         when(endpointConnector.supportedModes()).thenReturn(SUPPORTED_MODES);
         when(endpointConnector.supportedApi()).thenReturn(SUPPORTED_API_TYPE);
@@ -130,7 +129,7 @@ class DefaultEndpointConnectorResolverTest {
             .thenReturn(mock(EndpointConnector.class));
 
         final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
-        final EndpointConnector<HttpExecutionContext> resolvedEndpointConnector = cut.resolve(ctx);
+        final EndpointConnector resolvedEndpointConnector = cut.resolve(ctx);
 
         assertSame(endpointConnector, resolvedEndpointConnector);
         verify(connectorFactory, times(3)).createConnector(ENDPOINT_CONFIG);
@@ -139,7 +138,7 @@ class DefaultEndpointConnectorResolverTest {
     @Test
     void shouldNotResolveWhenNotSupportingApiType() {
         final Api api = buildApi();
-        final EndpointConnector<HttpExecutionContext> endpointConnector = mock(EndpointConnector.class);
+        final EndpointConnector endpointConnector = mock(EndpointConnector.class);
 
         when(endpointConnector.supportedApi()).thenReturn(ApiType.SYNC); // Not supporting the same type.
         lenient().when(endpointConnector.supportedApi()).thenReturn(SUPPORTED_API_TYPE); // --> mock in lenient as filtering order could change.
@@ -147,7 +146,7 @@ class DefaultEndpointConnectorResolverTest {
         when(connectorFactory.createConnector(ENDPOINT_CONFIG)).thenReturn(endpointConnector);
 
         final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
-        final EndpointConnector<HttpExecutionContext> resolvedEndpointConnector = cut.resolve(ctx);
+        final EndpointConnector resolvedEndpointConnector = cut.resolve(ctx);
 
         assertNull(resolvedEndpointConnector);
     }
@@ -155,14 +154,14 @@ class DefaultEndpointConnectorResolverTest {
     @Test
     void shouldNotResolveWhenNotSupportingModes() {
         final Api api = buildApi();
-        final EndpointConnector<HttpExecutionContext> endpointConnector = mock(EndpointConnector.class);
+        final EndpointConnector endpointConnector = mock(EndpointConnector.class);
 
         when(endpointConnector.supportedModes()).thenReturn(Set.of(ConnectorMode.PUBLISH)); // Not supporting the SUBSCRIBE mode.
         when(endpointConnector.supportedApi()).thenReturn(SUPPORTED_API_TYPE);
         when(connectorFactory.createConnector(ENDPOINT_CONFIG)).thenReturn(endpointConnector);
 
         final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
-        final EndpointConnector<HttpExecutionContext> resolvedEndpointConnector = cut.resolve(ctx);
+        final EndpointConnector resolvedEndpointConnector = cut.resolve(ctx);
 
         assertNull(resolvedEndpointConnector);
     }

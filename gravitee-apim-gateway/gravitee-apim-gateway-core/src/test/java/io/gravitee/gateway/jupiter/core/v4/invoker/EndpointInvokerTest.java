@@ -23,9 +23,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver;
 import io.reactivex.Completable;
@@ -47,13 +45,10 @@ class EndpointInvokerTest {
     private DefaultEndpointConnectorResolver endpointConnectorResolver;
 
     @Mock
-    private EndpointConnector<HttpExecutionContext> endpointConnector;
+    private EndpointConnector endpointConnector;
 
     @Mock
-    private MessageExecutionContext messageCtx;
-
-    @Mock
-    private RequestExecutionContext requestCtx;
+    private ExecutionContext ctx;
 
     private EndpointInvoker cut;
 
@@ -63,32 +58,22 @@ class EndpointInvokerTest {
     }
 
     @Test
-    void shouldConnectToEndpointConnectorWhenInwokeWithRequestContext() {
-        when(endpointConnectorResolver.resolve(requestCtx)).thenReturn(endpointConnector);
-        when(endpointConnector.connect(requestCtx)).thenReturn(Completable.complete());
+    void shouldConnectToEndpointConnector() {
+        when(endpointConnectorResolver.resolve(ctx)).thenReturn(endpointConnector);
+        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
 
-        final TestObserver<Void> obs = cut.invoke(requestCtx).test();
-
-        obs.assertNoValues();
-    }
-
-    @Test
-    void shouldConnectToEndpointConnectorWhenInwokeWithMessageContext() {
-        when(endpointConnectorResolver.resolve(messageCtx)).thenReturn(endpointConnector);
-        when(endpointConnector.connect(messageCtx)).thenReturn(Completable.complete());
-
-        final TestObserver<Void> obs = cut.invoke(messageCtx).test();
+        final TestObserver<Void> obs = cut.invoke(ctx).test();
 
         obs.assertNoValues();
     }
 
     @Test
     void shouldFailWith404WhenNoEndpointConnectorHasBeenResolved() {
-        when(endpointConnectorResolver.resolve(messageCtx)).thenReturn(null);
-        when(messageCtx.interruptWith(any(ExecutionFailure.class)))
+        when(endpointConnectorResolver.resolve(ctx)).thenReturn(null);
+        when(ctx.interruptWith(any(ExecutionFailure.class)))
             .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
 
-        final TestObserver<Void> obs = cut.invoke(messageCtx).test();
+        final TestObserver<Void> obs = cut.invoke(ctx).test();
 
         obs.assertError(
             e -> {
