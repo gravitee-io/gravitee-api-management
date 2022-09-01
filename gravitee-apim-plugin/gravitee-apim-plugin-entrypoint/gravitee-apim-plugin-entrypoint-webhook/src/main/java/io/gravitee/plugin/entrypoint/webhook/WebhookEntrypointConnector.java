@@ -75,7 +75,7 @@ public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
     }
 
     @Override
-    public boolean matches(final MessageExecutionContext ctx) {
+    public boolean matches(final ExecutionContext ctx) {
         // The context should contain a "subscription_type" internal attribute with the "webhook" value
         return TYPE.equalsIgnoreCase(ctx.getInternalAttribute(ExecutionContext.ATTR_SUBSCRIPTION_TYPE));
     }
@@ -84,7 +84,7 @@ public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
     private String requestUri;
 
     @Override
-    public Completable handleRequest(final MessageExecutionContext ctx) {
+    public Completable handleRequest(final ExecutionContext ctx) {
         io.vertx.reactivex.core.Vertx vertx = io.vertx.reactivex.core.Vertx.newInstance(ctx.getComponent(Vertx.class));
 
         try {
@@ -132,7 +132,7 @@ public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
     private static final char URI_QUERY_DELIMITER_CHAR = '?';
 
     @Override
-    public Completable handleResponse(final MessageExecutionContext ctx) {
+    public Completable handleResponse(final ExecutionContext ctx) {
         return Completable.defer(
             () ->
                 ctx

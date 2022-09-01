@@ -21,13 +21,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
-import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
@@ -63,7 +62,7 @@ class InvokerAdapterTest {
     private Response response;
 
     @Mock
-    private RequestExecutionContext ctx;
+    private ExecutionContext ctx;
 
     private InvokerAdapter cut;
 
@@ -95,7 +94,7 @@ class InvokerAdapterTest {
 
         doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE))
             .when(invoker)
-            .invoke(any(ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
+            .invoke(any(io.gravitee.gateway.api.ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
@@ -113,8 +112,7 @@ class InvokerAdapterTest {
     public void shouldRestoreContextWhenInvokerExecutionCompleted() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_ADAPTED_CONTEXT))
-            .thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(GenericExecutionContext.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
@@ -134,8 +132,7 @@ class InvokerAdapterTest {
     public void shouldRestoreContextWhenInvokerExecutionCancelled() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_ADAPTED_CONTEXT))
-            .thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(GenericExecutionContext.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
@@ -151,8 +148,7 @@ class InvokerAdapterTest {
     public void shouldRestoreContextWhenInvokerExecutionError() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_ADAPTED_CONTEXT))
-            .thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(GenericExecutionContext.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
@@ -161,7 +157,7 @@ class InvokerAdapterTest {
 
         doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE))
             .when(invoker)
-            .invoke(any(ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
+            .invoke(any(io.gravitee.gateway.api.ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
@@ -190,6 +186,6 @@ class InvokerAdapterTest {
                 }
             )
             .when(invoker)
-            .invoke(any(ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
+            .invoke(any(io.gravitee.gateway.api.ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
     }
 }

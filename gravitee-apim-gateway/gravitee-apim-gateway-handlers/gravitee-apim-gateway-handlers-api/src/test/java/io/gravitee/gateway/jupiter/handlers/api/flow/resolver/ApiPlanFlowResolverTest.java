@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.reactivex.Maybe;
 import io.reactivex.subscribers.TestSubscriber;
@@ -48,7 +48,7 @@ class ApiPlanFlowResolverTest {
     private ConditionFilter<Flow> filter;
 
     @Mock
-    private RequestExecutionContext ctx;
+    private HttpExecutionContext ctx;
 
     @Test
     public void shouldProvideApiPlanFlowsOrdered() {

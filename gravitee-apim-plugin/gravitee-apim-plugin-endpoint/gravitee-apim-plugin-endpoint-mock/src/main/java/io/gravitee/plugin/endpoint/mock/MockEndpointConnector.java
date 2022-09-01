@@ -17,6 +17,7 @@ package io.gravitee.plugin.endpoint.mock;
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
@@ -46,7 +47,7 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
     }
 
     @Override
-    public Completable connect(MessageExecutionContext ctx) {
+    public Completable connect(ExecutionContext ctx) {
         return ctx
             .request()
             .messages()

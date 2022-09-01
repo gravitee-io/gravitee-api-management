@@ -19,7 +19,8 @@ import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.reactivex.Completable;
 import java.util.Set;
 import lombok.Builder;
@@ -31,7 +32,7 @@ import lombok.Getter;
  */
 @Builder
 @Getter
-public class FakeEntrypointConnector implements EntrypointConnector<RequestExecutionContext> {
+public class FakeEntrypointConnector implements EntrypointConnector {
 
     static final ApiType SUPPORTED_API = ApiType.ASYNC;
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
@@ -59,17 +60,17 @@ public class FakeEntrypointConnector implements EntrypointConnector<RequestExecu
     }
 
     @Override
-    public boolean matches(final RequestExecutionContext executionContext) {
+    public boolean matches(final ExecutionContext executionContext) {
         return true;
     }
 
     @Override
-    public Completable handleRequest(final RequestExecutionContext executionContext) {
+    public Completable handleRequest(final ExecutionContext executionContext) {
         return Completable.complete();
     }
 
     @Override
-    public Completable handleResponse(final RequestExecutionContext executionContext) {
+    public Completable handleResponse(final ExecutionContext executionContext) {
         return Completable.complete();
     }
 }

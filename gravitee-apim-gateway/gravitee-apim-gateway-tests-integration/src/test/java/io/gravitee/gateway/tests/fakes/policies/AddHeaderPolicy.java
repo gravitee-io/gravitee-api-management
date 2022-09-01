@@ -17,7 +17,7 @@ package io.gravitee.gateway.tests.fakes.policies;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
@@ -55,12 +55,12 @@ public class AddHeaderPolicy implements Policy {
     }
 
     @Override
-    public Completable onRequest(RequestExecutionContext ctx) {
+    public Completable onRequest(HttpExecutionContext ctx) {
         return Completable.fromCallable(() -> ctx.request().headers().add(HEADER_NAME, REQUEST_HEADER));
     }
 
     @Override
-    public Completable onResponse(RequestExecutionContext ctx) {
+    public Completable onResponse(HttpExecutionContext ctx) {
         return Completable.fromCallable(() -> ctx.response().headers().add(HEADER_NAME, RESPONSE_HEADER));
     }
 }

@@ -17,7 +17,6 @@ package io.gravitee.gateway.jupiter.handlers.api.logging.request;
 
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
-import io.gravitee.gateway.jupiter.api.context.Request;
 
 /**
  * Allows to log the response status, headers and body sent to the backend endpoint depending on what is configured on the {@link LoggingContext}.
@@ -27,7 +26,7 @@ import io.gravitee.gateway.jupiter.api.context.Request;
  */
 public class LogProxyRequest extends LogRequest {
 
-    public LogProxyRequest(LoggingContext loggingContext, Request request) {
+    public LogProxyRequest(LoggingContext loggingContext, HttpRequest request) {
         super(loggingContext, request);
         request.chunks(
             request.chunks().doOnSubscribe(s -> this.setUri(request.metrics().getEndpoint() != null ? request.metrics().getEndpoint() : ""))

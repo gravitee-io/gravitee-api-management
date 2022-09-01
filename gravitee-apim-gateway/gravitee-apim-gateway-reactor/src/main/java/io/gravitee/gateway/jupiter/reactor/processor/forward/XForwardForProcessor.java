@@ -16,9 +16,8 @@
 package io.gravitee.gateway.jupiter.reactor.processor.forward;
 
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.HttpRequest;
-import io.gravitee.gateway.jupiter.core.context.MutableHttpRequest;
+import io.gravitee.gateway.jupiter.api.context.GenericRequest;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.reactivex.Completable;
 import java.util.Arrays;
@@ -43,10 +42,10 @@ public class XForwardForProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final HttpExecutionContext ctx) {
+    public Completable execute(final MutableExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
-                final HttpRequest request = ctx.request();
+                final GenericRequest request = ctx.request();
 
                 String xForwardedForHeader = request.headers().get(HttpHeaderNames.X_FORWARDED_FOR);
 
@@ -63,7 +62,7 @@ public class XForwardForProcessor implements Processor {
                                     (idx == -1) || (splits.length > 2) ? xForwardFor.trim() : xForwardFor.substring(0, idx).trim();
 
                                 // X-Forwarded-For header must be reconstructed to include the gateway host address
-                                ((MutableHttpRequest) ctx.request()).remoteAddress(xForwardFor);
+                                ctx.request().remoteAddress(xForwardFor);
 
                                 // And override the remote address provided by container in metrics
                                 request.metrics().setRemoteAddress(xForwardFor);

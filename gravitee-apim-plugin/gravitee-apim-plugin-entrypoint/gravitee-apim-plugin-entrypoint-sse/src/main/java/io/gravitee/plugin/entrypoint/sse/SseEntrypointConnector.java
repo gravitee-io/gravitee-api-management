@@ -23,6 +23,7 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.plugin.entrypoint.sse.configuration.SseEntrypointConnectorConfiguration;
 import io.gravitee.plugin.entrypoint.sse.model.SseEvent;
@@ -75,25 +76,27 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
     }
 
     @Override
-    public boolean matches(final MessageExecutionContext ctx) {
+    public boolean matches(final ExecutionContext ctx) {
         String acceptHeader = ctx.request().headers().get(HttpHeaderNames.ACCEPT);
 
         return (ctx.request().method().equals(HttpMethod.GET) && acceptHeader != null && acceptHeader.contains(TEXT_EVENT_STREAM));
     }
 
     @Override
-    public Completable handleRequest(final MessageExecutionContext ctx) {
+    public Completable handleRequest(final ExecutionContext ctx) {
         return Completable.complete();
     }
 
     @Override
-    public Completable handleResponse(final MessageExecutionContext ctx) {
+    public Completable handleResponse(final ExecutionContext ctx) {
         return Completable.defer(
             () -> {
                 // set headers
                 ctx.response().headers().add(HttpHeaderNames.CONTENT_TYPE, "text/event-stream;charset=UTF-8");
                 ctx.response().headers().add(HttpHeaderNames.CONNECTION, "keep-alive");
                 ctx.response().headers().add(HttpHeaderNames.CACHE_CONTROL, "no-cache");
+                ctx.response().headers().add(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
+
                 return sendRetry(ctx)
                     .andThen(ctx.response().messages())
                     .flatMapSingle(

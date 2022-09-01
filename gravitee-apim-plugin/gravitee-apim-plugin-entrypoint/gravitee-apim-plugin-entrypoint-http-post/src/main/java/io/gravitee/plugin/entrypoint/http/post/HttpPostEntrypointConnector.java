@@ -22,6 +22,7 @@ import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
@@ -58,12 +59,12 @@ public class HttpPostEntrypointConnector implements EntrypointAsyncConnector {
     }
 
     @Override
-    public boolean matches(final MessageExecutionContext ctx) {
+    public boolean matches(final ExecutionContext ctx) {
         return (HttpMethod.POST == ctx.request().method());
     }
 
     @Override
-    public Completable handleRequest(final MessageExecutionContext ctx) {
+    public Completable handleRequest(final ExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
                 Maybe<Message> messageFlowable = ctx
@@ -79,7 +80,7 @@ public class HttpPostEntrypointConnector implements EntrypointAsyncConnector {
     }
 
     @Override
-    public Completable handleResponse(final MessageExecutionContext ctx) {
+    public Completable handleResponse(final ExecutionContext ctx) {
         return Completable.defer(() -> ctx.response().end());
     }
 }

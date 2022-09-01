@@ -22,7 +22,8 @@ import static org.mockito.Mockito.*;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.flow.FlowResolver;
 import io.gravitee.gateway.jupiter.policy.PolicyChain;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
@@ -46,7 +47,7 @@ class FlowChainTest {
     protected static final String MOCK_ERROR_MESSAGE = "Mock error";
 
     @Mock
-    private RequestExecutionContext ctx;
+    private ExecutionContext ctx;
 
     @Mock
     private FlowResolver flowResolver;
@@ -82,7 +83,7 @@ class FlowChainTest {
 
         obs.assertResult();
 
-        verify(ctx, times(1)).setInternalAttribute(eq(ExecutionContext.ATTR_INTERNAL_PREFIX + "flow." + FLOW_CHAIN_ID), any());
+        verify(ctx, times(1)).setInternalAttribute(eq(GenericExecutionContext.ATTR_INTERNAL_PREFIX + "flow." + FLOW_CHAIN_ID), any());
     }
 
     @Test
@@ -106,7 +107,7 @@ class FlowChainTest {
 
         obs.assertResult();
 
-        verify(ctx, times(1)).setInternalAttribute(eq(ExecutionContext.ATTR_INTERNAL_PREFIX + "flow." + FLOW_CHAIN_ID), any());
+        verify(ctx, times(1)).setInternalAttribute(eq(GenericExecutionContext.ATTR_INTERNAL_PREFIX + "flow." + FLOW_CHAIN_ID), any());
     }
 
     @Test
@@ -115,7 +116,8 @@ class FlowChainTest {
         final Flow flow2 = mock(Flow.class);
 
         final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
-        when(ctx.getInternalAttribute(eq(ExecutionContext.ATTR_INTERNAL_PREFIX + "flow." + FLOW_CHAIN_ID))).thenReturn(resolvedFlows);
+        when(ctx.getInternalAttribute(eq(GenericExecutionContext.ATTR_INTERNAL_PREFIX + "flow." + FLOW_CHAIN_ID)))
+            .thenReturn(resolvedFlows);
 
         final PolicyChain policyChain1 = mock(PolicyChain.class);
         final PolicyChain policyChain2 = mock(PolicyChain.class);
@@ -130,7 +132,7 @@ class FlowChainTest {
 
         obs.assertResult();
         // Make sure no flow resolution occurred when already resolved.
-        verify(ctx, times(0)).setInternalAttribute(eq(ExecutionContext.ATTR_INTERNAL_PREFIX + "flow." + FLOW_CHAIN_ID), any());
+        verify(ctx, times(0)).setInternalAttribute(eq(GenericExecutionContext.ATTR_INTERNAL_PREFIX + "flow." + FLOW_CHAIN_ID), any());
         verifyNoInteractions(flowResolver);
     }
 

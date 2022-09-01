@@ -24,9 +24,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageRequest;
-import io.gravitee.gateway.jupiter.api.context.MessageResponse;
+import io.gravitee.gateway.jupiter.api.context.*;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
@@ -49,13 +47,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class WebhookEntrypointConnectorTest {
 
     @Mock
-    private MessageExecutionContext mockMessageExecutionContext;
+    private ExecutionContext ctx;
 
     @Mock
-    private MessageRequest mockMessageRequest;
+    private Request mockMessageRequest;
 
     @Mock
-    private MessageResponse mockMessageResponse;
+    private Response mockMessageResponse;
 
     @Mock
     private WebhookEntrypointConnectorConfiguration webhookEntrypointConnectorConfiguration;
@@ -66,8 +64,8 @@ class WebhookEntrypointConnectorTest {
 
     @BeforeEach
     void beforeEach() {
-        lenient().when(mockMessageExecutionContext.request()).thenReturn(mockMessageRequest);
-        lenient().when(mockMessageExecutionContext.response()).thenReturn(mockMessageResponse);
+        lenient().when(ctx.request()).thenReturn(mockMessageRequest);
+        lenient().when(ctx.response()).thenReturn(mockMessageResponse);
         lenient().when(mockMessageResponse.end()).thenReturn(Completable.complete());
         webhookEntrypointConnector = new WebhookEntrypointConnector(webhookEntrypointConnectorConfiguration);
     }
@@ -86,16 +84,16 @@ class WebhookEntrypointConnectorTest {
 
     @Test
     void shouldMatchesWithValidContext() {
-        when(mockMessageExecutionContext.getInternalAttribute(MessageExecutionContext.ATTR_SUBSCRIPTION_TYPE)).thenReturn("webhook");
+        when(ctx.getInternalAttribute(MessageExecutionContext.ATTR_SUBSCRIPTION_TYPE)).thenReturn("webhook");
 
-        boolean matches = webhookEntrypointConnector.matches(mockMessageExecutionContext);
+        boolean matches = webhookEntrypointConnector.matches(ctx);
 
         assertThat(matches).isTrue();
     }
 
     @Test
     void shouldNotMatchesWithNoSubscriptionType() {
-        boolean matches = webhookEntrypointConnector.matches(mockMessageExecutionContext);
+        boolean matches = webhookEntrypointConnector.matches(ctx);
 
         assertThat(matches).isFalse();
     }
@@ -104,19 +102,19 @@ class WebhookEntrypointConnectorTest {
     void shouldNotCompleteInvalidCallback() {
         when(webhookEntrypointConnectorConfiguration.getCallbackUrl()).thenReturn("unknown_url");
 
-        webhookEntrypointConnector.handleRequest(mockMessageExecutionContext).test().assertError(IllegalStateException.class);
+        webhookEntrypointConnector.handleRequest(ctx).test().assertError(IllegalStateException.class);
 
-        verify(mockMessageExecutionContext, times(1)).getComponent(Vertx.class);
+        verify(ctx, times(1)).getComponent(Vertx.class);
     }
 
     @Test
     void shouldCompleteHandleRequestWithValidCallback() {
         when(webhookEntrypointConnectorConfiguration.getCallbackUrl()).thenReturn("http://callbackserver/endpoint");
-        when(mockMessageExecutionContext.getComponent(Vertx.class)).thenReturn(vertx);
+        when(ctx.getComponent(Vertx.class)).thenReturn(vertx);
 
-        webhookEntrypointConnector.handleRequest(mockMessageExecutionContext).test().assertComplete();
+        webhookEntrypointConnector.handleRequest(ctx).test().assertComplete();
 
-        verify(mockMessageExecutionContext, times(1)).getComponent(Vertx.class);
+        verify(ctx, times(1)).getComponent(Vertx.class);
     }
 
     @Test
@@ -125,16 +123,16 @@ class WebhookEntrypointConnectorTest {
 
         when(webhookEntrypointConnectorConfiguration.getCallbackUrl())
             .thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
-        when(mockMessageExecutionContext.getComponent(Vertx.class)).thenReturn(vertx);
+        when(ctx.getComponent(Vertx.class)).thenReturn(vertx);
 
         // Prepare the client
-        webhookEntrypointConnector.handleRequest(mockMessageExecutionContext).test().assertComplete();
+        webhookEntrypointConnector.handleRequest(ctx).test().assertComplete();
 
         // Process response messages
         Flowable<Message> empty = Flowable.empty();
         when(mockMessageResponse.messages()).thenReturn(empty);
-        when(mockMessageExecutionContext.response()).thenReturn(mockMessageResponse);
-        webhookEntrypointConnector.handleResponse(mockMessageExecutionContext).test().awaitTerminalEvent(10, TimeUnit.SECONDS);
+        when(ctx.response()).thenReturn(mockMessageResponse);
+        webhookEntrypointConnector.handleResponse(ctx).test().awaitTerminalEvent(10, TimeUnit.SECONDS);
 
         wmRuntimeInfo.getWireMock().verifyThat(0, postRequestedFor(urlPathEqualTo("/callback")));
     }
@@ -145,10 +143,10 @@ class WebhookEntrypointConnectorTest {
 
         when(webhookEntrypointConnectorConfiguration.getCallbackUrl())
             .thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
-        when(mockMessageExecutionContext.getComponent(Vertx.class)).thenReturn(vertx);
+        when(ctx.getComponent(Vertx.class)).thenReturn(vertx);
 
         // Prepare the client
-        webhookEntrypointConnector.handleRequest(mockMessageExecutionContext).test().assertComplete();
+        webhookEntrypointConnector.handleRequest(ctx).test().assertComplete();
 
         // Prepare response messages
         DefaultMessage message1 = DefaultMessage
@@ -170,10 +168,10 @@ class WebhookEntrypointConnectorTest {
         Flowable<Message> messages = Flowable.just(message1, message2, messageNoHeader, messageNoPayload);
 
         when(mockMessageResponse.messages()).thenReturn(messages);
-        when(mockMessageExecutionContext.response()).thenReturn(mockMessageResponse);
+        when(ctx.response()).thenReturn(mockMessageResponse);
 
         // Process response messages
-        webhookEntrypointConnector.handleResponse(mockMessageExecutionContext).test().awaitTerminalEvent(10, TimeUnit.SECONDS);
+        webhookEntrypointConnector.handleResponse(ctx).test().awaitTerminalEvent(10, TimeUnit.SECONDS);
 
         wmRuntimeInfo.getWireMock().verifyThat(4, postRequestedFor(urlPathEqualTo("/callback")));
     }

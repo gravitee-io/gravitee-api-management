@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,9 +39,9 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unchecked")
 public class DefaultEndpointConnectorResolver {
 
-    public static final String INTERNAL_ATTR_ENTRYPOINT_CONNECTOR = ExecutionContext.ATTR_INTERNAL_PREFIX + ".entrypointConnector";
+    public static final String INTERNAL_ATTR_ENTRYPOINT_CONNECTOR = GenericExecutionContext.ATTR_INTERNAL_PREFIX + ".entrypointConnector";
 
-    private final Map<EndpointGroup, List<EndpointConnector<? extends ExecutionContext>>> connectorsByGroup;
+    private final Map<EndpointGroup, List<EndpointConnector>> connectorsByGroup;
 
     public DefaultEndpointConnectorResolver(final Api api, final EndpointConnectorPluginManager endpointConnectorPluginManager) {
         connectorsByGroup =
@@ -55,7 +56,7 @@ public class DefaultEndpointConnectorResolver {
                             .map(
                                 endpoint -> {
                                     String configuration = getEndpointConfiguration(endpointGroup, endpoint);
-                                    return Map.<EndpointGroup, EndpointConnector<? extends ExecutionContext>>entry(
+                                    return Map.entry(
                                         endpointGroup,
                                         endpointConnectorPluginManager.getFactoryById(endpoint.getType()).createConnector(configuration)
                                     );
@@ -66,8 +67,8 @@ public class DefaultEndpointConnectorResolver {
                 .collect(Collectors.groupingBy(Map.Entry::getKey, LinkedHashMap::new, mapping(Map.Entry::getValue, toList())));
     }
 
-    public <T extends EndpointConnector<U>, U extends ExecutionContext> T resolve(final U ctx) {
-        EntrypointConnector<U> entrypointConnector = ctx.getInternalAttribute(INTERNAL_ATTR_ENTRYPOINT_CONNECTOR);
+    public <T extends EndpointConnector> T resolve(final ExecutionContext ctx) {
+        EntrypointConnector entrypointConnector = ctx.getInternalAttribute(INTERNAL_ATTR_ENTRYPOINT_CONNECTOR);
 
         return (T) connectorsByGroup
             .entrySet()

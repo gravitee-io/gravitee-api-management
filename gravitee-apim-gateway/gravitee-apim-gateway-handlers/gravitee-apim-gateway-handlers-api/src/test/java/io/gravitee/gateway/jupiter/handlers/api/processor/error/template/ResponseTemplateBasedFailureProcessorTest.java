@@ -24,6 +24,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.handlers.api.processor.AbstractProcessorTest;
 import java.util.Collections;
 import java.util.HashMap;
@@ -60,7 +61,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         // Set failure
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        ctx.setInternalAttribute(GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
@@ -81,7 +82,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         // Set failure
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY");
-        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        ctx.setInternalAttribute(GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
@@ -103,7 +104,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         // Set failure
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
-        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        ctx.setInternalAttribute(GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
@@ -126,7 +127,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_XML));
-        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        ctx.setInternalAttribute(GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
@@ -153,7 +154,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_XML));
-        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        ctx.setInternalAttribute(GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
@@ -176,7 +177,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_JSON));
-        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        ctx.setInternalAttribute(GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
@@ -199,7 +200,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, List.of("text/html", " application/json", "*/*;q=0.8", "application/xml;q=0.9"));
-        ctx.setInternalAttribute(ExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        ctx.setInternalAttribute(GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 

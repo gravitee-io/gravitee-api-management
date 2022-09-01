@@ -23,7 +23,7 @@ import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
 import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
-import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.debug.invoker.DebugInvokerHook;
 import io.gravitee.gateway.jupiter.debug.policy.DebugPolicyHook;
 import io.gravitee.gateway.jupiter.handlers.api.SyncApiReactor;
@@ -74,7 +74,7 @@ public class DebugSyncApiReactor extends SyncApiReactor {
     }
 
     @Override
-    public Completable handle(final MutableRequestExecutionContext ctx) {
+    public Completable handle(final MutableExecutionContext ctx) {
         /*
          * Debug path contains a generated uuid to isolate each debug request.
          * The code bellow remove this generated uuid from both context path and path the uuid and override request attributes to be sure the gateway find the right api

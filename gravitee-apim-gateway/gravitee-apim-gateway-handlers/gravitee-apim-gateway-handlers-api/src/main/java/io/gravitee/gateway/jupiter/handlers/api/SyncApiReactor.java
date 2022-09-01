@@ -34,13 +34,13 @@ import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.HttpRequest;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericRequest;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
-import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionHelper;
 import io.gravitee.gateway.jupiter.core.hook.HookHelper;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
@@ -77,9 +77,7 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SyncApiReactor
-    extends AbstractLifecycleComponent<ReactorHandler>
-    implements ApiReactor<io.gravitee.definition.model.Api, MutableRequestExecutionContext> {
+public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor {
 
     protected static final String ATTR_INVOKER_SKIP = "invoker.skip";
 
@@ -153,7 +151,7 @@ public class SyncApiReactor
     }
 
     @Override
-    public Completable handle(final MutableRequestExecutionContext ctx) {
+    public Completable handle(final MutableExecutionContext ctx) {
         ctx.componentProvider(componentProvider);
         ctx.templateVariableProviders(templateVariableProviders);
 
@@ -165,31 +163,31 @@ public class SyncApiReactor
         return handleRequest(ctx).doFinally(pendingRequests::decrementAndGet);
     }
 
-    private void prepareContextAttributes(RequestExecutionContext ctx) {
-        ctx.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, ctx.request().contextPath());
-        ctx.setAttribute(ExecutionContext.ATTR_API, api.getId());
-        ctx.setAttribute(ExecutionContext.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
-        ctx.setAttribute(ExecutionContext.ATTR_INVOKER, defaultInvoker);
-        ctx.setAttribute(ExecutionContext.ATTR_ORGANIZATION, api.getOrganizationId());
-        ctx.setAttribute(ExecutionContext.ATTR_ENVIRONMENT, api.getEnvironmentId());
+    private void prepareContextAttributes(MutableExecutionContext ctx) {
+        ctx.setAttribute(GenericExecutionContext.ATTR_CONTEXT_PATH, ctx.request().contextPath());
+        ctx.setAttribute(GenericExecutionContext.ATTR_API, api.getId());
+        ctx.setAttribute(GenericExecutionContext.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
+        ctx.setAttribute(GenericExecutionContext.ATTR_INVOKER, defaultInvoker);
+        ctx.setAttribute(GenericExecutionContext.ATTR_ORGANIZATION, api.getOrganizationId());
+        ctx.setAttribute(GenericExecutionContext.ATTR_ENVIRONMENT, api.getEnvironmentId());
         ctx.setInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE, loggingContext);
     }
 
-    private void prepareMetrics(RequestExecutionContext ctx) {
-        final HttpRequest request = ctx.request();
+    private void prepareMetrics(HttpExecutionContext ctx) {
+        final GenericRequest request = ctx.request();
         final Metrics metrics = request.metrics();
 
         metrics.setApi(api.getId());
         metrics.setPath(request.pathInfo());
     }
 
-    private void setApiResponseTimeMetric(RequestExecutionContext ctx) {
+    private void setApiResponseTimeMetric(HttpExecutionContext ctx) {
         if (ctx.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
             ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
         }
     }
 
-    private Completable handleRequest(final MutableRequestExecutionContext ctx) {
+    private Completable handleRequest(final MutableExecutionContext ctx) {
         // Execute platform flow chain.
         return platformFlowChain
             .execute(ctx, REQUEST)
@@ -215,7 +213,7 @@ public class SyncApiReactor
             .andThen(endResponse(ctx));
     }
 
-    private Completable timeoutAndError(Completable upstream, MutableRequestExecutionContext ctx) {
+    private Completable timeoutAndError(Completable upstream, MutableExecutionContext ctx) {
         // When timeout is configured with 0 or less, consider it as infinity: no timeout operator to use in the chain.
         if (httpRequestTimeoutConfiguration.getHttpRequestTimeout() <= 0) {
             return upstream.onErrorResumeNext(error -> processThrowable(ctx, error));
@@ -248,7 +246,7 @@ public class SyncApiReactor
      * @return a {@link Completable} that will complete once the flow chain phase has been fully executed.
      */
     private Completable executeProcessorsChain(
-        final MutableRequestExecutionContext ctx,
+        final MutableExecutionContext ctx,
         final ProcessorChain processorChain,
         final ExecutionPhase phase
     ) {
@@ -265,7 +263,7 @@ public class SyncApiReactor
      *
      * @return a {@link Completable} that will complete once the flow chain phase has been fully executed.
      */
-    private Completable executeFlowChain(final RequestExecutionContext ctx, final FlowChain flowChain, final ExecutionPhase phase) {
+    private Completable executeFlowChain(final MutableExecutionContext ctx, final FlowChain flowChain, final ExecutionPhase phase) {
         return defer(() -> flowChain.execute(ctx, phase));
     }
 
@@ -276,7 +274,7 @@ public class SyncApiReactor
      *
      * @return a {@link Completable} that will complete once the invoker has been invoked or that completes immediately if execution isn't required.
      */
-    private Completable invokeBackend(final MutableRequestExecutionContext ctx) {
+    private Completable invokeBackend(final MutableExecutionContext ctx) {
         return defer(
                 () -> {
                     if (!Objects.equals(false, ctx.<Boolean>getAttribute(ATTR_INVOKER_SKIP))) {
@@ -301,8 +299,8 @@ public class SyncApiReactor
      * @param ctx the current context where the invoker is referenced.
      * @return the current invoker in the expected type.
      */
-    private Invoker getInvoker(RequestExecutionContext ctx) {
-        final Object invoker = ctx.getAttribute(ExecutionContext.ATTR_INVOKER);
+    private Invoker getInvoker(HttpExecutionContext ctx) {
+        final Object invoker = ctx.getAttribute(GenericExecutionContext.ATTR_INVOKER);
 
         if (invoker == null) {
             return null;
@@ -315,7 +313,7 @@ public class SyncApiReactor
         return (Invoker) invoker;
     }
 
-    private Completable endResponse(MutableRequestExecutionContext ctx) {
+    private Completable endResponse(MutableExecutionContext ctx) {
         return ctx.response().end();
     }
 
@@ -326,7 +324,7 @@ public class SyncApiReactor
      * @param throwable the source error
      * @return a {@link Completable} that will complete once processor chain has been fully executed or source error rethrown
      */
-    private Completable processThrowable(final MutableRequestExecutionContext ctx, final Throwable throwable) {
+    private Completable processThrowable(final MutableExecutionContext ctx, final Throwable throwable) {
         if (InterruptionHelper.isInterruption(throwable)) {
             // In case of any interruption without failure, execute api post processor chain and resume the execution
             return executeProcessorsChain(ctx, apiPostProcessorChain, RESPONSE);
@@ -340,7 +338,7 @@ public class SyncApiReactor
         }
     }
 
-    private Completable handleUnexpectedError(final RequestExecutionContext ctx, final Throwable throwable) {
+    private Completable handleUnexpectedError(final HttpExecutionContext ctx, final Throwable throwable) {
         return Completable.fromRunnable(
             () -> {
                 log.error("Unexpected error while handling request", throwable);

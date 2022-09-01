@@ -16,9 +16,9 @@
 package io.gravitee.gateway.jupiter.policy;
 
 import io.gravitee.definition.model.ConditionSupplier;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
@@ -51,12 +51,12 @@ public class ConditionalPolicy implements Policy, ConditionSupplier {
     }
 
     @Override
-    public Completable onRequest(RequestExecutionContext ctx) {
+    public Completable onRequest(HttpExecutionContext ctx) {
         return onCondition(ctx, policy.onRequest(ctx));
     }
 
     @Override
-    public Completable onResponse(RequestExecutionContext ctx) {
+    public Completable onResponse(HttpExecutionContext ctx) {
         return onCondition(ctx, policy.onResponse(ctx));
     }
 
@@ -75,15 +75,15 @@ public class ConditionalPolicy implements Policy, ConditionSupplier {
         return condition;
     }
 
-    private Completable onCondition(HttpExecutionContext ctx, Completable toExecute) {
+    private Completable onCondition(GenericExecutionContext ctx, Completable toExecute) {
         return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> toExecute);
     }
 
-    private Maybe<Message> onCondition(HttpExecutionContext ctx, Maybe<Message> toExecute) {
+    private Maybe<Message> onCondition(GenericExecutionContext ctx, Maybe<Message> toExecute) {
         return conditionFilter.filter(ctx, this).flatMap(conditionalPolicy -> toExecute);
     }
 
-    private Flowable<Message> onCondition(HttpExecutionContext ctx, Flowable<Message> toExecute) {
+    private Flowable<Message> onCondition(GenericExecutionContext ctx, Flowable<Message> toExecute) {
         return conditionFilter.filter(ctx, this).flatMapPublisher(conditionalPolicy -> toExecute);
     }
 }

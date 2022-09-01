@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.http.vertx;
 
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
@@ -28,13 +29,15 @@ import io.reactivex.Single;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxHttpServerResponse extends AbstractVertxServerResponse implements MutableResponse {
+public class VertxHttpServerResponse extends AbstractVertxServerResponse {
 
     private final BodyChunksFlowable bodyChunksFlowable;
+    private final MessageFlowable httpMessages;
 
     public VertxHttpServerResponse(final VertxHttpServerRequest vertxHttpServerRequest) {
         super(vertxHttpServerRequest);
         bodyChunksFlowable = new BodyChunksFlowable();
+        httpMessages = new MessageFlowable();
     }
 
     @Override
@@ -85,7 +88,7 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse impleme
                 }
                 prepareHeaders();
 
-                if (bodyChunksFlowable.chunks != null) {
+                if (bodyChunksFlowable.chunks != null && httpMessages != null) {
                     return nativeResponse.rxSend(
                         chunks()
                             .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
@@ -101,5 +104,44 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse impleme
                 return nativeResponse.rxEnd();
             }
         );
+    }
+
+    @Override
+    public void messages(final Flowable<Message> messages) {
+        httpMessages.messages(messages);
+    }
+
+    @Override
+    public Flowable<Message> messages() {
+        return httpMessages.messages();
+    }
+
+    @Override
+    public Completable onMessages(final FlowableTransformer<Message, Message> onMessages) {
+        return httpMessages.onMessages(onMessages);
+    }
+
+    @Override
+    public Completable end(final Buffer buffer) {
+        return Completable.defer(
+            () -> {
+                if (!opened()) {
+                    return Completable.error(new IllegalStateException("The response is already ended"));
+                }
+                prepareHeaders();
+
+                return nativeResponse.rxEnd(io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()));
+            }
+        );
+    }
+
+    @Override
+    public Completable write(final Buffer buffer) {
+        return Completable.defer(() -> nativeResponse.rxWrite(io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer())));
+    }
+
+    public Completable writeHeaders() {
+        super.prepareHeaders();
+        return Completable.defer(() -> nativeResponse.rxWrite(io.vertx.reactivex.core.buffer.Buffer.buffer()));
     }
 }

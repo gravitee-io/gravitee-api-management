@@ -24,14 +24,13 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.Request;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
 import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
 import io.reactivex.Completable;
 import io.reactivex.Maybe;
-import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -62,10 +61,10 @@ class SecurityPlanTest {
     private SecurityPolicy policy;
 
     @Mock
-    private RequestExecutionContext ctx;
+    private HttpExecutionContext ctx;
 
     @Mock
-    private Request request;
+    private HttpRequest request;
 
     @Mock
     private TemplateEngine templateEngine;
@@ -141,7 +140,7 @@ class SecurityPlanTest {
         when(policy.requireSubscription()).thenReturn(true);
         when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
         when(plan.getId()).thenReturn(PLAN_ID);
-        when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
+        when(ctx.getAttribute(GenericExecutionContext.ATTR_API)).thenReturn(API_ID);
 
         // no subscription found with this security token
         when(subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID)).thenReturn(Optional.empty());
@@ -159,7 +158,7 @@ class SecurityPlanTest {
         when(policy.requireSubscription()).thenReturn(true);
         when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
         when(plan.getId()).thenReturn(PLAN_ID);
-        when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
+        when(ctx.getAttribute(GenericExecutionContext.ATTR_API)).thenReturn(API_ID);
 
         // subscription found with this security token
         final Subscription subscription = mock(Subscription.class);
@@ -179,7 +178,7 @@ class SecurityPlanTest {
         when(policy.requireSubscription()).thenReturn(true);
         when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
         when(plan.getId()).thenReturn(PLAN_ID);
-        when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
+        when(ctx.getAttribute(GenericExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(ctx.request()).thenReturn(request);
         when(request.timestamp()).thenReturn(System.currentTimeMillis());
 
@@ -202,7 +201,7 @@ class SecurityPlanTest {
         when(policy.requireSubscription()).thenReturn(true);
         when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
         when(plan.getId()).thenReturn(PLAN_ID);
-        when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
+        when(ctx.getAttribute(GenericExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(ctx.request()).thenReturn(request);
         when(request.timestamp()).thenReturn(System.currentTimeMillis());
 
@@ -225,7 +224,7 @@ class SecurityPlanTest {
         when(policy.requireSubscription()).thenReturn(true);
         when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
         when(plan.getId()).thenReturn(PLAN_ID);
-        when(ctx.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
+        when(ctx.getAttribute(GenericExecutionContext.ATTR_API)).thenReturn(API_ID);
 
         when(subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID))
             .thenThrow(new RuntimeException("Mock TechnicalException"));

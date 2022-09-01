@@ -18,6 +18,7 @@ package io.gravitee.gateway.core.logging;
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +32,7 @@ public class LoggingContext implements ConditionSupplier {
 
     public static final String LOGGING_ATTRIBUTE = ExecutionContext.ATTR_PREFIX + "logging";
 
-    public static final String LOGGING_CONTEXT_ATTRIBUTE =
-        io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_PREFIX + "logging.context";
+    public static final String LOGGING_CONTEXT_ATTRIBUTE = GenericExecutionContext.ATTR_INTERNAL_PREFIX + "logging.context";
 
     private final Logging logging;
     private int maxSizeLogMessage = -1;

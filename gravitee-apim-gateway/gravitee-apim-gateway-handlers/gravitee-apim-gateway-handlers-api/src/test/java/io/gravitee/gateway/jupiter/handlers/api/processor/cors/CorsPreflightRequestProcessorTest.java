@@ -26,6 +26,7 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightInvoker;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.jupiter.handlers.api.processor.AbstractProcessorTest;
 import java.util.Set;
@@ -66,7 +67,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("GET");
         verify(mockResponse, times(1)).status(eq(200));
         assertThat(ctx.<Boolean>getAttribute("skip-security-chain")).isNull();
-        assertThat(ctx.<CorsPreflightInvoker>getAttribute(ExecutionContext.ATTR_INVOKER)).isNull();
+        assertThat(ctx.<CorsPreflightInvoker>getAttribute(GenericExecutionContext.ATTR_INVOKER)).isNull();
     }
 
     @Test
@@ -83,7 +84,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("GET");
         verify(mockResponse, times(1)).status(eq(200));
         assertThat(ctx.<Boolean>getAttribute("skip-security-chain")).isNull();
-        assertThat(ctx.<CorsPreflightInvoker>getAttribute(ExecutionContext.ATTR_INVOKER)).isNull();
+        assertThat(ctx.<CorsPreflightInvoker>getAttribute(GenericExecutionContext.ATTR_INVOKER)).isNull();
     }
 
     @Test
@@ -100,7 +101,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE)).isEqualTo("10");
         verify(mockResponse, times(1)).status(eq(200));
         assertThat(ctx.<Boolean>getAttribute("skip-security-chain")).isNull();
-        assertThat(ctx.<CorsPreflightInvoker>getAttribute(ExecutionContext.ATTR_INVOKER)).isNull();
+        assertThat(ctx.<CorsPreflightInvoker>getAttribute(GenericExecutionContext.ATTR_INVOKER)).isNull();
     }
 
     @Test
@@ -119,7 +120,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
             .isEqualTo(String.join(", ", accessControlAllowHeaders));
         verify(mockResponse, times(1)).status(eq(200));
         assertThat(ctx.<Boolean>getAttribute("skip-security-chain")).isNull();
-        assertThat(ctx.<CorsPreflightInvoker>getAttribute(ExecutionContext.ATTR_INVOKER)).isNull();
+        assertThat(ctx.<CorsPreflightInvoker>getAttribute(GenericExecutionContext.ATTR_INVOKER)).isNull();
     }
 
     @Test

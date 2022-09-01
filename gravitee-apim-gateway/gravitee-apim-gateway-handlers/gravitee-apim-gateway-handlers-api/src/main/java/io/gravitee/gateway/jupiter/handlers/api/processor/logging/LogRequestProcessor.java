@@ -16,14 +16,14 @@
 package io.gravitee.gateway.jupiter.handlers.api.processor.logging;
 
 import static io.gravitee.gateway.core.logging.LoggingContext.LOGGING_CONTEXT_ATTRIBUTE;
-import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_API;
+import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_API;
 
 import io.gravitee.gateway.core.logging.LoggingContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
-import io.gravitee.gateway.jupiter.api.context.Request;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.handlers.api.logging.request.LogClientRequest;
 import io.gravitee.reporter.api.log.Log;
@@ -50,26 +50,25 @@ public class LogRequestProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final HttpExecutionContext ctx) {
+    public Completable execute(final MutableExecutionContext ctx) {
         return Completable.defer(
             () -> {
-                RequestExecutionContext requestExecutionContext = (RequestExecutionContext) ctx;
-                final LoggingContext loggingContext = requestExecutionContext.getInternalAttribute(LOGGING_CONTEXT_ATTRIBUTE);
+                final LoggingContext loggingContext = ctx.getInternalAttribute(LOGGING_CONTEXT_ATTRIBUTE);
 
                 if (loggingContext == null) {
                     return Completable.complete();
                 }
 
                 return CONDITION_FILTER
-                    .filter(requestExecutionContext, loggingContext)
-                    .doOnSuccess(activeLoggingContext -> initLogEntity(requestExecutionContext, activeLoggingContext))
+                    .filter(ctx, loggingContext)
+                    .doOnSuccess(activeLoggingContext -> initLogEntity(ctx, activeLoggingContext))
                     .ignoreElement();
             }
         );
     }
 
-    private void initLogEntity(final RequestExecutionContext ctx, final LoggingContext loggingContext) {
-        final Request request = ctx.request();
+    private void initLogEntity(final HttpExecutionContext ctx, final LoggingContext loggingContext) {
+        final HttpRequest request = ctx.request();
         final Log log = new Log(request.timestamp());
 
         request.metrics().setLog(log);

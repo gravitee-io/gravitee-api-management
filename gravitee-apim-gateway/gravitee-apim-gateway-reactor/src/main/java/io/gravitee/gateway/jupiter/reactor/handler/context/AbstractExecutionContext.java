@@ -20,15 +20,12 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
 import io.gravitee.gateway.jupiter.api.el.EvaluableResponse;
-import io.gravitee.gateway.jupiter.core.context.MutableHttpExecutionContext;
-import io.gravitee.gateway.jupiter.core.context.MutableHttpRequest;
-import io.gravitee.gateway.jupiter.core.context.MutableHttpResponse;
-import io.gravitee.gateway.jupiter.core.context.MutableMessageRequest;
-import io.gravitee.gateway.jupiter.core.context.MutableMessageResponse;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.reactivex.Completable;
@@ -37,8 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-abstract class AbstractExecutionContext<RQ extends MutableHttpRequest, RS extends MutableHttpResponse>
-    implements MutableHttpExecutionContext {
+abstract class AbstractExecutionContext<RQ extends Request, RS extends Response> implements ExecutionContext {
 
     private final RQ request;
     private final RS response;
@@ -138,18 +134,6 @@ abstract class AbstractExecutionContext<RQ extends MutableHttpRequest, RS extend
         return (Map<String, T>) internalAttributes;
     }
 
-    public AbstractExecutionContext<RQ, RS> componentProvider(final ComponentProvider componentProvider) {
-        this.componentProvider = componentProvider;
-        return this;
-    }
-
-    public AbstractExecutionContext<RQ, RS> templateVariableProviders(
-        final Collection<TemplateVariableProvider> templateVariableProviders
-    ) {
-        this.templateVariableProviders = templateVariableProviders;
-        return this;
-    }
-
     @Override
     public TemplateEngine getTemplateEngine() {
         if (templateEngine == null) {
@@ -159,9 +143,9 @@ abstract class AbstractExecutionContext<RQ extends MutableHttpRequest, RS extend
             final EvaluableRequest evaluableRequest = new EvaluableRequest(request());
             final EvaluableResponse evaluableResponse = new EvaluableResponse(response());
 
-            templateContext.setVariable(RequestExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST, evaluableRequest);
-            templateContext.setVariable(RequestExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE, evaluableResponse);
-            templateContext.setVariable(RequestExecutionContext.TEMPLATE_ATTRIBUTE_CONTEXT, new EvaluableExecutionContext(this));
+            templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST, evaluableRequest);
+            templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE, evaluableResponse);
+            templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_CONTEXT, new EvaluableExecutionContext(this));
 
             if (templateVariableProviders != null) {
                 templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide(this));

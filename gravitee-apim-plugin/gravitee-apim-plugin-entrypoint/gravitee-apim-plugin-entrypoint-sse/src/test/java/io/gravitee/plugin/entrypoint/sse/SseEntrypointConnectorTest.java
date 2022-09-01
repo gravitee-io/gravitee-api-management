@@ -26,15 +26,12 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageRequest;
-import io.gravitee.gateway.jupiter.api.context.MessageResponse;
+import io.gravitee.gateway.jupiter.api.context.*;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -48,23 +45,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SseEntrypointConnectorTest {
 
     @Mock
-    private MessageExecutionContext mockMessageExecutionContext;
+    private ExecutionContext mockExecutionContext;
 
     @Mock
-    private MessageRequest mockMessageRequest;
+    private Request mockRequest;
 
     @Mock
-    private MessageResponse mockMessageResponse;
+    private Response mockResponse;
 
     private SseEntrypointConnector sseEntrypointConnector;
 
     @BeforeEach
     void beforeEach() {
-        lenient().when(mockMessageExecutionContext.request()).thenReturn(mockMessageRequest);
-        lenient().when(mockMessageExecutionContext.response()).thenReturn(mockMessageResponse);
-        lenient().when(mockMessageResponse.writeHeaders()).thenReturn(Completable.complete());
-        lenient().when(mockMessageResponse.write(any())).thenReturn(Completable.complete());
-        lenient().when(mockMessageResponse.end()).thenReturn(Completable.complete());
+        lenient().when(mockExecutionContext.request()).thenReturn(mockRequest);
+        lenient().when(mockExecutionContext.response()).thenReturn(mockResponse);
+        lenient().when(mockResponse.writeHeaders()).thenReturn(Completable.complete());
+        lenient().when(mockResponse.write(any())).thenReturn(Completable.complete());
+        lenient().when(mockResponse.end()).thenReturn(Completable.complete());
         sseEntrypointConnector = new SseEntrypointConnector(null);
     }
 
@@ -77,55 +74,55 @@ class SseEntrypointConnectorTest {
     void shouldMatchesWithValidContext() {
         HttpHeaders httpHeaders = HttpHeaders.create();
         httpHeaders.set(HttpHeaderNames.ACCEPT, "text/event-stream");
-        when(mockMessageRequest.headers()).thenReturn(httpHeaders);
-        when(mockMessageRequest.method()).thenReturn(HttpMethod.GET);
+        when(mockRequest.headers()).thenReturn(httpHeaders);
+        when(mockRequest.method()).thenReturn(HttpMethod.GET);
 
-        boolean matches = sseEntrypointConnector.matches(mockMessageExecutionContext);
+        boolean matches = sseEntrypointConnector.matches(mockExecutionContext);
 
         assertThat(matches).isTrue();
     }
 
     @Test
     void shouldNotMatchesWithBadContentType() {
-        when(mockMessageExecutionContext.request()).thenReturn(mockMessageRequest);
+        when(mockExecutionContext.request()).thenReturn(mockRequest);
         HttpHeaders httpHeaders = HttpHeaders.create();
         httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, "application/json");
-        when(mockMessageRequest.headers()).thenReturn(httpHeaders);
-        when(mockMessageRequest.method()).thenReturn(HttpMethod.GET);
+        when(mockRequest.headers()).thenReturn(httpHeaders);
+        when(mockRequest.method()).thenReturn(HttpMethod.GET);
 
-        boolean matches = sseEntrypointConnector.matches(mockMessageExecutionContext);
+        boolean matches = sseEntrypointConnector.matches(mockExecutionContext);
 
         assertThat(matches).isFalse();
     }
 
     @Test
     void shouldNotMatchesWithBadMethod() {
-        when(mockMessageExecutionContext.request()).thenReturn(mockMessageRequest);
+        when(mockExecutionContext.request()).thenReturn(mockRequest);
         HttpHeaders httpHeaders = HttpHeaders.create();
         httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, "text/event-stream");
-        when(mockMessageRequest.headers()).thenReturn(httpHeaders);
-        when(mockMessageRequest.method()).thenReturn(HttpMethod.POST);
+        when(mockRequest.headers()).thenReturn(httpHeaders);
+        when(mockRequest.method()).thenReturn(HttpMethod.POST);
 
-        boolean matches = sseEntrypointConnector.matches(mockMessageExecutionContext);
+        boolean matches = sseEntrypointConnector.matches(mockExecutionContext);
 
         assertThat(matches).isFalse();
     }
 
     @Test
     void shouldCompleteWithoutDoingAnything() {
-        sseEntrypointConnector.handleRequest(mockMessageExecutionContext).test().assertComplete();
-        verifyNoInteractions(mockMessageExecutionContext);
+        sseEntrypointConnector.handleRequest(mockExecutionContext).test().assertComplete();
+        verifyNoInteractions(mockExecutionContext);
     }
 
     @Test
     void shouldCompleteAndEndWhenResponseMessagesComplete() {
         Flowable<Message> empty = Flowable.empty();
-        when(mockMessageResponse.messages()).thenReturn(empty);
+        when(mockResponse.messages()).thenReturn(empty);
         HttpHeaders httpHeaders = HttpHeaders.create();
-        when(mockMessageResponse.headers()).thenReturn(httpHeaders);
-        when(mockMessageResponse.end()).thenReturn(Completable.complete());
-        when(mockMessageExecutionContext.response()).thenReturn(mockMessageResponse);
-        sseEntrypointConnector.handleResponse(mockMessageExecutionContext).test().assertComplete();
+        when(mockResponse.headers()).thenReturn(httpHeaders);
+        when(mockResponse.end()).thenReturn(Completable.complete());
+        when(mockExecutionContext.response()).thenReturn(mockResponse);
+        sseEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
         assertThat(httpHeaders.contains(HttpHeaderNames.CONTENT_TYPE)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CONNECTION)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CACHE_CONTROL)).isTrue();
@@ -134,32 +131,32 @@ class SseEntrypointConnectorTest {
     @Test
     void shouldWriteSseEventAndCompleteAndEndWhenResponseMessagesComplete() {
         Flowable<Message> messages = Flowable.just(new DummyMessage("1"), new DummyMessage("2"), new DummyMessage("3"));
-        when(mockMessageResponse.messages()).thenReturn(messages);
+        when(mockResponse.messages()).thenReturn(messages);
         HttpHeaders httpHeaders = HttpHeaders.create();
-        when(mockMessageResponse.headers()).thenReturn(httpHeaders);
-        when(mockMessageResponse.write(any())).thenReturn(Completable.complete());
-        when(mockMessageResponse.end()).thenReturn(Completable.complete());
-        when(mockMessageExecutionContext.response()).thenReturn(mockMessageResponse);
-        boolean b = sseEntrypointConnector.handleResponse(mockMessageExecutionContext).test().awaitTerminalEvent(10, TimeUnit.SECONDS);
+        when(mockResponse.headers()).thenReturn(httpHeaders);
+        when(mockResponse.write(any())).thenReturn(Completable.complete());
+        when(mockResponse.end()).thenReturn(Completable.complete());
+        when(mockExecutionContext.response()).thenReturn(mockResponse);
+        boolean b = sseEntrypointConnector.handleResponse(mockExecutionContext).test().awaitTerminalEvent(10, TimeUnit.SECONDS);
         assertThat(httpHeaders.contains(HttpHeaderNames.CONTENT_TYPE)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CONNECTION)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CACHE_CONTROL)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CACHE_CONTROL)).isTrue();
-        verify(mockMessageResponse, times(8)).write(any());
+        verify(mockResponse, times(8)).write(any());
     }
 
     @Test
     void shouldWriteErrorSseEventAndCompleteAndEndWhenResponseMessagesFail() {
         Flowable<Message> messages = Flowable.error(new RuntimeException("error"));
-        when(mockMessageResponse.messages()).thenReturn(messages);
+        when(mockResponse.messages()).thenReturn(messages);
         HttpHeaders httpHeaders = HttpHeaders.create();
-        when(mockMessageResponse.headers()).thenReturn(httpHeaders);
-        when(mockMessageResponse.end()).thenReturn(Completable.complete());
-        when(mockMessageExecutionContext.response()).thenReturn(mockMessageResponse);
-        boolean b = sseEntrypointConnector.handleResponse(mockMessageExecutionContext).test().awaitTerminalEvent(10, TimeUnit.SECONDS);
+        when(mockResponse.headers()).thenReturn(httpHeaders);
+        when(mockResponse.end()).thenReturn(Completable.complete());
+        when(mockExecutionContext.response()).thenReturn(mockResponse);
+        boolean b = sseEntrypointConnector.handleResponse(mockExecutionContext).test().awaitTerminalEvent(10, TimeUnit.SECONDS);
         assertThat(httpHeaders.contains(HttpHeaderNames.CONTENT_TYPE)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CONNECTION)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CACHE_CONTROL)).isTrue();
-        verify(mockMessageResponse, times(1)).end(any());
+        verify(mockResponse, times(1)).end(any());
     }
 }

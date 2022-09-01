@@ -23,7 +23,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
 import io.reactivex.Completable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,14 +46,14 @@ class NotFoundProcessorTest {
     private MutableResponse response;
 
     private NotFoundProcessor notFoundProcessor;
-    private DefaultRequestExecutionContext ctx;
+    private DefaultExecutionContext ctx;
 
     @BeforeEach
     public void beforeEach() {
         when(response.headers()).thenReturn(HttpHeaders.create());
         when(response.end()).thenReturn(Completable.complete());
         notFoundProcessor = new NotFoundProcessor(new StandardEnvironment());
-        ctx = new DefaultRequestExecutionContext(request, response);
+        ctx = new DefaultExecutionContext(request, response);
     }
 
     @Test

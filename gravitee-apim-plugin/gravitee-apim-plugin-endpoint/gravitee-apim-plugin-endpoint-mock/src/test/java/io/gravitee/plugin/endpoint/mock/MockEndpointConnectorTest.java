@@ -18,9 +18,9 @@ package io.gravitee.plugin.endpoint.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageRequest;
-import io.gravitee.gateway.jupiter.api.context.MessageResponse;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
@@ -48,13 +48,13 @@ class MockEndpointConnectorTest {
     private MockEndpointConnector mockEndpointConnector;
 
     @Mock
-    private MessageExecutionContext messageExecutionContext;
+    private ExecutionContext ctx;
 
     @Mock
-    private MessageRequest messageRequest;
+    private Request request;
 
     @Mock
-    private MessageResponse messageResponse;
+    private Response response;
 
     @Mock
     Logger logger;
@@ -65,19 +65,19 @@ class MockEndpointConnectorTest {
         configuration.setMessageContent("test mock endpoint");
         mockEndpointConnector = new MockEndpointConnector(configuration);
 
-        when(messageRequest.messages()).thenReturn(Flowable.just(DefaultMessage.builder().content(MESSAGE_TO_LOG.getBytes()).build()));
+        when(request.messages()).thenReturn(Flowable.just(DefaultMessage.builder().content(MESSAGE_TO_LOG.getBytes()).build()));
 
-        when(messageExecutionContext.request()).thenReturn(messageRequest);
-        when(messageExecutionContext.response()).thenReturn(messageResponse);
+        when(ctx.request()).thenReturn(request);
+        when(ctx.response()).thenReturn(response);
     }
 
     @Test
     @DisplayName("Should generate messages flow")
     void shouldGenerateMessagesFlow() {
-        mockEndpointConnector.connect(messageExecutionContext).test().assertComplete();
+        mockEndpointConnector.connect(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
-        verify(messageResponse).messages(messagesCaptor.capture());
+        verify(response).messages(messagesCaptor.capture());
 
         messagesCaptor
             .getValue()
@@ -96,10 +96,10 @@ class MockEndpointConnectorTest {
     void shouldGenerateLimitedMessagesFlow() throws InterruptedException {
         configuration.setMessageCount(5L);
 
-        mockEndpointConnector.connect(messageExecutionContext).test().assertComplete();
+        mockEndpointConnector.connect(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
-        verify(messageResponse).messages(messagesCaptor.capture());
+        verify(response).messages(messagesCaptor.capture());
 
         messagesCaptor.getValue().test().await().assertValueCount(5);
 

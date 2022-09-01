@@ -20,16 +20,15 @@ import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.gateway.jupiter.api.context.MessageRequest;
+import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.reporter.api.http.Metrics;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableTransformer;
-import io.reactivex.Maybe;
+import io.reactivex.*;
 import javax.net.ssl.SSLSession;
 
-public class DummyMessageRequest implements MessageRequest {
+public class DummyMessageRequest implements Request {
 
     Flowable<Message> flowableMessages;
     HttpMethod method;
@@ -57,8 +56,44 @@ public class DummyMessageRequest implements MessageRequest {
     }
 
     @Override
+    public boolean isWebSocket() {
+        return false;
+    }
+
+    @Override
+    public WebSocket webSocket() {
+        return null;
+    }
+
+    @Override
     public Maybe<Buffer> body() {
         return body;
+    }
+
+    @Override
+    public Single<Buffer> bodyOrEmpty() {
+        return null;
+    }
+
+    @Override
+    public void body(Buffer buffer) {}
+
+    @Override
+    public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
+        return null;
+    }
+
+    @Override
+    public Flowable<Buffer> chunks() {
+        return null;
+    }
+
+    @Override
+    public void chunks(Flowable<Buffer> chunks) {}
+
+    @Override
+    public Completable onChunks(FlowableTransformer<Buffer, Buffer> onChunks) {
+        return null;
     }
 
     public void body(Maybe<Buffer> body) {
