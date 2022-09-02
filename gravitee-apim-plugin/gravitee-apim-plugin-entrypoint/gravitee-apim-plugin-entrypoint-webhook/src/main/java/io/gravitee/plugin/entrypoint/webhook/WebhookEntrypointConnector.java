@@ -19,12 +19,11 @@ import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
 import io.reactivex.*;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Function;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientOptions;
@@ -77,7 +76,7 @@ public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
     @Override
     public boolean matches(final ExecutionContext ctx) {
         // The context should contain a "subscription_type" internal attribute with the "webhook" value
-        return TYPE.equalsIgnoreCase(ctx.getInternalAttribute(ExecutionContext.ATTR_SUBSCRIPTION_TYPE));
+        return TYPE.equalsIgnoreCase(ctx.getInternalAttribute(ContextAttributes.ATTR_SUBSCRIPTION_TYPE));
     }
 
     private HttpClient client;

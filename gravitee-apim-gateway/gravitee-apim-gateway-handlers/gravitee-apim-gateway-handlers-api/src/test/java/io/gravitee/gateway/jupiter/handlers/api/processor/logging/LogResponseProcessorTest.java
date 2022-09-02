@@ -43,7 +43,7 @@ class LogResponseProcessorTest extends AbstractProcessorTest {
     @Test
     void shouldNotLogWhenNoLog() {
         when(mockMetrics.getLog()).thenReturn(null);
-        ctx.setInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE, loggingContext);
+        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
@@ -55,7 +55,7 @@ class LogResponseProcessorTest extends AbstractProcessorTest {
 
         when(mockMetrics.getLog()).thenReturn(log);
         when(loggingContext.clientMode()).thenReturn(false);
-        ctx.setInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE, loggingContext);
+        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
@@ -68,7 +68,7 @@ class LogResponseProcessorTest extends AbstractProcessorTest {
         final Log log = new Log(System.currentTimeMillis());
         when(mockMetrics.getLog()).thenReturn(log);
         when(loggingContext.clientMode()).thenReturn(true);
-        ctx.setInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE, loggingContext);
+        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();

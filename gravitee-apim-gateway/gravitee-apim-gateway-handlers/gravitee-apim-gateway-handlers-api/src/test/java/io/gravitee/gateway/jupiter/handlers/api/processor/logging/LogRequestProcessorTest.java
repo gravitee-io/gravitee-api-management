@@ -44,7 +44,7 @@ class LogRequestProcessorTest extends AbstractProcessorTest {
 
     @Test
     void shouldNotLogWhenNoLoggingContext() {
-        ctx.setInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE, null);
+        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, null);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
@@ -57,7 +57,7 @@ class LogRequestProcessorTest extends AbstractProcessorTest {
     @Test
     void shouldNotLogWhenLoggingConditionIsEvaluatedToFalse() {
         when(loggingContext.getCondition()).thenReturn("false");
-        ctx.setInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE, loggingContext);
+        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
@@ -74,7 +74,7 @@ class LogRequestProcessorTest extends AbstractProcessorTest {
         when(loggingContext.clientMode()).thenReturn(false);
         when(mockRequest.timestamp()).thenReturn(timestamp);
         when(mockRequest.id()).thenReturn(REQUEST_ID);
-        ctx.setInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE, loggingContext);
+        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
@@ -93,7 +93,7 @@ class LogRequestProcessorTest extends AbstractProcessorTest {
     void shouldCreateLogWhenLoggingConditionIsNull() {
         when(loggingContext.getCondition()).thenReturn(null);
         when(loggingContext.clientMode()).thenReturn(false);
-        ctx.setInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE, loggingContext);
+        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
@@ -105,7 +105,7 @@ class LogRequestProcessorTest extends AbstractProcessorTest {
     void shouldCreateLogWhenLoggingConditionIsEmpty() {
         when(loggingContext.getCondition()).thenReturn("");
         when(loggingContext.clientMode()).thenReturn(false);
-        ctx.setInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE, loggingContext);
+        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
@@ -116,7 +116,7 @@ class LogRequestProcessorTest extends AbstractProcessorTest {
     @Test
     void shouldSetClientRequestWhenClientMode() {
         when(loggingContext.clientMode()).thenReturn(true);
-        ctx.setInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE, loggingContext);
+        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();

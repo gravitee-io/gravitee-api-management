@@ -22,8 +22,8 @@ import static org.mockito.Mockito.mock;
 import io.gravitee.definition.model.Api;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import java.util.Map;
@@ -87,7 +87,7 @@ class DefaultExecutionContextTest {
     public void shouldGetAllPrefixedAttributes() {
         for (int i = 0; i < 10; i++) {
             // Put attribute with prefix.
-            cut.putAttribute(GenericExecutionContext.ATTR_PREFIX + ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
+            cut.putAttribute(ContextAttributes.ATTR_PREFIX + ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
 
         final Map<String, Object> attributes = cut.getAttributes();

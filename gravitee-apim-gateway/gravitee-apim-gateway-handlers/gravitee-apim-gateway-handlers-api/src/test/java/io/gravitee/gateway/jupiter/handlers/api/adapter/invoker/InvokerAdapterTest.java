@@ -26,7 +26,7 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
@@ -112,7 +112,7 @@ class InvokerAdapterTest {
     public void shouldRestoreContextWhenInvokerExecutionCompleted() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(GenericExecutionContext.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
@@ -132,7 +132,7 @@ class InvokerAdapterTest {
     public void shouldRestoreContextWhenInvokerExecutionCancelled() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(GenericExecutionContext.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
@@ -148,7 +148,7 @@ class InvokerAdapterTest {
     public void shouldRestoreContextWhenInvokerExecutionError() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(GenericExecutionContext.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);

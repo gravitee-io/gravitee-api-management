@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.processor.error;
 
-import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +24,6 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
-import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.GenericRequest;
 import io.gravitee.gateway.jupiter.api.context.GenericResponse;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;

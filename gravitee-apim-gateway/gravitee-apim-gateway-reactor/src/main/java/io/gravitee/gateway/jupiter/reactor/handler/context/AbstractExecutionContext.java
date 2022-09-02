@@ -20,10 +20,7 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.Request;
-import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.api.context.*;
 import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
 import io.gravitee.gateway.jupiter.api.el.EvaluableResponse;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
@@ -68,7 +65,7 @@ abstract class AbstractExecutionContext<RQ extends Request, RS extends Response>
     public Completable interruptWith(ExecutionFailure executionFailure) {
         return Completable.defer(
             () -> {
-                internalAttributes.put(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+                internalAttributes.put(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
                 return Completable.error(new InterruptionFailureException(executionFailure));
             }
         );

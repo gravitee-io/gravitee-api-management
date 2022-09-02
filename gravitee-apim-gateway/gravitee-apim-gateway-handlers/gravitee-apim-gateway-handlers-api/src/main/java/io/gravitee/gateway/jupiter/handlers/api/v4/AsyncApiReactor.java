@@ -17,7 +17,7 @@ package io.gravitee.gateway.jupiter.handlers.api.v4;
 
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
-import static io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver.INTERNAL_ATTR_ENTRYPOINT_CONNECTOR;
+import static io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static io.reactivex.Completable.defer;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
@@ -29,8 +29,8 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.v4.entrypoint.HttpEntrypointConnectorResolver;
@@ -101,13 +101,13 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
     }
 
     private void prepareContextAttributes(ExecutionContext ctx) {
-        ctx.setAttribute(GenericExecutionContext.ATTR_CONTEXT_PATH, ctx.request().contextPath());
-        ctx.setAttribute(GenericExecutionContext.ATTR_API, api.getId());
-        ctx.setAttribute(GenericExecutionContext.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
-        ctx.setAttribute(GenericExecutionContext.ATTR_INVOKER, defaultInvoker);
-        ctx.setAttribute(GenericExecutionContext.ATTR_ORGANIZATION, api.getOrganizationId());
-        ctx.setAttribute(GenericExecutionContext.ATTR_ENVIRONMENT, api.getEnvironmentId());
-        ctx.setInternalAttribute(GenericExecutionContext.ATTR_API, api);
+        ctx.setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, ctx.request().contextPath());
+        ctx.setAttribute(ContextAttributes.ATTR_API, api.getId());
+        ctx.setAttribute(ContextAttributes.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
+        ctx.setAttribute(ContextAttributes.ATTR_INVOKER, defaultInvoker);
+        ctx.setAttribute(ContextAttributes.ATTR_ORGANIZATION, api.getOrganizationId());
+        ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
+        ctx.setInternalAttribute(ContextAttributes.ATTR_API, api);
     }
 
     private Completable handleRequest(final ExecutionContext ctx) {
@@ -125,7 +125,7 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
         }
 
         // Add the resolved entrypoint connector into the internal attributes, so it can be used later (ex: for endpoint connector resolution).
-        ctx.setInternalAttribute(INTERNAL_ATTR_ENTRYPOINT_CONNECTOR, entrypointConnector);
+        ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, entrypointConnector);
 
         return platformFlowChain
             .execute(ctx, REQUEST)
@@ -159,7 +159,7 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
     }
 
     private Invoker getInvoker(ExecutionContext ctx) {
-        final Object invoker = ctx.getAttribute(GenericExecutionContext.ATTR_INVOKER);
+        final Object invoker = ctx.getAttribute(ContextAttributes.ATTR_INVOKER);
 
         if (invoker == null) {
             return null;

@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.jupiter.policy.adapter.context;
 
-import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_ADAPTED_CONTEXT;
-import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_INTERNAL_EXECUTION_FAILURE;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_ADAPTED_CONTEXT;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
 
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.Request;

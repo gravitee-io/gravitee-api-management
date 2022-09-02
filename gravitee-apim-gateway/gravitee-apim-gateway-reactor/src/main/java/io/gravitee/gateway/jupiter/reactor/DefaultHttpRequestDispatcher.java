@@ -30,7 +30,7 @@ import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
 import io.gravitee.gateway.http.vertx.grpc.VertxGrpcServerRequest;
 import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.hook.HookHelper;
@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
-    public static final String ATTR_ENTRYPOINT = GenericExecutionContext.ATTR_PREFIX + "entrypoint";
+    public static final String ATTR_ENTRYPOINT = ContextAttributes.ATTR_PREFIX + "entrypoint";
     private final Logger log = LoggerFactory.getLogger(DefaultHttpRequestDispatcher.class);
     private final GatewayConfiguration gatewayConfiguration;
     private final HttpAcceptorResolver httpAcceptorResolver;

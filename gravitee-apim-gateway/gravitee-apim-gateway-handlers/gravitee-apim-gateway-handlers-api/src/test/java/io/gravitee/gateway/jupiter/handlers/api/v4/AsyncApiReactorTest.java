@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
-import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
@@ -112,11 +112,11 @@ class AsyncApiReactorTest {
     public void shouldPrepareContextAttributes() {
         asyncApiReactor.handle(executionContext);
 
-        verify(executionContext).setAttribute(GenericExecutionContext.ATTR_CONTEXT_PATH, CONTEXT_PATH);
-        verify(executionContext).setAttribute(GenericExecutionContext.ATTR_API, API_ID);
-        verify(executionContext).setAttribute(GenericExecutionContext.ATTR_ORGANIZATION, ORGANIZATION_ID);
-        verify(executionContext).setAttribute(GenericExecutionContext.ATTR_ENVIRONMENT, ENVIRONMENT_ID);
-        verify(executionContext).setInternalAttribute(GenericExecutionContext.ATTR_API, api);
+        verify(executionContext).setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, CONTEXT_PATH);
+        verify(executionContext).setAttribute(ContextAttributes.ATTR_API, API_ID);
+        verify(executionContext).setAttribute(ContextAttributes.ATTR_ORGANIZATION, ORGANIZATION_ID);
+        verify(executionContext).setAttribute(ContextAttributes.ATTR_ENVIRONMENT, ENVIRONMENT_ID);
+        verify(executionContext).setInternalAttribute(ContextAttributes.ATTR_API, api);
     }
 
     @Test

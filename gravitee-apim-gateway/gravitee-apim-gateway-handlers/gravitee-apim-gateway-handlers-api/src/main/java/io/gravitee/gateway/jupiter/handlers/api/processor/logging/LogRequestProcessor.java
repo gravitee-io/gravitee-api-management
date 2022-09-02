@@ -15,11 +15,10 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.processor.logging;
 
-import static io.gravitee.gateway.core.logging.LoggingContext.LOGGING_CONTEXT_ATTRIBUTE;
-import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_API;
+import static io.gravitee.gateway.core.logging.LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT;
+import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_API;
 
 import io.gravitee.gateway.core.logging.LoggingContext;
-import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
@@ -53,7 +52,7 @@ public class LogRequestProcessor implements Processor {
     public Completable execute(final MutableExecutionContext ctx) {
         return Completable.defer(
             () -> {
-                final LoggingContext loggingContext = ctx.getInternalAttribute(LOGGING_CONTEXT_ATTRIBUTE);
+                final LoggingContext loggingContext = ctx.getInternalAttribute(ATTR_INTERNAL_LOGGING_CONTEXT);
 
                 if (loggingContext == null) {
                     return Completable.complete();

@@ -46,7 +46,7 @@ public class LogResponseProcessor implements Processor {
         return Completable.fromRunnable(
             () -> {
                 final Log log = ctx.request().metrics().getLog();
-                final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE);
+                final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT);
 
                 if (log != null && loggingContext.clientMode()) {
                     final LogClientResponse logResponse = new LogClientResponse(loggingContext, ctx.response());
