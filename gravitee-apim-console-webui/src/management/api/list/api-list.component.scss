@@ -44,6 +44,10 @@
   padding: 0 4px;
   white-space: nowrap;
 
+  .mat-icon {
+    margin: 0 4px;
+  }
+
   .states {
     &__api-started {
       color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
