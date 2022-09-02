@@ -1226,12 +1226,12 @@ jobs:
                       sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
 
                       # UI
-                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${MVN_PRJ_VERSION}\"/" gravitee-apim-console-webui/build.json
-                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${MVN_PRJ_VERSION}\"/" gravitee-apim-portal-webui/build.json
+                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${MVN_PRJ_VERSION_WITH_MODIFIER}\"/" gravitee-apim-console-webui/build.json
+                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${MVN_PRJ_VERSION_WITH_MODIFIER}\"/" gravitee-apim-portal-webui/build.json
 
                       git add --update
-                      git commit -m "${MVN_PRJ_VERSION}"
-                      git tag ${MVN_PRJ_VERSION}
+                      git commit -m "${MVN_PRJ_VERSION_WITH_MODIFIER}"
+                      git tag ${MVN_PRJ_VERSION_WITH_MODIFIER}
 
                       # If we are on master branch, we need to create the support branch
                       if [ "${CIRCLE_BRANCH}" == "master" ]; then
@@ -1259,7 +1259,7 @@ jobs:
                         sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
                       else
                         sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.${MVN_PRJ_VERSION_PATCH}</revision>#" pom.xml
-                        sed -i "s#<sha1>.*</sha1>#<sha1>${MVN_PRJ_MODIFIER_NAME}.$((${MVN_PRJ_MODIFIER_VERSION}+1))</sha1>#" pom.xml
+                        sed -i "s#<sha1>.*</sha1>#<sha1>-${MVN_PRJ_MODIFIER_NAME}.$((${MVN_PRJ_MODIFIER_VERSION}+1))</sha1>#" pom.xml
                         sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
                       fi;
 
