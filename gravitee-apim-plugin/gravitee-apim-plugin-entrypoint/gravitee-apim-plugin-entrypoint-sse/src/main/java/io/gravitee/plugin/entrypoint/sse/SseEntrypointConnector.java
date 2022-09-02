@@ -151,7 +151,7 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
         );
     }
 
-    private Completable sendRetry(final MessageExecutionContext ctx) {
+    private Completable sendRetry(final ExecutionContext ctx) {
         return ctx
             .response()
             .write(Buffer.buffer(SseEvent.builder().retry(generateRandomRetry()).build().format()))

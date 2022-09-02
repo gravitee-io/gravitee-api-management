@@ -65,7 +65,7 @@ class MockEndpointConnectorTest {
         configuration.setMessageContent("test mock endpoint");
         mockEndpointConnector = new MockEndpointConnector(configuration);
 
-        when(request.messages()).thenReturn(Flowable.just(DefaultMessage.builder().content(MESSAGE_TO_LOG.getBytes()).build()));
+        when(request.messages()).thenReturn(Flowable.just(new DefaultMessage(MESSAGE_TO_LOG)));
 
         when(ctx.request()).thenReturn(request);
         when(ctx.response()).thenReturn(response);

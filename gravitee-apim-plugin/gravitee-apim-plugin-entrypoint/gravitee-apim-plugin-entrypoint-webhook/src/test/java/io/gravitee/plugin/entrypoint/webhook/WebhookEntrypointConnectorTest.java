@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.context.*;
@@ -151,17 +152,17 @@ class WebhookEntrypointConnectorTest {
         // Prepare response messages
         DefaultMessage message1 = DefaultMessage
             .builder()
-            .content("message1".getBytes())
+            .content(Buffer.buffer("message1"))
             .headers(HttpHeaders.create().set("my-header", "my-value"))
             .build();
 
         DefaultMessage message2 = DefaultMessage
             .builder()
-            .content("message2".getBytes())
+            .content(Buffer.buffer("message2"))
             .headers(HttpHeaders.create().set("my-header", "my-value"))
             .build();
 
-        DefaultMessage messageNoHeader = DefaultMessage.builder().content("message3".getBytes()).build();
+        DefaultMessage messageNoHeader = DefaultMessage.builder().content(Buffer.buffer("message3")).build();
 
         DefaultMessage messageNoPayload = DefaultMessage.builder().build();
 

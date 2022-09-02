@@ -27,6 +27,7 @@ import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import java.util.Map;
 import java.util.Set;
@@ -66,16 +67,19 @@ public class HttpPostEntrypointConnector implements EntrypointAsyncConnector {
     @Override
     public Completable handleRequest(final ExecutionContext ctx) {
         return Completable.fromRunnable(
-            () -> {
-                Maybe<Message> messageFlowable = ctx
+            () ->
+                ctx
                     .request()
-                    .body()
-                    .map(
-                        buffer ->
-                            DefaultMessage.builder().headers(HttpHeaders.create(ctx.request().headers())).content(buffer.getBytes()).build()
-                    );
-                ctx.request().messages(messageFlowable.toFlowable());
-            }
+                    .messages(
+                        ctx
+                            .request()
+                            .body()
+                            .<Message>map(
+                                buffer ->
+                                    DefaultMessage.builder().headers(HttpHeaders.create(ctx.request().headers())).content(buffer).build()
+                            )
+                            .toFlowable()
+                    )
         );
     }
 

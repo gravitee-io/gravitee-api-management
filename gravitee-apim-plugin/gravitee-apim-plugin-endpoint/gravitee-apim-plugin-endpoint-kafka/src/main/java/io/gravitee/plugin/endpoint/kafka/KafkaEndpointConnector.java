@@ -15,6 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.kafka;
 
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
@@ -159,7 +160,7 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                                                 return DefaultMessage
                                                     .builder()
                                                     .headers(httpHeaders)
-                                                    .content(consumerRecord.value())
+                                                    .content(Buffer.buffer(consumerRecord.value()))
                                                     .metadata(
                                                         Map.of(
                                                             "key",
