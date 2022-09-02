@@ -12,12 +12,10 @@ apis/APIMetadataApi.ts
 apis/APINotificationsApi.ts
 apis/APIPagesApi.ts
 apis/APIPlansApi.ts
-apis/APIPlansV4Api.ts
 apis/APIQualityApi.ts
 apis/APIRatingsApi.ts
 apis/APISubscriptionsApi.ts
 apis/APIsApi.ts
-apis/APIsV4Api.ts
 apis/AlertsApi.ts
 apis/ApplicationAlertsApi.ts
 apis/ApplicationAnalyticsApi.ts
@@ -61,7 +59,6 @@ apis/PlatformEventsApi.ts
 apis/PlatformLogsApi.ts
 apis/PlatformTicketsApi.ts
 apis/PluginsApi.ts
-apis/PluginsV4Api.ts
 apis/PortalAPIsApi.ts
 apis/PortalApi.ts
 apis/PortalEntrypointsApi.ts
@@ -81,6 +78,9 @@ apis/UserNotificationsApi.ts
 apis/UserRegistrationApi.ts
 apis/UserTokensApi.ts
 apis/UsersApi.ts
+apis/V4APIPlansApi.ts
+apis/V4APIsApi.ts
+apis/V4PluginsApi.ts
 apis/index.ts
 index.ts
 models/AccessControlEntity.ts
@@ -145,6 +145,8 @@ models/AuditReferenceType.ts
 models/AuditTrail.ts
 models/AuditType.ts
 models/CategoryEntity.ts
+models/ChannelSelectorV4.ts
+models/ChannelSelectorV4AllOf.ts
 models/ClientRegistration.ts
 models/ClientRegistrationProviderEntity.ts
 models/ClientRegistrationProviderListItem.ts
@@ -152,6 +154,8 @@ models/Company.ts
 models/CompareCondition.ts
 models/CompareConditionAllOf.ts
 models/Condition.ts
+models/ConditionSelectorV4.ts
+models/ConditionSelectorV4AllOf.ts
 models/ConnectorListItem.ts
 models/ConsoleAnalyticsPendo.ts
 models/ConsoleAuthentication.ts
@@ -231,6 +235,8 @@ models/HttpHeaders.ts
 models/HttpProxy.ts
 models/HttpRequest.ts
 models/HttpResponse.ts
+models/HttpSelectorV4.ts
+models/HttpSelectorV4AllOf.ts
 models/IdentityProviderActivationEntity.ts
 models/IdentityProviderActivationReferenceType.ts
 models/IdentityProviderEntity.ts
@@ -311,6 +317,7 @@ models/NewQualityRuleEntity.ts
 models/NewRatingAnswerEntity.ts
 models/NewRatingEntity.ts
 models/NewRoleEntity.ts
+models/NewSubscriptionConfigurationEntity.ts
 models/NewSubscriptionEntity.ts
 models/NewTagEntity.ts
 models/NewTenantEntity.ts
@@ -438,12 +445,6 @@ models/SearchLogResponseApplicationRequestItem.ts
 models/SearchLogResponsePlatformRequestItem.ts
 models/SearchableUser.ts
 models/Selector.ts
-models/ChannelSelectorV4.ts
-models/ChannelSelectorV4AllOf.ts
-models/ConditionSelectorV4.ts
-models/ConditionSelectorV4AllOf.ts
-models/HttpSelectorV4.ts
-models/HttpSelectorV4AllOf.ts
 models/ServiceV4.ts
 models/Services.ts
 models/SimpleApplicationSettings.ts

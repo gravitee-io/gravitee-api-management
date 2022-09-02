@@ -15,8 +15,8 @@
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { forManagementAsApiUser } from '@gravitee/utils/configuration';
-import { APIPlansV4Api } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansV4Api';
-import { APIsV4Api } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsV4Api';
+import { V4APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/V4APIPlansApi';
+import { V4APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/V4APIsApi';
 import { ApiEntityV4, LifecycleAction, PlanEntityV4 } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { fetchEventSourceGateway } from '@gravitee/utils/gateway';
 import { PlansV4Faker } from '@gravitee/fixtures/management/PlansV4Faker';
@@ -27,8 +27,8 @@ import { describeIfJupiter } from '@lib/jest-utils';
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
 
-const apisResource = new APIsV4Api(forManagementAsApiUser());
-const apiPlansResource = new APIPlansV4Api(forManagementAsApiUser());
+const apisResource = new V4APIsApi(forManagementAsApiUser());
+const apiPlansResource = new V4APIPlansApi(forManagementAsApiUser());
 
 describeIfJupiter('Gateway V4 - SSE entrypoint to mock endpoint', () => {
   let contextPath: string;
