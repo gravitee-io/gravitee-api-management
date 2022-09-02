@@ -28,7 +28,6 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.sql.*;
@@ -368,18 +367,31 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         args.add(group.getValue());
         StringBuilder innerSelect1 = innerSelectLatest(criteria, args);
         args.add(group.getValue());
-        StringBuilder innerSelect2 = innerSelectLatest(criteria, args);
+        StringBuilder maxEventDateInnerJoin = computeMaxEventDateInnerJoin(criteria, args);
 
         return new StringBuilder()
             .append("select t1.event_id ")
-            .append("from (")
+            .append("from ( ")
             .append(innerSelect1)
             .append(") as t1 ")
-            .append("where t1.event_date = ")
-            .append("    (select max(event_date) from (")
-            .append(innerSelect2)
-            .append(") as t2 ")
-            .append("     where t2.api_id = t1.api_id) ");
+            .append("inner join ( ")
+            .append(maxEventDateInnerJoin)
+            .append(") as t3 on t1.api_id = t3.api_id ")
+            .append("where t1.event_date = t3.event_date ");
+    }
+
+    private StringBuilder computeMaxEventDateInnerJoin(EventCriteria criteria, List<Object> args) {
+        final StringBuilder query = new StringBuilder("select max(event_date) as event_date, t2.api_id ")
+            .append("from ( ")
+            .append("select ep1.property_value as api_id, max(e1.updated_at) as event_date ")
+            .append("from " + this.tableName + " e1 ")
+            .append("inner join " + EVENT_PROPERTIES + " ep1 on e1.id = ep1.event_id and ep1.property_key = ? ");
+
+        if (!criteria.isStrictMode()) {
+            appendCriteria(query, criteria, args, "e1");
+        }
+
+        return query.append("group by ep1.property_value, ep1.event_id ) as t2 ").append("group by api_id ");
     }
 
     private StringBuilder innerSelectLatest(EventCriteria criteria, List<Object> args) {
