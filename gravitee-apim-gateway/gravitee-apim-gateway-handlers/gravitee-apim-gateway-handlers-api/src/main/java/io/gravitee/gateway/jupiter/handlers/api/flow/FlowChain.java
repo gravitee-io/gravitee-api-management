@@ -15,8 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.flow;
 
-import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_INTERNAL_FLOW_STAGE;
-import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_INTERNAL_PREFIX;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
@@ -56,7 +55,7 @@ public class FlowChain implements Hookable<ChainHook> {
     public FlowChain(String id, FlowResolver flowResolver, PolicyChainFactory policyChainFactory) {
         this.id = id;
         this.flowResolver = flowResolver;
-        this.resolvedFlowAttribute = ATTR_INTERNAL_PREFIX + "flow." + id;
+        this.resolvedFlowAttribute = "flow." + id;
         this.policyChainFactory = policyChainFactory;
     }
 

@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.reactivex.Completable;
@@ -132,8 +132,8 @@ public class DefaultSubscriptionDispatcherTest {
 
         verify(resolver, times(1)).resolve(any());
         verify(factory, times(1)).create(subscription);
-        verify(context).setInternalAttribute(ExecutionContext.ATTR_SUBSCRIPTION_TYPE, "webhook");
-        verify(context).setInternalAttribute(ExecutionContext.ATTR_SUBSCRIPTION, subscription);
+        verify(context).setInternalAttribute(ContextAttributes.ATTR_SUBSCRIPTION_TYPE, "webhook");
+        verify(context).setInternalAttribute(ContextAttributes.ATTR_SUBSCRIPTION, subscription);
 
         assertFalse(dispatcher.getActiveSubscriptions().isEmpty());
     }

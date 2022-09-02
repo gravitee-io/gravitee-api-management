@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4.subscription;
 
-import static io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver.INTERNAL_ATTR_ENTRYPOINT_CONNECTOR;
+import static io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static io.reactivex.Completable.defer;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
@@ -28,7 +28,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
@@ -88,9 +88,9 @@ public class SubscriptionReactor extends AbstractLifecycleComponent<ReactorHandl
     }
 
     private Completable handleRequest(final MutableExecutionContext ctx) {
-        Subscription subscription = ctx.getInternalAttribute(ExecutionContext.ATTR_SUBSCRIPTION);
+        Subscription subscription = ctx.getInternalAttribute(ContextAttributes.ATTR_SUBSCRIPTION);
         AbstractConnectorFactory<? extends EntrypointConnector> connectorFactory = entrypointConnectorPluginManager.getFactoryById(
-            ctx.getInternalAttribute(ExecutionContext.ATTR_SUBSCRIPTION_TYPE)
+            ctx.getInternalAttribute(ContextAttributes.ATTR_SUBSCRIPTION_TYPE)
         );
 
         EntrypointAsyncConnector connector = (EntrypointAsyncConnector) connectorFactory.createConnector(subscription.getConfiguration());
@@ -109,7 +109,7 @@ public class SubscriptionReactor extends AbstractLifecycleComponent<ReactorHandl
 
         // Add the resolved entrypoint connector into the internal attributes, so it can be used later
         // (ex: for endpoint connector resolution).
-        ctx.setInternalAttribute(INTERNAL_ATTR_ENTRYPOINT_CONNECTOR, connector);
+        ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, connector);
 
         return connector
             .handleRequest(ctx)
@@ -137,7 +137,7 @@ public class SubscriptionReactor extends AbstractLifecycleComponent<ReactorHandl
     }
 
     private Invoker getInvoker(MutableExecutionContext ctx) {
-        final Object invoker = ctx.getAttribute(ExecutionContext.ATTR_INVOKER);
+        final Object invoker = ctx.getAttribute(ContextAttributes.ATTR_INVOKER);
 
         if (invoker == null) {
             return null;
@@ -151,12 +151,12 @@ public class SubscriptionReactor extends AbstractLifecycleComponent<ReactorHandl
     }
 
     private void prepareContextAttributes(MessageExecutionContext ctx) {
-        ctx.setAttribute(ExecutionContext.ATTR_API, api.getId());
-        ctx.setAttribute(ExecutionContext.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
-        ctx.setAttribute(ExecutionContext.ATTR_INVOKER, defaultInvoker);
-        ctx.setAttribute(ExecutionContext.ATTR_ORGANIZATION, api.getOrganizationId());
-        ctx.setAttribute(ExecutionContext.ATTR_ENVIRONMENT, api.getEnvironmentId());
-        ctx.setInternalAttribute(ExecutionContext.ATTR_API, api);
+        ctx.setAttribute(ContextAttributes.ATTR_API, api.getId());
+        ctx.setAttribute(ContextAttributes.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
+        ctx.setAttribute(ContextAttributes.ATTR_INVOKER, defaultInvoker);
+        ctx.setAttribute(ContextAttributes.ATTR_ORGANIZATION, api.getOrganizationId());
+        ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
+        ctx.setInternalAttribute(ContextAttributes.ATTR_API, api);
     }
 
     @Override

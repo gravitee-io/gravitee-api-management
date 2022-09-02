@@ -85,7 +85,7 @@ class WebhookEntrypointConnectorTest {
 
     @Test
     void shouldMatchesWithValidContext() {
-        when(ctx.getInternalAttribute(MessageExecutionContext.ATTR_SUBSCRIPTION_TYPE)).thenReturn("webhook");
+        when(ctx.getInternalAttribute(ContextAttributes.ATTR_SUBSCRIPTION_TYPE)).thenReturn("webhook");
 
         boolean matches = webhookEntrypointConnector.matches(ctx);
 

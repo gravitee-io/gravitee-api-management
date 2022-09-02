@@ -20,6 +20,7 @@ import io.gravitee.gateway.debug.core.invoker.InvokerResponse;
 import io.gravitee.gateway.debug.reactor.handler.context.AttributeHelper;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyRequestStep;
@@ -55,7 +56,7 @@ public class DebugExecutionContext extends DefaultExecutionContext {
         return Maybe
             .fromCallable(
                 () -> {
-                    String flowStage = getInternalAttribute(ATTR_INTERNAL_FLOW_STAGE);
+                    String flowStage = getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE);
                     PolicyStep<?> policyStep = PolicyStepFactory.createPolicyStep(id, executionPhase, flowStage);
                     if (policyStep != null) {
                         policySteps.add(policyStep);

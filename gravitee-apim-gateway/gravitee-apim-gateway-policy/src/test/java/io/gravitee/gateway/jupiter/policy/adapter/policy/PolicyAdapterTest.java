@@ -241,7 +241,7 @@ class PolicyAdapterTest {
         final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(GenericExecutionContext.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(policy.isRunnable()).thenReturn(true);
         mockPolicyExecution(policy);
 
@@ -259,7 +259,7 @@ class PolicyAdapterTest {
         final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(GenericExecutionContext.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(policy.isRunnable()).thenReturn(true);
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
@@ -278,7 +278,7 @@ class PolicyAdapterTest {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
         final ReadWriteStream<Buffer> stream = mock(ReadWriteStream.class);
 
-        when(ctx.getInternalAttribute(GenericExecutionContext.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(policy.isRunnable()).thenReturn(true);
         mockPolicyExecution(policy);
 

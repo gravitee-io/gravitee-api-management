@@ -83,7 +83,7 @@ class FlowChainTest {
 
         obs.assertResult();
 
-        verify(ctx, times(1)).setInternalAttribute(eq(GenericExecutionContext.ATTR_INTERNAL_PREFIX + "flow." + FLOW_CHAIN_ID), any());
+        verify(ctx, times(1)).setInternalAttribute(eq("flow." + FLOW_CHAIN_ID), any());
     }
 
     @Test
@@ -107,7 +107,7 @@ class FlowChainTest {
 
         obs.assertResult();
 
-        verify(ctx, times(1)).setInternalAttribute(eq(GenericExecutionContext.ATTR_INTERNAL_PREFIX + "flow." + FLOW_CHAIN_ID), any());
+        verify(ctx, times(1)).setInternalAttribute(eq("flow." + FLOW_CHAIN_ID), any());
     }
 
     @Test
@@ -116,8 +116,7 @@ class FlowChainTest {
         final Flow flow2 = mock(Flow.class);
 
         final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
-        when(ctx.getInternalAttribute(eq(GenericExecutionContext.ATTR_INTERNAL_PREFIX + "flow." + FLOW_CHAIN_ID)))
-            .thenReturn(resolvedFlows);
+        when(ctx.getInternalAttribute(eq("flow." + FLOW_CHAIN_ID))).thenReturn(resolvedFlows);
 
         final PolicyChain policyChain1 = mock(PolicyChain.class);
         final PolicyChain policyChain2 = mock(PolicyChain.class);
@@ -132,7 +131,7 @@ class FlowChainTest {
 
         obs.assertResult();
         // Make sure no flow resolution occurred when already resolved.
-        verify(ctx, times(0)).setInternalAttribute(eq(GenericExecutionContext.ATTR_INTERNAL_PREFIX + "flow." + FLOW_CHAIN_ID), any());
+        verify(ctx, times(0)).setInternalAttribute(eq("flow." + FLOW_CHAIN_ID), any());
         verifyNoInteractions(flowResolver);
     }
 

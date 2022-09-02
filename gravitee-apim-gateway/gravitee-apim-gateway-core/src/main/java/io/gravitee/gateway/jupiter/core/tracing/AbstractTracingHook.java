@@ -31,7 +31,7 @@ import io.reactivex.Completable;
 public abstract class AbstractTracingHook implements Hook {
 
     private static final String SPAN_PHASE_ATTR = "execution.phase";
-    private static final String CTX_TRACING_SPAN_ATTR = GenericExecutionContext.ATTR_INTERNAL_PREFIX + "tracing-span-%s";
+    private static final String ATTR_INTERNAL_TRACING_SPAN = "tracing-span-%s";
 
     @Override
     public Completable pre(final String id, final ExecutionContext ctx, final ExecutionPhase executionPhase) {
@@ -122,6 +122,6 @@ public abstract class AbstractTracingHook implements Hook {
     }
 
     private String getCtxAttributeKey(final String id) {
-        return String.format(CTX_TRACING_SPAN_ATTR, id);
+        return String.format(ATTR_INTERNAL_TRACING_SPAN, id);
     }
 }

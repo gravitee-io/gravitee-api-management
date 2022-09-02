@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.core.v4.endpoint;
 
-import static io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver.INTERNAL_ATTR_ENTRYPOINT_CONNECTOR;
+import static io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
@@ -65,7 +65,7 @@ class DefaultEndpointConnectorResolverTest {
 
     @BeforeEach
     void init() {
-        when(ctx.getInternalAttribute(INTERNAL_ATTR_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
         lenient().when(entrypointConnector.supportedModes()).thenReturn(SUPPORTED_MODES);
         lenient().when(entrypointConnector.supportedApi()).thenReturn(SUPPORTED_API_TYPE);
 

@@ -16,7 +16,7 @@
 package io.gravitee.gateway.jupiter.reactor.processor.alert;
 
 import io.gravitee.alert.api.event.Event;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.node.api.Node;
@@ -105,20 +105,20 @@ public class AlertProcessor implements Processor {
                             .property(PROP_REQUEST_USER_AGENT, ctx.request().metrics().getUserAgent())
                             .property(PROP_REQUEST_CONTENT_LENGTH, ctx.request().metrics().getRequestContentLength())
                             .property(PROP_REQUEST_IP, ctx.request().metrics().getRemoteAddress())
-                            .property(PROP_API_ID, ctx.<String>getAttribute(ExecutionContext.ATTR_API))
-                            .property(PROP_APPLICATION_ID, ctx.<String>getAttribute(ExecutionContext.ATTR_APPLICATION))
-                            .property(PROP_PLAN_ID, ctx.<String>getAttribute(ExecutionContext.ATTR_PLAN))
+                            .property(PROP_API_ID, ctx.<String>getAttribute(ContextAttributes.ATTR_API))
+                            .property(PROP_APPLICATION_ID, ctx.<String>getAttribute(ContextAttributes.ATTR_APPLICATION))
+                            .property(PROP_PLAN_ID, ctx.<String>getAttribute(ContextAttributes.ATTR_PLAN))
                             .property(PROP_RESPONSE_STATUS, ctx.response().status())
                             .property(PROP_RESPONSE_LATENCY, ctx.request().metrics().getProxyLatencyMs())
                             .property(PROP_RESPONSE_RESPONSE_TIME, ctx.request().metrics().getProxyResponseTimeMs())
                             .property(PROP_RESPONSE_UPSTREAM_RESPONSE_TIME, ctx.request().metrics().getApiResponseTimeMs())
                             .property(PROP_RESPONSE_CONTENT_LENGTH, ctx.request().metrics().getResponseContentLength())
                             .property(PROP_USER_ID, ctx.request().metrics().getUser())
-                            .property(PROP_QUOTA_COUNTER, ctx.<String>getAttribute(ExecutionContext.ATTR_QUOTA_COUNT))
-                            .property(PROP_QUOTA_LIMIT, ctx.<String>getAttribute(ExecutionContext.ATTR_QUOTA_LIMIT))
+                            .property(PROP_QUOTA_COUNTER, ctx.<String>getAttribute(ContextAttributes.ATTR_QUOTA_COUNT))
+                            .property(PROP_QUOTA_LIMIT, ctx.<String>getAttribute(ContextAttributes.ATTR_QUOTA_LIMIT))
                             .property(PROP_ERROR_KEY, ctx.request().metrics().getErrorKey())
-                            .organization(ctx.getAttribute(ExecutionContext.ATTR_ORGANIZATION))
-                            .environment(ctx.getAttribute(ExecutionContext.ATTR_ENVIRONMENT))
+                            .organization(ctx.getAttribute(ContextAttributes.ATTR_ORGANIZATION))
+                            .environment(ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT))
                             .build()
                     )
             )

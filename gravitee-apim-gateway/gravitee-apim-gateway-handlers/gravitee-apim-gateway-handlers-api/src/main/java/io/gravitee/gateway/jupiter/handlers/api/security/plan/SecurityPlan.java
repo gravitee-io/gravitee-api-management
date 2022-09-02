@@ -15,10 +15,10 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.security.plan;
 
-import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_API;
-import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_APPLICATION;
-import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_PLAN;
-import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_SUBSCRIPTION_ID;
+import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_API;
+import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_APPLICATION;
+import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_PLAN;
+import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_SUBSCRIPTION_ID;
 
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;

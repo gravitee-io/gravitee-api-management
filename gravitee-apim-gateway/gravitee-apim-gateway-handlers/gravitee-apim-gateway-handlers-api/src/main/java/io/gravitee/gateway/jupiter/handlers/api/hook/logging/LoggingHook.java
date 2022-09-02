@@ -45,7 +45,7 @@ public class LoggingHook implements InvokerHook {
         return Completable.fromRunnable(
             () -> {
                 final Log log = ctx.request().metrics().getLog();
-                final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE);
+                final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT);
 
                 if (log != null && loggingContext.proxyMode()) {
                     final LogProxyRequest logRequest = new LogProxyRequest(loggingContext, ctx.request());
@@ -61,7 +61,7 @@ public class LoggingHook implements InvokerHook {
         return Completable.fromRunnable(
             () -> {
                 final Log log = ctx.request().metrics().getLog();
-                final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE);
+                final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT);
 
                 if (log != null && loggingContext.proxyMode()) {
                     final LogProxyResponse logResponse = new LogProxyResponse(loggingContext, ctx.response());

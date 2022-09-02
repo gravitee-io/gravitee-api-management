@@ -17,7 +17,7 @@ package io.gravitee.gateway.jupiter.handlers.api;
 
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
-import static io.gravitee.gateway.jupiter.api.context.GenericExecutionContext.ATTR_INVOKER;
+import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_INVOKER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;

@@ -24,7 +24,6 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -39,7 +38,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unchecked")
 public class DefaultEndpointConnectorResolver {
 
-    public static final String INTERNAL_ATTR_ENTRYPOINT_CONNECTOR = GenericExecutionContext.ATTR_INTERNAL_PREFIX + ".entrypointConnector";
+    public static final String ATTR_INTERNAL_ENTRYPOINT_CONNECTOR = "entrypointConnector";
 
     private final Map<EndpointGroup, List<EndpointConnector>> connectorsByGroup;
 
@@ -68,7 +67,7 @@ public class DefaultEndpointConnectorResolver {
     }
 
     public <T extends EndpointConnector> T resolve(final ExecutionContext ctx) {
-        EntrypointConnector entrypointConnector = ctx.getInternalAttribute(INTERNAL_ATTR_ENTRYPOINT_CONNECTOR);
+        EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
 
         return (T) connectorsByGroup
             .entrySet()

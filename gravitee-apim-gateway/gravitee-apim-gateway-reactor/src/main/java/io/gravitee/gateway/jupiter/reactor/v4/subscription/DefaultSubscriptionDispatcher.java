@@ -18,8 +18,7 @@ package io.gravitee.gateway.jupiter.reactor.v4.subscription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
@@ -75,8 +74,8 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                             MutableExecutionContext context = subscriptionExecutionRequestFactory.create(subscription);
 
                             // This attribute is used by connectors
-                            context.setInternalAttribute(ExecutionContext.ATTR_SUBSCRIPTION_TYPE, type);
-                            context.setInternalAttribute(ExecutionContext.ATTR_SUBSCRIPTION, subscription);
+                            context.setInternalAttribute(ContextAttributes.ATTR_SUBSCRIPTION_TYPE, type);
+                            context.setInternalAttribute(ContextAttributes.ATTR_SUBSCRIPTION, subscription);
 
                             // Maintain state depending on subscription status
                             // + timer on end (dispose on timer)

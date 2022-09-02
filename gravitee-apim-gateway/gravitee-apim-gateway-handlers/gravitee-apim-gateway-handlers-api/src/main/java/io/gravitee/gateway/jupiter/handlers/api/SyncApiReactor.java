@@ -34,7 +34,7 @@ import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.GenericRequest;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
@@ -164,13 +164,13 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     private void prepareContextAttributes(MutableExecutionContext ctx) {
-        ctx.setAttribute(GenericExecutionContext.ATTR_CONTEXT_PATH, ctx.request().contextPath());
-        ctx.setAttribute(GenericExecutionContext.ATTR_API, api.getId());
-        ctx.setAttribute(GenericExecutionContext.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
-        ctx.setAttribute(GenericExecutionContext.ATTR_INVOKER, defaultInvoker);
-        ctx.setAttribute(GenericExecutionContext.ATTR_ORGANIZATION, api.getOrganizationId());
-        ctx.setAttribute(GenericExecutionContext.ATTR_ENVIRONMENT, api.getEnvironmentId());
-        ctx.setInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE, loggingContext);
+        ctx.setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, ctx.request().contextPath());
+        ctx.setAttribute(ContextAttributes.ATTR_API, api.getId());
+        ctx.setAttribute(ContextAttributes.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
+        ctx.setAttribute(ContextAttributes.ATTR_INVOKER, defaultInvoker);
+        ctx.setAttribute(ContextAttributes.ATTR_ORGANIZATION, api.getOrganizationId());
+        ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
+        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
     }
 
     private void prepareMetrics(HttpExecutionContext ctx) {
@@ -300,7 +300,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      * @return the current invoker in the expected type.
      */
     private Invoker getInvoker(HttpExecutionContext ctx) {
-        final Object invoker = ctx.getAttribute(GenericExecutionContext.ATTR_INVOKER);
+        final Object invoker = ctx.getAttribute(ContextAttributes.ATTR_INVOKER);
 
         if (invoker == null) {
             return null;

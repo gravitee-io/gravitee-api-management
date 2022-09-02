@@ -17,7 +17,7 @@ package io.gravitee.gateway.jupiter.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.flow.AbstractFlowResolver;
@@ -47,7 +47,7 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
             return Flowable.empty();
         }
 
-        final String planId = ctx.getAttribute(GenericExecutionContext.ATTR_PLAN);
+        final String planId = ctx.getAttribute(ContextAttributes.ATTR_PLAN);
 
         return Flowable.fromIterable(
             api

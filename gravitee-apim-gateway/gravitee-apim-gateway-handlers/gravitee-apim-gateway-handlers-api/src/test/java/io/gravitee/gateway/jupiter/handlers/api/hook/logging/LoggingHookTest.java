@@ -66,7 +66,7 @@ class LoggingHookTest {
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(request.metrics()).thenReturn(metrics);
-        lenient().when(ctx.getInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE)).thenReturn(loggingContext);
+        lenient().when(ctx.getInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT)).thenReturn(loggingContext);
     }
 
     @Test
