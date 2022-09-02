@@ -66,7 +66,7 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
     static final String EVENT_STARTED_AT_PROPERTY = "started_at";
     static final String EVENT_STOPPED_AT_PROPERTY = "stopped_at";
     static final String EVENT_ID_PROPERTY = "id";
-    static final String EVENT_STATE_PROPERTY = "create";
+    static final String EVENT_STATE_PROPERTY = "state";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -139,12 +139,14 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
             heartbeatEvent = prepareEvent();
 
             topic.publish(heartbeatEvent);
+            // Remove the state to not include it in the underlying repository as it's just used for internal purpose
+            heartbeatEvent.getProperties().remove(EVENT_STATE_PROPERTY);
 
             executorService = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "gio-heartbeat"));
 
             HeartbeatThread monitorThread = new HeartbeatThread(topic, heartbeatEvent);
 
-            subscriptionFailureId = topicFailure.addMessageConsumer(this);
+            subscriptionFailureId = topicFailure.addMessageConsumer(monitorThread);
 
             LOGGER.info("Monitoring scheduled with fixed delay {} {} ", delay, unit.name());
 
@@ -164,8 +166,6 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
             try {
                 if (state != null) {
                     eventRepository.create(event);
-                    // Remove the state to not include it in the underlying repository as it's just used for internal purpose
-                    heartbeatEvent.getProperties().remove(EVENT_STATE_PROPERTY);
                 } else {
                     eventRepository.update(event);
                 }
