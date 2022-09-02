@@ -17,16 +17,15 @@ package io.gravitee.plugin.entrypoint.sse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.jupiter.api.context.*;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
@@ -130,7 +129,7 @@ class SseEntrypointConnectorTest {
 
     @Test
     void shouldWriteSseEventAndCompleteAndEndWhenResponseMessagesComplete() {
-        Flowable<Message> messages = Flowable.just(new DummyMessage("1"), new DummyMessage("2"), new DummyMessage("3"));
+        Flowable<Message> messages = Flowable.just(new DefaultMessage("1"), new DefaultMessage("2"), new DefaultMessage("3"));
         when(mockResponse.messages()).thenReturn(messages);
         HttpHeaders httpHeaders = HttpHeaders.create();
         when(mockResponse.headers()).thenReturn(httpHeaders);

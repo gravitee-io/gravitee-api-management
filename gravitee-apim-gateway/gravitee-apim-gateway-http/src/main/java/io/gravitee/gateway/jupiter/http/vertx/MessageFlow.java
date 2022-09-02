@@ -24,7 +24,7 @@ import io.reactivex.FlowableTransformer;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class MessageFlowable {
+public class MessageFlow {
 
     protected Flowable<Message> messages = Flowable.empty();
 
@@ -36,9 +36,7 @@ public class MessageFlowable {
         this.messages = messages;
     }
 
-    public Completable onMessages(final FlowableTransformer<Message, Message> onMessages) {
+    public void onMessages(final FlowableTransformer<Message, Message> onMessages) {
         this.messages = this.messages.compose(onMessages);
-
-        return this.messages.ignoreElements();
     }
 }

@@ -196,6 +196,6 @@ public class DummyMessageRequest implements Request {
 
     @Override
     public Completable onMessages(FlowableTransformer<Message, Message> onMessages) {
-        return null;
+        return Completable.complete();
     }
 }

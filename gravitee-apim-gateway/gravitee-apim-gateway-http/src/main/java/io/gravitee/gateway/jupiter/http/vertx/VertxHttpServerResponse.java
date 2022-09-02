@@ -17,7 +17,6 @@ package io.gravitee.gateway.jupiter.http.vertx;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableTransformer;
@@ -31,48 +30,48 @@ import io.reactivex.Single;
  */
 public class VertxHttpServerResponse extends AbstractVertxServerResponse {
 
-    private final BodyChunksFlowable bodyChunksFlowable;
-    private final MessageFlowable httpMessages;
+    private final BufferFlow bufferFlow;
+    private MessageFlow messageFlow;
 
     public VertxHttpServerResponse(final VertxHttpServerRequest vertxHttpServerRequest) {
         super(vertxHttpServerRequest);
-        bodyChunksFlowable = new BodyChunksFlowable();
-        httpMessages = new MessageFlowable();
+        bufferFlow = new BufferFlow();
+        messageFlow = null;
     }
 
     @Override
     public Maybe<Buffer> body() {
-        return bodyChunksFlowable.body();
+        return bufferFlow.body();
     }
 
     @Override
     public Single<Buffer> bodyOrEmpty() {
-        return bodyChunksFlowable.bodyOrEmpty();
+        return bufferFlow.bodyOrEmpty();
     }
 
     @Override
     public void body(final Buffer buffer) {
-        bodyChunksFlowable.body(buffer);
+        bufferFlow.body(buffer);
     }
 
     @Override
     public Completable onBody(final MaybeTransformer<Buffer, Buffer> onBody) {
-        return bodyChunksFlowable.onBody(onBody);
+        return bufferFlow.onBody(onBody);
     }
 
     @Override
     public Flowable<Buffer> chunks() {
-        return bodyChunksFlowable.chunks();
+        return bufferFlow.chunks();
     }
 
     @Override
     public void chunks(final Flowable<Buffer> chunks) {
-        bodyChunksFlowable.chunks(chunks);
+        bufferFlow.chunks(chunks);
     }
 
     @Override
     public Completable onChunks(final FlowableTransformer<Buffer, Buffer> onChunks) {
-        return bodyChunksFlowable.onChunks(onChunks);
+        return bufferFlow.onChunks(onChunks);
     }
 
     @Override
@@ -88,7 +87,7 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
                 }
                 prepareHeaders();
 
-                if (bodyChunksFlowable.chunks != null && httpMessages != null) {
+                if (bufferFlow.chunks != null && messageFlow == null) {
                     return nativeResponse.rxSend(
                         chunks()
                             .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
@@ -108,17 +107,20 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
 
     @Override
     public void messages(final Flowable<Message> messages) {
-        httpMessages.messages(messages);
+        getMessageFlow().messages(messages);
+
+        // If message flow is set up, make sure any access to chunk buffers will not be possible anymore and returns empty.
+        chunks(Flowable.empty());
     }
 
     @Override
     public Flowable<Message> messages() {
-        return httpMessages.messages();
+        return getMessageFlow().messages();
     }
 
     @Override
     public Completable onMessages(final FlowableTransformer<Message, Message> onMessages) {
-        return httpMessages.onMessages(onMessages);
+        return Completable.fromRunnable(() -> getMessageFlow().onMessages(onMessages));
     }
 
     @Override
@@ -143,5 +145,13 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
     public Completable writeHeaders() {
         super.prepareHeaders();
         return Completable.defer(() -> nativeResponse.rxWrite(io.vertx.reactivex.core.buffer.Buffer.buffer()));
+    }
+
+    private MessageFlow getMessageFlow() {
+        if (messageFlow == null) {
+            messageFlow = new MessageFlow();
+        }
+
+        return this.messageFlow;
     }
 }

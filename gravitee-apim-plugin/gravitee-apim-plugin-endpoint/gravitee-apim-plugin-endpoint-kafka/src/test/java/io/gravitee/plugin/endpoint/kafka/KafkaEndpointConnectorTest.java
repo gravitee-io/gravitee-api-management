@@ -125,11 +125,7 @@ public class KafkaEndpointConnectorTest {
         when(request.messages())
             .thenReturn(
                 Flowable.just(
-                    DefaultMessage
-                        .builder()
-                        .headers(HttpHeaders.create().add("key", "value"))
-                        .content(Buffer.buffer("message").getBytes())
-                        .build()
+                    DefaultMessage.builder().headers(HttpHeaders.create().add("key", "value")).content(Buffer.buffer("message")).build()
                 )
             );
 
