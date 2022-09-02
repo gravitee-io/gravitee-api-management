@@ -1508,14 +1508,16 @@ jobs:
 
     e2e-test:
         executor:
-            name: ubuntu
-            class: large
+            name: node-lts
+            class: medium
         parameters:
             execution_mode:
                 type: string
             database:
                 type: string
         steps:
+            - setup_remote_docker:
+                  version: 20.10.14
             - checkout
             - attach_workspace:
                   at: .
@@ -1567,8 +1569,11 @@ jobs:
                   path: ~/test-results
     e2e-cypress:
         executor:
-            name: ubuntu
+            name: node-lts
+            class: medium
         steps:
+            - setup_remote_docker:
+                  version: 20.10.14
             - checkout
             - attach_workspace:
                   at: .
