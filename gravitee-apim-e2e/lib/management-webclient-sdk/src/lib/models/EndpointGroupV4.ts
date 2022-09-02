@@ -63,10 +63,10 @@ export interface EndpointGroupV4 {
     services?: EndpointGroupServicesV4;
     /**
      * 
-     * @type {string}
+     * @type {any}
      * @memberof EndpointGroupV4
      */
-    sharedConfiguration?: string;
+    sharedConfiguration?: any;
     /**
      * 
      * @type {string}

@@ -31,11 +31,13 @@ const apisResource = new APIsV4Api(forManagementAsApiUser());
 const apiPlansResource = new APIPlansV4Api(forManagementAsApiUser());
 
 describeIfJupiter('Gateway V4 - SSE entrypoint to mock endpoint', () => {
-  const contextPath = `${faker.random.word()}-${faker.datatype.uuid()}-${Math.floor(Date.now() / 1000)}`;
+  let contextPath: string;
   let createdApi: ApiEntityV4;
   let createdKeylessPlan: PlanEntityV4;
 
-  beforeAll(async () => {
+  const setupApi = async function (inheritConfiguration: boolean) {
+    contextPath = `${faker.random.word()}-${faker.datatype.uuid()}-${Math.floor(Date.now() / 1000)}`;
+
     // create a V4 API with an SSE entrypoint and a mock endpoint
     createdApi = await apisResource.createApi1({
       orgId,
@@ -59,11 +61,17 @@ describeIfJupiter('Gateway V4 - SSE entrypoint to mock endpoint', () => {
           {
             name: 'default',
             type: 'mock',
+            sharedConfiguration: {
+              messageInterval: 50,
+              messageContent: 'e2e test message from group configuration',
+              messageCount: 4,
+            },
             endpoints: [
               {
                 name: 'default',
                 type: 'mock',
                 weight: 1,
+                inheritConfiguration,
                 configuration: {
                   messageInterval: 100,
                   messageContent: 'e2e test message',
@@ -99,10 +107,14 @@ describeIfJupiter('Gateway V4 - SSE entrypoint to mock endpoint', () => {
       api: createdApi.id,
       action: LifecycleAction.START,
     });
-  });
+  };
 
-  describe('Gateway call', () => {
-    test('Gateway call should return backend response', async () => {
+  describe('Using Endpoint configuration', () => {
+    beforeAll(async () => {
+      await setupApi(false);
+    });
+
+    test('Gateway call should return 3 messages', async () => {
       const messages = [];
       await fetchEventSourceGateway({ contextPath: `/${contextPath}` }, (ev) => {
         if (!ev.retry) {
@@ -114,9 +126,37 @@ describeIfJupiter('Gateway V4 - SSE entrypoint to mock endpoint', () => {
       expect(messages[1]).toBe('e2e test message 1');
       expect(messages[2]).toBe('e2e test message 2');
     });
+
+    afterAll(async () => {
+      await tearDownApi();
+    });
   });
 
-  afterAll(async () => {
+  describe('Using Endpoint group configuration', () => {
+    beforeAll(async () => {
+      await setupApi(true);
+    });
+
+    test('Gateway call should return 4 messages', async () => {
+      const messages = [];
+      await fetchEventSourceGateway({ contextPath: `/${contextPath}` }, (ev) => {
+        if (!ev.retry) {
+          messages.push(ev.data);
+        }
+      });
+      expect(messages).toHaveLength(4);
+      expect(messages[0]).toBe('e2e test message from group configuration 0');
+      expect(messages[1]).toBe('e2e test message from group configuration 1');
+      expect(messages[2]).toBe('e2e test message from group configuration 2');
+      expect(messages[3]).toBe('e2e test message from group configuration 3');
+    });
+
+    afterAll(async () => {
+      await tearDownApi();
+    });
+  });
+
+  const tearDownApi = async function () {
     if (createdApi) {
       // stop API
       await apisResource.doApiLifecycleAction1({
@@ -141,5 +181,5 @@ describeIfJupiter('Gateway V4 - SSE entrypoint to mock endpoint', () => {
         api: createdApi.id,
       });
     }
-  });
+  };
 });
