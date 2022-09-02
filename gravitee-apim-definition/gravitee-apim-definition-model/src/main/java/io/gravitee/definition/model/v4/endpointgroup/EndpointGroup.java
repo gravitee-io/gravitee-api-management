@@ -17,6 +17,8 @@ package io.gravitee.definition.model.v4.endpointgroup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -24,7 +26,6 @@ import java.io.Serializable;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,10 +52,23 @@ public class EndpointGroup implements Serializable {
 
     private LoadBalancer loadBalancer;
 
+    @Schema(implementation = Object.class)
+    @JsonRawValue
     private String sharedConfiguration;
 
     @Valid
     private List<Endpoint> endpoints;
 
     private EndpointGroupServices services;
+
+    @JsonSetter
+    public void setSharedConfiguration(final JsonNode configuration) {
+        if (configuration != null) {
+            this.sharedConfiguration = configuration.toString();
+        }
+    }
+
+    public void setSharedConfiguration(final String sharedConfiguration) {
+        this.sharedConfiguration = sharedConfiguration;
+    }
 }
