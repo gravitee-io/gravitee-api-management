@@ -73,7 +73,12 @@
           size="20"
           svgIcon="gio:kubernetes"
         ></mat-icon>
-        <span *ngIf="element.workflowBadge" [ngClass]="element.workflowBadge.class" class="states__api-workflow-badge">
+        <span
+          *ngIf="element.workflowBadge"
+          [ngClass]="element.workflowBadge.class"
+          class="states__api-workflow-badge"
+          [matTooltip]="element.workflowBadge.text"
+        >
           {{ element.workflowBadge.text }}
         </span>
       </td>
