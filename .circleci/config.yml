@@ -565,7 +565,7 @@ jobs:
             jobName: test-plugin
         - restore_cache:
             keys:
-              - gravitee-api-management-v7-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+              - gravitee-api-management-v8-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
         - run:
             name: Run tests
             command: |
