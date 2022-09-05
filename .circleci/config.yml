@@ -291,6 +291,38 @@ commands:
                       }" \
                       "https://api.snyk.io/api/v1/org/${SNYK_ORG_ID}/integrations/${SNYK_INTEGRATION_ID}/import"
 
+    parse-gravitee-version:
+        description: Parse the version of the Gravitee project and export each part in a specfic environment variable.
+        parameters:
+            graviteeio_version:
+                default: ""
+                type: string
+        steps:
+            - run:
+                  name: Parse Gravitee version
+                  command: |
+                      # parse graviteeio_version
+                      export GRAVITEEIO_VERSION_WITH_QUALIFIER="<< parameters.graviteeio_version >>"                    # 3.19.0-alpha.1 or 3.19.0
+
+                      export GRAVITEEIO_VERSION=$(echo $GRAVITEEIO_VERSION_WITH_QUALIFIER | awk -F '-' '{print $1}')    # 3.19.0
+                      export GRAVITEEIO_VERSION_MAJOR=$(echo $GRAVITEEIO_VERSION | awk -F '.' '{print $1}')             # 3
+                      export GRAVITEEIO_VERSION_MINOR=$(echo $GRAVITEEIO_VERSION | awk -F '.' '{print $2}')             # 19 
+                      export GRAVITEEIO_VERSION_PATCH=$(echo $GRAVITEEIO_VERSION | awk -F '.' '{print $3}')             # 0 
+
+                      export GRAVITEEIO_QUALIFIER=$(echo $GRAVITEEIO_VERSION_WITH_QUALIFIER | awk -F '-' '{print $2}')  # alpha.1 or empty
+                      export GRAVITEEIO_QUALIFIER_NAME=$(echo $GRAVITEEIO_QUALIFIER | awk -F '.' '{print $1}')          # alpha or empty
+                      export GRAVITEEIO_QUALIFIER_VERSION=$(echo $GRAVITEEIO_QUALIFIER | awk -F '.' '{print $2}')       # 1  or empty                      
+
+                      # export environment variables in $BASH_ENV so others commands can access them
+                      echo "export GRAVITEEIO_VERSION_WITH_QUALIFIER=${GRAVITEEIO_VERSION_WITH_QUALIFIER}" >> $BASH_ENV
+                      echo "export GRAVITEEIO_VERSION=${GRAVITEEIO_VERSION}" >> $BASH_ENV
+                      echo "export GRAVITEEIO_VERSION_MAJOR=${GRAVITEEIO_VERSION_MAJOR}" >> $BASH_ENV
+                      echo "export GRAVITEEIO_VERSION_MINOR=${GRAVITEEIO_VERSION_MINOR}" >> $BASH_ENV
+                      echo "export GRAVITEEIO_VERSION_PATCH=${GRAVITEEIO_VERSION_PATCH}" >> $BASH_ENV
+                      echo "export GRAVITEEIO_QUALIFIER=${GRAVITEEIO_QUALIFIER}" >> $BASH_ENV
+                      echo "export GRAVITEEIO_QUALIFIER_NAME=${GRAVITEEIO_QUALIFIER_NAME}" >> $BASH_ENV
+                      echo "export GRAVITEEIO_QUALIFIER_VERSION=${GRAVITEEIO_QUALIFIER_VERSION}" >> $BASH_ENV
+
 parameters:
     gio_action:
         type: enum
@@ -553,38 +585,38 @@ jobs:
                       - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
 
     test-plugin:
-      executor:
-        name: ubuntu
-        class: medium
-      steps:
-        - install-jdk-17-for-machine
-        - checkout
-        - attach_workspace:
-            at: .
-        - restore-maven-job-cache:
-            jobName: test-plugin
-        - restore_cache:
-            keys:
-              - gravitee-api-management-v8-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-        - run:
-            name: Run tests
-            command: |
-              mvn -U --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dplugin-modules -Dskip.validation=true -T 2C
-        - run:
-            name: Save test results
-            command: |
-              mkdir -p ~/test-results/junit/
-              find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-            when: always
-        - notify-on-failure
-        - save-maven-job-cache:
-            jobName: test-plugin
-        - store_test_results:
-            path: ~/test-results
-        - persist_to_workspace:
-            root: .
-            paths:
-              - gravitee-apim-plugin/gravitee-apim-plugin-coverage/target/site/jacoco-aggregate/
+        executor:
+            name: ubuntu
+            class: medium
+        steps:
+            - install-jdk-17-for-machine
+            - checkout
+            - attach_workspace:
+                  at: .
+            - restore-maven-job-cache:
+                  jobName: test-plugin
+            - restore_cache:
+                  keys:
+                      - gravitee-api-management-v8-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - run:
+                  name: Run tests
+                  command: |
+                      mvn -U --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dplugin-modules -Dskip.validation=true -T 2C
+            - run:
+                  name: Save test results
+                  command: |
+                      mkdir -p ~/test-results/junit/
+                      find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+                  when: always
+            - notify-on-failure
+            - save-maven-job-cache:
+                  jobName: test-plugin
+            - store_test_results:
+                  path: ~/test-results
+            - persist_to_workspace:
+                  root: .
+                  paths:
+                      - gravitee-apim-plugin/gravitee-apim-plugin-coverage/target/site/jacoco-aggregate/
 
     test-repository:
         executor:
@@ -729,28 +761,28 @@ jobs:
                       - gravitee-apim-e2e/node_modules
 
     perf-lint-build:
-      executor:
-        name: node-lts
-        class: small
-      steps:
-        - checkout
-        - webui-install:
-            apim-ui-project: gravitee-apim-perf
-        - attach_workspace:
-            at: .
-        - run:
-            name: Check License
-            command: npm run lint:license
-            working_directory: gravitee-apim-perf
-        - run:
-            name: Run Prettier and ESLint
-            command: npm run lint
-            working_directory: gravitee-apim-perf
-        - run:
-            name: Build
-            command: npm run build
-            working_directory: gravitee-apim-perf
-        - notify-on-failure
+        executor:
+            name: node-lts
+            class: small
+        steps:
+            - checkout
+            - webui-install:
+                  apim-ui-project: gravitee-apim-perf
+            - attach_workspace:
+                  at: .
+            - run:
+                  name: Check License
+                  command: npm run lint:license
+                  working_directory: gravitee-apim-perf
+            - run:
+                  name: Run Prettier and ESLint
+                  command: npm run lint
+                  working_directory: gravitee-apim-perf
+            - run:
+                  name: Build
+                  command: npm run build
+                  working_directory: gravitee-apim-perf
+            - notify-on-failure
 
     webui-lint-test:
         parameters:
@@ -1105,11 +1137,6 @@ jobs:
                       kubectl rollout restart deployment/${K8S_NAME}-apim3-ui -n ${K8S_NAMESPACE}
                       kubectl rollout restart deployment/${K8S_NAME}-apim3-gateway -n ${K8S_NAMESPACE}
                       kubectl rollout restart deployment/${K8S_NAME}-v3-apim3-gateway -n ${K8S_NAMESPACE}
-
-                      kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-api -n ${K8S_NAMESPACE}-jdbc
-                      kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-portal -n ${K8S_NAMESPACE}-jdbc
-                      kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-ui -n ${K8S_NAMESPACE}-jdbc
-                      kubectl rollout restart deployment/${K8S_NAME}-jdbc-apim3-gateway -n ${K8S_NAMESPACE}-jdbc
             - keeper/env-export:
                   secret-url: keeper://G4hBnFUDBYb9Sw3TxhvjHg/custom_field/token
                   var-name: CIRCLE_TOKEN
@@ -1146,7 +1173,7 @@ jobs:
                                       "type": "section",
                                       "text": {
                                         "type": "mrkdwn",
-                                        "text": "🚀 Starting << pipeline.parameters.graviteeio_version >> release"
+                                        "text": "🚀 Starting APIM - << pipeline.parameters.graviteeio_version >> release"
                                       }
                                     }
                                   ]
@@ -1181,7 +1208,7 @@ jobs:
             - run:
                   name: Maven deploy to Gravitee's private Artifactory
                   command: |
-                      mvn --settings .gravitee.settings.xml -B -U -P all-modules,gio-artifactory-release,gio-release clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
+                      mvn --settings .gravitee.settings.xml -B -U -P all-modules,gio-artifactory-release,gio-release clean deploy -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress -Dmaven.javadoc.skip=true
             - save-maven-job-cache:
                   jobName: backend-build-and-publish-artifactory
 
@@ -1207,40 +1234,31 @@ jobs:
                   command: |
                       git config --global user.name "${GIT_USER_NAME}"
                       git config --global user.email "${GIT_USER_EMAIL}"
+            - parse-gravitee-version:
+                  graviteeio_version: << pipeline.parameters.graviteeio_version >>
             - run:
                   name: Git release <<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
                   command: |
-                      export MVN_PRJ_VERSION_WITH_MODIFIER="<< pipeline.parameters.graviteeio_version >>"         # 3.19.0-alpha.1 or 3.19.0
-                      
-                      export MVN_PRJ_VERSION=$(echo $MVN_PRJ_VERSION_WITH_MODIFIER | awk -F '-' '{print $1}')     # 3.19.0
-                      export MVN_PRJ_VERSION_MAJOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $1}')             # 3
-                      export MVN_PRJ_VERSION_MINOR=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $2}')             # 19 
-                      export MVN_PRJ_VERSION_PATCH=$(echo $MVN_PRJ_VERSION | awk -F '.' '{print $3}')             # 0 
-                    
-                      export MVN_PRJ_MODIFIER=$(echo $MVN_PRJ_VERSION_WITH_MODIFIER | awk -F '-' '{print $2}')    # alpha.1 or empty
-                      export MVN_PRJ_MODIFIER_NAME=$(echo $MVN_PRJ_MODIFIER | awk -F '.' '{print $1}')            # alpha or empty
-                      export MVN_PRJ_MODIFIER_VERSION=$(echo $MVN_PRJ_MODIFIER | awk -F '.' '{print $2}')         # 1  or empty                      
-
                       # Remove `-SNAPSHOT` from source
                       # Backend
                       sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
 
                       # UI
-                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${MVN_PRJ_VERSION}\"/" gravitee-apim-console-webui/build.json
-                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${MVN_PRJ_VERSION}\"/" gravitee-apim-portal-webui/build.json
+                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"/" gravitee-apim-console-webui/build.json
+                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"/" gravitee-apim-portal-webui/build.json
 
                       git add --update
-                      git commit -m "${MVN_PRJ_VERSION}"
-                      git tag ${MVN_PRJ_VERSION}
+                      git commit -m "${GRAVITEEIO_VERSION_WITH_QUALIFIER}"
+                      git tag ${GRAVITEEIO_VERSION_WITH_QUALIFIER}
 
                       # If we are on master branch, we need to create the support branch
                       if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                        export MAINTENANCE_GIT_BRANCH="${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.x"
+                        export MAINTENANCE_GIT_BRANCH="${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.x"
 
                         git checkout -b ${MAINTENANCE_GIT_BRANCH}
                         
                         # Set the version to the next support version (bump patch version + '-SNAPSHOT')        
-                        sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.1</revision>#" pom.xml
+                        sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.1</revision>#" pom.xml
                         sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
 
                         git add --update
@@ -1252,14 +1270,14 @@ jobs:
                       fi
 
                       if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                        sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_VERSION_MAJOR}.$((${MVN_PRJ_VERSION_MINOR}+1)).0</revision>#" pom.xml
+                        sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.$((${GRAVITEEIO_VERSION_MINOR}+1)).0</revision>#" pom.xml
                         sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
-                      elif [ "${MVN_PRJ_MODIFIER}" == ""]; then
-                        sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.$((${MVN_PRJ_VERSION_PATCH}+1))</revision>#" pom.xml
+                      elif [ "${GRAVITEEIO_QUALIFIER}" == ""]; then
+                        sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.$((${GRAVITEEIO_VERSION_PATCH}+1))</revision>#" pom.xml
                         sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
                       else
-                        sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_VERSION_MAJOR}.${MVN_PRJ_VERSION_MINOR}.${MVN_PRJ_VERSION_PATCH}</revision>#" pom.xml
-                        sed -i "s#<sha1>.*</sha1>#<sha1>${MVN_PRJ_MODIFIER_NAME}.$((${MVN_PRJ_MODIFIER_VERSION}+1))</sha1>#" pom.xml
+                        sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.${GRAVITEEIO_VERSION_PATCH}</revision>#" pom.xml
+                        sed -i "s#<sha1>.*</sha1>#<sha1>-${GRAVITEEIO_QUALIFIER_NAME}.$((${GRAVITEEIO_QUALIFIER_VERSION}+1))</sha1>#" pom.xml
                         sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
                       fi;
 
@@ -1282,8 +1300,6 @@ jobs:
                 type: string
         docker:
             - image: cimg/base:stable
-        environment:
-            GRAVITEEIO_VERSION: << parameters.graviteeio_version >>
         steps:
             - setup_remote_docker
             - checkout
@@ -1293,35 +1309,40 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/password
                   var-name: DOCKERHUB_BOT_USER_TOKEN
-            - run:
-                  name: "Parse GRAVITEEIO_VERSION to extract major, minor and patch version"
-                  command: |
-                      export GRAVITEEIO_VERSION_MAJOR=$(echo "${GRAVITEEIO_VERSION}" | awk -F '.' '{print $1}')
-                      echo "export GRAVITEEIO_VERSION_MAJOR=${GRAVITEEIO_VERSION_MAJOR}" >> $BASH_ENV
-
-                      export GRAVITEEIO_VERSION_MINOR=$(echo "${GRAVITEEIO_VERSION}" | awk -F '.' '{print $2}')
-                      echo "export GRAVITEEIO_VERSION_MINOR=${GRAVITEEIO_VERSION_MINOR}" >> $BASH_ENV
-
-                      export GRAVITEEIO_VERSION_PATCH=$(echo "${GRAVITEEIO_VERSION}" | awk -F '.' '{print $3}')
-                      echo "export GRAVITEEIO_VERSION_PATCH=${GRAVITEEIO_VERSION_PATCH}" >> $BASH_ENV
+            - parse-gravitee-version:
+                  graviteeio_version: << pipeline.parameters.graviteeio_version >>
             - run:
                   name: "Build & Publish Gravitee.io APIM Docker images"
                   command: |
                       export DOCKER_TAG_SUFFIX=""
-                      export DOCKER_BUILD_ARGS="--build-arg GRAVITEEIO_VERSION=${GRAVITEEIO_VERSION} --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions"
+                      export DOCKER_BUILD_ARGS="--build-arg GRAVITEEIO_VERSION=${GRAVITEEIO_VERSION_WITH_QUALIFIER} --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions"
 
-                      # always create x.y, x.y.z, x.y-ee, x.y.z-ee tags
-                      export DOCKER_BUILD_GATEWAY_TAG="       -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION}        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION}-ee"
-                      export DOCKER_BUILD_MANAGEMENT_API_TAG="-t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR} -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION} -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION}-ee"
-                      export DOCKER_BUILD_MANAGEMENT_UI_TAG=" -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION}  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION}-ee"
-                      export DOCKER_BUILD_PORTAL_UI_TAG="     -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION}      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION}-ee"
+                      # always create a tag with the full version. If the qualifier is empty then GRAVITEEIO_VERSION will be the same as GRAVITEEIO_VERSION_WITH_QUALIFIER
+                      export DOCKER_BUILD_GATEWAY_TAG="       -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_WITH_QUALIFIER}"
+                      export DOCKER_BUILD_MANAGEMENT_API_TAG="-t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_WITH_QUALIFIER}"
+                      export DOCKER_BUILD_MANAGEMENT_UI_TAG=" -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_WITH_QUALIFIER}"
+                      export DOCKER_BUILD_PORTAL_UI_TAG="     -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_WITH_QUALIFIER}"
 
-                      # only create x, x-ee and latest tags if it's the latest version
-                      if [ "<< parameters.docker_tag_as_latest >>" == "true" ]; then
-                        DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}           -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}-ee           -t graviteeio/apim-gateway:latest"
-                        DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}    -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}-ee    -t graviteeio/apim-management-api:latest"
-                        DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}     -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}-ee     -t graviteeio/apim-management-ui:latest"
-                        DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}         -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}-ee         -t graviteeio/apim-portal-ui:latest"
+                      # create x.y.z-qualifer tags only if there is a qualifier
+                      if [ "${GRAVITEEIO_QUALIFIER}" != "" ]; then
+                        DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION}-${GRAVITEEIO_QUALIFIER_NAME}"
+                        DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION}-${GRAVITEEIO_QUALIFIER_NAME}""
+                        DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION}-${GRAVITEEIO_QUALIFIER_NAME}""
+                        DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION}-${GRAVITEEIO_QUALIFIER_NAME}""
+                      else
+                        # create x.y, x.y-ee, x.y.z-ee tags only if there is no qualifier
+                        DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION}-ee"
+                        DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR} -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION}-ee"
+                        DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION}-ee"
+                        DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION}-ee"
+
+                        #  create x, x-ee and latest tags only if it's the latest version and there is no qualifier
+                        if [ "<< parameters.docker_tag_as_latest >>" == "true" ]; then
+                          DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}           -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}-ee           -t graviteeio/apim-gateway:latest"
+                          DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}    -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}-ee    -t graviteeio/apim-management-api:latest"
+                          DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}     -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}-ee     -t graviteeio/apim-management-ui:latest"
+                          DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}         -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}-ee         -t graviteeio/apim-portal-ui:latest"
+                        fi
                       fi
 
                       docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_GATEWAY_TAG}         -f ./gravitee-apim-gateway/docker/Dockerfile-from-download ./gravitee-apim-gateway/docker
@@ -1770,15 +1791,15 @@ workflows:
                   requires:
                       - test
             - test-plugin:
-                context: cicd-orchestrator
-                requires:
-                  - build
+                  context: cicd-orchestrator
+                  requires:
+                      - build
             - sonarcloud-analysis:
-                name: Sonar - gravitee-apim-plugin
-                working_directory: gravitee-apim-plugin
-                context: cicd-orchestrator
-                requires:
-                  - test-plugin
+                  name: Sonar - gravitee-apim-plugin
+                  working_directory: gravitee-apim-plugin
+                  context: cicd-orchestrator
+                  requires:
+                      - test-plugin
             - test-repository:
                   context: cicd-orchestrator
                   requires:
@@ -1966,10 +1987,10 @@ workflows:
                               - /^\d+\.\d+\.x$/
 
             - perf-lint-build:
-                name: Lint & Build APIM perf
-                context: cicd-orchestrator
-                requires:
-                  - setup
+                  name: Lint & Build APIM perf
+                  context: cicd-orchestrator
+                  requires:
+                      - setup
 
     build_rpm_&_docker_images:
         when:
