@@ -19,12 +19,11 @@ import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
 import io.reactivex.*;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Function;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientOptions;
@@ -75,16 +74,16 @@ public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
     }
 
     @Override
-    public boolean matches(final MessageExecutionContext ctx) {
+    public boolean matches(final ExecutionContext ctx) {
         // The context should contain a "subscription_type" internal attribute with the "webhook" value
-        return TYPE.equalsIgnoreCase(ctx.getInternalAttribute(ExecutionContext.ATTR_SUBSCRIPTION_TYPE));
+        return TYPE.equalsIgnoreCase(ctx.getInternalAttribute(ContextAttributes.ATTR_SUBSCRIPTION_TYPE));
     }
 
     private HttpClient client;
     private String requestUri;
 
     @Override
-    public Completable handleRequest(final MessageExecutionContext ctx) {
+    public Completable handleRequest(final ExecutionContext ctx) {
         io.vertx.reactivex.core.Vertx vertx = io.vertx.reactivex.core.Vertx.newInstance(ctx.getComponent(Vertx.class));
 
         try {
@@ -132,7 +131,7 @@ public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
     private static final char URI_QUERY_DELIMITER_CHAR = '?';
 
     @Override
-    public Completable handleResponse(final MessageExecutionContext ctx) {
+    public Completable handleResponse(final ExecutionContext ctx) {
         return Completable.defer(
             () ->
                 ctx

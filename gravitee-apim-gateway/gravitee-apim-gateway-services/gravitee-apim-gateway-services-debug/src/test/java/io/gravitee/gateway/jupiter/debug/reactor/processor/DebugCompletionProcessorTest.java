@@ -36,7 +36,7 @@ import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyRequestStep;
-import io.gravitee.gateway.jupiter.debug.reactor.context.DebugRequestExecutionContext;
+import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
@@ -72,7 +72,7 @@ class DebugCompletionProcessorTest {
     private HttpHeaders spyResponseHeaders;
     private DebugApi debugApi;
     private CustomComponentProvider componentProvider;
-    private DebugRequestExecutionContext debugCtx;
+    private DebugExecutionContext debugCtx;
 
     @Mock
     private EventRepository eventRepository;
@@ -92,7 +92,7 @@ class DebugCompletionProcessorTest {
         this.debugApi = new DebugApi("event-id", debugApi);
         componentProvider = new CustomComponentProvider();
         componentProvider.add(Api.class, this.debugApi);
-        debugCtx = new DebugRequestExecutionContext(mockRequest, mockResponse);
+        debugCtx = new DebugExecutionContext(mockRequest, mockResponse);
         debugCtx.componentProvider(componentProvider);
 
         debugCompletionProcessor = new DebugCompletionProcessor(eventRepository, new ObjectMapper());

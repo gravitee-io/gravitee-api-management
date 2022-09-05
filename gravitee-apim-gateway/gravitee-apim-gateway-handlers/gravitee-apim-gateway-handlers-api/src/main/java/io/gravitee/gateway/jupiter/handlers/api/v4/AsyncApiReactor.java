@@ -17,7 +17,7 @@ package io.gravitee.gateway.jupiter.handlers.api.v4;
 
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
-import static io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver.INTERNAL_ATTR_ENTRYPOINT_CONNECTOR;
+import static io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static io.reactivex.Completable.defer;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
@@ -29,10 +29,10 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
-import io.gravitee.gateway.jupiter.core.context.MutableMessageExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.v4.entrypoint.HttpEntrypointConnectorResolver;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain;
@@ -55,9 +55,7 @@ import org.slf4j.LoggerFactory;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AsyncApiReactor
-    extends AbstractLifecycleComponent<ReactorHandler>
-    implements ApiReactor<io.gravitee.definition.model.v4.Api, MutableMessageExecutionContext> {
+public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncApiReactor.class);
     private static final String ATTR_INVOKER_SKIP = "invoker.skip";
@@ -93,7 +91,7 @@ public class AsyncApiReactor
     }
 
     @Override
-    public Completable handle(final MutableMessageExecutionContext ctx) {
+    public Completable handle(final MutableExecutionContext ctx) {
         ctx.componentProvider(componentProvider);
 
         // Prepare attributes and metrics before handling the request.
@@ -102,17 +100,17 @@ public class AsyncApiReactor
         return handleRequest(ctx);
     }
 
-    private void prepareContextAttributes(HttpExecutionContext ctx) {
-        ctx.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, ctx.request().contextPath());
-        ctx.setAttribute(ExecutionContext.ATTR_API, api.getId());
-        ctx.setAttribute(ExecutionContext.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
-        ctx.setAttribute(ExecutionContext.ATTR_INVOKER, defaultInvoker);
-        ctx.setAttribute(ExecutionContext.ATTR_ORGANIZATION, api.getOrganizationId());
-        ctx.setAttribute(ExecutionContext.ATTR_ENVIRONMENT, api.getEnvironmentId());
-        ctx.setInternalAttribute(ExecutionContext.ATTR_API, api);
+    private void prepareContextAttributes(ExecutionContext ctx) {
+        ctx.setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, ctx.request().contextPath());
+        ctx.setAttribute(ContextAttributes.ATTR_API, api.getId());
+        ctx.setAttribute(ContextAttributes.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
+        ctx.setAttribute(ContextAttributes.ATTR_INVOKER, defaultInvoker);
+        ctx.setAttribute(ContextAttributes.ATTR_ORGANIZATION, api.getOrganizationId());
+        ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
+        ctx.setInternalAttribute(ContextAttributes.ATTR_API, api);
     }
 
-    private Completable handleRequest(final MutableMessageExecutionContext ctx) {
+    private Completable handleRequest(final ExecutionContext ctx) {
         EntrypointAsyncConnector entrypointConnector = asyncEntrypointResolver.resolve(ctx);
         if (entrypointConnector == null) {
             return Completable.defer(
@@ -127,7 +125,7 @@ public class AsyncApiReactor
         }
 
         // Add the resolved entrypoint connector into the internal attributes, so it can be used later (ex: for endpoint connector resolution).
-        ctx.setInternalAttribute(INTERNAL_ATTR_ENTRYPOINT_CONNECTOR, entrypointConnector);
+        ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, entrypointConnector);
 
         return platformFlowChain
             .execute(ctx, REQUEST)
@@ -142,7 +140,7 @@ public class AsyncApiReactor
             .onErrorResumeNext(t -> handleUnexpectedError(ctx, t));
     }
 
-    private Completable invokeBackend(final MutableMessageExecutionContext ctx) {
+    private Completable invokeBackend(final ExecutionContext ctx) {
         return defer(
                 () -> {
                     if (!Objects.equals(false, ctx.<Boolean>getAttribute(ATTR_INVOKER_SKIP))) {
@@ -160,8 +158,8 @@ public class AsyncApiReactor
             .doOnTerminate(() -> setApiResponseTimeMetric(ctx));
     }
 
-    private Invoker getInvoker(MutableMessageExecutionContext ctx) {
-        final Object invoker = ctx.getAttribute(ExecutionContext.ATTR_INVOKER);
+    private Invoker getInvoker(ExecutionContext ctx) {
+        final Object invoker = ctx.getAttribute(ContextAttributes.ATTR_INVOKER);
 
         if (invoker == null) {
             return null;
@@ -174,7 +172,7 @@ public class AsyncApiReactor
         return (Invoker) invoker;
     }
 
-    private Completable handleUnexpectedError(final HttpExecutionContext ctx, final Throwable throwable) {
+    private Completable handleUnexpectedError(final ExecutionContext ctx, final Throwable throwable) {
         return Completable.fromRunnable(
             () -> {
                 log.error("Unexpected error while handling request", throwable);
@@ -186,7 +184,7 @@ public class AsyncApiReactor
         );
     }
 
-    private void setApiResponseTimeMetric(HttpExecutionContext ctx) {
+    private void setApiResponseTimeMetric(ExecutionContext ctx) {
         if (ctx.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
             ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
         }
@@ -217,7 +215,7 @@ public class AsyncApiReactor
         // Start resources before
         policyManager.start();
         // Create securityChain once policy manager has been started.
-        this.securityChain = new SecurityChain(api.getDefinition(), policyManager, ExecutionPhase.MESSAGE_REQUEST);
+        this.securityChain = new SecurityChain(api.getDefinition(), policyManager, ExecutionPhase.REQUEST);
 
         long endTime = System.currentTimeMillis(); // Get the end Time
         log.debug("API reactor started in {} ms", (endTime - startTime));

@@ -16,8 +16,7 @@
 package io.gravitee.gateway.jupiter.reactor.processor.notfound;
 
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.common.Request;
@@ -46,7 +45,7 @@ public class NotFoundReporterProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final HttpExecutionContext ctx) {
+    public Completable execute(final MutableExecutionContext ctx) {
         return Completable
             .defer(
                 () -> {
@@ -57,8 +56,7 @@ public class NotFoundReporterProcessor implements Processor {
 
                     if (logEnabled) {
                         Buffer payload = Buffer.buffer();
-                        RequestExecutionContext requestExecutionContext = (RequestExecutionContext) ctx;
-                        return requestExecutionContext
+                        return ctx
                             .request()
                             .bodyOrEmpty()
                             .doOnSuccess(

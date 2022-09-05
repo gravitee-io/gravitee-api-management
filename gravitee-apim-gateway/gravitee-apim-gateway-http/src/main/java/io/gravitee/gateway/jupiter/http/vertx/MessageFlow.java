@@ -13,14 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.core.context;
+package io.gravitee.gateway.jupiter.http.vertx;
 
-import io.gravitee.gateway.jupiter.api.context.MessageResponse;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.FlowableTransformer;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MutableMessageResponse extends MessageResponse, MutableHttpResponse {}
+public class MessageFlow {
+
+    protected Flowable<Message> messages = Flowable.empty();
+
+    public Flowable<Message> messages() {
+        return messages;
+    }
+
+    public void messages(final Flowable<Message> messages) {
+        this.messages = messages;
+    }
+
+    public void onMessages(final FlowableTransformer<Message, Message> onMessages) {
+        this.messages = this.messages.compose(onMessages);
+    }
+}

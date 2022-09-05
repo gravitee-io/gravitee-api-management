@@ -16,7 +16,7 @@
 package io.gravitee.gateway.jupiter.flow;
 
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.reactivex.Flowable;
 
@@ -32,7 +32,7 @@ public abstract class AbstractFlowResolver implements FlowResolver {
         this.filter = filter;
     }
 
-    public Flowable<Flow> resolve(HttpExecutionContext ctx) {
+    public Flowable<Flow> resolve(GenericExecutionContext ctx) {
         return provideFlows(ctx).flatMapMaybe(flow -> filter.filter(ctx, flow));
     }
 }

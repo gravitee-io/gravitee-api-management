@@ -31,8 +31,7 @@ public class LoggingContext implements ConditionSupplier {
 
     public static final String LOGGING_ATTRIBUTE = ExecutionContext.ATTR_PREFIX + "logging";
 
-    public static final String LOGGING_CONTEXT_ATTRIBUTE =
-        io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_INTERNAL_PREFIX + "logging.context";
+    public static final String ATTR_INTERNAL_LOGGING_CONTEXT = "logging.context";
 
     private final Logging logging;
     private int maxSizeLogMessage = -1;

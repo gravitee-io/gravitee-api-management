@@ -16,9 +16,8 @@
 package io.gravitee.gateway.jupiter.reactor;
 
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.reactivex.Completable;
 
@@ -26,12 +25,12 @@ import io.reactivex.Completable;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiReactor<T, U extends HttpExecutionContext> extends ReactorHandler {
+public interface ApiReactor extends ReactorHandler {
     ApiType apiType();
 
-    Completable handle(final U ctx);
+    Completable handle(final MutableExecutionContext ctx);
 
-    default void handle(ExecutionContext context, Handler<ExecutionContext> endHandler) {
+    default void handle(io.gravitee.gateway.api.ExecutionContext context, Handler<io.gravitee.gateway.api.ExecutionContext> endHandler) {
         throw new RuntimeException(new IllegalAccessException("Handle method can't be called on ApiReactor"));
     }
 }

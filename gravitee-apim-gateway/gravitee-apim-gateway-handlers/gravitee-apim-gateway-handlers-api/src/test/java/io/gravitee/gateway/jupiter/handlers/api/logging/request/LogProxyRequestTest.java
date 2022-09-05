@@ -26,7 +26,6 @@ import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
-import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.Flowable;
 import io.reactivex.subscribers.TestSubscriber;
@@ -54,7 +53,7 @@ class LogProxyRequestTest {
     protected LoggingContext loggingContext;
 
     @Mock
-    protected Request request;
+    protected HttpRequest request;
 
     @Mock
     private Metrics metrics;

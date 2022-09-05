@@ -24,7 +24,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.ws.WebSocket;
-import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.reporter.api.http.Metrics;
 import javax.net.ssl.SSLSession;
 
@@ -34,13 +34,13 @@ import javax.net.ssl.SSLSession;
  */
 public class RequestAdapter implements io.gravitee.gateway.api.Request {
 
-    private final Request request;
+    private final HttpRequest request;
 
     private Runnable onResumeHandler;
     private Handler<Buffer> bodyHandler;
     private Handler<Void> endHandler;
 
-    public RequestAdapter(Request request) {
+    public RequestAdapter(HttpRequest request) {
         this.request = request;
     }
 

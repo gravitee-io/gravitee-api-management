@@ -23,8 +23,8 @@ import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Flowable;
 import java.util.Arrays;
@@ -301,13 +301,13 @@ public abstract class BestMatchFlowBaseTest {
         }
 
         @Override
-        public Flowable<Flow> provideFlows(HttpExecutionContext ctx) {
+        public Flowable<Flow> provideFlows(GenericExecutionContext ctx) {
             return Flowable.fromIterable(flows);
         }
 
         @Override
-        public Flowable<Flow> resolve(HttpExecutionContext ctx) {
-            return Flowable.fromIterable(super.resolve(ExecutionContextAdapter.create((RequestExecutionContext) ctx)));
+        public Flowable<Flow> resolve(GenericExecutionContext ctx) {
+            return Flowable.fromIterable(super.resolve(ExecutionContextAdapter.create((HttpExecutionContext) ctx)));
         }
     }
 }

@@ -20,7 +20,7 @@ import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
 import io.gravitee.gateway.jupiter.debug.hook.AbstractDebugHook;
-import io.gravitee.gateway.jupiter.debug.reactor.context.DebugRequestExecutionContext;
+import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
 import io.reactivex.Completable;
 import io.reactivex.annotations.Nullable;
 
@@ -36,16 +36,12 @@ public class DebugInvokerHook extends AbstractDebugHook implements InvokerHook {
     }
 
     @Override
-    protected Completable pre(final String id, final DebugRequestExecutionContext ctx, final ExecutionPhase executionPhase) {
+    protected Completable pre(final String id, final DebugExecutionContext ctx, final ExecutionPhase executionPhase) {
         return Completable.complete();
     }
 
     @Override
-    protected Completable post(
-        final String id,
-        final DebugRequestExecutionContext debugCtx,
-        @Nullable final ExecutionPhase executionPhase
-    ) {
+    protected Completable post(final String id, final DebugExecutionContext debugCtx, @Nullable final ExecutionPhase executionPhase) {
         return debugCtx
             .response()
             .bodyOrEmpty()
@@ -63,7 +59,7 @@ public class DebugInvokerHook extends AbstractDebugHook implements InvokerHook {
     @Override
     protected Completable error(
         final String id,
-        final DebugRequestExecutionContext debugCtx,
+        final DebugExecutionContext debugCtx,
         final ExecutionPhase executionPhase,
         final Throwable throwable
     ) {
@@ -72,14 +68,14 @@ public class DebugInvokerHook extends AbstractDebugHook implements InvokerHook {
     }
 
     @Override
-    protected Completable interrupt(final String id, final DebugRequestExecutionContext debugCtx, final ExecutionPhase executionPhase) {
+    protected Completable interrupt(final String id, final DebugExecutionContext debugCtx, final ExecutionPhase executionPhase) {
         return Completable.complete();
     }
 
     @Override
     protected Completable interruptWith(
         final String id,
-        final DebugRequestExecutionContext debugCtx,
+        final DebugExecutionContext debugCtx,
         final ExecutionPhase executionPhase,
         final ExecutionFailure failure
     ) {

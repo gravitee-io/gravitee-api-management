@@ -18,8 +18,7 @@ package io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping;
 import static java.util.Comparator.comparing;
 
 import io.gravitee.definition.model.Api;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.reactivex.Completable;
 import java.util.Map;
@@ -46,7 +45,7 @@ public class PathMappingProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final HttpExecutionContext ctx) {
+    public Completable execute(final MutableExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
                 Api api = ctx.getComponent(Api.class);

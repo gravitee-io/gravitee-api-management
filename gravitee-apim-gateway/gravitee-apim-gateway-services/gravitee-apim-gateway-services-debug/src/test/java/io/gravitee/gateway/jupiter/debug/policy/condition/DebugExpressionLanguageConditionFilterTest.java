@@ -23,14 +23,13 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyRequestStep;
-import io.gravitee.gateway.jupiter.debug.reactor.context.DebugRequestExecutionContext;
+import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
 import io.gravitee.gateway.jupiter.policy.ConditionalPolicy;
 import io.reactivex.Maybe;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -43,7 +42,7 @@ class DebugExpressionLanguageConditionFilterTest {
     private static final String EXPRESSION = "test";
 
     @Mock
-    private DebugRequestExecutionContext debugCtx;
+    private DebugExecutionContext debugCtx;
 
     @Mock
     private TemplateEngine templateEngine;

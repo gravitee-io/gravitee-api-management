@@ -20,7 +20,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.SimpleReadWriteStream;
-import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.jupiter.policy.adapter.context.RequestAdapter;
 import io.reactivex.CompletableEmitter;
@@ -43,7 +43,7 @@ class ReadWriteStreamAdapter extends SimpleReadWriteStream<Buffer> {
      */
     public ReadWriteStreamAdapter(ExecutionContextAdapter ctx, CompletableEmitter nextEmitter) {
         final RequestAdapter requestAdapter = (RequestAdapter) ctx.request();
-        final Request delegateRequest = ctx.getDelegate().request();
+        final HttpRequest delegateRequest = ctx.getDelegate().request();
 
         requestAdapter.onResume(
             () -> {

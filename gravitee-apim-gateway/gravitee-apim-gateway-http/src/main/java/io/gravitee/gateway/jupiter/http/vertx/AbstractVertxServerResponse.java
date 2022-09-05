@@ -19,14 +19,14 @@ import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.jupiter.core.context.MutableHttpResponse;
+import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.vertx.reactivex.core.http.HttpServerResponse;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-class AbstractVertxServerResponse implements MutableHttpResponse {
+abstract class AbstractVertxServerResponse implements MutableResponse {
 
     protected final AbstractVertxServerRequest serverRequest;
     protected final HttpHeaders trailers;

@@ -20,7 +20,7 @@ import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.hook.PolicyHook;
 import io.gravitee.gateway.jupiter.api.hook.SecurityPlanHook;
 import io.gravitee.gateway.jupiter.debug.hook.AbstractDebugHook;
-import io.gravitee.gateway.jupiter.debug.reactor.context.DebugRequestExecutionContext;
+import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
 import io.reactivex.Completable;
 
 /**
@@ -35,19 +35,19 @@ public class DebugPolicyHook extends AbstractDebugHook implements PolicyHook, Se
     }
 
     @Override
-    protected Completable pre(final String id, final DebugRequestExecutionContext debugCtx, final ExecutionPhase executionPhase) {
+    protected Completable pre(final String id, final DebugExecutionContext debugCtx, final ExecutionPhase executionPhase) {
         return debugCtx.prePolicyExecution(id, executionPhase);
     }
 
     @Override
-    protected Completable post(final String id, final DebugRequestExecutionContext debugCtx, final ExecutionPhase executionPhase) {
+    protected Completable post(final String id, final DebugExecutionContext debugCtx, final ExecutionPhase executionPhase) {
         return debugCtx.postPolicyExecution();
     }
 
     @Override
     protected Completable error(
         final String id,
-        final DebugRequestExecutionContext debugCtx,
+        final DebugExecutionContext debugCtx,
         final ExecutionPhase executionPhase,
         final Throwable throwable
     ) {
@@ -55,14 +55,14 @@ public class DebugPolicyHook extends AbstractDebugHook implements PolicyHook, Se
     }
 
     @Override
-    protected Completable interrupt(final String id, final DebugRequestExecutionContext debugCtx, final ExecutionPhase executionPhase) {
+    protected Completable interrupt(final String id, final DebugExecutionContext debugCtx, final ExecutionPhase executionPhase) {
         return debugCtx.postPolicyExecution();
     }
 
     @Override
     protected Completable interruptWith(
         final String id,
-        final DebugRequestExecutionContext debugCtx,
+        final DebugExecutionContext debugCtx,
         final ExecutionPhase executionPhase,
         final ExecutionFailure failure
     ) {

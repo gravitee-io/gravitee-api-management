@@ -29,7 +29,7 @@ import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.http.vertx.TimeoutServerResponse;
-import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
@@ -178,7 +178,7 @@ class DefaultHttpRequestDispatcherTest {
 
         this.prepareJupiterMock(handlerEntrypoint, apiReactor);
 
-        when(apiReactor.handle(any(MutableRequestExecutionContext.class))).thenReturn(Completable.complete());
+        when(apiReactor.handle(any(MutableExecutionContext.class))).thenReturn(Completable.complete());
 
         final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
 
@@ -188,7 +188,7 @@ class DefaultHttpRequestDispatcherTest {
     @Test
     void shouldSetMetricsWhenHandlingJupiterRequest() {
         final ApiReactor apiReactor = mock(ApiReactor.class, withSettings().extraInterfaces(ReactorHandler.class));
-        final ArgumentCaptor<MutableRequestExecutionContext> ctxCaptor = ArgumentCaptor.forClass(MutableRequestExecutionContext.class);
+        final ArgumentCaptor<MutableExecutionContext> ctxCaptor = ArgumentCaptor.forClass(MutableExecutionContext.class);
 
         this.prepareJupiterMock(handlerEntrypoint, apiReactor);
 
@@ -197,7 +197,7 @@ class DefaultHttpRequestDispatcherTest {
         when(apiReactor.handle(ctxCaptor.capture())).thenReturn(Completable.complete());
         cut.dispatch(rxRequest).test().assertResult();
 
-        final MutableRequestExecutionContext ctxCaptorValue = ctxCaptor.getValue();
+        final MutableExecutionContext ctxCaptorValue = ctxCaptor.getValue();
         assertThat(ctxCaptorValue.request().metrics().getTenant()).isEqualTo("TENANT");
         assertThat(ctxCaptorValue.request().metrics().getZone()).isEqualTo("ZONE");
     }
@@ -208,8 +208,7 @@ class DefaultHttpRequestDispatcherTest {
 
         this.prepareJupiterMock(handlerEntrypoint, apiReactor);
 
-        when(apiReactor.handle(any(MutableRequestExecutionContext.class)))
-            .thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
+        when(apiReactor.handle(any(MutableExecutionContext.class))).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 
         final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
 
@@ -363,20 +362,19 @@ class DefaultHttpRequestDispatcherTest {
         when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
         when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(null);
 
-        final ArgumentCaptor<MutableRequestExecutionContext> ctxCaptor = ArgumentCaptor.forClass(MutableRequestExecutionContext.class);
+        final ArgumentCaptor<MutableExecutionContext> ctxCaptor = ArgumentCaptor.forClass(MutableExecutionContext.class);
 
         when(gatewayConfiguration.tenant()).thenReturn(Optional.of("TENANT"));
         when(gatewayConfiguration.zone()).thenReturn(Optional.of("ZONE"));
         when(processorChain.execute(ctxCaptor.capture(), any())).thenCallRealMethod();
         cut.dispatch(rxRequest).test().assertResult();
 
-        final MutableRequestExecutionContext ctxCaptorValue = ctxCaptor.getValue();
+        final MutableExecutionContext ctxCaptorValue = ctxCaptor.getValue();
         assertThat(ctxCaptorValue.request().metrics().getTenant()).isEqualTo("TENANT");
         assertThat(ctxCaptorValue.request().metrics().getZone()).isEqualTo("ZONE");
     }
 
     private void prepareJupiterMock(HttpAcceptor handlerEntrypoint, ApiReactor apiReactor) {
-        when(apiReactor.apiType()).thenReturn(ApiType.SYNC);
         when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(handlerEntrypoint);
         when(handlerEntrypoint.path()).thenReturn(PATH);
         when(handlerEntrypoint.reactor()).thenReturn(apiReactor);

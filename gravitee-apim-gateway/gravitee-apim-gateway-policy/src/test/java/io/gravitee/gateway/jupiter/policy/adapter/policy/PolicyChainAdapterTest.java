@@ -15,13 +15,14 @@
  */
 package io.gravitee.gateway.jupiter.policy.adapter.policy;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
 import io.gravitee.policy.api.PolicyResult;
 import io.reactivex.Completable;
 import io.reactivex.CompletableEmitter;
@@ -35,7 +36,7 @@ class PolicyChainAdapterTest {
 
     @Test
     public void shouldCompleteWhenDoNext() {
-        final RequestExecutionContext ctx = mock(RequestExecutionContext.class);
+        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
         final CompletableEmitter emitter = mock(CompletableEmitter.class);
 
         final PolicyChainAdapter cut = new PolicyChainAdapter(ctx, emitter);
@@ -47,7 +48,7 @@ class PolicyChainAdapterTest {
 
     @Test
     public void shouldInterruptAndCompleteWhenFailWith() {
-        final RequestExecutionContext ctx = new DefaultRequestExecutionContext(null, null);
+        final HttpExecutionContext ctx = new DefaultExecutionContext(null, null);
         final PolicyResult policyResult = PolicyResult.failure("key", 500, "error");
 
         Completable
@@ -63,7 +64,7 @@ class PolicyChainAdapterTest {
 
     @Test
     public void shouldInterruptAndCompleteWhenStreamFailWith() {
-        final RequestExecutionContext ctx = new DefaultRequestExecutionContext(null, null);
+        final HttpExecutionContext ctx = new DefaultExecutionContext(null, null);
         final PolicyResult policyResult = PolicyResult.failure("key", 500, "error");
 
         Completable

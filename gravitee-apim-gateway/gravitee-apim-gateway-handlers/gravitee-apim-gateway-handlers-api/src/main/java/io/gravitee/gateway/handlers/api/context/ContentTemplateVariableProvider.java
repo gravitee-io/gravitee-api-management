@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.context;
 
-import static io.gravitee.gateway.jupiter.api.context.RequestExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
-import static io.gravitee.gateway.jupiter.api.context.RequestExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
+import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
+import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
 import static io.reactivex.Single.defer;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -55,21 +55,21 @@ public class ContentTemplateVariableProvider implements TemplateVariableProvider
 
     @Override
     public void provide(TemplateContext templateContext) {
-        // Use provide(RequestExecutionContext) instead.
+        // Use provide(HttpExecutionContext) instead.
     }
 
     @Override
     public <T extends HttpExecutionContext> void provide(T ctx) {
-        provide2((RequestExecutionContext) ctx);
+        provide2(ctx);
     }
 
-    public void provide2(RequestExecutionContext ctx) {
+    public void provide2(HttpExecutionContext ctx) {
         final TemplateEngine templateEngine = ctx.getTemplateEngine();
         final TemplateContext templateContext = templateEngine.getTemplateContext();
         final EvaluableRequest evaluableRequest = (EvaluableRequest) templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST);
         final EvaluableResponse evaluableResponse = (EvaluableResponse) templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE);
-        final Request request = ctx.request();
-        final Response response = ctx.response();
+        final HttpRequest request = ctx.request();
+        final HttpResponse response = ctx.response();
 
         if (evaluableRequest != null) {
             templateContext.setDeferredVariable(

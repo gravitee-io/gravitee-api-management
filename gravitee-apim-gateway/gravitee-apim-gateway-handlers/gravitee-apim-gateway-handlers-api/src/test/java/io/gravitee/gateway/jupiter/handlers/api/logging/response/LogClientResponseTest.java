@@ -25,7 +25,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.api.context.HttpResponse;
 import io.reactivex.Flowable;
 import io.reactivex.subscribers.TestSubscriber;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
@@ -51,7 +51,7 @@ class LogClientResponseTest {
     protected LoggingContext loggingContext;
 
     @Mock
-    protected Response response;
+    protected HttpResponse response;
 
     @BeforeEach
     void init() {

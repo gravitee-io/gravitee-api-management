@@ -16,9 +16,9 @@
 package io.gravitee.gateway.jupiter.core.processor;
 
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.Hookable;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.hook.HookHelper;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
@@ -51,13 +51,13 @@ public class ProcessorChain implements Hookable<ProcessorHook> {
         processorHooks.addAll(hooks);
     }
 
-    public Completable execute(final HttpExecutionContext ctx, final ExecutionPhase phase) {
+    public Completable execute(final MutableExecutionContext ctx, final ExecutionPhase phase) {
         return processors
             .doOnSubscribe(subscription -> log.debug("Executing processor chain {}", id))
             .flatMapCompletable(processor -> executeNext(ctx, processor, phase), false, 1);
     }
 
-    private Completable executeNext(final HttpExecutionContext ctx, final Processor processor, final ExecutionPhase phase) {
+    private Completable executeNext(final MutableExecutionContext ctx, final Processor processor, final ExecutionPhase phase) {
         log.debug("Executing processor {}", processor.getId());
         return HookHelper.hook(() -> processor.execute(ctx), processor.getId(), processorHooks, ctx, phase);
     }

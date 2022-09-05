@@ -16,8 +16,7 @@
 package io.gravitee.gateway.jupiter.reactor.processor.transaction;
 
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.core.context.MutableHttpRequest;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.reactivex.Completable;
 
@@ -52,7 +51,7 @@ public class TransactionProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(final HttpExecutionContext ctx) {
+    public Completable execute(final MutableExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
                 final String requestId = ctx.request().id();
@@ -67,7 +66,7 @@ public class TransactionProcessor implements Processor {
                 ctx.response().headers().set(transactionHeader, transactionId);
                 ctx.response().headers().set(requestHeader, requestId);
 
-                ((MutableHttpRequest) ctx.request()).transactionId(transactionId);
+                ctx.request().transactionId(transactionId);
             }
         );
     }

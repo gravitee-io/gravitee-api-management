@@ -29,10 +29,8 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.gateway.security.apikey.policy.CheckSubscriptionPolicy;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
-import io.gravitee.gateway.security.core.HookAuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.http.SecurityType;
@@ -159,15 +157,12 @@ public class ApiKeyAuthenticationHandlerTest {
 
         List<AuthenticationPolicy> apikeyProviderPolicies = authenticationHandler.handle(executionContext);
 
-        Assert.assertEquals(2, apikeyProviderPolicies.size());
+        Assert.assertEquals(1, apikeyProviderPolicies.size());
 
         Iterator<AuthenticationPolicy> policyIterator = apikeyProviderPolicies.iterator();
 
         PluginAuthenticationPolicy policy = (PluginAuthenticationPolicy) policyIterator.next();
         Assert.assertEquals(policy.name(), ApiKeyAuthenticationHandler.API_KEY_POLICY);
-
-        HookAuthenticationPolicy policy2 = (HookAuthenticationPolicy) policyIterator.next();
-        Assert.assertEquals(CheckSubscriptionPolicy.class, policy2.clazz());
     }
 
     @Test

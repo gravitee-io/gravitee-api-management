@@ -17,6 +17,7 @@ package io.gravitee.plugin.endpoint.mock;
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
@@ -46,20 +47,23 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
     }
 
     @Override
-    public Completable connect(MessageExecutionContext ctx) {
-        return ctx
-            .request()
-            .messages()
-            .doOnNext(message -> log.info("Received message:\n" + message.content().toString()))
-            .ignoreElements()
-            .andThen(Completable.fromRunnable(() -> ctx.response().messages(generateMessageFlow())));
+    public Completable connect(ExecutionContext ctx) {
+        return Completable.defer(
+            () ->
+                ctx
+                    .request()
+                    .messages()
+                    .doOnNext(message -> log.info("Received message:\n" + message.content().toString()))
+                    .ignoreElements()
+                    .andThen(Completable.fromRunnable(() -> ctx.response().messages(generateMessageFlow())))
+        );
     }
 
     private Flowable<Message> generateMessageFlow() {
         Flowable<Message> messageFlow = Flowable
             .interval(configuration.getMessageInterval(), TimeUnit.MILLISECONDS)
             .map(value -> configuration.getMessageContent() + " " + value)
-            .map(value -> DefaultMessage.builder().content(value.getBytes(StandardCharsets.UTF_8)).build());
+            .map(DefaultMessage::new);
         if (configuration.getMessageCount() != null) {
             return messageFlow.limit(configuration.getMessageCount());
         }

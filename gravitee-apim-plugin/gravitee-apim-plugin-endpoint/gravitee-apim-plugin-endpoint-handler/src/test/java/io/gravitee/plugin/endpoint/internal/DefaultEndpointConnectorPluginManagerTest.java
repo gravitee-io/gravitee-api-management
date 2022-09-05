@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnector;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorFactory;
@@ -71,7 +71,7 @@ class DefaultEndpointConnectorPluginManagerTest {
 
     @Test
     public void shouldNotRetrieveUnRegisterPlugin() {
-        final EndpointConnector<HttpExecutionContext> factoryById = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
+        final EndpointConnector factoryById = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
         assertThat(factoryById).isNull();
     }
 }

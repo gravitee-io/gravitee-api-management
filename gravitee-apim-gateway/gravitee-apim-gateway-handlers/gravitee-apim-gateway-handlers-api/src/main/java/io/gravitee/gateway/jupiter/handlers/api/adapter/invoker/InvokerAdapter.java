@@ -16,14 +16,14 @@
 package io.gravitee.gateway.jupiter.handlers.api.adapter.invoker;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Completable;
@@ -59,7 +59,7 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
     }
 
     @Override
-    public Completable invoke(RequestExecutionContext ctx) {
+    public Completable invoke(ExecutionContext ctx) {
         final ExecutionContextAdapter adaptedCtx = ExecutionContextAdapter.create(ctx);
         return Completable
             .create(
@@ -98,12 +98,11 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
     }
 
     @Override
-    public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
+    public void invoke(
+        io.gravitee.gateway.api.ExecutionContext context,
+        ReadStream<Buffer> stream,
+        Handler<ProxyConnection> connectionHandler
+    ) {
         legacyInvoker.invoke(context, stream, connectionHandler);
-    }
-
-    @Override
-    public Completable invoke(MessageExecutionContext ctx) {
-        return Completable.error(new RuntimeException("InvokerAdapter does not support message context"));
     }
 }
