@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.plugin;
 
-import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.plugin.connector.ConnectorPlugin;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -89,7 +88,7 @@ public interface PluginRegister {
      * You can check {@link io.gravitee.plugin.entrypoint.sse.SseEntrypointConnectorFactory} to know how to implement it.
      * @param entrypoints is the map containing entrypoints to deploy
      */
-    default void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?>> entrypoints) {}
+    default void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {}
 
     /**
      * Override this method to register an endpoint to be used by the gateway.
@@ -106,7 +105,7 @@ public interface PluginRegister {
      * You can check {@link io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory} to know how to implement it.
      * @param endpoints is the map containing endpoints to deploy
      */
-    default void configureEndpoints(Map<String, EndpointConnectorPlugin<?>> endpoints) {}
+    default void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {}
 
     /**
      * Override this method to register a resource to be used by the gateway.

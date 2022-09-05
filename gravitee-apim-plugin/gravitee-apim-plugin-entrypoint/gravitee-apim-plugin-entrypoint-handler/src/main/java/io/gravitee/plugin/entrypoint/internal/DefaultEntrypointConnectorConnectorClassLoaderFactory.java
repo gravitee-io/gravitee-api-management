@@ -24,5 +24,5 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
  * @author GraviteeSource Team
  */
 public class DefaultEntrypointConnectorConnectorClassLoaderFactory
-    extends PluginClassLoaderFactoryImpl<EntrypointConnectorPlugin<?>>
+    extends PluginClassLoaderFactoryImpl<EntrypointConnectorPlugin<?, ?>>
     implements EntrypointConnectorClassLoaderFactory {}

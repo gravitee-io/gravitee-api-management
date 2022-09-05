@@ -17,9 +17,11 @@ package io.gravitee.plugin.entrypoint.webhook;
 
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -27,11 +29,10 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-public class WebhookEntrypointConnectorFactory extends EntrypointAsyncConnectorFactory {
+@AllArgsConstructor
+public class WebhookEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory {
 
-    public WebhookEntrypointConnectorFactory() {
-        super(WebhookEntrypointConnectorConfiguration.class);
-    }
+    private ConnectorFactoryHelper connectorFactoryHelper;
 
     @Override
     public ApiType supportedApi() {
@@ -44,9 +45,11 @@ public class WebhookEntrypointConnectorFactory extends EntrypointAsyncConnectorF
     }
 
     @Override
-    public WebhookEntrypointConnector createConnector(final String sConfiguration) {
+    public WebhookEntrypointConnector createConnector(final String configuration) {
         try {
-            return new WebhookEntrypointConnector(getConfiguration(sConfiguration));
+            return new WebhookEntrypointConnector(
+                connectorFactoryHelper.getConnectorConfiguration(WebhookEntrypointConnectorConfiguration.class, configuration)
+            );
         } catch (Exception e) {
             log.error("Can't create connector cause no valid configuration", e);
             return null;

@@ -17,21 +17,22 @@ package io.gravitee.plugin.endpoint.mock;
 
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author GraviteeSource Team
  */
 @Slf4j
-public class MockEndpointConnectorFactory extends EndpointAsyncConnectorFactory {
+@AllArgsConstructor
+public class MockEndpointConnectorFactory implements EndpointAsyncConnectorFactory {
 
-    public MockEndpointConnectorFactory() {
-        super(MockEndpointConnectorConfiguration.class);
-    }
+    private ConnectorFactoryHelper connectorFactoryHelper;
 
     @Override
     public Set<ConnectorMode> supportedModes() {
@@ -41,7 +42,9 @@ public class MockEndpointConnectorFactory extends EndpointAsyncConnectorFactory 
     @Override
     public MockEndpointConnector createConnector(final String configuration) {
         try {
-            return new MockEndpointConnector(getConfiguration(configuration));
+            return new MockEndpointConnector(
+                connectorFactoryHelper.getConnectorConfiguration(MockEndpointConnectorConfiguration.class, configuration)
+            );
         } catch (PluginConfigurationException e) {
             log.error("Can't create connector cause no valid configuration", e);
             return null;

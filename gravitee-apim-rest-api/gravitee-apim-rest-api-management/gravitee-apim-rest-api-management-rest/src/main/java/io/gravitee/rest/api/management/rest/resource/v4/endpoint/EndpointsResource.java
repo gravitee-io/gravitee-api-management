@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.resource.v4.entrypoint;
+package io.gravitee.rest.api.management.rest.resource.v4.endpoint;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.v4.entrypoint.EntrypointResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ConnectorListItem;
@@ -23,7 +24,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.connector.ConnectorExpandPluginEntity;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
-import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -44,29 +45,26 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 
 /**
- * Defines the REST resources to manage entrypoints.
+ * Defines the REST resources to manage endpoints.
  *
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "🧪 V4 - Plugins")
-public class EntrypointsResource {
+@Tag(name = "Plugins V4")
+public class EndpointsResource {
 
     @Context
     private ResourceContext resourceContext;
 
     @Inject
-    private EntrypointConnectorPluginService entrypointService;
+    private EndpointConnectorPluginService endpointService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(
-        summary = "🧪 List entrypoint plugins",
-        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the ENVIRONMENT_API[READ] permission to use this service"
-    )
+    @Operation(summary = "List endpoint plugins", description = "User must have the ENVIRONMENT_API[READ] permission to use this service")
     @ApiResponse(
         responseCode = "200",
-        description = "List of entrypoints",
+        description = "List of endpoints",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
             array = @ArraySchema(schema = @Schema(implementation = ConnectorListItem.class))
@@ -75,7 +73,7 @@ public class EntrypointsResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public Collection<ConnectorExpandPluginEntity> getEntrypoint(@QueryParam("expand") List<String> expand) {
-        Stream<ConnectorExpandPluginEntity> stream = entrypointService.findAll().stream().map(this::convert);
+        Stream<ConnectorExpandPluginEntity> stream = endpointService.findAll().stream().map(this::convert);
 
         if (expand != null && !expand.isEmpty()) {
             for (String s : expand) {
@@ -83,13 +81,11 @@ public class EntrypointsResource {
                     case "schema":
                         stream =
                             stream.peek(
-                                connectorListItem -> connectorListItem.setSchema(entrypointService.getSchema(connectorListItem.getId()))
+                                connectorListItem -> connectorListItem.setSchema(endpointService.getSchema(connectorListItem.getId()))
                             );
                     case "icon":
                         stream =
-                            stream.peek(
-                                connectorListItem -> connectorListItem.setIcon(entrypointService.getIcon(connectorListItem.getId()))
-                            );
+                            stream.peek(connectorListItem -> connectorListItem.setIcon(endpointService.getIcon(connectorListItem.getId())));
                 }
             }
         }
@@ -97,21 +93,21 @@ public class EntrypointsResource {
         return stream.sorted(Comparator.comparing(ConnectorExpandPluginEntity::getName)).collect(Collectors.toList());
     }
 
-    @Path("{entrypoint}")
+    @Path("{endpoint}")
     public EntrypointResource getEntrypointResource() {
         return resourceContext.getResource(EntrypointResource.class);
     }
 
-    private ConnectorExpandPluginEntity convert(ConnectorPluginEntity entrypointPluginEntity) {
-        ConnectorExpandPluginEntity entrypointExpandEntity = new ConnectorExpandPluginEntity();
+    private ConnectorExpandPluginEntity convert(ConnectorPluginEntity endpointPluginEntity) {
+        ConnectorExpandPluginEntity endpointExpandEntity = new ConnectorExpandPluginEntity();
 
-        entrypointExpandEntity.setId(entrypointPluginEntity.getId());
-        entrypointExpandEntity.setName(entrypointPluginEntity.getName());
-        entrypointExpandEntity.setDescription(entrypointPluginEntity.getDescription());
-        entrypointExpandEntity.setVersion(entrypointPluginEntity.getVersion());
-        entrypointExpandEntity.setSupportedApiType(entrypointPluginEntity.getSupportedApiType());
-        entrypointExpandEntity.setSupportedModes(entrypointPluginEntity.getSupportedModes());
+        endpointExpandEntity.setId(endpointPluginEntity.getId());
+        endpointExpandEntity.setName(endpointPluginEntity.getName());
+        endpointExpandEntity.setDescription(endpointPluginEntity.getDescription());
+        endpointExpandEntity.setVersion(endpointPluginEntity.getVersion());
+        endpointExpandEntity.setSupportedApiType(endpointPluginEntity.getSupportedApiType());
+        endpointExpandEntity.setSupportedModes(endpointPluginEntity.getSupportedModes());
 
-        return entrypointExpandEntity;
+        return endpointExpandEntity;
     }
 }

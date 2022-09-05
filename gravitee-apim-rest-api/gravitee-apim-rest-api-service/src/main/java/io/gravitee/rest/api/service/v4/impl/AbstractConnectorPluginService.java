@@ -17,70 +17,71 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
+import io.gravitee.plugin.core.api.ConfigurablePlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
-import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
-import io.gravitee.rest.api.model.v4.entrypoint.EntrypointPluginEntity;
+import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.impl.AbstractPluginService;
-import io.gravitee.rest.api.service.v4.EntrypointPluginService;
+import io.gravitee.rest.api.service.v4.ConnectorPluginService;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Component("EntrypointPluginServiceImplV4")
-public class EntrypointPluginServiceImpl
-    extends AbstractPluginService<EntrypointConnectorPlugin<?>, EntrypointPluginEntity>
-    implements EntrypointPluginService {
+public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugin<?>>
+    extends AbstractPluginService<T, ConnectorPluginEntity>
+    implements ConnectorPluginService {
 
-    public EntrypointPluginServiceImpl(
-        JsonSchemaService jsonSchemaService,
-        ConfigurablePluginManager<EntrypointConnectorPlugin<?>> pluginManager
-    ) {
+    protected AbstractConnectorPluginService(final JsonSchemaService jsonSchemaService, final ConfigurablePluginManager<T> pluginManager) {
         super(jsonSchemaService, pluginManager);
     }
 
     @Override
-    public Set<EntrypointPluginEntity> findAll() {
+    public Set<ConnectorPluginEntity> findAll() {
         return super.list().stream().map(this::convert).collect(Collectors.toSet());
     }
 
     @Override
-    public EntrypointPluginEntity findById(String entrypointPluginId) {
-        EntrypointConnectorPlugin<?> resourceDefinition = super.get(entrypointPluginId);
+    public ConnectorPluginEntity findById(String entrypointPluginId) {
+        T resourceDefinition = super.get(entrypointPluginId);
         return convert(resourceDefinition);
     }
 
+    protected abstract ConnectorFactory<?> getConnectorFactory(final String connectorId);
+
     @Override
-    protected EntrypointPluginEntity convert(Plugin plugin) {
-        EntrypointPluginEntity entity = new EntrypointPluginEntity();
+    protected ConnectorPluginEntity convert(Plugin plugin) {
+        ConnectorPluginEntity entity = new ConnectorPluginEntity();
 
         entity.setId(plugin.id());
         entity.setDescription(plugin.manifest().description());
         entity.setName(plugin.manifest().name());
         entity.setVersion(plugin.manifest().version());
-        AbstractConnectorFactory<?> connectorFactory = ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id());
+        ConnectorFactory<?> connectorFactory = getConnectorFactory(plugin.id());
 
-        entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
-        entity.setSupportedModes(
-            connectorFactory
-                .supportedModes()
-                .stream()
-                .map(connectorMode -> ConnectorMode.fromLabel(connectorMode.getLabel()))
-                .collect(Collectors.toSet())
-        );
+        if (connectorFactory.supportedApi() != null) {
+            entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
+        }
+        if (connectorFactory.supportedModes() != null) {
+            entity.setSupportedModes(
+                connectorFactory
+                    .supportedModes()
+                    .stream()
+                    .map(connectorMode -> ConnectorMode.fromLabel(connectorMode.getLabel()))
+                    .collect(Collectors.toSet())
+            );
+        }
 
         return entity;
     }
 
     @Override
-    public Set<EntrypointPluginEntity> findBySupportedApi(final ApiType apiType) {
+    public Set<ConnectorPluginEntity> findBySupportedApi(final ApiType apiType) {
         return super
             .list()
             .stream()
@@ -95,7 +96,7 @@ public class EntrypointPluginServiceImpl
     }
 
     @Override
-    public Set<EntrypointPluginEntity> findByConnectorMode(final ConnectorMode connectorMode) {
+    public Set<ConnectorPluginEntity> findByConnectorMode(final ConnectorMode connectorMode) {
         return super
             .list()
             .stream()
@@ -110,8 +111,8 @@ public class EntrypointPluginServiceImpl
     }
 
     @Override
-    public String validateEntrypointConfiguration(final String entrypointPluginId, final String configuration) {
-        EntrypointPluginEntity entrypointPluginEntity = this.findById(entrypointPluginId);
-        return validateConfiguration(entrypointPluginEntity, configuration);
+    public String validateConnectorConfiguration(final String connectorPluginId, final String configuration) {
+        ConnectorPluginEntity entrypointPluginEntity = this.findById(connectorPluginId);
+        return validateConfiguration(entrypointPluginEntity.getId(), configuration);
     }
 }

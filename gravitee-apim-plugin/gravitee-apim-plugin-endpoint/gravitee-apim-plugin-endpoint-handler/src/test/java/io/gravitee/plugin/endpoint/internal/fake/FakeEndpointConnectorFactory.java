@@ -19,19 +19,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
 import java.util.Set;
 
 /**
  * @author GraviteeSource Team
  */
-public class FakeEndpointConnectorFactory extends AbstractConnectorFactory<FakeEndpointConnector> {
-
-    private class FakeEndpointConnectorFactoryConfiguration {}
-
-    public FakeEndpointConnectorFactory() {
-        super(FakeEndpointConnectorFactoryConfiguration.class);
-    }
+public class FakeEndpointConnectorFactory implements EndpointConnectorFactory<FakeEndpointConnector> {
 
     @Override
     public ApiType supportedApi() {

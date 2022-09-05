@@ -13,22 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4;
+package io.gravitee.rest.api.model.v4.connector;
 
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.ConnectorMode;
-import io.gravitee.rest.api.model.v4.entrypoint.EntrypointPluginEntity;
-import io.gravitee.rest.api.service.PluginService;
-import java.util.Set;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EntrypointPluginService extends PluginService<EntrypointPluginEntity> {
-    Set<EntrypointPluginEntity> findBySupportedApi(final ApiType apiType);
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@Schema(name = "EntrypointExpandEntityV4")
+public class ConnectorExpandPluginEntity extends ConnectorPluginEntity {
 
-    Set<EntrypointPluginEntity> findByConnectorMode(final ConnectorMode connectorMode);
-
-    String validateEntrypointConfiguration(final String type, final String configuration);
+    private String schema;
+    private String icon;
 }

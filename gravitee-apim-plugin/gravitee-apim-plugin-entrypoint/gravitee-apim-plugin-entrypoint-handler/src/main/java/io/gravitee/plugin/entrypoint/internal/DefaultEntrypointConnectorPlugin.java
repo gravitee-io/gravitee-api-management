@@ -16,6 +16,7 @@
 package io.gravitee.plugin.entrypoint.internal;
 
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
@@ -26,25 +27,26 @@ import java.nio.file.Path;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-class DefaultEntrypointConnectorPlugin implements EntrypointConnectorPlugin {
+class DefaultEntrypointConnectorPlugin<T extends EntrypointConnectorFactory<?>, U extends EntrypointConnectorConfiguration>
+    implements EntrypointConnectorPlugin<T, U> {
 
     private final Plugin plugin;
-    private final Class<?> entryPointConnectorClass;
-    private final Class<? extends EntrypointConnectorConfiguration> entrypointConnectorConfigurationClass;
+    private final Class<T> entrypointConnectorFactoryClass;
+    private final Class<U> entrypointConnectorConfigurationClass;
 
     DefaultEntrypointConnectorPlugin(
         final Plugin plugin,
-        final Class<?> entrypointConnectorClass,
-        final Class<? extends EntrypointConnectorConfiguration> entryPointConnectorConfigurationClass
+        final Class<T> entrypointConnectorFactoryClass,
+        final Class<U> entryPointConnectorConfigurationClass
     ) {
         this.plugin = plugin;
-        this.entryPointConnectorClass = entrypointConnectorClass;
+        this.entrypointConnectorFactoryClass = entrypointConnectorFactoryClass;
         this.entrypointConnectorConfigurationClass = entryPointConnectorConfigurationClass;
     }
 
     @Override
-    public Class<?> entrypointConnectorFactory() {
-        return entryPointConnectorClass;
+    public Class<T> connectorFactory() {
+        return entrypointConnectorFactoryClass;
     }
 
     @Override
@@ -73,7 +75,7 @@ class DefaultEntrypointConnectorPlugin implements EntrypointConnectorPlugin {
     }
 
     @Override
-    public Class<? extends EntrypointConnectorConfiguration> configuration() {
+    public Class<U> configuration() {
         return entrypointConnectorConfigurationClass;
     }
 }

@@ -28,10 +28,10 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EntrypointConnectorPluginHandler extends AbstractSimplePluginHandler<EntrypointConnectorPlugin<?>> {
+public class EntrypointConnectorPluginHandler extends AbstractSimplePluginHandler<EntrypointConnectorPlugin<?, ?>> {
 
     @Autowired
-    private ConfigurablePluginManager<EntrypointConnectorPlugin<?>> entrypointPluginManager;
+    private ConfigurablePluginManager<EntrypointConnectorPlugin<?, ?>> entrypointPluginManager;
 
     @Override
     public boolean canHandle(final Plugin plugin) {
@@ -44,7 +44,7 @@ public class EntrypointConnectorPluginHandler extends AbstractSimplePluginHandle
     }
 
     @Override
-    protected EntrypointConnectorPlugin<?> create(final Plugin plugin, final Class<?> pluginClass) {
+    protected EntrypointConnectorPlugin<?, ?> create(final Plugin plugin, final Class<?> pluginClass) {
         Class<? extends EntrypointConnectorConfiguration> configurationClass = new EntrypointConnectorConfigurationClassFinder()
         .lookupFirst(pluginClass);
 
@@ -52,16 +52,19 @@ public class EntrypointConnectorPluginHandler extends AbstractSimplePluginHandle
     }
 
     @Override
-    protected void register(EntrypointConnectorPlugin<?> entrypointConnectorPlugin) {
+    protected void register(final EntrypointConnectorPlugin<?, ?> entrypointConnectorPlugin) {
         entrypointPluginManager.register(entrypointConnectorPlugin);
 
         // Once registered, the classloader should be released
-        // TODO: why do we need this here ?
-        try {
-            URLClassLoader classLoader = (URLClassLoader) entrypointConnectorPlugin.entrypointConnectorFactory().getClassLoader();
-            classLoader.close();
-        } catch (Exception e) {
-            logger.error("Unexpected exception while trying to release the connector classloader");
+        final ClassLoader policyClassLoader = entrypointConnectorPlugin.connectorFactory().getClassLoader();
+
+        if (policyClassLoader instanceof URLClassLoader) {
+            URLClassLoader classLoader = (URLClassLoader) policyClassLoader;
+            try {
+                classLoader.close();
+            } catch (IOException e) {
+                logger.error("Unexpected exception while trying to release the policy classloader");
+            }
         }
     }
 

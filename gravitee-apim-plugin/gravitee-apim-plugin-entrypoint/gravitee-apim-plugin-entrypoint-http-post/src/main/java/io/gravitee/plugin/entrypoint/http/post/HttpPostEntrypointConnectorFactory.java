@@ -15,21 +15,17 @@
  */
 package io.gravitee.plugin.entrypoint.http.post;
 
-import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
-import io.gravitee.plugin.entrypoint.http.post.configuration.HttpPostEntrypointConnectorConfiguration;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpPostEntrypointConnectorFactory extends EntrypointAsyncConnectorFactory {
-
-    public HttpPostEntrypointConnectorFactory() {
-        super(HttpPostEntrypointConnectorConfiguration.class);
-    }
+@AllArgsConstructor
+public class HttpPostEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory {
 
     @Override
     public Set<ConnectorMode> supportedModes() {

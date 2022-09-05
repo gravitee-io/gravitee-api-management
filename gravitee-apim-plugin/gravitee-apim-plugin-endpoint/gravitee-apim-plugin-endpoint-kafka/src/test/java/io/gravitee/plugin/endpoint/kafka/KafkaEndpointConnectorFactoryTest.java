@@ -18,8 +18,10 @@ package io.gravitee.plugin.endpoint.kafka;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -35,7 +37,7 @@ public class KafkaEndpointConnectorFactoryTest {
 
     @BeforeEach
     void beforeEach() {
-        kafkaEndpointConnectorFactory = new KafkaEndpointConnectorFactory();
+        kafkaEndpointConnectorFactory = new KafkaEndpointConnectorFactory(new ConnectorFactoryHelper(null, new ObjectMapper()));
     }
 
     @Test

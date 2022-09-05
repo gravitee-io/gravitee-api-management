@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.resource.v4.entrypoint;
+package io.gravitee.rest.api.management.rest.resource.v4.endpoint;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
@@ -37,26 +37,23 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 
 /**
- * Defines the REST resources to manage entrypoint v4.
+ * Defines the REST resources to manage endpoint v4.
  *
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "🧪 V4 - Plugins")
-public class EntrypointResource {
+@Tag(name = "Plugins V4")
+public class EndpointResource {
 
     @Context
     private ResourceContext resourceContext;
 
     @Inject
-    private EntrypointConnectorPluginService entrypointService;
+    private EntrypointConnectorPluginService endpointService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(
-        summary = "🧪 Get an entrypoint",
-        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the ENVIRONMENT_API[READ] permission to use this service"
-    )
+    @Operation(summary = "Get an endpoint", description = "User must have the ENVIRONMENT_API[READ] permission to use this service")
     @ApiResponse(
         responseCode = "200",
         description = "Entrypoint plugin",
@@ -65,17 +62,14 @@ public class EntrypointResource {
     @ApiResponse(responseCode = "404", description = "Entrypoint not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public ConnectorPluginEntity getEntrypoint(@PathParam("entrypoint") String entrypoint) {
-        return entrypointService.findById(entrypoint);
+    public ConnectorPluginEntity getEntrypoint(@PathParam("endpoint") String endpoint) {
+        return endpointService.findById(endpoint);
     }
 
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(
-        summary = "🧪 Get a entrypoint's schema",
-        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the ENVIRONMENT_API[READ] permission to use this service"
-    )
+    @Operation(summary = "Get a endpoint's schema", description = "User must have the ENVIRONMENT_API[READ] permission to use this service")
     @ApiResponse(
         responseCode = "200",
         description = "Entrypoint schema",
@@ -84,19 +78,19 @@ public class EntrypointResource {
     @ApiResponse(responseCode = "404", description = "Entrypoint not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public String getEntrypointSchema(@PathParam("entrypoint") String entrypoint) {
-        // Check that the entrypoint exists
-        entrypointService.findById(entrypoint);
+    public String getEntrypointSchema(@PathParam("endpoint") String endpoint) {
+        // Check that the endpoint exists
+        endpointService.findById(endpoint);
 
-        return entrypointService.getSchema(entrypoint);
+        return endpointService.getSchema(endpoint);
     }
 
     @GET
     @Path("documentation")
     @Produces(MediaType.TEXT_PLAIN)
     @Operation(
-        summary = "🧪 Get a entrypoint's documentation",
-        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the ENVIRONMENT_API[READ] permission to use this service"
+        summary = "Get a endpoint's documentation",
+        description = "User must have the ENVIRONMENT_API[READ] permission to use this service"
     )
     @ApiResponse(
         responseCode = "200",
@@ -106,10 +100,10 @@ public class EntrypointResource {
     @ApiResponse(responseCode = "404", description = "Entrypoint not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public String getEntrypointDoc(@PathParam("entrypoint") String entrypoint) {
-        // Check that the entrypoint exists
-        entrypointService.findById(entrypoint);
+    public String getEntrypointDoc(@PathParam("endpoint") String endpoint) {
+        // Check that the endpoint exists
+        endpointService.findById(endpoint);
 
-        return entrypointService.getDocumentation(entrypoint);
+        return endpointService.getDocumentation(endpoint);
     }
 }

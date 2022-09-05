@@ -15,15 +15,15 @@
  */
 package io.gravitee.plugin.entrypoint.internal;
 
-import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorClassLoaderFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -33,40 +33,58 @@ import org.slf4j.LoggerFactory;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuppressWarnings("unchecked")
 public class DefaultEntrypointConnectorPluginManager
-    extends AbstractConfigurablePluginManager<EntrypointConnectorPlugin<?>>
+    extends AbstractConfigurablePluginManager<EntrypointConnectorPlugin<?, ?>>
     implements EntrypointConnectorPluginManager {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultEntrypointConnectorPluginManager.class);
     private final EntrypointConnectorClassLoaderFactory classLoaderFactory;
-    private final Map<String, AbstractConnectorFactory<? extends EntrypointConnector>> factories = new HashMap<>();
+    private final ConnectorFactoryHelper connectorFactoryHelper;
+    private final Map<String, EntrypointConnectorFactory<?>> factories = new HashMap<>();
 
-    public DefaultEntrypointConnectorPluginManager(final EntrypointConnectorClassLoaderFactory classLoaderFactory) {
+    public DefaultEntrypointConnectorPluginManager(
+        final EntrypointConnectorClassLoaderFactory classLoaderFactory,
+        final ConnectorFactoryHelper connectorFactoryHelper
+    ) {
         this.classLoaderFactory = classLoaderFactory;
+        this.connectorFactoryHelper = connectorFactoryHelper;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public void register(final EntrypointConnectorPlugin<?> plugin) {
+    public void register(final EntrypointConnectorPlugin<?, ?> plugin) {
         super.register(plugin);
 
         // Create entrypoint
         PluginClassLoader pluginClassLoader = classLoaderFactory.getOrCreateClassLoader(plugin);
         try {
-            final Class<AbstractConnectorFactory<? extends EntrypointConnector>> connectorFactoryClass = (Class<AbstractConnectorFactory<? extends EntrypointConnector>>) pluginClassLoader.loadClass(
+            final Class<EntrypointConnectorFactory<?>> connectorFactoryClass = (Class<EntrypointConnectorFactory<?>>) pluginClassLoader.loadClass(
                 plugin.clazz()
             );
-            final AbstractConnectorFactory<? extends EntrypointConnector> factory = connectorFactoryClass
-                .getDeclaredConstructor()
-                .newInstance();
+            EntrypointConnectorFactory<?> factory = createFactory(connectorFactoryClass);
             factories.put(plugin.id(), factory);
         } catch (Exception ex) {
             logger.error("Unexpected error while loading entrypoint plugin: {}", plugin.clazz(), ex);
         }
     }
 
+    private EntrypointConnectorFactory<?> createFactory(final Class<EntrypointConnectorFactory<?>> connectorFactoryClass)
+        throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        EntrypointConnectorFactory<?> factory;
+        try {
+            Constructor<EntrypointConnectorFactory<?>> constructorWithFactoryHelper = connectorFactoryClass.getDeclaredConstructor(
+                ConnectorFactoryHelper.class
+            );
+            factory = constructorWithFactoryHelper.newInstance(connectorFactoryHelper);
+        } catch (NoSuchMethodException e) {
+            Constructor<EntrypointConnectorFactory<?>> emptyConstructor = connectorFactoryClass.getDeclaredConstructor();
+            factory = emptyConstructor.newInstance();
+        }
+        return factory;
+    }
+
     @Override
-    public <T extends AbstractConnectorFactory<U>, U extends EntrypointConnector> T getFactoryById(final String entrypointPluginId) {
-        return (T) factories.get(entrypointPluginId);
+    public EntrypointConnectorFactory<?> getFactoryById(final String entrypointPluginId) {
+        return factories.get(entrypointPluginId);
     }
 }

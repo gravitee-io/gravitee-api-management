@@ -20,12 +20,13 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ApiType;
-import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
-import io.gravitee.rest.api.model.v4.entrypoint.EntrypointPluginEntity;
+import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import java.io.IOException;
@@ -47,7 +48,7 @@ public class EntrypointPluginServiceImplTest {
     private static final String SCHEMA = "my-test-schema";
 
     @InjectMocks
-    private EntrypointPluginServiceImpl entrypointService;
+    private EntrypointConnectorPluginServiceImpl entrypointService;
 
     @Mock
     private JsonSchemaService jsonSchemaService;
@@ -62,7 +63,7 @@ public class EntrypointPluginServiceImplTest {
     private PluginManifest mockPluginManifest;
 
     @Mock
-    private AbstractConnectorFactory mockFactory;
+    private EntrypointConnectorFactory<?> mockFactory;
 
     @Before
     public void setup() {
@@ -80,14 +81,14 @@ public class EntrypointPluginServiceImplTest {
         when(pluginManager.getSchema(PLUGIN_ID)).thenReturn(SCHEMA);
         when(jsonSchemaService.validate(SCHEMA, CONFIGURATION)).thenReturn("fixed-configuration");
 
-        String resultConfiguration = entrypointService.validateEntrypointConfiguration(PLUGIN_ID, CONFIGURATION);
+        String resultConfiguration = entrypointService.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
 
         assertEquals("fixed-configuration", resultConfiguration);
     }
 
     @Test
     public void shouldValidateConfigurationWhenNullConfiguration() {
-        String resultConfiguration = entrypointService.validateEntrypointConfiguration(PLUGIN_ID, null);
+        String resultConfiguration = entrypointService.validateConnectorConfiguration(PLUGIN_ID, null);
 
         assertNull(resultConfiguration);
     }
@@ -96,7 +97,7 @@ public class EntrypointPluginServiceImplTest {
     public void shouldFailToValidateConfigurationWhenNoPlugin() {
         when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
 
-        entrypointService.validateEntrypointConfiguration(PLUGIN_ID, CONFIGURATION);
+        entrypointService.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
     }
 
     @Test
@@ -119,7 +120,7 @@ public class EntrypointPluginServiceImplTest {
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
 
-        Set<EntrypointPluginEntity> result = entrypointService.findAll();
+        Set<ConnectorPluginEntity> result = entrypointService.findAll();
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -133,7 +134,7 @@ public class EntrypointPluginServiceImplTest {
         when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
         when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
 
-        Set<EntrypointPluginEntity> result = entrypointService.findBySupportedApi(io.gravitee.definition.model.v4.ApiType.ASYNC);
+        Set<ConnectorPluginEntity> result = entrypointService.findBySupportedApi(io.gravitee.definition.model.v4.ApiType.ASYNC);
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -147,7 +148,7 @@ public class EntrypointPluginServiceImplTest {
         when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
         when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
 
-        Set<EntrypointPluginEntity> result = entrypointService.findByConnectorMode(ConnectorMode.REQUEST_RESPONSE);
+        Set<ConnectorPluginEntity> result = entrypointService.findByConnectorMode(ConnectorMode.REQUEST_RESPONSE);
 
         assertNotNull(result);
         assertEquals(1, result.size());

@@ -30,7 +30,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.EntrypointPluginService;
+import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.HttpListenerEntrypointMissingException;
 import io.gravitee.rest.api.service.v4.exception.HttpListenerEntrypointMissingTypeException;
 import io.gravitee.rest.api.service.v4.exception.HttpListenerPathMissingException;
@@ -67,14 +67,14 @@ public class ListenerValidationServiceImplTest {
     private LoggingValidationService loggingValidationService;
 
     @Mock
-    private EntrypointPluginService entrypointService;
+    private EntrypointConnectorPluginService entrypointService;
 
     private ListenerValidationServiceImpl listenerValidationService;
 
     @Before
     public void setUp() throws Exception {
         when(environmentService.findById(any())).thenReturn(new EnvironmentEntity());
-        lenient().when(entrypointService.validateEntrypointConfiguration(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        lenient().when(entrypointService.validateConnectorConfiguration(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         listenerValidationService =
             new ListenerValidationServiceImpl(
                 new PathValidationServiceImpl(apiRepository, objectMapper, environmentService),
