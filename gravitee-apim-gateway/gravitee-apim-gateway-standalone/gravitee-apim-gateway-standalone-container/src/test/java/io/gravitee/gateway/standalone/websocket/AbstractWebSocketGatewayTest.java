@@ -25,6 +25,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -78,7 +80,9 @@ public abstract class AbstractWebSocketGatewayTest extends AbstractGatewayTest {
             }
         );
 
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        if (!latch.await(5, TimeUnit.SECONDS)) {
+            logger.warn("Unable to close http client and server");
+        }
     }
 
     /**
@@ -102,6 +106,14 @@ public abstract class AbstractWebSocketGatewayTest extends AbstractGatewayTest {
                     endpoints.iterator().next().setTarget(getApiEndpointTarget());
                 }
             }
+        }
+    }
+
+    static int getFreePort() {
+        try (ServerSocket serverSocket = new ServerSocket(0)) {
+            return serverSocket.getLocalPort();
+        } catch (IOException e) {
+            return -1;
         }
     }
 }

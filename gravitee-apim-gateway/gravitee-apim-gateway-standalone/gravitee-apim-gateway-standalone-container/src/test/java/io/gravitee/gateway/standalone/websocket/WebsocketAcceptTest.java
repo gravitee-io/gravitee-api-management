@@ -35,7 +35,7 @@ import org.junit.rules.TestRule;
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
 
-    private static final Integer WEBSOCKET_PORT = 16665;
+    private static final Integer WEBSOCKET_PORT = getFreePort();
 
     @Override
     protected String getApiEndpointTarget() {
