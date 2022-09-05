@@ -42,7 +42,7 @@ import javax.ws.rs.core.Context;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "🧪 V4 - Plugins")
+@Tag(name = "🧪 V4 - Entrypoints")
 public class EntrypointResource {
 
     @Context

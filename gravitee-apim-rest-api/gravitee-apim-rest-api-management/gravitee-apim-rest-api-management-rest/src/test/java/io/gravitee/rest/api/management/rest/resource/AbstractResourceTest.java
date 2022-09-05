@@ -83,9 +83,10 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import java.io.IOException;
@@ -308,6 +309,12 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ApiEntrypointService apiEntrypointService;
+
+    @Autowired
+    protected EntrypointConnectorPluginService entrypointConnectorPluginService;
+
+    @Autowired
+    protected EndpointConnectorPluginService endpointConnectorPluginService;
 
     @Before
     public void setUp() throws Exception {
@@ -666,6 +673,16 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public WorkflowService workflowService() {
             return mock(WorkflowService.class);
+        }
+
+        @Bean
+        public EntrypointConnectorPluginService entrypointConnectorPluginService() {
+            return mock(EntrypointConnectorPluginService.class);
+        }
+
+        @Bean
+        public EndpointConnectorPluginService endpointConnectorPluginService() {
+            return mock(EndpointConnectorPluginService.class);
         }
     }
 

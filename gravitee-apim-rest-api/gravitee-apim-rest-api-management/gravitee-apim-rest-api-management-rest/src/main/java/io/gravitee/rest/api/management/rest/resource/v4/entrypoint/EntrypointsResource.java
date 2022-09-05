@@ -16,13 +16,13 @@
 package io.gravitee.rest.api.management.rest.resource.v4.entrypoint;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.v4.connector.AbstractConnectorsResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ConnectorListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.connector.ConnectorExpandPluginEntity;
-import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -31,10 +31,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -49,8 +46,8 @@ import javax.ws.rs.core.Context;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "🧪 V4 - Plugins")
-public class EntrypointsResource {
+@Tag(name = "🧪 V4 - Entrypoints")
+public class EntrypointsResource extends AbstractConnectorsResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -74,44 +71,22 @@ public class EntrypointsResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public Collection<ConnectorExpandPluginEntity> getEntrypoint(@QueryParam("expand") List<String> expand) {
-        Stream<ConnectorExpandPluginEntity> stream = entrypointService.findAll().stream().map(this::convert);
+    public Collection<ConnectorExpandPluginEntity> getEntrypoints(@QueryParam("expand") List<String> expands) {
+        return super.expand(entrypointService.findAll(), expands);
+    }
 
-        if (expand != null && !expand.isEmpty()) {
-            for (String s : expand) {
-                switch (s) {
-                    case "schema":
-                        stream =
-                            stream.peek(
-                                connectorListItem -> connectorListItem.setSchema(entrypointService.getSchema(connectorListItem.getId()))
-                            );
-                    case "icon":
-                        stream =
-                            stream.peek(
-                                connectorListItem -> connectorListItem.setIcon(entrypointService.getIcon(connectorListItem.getId()))
-                            );
-                }
-            }
-        }
+    @Override
+    protected String getSchema(final String connectorId) {
+        return entrypointService.getSchema(connectorId);
+    }
 
-        return stream.sorted(Comparator.comparing(ConnectorExpandPluginEntity::getName)).collect(Collectors.toList());
+    @Override
+    protected String getIcon(final String connectorId) {
+        return entrypointService.getIcon(connectorId);
     }
 
     @Path("{entrypoint}")
     public EntrypointResource getEntrypointResource() {
         return resourceContext.getResource(EntrypointResource.class);
-    }
-
-    private ConnectorExpandPluginEntity convert(ConnectorPluginEntity entrypointPluginEntity) {
-        ConnectorExpandPluginEntity entrypointExpandEntity = new ConnectorExpandPluginEntity();
-
-        entrypointExpandEntity.setId(entrypointPluginEntity.getId());
-        entrypointExpandEntity.setName(entrypointPluginEntity.getName());
-        entrypointExpandEntity.setDescription(entrypointPluginEntity.getDescription());
-        entrypointExpandEntity.setVersion(entrypointPluginEntity.getVersion());
-        entrypointExpandEntity.setSupportedApiType(entrypointPluginEntity.getSupportedApiType());
-        entrypointExpandEntity.setSupportedModes(entrypointPluginEntity.getSupportedModes());
-
-        return entrypointExpandEntity;
     }
 }
