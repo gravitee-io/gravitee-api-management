@@ -17,7 +17,11 @@ package io.gravitee.plugin.entrypoint.sse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
@@ -29,6 +33,7 @@ import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
