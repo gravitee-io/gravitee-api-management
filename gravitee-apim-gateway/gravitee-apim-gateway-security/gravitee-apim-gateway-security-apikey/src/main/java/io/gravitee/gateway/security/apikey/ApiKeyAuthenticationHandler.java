@@ -25,8 +25,10 @@ import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.ComponentResolver;
-import io.gravitee.gateway.security.apikey.policy.CheckSubscriptionPolicy;
-import io.gravitee.gateway.security.core.*;
+import io.gravitee.gateway.security.core.AuthenticationContext;
+import io.gravitee.gateway.security.core.AuthenticationHandler;
+import io.gravitee.gateway.security.core.AuthenticationPolicy;
+import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -50,9 +52,7 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
 
     private static final List<AuthenticationPolicy> POLICIES = Arrays.asList(
         // First, validate the incoming api key
-        (PluginAuthenticationPolicy) () -> API_KEY_POLICY,
-        // Then, check that there is an existing valid subscription associated to this api key
-        (HookAuthenticationPolicy) () -> CheckSubscriptionPolicy.class
+        (PluginAuthenticationPolicy) () -> API_KEY_POLICY
     );
 
     private String apiKeyHeader;

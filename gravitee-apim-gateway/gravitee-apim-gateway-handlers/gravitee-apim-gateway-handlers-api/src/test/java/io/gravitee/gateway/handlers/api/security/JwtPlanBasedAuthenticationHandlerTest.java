@@ -17,8 +17,7 @@ package io.gravitee.gateway.handlers.api.security;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.Request;
@@ -81,6 +80,19 @@ public class JwtPlanBasedAuthenticationHandlerTest {
         Map<String, Object> claims = Map.of("azp", "value1", "my-custom-claim", "value2", "aud", "value3");
 
         assertEquals("value2", authenticationHandler.getClientId(claims));
+    }
+
+    @Test
+    public void getClientId_should_extract_custom_claim_once_then_use_cache() {
+        when(plan.getSecurityDefinition()).thenReturn("{\"clientIdClaim\": \"my-custom-claim\"}");
+        Map<String, Object> claims = Map.of("azp", "value1", "my-custom-claim", "value2", "aud", "value3");
+
+        for (int i = 0; i < 10; i++) {
+            assertEquals("value2", authenticationHandler.getClientId(claims));
+        }
+
+        // Security definition should be accessed only once.
+        verify(plan).getSecurityDefinition();
     }
 
     @Test
