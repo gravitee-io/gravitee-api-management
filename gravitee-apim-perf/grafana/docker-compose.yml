@@ -28,7 +28,7 @@ services:
     environment:
       PROMSCALE_DB_CONNECT_RETRIES: 10
       PROMSCALE_WEB_TELEMETRY_PATH: /metrics-text
-      PROMSCALE_DB_URI: postgres://postgres:password@db:5432/postgres?sslmode=allow
+      PROMSCALE_DB_URI: postgres://postgres:password@timescale_db:5432/postgres?sslmode=allow
 
   tempo:
     image: grafana/tempo:latest
