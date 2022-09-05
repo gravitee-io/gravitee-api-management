@@ -91,7 +91,7 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                         .flatMapCompletable(
                             message ->
                                 Flowable
-                                    .fromIterable(getTopics(ctx))
+                                    .fromIterable(getTopics(ctx, message))
                                     .flatMapCompletable(
                                         topic -> {
                                             KafkaProducerRecord<String, byte[]> kafkaRecord = createKafkaRecord(ctx, message, topic);
@@ -147,7 +147,7 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                                         () -> KafkaConsumer.create(getVertx(ctx), new KafkaClientOptions().setConfig(config))
                                     );
                                     return consumer
-                                        .subscribe(getTopics(ctx))
+                                        .subscribe(getTopics(ctx, null))
                                         .toFlowable()
                                         .map(
                                             consumerRecord -> {
@@ -203,12 +203,17 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
         return groupId;
     }
 
-    private Set<String> getTopics(final MessageExecutionContext ctx) {
-        String topics = ctx.getAttribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS);
-
+    private Set<String> getTopics(final MessageExecutionContext ctx, final Message message) {
+        String topics = null;
+        if (message != null) {
+            topics = message.attribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS);
+        }
         if (topics == null || topics.isEmpty()) {
-            topics = configuration.getTopics();
-            ctx.setAttribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS, topics);
+            topics = ctx.getAttribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS);
+            if (topics == null || topics.isEmpty()) {
+                topics = configuration.getTopics();
+                ctx.setAttribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS, topics);
+            }
         }
         return Arrays.stream(topics.split(",")).collect(Collectors.toSet());
     }
