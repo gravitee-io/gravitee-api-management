@@ -1284,6 +1284,7 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
+                              - improve-code-analysis-reporting
                   requires:
                       - test
                       - test-repository
