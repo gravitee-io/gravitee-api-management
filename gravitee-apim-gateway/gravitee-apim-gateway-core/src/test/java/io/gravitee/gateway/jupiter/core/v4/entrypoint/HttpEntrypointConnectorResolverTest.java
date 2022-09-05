@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
@@ -32,6 +33,7 @@ import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.plugin.entrypoint.internal.DefaultEntrypointConnectorPluginManager;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import javax.validation.constraints.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,6 +81,16 @@ class HttpEntrypointConnectorResolverTest {
         final EntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertSame(entrypointConnector, resolvedEntrypointConnector);
+    }
+
+    @Test
+    void shouldNotResolveEntrypointConnectorWhenEntryPointFactoryNotFound() {
+        when(pluginManager.getFactoryById(ENTRYPOINT_TYPE)).thenReturn(null);
+        final Api api = buildApi();
+        final HttpEntrypointConnectorResolver cut = new HttpEntrypointConnectorResolver(api, pluginManager);
+        final EntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
+
+        assertNull(resolvedEntrypointConnector);
     }
 
     @Test
@@ -135,27 +147,36 @@ class HttpEntrypointConnectorResolverTest {
 
     private Api buildApi() {
         final Api api = new Api();
-        final ArrayList<@NotNull Listener> listeners = new ArrayList<>();
+        final List<Listener> listeners = new ArrayList<>();
+        listeners.add(buildListener(ListenerType.HTTP));
+        listeners.add(buildListener(ListenerType.SUBSCRIPTION));
         api.setListeners(listeners);
-
-        listeners.add(buildListener());
         return api;
     }
 
-    private Listener buildListener() {
-        final HttpListener httpListener = new HttpListener();
-        final ArrayList<Entrypoint> entrypoints = new ArrayList<>();
-
-        httpListener.setEntrypoints(entrypoints);
+    private Listener buildListener(ListenerType listenerType) {
+        Listener listener;
+        switch (listenerType) {
+            case HTTP:
+                listener = new HttpListener();
+                break;
+            case SUBSCRIPTION:
+                listener = new SubscriptionListener();
+                break;
+            default:
+            case TCP:
+                throw new UnsupportedOperationException(String.format("Listener type '%s' not yet supported", listenerType));
+        }
+        final List<Entrypoint> entrypoints = new ArrayList<>();
+        listener.setEntrypoints(entrypoints);
         entrypoints.add(buildEntrypoint());
-        return httpListener;
+        return listener;
     }
 
     private Entrypoint buildEntrypoint() {
         final Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType(ENTRYPOINT_TYPE);
         entrypoint.setConfiguration(ENTRYPOINT_CONFIG);
-
         return entrypoint;
     }
 }

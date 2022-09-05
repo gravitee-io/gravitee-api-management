@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource.v4.endpoint;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.v4.connector.AbstractConnectorsResource;
 import io.gravitee.rest.api.management.rest.resource.v4.entrypoint.EntrypointResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -23,7 +24,6 @@ import io.gravitee.rest.api.model.ConnectorListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.connector.ConnectorExpandPluginEntity;
-import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -32,10 +32,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -50,8 +47,8 @@ import javax.ws.rs.core.Context;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "Plugins V4")
-public class EndpointsResource {
+@Tag(name = "🧪 V4 - Endpoints")
+public class EndpointsResource extends AbstractConnectorsResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -72,25 +69,8 @@ public class EndpointsResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public Collection<ConnectorExpandPluginEntity> getEntrypoint(@QueryParam("expand") List<String> expand) {
-        Stream<ConnectorExpandPluginEntity> stream = endpointService.findAll().stream().map(this::convert);
-
-        if (expand != null && !expand.isEmpty()) {
-            for (String s : expand) {
-                switch (s) {
-                    case "schema":
-                        stream =
-                            stream.peek(
-                                connectorListItem -> connectorListItem.setSchema(endpointService.getSchema(connectorListItem.getId()))
-                            );
-                    case "icon":
-                        stream =
-                            stream.peek(connectorListItem -> connectorListItem.setIcon(endpointService.getIcon(connectorListItem.getId())));
-                }
-            }
-        }
-
-        return stream.sorted(Comparator.comparing(ConnectorExpandPluginEntity::getName)).collect(Collectors.toList());
+    public Collection<ConnectorExpandPluginEntity> getEndpoints(@QueryParam("expand") List<String> expands) {
+        return super.expand(endpointService.findAll(), expands);
     }
 
     @Path("{endpoint}")
@@ -98,16 +78,13 @@ public class EndpointsResource {
         return resourceContext.getResource(EntrypointResource.class);
     }
 
-    private ConnectorExpandPluginEntity convert(ConnectorPluginEntity endpointPluginEntity) {
-        ConnectorExpandPluginEntity endpointExpandEntity = new ConnectorExpandPluginEntity();
+    @Override
+    protected String getSchema(final String connectorId) {
+        return endpointService.getSchema(connectorId);
+    }
 
-        endpointExpandEntity.setId(endpointPluginEntity.getId());
-        endpointExpandEntity.setName(endpointPluginEntity.getName());
-        endpointExpandEntity.setDescription(endpointPluginEntity.getDescription());
-        endpointExpandEntity.setVersion(endpointPluginEntity.getVersion());
-        endpointExpandEntity.setSupportedApiType(endpointPluginEntity.getSupportedApiType());
-        endpointExpandEntity.setSupportedModes(endpointPluginEntity.getSupportedModes());
-
-        return endpointExpandEntity;
+    @Override
+    protected String getIcon(final String connectorId) {
+        return endpointService.getIcon(connectorId);
     }
 }

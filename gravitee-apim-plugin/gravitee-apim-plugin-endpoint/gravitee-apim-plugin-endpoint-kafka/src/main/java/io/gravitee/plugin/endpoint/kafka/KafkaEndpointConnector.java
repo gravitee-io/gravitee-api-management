@@ -85,13 +85,14 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                     config.put(ProducerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
                     // Classes from reactivex have been imported because of issue with classloading from parent/plugin
                     KafkaProducer<String, byte[]> producer = createKafka(() -> KafkaProducer.create(getVertx(ctx), config));
+                    Set<String> topics = getTopics(ctx);
                     return ctx
                         .request()
                         .messages()
                         .flatMapCompletable(
                             message ->
                                 Flowable
-                                    .fromIterable(getTopics(ctx, message))
+                                    .fromIterable(overrideTopics(topics, message))
                                     .flatMapCompletable(
                                         topic -> {
                                             KafkaProducerRecord<String, byte[]> kafkaRecord = createKafkaRecord(ctx, message, topic);
@@ -147,7 +148,7 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                                         () -> KafkaConsumer.create(getVertx(ctx), new KafkaClientOptions().setConfig(config))
                                     );
                                     return consumer
-                                        .subscribe(getTopics(ctx, null))
+                                        .subscribe(getTopics(ctx))
                                         .toFlowable()
                                         .map(
                                             consumerRecord -> {
@@ -203,19 +204,31 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
         return groupId;
     }
 
-    private Set<String> getTopics(final MessageExecutionContext ctx, final Message message) {
-        String topics = null;
-        if (message != null) {
-            topics = message.attribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS);
-        }
+    private Set<String> getTopics(final MessageExecutionContext ctx) {
+        String topics = ctx.getAttribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS);
         if (topics == null || topics.isEmpty()) {
-            topics = ctx.getAttribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS);
-            if (topics == null || topics.isEmpty()) {
-                topics = configuration.getTopics();
-                ctx.setAttribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS, topics);
-            }
+            topics = configuration.getTopics();
+            ctx.setAttribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS, topics);
         }
-        return Arrays.stream(topics.split(",")).collect(Collectors.toSet());
+        if (topics == null) {
+            throw new IllegalStateException("Kafka topics couldn't be loaded from Configuration or Context.");
+        }
+        return splitTopic(topics);
+    }
+
+    private Set<String> overrideTopics(final Set<String> sharedTopics, final Message message) {
+        String topics = message.attribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS);
+        if (topics != null) {
+            return splitTopic(topics);
+        }
+        return sharedTopics;
+    }
+
+    private Set<String> splitTopic(final String topics) {
+        if (topics != null) {
+            return Arrays.stream(topics.split(",")).collect(Collectors.toSet());
+        }
+        return Set.of();
     }
 
     private String getKey(final MessageExecutionContext ctx) {
