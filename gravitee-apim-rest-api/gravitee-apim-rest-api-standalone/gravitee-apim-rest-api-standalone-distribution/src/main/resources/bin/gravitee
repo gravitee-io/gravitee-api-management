@@ -28,9 +28,9 @@ fi
 
 # Searching for configuration 
 GRAVITEE_OPTS=""
-if [ -f "/etc/gravitee-management/gravitee.yml" ]
+if [ -f "/opt/graviteeio-management-api/config/gravitee.yml" ]
 then
-	GRAVITEE_OPTS="-Dgravitee.conf=/etc/gravitee-management/gravitee.yml"
+	GRAVITEE_OPTS="-Dgravitee.conf=/opt/graviteeio-management-api/config/gravitee.yml"
 fi
 
 # Setup GRAVITEE_HOME
