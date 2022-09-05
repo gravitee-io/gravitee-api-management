@@ -1751,6 +1751,7 @@ workflows:
                               - /.*-run-e2e.*/
                               - /.*merge.*/
                               - /^\d+\.\d+\.x$/
+                              - ci-remove-e2e-report-step
             - test:
                   context: cicd-orchestrator
                   requires:
@@ -1939,6 +1940,7 @@ workflows:
                               - /.*-run-e2e.*/
                               - /.*merge.*/
                               - /^\d+\.\d+\.x$/
+                              - ci-remove-e2e-report-step
             - e2e-cypress:
                   context: cicd-orchestrator
                   name: Run Cypress UI tests
@@ -1952,6 +1954,7 @@ workflows:
                               - master
                               - /.*-run-e2e.*/
                               - /^\d+\.\d+\.x$/
+                              - ci-remove-e2e-report-step
 
             - perf-lint-build:
                   name: Lint & Build APIM perf
