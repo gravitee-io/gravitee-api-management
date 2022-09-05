@@ -13,33 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.v4.entrypoint;
+package io.gravitee.rest.api.service.v4;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
-import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
-import io.swagger.v3.oas.annotations.media.Schema;
+import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
+import io.gravitee.rest.api.service.PluginService;
 import java.util.Set;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@NoArgsConstructor
-@Getter
-@Setter
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "EntrypointPluginEntityV4")
-public class EntrypointPluginEntity extends PlatformPluginEntity {
+public interface ConnectorPluginService extends PluginService<ConnectorPluginEntity> {
+    Set<ConnectorPluginEntity> findBySupportedApi(final ApiType apiType);
 
-    private ApiType supportedApiType;
+    Set<ConnectorPluginEntity> findByConnectorMode(final ConnectorMode connectorMode);
 
-    private Set<ConnectorMode> supportedModes;
+    String validateConnectorConfiguration(final String connectorPluginId, final String configuration);
 }

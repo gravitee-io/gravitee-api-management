@@ -15,6 +15,9 @@
  */
 package io.gravitee.plugin.entrypoint.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorClassLoaderFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
@@ -31,10 +34,15 @@ import org.springframework.context.annotation.Configuration;
 public class EntrypointConnectorPluginConfiguration {
 
     @Bean
-    public ConfigurablePluginManager<EntrypointConnectorPlugin<?>> entrypointPluginManager(
-        final EntrypointConnectorClassLoaderFactory entrypointConnectorClassLoaderFactory
+    public ConfigurablePluginManager<EntrypointConnectorPlugin<?, ?>> entrypointPluginManager(
+        final EntrypointConnectorClassLoaderFactory entrypointConnectorClassLoaderFactory,
+        final io.gravitee.node.api.configuration.Configuration configuration,
+        final ObjectMapper objectMapper
     ) {
-        return new DefaultEntrypointConnectorPluginManager(entrypointConnectorClassLoaderFactory);
+        return new DefaultEntrypointConnectorPluginManager(
+            entrypointConnectorClassLoaderFactory,
+            new ConnectorFactoryHelper(configuration, objectMapper)
+        );
     }
 
     @Bean

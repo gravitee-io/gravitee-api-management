@@ -13,18 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.plugin.entrypoint;
+package io.gravitee.rest.api.model.v4.connector;
 
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
-import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.ConnectorMode;
+import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Set;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EntrypointConnectorPluginManager extends ConfigurablePluginManager<EntrypointConnectorPlugin<?, ?>> {
-    /**
-     * @return the factory <code>Class</code> according to the given plugin id
-     */
-    <T extends EntrypointConnectorFactory<?>> T getFactoryById(final String entrypointPluginId);
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@Schema(name = "ConnectorPluginEntityV4")
+public class ConnectorPluginEntity extends PlatformPluginEntity {
+
+    private ApiType supportedApiType;
+
+    private Set<ConnectorMode> supportedModes;
 }

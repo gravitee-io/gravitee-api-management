@@ -18,10 +18,14 @@ package io.gravitee.rest.api.service.v4.impl;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.gateway.jupiter.api.ApiType;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
+import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import java.io.IOException;
@@ -36,14 +40,14 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EndpointServiceImplTest {
+public class EndpointPluginServiceImplTest {
 
     private static final String PLUGIN_ID = "my-test-plugin";
     private static final String CONFIGURATION = "my-test-configuration";
     private static final String SCHEMA = "my-test-schema";
 
     @InjectMocks
-    private EndpointPluginServiceImpl endpointService;
+    private EndpointConnectorPluginServiceImpl endpointService;
 
     @Mock
     private JsonSchemaService jsonSchemaService;
@@ -57,11 +61,18 @@ public class EndpointServiceImplTest {
     @Mock
     private PluginManifest mockPluginManifest;
 
+    @Mock
+    private EndpointConnectorFactory<?> mockFactory;
+
     @Before
     public void setup() {
         ReflectionTestUtils.setField(endpointService, "pluginManager", pluginManager);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
+        when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
+        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
+        when(mockFactory.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(mockFactory.supportedModes()).thenReturn(Set.of(io.gravitee.gateway.jupiter.api.ConnectorMode.REQUEST_RESPONSE));
     }
 
     @Test
@@ -70,7 +81,7 @@ public class EndpointServiceImplTest {
         when(pluginManager.getSchema(PLUGIN_ID)).thenReturn(SCHEMA);
         when(jsonSchemaService.validate(SCHEMA, CONFIGURATION)).thenReturn("fixed-configuration");
 
-        String resultConfiguration = endpointService.validateEndpointConfiguration(PLUGIN_ID, CONFIGURATION);
+        String resultConfiguration = endpointService.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
 
         assertEquals("fixed-configuration", resultConfiguration);
     }
@@ -79,7 +90,7 @@ public class EndpointServiceImplTest {
     public void shouldValidateConfigurationWhenNullConfiguration() throws IOException {
         when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
 
-        String resultConfiguration = endpointService.validateEndpointConfiguration(PLUGIN_ID, null);
+        String resultConfiguration = endpointService.validateConnectorConfiguration(PLUGIN_ID, null);
 
         assertNull(resultConfiguration);
     }
@@ -88,7 +99,7 @@ public class EndpointServiceImplTest {
     public void shouldFailToValidateConfigurationWhenNoPlugin() {
         when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
 
-        endpointService.validateEndpointConfiguration(PLUGIN_ID, CONFIGURATION);
+        endpointService.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
     }
 
     @Test
@@ -116,7 +127,7 @@ public class EndpointServiceImplTest {
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
 
-        Set<PlatformPluginEntity> result = endpointService.findAll();
+        Set<ConnectorPluginEntity> result = endpointService.findAll();
 
         assertNotNull(result);
         assertEquals(1, result.size());

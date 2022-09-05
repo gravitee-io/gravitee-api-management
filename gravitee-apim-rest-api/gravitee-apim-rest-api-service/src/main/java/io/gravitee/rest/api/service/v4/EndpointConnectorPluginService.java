@@ -13,27 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.v4.entrypoint;
+package io.gravitee.rest.api.service.v4;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
-@NoArgsConstructor
-@Getter
-@Setter
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "EntrypointExpandEntityV4")
-public class EntrypointExpandPluginEntity extends EntrypointPluginEntity {
-
-    private String schema;
-    private String icon;
-}
+public interface EndpointConnectorPluginService extends ConnectorPluginService {}

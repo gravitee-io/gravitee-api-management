@@ -108,15 +108,12 @@ public class GatewayRunner {
     private final ObjectMapper graviteeMapper;
     private final Map<String, ReactableApi<?>> deployedForTestClass;
     private final Map<String, ReactableApi<?>> deployedForTest;
+    private final Map<DefinitionVersion, ApiDeploymentPreparer> apiDeploymentPreparers;
     private Organization deployedOrganization = null;
-
     private GatewayTestContainer gatewayContainer;
     private VertxEmbeddedContainer vertxContainer;
-
     private Path tempDir;
     private boolean isRunning = false;
-
-    private final Map<DefinitionVersion, ApiDeploymentPreparer> apiDeploymentPreparers;
 
     public GatewayRunner(GatewayConfigurationBuilder gatewayConfigurationBuilder, AbstractGatewayTest testInstance) {
         this.gatewayConfigurationBuilder = gatewayConfigurationBuilder;
@@ -511,13 +508,13 @@ public class GatewayRunner {
             .applicationContext()
             .getBean(EntrypointConnectorPluginManager.class);
 
-        Map<String, EntrypointConnectorPlugin<?>> entrypointsMap = new HashMap<>();
+        Map<String, EntrypointConnectorPlugin<?, ?>> entrypointsMap = new HashMap<>();
         testInstance.configureEntrypoints(entrypointsMap);
         ensureMinimalRequirementForEntrypoints(entrypointsMap);
         entrypointsMap.forEach((key, value) -> entrypointPluginManager.register(value));
     }
 
-    private void ensureMinimalRequirementForEntrypoints(Map<String, EntrypointConnectorPlugin<?>> entrypoints) {
+    private void ensureMinimalRequirementForEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
         entrypoints.putIfAbsent("sse", EntrypointBuilder.build("sse", SseEntrypointConnectorFactory.class));
     }
 
@@ -526,13 +523,13 @@ public class GatewayRunner {
             .applicationContext()
             .getBean(EndpointConnectorPluginManager.class);
 
-        Map<String, EndpointConnectorPlugin<?>> endpointsMap = new HashMap<>();
+        Map<String, EndpointConnectorPlugin<?, ?>> endpointsMap = new HashMap<>();
         testInstance.configureEndpoints(endpointsMap);
         ensureMinimalRequirementForEndpoints(endpointsMap);
         endpointsMap.forEach((key, value) -> endpointPluginManager.register(value));
     }
 
-    private void ensureMinimalRequirementForEndpoints(Map<String, EndpointConnectorPlugin<?>> endpoints) {
+    private void ensureMinimalRequirementForEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
         endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", MockEndpointConnectorFactory.class));
     }
 

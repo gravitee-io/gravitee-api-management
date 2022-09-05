@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.entrypoint.internal.fake;
 
-import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import java.net.URL;
@@ -25,7 +25,8 @@ import java.nio.file.Path;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FakeEntrypointConnectorPlugin implements EntrypointConnectorPlugin {
+public class FakeEntrypointConnectorPlugin
+    implements EntrypointConnectorPlugin<FakeEntrypointConnectorFactory, FakeEntrypointConnectorConfiguration> {
 
     @Override
     public String id() {
@@ -38,7 +39,7 @@ public class FakeEntrypointConnectorPlugin implements EntrypointConnectorPlugin 
     }
 
     @Override
-    public Class<? extends AbstractConnectorFactory<?>> entrypointConnectorFactory() {
+    public Class<FakeEntrypointConnectorFactory> connectorFactory() {
         return FakeEntrypointConnectorFactory.class;
     }
 
@@ -63,7 +64,7 @@ public class FakeEntrypointConnectorPlugin implements EntrypointConnectorPlugin 
     }
 
     @Override
-    public Class<?> configuration() {
+    public Class<FakeEntrypointConnectorConfiguration> configuration() {
         return null;
     }
 }

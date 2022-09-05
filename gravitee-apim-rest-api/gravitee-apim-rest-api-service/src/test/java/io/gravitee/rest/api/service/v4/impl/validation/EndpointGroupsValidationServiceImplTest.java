@@ -26,7 +26,7 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServic
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
-import io.gravitee.rest.api.service.v4.EndpointService;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeInvalidException;
 import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeMismatchInvalidException;
 import io.gravitee.rest.api.service.v4.exception.EndpointTypeInvalidException;
@@ -46,13 +46,13 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class EndpointGroupsValidationServiceImplTest {
 
     @Mock
-    private EndpointService endpointService;
+    private EndpointConnectorPluginService endpointService;
 
     private EndpointGroupsValidationService endpointGroupsValidationService;
 
     @Before
     public void setUp() throws Exception {
-        lenient().when(endpointService.validateEndpointConfiguration(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        lenient().when(endpointService.validateConnectorConfiguration(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         endpointGroupsValidationService = new EndpointGroupsValidationServiceImpl(endpointService);
     }
 

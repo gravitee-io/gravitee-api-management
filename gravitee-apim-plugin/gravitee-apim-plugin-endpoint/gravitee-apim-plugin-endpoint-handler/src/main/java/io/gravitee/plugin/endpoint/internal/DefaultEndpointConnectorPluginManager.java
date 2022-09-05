@@ -15,13 +15,15 @@
  */
 package io.gravitee.plugin.endpoint.internal;
 
-import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.endpoint.EndpointConnectorClassLoaderFactory;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -32,38 +34,56 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("unchecked")
 public class DefaultEndpointConnectorPluginManager
-    extends AbstractConfigurablePluginManager<EndpointConnectorPlugin<?>>
+    extends AbstractConfigurablePluginManager<EndpointConnectorPlugin<?, ?>>
     implements EndpointConnectorPluginManager {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultEndpointConnectorPluginManager.class);
     private final EndpointConnectorClassLoaderFactory classLoaderFactory;
-    private final Map<String, AbstractConnectorFactory<? extends EndpointConnector>> factories = new HashMap<>();
+    private final Map<String, EndpointConnectorFactory<?>> factories = new HashMap<>();
+    private final ConnectorFactoryHelper connectorFactoryHelper;
 
-    public DefaultEndpointConnectorPluginManager(final EndpointConnectorClassLoaderFactory classLoaderFactory) {
+    public DefaultEndpointConnectorPluginManager(
+        final EndpointConnectorClassLoaderFactory classLoaderFactory,
+        final ConnectorFactoryHelper connectorFactoryHelper
+    ) {
         this.classLoaderFactory = classLoaderFactory;
+        this.connectorFactoryHelper = connectorFactoryHelper;
     }
 
     @Override
-    public void register(final EndpointConnectorPlugin<?> plugin) {
+    public void register(final EndpointConnectorPlugin<?, ?> plugin) {
         super.register(plugin);
 
         // Create endpoint
         PluginClassLoader pluginClassLoader = classLoaderFactory.getOrCreateClassLoader(plugin);
         try {
-            final Class<AbstractConnectorFactory<? extends EndpointConnector>> connectorFactoryClass = (Class<AbstractConnectorFactory<? extends EndpointConnector>>) pluginClassLoader.loadClass(
+            final Class<EndpointConnectorFactory<?>> connectorFactoryClass = (Class<EndpointConnectorFactory<?>>) pluginClassLoader.loadClass(
                 plugin.clazz()
             );
-            final AbstractConnectorFactory<? extends EndpointConnector> factory = connectorFactoryClass
-                .getDeclaredConstructor()
-                .newInstance();
+            EndpointConnectorFactory<?> factory = createFactory(connectorFactoryClass);
             factories.put(plugin.id(), factory);
         } catch (Exception ex) {
             logger.error("Unexpected error while loading endpoint plugin: {}", plugin.clazz(), ex);
         }
     }
 
+    private EndpointConnectorFactory<?> createFactory(final Class<EndpointConnectorFactory<?>> connectorFactoryClass)
+        throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        EndpointConnectorFactory<?> factory;
+        try {
+            Constructor<EndpointConnectorFactory<?>> constructorWithFactoryHelper = connectorFactoryClass.getDeclaredConstructor(
+                ConnectorFactoryHelper.class
+            );
+            factory = constructorWithFactoryHelper.newInstance(connectorFactoryHelper);
+        } catch (NoSuchMethodException e) {
+            Constructor<EndpointConnectorFactory<?>> emptyConstructor = connectorFactoryClass.getDeclaredConstructor();
+            factory = emptyConstructor.newInstance();
+        }
+        return factory;
+    }
+
     @Override
-    public <T extends AbstractConnectorFactory<U>, U extends EndpointConnector> T getFactoryById(final String endpointPluginId) {
-        return (T) factories.get(endpointPluginId);
+    public EndpointConnectorFactory<?> getFactoryById(final String endpointPluginId) {
+        return factories.get(endpointPluginId);
     }
 }

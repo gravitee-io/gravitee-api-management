@@ -27,10 +27,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author GraviteeSource Team
  */
-public class EndpointConnectorPluginHandler extends AbstractSimplePluginHandler<EndpointConnectorPlugin<?>> {
+public class EndpointConnectorPluginHandler extends AbstractSimplePluginHandler<EndpointConnectorPlugin<?, ?>> {
 
     @Autowired
-    private ConfigurablePluginManager<EndpointConnectorPlugin<?>> endpointPluginManager;
+    private ConfigurablePluginManager<EndpointConnectorPlugin<?, ?>> endpointPluginManager;
 
     @Override
     public boolean canHandle(final Plugin plugin) {
@@ -43,7 +43,7 @@ public class EndpointConnectorPluginHandler extends AbstractSimplePluginHandler<
     }
 
     @Override
-    protected EndpointConnectorPlugin<?> create(final Plugin plugin, final Class<?> pluginClass) {
+    protected EndpointConnectorPlugin<?, ?> create(final Plugin plugin, final Class<?> pluginClass) {
         Class<? extends EndpointConnectorConfiguration> configurationClass = new EndpointConnectorConfigurationClassFinder()
         .lookupFirst(pluginClass);
 
@@ -51,11 +51,11 @@ public class EndpointConnectorPluginHandler extends AbstractSimplePluginHandler<
     }
 
     @Override
-    protected void register(EndpointConnectorPlugin<?> endpointConnectorPlugin) {
+    protected void register(EndpointConnectorPlugin<?, ?> endpointConnectorPlugin) {
         endpointPluginManager.register(endpointConnectorPlugin);
 
         // Once registered, the classloader should be released
-        final ClassLoader policyClassLoader = endpointConnectorPlugin.endpointConnectorFactory().getClassLoader();
+        final ClassLoader policyClassLoader = endpointConnectorPlugin.connectorFactory().getClassLoader();
 
         if (policyClassLoader instanceof URLClassLoader) {
             URLClassLoader classLoader = (URLClassLoader) policyClassLoader;

@@ -15,7 +15,6 @@
  */
 package io.gravitee.plugin.endpoint.internal.fake;
 
-import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import java.net.URL;
@@ -24,7 +23,8 @@ import java.nio.file.Path;
 /**
  * @author GraviteeSource Team
  */
-public class FakeEndpointConnectorPlugin implements EndpointConnectorPlugin {
+public class FakeEndpointConnectorPlugin
+    implements EndpointConnectorPlugin<FakeEndpointConnectorFactory, FakeEndpointConnectorConfiguration> {
 
     @Override
     public String id() {
@@ -37,7 +37,7 @@ public class FakeEndpointConnectorPlugin implements EndpointConnectorPlugin {
     }
 
     @Override
-    public Class<? extends AbstractConnectorFactory<?>> endpointConnectorFactory() {
+    public Class<FakeEndpointConnectorFactory> connectorFactory() {
         return FakeEndpointConnectorFactory.class;
     }
 
@@ -62,7 +62,7 @@ public class FakeEndpointConnectorPlugin implements EndpointConnectorPlugin {
     }
 
     @Override
-    public Class<?> configuration() {
+    public Class<FakeEndpointConnectorConfiguration> configuration() {
         return null;
     }
 }

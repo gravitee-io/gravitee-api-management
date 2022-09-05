@@ -16,6 +16,7 @@
 package io.gravitee.plugin.endpoint.internal;
 
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -25,24 +26,25 @@ import java.nio.file.Path;
 /**
  * @author GraviteeSource Team
  */
-class DefaultEndpointConnectorPlugin implements EndpointConnectorPlugin {
+class DefaultEndpointConnectorPlugin<T extends EndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration>
+    implements EndpointConnectorPlugin<T, U> {
 
     private final Plugin plugin;
-    private final Class<?> endpointConnectorClass;
-    private final Class<? extends EndpointConnectorConfiguration> endpointConnectorConfigurationClass;
+    private final Class<T> endpointConnectorClass;
+    private final Class<U> endpointConnectorConfigurationClass;
 
     DefaultEndpointConnectorPlugin(
         final Plugin plugin,
-        final Class<?> endpointConnectorClass,
-        final Class<? extends EndpointConnectorConfiguration> endpointConnectorConfigurationClass
+        final Class<T> endpointConnectorFactoryClass,
+        final Class<U> endpointConnectorConfigurationClass
     ) {
         this.plugin = plugin;
-        this.endpointConnectorClass = endpointConnectorClass;
+        this.endpointConnectorClass = endpointConnectorFactoryClass;
         this.endpointConnectorConfigurationClass = endpointConnectorConfigurationClass;
     }
 
     @Override
-    public Class<?> endpointConnectorFactory() {
+    public Class<T> connectorFactory() {
         return endpointConnectorClass;
     }
 
@@ -72,7 +74,7 @@ class DefaultEndpointConnectorPlugin implements EndpointConnectorPlugin {
     }
 
     @Override
-    public Class<? extends EndpointConnectorConfiguration> configuration() {
+    public Class<U> configuration() {
         return endpointConnectorConfigurationClass;
     }
 }

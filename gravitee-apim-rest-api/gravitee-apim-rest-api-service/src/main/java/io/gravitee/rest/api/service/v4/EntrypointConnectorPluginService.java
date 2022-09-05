@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4;
 
-public interface EndpointService {
-    String validateEndpointConfiguration(String endpointPluginId, String configuration);
-}
+/**
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public interface EntrypointConnectorPluginService extends ConnectorPluginService {}

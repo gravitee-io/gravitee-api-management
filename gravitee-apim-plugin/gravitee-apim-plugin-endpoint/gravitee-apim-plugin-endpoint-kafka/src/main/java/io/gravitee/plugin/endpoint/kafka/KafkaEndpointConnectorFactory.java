@@ -18,10 +18,12 @@ package io.gravitee.plugin.endpoint.kafka;
 import static io.gravitee.plugin.endpoint.kafka.KafkaEndpointConnector.SUPPORTED_MODES;
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -29,11 +31,10 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-public class KafkaEndpointConnectorFactory extends EndpointAsyncConnectorFactory {
+@AllArgsConstructor
+public class KafkaEndpointConnectorFactory implements EndpointAsyncConnectorFactory {
 
-    public KafkaEndpointConnectorFactory() {
-        super(KafkaEndpointConnectorConfiguration.class);
-    }
+    private ConnectorFactoryHelper connectorFactoryHelper;
 
     @Override
     public Set<ConnectorMode> supportedModes() {
@@ -43,7 +44,9 @@ public class KafkaEndpointConnectorFactory extends EndpointAsyncConnectorFactory
     @Override
     public KafkaEndpointConnector createConnector(final String configuration) {
         try {
-            return new KafkaEndpointConnector(getConfiguration(configuration));
+            return new KafkaEndpointConnector(
+                connectorFactoryHelper.getConnectorConfiguration(KafkaEndpointConnectorConfiguration.class, configuration)
+            );
         } catch (PluginConfigurationException e) {
             log.error("Can't create connector cause no valid configuration", e);
             return null;

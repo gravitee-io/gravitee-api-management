@@ -17,8 +17,10 @@ package io.gravitee.plugin.endpoint.mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,7 +35,7 @@ class MockEndpointConnectorFactoryTest {
 
     @BeforeEach
     void beforeEach() {
-        mockEndpointConnectorFactory = new MockEndpointConnectorFactory();
+        mockEndpointConnectorFactory = new MockEndpointConnectorFactory(new ConnectorFactoryHelper(null, new ObjectMapper()));
     }
 
     @Test

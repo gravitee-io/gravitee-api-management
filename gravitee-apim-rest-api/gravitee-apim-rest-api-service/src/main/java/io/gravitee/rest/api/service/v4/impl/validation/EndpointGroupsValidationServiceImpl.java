@@ -22,7 +22,7 @@ import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
-import io.gravitee.rest.api.service.v4.EndpointService;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeInvalidException;
 import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeMismatchInvalidException;
 import io.gravitee.rest.api.service.v4.exception.EndpointTypeInvalidException;
@@ -38,9 +38,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class EndpointGroupsValidationServiceImpl extends TransactionalService implements EndpointGroupsValidationService {
 
-    private final EndpointService endpointService;
+    private final EndpointConnectorPluginService endpointService;
 
-    public EndpointGroupsValidationServiceImpl(final EndpointService endpointService) {
+    public EndpointGroupsValidationServiceImpl(final EndpointConnectorPluginService endpointService) {
         this.endpointService = endpointService;
     }
 
@@ -65,7 +65,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                                 validateEndpointType(endpoint.getType());
                                 validateServices(endpoint.getServices());
                                 endpoint.setConfiguration(
-                                    endpointService.validateEndpointConfiguration(endpoint.getType(), endpoint.getConfiguration())
+                                    endpointService.validateConnectorConfiguration(endpoint.getType(), endpoint.getConfiguration())
                                 );
                             }
                         );

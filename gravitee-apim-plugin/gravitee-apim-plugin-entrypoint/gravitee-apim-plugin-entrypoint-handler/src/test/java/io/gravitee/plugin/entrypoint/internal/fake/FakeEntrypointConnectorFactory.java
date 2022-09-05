@@ -15,26 +15,23 @@
  */
 package io.gravitee.plugin.entrypoint.internal.fake;
 
-import static org.mockito.Mockito.mock;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FakeEntrypointConnectorFactory extends AbstractConnectorFactory<FakeEntrypointConnector> {
-
-    private class FakeEntrypointConnectorFactoryConfiguration {}
-
-    public FakeEntrypointConnectorFactory() {
-        super(FakeEntrypointConnectorFactoryConfiguration.class);
-    }
+@NoArgsConstructor
+public class FakeEntrypointConnectorFactory implements EntrypointConnectorFactory<FakeEntrypointConnector> {
 
     @Override
     public ApiType supportedApi() {

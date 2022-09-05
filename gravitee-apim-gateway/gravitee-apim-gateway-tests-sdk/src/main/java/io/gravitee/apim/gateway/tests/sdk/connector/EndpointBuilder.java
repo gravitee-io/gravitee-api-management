@@ -15,9 +15,8 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.connector;
 
-import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import java.net.URL;
@@ -29,18 +28,21 @@ public class EndpointBuilder {
         throw new IllegalStateException("Utility class");
     }
 
-    public static EndpointConnectorPlugin<?> build(String id, Class<? extends EndpointAsyncConnectorFactory> entrypointConnectorFactory) {
-        return build(id, entrypointConnectorFactory, null);
+    public static <T extends EndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration> EndpointConnectorPlugin<T, U> build(
+        String id,
+        Class<T> endpointConnectorFactory
+    ) {
+        return build(id, endpointConnectorFactory, null);
     }
 
-    public static EndpointConnectorPlugin<?> build(
+    public static <T extends EndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration> EndpointConnectorPlugin<T, U> build(
         String id,
-        Class<? extends EndpointAsyncConnectorFactory> entrypointConnectorFactory,
-        Class<? extends EndpointConnectorConfiguration> entrypointConfiguration
+        Class<T> entrypointConnectorFactory,
+        Class<U> entrypointConfiguration
     ) {
         return new EndpointConnectorPlugin<>() {
             @Override
-            public Class<? extends AbstractConnectorFactory<?>> endpointConnectorFactory() {
+            public Class<T> connectorFactory() {
                 return entrypointConnectorFactory;
             }
 
@@ -70,7 +72,7 @@ public class EndpointBuilder {
             }
 
             @Override
-            public Class configuration() {
+            public Class<U> configuration() {
                 return entrypointConfiguration;
             }
         };
