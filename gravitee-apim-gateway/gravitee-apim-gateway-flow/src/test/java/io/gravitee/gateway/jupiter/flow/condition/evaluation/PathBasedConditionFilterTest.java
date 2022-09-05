@@ -19,10 +19,8 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
-import io.gravitee.gateway.jupiter.api.context.Request;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.reactivex.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,10 +38,10 @@ class PathBasedConditionFilterTest {
     private final PathBasedConditionFilter cut = new PathBasedConditionFilter();
 
     @Mock
-    private HttpExecutionContext ctx;
+    private GenericExecutionContext ctx;
 
     @Mock
-    private Request request;
+    private HttpRequest request;
 
     @Mock
     private Flow flow;

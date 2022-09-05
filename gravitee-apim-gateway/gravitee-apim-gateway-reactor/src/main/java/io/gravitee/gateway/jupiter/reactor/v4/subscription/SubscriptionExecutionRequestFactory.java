@@ -16,8 +16,8 @@
 package io.gravitee.gateway.jupiter.reactor.v4.subscription;
 
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultMessageExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
+import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.context.SubscriptionRequest;
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.context.SubscriptionResponse;
 
@@ -27,7 +27,7 @@ import io.gravitee.gateway.jupiter.reactor.v4.subscription.context.SubscriptionR
  */
 public class SubscriptionExecutionRequestFactory {
 
-    public MessageExecutionContext create(Subscription subscription) {
-        return new DefaultMessageExecutionContext(new SubscriptionRequest(subscription), new SubscriptionResponse());
+    public MutableExecutionContext create(Subscription subscription) {
+        return new DefaultExecutionContext(new SubscriptionRequest(subscription), new SubscriptionResponse());
     }
 }

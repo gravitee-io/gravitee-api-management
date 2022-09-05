@@ -23,8 +23,8 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpResponse;
 import io.reactivex.CompletableEmitter;
 import io.reactivex.subscribers.TestSubscriber;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +46,7 @@ class ConnectionHandlerAdapterTest {
     protected static final HttpHeaders MOCK_HTTP_HEADERS = HttpHeaders.create().add("X-Test1", "X-Value1").add("X-Test2", "X-Value2");
 
     @Mock
-    private RequestExecutionContext ctx;
+    private HttpExecutionContext ctx;
 
     @Mock
     private CompletableEmitter nexEmitter;
@@ -58,7 +58,7 @@ class ConnectionHandlerAdapterTest {
     private ProxyResponse proxyResponse;
 
     @Mock
-    private Response response;
+    private HttpResponse response;
 
     @Captor
     private ArgumentCaptor<Handler<ProxyResponse>> handlerCaptor;

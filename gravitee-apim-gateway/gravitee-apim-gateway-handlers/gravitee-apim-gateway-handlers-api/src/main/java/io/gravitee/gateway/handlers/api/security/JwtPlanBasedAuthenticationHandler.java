@@ -29,6 +29,7 @@ import io.gravitee.gateway.security.core.LazyJwtToken;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,9 +47,11 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
     private static final String CLAIM_AUDIENCE = "aud";
     private static final String CLAIM_AUTHORIZED_PARTY = "azp";
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private SubscriptionService subscriptionService;
+    private final SubscriptionService subscriptionService;
+
+    private AtomicReference<String> customClientIdClaimRef;
 
     public JwtPlanBasedAuthenticationHandler(AuthenticationHandler handler, Plan plan, SubscriptionService subscriptionService) {
         super(handler, plan);
@@ -95,8 +98,9 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
      * @return clientId
      */
     protected String getClientId(Map<String, Object> claims) {
-        if (getCustomClientIdClaimName() != null) {
-            Object clientIdClaim = claims.get(getCustomClientIdClaimName());
+        final String customClientIdClaimName = getCustomClientIdClaimName();
+        if (customClientIdClaimName != null) {
+            Object clientIdClaim = claims.get(customClientIdClaimName);
             return extractClientId(clientIdClaim);
         }
 
@@ -149,16 +153,23 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
      * @return name of the claim containing client_id configured at policy level
      */
     private String getCustomClientIdClaimName() {
-        try {
-            if (plan.getSecurityDefinition() != null) {
-                JsonNode clientIdClaimNode = objectMapper.readTree(plan.getSecurityDefinition()).get(CLIENT_ID_CLAIM_PARAMETER);
-                if (clientIdClaimNode != null) {
-                    return clientIdClaimNode.asText();
-                }
-            }
-        } catch (JsonProcessingException e) {
-            LOGGER.error("Failed to read plan security definition", e);
+        if (customClientIdClaimRef != null) {
+            return customClientIdClaimRef.get();
         }
-        return null;
+
+        customClientIdClaimRef = new AtomicReference<>(null);
+
+        final String securityDefinition = plan.getSecurityDefinition();
+        if (securityDefinition != null) {
+            try {
+                JsonNode clientIdClaimNode = MAPPER.readTree(securityDefinition).get(CLIENT_ID_CLAIM_PARAMETER);
+                if (clientIdClaimNode != null) {
+                    customClientIdClaimRef.set(clientIdClaimNode.textValue());
+                }
+            } catch (JsonProcessingException e) {
+                LOGGER.error("Failed to read plan security definition", e);
+            }
+        }
+        return customClientIdClaimRef.get();
     }
 }

@@ -18,9 +18,8 @@ package io.gravitee.gateway.jupiter.flow;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
-import io.gravitee.gateway.jupiter.api.context.Request;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.reactivex.subscribers.TestSubscriber;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,10 +34,10 @@ import org.mockito.Mock;
 public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
 
     @Mock
-    public RequestExecutionContext executionContext;
+    public HttpExecutionContext executionContext;
 
     @Mock
-    public Request request;
+    public HttpRequest request;
 
     @Test
     public void shouldResolveBestMatchFlowApiResolver() {

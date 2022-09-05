@@ -18,8 +18,7 @@ package io.gravitee.gateway.jupiter.core.condition;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.reactivex.Maybe;
 import io.reactivex.observers.TestObserver;
 import org.junit.jupiter.api.Test;
@@ -46,7 +45,7 @@ class CompositeConditionFilterTest {
     private ConditionFilter<Object> evaluator3;
 
     @Mock
-    private RequestExecutionContext ctx;
+    private HttpExecutionContext ctx;
 
     @Mock
     private Object conditionSupplier;

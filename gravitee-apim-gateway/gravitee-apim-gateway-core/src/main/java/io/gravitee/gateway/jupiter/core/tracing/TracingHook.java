@@ -16,8 +16,7 @@
 package io.gravitee.gateway.jupiter.core.tracing;
 
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
@@ -54,7 +53,7 @@ public class TracingHook extends AbstractTracingHook implements ProcessorHook, C
     }
 
     @Override
-    protected void withAttributes(String id, HttpExecutionContext ctx, ExecutionPhase executionPhase, Span span) {
+    protected void withAttributes(String id, ExecutionContext ctx, ExecutionPhase executionPhase, Span span) {
         super.withAttributes(id, ctx, executionPhase, span);
         span.withAttribute(key, id);
     }

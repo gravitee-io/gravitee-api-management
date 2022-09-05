@@ -23,7 +23,7 @@ import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.jupiter.core.context.MutableHttpRequest;
+import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.reporter.api.http.Metrics;
 import io.vertx.reactivex.core.http.HttpServerRequest;
 import io.vertx.reactivex.core.net.SocketAddress;
@@ -33,7 +33,7 @@ import javax.net.ssl.SSLSession;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-abstract class AbstractVertxServerRequest implements MutableHttpRequest {
+abstract class AbstractVertxServerRequest implements MutableRequest {
 
     protected final long timestamp;
     protected final Metrics metrics;
@@ -99,13 +99,13 @@ abstract class AbstractVertxServerRequest implements MutableHttpRequest {
     }
 
     @Override
-    public MutableHttpRequest pathInfo(final String pathInfo) {
+    public AbstractVertxServerRequest pathInfo(final String pathInfo) {
         this.pathInfo = pathInfo;
         return this;
     }
 
     @Override
-    public MutableHttpRequest contextPath(String contextPath) {
+    public AbstractVertxServerRequest contextPath(String contextPath) {
         this.contextPath = contextPath;
         this.pathInfo = path().substring((contextPath.length() == 1) ? 0 : contextPath.length() - 1);
         return this;
@@ -173,7 +173,7 @@ abstract class AbstractVertxServerRequest implements MutableHttpRequest {
     }
 
     @Override
-    public MutableHttpRequest remoteAddress(String remoteAddress) {
+    public AbstractVertxServerRequest remoteAddress(String remoteAddress) {
         this.remoteAddress = remoteAddress;
         return this;
     }

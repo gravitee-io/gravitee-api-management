@@ -22,26 +22,23 @@ import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.gravitee.gateway.jupiter.core.context.MutableHttpRequest;
-import io.gravitee.gateway.jupiter.core.context.MutableMessageRequest;
+import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.reporter.api.http.Metrics;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableTransformer;
-import io.reactivex.Maybe;
+import io.reactivex.*;
 import java.util.Collections;
 import javax.net.ssl.SSLSession;
 
 /**
- * This is a sort of fake {@link MutableMessageRequest} to deal with subscription.
+ * This is a sort of fake {@link MutableRequest} to deal with subscription.
  * Some methods are returning a {@link IllegalStateException} because the methods doesn't make sense
  * in the case of subscription where the request is initiated by an incoming {@link Subscription}.
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SubscriptionRequest implements MutableMessageRequest {
+public class SubscriptionRequest implements MutableRequest {
 
     private final HttpHeaders headers = HttpHeaders.create();
 
@@ -57,23 +54,23 @@ public class SubscriptionRequest implements MutableMessageRequest {
     }
 
     @Override
-    public MutableHttpRequest contextPath(String contextPath) {
+    public MutableRequest contextPath(String contextPath) {
         return this;
     }
 
     @Override
-    public MutableHttpRequest pathInfo(String pathInfo) {
+    public MutableRequest pathInfo(String pathInfo) {
         return this;
     }
 
     @Override
-    public MutableHttpRequest transactionId(String id) {
+    public MutableRequest transactionId(String id) {
         this.transactionId = id;
         return this;
     }
 
     @Override
-    public MutableHttpRequest remoteAddress(String remoteAddress) {
+    public MutableRequest remoteAddress(String remoteAddress) {
         return this;
     }
 
@@ -173,8 +170,44 @@ public class SubscriptionRequest implements MutableMessageRequest {
     }
 
     @Override
+    public boolean isWebSocket() {
+        return false;
+    }
+
+    @Override
+    public WebSocket webSocket() {
+        return null;
+    }
+
+    @Override
     public Maybe<Buffer> body() {
         return Maybe.empty();
+    }
+
+    @Override
+    public Single<Buffer> bodyOrEmpty() {
+        return null;
+    }
+
+    @Override
+    public void body(Buffer buffer) {}
+
+    @Override
+    public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
+        return null;
+    }
+
+    @Override
+    public Flowable<Buffer> chunks() {
+        return null;
+    }
+
+    @Override
+    public void chunks(Flowable<Buffer> chunks) {}
+
+    @Override
+    public Completable onChunks(FlowableTransformer<Buffer, Buffer> onChunks) {
+        return null;
     }
 
     @Override

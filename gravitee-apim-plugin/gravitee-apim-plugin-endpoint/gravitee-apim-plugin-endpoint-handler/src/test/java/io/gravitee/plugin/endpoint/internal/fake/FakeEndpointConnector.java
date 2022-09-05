@@ -18,7 +18,7 @@ package io.gravitee.plugin.endpoint.internal.fake;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.reactivex.Completable;
 import java.util.Set;
 import lombok.Builder;
@@ -29,7 +29,7 @@ import lombok.Getter;
  */
 @Builder
 @Getter
-public class FakeEndpointConnector implements EndpointConnector<RequestExecutionContext> {
+public class FakeEndpointConnector implements EndpointConnector {
 
     static final ApiType SUPPORTED_API = ApiType.SYNC;
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
@@ -47,7 +47,7 @@ public class FakeEndpointConnector implements EndpointConnector<RequestExecution
     }
 
     @Override
-    public Completable connect(RequestExecutionContext executionContext) {
+    public Completable connect(ExecutionContext executionContext) {
         return Completable.complete();
     }
 }

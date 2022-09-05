@@ -17,8 +17,7 @@ package io.gravitee.gateway.jupiter.handlers.api.processor.plan;
 
 import static io.gravitee.gateway.api.ExecutionContext.*;
 
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.handlers.api.security.SecurityChain;
 import io.gravitee.reporter.api.http.Metrics;
@@ -47,7 +46,7 @@ public class PlanProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(HttpExecutionContext ctx) {
+    public Completable execute(MutableExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
                 final Metrics metrics = ctx.request().metrics();

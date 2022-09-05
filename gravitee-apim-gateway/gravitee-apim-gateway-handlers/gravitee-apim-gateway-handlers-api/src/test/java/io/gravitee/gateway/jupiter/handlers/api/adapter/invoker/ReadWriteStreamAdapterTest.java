@@ -20,8 +20,8 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.jupiter.api.context.Request;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.jupiter.policy.adapter.context.RequestAdapter;
 import io.reactivex.CompletableEmitter;
@@ -51,10 +51,10 @@ class ReadWriteStreamAdapterTest {
     private RequestAdapter requestAdapter;
 
     @Mock
-    private RequestExecutionContext syncCtx;
+    private HttpExecutionContext syncCtx;
 
     @Mock
-    private Request request;
+    private HttpRequest request;
 
     @Mock
     private CompletableEmitter nexEmitter;

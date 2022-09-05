@@ -21,8 +21,8 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageResponse;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.Response;
 import io.reactivex.Completable;
 import io.reactivex.Maybe;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,10 +39,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class HttpPostEntrypointConnectorTest {
 
     @Mock
-    private MessageExecutionContext mockMessageExecutionContext;
+    private ExecutionContext mockExecutionContext;
 
     @Mock
-    private MessageResponse mockMessageResponse;
+    private Response mockResponse;
 
     private HttpPostEntrypointConnector httpPostEntrypointConnector;
 
@@ -60,9 +60,9 @@ class HttpPostEntrypointConnectorTest {
     void shouldMatchesWithValidContext() {
         DummyMessageRequest dummyMessageRequest = new DummyMessageRequest();
         dummyMessageRequest.method(HttpMethod.POST);
-        when(mockMessageExecutionContext.request()).thenReturn(dummyMessageRequest);
+        when(mockExecutionContext.request()).thenReturn(dummyMessageRequest);
 
-        boolean matches = httpPostEntrypointConnector.matches(mockMessageExecutionContext);
+        boolean matches = httpPostEntrypointConnector.matches(mockExecutionContext);
 
         assertThat(matches).isTrue();
     }
@@ -71,9 +71,9 @@ class HttpPostEntrypointConnectorTest {
     void shouldNotMatchesWithBadMethod() {
         DummyMessageRequest dummyMessageRequest = new DummyMessageRequest();
         dummyMessageRequest.method(HttpMethod.GET);
-        when(mockMessageExecutionContext.request()).thenReturn(dummyMessageRequest);
+        when(mockExecutionContext.request()).thenReturn(dummyMessageRequest);
 
-        boolean matches = httpPostEntrypointConnector.matches(mockMessageExecutionContext);
+        boolean matches = httpPostEntrypointConnector.matches(mockExecutionContext);
 
         assertThat(matches).isFalse();
     }
@@ -83,16 +83,16 @@ class HttpPostEntrypointConnectorTest {
         DummyMessageRequest dummyMessageRequest = new DummyMessageRequest();
         dummyMessageRequest.headers(HttpHeaders.create());
         dummyMessageRequest.body(Maybe.just(Buffer.buffer("bodyContent")));
-        when(mockMessageExecutionContext.request()).thenReturn(dummyMessageRequest);
-        httpPostEntrypointConnector.handleRequest(mockMessageExecutionContext).test().assertComplete();
+        when(mockExecutionContext.request()).thenReturn(dummyMessageRequest);
+        httpPostEntrypointConnector.handleRequest(mockExecutionContext).test().assertComplete();
 
         dummyMessageRequest.messages().test().assertValue(message -> "bodyContent".equals(message.content().toString()));
     }
 
     @Test
     void shouldCompleteAndEndWhenResponseMessagesComplete() {
-        when(mockMessageResponse.end()).thenReturn(Completable.complete());
-        when(mockMessageExecutionContext.response()).thenReturn(mockMessageResponse);
-        httpPostEntrypointConnector.handleResponse(mockMessageExecutionContext).test().assertComplete();
+        when(mockResponse.end()).thenReturn(Completable.complete());
+        when(mockExecutionContext.response()).thenReturn(mockResponse);
+        httpPostEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
     }
 }

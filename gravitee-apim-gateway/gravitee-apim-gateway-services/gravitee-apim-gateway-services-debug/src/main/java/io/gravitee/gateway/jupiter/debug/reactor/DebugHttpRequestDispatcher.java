@@ -21,12 +21,12 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.debug.vertx.VertxHttpServerRequestDebugDecorator;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
-import io.gravitee.gateway.jupiter.debug.reactor.context.DebugRequestExecutionContext;
+import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
 import io.gravitee.gateway.jupiter.debug.vertx.TimeoutServerResponseDebugDecorator;
 import io.gravitee.gateway.jupiter.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.jupiter.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
@@ -69,8 +69,8 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
     }
 
     @Override
-    protected DefaultRequestExecutionContext createRequestExecutionContext(VertxHttpServerRequest request) {
-        return new DebugRequestExecutionContext(request, request.response());
+    protected DefaultExecutionContext createExecutionContext(VertxHttpServerRequest request) {
+        return new DebugExecutionContext(request, request.response());
     }
 
     @Override

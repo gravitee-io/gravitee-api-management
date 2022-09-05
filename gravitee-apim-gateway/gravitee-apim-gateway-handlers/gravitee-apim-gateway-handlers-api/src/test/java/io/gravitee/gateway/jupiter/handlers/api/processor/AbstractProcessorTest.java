@@ -23,7 +23,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.Flowable;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +54,7 @@ public class AbstractProcessorTest {
 
     protected HttpHeaders spyResponseHeaders;
 
-    protected DefaultRequestExecutionContext ctx;
+    protected DefaultExecutionContext ctx;
     protected CustomComponentProvider componentProvider;
 
     @BeforeEach
@@ -67,7 +67,7 @@ public class AbstractProcessorTest {
         api = new Api();
         componentProvider = new CustomComponentProvider();
         componentProvider.add(Api.class, api);
-        ctx = new DefaultRequestExecutionContext(mockRequest, mockResponse);
+        ctx = new DefaultExecutionContext(mockRequest, mockResponse);
         ctx.componentProvider(componentProvider);
 
         lenient().when(mockResponse.chunks()).thenReturn(Flowable.empty());

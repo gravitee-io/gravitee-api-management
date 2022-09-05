@@ -21,7 +21,8 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.gateway.jupiter.api.connector.AbstractConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import java.util.Comparator;
 import java.util.List;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unchecked")
 public class HttpEntrypointConnectorResolver {
 
-    private final List<EntrypointConnector<HttpExecutionContext>> entrypointConnectors;
+    private final List<EntrypointConnector> entrypointConnectors;
 
     public HttpEntrypointConnectorResolver(final Api api, final EntrypointConnectorPluginManager entrypointConnectorPluginManager) {
         entrypointConnectors =
@@ -46,20 +47,14 @@ public class HttpEntrypointConnectorResolver {
                 .filter(listener -> listener.getType() == ListenerType.HTTP)
                 .map(HttpListener.class::cast)
                 .flatMap(httpListener -> httpListener.getEntrypoints().stream())
-                .map(
-                    entrypoint ->
-                        this.<EntrypointConnector<HttpExecutionContext>, HttpExecutionContext>createConnector(
-                                entrypointConnectorPluginManager,
-                                entrypoint
-                            )
-                )
+                .map(entrypoint -> this.<EntrypointConnector>createConnector(entrypointConnectorPluginManager, entrypoint))
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparingInt(EntrypointConnector::matchCriteriaCount))
                 .collect(Collectors.toList());
     }
 
-    public <T extends EntrypointConnector<U>, U extends HttpExecutionContext> T resolve(final U ctx) {
-        Optional<EntrypointConnector<HttpExecutionContext>> entrypointConnector = entrypointConnectors
+    public <T extends EntrypointConnector> T resolve(final ExecutionContext ctx) {
+        Optional<EntrypointConnector> entrypointConnector = entrypointConnectors
             .stream()
             .filter(connector -> connector.supportedListenerType() == io.gravitee.gateway.jupiter.api.ListenerType.HTTP)
             .filter(connector -> connector.matches(ctx))
@@ -67,11 +62,11 @@ public class HttpEntrypointConnectorResolver {
         return (T) entrypointConnector.orElse(null);
     }
 
-    private <T extends EntrypointConnector<U>, U extends HttpExecutionContext> T createConnector(
+    private <T extends EntrypointConnector> T createConnector(
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         Entrypoint entrypoint
     ) {
-        AbstractConnectorFactory<? extends EntrypointConnector<?>> connectorFactory = entrypointConnectorPluginManager.getFactoryById(
+        AbstractConnectorFactory<? extends EntrypointConnector> connectorFactory = entrypointConnectorPluginManager.getFactoryById(
             entrypoint.getType()
         );
 

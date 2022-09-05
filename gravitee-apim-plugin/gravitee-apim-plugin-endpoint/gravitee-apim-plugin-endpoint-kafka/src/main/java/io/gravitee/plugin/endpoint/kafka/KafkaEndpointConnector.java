@@ -15,9 +15,11 @@
  */
 package io.gravitee.plugin.endpoint.kafka;
 
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
@@ -52,7 +54,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 @AllArgsConstructor
 public class KafkaEndpointConnector implements EndpointAsyncConnector {
 
-    static final String KAFKA_CONTEXT_ATTRIBUTE = ExecutionContext.ATTR_PREFIX + "kafka.";
+    static final String KAFKA_CONTEXT_ATTRIBUTE = ContextAttributes.ATTR_PREFIX + "kafka.";
     static final String CONTEXT_ATTRIBUTE_KAFKA_TOPICS = KAFKA_CONTEXT_ATTRIBUTE + "topics";
     static final String CONTEXT_ATTRIBUTE_KAFKA_GROUP_ID = KAFKA_CONTEXT_ATTRIBUTE + "groupId";
     static final String CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY = KAFKA_CONTEXT_ATTRIBUTE + "recordKey";
@@ -67,7 +69,7 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
     }
 
     @Override
-    public Completable connect(final MessageExecutionContext ctx) {
+    public Completable connect(final ExecutionContext ctx) {
         return prepareProducer(ctx).andThen(prepareConsumer(ctx));
     }
 
@@ -158,7 +160,7 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                                                 return DefaultMessage
                                                     .builder()
                                                     .headers(httpHeaders)
-                                                    .content(consumerRecord.value())
+                                                    .content(Buffer.buffer(consumerRecord.value()))
                                                     .metadata(
                                                         Map.of(
                                                             "key",

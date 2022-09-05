@@ -20,13 +20,14 @@ import io.gravitee.gateway.debug.core.invoker.InvokerResponse;
 import io.gravitee.gateway.debug.reactor.handler.context.AttributeHelper;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyRequestStep;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyResponseStep;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyStep;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyStepFactory;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
 import io.reactivex.Completable;
 import io.reactivex.Maybe;
 import java.io.Serializable;
@@ -38,14 +39,14 @@ import java.util.Map;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DebugRequestExecutionContext extends DefaultRequestExecutionContext {
+public class DebugExecutionContext extends DefaultExecutionContext {
 
     private final LinkedList<PolicyStep<?>> policySteps = new LinkedList<>();
     private final Map<String, Serializable> initialAttributes;
     private final InvokerResponse invokerResponse = new InvokerResponse();
     private final HttpHeaders initialHeaders;
 
-    public DebugRequestExecutionContext(final MutableRequest request, final MutableResponse response) {
+    public DebugExecutionContext(final MutableRequest request, final MutableResponse response) {
         super(request, response);
         this.initialAttributes = AttributeHelper.filterAndSerializeAttributes(getAttributes());
         this.initialHeaders = HttpHeaders.create(request().headers());
@@ -55,7 +56,7 @@ public class DebugRequestExecutionContext extends DefaultRequestExecutionContext
         return Maybe
             .fromCallable(
                 () -> {
-                    String flowStage = getInternalAttribute(ATTR_INTERNAL_FLOW_STAGE);
+                    String flowStage = getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE);
                     PolicyStep<?> policyStep = PolicyStepFactory.createPolicyStep(id, executionPhase, flowStage);
                     if (policyStep != null) {
                         policySteps.add(policyStep);

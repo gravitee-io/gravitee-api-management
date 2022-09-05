@@ -22,8 +22,8 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
+import io.gravitee.gateway.jupiter.api.context.GenericRequest;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
-import io.gravitee.gateway.jupiter.api.context.Request;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -32,9 +32,9 @@ import io.gravitee.gateway.jupiter.api.context.Request;
 abstract class LogRequest extends io.gravitee.reporter.api.common.Request {
 
     protected final LoggingContext loggingContext;
-    protected final HttpRequest request;
+    protected final GenericRequest request;
 
-    public LogRequest(LoggingContext loggingContext, Request request) {
+    public LogRequest(LoggingContext loggingContext, HttpRequest request) {
         this.loggingContext = loggingContext;
         this.request = request;
 

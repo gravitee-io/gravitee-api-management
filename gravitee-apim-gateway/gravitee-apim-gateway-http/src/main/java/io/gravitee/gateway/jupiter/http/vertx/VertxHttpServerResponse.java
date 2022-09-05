@@ -16,7 +16,7 @@
 package io.gravitee.gateway.jupiter.http.vertx;
 
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.gravitee.gateway.jupiter.api.message.Message;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableTransformer;
@@ -28,48 +28,50 @@ import io.reactivex.Single;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxHttpServerResponse extends AbstractVertxServerResponse implements MutableResponse {
+public class VertxHttpServerResponse extends AbstractVertxServerResponse {
 
-    private final BodyChunksFlowable bodyChunksFlowable;
+    private final BufferFlow bufferFlow;
+    private MessageFlow messageFlow;
 
     public VertxHttpServerResponse(final VertxHttpServerRequest vertxHttpServerRequest) {
         super(vertxHttpServerRequest);
-        bodyChunksFlowable = new BodyChunksFlowable();
+        bufferFlow = new BufferFlow();
+        messageFlow = null;
     }
 
     @Override
     public Maybe<Buffer> body() {
-        return bodyChunksFlowable.body();
+        return bufferFlow.body();
     }
 
     @Override
     public Single<Buffer> bodyOrEmpty() {
-        return bodyChunksFlowable.bodyOrEmpty();
+        return bufferFlow.bodyOrEmpty();
     }
 
     @Override
     public void body(final Buffer buffer) {
-        bodyChunksFlowable.body(buffer);
+        bufferFlow.body(buffer);
     }
 
     @Override
     public Completable onBody(final MaybeTransformer<Buffer, Buffer> onBody) {
-        return bodyChunksFlowable.onBody(onBody);
+        return bufferFlow.onBody(onBody);
     }
 
     @Override
     public Flowable<Buffer> chunks() {
-        return bodyChunksFlowable.chunks();
+        return bufferFlow.chunks();
     }
 
     @Override
     public void chunks(final Flowable<Buffer> chunks) {
-        bodyChunksFlowable.chunks(chunks);
+        bufferFlow.chunks(chunks);
     }
 
     @Override
     public Completable onChunks(final FlowableTransformer<Buffer, Buffer> onChunks) {
-        return bodyChunksFlowable.onChunks(onChunks);
+        return bufferFlow.onChunks(onChunks);
     }
 
     @Override
@@ -85,7 +87,7 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse impleme
                 }
                 prepareHeaders();
 
-                if (bodyChunksFlowable.chunks != null) {
+                if (bufferFlow.chunks != null && messageFlow == null) {
                     return nativeResponse.rxSend(
                         chunks()
                             .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
@@ -101,5 +103,55 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse impleme
                 return nativeResponse.rxEnd();
             }
         );
+    }
+
+    @Override
+    public void messages(final Flowable<Message> messages) {
+        getMessageFlow().messages(messages);
+
+        // If message flow is set up, make sure any access to chunk buffers will not be possible anymore and returns empty.
+        chunks(Flowable.empty());
+    }
+
+    @Override
+    public Flowable<Message> messages() {
+        return getMessageFlow().messages();
+    }
+
+    @Override
+    public Completable onMessages(final FlowableTransformer<Message, Message> onMessages) {
+        return Completable.fromRunnable(() -> getMessageFlow().onMessages(onMessages));
+    }
+
+    @Override
+    public Completable end(final Buffer buffer) {
+        return Completable.defer(
+            () -> {
+                if (!opened()) {
+                    return Completable.error(new IllegalStateException("The response is already ended"));
+                }
+                prepareHeaders();
+
+                return nativeResponse.rxEnd(io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()));
+            }
+        );
+    }
+
+    @Override
+    public Completable write(final Buffer buffer) {
+        return Completable.defer(() -> nativeResponse.rxWrite(io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer())));
+    }
+
+    public Completable writeHeaders() {
+        super.prepareHeaders();
+        return Completable.defer(() -> nativeResponse.rxWrite(io.vertx.reactivex.core.buffer.Buffer.buffer()));
+    }
+
+    private MessageFlow getMessageFlow() {
+        if (messageFlow == null) {
+            messageFlow = new MessageFlow();
+        }
+
+        return this.messageFlow;
     }
 }

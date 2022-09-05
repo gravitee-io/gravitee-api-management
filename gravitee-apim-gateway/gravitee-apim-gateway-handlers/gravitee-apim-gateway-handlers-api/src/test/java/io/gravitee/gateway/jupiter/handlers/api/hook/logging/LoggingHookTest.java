@@ -23,8 +23,8 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
-import io.gravitee.gateway.jupiter.core.context.MutableRequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.handlers.api.logging.LogHeadersCaptor;
 import io.gravitee.reporter.api.http.Metrics;
@@ -45,7 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class LoggingHookTest {
 
     @Mock
-    private MutableRequestExecutionContext ctx;
+    private MutableExecutionContext ctx;
 
     @Mock
     private MutableRequest request;
@@ -66,7 +66,7 @@ class LoggingHookTest {
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(request.metrics()).thenReturn(metrics);
-        lenient().when(ctx.getInternalAttribute(LoggingContext.LOGGING_CONTEXT_ATTRIBUTE)).thenReturn(loggingContext);
+        lenient().when(ctx.getInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT)).thenReturn(loggingContext);
     }
 
     @Test

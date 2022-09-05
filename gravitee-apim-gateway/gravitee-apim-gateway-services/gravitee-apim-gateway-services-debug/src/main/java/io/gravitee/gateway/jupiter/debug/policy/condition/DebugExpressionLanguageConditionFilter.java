@@ -15,10 +15,9 @@
  */
 package io.gravitee.gateway.jupiter.debug.policy.condition;
 
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
-import io.gravitee.gateway.jupiter.debug.reactor.context.DebugRequestExecutionContext;
+import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
 import io.gravitee.gateway.jupiter.policy.ConditionalPolicy;
 import io.reactivex.Maybe;
 
@@ -29,13 +28,13 @@ import io.reactivex.Maybe;
 public class DebugExpressionLanguageConditionFilter extends ExpressionLanguageConditionFilter<ConditionalPolicy> {
 
     @Override
-    public Maybe<ConditionalPolicy> filter(final HttpExecutionContext ctx, final ConditionalPolicy elt) {
+    public Maybe<ConditionalPolicy> filter(final GenericExecutionContext ctx, final ConditionalPolicy elt) {
         return super
             .filter(ctx, elt)
             .doOnEvent(
                 (conditionalPolicy, throwable) -> {
-                    if (ctx instanceof DebugRequestExecutionContext && throwable == null) {
-                        DebugRequestExecutionContext debugCtx = (DebugRequestExecutionContext) ctx;
+                    if (ctx instanceof DebugExecutionContext && throwable == null) {
+                        DebugExecutionContext debugCtx = (DebugExecutionContext) ctx;
                         boolean isConditionTruthy = conditionalPolicy != null;
                         debugCtx.getCurrentDebugStep().onConditionFilter(elt.getCondition(), isConditionTruthy);
                     }

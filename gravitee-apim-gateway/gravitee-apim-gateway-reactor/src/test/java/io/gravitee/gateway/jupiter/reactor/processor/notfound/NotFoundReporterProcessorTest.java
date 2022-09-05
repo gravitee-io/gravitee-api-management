@@ -16,14 +16,13 @@
 package io.gravitee.gateway.jupiter.reactor.processor.notfound;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultRequestExecutionContext;
+import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.Single;
@@ -50,14 +49,14 @@ class NotFoundReporterProcessorTest {
     private ReporterService reporterService;
 
     private NotFoundReporterProcessor notFoundProcessor;
-    private DefaultRequestExecutionContext ctx;
+    private DefaultExecutionContext ctx;
     private Metrics metrics;
 
     @BeforeEach
     public void beforeEach() {
         metrics = Metrics.on(System.currentTimeMillis()).build();
         when(request.metrics()).thenReturn(metrics);
-        ctx = new DefaultRequestExecutionContext(request, response);
+        ctx = new DefaultExecutionContext(request, response);
     }
 
     @Test

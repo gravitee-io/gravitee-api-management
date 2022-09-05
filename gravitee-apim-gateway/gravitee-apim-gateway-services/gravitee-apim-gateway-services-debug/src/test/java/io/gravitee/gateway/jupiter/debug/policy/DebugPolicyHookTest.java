@@ -24,8 +24,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
-import io.gravitee.gateway.jupiter.debug.reactor.context.DebugRequestExecutionContext;
+import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
 import io.reactivex.Completable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +42,7 @@ class DebugPolicyHookTest {
     private DebugPolicyHook debugPolicyHook;
 
     @Mock
-    private DebugRequestExecutionContext debugCtx;
+    private DebugExecutionContext debugCtx;
 
     @BeforeEach
     public void beforeEach() {
