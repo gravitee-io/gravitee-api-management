@@ -13,12 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
 
-import { ApiListModule } from './list/api-list.module';
-import { ApiProxyModule } from './proxy/api-proxy.module';
-
-@NgModule({
-  imports: [ApiListModule, ApiProxyModule],
+@Component({
+  selector: 'api-proxy-entrypoints',
+  template: require('./api-proxy-entrypoints.component.html'),
+  styles: [require('./api-proxy-entrypoints.component.scss')],
 })
-export class ApisModule {}
+export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  constructor() {}
+
+  ngOnInit(): void {}
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+}

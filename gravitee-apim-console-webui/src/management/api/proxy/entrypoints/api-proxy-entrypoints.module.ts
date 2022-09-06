@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
 
-import { ApiListModule } from './list/api-list.module';
-import { ApiProxyModule } from './proxy/api-proxy.module';
+import { CommonModule } from "@angular/common";
+import { NgModule } from "@angular/core";
+
+import { ApiProxyEntrypointsComponent } from "./api-proxy-entrypoints.component";
 
 @NgModule({
-  imports: [ApiListModule, ApiProxyModule],
+  declarations: [ApiProxyEntrypointsComponent],
+  exports: [ApiProxyEntrypointsComponent],
+  imports: [
+    CommonModule,
+  ],
 })
-export class ApisModule {}
+export class ApiProxyEntrypointsModule {}
