@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
+import { switchMap, takeUntil, tap } from 'rxjs/operators';
+
+import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { Api } from '../../../../entities/api';
+import { ApiService } from '../../../../services-ngx/api.service';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-proxy-entrypoints',
@@ -24,12 +31,57 @@ import { Subject } from 'rxjs';
 export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  constructor() {}
+  public virtualHostModeEnabled = false;
 
-  ngOnInit(): void {}
+  public entrypointsForm: FormGroup;
+  public initialEntrypointsFormValue: unknown;
+
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly apiService: ApiService,
+    private readonly permissionService: GioPermissionService,
+  ) {}
+
+  ngOnInit(): void {
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((api) => this.initForm(api)),
+      )
+      .subscribe();
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  onSubmit() {
+    return this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((api) =>
+          this.apiService.update({ ...api, proxy: { ...api.proxy, virtual_hosts: [{ path: this.entrypointsForm.value.contextPath }] } }),
+        ),
+        tap((api) => this.initForm(api)),
+      )
+      .subscribe();
+  }
+
+  switchVirtualHostMode() {}
+
+  private initForm(api: Api) {
+    this.entrypointsForm = new FormGroup({
+      contextPath: new FormControl(
+        {
+          value: api.proxy.virtual_hosts[0].path,
+          disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
+        },
+        [Validators.required, Validators.minLength(3), Validators.pattern(/^\/[/.a-zA-Z0-9-_]+$/)],
+      ),
+    });
+    this.initialEntrypointsFormValue = this.entrypointsForm.getRawValue();
   }
 }
