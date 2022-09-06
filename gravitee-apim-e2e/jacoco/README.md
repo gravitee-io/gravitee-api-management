@@ -11,6 +11,9 @@ execution report to this folder in a `jacoco.exec` file that can be used to gene
 ## Generating reports
 
 ```shell
-npm run test:api # tests must complete to generate execution data
-npm run test:report:dev
+
+JAVA_OPTS="-javaagent:/opt/jacoco/lib/org.jacoco.agent-0.8.8-runtime.jar=destfile=/opt/jacoco/jacoco.exec" \
+  npm run test:api && npm run test:report:dev # tests must complete to generate execution data
 ```
+
+> **_NOTE:_**  When `npm run test:api` is used in CircleCI, we do not want to use JaCoCo. That's why JAVA_OPTS is not set by default. But you can set the JAVA_OPTS env var to activate it locally 
