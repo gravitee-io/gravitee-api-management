@@ -43,15 +43,15 @@ describe('ApiService', () => {
 
   describe('get', () => {
     it('should call the API', (done) => {
-      const apiName = 'fox';
+      const apiId = 'fox';
       const mockApi = fakeApi();
 
-      apiService.get(apiName).subscribe((response) => {
+      apiService.get(apiId).subscribe((response) => {
         expect(response).toMatchObject(mockApi);
         done();
       });
 
-      const req = httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiName}` });
+      const req = httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}` });
 
       req.flush(mockApi);
     });

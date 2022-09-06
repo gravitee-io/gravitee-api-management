@@ -28,8 +28,8 @@ import { PagedResult } from '../entities/pagedResult';
 export class ApiService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
-  get(name: string): Observable<Api> {
-    return this.http.get<Api>(`${this.constants.env.baseURL}/apis/${name}`);
+  get(apiId: string): Observable<Api> {
+    return this.http.get<Api>(`${this.constants.env.baseURL}/apis/${apiId}`);
   }
 
   getFlowSchemaForm(): Observable<FlowSchema> {
