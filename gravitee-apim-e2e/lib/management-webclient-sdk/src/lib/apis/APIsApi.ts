@@ -42,6 +42,7 @@ import type {
   EventEntity,
   EventEntityPage,
   EventType,
+  ExecutionMode,
   FormDataBodyPart,
   GenericNotificationConfigEntity,
   HealthcheckField,
@@ -154,6 +155,8 @@ import {
     EventEntityPageToJSON,
     EventTypeFromJSON,
     EventTypeToJSON,
+    ExecutionModeFromJSON,
+    ExecutionModeToJSON,
     FormDataBodyPartFromJSON,
     FormDataBodyPartToJSON,
     GenericNotificationConfigEntityFromJSON,
@@ -884,7 +887,7 @@ export interface GetApisRequest {
     state?: string;
     visibility?: string;
     version?: string;
-    executionMode?: GetApisExecutionModeEnum;
+    executionMode?: ExecutionMode;
     name?: string;
     tag?: string;
     portal?: boolean;
@@ -902,7 +905,7 @@ export interface GetApisPagedRequest {
     state?: string;
     visibility?: string;
     version?: string;
-    executionMode?: GetApisPagedExecutionModeEnum;
+    executionMode?: ExecutionMode;
     name?: string;
     tag?: string;
     portal?: boolean;
@@ -7687,19 +7690,3 @@ export const GetApiSubscriptionsExpandEnum = {
     SECURITY: 'security'
 } as const;
 export type GetApiSubscriptionsExpandEnum = typeof GetApiSubscriptionsExpandEnum[keyof typeof GetApiSubscriptionsExpandEnum];
-/**
- * @export
- */
-export const GetApisExecutionModeEnum = {
-    V3: 'V3',
-    JUPITER: 'JUPITER'
-} as const;
-export type GetApisExecutionModeEnum = typeof GetApisExecutionModeEnum[keyof typeof GetApisExecutionModeEnum];
-/**
- * @export
- */
-export const GetApisPagedExecutionModeEnum = {
-    V3: 'V3',
-    JUPITER: 'JUPITER'
-} as const;
-export type GetApisPagedExecutionModeEnum = typeof GetApisPagedExecutionModeEnum[keyof typeof GetApisPagedExecutionModeEnum];

@@ -24,6 +24,12 @@ import {
     ApiMetadataEntityFromJSONTyped,
     ApiMetadataEntityToJSON,
 } from './ApiMetadataEntity';
+import type { ExecutionMode } from './ExecutionMode';
+import {
+    ExecutionModeFromJSON,
+    ExecutionModeFromJSONTyped,
+    ExecutionModeToJSON,
+} from './ExecutionMode';
 import type { Flow } from './Flow';
 import {
     FlowFromJSON,
@@ -122,11 +128,11 @@ export interface UpdateApiEntity {
      */
     disable_membership_notifications?: boolean;
     /**
-     * Api's execution mode. Define if the execution mode should use v3 or jupiter mode.
-     * @type {string}
+     * 
+     * @type {ExecutionMode}
      * @memberof UpdateApiEntity
      */
-    execution_mode?: UpdateApiEntityExecutionModeEnum;
+    execution_mode?: ExecutionMode;
     /**
      * API's flow mode.
      * @type {string}
@@ -259,15 +265,6 @@ export interface UpdateApiEntity {
 /**
  * @export
  */
-export const UpdateApiEntityExecutionModeEnum = {
-    V3: 'V3',
-    JUPITER: 'JUPITER'
-} as const;
-export type UpdateApiEntityExecutionModeEnum = typeof UpdateApiEntityExecutionModeEnum[keyof typeof UpdateApiEntityExecutionModeEnum];
-
-/**
- * @export
- */
 export const UpdateApiEntityFlowModeEnum = {
     DEFAULT: 'DEFAULT',
     BEST_MATCH: 'BEST_MATCH'
@@ -305,7 +302,7 @@ export function UpdateApiEntityFromJSONTyped(json: any, ignoreDiscriminator: boo
         'crossId': !exists(json, 'crossId') ? undefined : json['crossId'],
         'description': json['description'],
         'disable_membership_notifications': !exists(json, 'disable_membership_notifications') ? undefined : json['disable_membership_notifications'],
-        'execution_mode': !exists(json, 'execution_mode') ? undefined : json['execution_mode'],
+        'execution_mode': !exists(json, 'execution_mode') ? undefined : ExecutionModeFromJSON(json['execution_mode']),
         'flow_mode': !exists(json, 'flow_mode') ? undefined : json['flow_mode'],
         'flows': !exists(json, 'flows') ? undefined : ((json['flows'] as Array<any>).map(FlowFromJSON)),
         'gravitee': !exists(json, 'gravitee') ? undefined : json['gravitee'],
@@ -345,7 +342,7 @@ export function UpdateApiEntityToJSON(value?: UpdateApiEntity | null): any {
         'crossId': value.crossId,
         'description': value.description,
         'disable_membership_notifications': value.disable_membership_notifications,
-        'execution_mode': value.execution_mode,
+        'execution_mode': ExecutionModeToJSON(value.execution_mode),
         'flow_mode': value.flow_mode,
         'flows': value.flows === undefined ? undefined : ((value.flows as Array<any>).map(FlowToJSON)),
         'gravitee': value.gravitee,

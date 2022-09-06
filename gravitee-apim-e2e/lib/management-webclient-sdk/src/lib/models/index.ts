@@ -120,6 +120,7 @@ export * from './EnvironmentPermissionsEntity';
 export * from './EventEntity';
 export * from './EventEntityPage';
 export * from './EventType';
+export * from './ExecutionMode';
 export * from './Failover';
 export * from './FetcherEntity';
 export * from './FetcherListItem';

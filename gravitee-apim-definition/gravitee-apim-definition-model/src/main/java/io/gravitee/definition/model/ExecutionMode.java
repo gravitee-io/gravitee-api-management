@@ -18,12 +18,14 @@ package io.gravitee.definition.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonValue;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Map;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Schema(enumAsRef = true, type = "string", allowableValues = { "v3", "jupiter" })
 public enum ExecutionMode {
     @JsonEnumDefaultValue
     V3("v3"),
