@@ -1508,7 +1508,7 @@ jobs:
 
     e2e-test:
         executor:
-            name: node-lts
+            name: ubuntu
             class: medium
         parameters:
             execution_mode:
@@ -1537,15 +1537,6 @@ jobs:
                         export JUPITER_MODE_ENABLED=true
                       fi
                       APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$APIM_VERSION npm run test:api:<< parameters.database >>
-            - run:
-                  name: Rename Jacoco exec file
-                  command: |
-                      cd gravitee-apim-e2e/jacoco
-                      mv jacoco.exec jacoco-<< parameters.execution_mode >>-<< parameters.database >>.exec
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - gravitee-apim-e2e/jacoco/jacoco-*-*.exec
             - when:
                   condition:
                       and:
@@ -1562,14 +1553,12 @@ jobs:
                                 - gateway-docker-context
                                 - gravitee-api-management
                                 - gravitee-apim-e2e/package.json
-                                - gravitee-apim-e2e/jacoco/lib
-                                - gravitee-apim-e2e/jacoco/*.xml
             - notify-on-failure
             - store_test_results:
                   path: ~/test-results
     e2e-cypress:
         executor:
-            name: node-lts
+            name: ubuntu
             class: medium
         steps:
             - setup_remote_docker:
@@ -1756,7 +1745,6 @@ workflows:
                               - /.*-run-e2e.*/
                               - /.*merge.*/
                               - /^\d+\.\d+\.x$/
-                              - ci-remove-e2e-report-step
             - test:
                   context: cicd-orchestrator
                   requires:
