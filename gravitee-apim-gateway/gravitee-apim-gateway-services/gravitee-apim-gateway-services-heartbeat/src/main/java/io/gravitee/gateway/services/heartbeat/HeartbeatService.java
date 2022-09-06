@@ -139,8 +139,6 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
             heartbeatEvent = prepareEvent();
 
             topic.publish(heartbeatEvent);
-            // Remove the state to not include it in the underlying repository as it's just used for internal purpose
-            heartbeatEvent.getProperties().remove(EVENT_STATE_PROPERTY);
 
             executorService = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "gio-heartbeat"));
 
@@ -150,7 +148,7 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
 
             LOGGER.info("Monitoring scheduled with fixed delay {} {} ", delay, unit.name());
 
-            ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(monitorThread, 0, delay, unit);
+            ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(monitorThread, delay, delay, unit);
 
             LOGGER.info("Start gateway heartbeat : DONE");
         }
@@ -160,12 +158,15 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
     public void onMessage(Message<Event> message) {
         // Writing event to the repository is the responsibility of the master node
         if (clusterManager.isMasterNode()) {
+            // ⚠️ event == heartbeatEvent are the same instance!
             Event event = message.getMessageObject();
 
             String state = event.getProperties().get(EVENT_STATE_PROPERTY);
             try {
                 if (state != null) {
                     eventRepository.create(event);
+                    // Remove the state to not include it in the underlying repository as it's just used for internal purpose
+                    heartbeatEvent.getProperties().remove(EVENT_STATE_PROPERTY);
                 } else {
                     eventRepository.update(event);
                 }
