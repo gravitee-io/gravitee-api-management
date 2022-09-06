@@ -30,6 +30,12 @@ import {
     DefinitionContextFromJSONTyped,
     DefinitionContextToJSON,
 } from './DefinitionContext';
+import type { ExecutionMode } from './ExecutionMode';
+import {
+    ExecutionModeFromJSON,
+    ExecutionModeFromJSONTyped,
+    ExecutionModeToJSON,
+} from './ExecutionMode';
 import type { Flow } from './Flow';
 import {
     FlowFromJSON,
@@ -170,11 +176,11 @@ export interface ApiEntity {
      */
     entrypoints?: Array<ApiEntrypointEntity>;
     /**
-     * Api's execution mode. Define if the execution mode should use v3 or jupiter mode.
-     * @type {string}
+     * 
+     * @type {ExecutionMode}
      * @memberof ApiEntity
      */
-    execution_mode?: ApiEntityExecutionModeEnum;
+    execution_mode?: ExecutionMode;
     /**
      * API's flow mode.
      * @type {string}
@@ -331,15 +337,6 @@ export interface ApiEntity {
 /**
  * @export
  */
-export const ApiEntityExecutionModeEnum = {
-    V3: 'V3',
-    JUPITER: 'JUPITER'
-} as const;
-export type ApiEntityExecutionModeEnum = typeof ApiEntityExecutionModeEnum[keyof typeof ApiEntityExecutionModeEnum];
-
-/**
- * @export
- */
 export const ApiEntityFlowModeEnum = {
     DEFAULT: 'DEFAULT',
     BEST_MATCH: 'BEST_MATCH'
@@ -390,7 +387,7 @@ export function ApiEntityFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'description': !exists(json, 'description') ? undefined : json['description'],
         'disable_membership_notifications': !exists(json, 'disable_membership_notifications') ? undefined : json['disable_membership_notifications'],
         'entrypoints': !exists(json, 'entrypoints') ? undefined : ((json['entrypoints'] as Array<any>).map(ApiEntrypointEntityFromJSON)),
-        'execution_mode': !exists(json, 'execution_mode') ? undefined : json['execution_mode'],
+        'execution_mode': !exists(json, 'execution_mode') ? undefined : ExecutionModeFromJSON(json['execution_mode']),
         'flow_mode': !exists(json, 'flow_mode') ? undefined : json['flow_mode'],
         'flows': !exists(json, 'flows') ? undefined : ((json['flows'] as Array<any>).map(FlowFromJSON)),
         'gravitee': !exists(json, 'gravitee') ? undefined : json['gravitee'],
@@ -439,7 +436,7 @@ export function ApiEntityToJSON(value?: ApiEntity | null): any {
         'description': value.description,
         'disable_membership_notifications': value.disable_membership_notifications,
         'entrypoints': value.entrypoints === undefined ? undefined : ((value.entrypoints as Array<any>).map(ApiEntrypointEntityToJSON)),
-        'execution_mode': value.execution_mode,
+        'execution_mode': ExecutionModeToJSON(value.execution_mode),
         'flow_mode': value.flow_mode,
         'flows': value.flows === undefined ? undefined : ((value.flows as Array<any>).map(FlowToJSON)),
         'gravitee': value.gravitee,
