@@ -50,6 +50,24 @@ describe('EnvironmentService', () => {
     });
   });
 
+  describe('getCurrent', () => {
+    it('should call the API', (done) => {
+      const environment = fakeEnvironment();
+
+      environmentService.getCurrent().subscribe((env) => {
+        expect(env).toMatchObject(environment);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: CONSTANTS_TESTING.env.baseURL,
+        method: 'GET',
+      });
+
+      req.flush(environment);
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
