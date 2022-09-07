@@ -13,13 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
 
-import { NgModule } from '@angular/core';
-
-import { ApiProxyCorsModule } from './cors/api-proxy-cors.module';
-import { ApiProxyEntrypointsModule } from './entrypoints/api-proxy-entrypoints.module';
-
-@NgModule({
-  imports: [ApiProxyEntrypointsModule, ApiProxyCorsModule],
+@Component({
+  selector: 'api-proxy-cors',
+  template: require('./api-proxy-cors.component.html'),
+  styles: [require('./api-proxy-cors.component.scss')],
 })
-export class ApiProxyModule {}
+export class ApiProxyCorsComponent implements OnInit, OnDestroy {
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  constructor() {}
+
+  ngOnInit(): void {}
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+}

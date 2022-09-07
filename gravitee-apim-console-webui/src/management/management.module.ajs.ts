@@ -548,6 +548,7 @@ import { ApiListComponent } from './api/list/api-list.component';
 import { ApiProxyEntrypointsComponent } from './api/proxy/entrypoints/api-proxy-entrypoints.component';
 import { ApiProxyEntrypointsContextPathComponent } from './api/proxy/entrypoints/context-path/api-proxy-entrypoints-context-path.component';
 import { ApiProxyEntrypointsVirtualHostComponent } from './api/proxy/entrypoints/virtual-host/api-proxy-entrypoints-virtual-host.component';
+import { ApiProxyCorsComponent } from './api/proxy/cors/api-proxy-cors.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -680,6 +681,7 @@ graviteeManagementModule.directive(
   'ngApiProxyEntrypointsVirtualHost',
   downgradeComponent({ component: ApiProxyEntrypointsVirtualHostComponent }),
 );
+graviteeManagementModule.directive('ngApiProxyCors', downgradeComponent({ component: ApiProxyCorsComponent }));
 
 // Pendo Analytics
 graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPendoService));
