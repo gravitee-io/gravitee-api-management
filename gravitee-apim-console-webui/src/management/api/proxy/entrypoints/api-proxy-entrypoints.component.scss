@@ -5,7 +5,6 @@
   overflow: visible;
 }
 
-
 .title {
   display: flex;
   align-items: center;
@@ -14,13 +13,5 @@
 
   h1 {
     margin-bottom: 0;
-  }
-}
-
-
-.form-card {
-  &__context-path-field {
-    width: 100%;
-    padding-bottom: 32px;
   }
 }

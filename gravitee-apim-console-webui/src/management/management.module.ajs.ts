@@ -546,6 +546,8 @@ import { EnvAuditComponent } from './audit/env-audit.component';
 import { EnvApplicationListComponent } from './application/list/env-application-list.component';
 import { ApiListComponent } from './api/list/api-list.component';
 import { ApiProxyEntrypointsComponent } from './api/proxy/entrypoints/api-proxy-entrypoints.component';
+import { ApiProxyEntrypointsContextPathComponent } from './api/proxy/entrypoints/context-path/api-proxy-entrypoints-context-path.component';
+import { ApiProxyEntrypointsVirtualHostComponent } from './api/proxy/entrypoints/virtual-host/api-proxy-entrypoints-virtual-host.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -670,6 +672,14 @@ graviteeManagementModule.run(runBlock);
 // Apis
 graviteeManagementModule.directive('ngApiList', downgradeComponent({ component: ApiListComponent }));
 graviteeManagementModule.directive('ngApiProxyEntrypoints', downgradeComponent({ component: ApiProxyEntrypointsComponent }));
+graviteeManagementModule.directive(
+  'ngApiProxyEntrypointsContextPath',
+  downgradeComponent({ component: ApiProxyEntrypointsContextPathComponent }),
+);
+graviteeManagementModule.directive(
+  'ngApiProxyEntrypointsVirtualHost',
+  downgradeComponent({ component: ApiProxyEntrypointsVirtualHostComponent }),
+);
 
 // Pendo Analytics
 graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPendoService));

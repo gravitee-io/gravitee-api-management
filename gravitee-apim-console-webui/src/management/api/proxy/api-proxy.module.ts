@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import { NgModule } from "@angular/core";
+import { NgModule } from '@angular/core';
 
-import { ApiProxyEntrypointsModule } from "./entrypoints/api-proxy-entrypoints.module";
-
+import { ApiProxyEntrypointsModule } from './entrypoints/api-proxy-entrypoints.module';
 
 @NgModule({
   imports: [ApiProxyEntrypointsModule],
