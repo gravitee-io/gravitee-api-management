@@ -25,6 +25,8 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
 
 import { ApiProxyEntrypointsModule } from './api-proxy-entrypoints.module';
 import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component';
@@ -36,7 +38,6 @@ import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgrade
 import { User } from '../../../../entities/user';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
-import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 describe('ApiProxyEntrypointsComponent', () => {
   let fixture: ComponentFixture<ApiProxyEntrypointsComponent>;
@@ -173,9 +174,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       const api = fakeApi({
         id: API_ID,
         proxy: {
-          virtual_hosts: [
-            { path: '/path-foo', host: 'host.io' },
-          ],
+          virtual_hosts: [{ path: '/path-foo', host: 'host.io' }],
         },
       });
       expectApiGetRequest(api);
@@ -194,7 +193,6 @@ describe('ApiProxyEntrypointsComponent', () => {
 
       const vhTableNewRowPathInput = await vhTableNewRowPathCell.getHarness(MatInputHarness);
       await vhTableNewRowPathInput.setValue('/path-bar');
-
 
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
@@ -216,7 +214,6 @@ describe('ApiProxyEntrypointsComponent', () => {
       ]);
     });
 
-
     it('should remove virtual-host', async () => {
       const api = fakeApi({
         id: API_ID,
@@ -234,7 +231,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       const vhTable = await loader.getHarness(MatTableHarness.with({ selector: '#virtualHostsTable' }));
       const vhTableRows = await vhTable.getRows();
       const [_1, _2, _3, vhTableFirstRowRemoveCell] = await vhTableRows[0].getCells();
-      
+
       const vhTableFirstRowRemoveButton = await vhTableFirstRowRemoveCell.getHarness(MatButtonHarness);
       await vhTableFirstRowRemoveButton.click();
 
@@ -270,6 +267,73 @@ describe('ApiProxyEntrypointsComponent', () => {
       expectApiGetRequest(api);
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
       expect(req.request.body.proxy.virtual_hosts).toEqual([{ path: '/path-foo' }]);
+    });
+  });
+
+  describe('virtual-host mode with domain restriction', () => {
+    beforeEach(() => {
+      exceptEnvironmentGetRequest(fakeEnvironment({ domainRestrictions: ['fox.io', 'dog.io'] }));
+    });
+
+    it('should update virtual-host', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        proxy: {
+          virtual_hosts: [
+            { path: '/path-foo', host: 'host.io' },
+            { path: '/path-bar', host: 'host.dog.io' },
+            { path: '/path-joe', host: 'a' },
+          ],
+        },
+      });
+      expectApiGetRequest(api);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const vhTable = await loader.getHarness(MatTableHarness.with({ selector: '#virtualHostsTable' }));
+      const vhTableRows = await vhTable.getRows();
+
+      // Update /path-foo host
+      const [vhTableFirstRowHostCell] = await vhTableRows[0].getCells();
+
+      const vhTableFirstRowHostInput = await vhTableFirstRowHostCell.getHarness(MatInputHarness);
+      expect(await vhTableFirstRowHostInput.getValue()).toEqual('host.io');
+      await vhTableFirstRowHostInput.setValue('new-host');
+
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(true);
+
+      const vhTableFirstRowHostAutocomplete = await vhTableFirstRowHostCell.getHarness(MatAutocompleteHarness);
+      await vhTableFirstRowHostAutocomplete.selectOption({ text: /fox\.io$/ });
+
+      // Update /path-joe host
+      const [vhTableThirdRowHostCell] = await vhTableRows[2].getCells();
+      const vhTableThirdRowHostAutocomplete = await vhTableThirdRowHostCell.getHarness(MatAutocompleteHarness);
+      await vhTableThirdRowHostAutocomplete.selectOption({ text: /fox\.io$/ });
+
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      // Expect fetch api get and update proxy
+      expectApiGetRequest(api);
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+      expect(req.request.body.proxy.virtual_hosts).toEqual([
+        {
+          path: '/path-foo',
+          host: 'new-host.fox.io',
+          override_entrypoint: false,
+        },
+        {
+          host: 'host.dog.io',
+          override_entrypoint: false,
+          path: '/path-bar',
+        },
+        {
+          path: '/path-joe',
+          host: 'a.fox.io',
+          override_entrypoint: false,
+        },
+      ]);
     });
   });
 

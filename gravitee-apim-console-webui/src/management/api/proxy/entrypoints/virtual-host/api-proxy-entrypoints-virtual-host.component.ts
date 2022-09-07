@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { escapeRegExp, isEmpty } from 'lodash';
 
 import { Api } from '../../../../../entities/api';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
@@ -35,10 +36,10 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
   public apiProxySubmit = new EventEmitter<Api['proxy']>();
 
   public virtualHostsFormArray: FormArray;
-  
+
   public get virtualHostsTableData(): unknown[] {
     // Create new array to trigger change detection
-    return [...this.virtualHostsFormArray?.controls] ?? []
+    return [...(this.virtualHostsFormArray?.controls ?? [])];
   }
   public virtualHostsTableDisplayedColumns = ['host', 'path', 'override_entrypoint', 'remove'];
   public initialVirtualHostsFormValue: unknown;
@@ -51,14 +52,11 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
     if (changes.apiProxy) {
       this.initForm(this.apiProxy);
     }
-    if (changes.domainRestrictions) {
-      // TODO
-    }
   }
 
   onSubmit() {
     const virtualHosts: Api['proxy']['virtual_hosts'] = this.virtualHostsFormArray.getRawValue().map((virtualHost) => ({
-      host: virtualHost.host,
+      host: combineHostWithDomain(virtualHost.host, virtualHost.hostDomain),
       path: virtualHost.path,
       override_entrypoint: virtualHost.override_entrypoint,
     }));
@@ -74,7 +72,7 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
     this.virtualHostsFormArray.markAsDirty();
   }
 
-  onDeleteVirtualHostClicked( index: number) {
+  onDeleteVirtualHostClicked(index: number) {
     this.virtualHostsFormArray.removeAt(index);
     this.virtualHostsFormArray.markAsDirty();
   }
@@ -86,13 +84,22 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
   }
 
   private newVirtualHostFormGroup(virtualHost?: Api['proxy']['virtual_hosts'][number]) {
+    const hostObj = extractDomainToHost(virtualHost?.host, this.domainRestrictions);
+
     return new FormGroup({
       host: new FormControl(
         {
-          value: virtualHost?.host ?? '',
+          value: hostObj.host ?? '',
           disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
         },
-        [Validators.required],
+        [Validators.required, hostValidator(this.domainRestrictions)],
+      ),
+      hostDomain: new FormControl(
+        {
+          value: hostObj.hostDomain ?? '',
+          disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
+        },
+        [hostValidator(this.domainRestrictions)],
       ),
       path: new FormControl(
         {
@@ -108,3 +115,50 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
     });
   }
 }
+
+// Common validator for host and hostDomain
+const hostValidator = (domainRestrictions: string[] = []): ValidatorFn => {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.parent) {
+      return null;
+    }
+
+    const hostControl = control.parent.get('host');
+    const domainControl = control.parent.get('hostDomain');
+
+    const fullHost = hostControl?.value + domainControl?.value;
+
+    if (!fullHost || isEmpty(domainRestrictions)) {
+      // do not validate if domainRestrictions are not set or if host is empty
+      return null;
+    }
+    const isValid = domainRestrictions.some((domainRestriction) => fullHost.endsWith(domainRestriction));
+
+    const errors = isValid ? null : { host: 'true' };
+
+    hostControl.setErrors(errors);
+    return errors;
+  };
+};
+
+const extractDomainToHost = (fullHost: string, domainRestrictions: string[] = []): { host: string; hostDomain: string } => {
+  let host = fullHost;
+  let hostDomain = '';
+
+  if (!isEmpty(domainRestrictions)) {
+    hostDomain = domainRestrictions.find((domain) => fullHost.endsWith(`.${domain}`));
+
+    if (hostDomain) {
+      host = fullHost.replace(new RegExp(`\\.${escapeRegExp(hostDomain)}$`), '');
+    }
+  }
+
+  return { host, hostDomain };
+};
+
+const combineHostWithDomain = (host: string, hostDomain: string): string => {
+  if (isEmpty(hostDomain)) {
+    return host;
+  }
+  return `${host}.${hostDomain}`;
+};
