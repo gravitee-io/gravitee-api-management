@@ -30,7 +30,6 @@ import { Api } from '../../../../entities/api';
 import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
 
-
 describe('ApiProxyEntrypointsComponent', () => {
   let fixture: ComponentFixture<ApiProxyEntrypointsComponent>;
   let loader: HarnessLoader;
@@ -39,7 +38,7 @@ describe('ApiProxyEntrypointsComponent', () => {
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u', 'api-gateway_definition-u'];
 
-  const API_ID= "apiId"
+  const API_ID = 'apiId';
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -60,13 +59,12 @@ describe('ApiProxyEntrypointsComponent', () => {
   });
 
   it('should update context-path', async () => {
-    
     const api = fakeApi({ id: API_ID, proxy: { virtual_hosts: [{ path: '/path' }] } });
     expectApiGetRequest(api);
 
     const saveBar = await loader.getHarness(GioSaveBarHarness);
     expect(await saveBar.isVisible()).toBe(false);
-    
+
     const contextPathInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=contextPath]' }));
     expect(await contextPathInput.isDisabled()).toEqual(false);
     expect(await contextPathInput.getValue()).toEqual('/path');
@@ -80,7 +78,6 @@ describe('ApiProxyEntrypointsComponent', () => {
     expectApiGetRequest(api);
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
     expect(req.request.body.proxy.virtual_hosts).toEqual([{ path: '/new-path' }]);
-
   });
 
   afterEach(() => {

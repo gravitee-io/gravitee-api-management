@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Api } from '../../../../entities/api';
 import { ApiService } from '../../../../services-ngx/api.service';
-import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-proxy-entrypoints',
@@ -33,21 +31,16 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
 
   public virtualHostModeEnabled = false;
 
-  public entrypointsForm: FormGroup;
-  public initialEntrypointsFormValue: unknown;
+  public apiProxy: Api['proxy'];
 
-  constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    private readonly apiService: ApiService,
-    private readonly permissionService: GioPermissionService,
-  ) {}
+  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams, private readonly apiService: ApiService) {}
 
   ngOnInit(): void {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap((api) => this.initForm(api)),
+        tap((api) => (this.apiProxy = api.proxy)),
       )
       .subscribe();
   }
@@ -57,31 +50,16 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  onSubmit() {
+  onSubmit(apiProxy: Api['proxy']) {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
         takeUntil(this.unsubscribe$),
-        switchMap((api) =>
-          this.apiService.update({ ...api, proxy: { ...api.proxy, virtual_hosts: [{ path: this.entrypointsForm.value.contextPath }] } }),
-        ),
-        tap((api) => this.initForm(api)),
+        switchMap((api) => this.apiService.update({ ...api, proxy: apiProxy })),
+        tap((api) => (this.apiProxy = api.proxy)),
       )
       .subscribe();
   }
 
   switchVirtualHostMode() {}
-
-  private initForm(api: Api) {
-    this.entrypointsForm = new FormGroup({
-      contextPath: new FormControl(
-        {
-          value: api.proxy.virtual_hosts[0].path,
-          disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
-        },
-        [Validators.required, Validators.minLength(3), Validators.pattern(/^\/[/.a-zA-Z0-9-_]+$/)],
-      ),
-    });
-    this.initialEntrypointsFormValue = this.entrypointsForm.getRawValue();
-  }
 }
