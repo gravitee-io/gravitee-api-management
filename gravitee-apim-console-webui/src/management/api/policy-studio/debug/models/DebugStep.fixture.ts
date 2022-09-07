@@ -43,6 +43,9 @@ export function fakeRequestDebugStep(attributes?: Partial<RequestPolicyDebugStep
         retrievePetSize: 'false',
         defaultPetName: 'Bobby',
       },
+      parameters: {
+        query: 'queryValue',
+      },
       method: 'GET',
       path: '/fake/api',
     },
