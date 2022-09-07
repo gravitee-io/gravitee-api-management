@@ -1,0 +1,12 @@
+.virtual-host__table {
+  .mat-column-host,
+  .mat-column-path,
+  .mat-column-override_entrypoint {
+    padding: 4px 8px 40px 8px;
+  }
+
+  &__path-field,
+  &__host-field {
+    width: 100%;
+  }
+}

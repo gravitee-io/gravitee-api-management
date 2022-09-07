@@ -22,13 +22,15 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { GioConfirmDialogModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatTableModule } from '@angular/material/table';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
+import { ApiProxyEntrypointsVirtualHostComponent } from './virtual-host/api-proxy-entrypoints-virtual-host.component';
+import { ApiProxyEntrypointsContextPathComponent } from './context-path/api-proxy-entrypoints-context-path.component';
 import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { ApiProxyEntrypointsContextPathComponent } from './context-path/api-proxy-entrypoints-context-path.component';
-import { ApiProxyEntrypointsVirtualHostComponent } from './virtual-host/api-proxy-entrypoints-virtual-host.component';
-import { MatDialogModule } from '@angular/material/dialog';
 
 @NgModule({
   declarations: [ApiProxyEntrypointsComponent, ApiProxyEntrypointsContextPathComponent, ApiProxyEntrypointsVirtualHostComponent],
@@ -41,6 +43,8 @@ import { MatDialogModule } from '@angular/material/dialog';
     MatInputModule,
     MatCardModule,
     MatDialogModule,
+    MatTableModule,
+    MatCheckboxModule,
     GioPermissionModule,
     GioSaveBarModule,
     GioConfirmDialogModule,

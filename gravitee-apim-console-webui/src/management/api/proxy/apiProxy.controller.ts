@@ -387,7 +387,7 @@ class ApiProxyController {
   initDomainRestrictions(data: any) {
     const domainPattern = '((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+';
 
-    this.domainRestrictions = data.domainRestrictions;
+    this.domainRestrictions = ['domain.restriction1.io', 'domain.restriction2.io'] ?? data.domainRestrictions;
 
     if (this.domainRestrictions === undefined) {
       this.domainRestrictions = [];

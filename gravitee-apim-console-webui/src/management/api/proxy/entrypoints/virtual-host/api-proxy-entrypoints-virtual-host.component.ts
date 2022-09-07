@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { Api } from '../../../../../entities/api';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
@@ -28,11 +28,17 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
   @Input()
   apiProxy: Api['proxy'];
 
+  @Input()
+  domainRestrictions: string[] = [];
+
   @Output()
   public apiProxySubmit = new EventEmitter<Api['proxy']>();
 
-  public entrypointsForm: FormGroup;
-  public initialEntrypointsFormValue: unknown;
+  public virtualHostsFormArray: FormArray;
+  public virtualHostsTableDisplayedColumns = ['host', 'path', 'override_entrypoint', 'remove'];
+  public initialVirtualHostsFormValue: unknown;
+
+  public hostPattern: string;
 
   constructor(private readonly permissionService: GioPermissionService) {}
 
@@ -40,13 +46,51 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
     if (changes.apiProxy) {
       this.initForm(this.apiProxy);
     }
+    if (changes.domainRestrictions) {
+      // TODO
+    }
   }
 
   onSubmit() {
-    // TODO
+    const virtualHosts: Api['proxy']['virtual_hosts'] = this.virtualHostsFormArray.getRawValue().map((virtualHost) => ({
+      host: virtualHost.host,
+      path: virtualHost.path,
+      override_entrypoint: virtualHost.override_entrypoint,
+    }));
+
+    this.apiProxySubmit.emit({
+      ...this.apiProxy,
+      virtual_hosts: virtualHosts,
+    });
   }
 
   private initForm(apiProxy: Api['proxy']) {
-    // TODO
+    this.virtualHostsFormArray = new FormArray([
+      ...apiProxy.virtual_hosts.map(
+        (virtualHost) =>
+          new FormGroup({
+            host: new FormControl(
+              {
+                value: virtualHost.host,
+                disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
+              },
+              [Validators.required],
+            ),
+            path: new FormControl(
+              {
+                value: virtualHost.path,
+                disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
+              },
+              [Validators.required, Validators.pattern(/^\/[/.a-zA-Z0-9-_]*$/)],
+            ),
+            override_entrypoint: new FormControl({
+              value: virtualHost.override_entrypoint,
+              disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
+            }),
+          }),
+      ),
+    ]);
+
+    this.initialVirtualHostsFormValue = this.virtualHostsFormArray.getRawValue();
   }
 }

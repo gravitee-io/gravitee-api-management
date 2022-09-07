@@ -38,6 +38,7 @@
   <api-proxy-entrypoints-virtual-host
     *ngIf="virtualHostModeEnabled"
     [apiProxy]="apiProxy"
+    [domainRestrictions]="domainRestrictions"
     (apiProxySubmit)="onSubmit($event)"
   ></api-proxy-entrypoints-virtual-host>
 </ng-container>
