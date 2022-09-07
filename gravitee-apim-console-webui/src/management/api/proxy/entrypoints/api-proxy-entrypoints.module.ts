@@ -21,13 +21,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
 import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { ApiProxyEntrypointsContextPathComponent } from './context-path/api-proxy-entrypoints-context-path.component';
 import { ApiProxyEntrypointsVirtualHostComponent } from './virtual-host/api-proxy-entrypoints-virtual-host.component';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @NgModule({
   declarations: [ApiProxyEntrypointsComponent, ApiProxyEntrypointsContextPathComponent, ApiProxyEntrypointsVirtualHostComponent],
@@ -39,8 +40,10 @@ import { ApiProxyEntrypointsVirtualHostComponent } from './virtual-host/api-prox
     MatFormFieldModule,
     MatInputModule,
     MatCardModule,
+    MatDialogModule,
     GioPermissionModule,
     GioSaveBarModule,
+    GioConfirmDialogModule,
   ],
 })
 export class ApiProxyEntrypointsModule {}

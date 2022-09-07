@@ -29,4 +29,8 @@ export class EnvironmentService {
   list(): Observable<Environment[]> {
     return this.http.get<Environment[]>(`${this.constants.org.baseURL}/environments`);
   }
+
+  getCurrent(): Observable<Environment> {
+    return this.http.get<Environment>(this.constants.env.baseURL);
+  }
 }

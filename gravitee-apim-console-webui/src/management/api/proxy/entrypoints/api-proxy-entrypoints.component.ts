@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { combineLatest, Subject } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Api } from '../../../../entities/api';
 import { ApiService } from '../../../../services-ngx/api.service';
+import { EnvironmentService } from '../../../../services-ngx/environment.service';
 
 @Component({
   selector: 'api-proxy-entrypoints',
@@ -30,17 +33,31 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public virtualHostModeEnabled = false;
+  public domainRestrictions: string[] = [];
 
   public apiProxy: Api['proxy'];
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams, private readonly apiService: ApiService) {}
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly apiService: ApiService,
+    private readonly environmentService: EnvironmentService,
+    private readonly matDialog: MatDialog,
+  ) {}
 
   ngOnInit(): void {
-    this.apiService
-      .get(this.ajsStateParams.apiId)
+    combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.environmentService.getCurrent()])
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap((api) => (this.apiProxy = api.proxy)),
+        tap(([api, environment]) => {
+          this.apiProxy = api.proxy;
+
+          this.virtualHostModeEnabled =
+            api.proxy.virtual_hosts.length > 1 ||
+            api.proxy.virtual_hosts[0].host !== undefined ||
+            environment.domainRestrictions.length > 0;
+
+          this.domainRestrictions = environment.domainRestrictions || [];
+        }),
       )
       .subscribe();
   }
@@ -61,5 +78,41 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  switchVirtualHostMode() {}
+  switchVirtualHostMode() {
+    if (this.virtualHostModeEnabled) {
+      this.matDialog
+        .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+          width: '500px',
+          data: {
+            title: 'Switch to context-path mode',
+            content: `By moving back to context-path you will loose all virtual-hosts. Are you sure to continue?`,
+            confirmButton: 'Switch',
+          },
+          role: 'alertdialog',
+          id: 'switchContextPathConfirmDialog',
+        })
+        .afterClosed()
+        .pipe(
+          takeUntil(this.unsubscribe$),
+          tap((response) => {
+            if (response) {
+              // Keep only the first virtual_host path
+              this.onSubmit({
+                ...this.apiProxy,
+                virtual_hosts: [
+                  {
+                    path: this.apiProxy.virtual_hosts[0].path,
+                  },
+                ],
+              });
+              this.virtualHostModeEnabled = !this.virtualHostModeEnabled;
+            }
+          }),
+        )
+        .subscribe();
+      return;
+    }
+
+    this.virtualHostModeEnabled = !this.virtualHostModeEnabled;
+  }
 }
