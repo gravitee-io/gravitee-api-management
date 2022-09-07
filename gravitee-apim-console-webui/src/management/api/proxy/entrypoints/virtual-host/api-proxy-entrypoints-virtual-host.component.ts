@@ -18,14 +18,15 @@ import { AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, V
 import { escapeRegExp, isEmpty } from 'lodash';
 
 import { Api } from '../../../../../entities/api';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
-
 @Component({
   selector: 'api-proxy-entrypoints-virtual-host',
   template: require('./api-proxy-entrypoints-virtual-host.component.html'),
   styles: [require('./api-proxy-entrypoints-virtual-host.component.scss')],
 })
 export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
+  @Input()
+  readOnly: boolean;
+
   @Input()
   apiProxy: Api['proxy'];
 
@@ -46,10 +47,8 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
 
   public hostPattern: string;
 
-  constructor(private readonly permissionService: GioPermissionService) {}
-
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.apiProxy) {
+    if (changes.apiProxy || changes.readOnly) {
       this.initForm(this.apiProxy);
     }
   }
@@ -90,27 +89,27 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
       host: new FormControl(
         {
           value: hostObj.host ?? '',
-          disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
+          disabled: this.readOnly,
         },
         [Validators.required, hostValidator(this.domainRestrictions)],
       ),
       hostDomain: new FormControl(
         {
           value: hostObj.hostDomain ?? '',
-          disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
+          disabled: this.readOnly,
         },
         [hostValidator(this.domainRestrictions)],
       ),
       path: new FormControl(
         {
           value: virtualHost?.path ?? '',
-          disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
+          disabled: this.readOnly,
         },
         [Validators.required, Validators.pattern(/^\/[/.a-zA-Z0-9-_]*$/)],
       ),
       override_entrypoint: new FormControl({
         value: virtualHost?.override_entrypoint ?? false,
-        disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
+        disabled: this.readOnly,
       }),
     });
   }

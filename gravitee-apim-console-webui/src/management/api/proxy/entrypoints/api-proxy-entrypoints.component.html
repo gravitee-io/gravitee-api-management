@@ -17,12 +17,7 @@
 -->
 <div class="title">
   <h1>Entrypoints</h1>
-  <button
-    *gioPermission="{ anyOf: ['api-definition-u'] }"
-    (click)="switchVirtualHostMode()"
-    mat-raised-button
-    color="primary"
-  >
+  <button *ngIf="!isReadOnly" (click)="switchVirtualHostMode()" mat-raised-button color="primary">
     {{ virtualHostModeEnabled ? 'Switch to context-path mode' : 'Switch to virtual-hosts mode' }}
   </button>
 </div>
@@ -30,12 +25,14 @@
 <ng-container *ngIf="apiProxy">
   <api-proxy-entrypoints-context-path
     *ngIf="!virtualHostModeEnabled"
+    [readOnly]="isReadOnly"
     [apiProxy]="apiProxy"
     (apiProxySubmit)="onSubmit($event)"
   ></api-proxy-entrypoints-context-path>
 
   <api-proxy-entrypoints-virtual-host
     *ngIf="virtualHostModeEnabled"
+    [readOnly]="isReadOnly"
     [apiProxy]="apiProxy"
     [domainRestrictions]="domainRestrictions"
     (apiProxySubmit)="onSubmit($event)"

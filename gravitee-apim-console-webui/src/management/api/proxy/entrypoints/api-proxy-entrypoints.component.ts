@@ -23,6 +23,7 @@ import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Api } from '../../../../entities/api';
 import { ApiService } from '../../../../services-ngx/api.service';
 import { EnvironmentService } from '../../../../services-ngx/environment.service';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-proxy-entrypoints',
@@ -36,12 +37,14 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
   public domainRestrictions: string[] = [];
 
   public apiProxy: Api['proxy'];
+  public isReadOnly = false;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiService,
     private readonly environmentService: EnvironmentService,
     private readonly matDialog: MatDialog,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   ngOnInit(): void {
@@ -52,11 +55,14 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
           this.apiProxy = api.proxy;
 
           this.virtualHostModeEnabled =
-            api.proxy.virtual_hosts.length > 1 ||
+            api.proxy?.virtual_hosts?.length > 1 ||
             api.proxy.virtual_hosts[0].host !== undefined ||
-            environment.domainRestrictions.length > 0;
+            environment.domainRestrictions?.length > 0;
 
-          this.domainRestrictions = environment.domainRestrictions || [];
+          this.domainRestrictions = environment.domainRestrictions ?? [];
+
+          this.isReadOnly =
+            !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']) || api.origin === 'kubernetes';
         }),
       )
       .subscribe();
