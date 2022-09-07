@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
+import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 
-import { ApiProxyCorsModule } from './cors/api-proxy-cors.module';
-import { ApiProxyEntrypointsModule } from './entrypoints/api-proxy-entrypoints.module';
+import { ApiProxyCorsComponent } from './api-proxy-cors.component';
 
 @NgModule({
-  imports: [ApiProxyEntrypointsModule, ApiProxyCorsModule],
+  declarations: [ApiProxyCorsComponent],
+  exports: [ApiProxyCorsComponent],
+  imports: [CommonModule],
 })
-export class ApiProxyModule {}
+export class ApiProxyCorsModule {}

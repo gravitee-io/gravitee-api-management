@@ -79,6 +79,19 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.proxy.ng-cors', {
+      url: '/ng-cors',
+      component: 'ngApiProxyCors',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['api-definition-r'],
+        },
+        docs: {
+          page: 'management-api-proxy',
+        },
+      },
+    })
     .state('management.apis.detail.proxy.deployments', {
       url: '/deployments',
       template: require('./general/apiProxyDeployments.html'),
