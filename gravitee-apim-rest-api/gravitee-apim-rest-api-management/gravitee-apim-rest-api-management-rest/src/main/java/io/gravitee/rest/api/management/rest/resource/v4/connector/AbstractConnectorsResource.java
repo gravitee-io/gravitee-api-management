@@ -57,6 +57,7 @@ public abstract class AbstractConnectorsResource {
         connectorExpandPluginEntity.setVersion(endpointPluginEntity.getVersion());
         connectorExpandPluginEntity.setSupportedApiType(endpointPluginEntity.getSupportedApiType());
         connectorExpandPluginEntity.setSupportedModes(endpointPluginEntity.getSupportedModes());
+        connectorExpandPluginEntity.setAvailableFeatures(endpointPluginEntity.getAvailableFeatures());
 
         return connectorExpandPluginEntity;
     }
