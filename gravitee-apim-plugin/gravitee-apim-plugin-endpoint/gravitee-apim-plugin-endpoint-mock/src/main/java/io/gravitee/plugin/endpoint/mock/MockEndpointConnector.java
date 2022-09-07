@@ -30,6 +30,9 @@ import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author GraviteeSource Team
  */
@@ -83,9 +86,8 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
         );
     }
 
-    private Flowable<Message> generateMessageFlow(Integer messagesLimitCount, Long messagesLimitDurationMs, String lastId) {
-        final long stateInitValue;
-        stateInitValue = getStateInitValue(lastId);
+    private Flowable<Message> generateMessageFlow(final Integer messagesLimitCount, final Long messagesLimitDurationMs,final String lastId) {
+        final long stateInitValue = getStateInitValue(lastId);
 
         Flowable<Message> messageFlow = Flowable
             .<Message, Long>generate(
@@ -109,7 +111,7 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
         return messageFlow;
     }
 
-    private long getStateInitValue(String lastId) {
+    private long getStateInitValue(final String lastId) {
         long stateInitValue = 0L;
         if (lastId != null) {
             try {

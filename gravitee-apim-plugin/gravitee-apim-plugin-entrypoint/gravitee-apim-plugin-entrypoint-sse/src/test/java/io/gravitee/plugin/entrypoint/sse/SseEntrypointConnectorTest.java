@@ -17,7 +17,7 @@ package io.gravitee.plugin.entrypoint.sse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -41,6 +41,7 @@ import io.reactivex.Flowable;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.subscribers.TestSubscriber;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -166,7 +167,11 @@ class SseEntrypointConnectorTest {
 
     @Test
     void shouldWriteSseMessages() {
-        final Flowable<Message> messages = Flowable.just(new DefaultMessage("1"), new DefaultMessage("2"), new DefaultMessage("3"));
+        final Flowable<Message> messages = Flowable.just(
+            new DefaultMessage("content 1").id("1"),
+            new DefaultMessage("content 2").id("2"),
+            new DefaultMessage("content 3").id("3")
+        );
         final HttpHeaders httpHeaders = HttpHeaders.create();
 
         when(response.messages()).thenReturn(messages);
@@ -184,15 +189,16 @@ class SseEntrypointConnectorTest {
         chunkObs.assertComplete();
         chunkObs.assertValueCount(4);
         chunkObs.assertValueAt(0, message -> message.toString().startsWith("retry: "));
-        chunkObs.assertValueAt(1, message -> message.toString().matches("id: .*\nevent: message\ndata: 1\n\n"));
-        chunkObs.assertValueAt(2, message -> message.toString().matches("id: .*\nevent: message\ndata: 2\n\n"));
-        chunkObs.assertValueAt(3, message -> message.toString().matches("id: .*\nevent: message\ndata: 3\n\n"));
+        chunkObs.assertValueAt(1, message -> message.toString().equals("id: 1\nevent: message\ndata: content 1\n\n"));
+        chunkObs.assertValueAt(2, message -> message.toString().equals("id: 2\nevent: message\ndata: content 2\n\n"));
+        chunkObs.assertValueAt(3, message -> message.toString().equals("id: 3\nevent: message\ndata: content 3\n\n"));
     }
 
     @Test
     void shouldWriteSseMessagesWithoutCommentsWhenDisabled() {
         final Flowable<Message> messages = Flowable.just(
-            new DefaultMessage("1")
+            new DefaultMessage("content 1")
+                .id("1")
                 .headers(HttpHeaders.create().add("HeaderName", "HeaderValue"))
                 .metadata(Map.of("MetadataName", "MetadataValue"))
         );
@@ -212,7 +218,7 @@ class SseEntrypointConnectorTest {
 
         chunkObs.assertComplete();
         chunkObs.assertValueAt(0, message -> message.toString().startsWith("retry: "));
-        chunkObs.assertValueAt(1, message -> message.toString().matches("id: .*\nevent: message\ndata: 1\n\n"));
+        chunkObs.assertValueAt(1, message -> message.toString().equals("id: 1\nevent: message\ndata: content 1\n\n"));
     }
 
     @Test
@@ -222,7 +228,8 @@ class SseEntrypointConnectorTest {
         configuration.setMetadataAsComment(true);
 
         final Flowable<Message> messages = Flowable.just(
-            new DefaultMessage("1")
+            new DefaultMessage("content 1")
+                .id("1")
                 .headers(HttpHeaders.create().add("HeaderName", "HeaderValue"))
                 .metadata(Map.of("MetadataName", "MetadataValue"))
         );
@@ -246,14 +253,16 @@ class SseEntrypointConnectorTest {
         chunkObs.assertValueAt(
             1,
             message ->
-                message.toString().matches("id: .*\nevent: message\ndata: 1\n:MetadataName: MetadataValue\n:HeaderName: HeaderValue\n\n")
+                message
+                    .toString()
+                    .equals("id: 1\nevent: message\ndata: content 1\n:MetadataName: MetadataValue\n:HeaderName: HeaderValue\n\n")
         );
     }
 
     @Test
     void shouldWriteSseErrorMessage() {
         final Flowable<Message> messages = Flowable
-            .<Message>just(new DefaultMessage("1"))
+            .<Message>just(new DefaultMessage("content 1").id("1"))
             .concatWith(Flowable.error(new RuntimeException("MOCK EXCEPTION")));
 
         final HttpHeaders httpHeaders = HttpHeaders.create();
@@ -273,7 +282,7 @@ class SseEntrypointConnectorTest {
         chunkObs.assertComplete();
         chunkObs.assertValueCount(3);
         chunkObs.assertValueAt(0, message -> message.toString().startsWith("retry: "));
-        chunkObs.assertValueAt(1, message -> message.toString().matches("id: .*\nevent: message\ndata: 1\n\n"));
+        chunkObs.assertValueAt(1, message -> message.toString().equals("id: 1\nevent: message\ndata: content 1\n\n"));
         chunkObs.assertValueAt(2, message -> message.toString().matches("id: .*\nevent: error\ndata: MOCK EXCEPTION\n\n"));
     }
 
@@ -305,6 +314,19 @@ class SseEntrypointConnectorTest {
     }
 
     private void verifyResponseHeaders(HttpHeaders httpHeaders) {
+        assertThat(httpHeaders.contains(HttpHeaderNames.CONTENT_TYPE)).isTrue();
+        assertThat(httpHeaders.contains(HttpHeaderNames.CONNECTION)).isTrue();
+        assertThat(httpHeaders.contains(HttpHeaderNames.CACHE_CONTROL)).isTrue();
+    }
+
+    @Test
+    void shouldWriteErrorSseEventWhenErrorOccurs() {
+        Flowable<Message> messages = Flowable.error(new RuntimeException("error"));
+        when(response.messages()).thenReturn(messages);
+        HttpHeaders httpHeaders = HttpHeaders.create();
+        when(response.headers()).thenReturn(httpHeaders);
+        when(ctx.response()).thenReturn(response);
+        boolean b = cut.handleResponse(ctx).test().awaitTerminalEvent(10, TimeUnit.SECONDS);
         assertThat(httpHeaders.contains(HttpHeaderNames.CONTENT_TYPE)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CONNECTION)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CACHE_CONTROL)).isTrue();

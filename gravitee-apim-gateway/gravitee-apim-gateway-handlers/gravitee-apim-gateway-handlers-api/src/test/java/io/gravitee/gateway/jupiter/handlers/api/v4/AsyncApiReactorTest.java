@@ -15,11 +15,6 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4;
 
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.*;
-import static io.reactivex.Completable.complete;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
@@ -36,7 +31,6 @@ import io.gravitee.gateway.jupiter.handlers.api.v4.security.SecurityChain;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.Completable;
-import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,6 +39,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Date;
+
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_REQUEST;
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_RESPONSE;
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
+import static io.reactivex.Completable.complete;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AsyncApiReactorTest {

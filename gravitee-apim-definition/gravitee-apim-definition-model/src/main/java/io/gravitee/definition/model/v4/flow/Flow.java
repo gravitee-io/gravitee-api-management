@@ -16,23 +16,22 @@
 package io.gravitee.definition.model.v4.flow;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
