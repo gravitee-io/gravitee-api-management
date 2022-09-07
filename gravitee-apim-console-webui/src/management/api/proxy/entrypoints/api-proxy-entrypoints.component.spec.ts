@@ -20,6 +20,11 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 
 import { ApiProxyEntrypointsModule } from './api-proxy-entrypoints.module';
 import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component';
@@ -29,11 +34,8 @@ import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { Api } from '../../../../entities/api';
 import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
-import { MatButtonHarness } from '@angular/material/button/testing';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
-import { MatDialogHarness } from '@angular/material/dialog/testing';
-import { InteractivityChecker } from '@angular/cdk/a11y';
 
 describe('ApiProxyEntrypointsComponent', () => {
   let fixture: ComponentFixture<ApiProxyEntrypointsComponent>;
@@ -115,8 +117,59 @@ describe('ApiProxyEntrypointsComponent', () => {
       exceptEnvironmentGetRequest(fakeEnvironment());
     });
 
+    it('should update virtual-host', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        proxy: {
+          virtual_hosts: [
+            { path: '/path-foo', host: 'host.io' },
+            { path: '/path-bar', host: 'host.io' },
+          ],
+        },
+      });
+      expectApiGetRequest(api);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const vhTable = await loader.getHarness(MatTableHarness.with({ selector: '#virtualHostsTable' }));
+      const vhTableRows = await vhTable.getRows();
+      const [vhTableFirstRowHostCell, vhTableFirstRowPathCell, vhTableFirstRowOverrideCell] = await vhTableRows[0].getCells();
+
+      const vhTableFirstRowHostInput = await vhTableFirstRowHostCell.getHarness(MatInputHarness);
+      expect(await vhTableFirstRowHostInput.getValue()).toEqual('host.io');
+      await vhTableFirstRowHostInput.setValue('new-host');
+
+      const vhTableFirstRowPathInput = await vhTableFirstRowPathCell.getHarness(MatInputHarness);
+      expect(await vhTableFirstRowPathInput.getValue()).toEqual('/path-foo');
+      await vhTableFirstRowPathInput.setValue('/new-path-foo');
+
+      const vhTableFirstRowOverrideCheckbox = await vhTableFirstRowOverrideCell.getHarness(MatCheckboxHarness);
+      expect(await vhTableFirstRowOverrideCheckbox.isChecked()).toEqual(false);
+      await vhTableFirstRowOverrideCheckbox.check();
+
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      // Expect fetch api get and update proxy
+      expectApiGetRequest(api);
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+      expect(req.request.body.proxy.virtual_hosts).toEqual([
+        {
+          path: '/new-path-foo',
+          host: 'new-host',
+          override_entrypoint: true,
+        },
+        {
+          host: 'host.io',
+          override_entrypoint: undefined,
+          path: '/path-bar',
+        },
+      ]);
+    });
+
     it('should switch to context-path mode', async () => {
-      const api = fakeApi({ id: API_ID, proxy: { virtual_hosts: [{ path: '/path-foo', host: 'host' }, { path: '/path-bar' }] } });
+      const api = fakeApi({ id: API_ID, proxy: { virtual_hosts: [{ path: '/path-foo', host: 'host.io' }, { path: '/path-bar' }] } });
       expectApiGetRequest(api);
 
       const switchButton = await loader.getHarness(MatButtonHarness.with({ text: 'Switch to context-path mode' }));
