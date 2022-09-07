@@ -74,13 +74,15 @@ public class PolicyChain implements Hookable<Hook> {
         if (this.messageHooks == null) {
             this.messageHooks = new ArrayList<>();
         }
-        hooks.forEach(hook -> {
-            if (hook instanceof PolicyHook) {
-                this.policyHooks.add((PolicyHook) hook);
-            } else if (hook instanceof MessageHook) {
-                this.messageHooks.add((MessageHook) hook);
+        hooks.forEach(
+            hook -> {
+                if (hook instanceof PolicyHook) {
+                    this.policyHooks.add((PolicyHook) hook);
+                } else if (hook instanceof MessageHook) {
+                    this.messageHooks.add((MessageHook) hook);
+                }
             }
-        });
+        );
     }
 
     /**
