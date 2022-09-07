@@ -15,14 +15,14 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4;
 
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.*;
 import static io.reactivex.Completable.complete;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
+import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
@@ -30,11 +30,13 @@ import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.core.v4.entrypoint.HttpEntrypointConnectorResolver;
-import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain;
-import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChain;
+import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.security.SecurityChain;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import java.util.Date;
+
+import io.gravitee.reporter.api.http.Metrics;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,7 +73,10 @@ class AsyncApiReactorTest {
     private Invoker defaultInvoker;
 
     @Mock
-    private FlowChainFactory flowChainFactory;
+    private io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory flowChainFactory;
+
+    @Mock
+    private FlowChainFactory v4FlowChainFactory;
 
     @Mock
     private MutableExecutionContext executionContext;
@@ -86,7 +91,13 @@ class AsyncApiReactorTest {
     private EntrypointAsyncConnector entrypointConnector;
 
     @Mock
-    private FlowChain platformFlowChain;
+    private io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain platformFlowChain;
+
+    @Mock
+    private FlowChain apiPlanFlowChain;
+
+    @Mock
+    private FlowChain apiFlowChain;
 
     @Mock
     private SecurityChain securityChain;
@@ -96,6 +107,7 @@ class AsyncApiReactorTest {
         lenient().when(executionContext.request()).thenReturn(request);
         lenient().when(executionContext.response()).thenReturn(response);
         lenient().when(request.contextPath()).thenReturn(CONTEXT_PATH);
+        lenient().when(request.metrics()).thenReturn(Metrics.on(System.currentTimeMillis()).build());
         lenient().when(api.getId()).thenReturn(API_ID);
         lenient().when(api.getDeployedAt()).thenReturn(new Date());
         lenient().when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
@@ -136,20 +148,34 @@ class AsyncApiReactorTest {
 
         ReflectionTestUtils.setField(asyncApiReactor, "platformFlowChain", platformFlowChain);
         ReflectionTestUtils.setField(asyncApiReactor, "securityChain", securityChain);
-        when(platformFlowChain.execute(executionContext, REQUEST)).thenReturn(complete());
+        ReflectionTestUtils.setField(asyncApiReactor, "apiPlanFlowChain", apiPlanFlowChain);
+        ReflectionTestUtils.setField(asyncApiReactor, "apiFlowChain", apiFlowChain);
+        when(platformFlowChain.execute(eq(executionContext), any(ExecutionPhase.class))).thenReturn(complete());
         when(securityChain.execute(executionContext)).thenReturn(complete());
-        when(entrypointConnector.handleRequest(executionContext)).thenReturn(complete());
-        when(entrypointConnector.handleResponse(executionContext)).thenReturn(complete());
-        when(platformFlowChain.execute(executionContext, RESPONSE)).thenReturn(complete());
+        when(apiPlanFlowChain.execute(eq(executionContext), any(ExecutionPhase.class))).thenReturn(complete());
+        when(apiFlowChain.execute(eq(executionContext), any(ExecutionPhase.class))).thenReturn(complete());
+        when(entrypointConnector.handleRequest(eq(executionContext))).thenReturn(complete());
+        when(entrypointConnector.handleResponse(eq(executionContext))).thenReturn(complete());
 
+        // TODO: we should test async reactor in the same way we did for sync reactor by subscribing to the reactive chain (to do in a dedicated task).
         asyncApiReactor.handle(executionContext).test();
 
         // verify flow chain has been executed in the right order
-        InOrder inOrder = inOrder(platformFlowChain, securityChain, entrypointConnector, entrypointConnector, platformFlowChain);
+        InOrder inOrder = inOrder(platformFlowChain, securityChain, apiPlanFlowChain, apiFlowChain, entrypointConnector, entrypointConnector, platformFlowChain);
         inOrder.verify(platformFlowChain).execute(executionContext, REQUEST);
         inOrder.verify(securityChain).execute(executionContext);
         inOrder.verify(entrypointConnector).handleRequest(executionContext);
-        inOrder.verify(entrypointConnector).handleResponse(executionContext);
+        inOrder.verify(apiPlanFlowChain).execute(executionContext, REQUEST);
+        inOrder.verify(apiFlowChain).execute(executionContext, REQUEST);
+        inOrder.verify(platformFlowChain).execute(executionContext, MESSAGE_REQUEST);
+        inOrder.verify(apiPlanFlowChain).execute(executionContext, MESSAGE_REQUEST);
+        inOrder.verify(apiFlowChain).execute(executionContext, MESSAGE_REQUEST);
+        inOrder.verify(apiPlanFlowChain).execute(executionContext, RESPONSE);
+        inOrder.verify(apiFlowChain).execute(executionContext, RESPONSE);
         inOrder.verify(platformFlowChain).execute(executionContext, RESPONSE);
+        inOrder.verify(apiPlanFlowChain).execute(executionContext, MESSAGE_RESPONSE);
+        inOrder.verify(apiFlowChain).execute(executionContext, MESSAGE_RESPONSE);
+        inOrder.verify(platformFlowChain).execute(executionContext, MESSAGE_RESPONSE);
+        inOrder.verify(entrypointConnector).handleResponse(executionContext);
     }
 }

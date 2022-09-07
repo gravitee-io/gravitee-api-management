@@ -74,15 +74,13 @@ public class PolicyChain implements Hookable<Hook> {
         if (this.messageHooks == null) {
             this.messageHooks = new ArrayList<>();
         }
-        hooks.forEach(
-            hook -> {
-                if (hook instanceof PolicyHook) {
-                    this.policyHooks.add((PolicyHook) hook);
-                } else if (hook instanceof MessageHook) {
-                    this.messageHooks.add((MessageHook) hook);
-                }
+        hooks.forEach(hook -> {
+            if (hook instanceof PolicyHook) {
+                this.policyHooks.add((PolicyHook) hook);
+            } else if (hook instanceof MessageHook) {
+                this.messageHooks.add((MessageHook) hook);
             }
-        );
+        });
     }
 
     /**
@@ -96,7 +94,7 @@ public class PolicyChain implements Hookable<Hook> {
     public Completable execute(ExecutionContext ctx) {
         return policies
             .doOnSubscribe(subscription -> log.debug("Executing chain {}", id))
-            .flatMapCompletable(policy -> executePolicy(ctx, policy), false, 1);
+            .concatMapCompletable(policy -> executePolicy(ctx, policy));
     }
 
     private Completable executePolicy(final ExecutionContext ctx, final Policy policy) {

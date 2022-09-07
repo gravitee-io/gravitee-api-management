@@ -48,24 +48,29 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
 
     @Override
     public Completable connect(ExecutionContext ctx) {
-        return Completable.defer(
-            () ->
-                ctx
-                    .request()
-                    .messages()
-                    .doOnNext(message -> log.info("Received message:\n" + message.content().toString()))
-                    .ignoreElements()
-                    .andThen(Completable.fromRunnable(() -> ctx.response().messages(generateMessageFlow())))
+        return Completable.defer(() ->
+            ctx
+                .request()
+                .messages()
+                .doOnNext(message -> log.info("Received message:\n" + message.content().toString()))
+                .ignoreElements()
+                .andThen(Completable.fromRunnable(() -> ctx.response().messages(generateMessageFlow())))
         );
     }
 
     private Flowable<Message> generateMessageFlow() {
-        Flowable<Message> messageFlow = Flowable
-            .interval(configuration.getMessageInterval(), TimeUnit.MILLISECONDS)
-            .map(value -> new DefaultMessage(configuration.getMessageContent()).id(Long.toString(value)));
-        if (configuration.getMessageCount() != null) {
-            return messageFlow.limit(configuration.getMessageCount());
-        }
-        return messageFlow;
+        return Flowable
+            .<Message, Long>generate(
+                () -> 0L,
+                (state, emitter) -> {
+                    if (configuration.getMessageCount() == null || state < configuration.getMessageCount()) {
+                        emitter.onNext(new DefaultMessage(configuration.getMessageContent()).id(Long.toString(state));
+                    } else {
+                        emitter.onComplete();
+                    }
+                    return state + 1;
+                }
+            )
+            .delay(configuration.getMessageInterval(), TimeUnit.MILLISECONDS);
     }
 }

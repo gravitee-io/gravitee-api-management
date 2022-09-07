@@ -24,12 +24,12 @@ import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
+import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.entrypoint.sse.configuration.SseEntrypointConnectorConfiguration;
 import io.gravitee.plugin.entrypoint.sse.model.SseEvent;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
-import io.reactivex.Single;
+import io.reactivex.Maybe;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Random;
@@ -89,74 +89,60 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                // set headers
-                ctx.response().headers().add(HttpHeaderNames.CONTENT_TYPE, "text/event-stream;charset=UTF-8");
-                ctx.response().headers().add(HttpHeaderNames.CONNECTION, "keep-alive");
-                ctx.response().headers().add(HttpHeaderNames.CACHE_CONTROL, "no-cache");
-                ctx.response().headers().add(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
+        return Completable.fromRunnable(() -> {
+            // Set required sse headers.
+            ctx.response().headers().add(HttpHeaderNames.CONTENT_TYPE, "text/event-stream;charset=UTF-8");
+            ctx.response().headers().add(HttpHeaderNames.CONNECTION, "keep-alive");
+            ctx.response().headers().add(HttpHeaderNames.CACHE_CONTROL, "no-cache");
+            ctx.response().headers().add(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
 
-                return sendRetry(ctx)
-                    .andThen(ctx.response().messages())
-                    .flatMapSingle(
-                        message -> {
-                            HashMap<String, Object> comments = new HashMap<>();
-                            if (configuration.isHeadersAsComment() && message.headers() != null) {
-                                message.headers().toListValuesMap().forEach((key, value) -> comments.put(key, String.join(",", value)));
-                            }
-                            if (configuration.isMetadataAsComment() && message.metadata() != null) {
-                                comments.putAll(message.metadata());
-                            }
-                            return ctx
-                                .response()
-                                .write(
-                                    Buffer.buffer(
-                                        SseEvent
-                                            .builder()
-                                            .id(message.id())
-                                            .event("message")
-                                            .data(message.content().getBytes())
-                                            .comments(comments)
-                                            .build()
-                                            .format()
-                                    )
-                                )
-                                .andThen(ctx.response().write(Buffer.buffer("\n\n")))
-                                .andThen(Single.just(message));
-                        }
-                    )
-                    .onErrorResumeNext(
-                        error -> {
-                            log.error("Error when dealing with response messages", error);
-                            return ctx
-                                .response()
-                                .end(
-                                    Buffer.buffer(
-                                        SseEvent
-                                            .builder()
-                                            .id(UUID.randomUUID().toString())
-                                            .event("error")
-                                            .data(error.getMessage().getBytes(StandardCharsets.UTF_8))
-                                            .build()
-                                            .format()
-                                    )
-                                )
-                                .andThen(Flowable.error(error));
-                        }
-                    )
-                    .ignoreElements()
-                    .andThen(ctx.response().end());
-            }
+            // Assign the chunks that come from the transformation of messages.
+            ctx.response().chunks(messagesToBuffers(ctx));
+        });
+    }
+
+    private Flowable<Buffer> messagesToBuffers(ExecutionContext ctx) {
+        final Buffer retryBuffer = Buffer.buffer(SseEvent.builder().retry(generateRandomRetry()).build().format());
+
+        return Flowable
+            .just(retryBuffer)
+            .concatWith(ctx.response().messages().concatMapMaybe(message -> Maybe.just(messageToBuffer(message))))
+            .onErrorReturn(this::errorToBuffer);
+    }
+
+    private Buffer errorToBuffer(Throwable error) {
+        return Buffer.buffer(
+            SseEvent
+                .builder()
+                .id(UUID.randomUUID().toString())
+                .event("error")
+                .data(error.getMessage().getBytes(StandardCharsets.UTF_8))
+                .build()
+                .format()
         );
     }
 
-    private Completable sendRetry(final ExecutionContext ctx) {
-        return ctx
-            .response()
-            .write(Buffer.buffer(SseEvent.builder().retry(generateRandomRetry()).build().format()))
-            .andThen(ctx.response().write(Buffer.buffer("\n\n")))
-            .andThen(ctx.response().writeHeaders());
+    private Buffer messageToBuffer(Message message) {
+        HashMap<String, Object> comments = new HashMap<>();
+
+        if (configuration.isHeadersAsComment() && message.headers() != null) {
+            message.headers().toListValuesMap().forEach((key, value) -> comments.put(key, String.join(",", value)));
+        }
+
+        if (configuration.isMetadataAsComment() && message.metadata() != null) {
+            comments.putAll(message.metadata());
+        }
+
+        return Buffer.buffer(
+            SseEvent
+                .builder()
+                .id(message.id())
+                .event("message")
+                .data(message.content().getBytes())
+                .comments(comments)
+                .build()
+                .format()
+        );
     }
 
     private int generateRandomRetry() {

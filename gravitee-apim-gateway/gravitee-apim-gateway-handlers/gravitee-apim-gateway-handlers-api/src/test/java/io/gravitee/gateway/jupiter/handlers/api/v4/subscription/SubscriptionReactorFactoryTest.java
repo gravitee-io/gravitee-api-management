@@ -51,7 +51,7 @@ public class SubscriptionReactorFactoryTest {
     public void init() {
         lenient().when(api.getDefinition()).thenReturn(definition);
 
-        factory = new SubscriptionReactorFactory(null, null, null, null, null, null, null, null);
+        factory = new SubscriptionReactorFactory(null, null, null, null, null, null, null, null, null);
     }
 
     @Test
