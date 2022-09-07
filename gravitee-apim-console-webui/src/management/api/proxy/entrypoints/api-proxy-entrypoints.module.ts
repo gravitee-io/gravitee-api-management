@@ -21,7 +21,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { GioConfirmDialogModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -49,6 +49,7 @@ import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-for
     GioPermissionModule,
     GioSaveBarModule,
     GioConfirmDialogModule,
+    GioIconsModule,
     GioFormFocusInvalidModule,
   ],
 })

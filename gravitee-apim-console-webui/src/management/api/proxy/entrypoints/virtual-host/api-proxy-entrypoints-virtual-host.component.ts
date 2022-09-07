@@ -35,6 +35,11 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
   public apiProxySubmit = new EventEmitter<Api['proxy']>();
 
   public virtualHostsFormArray: FormArray;
+  
+  public get virtualHostsTableData(): unknown[] {
+    // Create new array to trigger change detection
+    return [...this.virtualHostsFormArray?.controls] ?? []
+  }
   public virtualHostsTableDisplayedColumns = ['host', 'path', 'override_entrypoint', 'remove'];
   public initialVirtualHostsFormValue: unknown;
 
@@ -64,33 +69,42 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
     });
   }
 
+  onAddVirtualHost() {
+    this.virtualHostsFormArray.push(this.newVirtualHostFormGroup());
+    this.virtualHostsFormArray.markAsDirty();
+  }
+
+  onDeleteVirtualHostClicked( index: number) {
+    this.virtualHostsFormArray.removeAt(index);
+    this.virtualHostsFormArray.markAsDirty();
+  }
+
   private initForm(apiProxy: Api['proxy']) {
-    this.virtualHostsFormArray = new FormArray([
-      ...apiProxy.virtual_hosts.map(
-        (virtualHost) =>
-          new FormGroup({
-            host: new FormControl(
-              {
-                value: virtualHost.host,
-                disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
-              },
-              [Validators.required],
-            ),
-            path: new FormControl(
-              {
-                value: virtualHost.path,
-                disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
-              },
-              [Validators.required, Validators.pattern(/^\/[/.a-zA-Z0-9-_]*$/)],
-            ),
-            override_entrypoint: new FormControl({
-              value: virtualHost.override_entrypoint,
-              disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
-            }),
-          }),
-      ),
-    ]);
+    this.virtualHostsFormArray = new FormArray([...apiProxy.virtual_hosts.map((virtualHost) => this.newVirtualHostFormGroup(virtualHost))]);
 
     this.initialVirtualHostsFormValue = this.virtualHostsFormArray.getRawValue();
+  }
+
+  private newVirtualHostFormGroup(virtualHost?: Api['proxy']['virtual_hosts'][number]) {
+    return new FormGroup({
+      host: new FormControl(
+        {
+          value: virtualHost?.host ?? '',
+          disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
+        },
+        [Validators.required],
+      ),
+      path: new FormControl(
+        {
+          value: virtualHost?.path ?? '',
+          disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
+        },
+        [Validators.required, Validators.pattern(/^\/[/.a-zA-Z0-9-_]*$/)],
+      ),
+      override_entrypoint: new FormControl({
+        value: virtualHost?.override_entrypoint ?? false,
+        disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
+      }),
+    });
   }
 }
