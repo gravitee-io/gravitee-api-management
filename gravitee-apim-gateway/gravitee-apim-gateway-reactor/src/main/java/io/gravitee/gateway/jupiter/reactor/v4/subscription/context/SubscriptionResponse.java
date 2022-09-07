@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.context.HttpResponse;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.gravitee.gateway.jupiter.http.vertx.MessageFlow;
 import io.reactivex.*;
 
 /**
@@ -29,13 +30,18 @@ import io.reactivex.*;
  */
 public class SubscriptionResponse implements MutableResponse {
 
-    private HttpHeaders headers = HttpHeaders.create();
-
-    private int statusCode = HttpStatusCode.OK_200;
-
+    private HttpHeaders headers;
+    private int statusCode;
     private String reason;
+    private final MessageFlow messageFlow;
+    private Flowable<Buffer> chunks;
+    private boolean ended;
 
-    private Flowable<Message> messages;
+    public SubscriptionResponse() {
+        this.statusCode = HttpStatusCode.OK_200;
+        this.headers = HttpHeaders.create();
+        this.messageFlow = new MessageFlow();
+    }
 
     @Override
     public void setHeaders(HttpHeaders headers) {
@@ -76,72 +82,67 @@ public class SubscriptionResponse implements MutableResponse {
 
     @Override
     public boolean ended() {
-        return false;
+        return ended;
     }
 
     @Override
     public Flowable<Message> messages() {
-        return this.messages;
+        return this.messageFlow.messages();
     }
 
     @Override
     public void messages(Flowable<Message> messages) {
-        this.messages = messages;
+        this.messageFlow.messages(messages);
     }
 
     @Override
     public Completable onMessages(FlowableTransformer<Message, Message> onMessages) {
-        return Completable.complete();
+        return Completable.fromRunnable(() -> this.messageFlow.onMessages(onMessages));
     }
 
     @Override
     public Maybe<Buffer> body() {
-        return null;
+        // Subscription does not allow buffer body access.
+        return Maybe.empty();
     }
 
     @Override
     public Single<Buffer> bodyOrEmpty() {
-        return null;
+        // Subscription does not allow buffer body access.
+        return Single.just(Buffer.buffer());
     }
 
     @Override
-    public void body(Buffer buffer) {}
+    public void body(Buffer buffer) {
+        // Subscription does not allow buffer body access.
+    }
 
     @Override
     public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
-        return null;
+        // Subscription does not allow buffer body access.
+        return Completable.complete();
     }
 
     @Override
-    public void chunks(Flowable<Buffer> chunks) {}
+    public void chunks(Flowable<Buffer> chunks) {
+        this.chunks = chunks;
+    }
 
     @Override
     public Flowable<Buffer> chunks() {
-        return null;
+        return this.chunks;
     }
 
     @Override
     public Completable onChunks(FlowableTransformer<Buffer, Buffer> onChunks) {
-        return null;
+        if (chunks == null) {
+            return Completable.error(new IllegalStateException("The is no chunks to apply the transformation on"));
+        }
+        return Completable.fromRunnable(() -> chunks = chunks.compose(onChunks));
     }
 
     @Override
     public Completable end() {
-        return Completable.complete();
-    }
-
-    @Override
-    public Completable end(Buffer buffer) {
-        return Completable.complete();
-    }
-
-    @Override
-    public Completable write(Buffer buffer) {
-        return Completable.complete();
-    }
-
-    @Override
-    public Completable writeHeaders() {
-        return Completable.complete();
+        return Completable.defer(() -> chunks.ignoreElements().andThen(Completable.fromRunnable(() -> ended = true)));
     }
 }

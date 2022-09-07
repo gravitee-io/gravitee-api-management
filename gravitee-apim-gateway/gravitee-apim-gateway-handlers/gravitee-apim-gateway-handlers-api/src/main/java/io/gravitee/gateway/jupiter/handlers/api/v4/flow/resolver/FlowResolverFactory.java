@@ -16,10 +16,8 @@
 package io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver;
 
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.FlowMode;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
-import io.gravitee.gateway.jupiter.v4.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.jupiter.v4.flow.FlowResolver;
 
 /**
@@ -28,6 +26,7 @@ import io.gravitee.gateway.jupiter.v4.flow.FlowResolver;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
 public class FlowResolverFactory {
 
     private final ConditionFilter<Flow> flowFilter;
@@ -37,26 +36,10 @@ public class FlowResolverFactory {
     }
 
     public FlowResolver forApi(Api api) {
-        ApiFlowResolver flowResolver = new ApiFlowResolver(api.getDefinition(), flowFilter);
-
-        if (isBestMatchFlowMode(api.getDefinition().getFlowMode())) {
-            return new BestMatchFlowResolver(flowResolver);
-        }
-
-        return flowResolver;
+        return new ApiFlowResolver(api.getDefinition(), flowFilter);
     }
 
     public FlowResolver forApiPlan(Api api) {
-        ApiPlanFlowResolver flowResolver = new ApiPlanFlowResolver(api.getDefinition(), flowFilter);
-
-        if (isBestMatchFlowMode(api.getDefinition().getFlowMode())) {
-            return new BestMatchFlowResolver(flowResolver);
-        }
-
-        return flowResolver;
-    }
-
-    private static boolean isBestMatchFlowMode(FlowMode flowMode) {
-        return flowMode == FlowMode.BEST_MATCH;
+        return new ApiPlanFlowResolver(api.getDefinition(), flowFilter);
     }
 }

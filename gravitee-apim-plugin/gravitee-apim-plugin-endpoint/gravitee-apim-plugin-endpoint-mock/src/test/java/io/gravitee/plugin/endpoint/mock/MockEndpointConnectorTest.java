@@ -25,6 +25,8 @@ import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import io.reactivex.Flowable;
+import io.reactivex.schedulers.TestScheduler;
+import io.reactivex.subscribers.TestSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,6 +44,7 @@ import org.slf4j.Logger;
 class MockEndpointConnectorTest {
 
     private static final String MESSAGE_TO_LOG = "message to log";
+    protected static final String MESSAGE_CONTENT = "test mock endpoint";
     private final MockEndpointConnectorConfiguration configuration = new MockEndpointConnectorConfiguration();
 
     @Mock
@@ -62,7 +65,7 @@ class MockEndpointConnectorTest {
     @BeforeEach
     public void setup() {
         configuration.setMessageInterval(100L);
-        configuration.setMessageContent("test mock endpoint");
+        configuration.setMessageContent(MESSAGE_CONTENT);
         mockEndpointConnector = new MockEndpointConnector(configuration);
 
         when(request.messages()).thenReturn(Flowable.just(new DefaultMessage(MESSAGE_TO_LOG)));
@@ -78,15 +81,16 @@ class MockEndpointConnectorTest {
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).messages(messagesCaptor.capture());
+        final TestScheduler testScheduler = new TestScheduler();
+        final TestSubscriber<Message> obs = messagesCaptor.getValue().test(3);
 
-        messagesCaptor
-            .getValue()
-            .test()
+        testScheduler.triggerActions();
+        obs
             .awaitCount(3)
             .assertValueCount(3)
-            .assertValueAt(0, message -> message.content().toString().equals("test mock endpoint") && message.id().equals("0"))
-            .assertValueAt(1, message -> message.content().toString().equals("test mock endpoint") && message.id().equals("1"))
-            .assertValueAt(2, message -> message.content().toString().equals("test mock endpoint") && message.id().equals("2"));
+            .assertValueAt(0, message -> message.content().toString().equals(MESSAGE_CONTENT) && message.id().equals("0"))
+            .assertValueAt(1, message -> message.content().toString().equals(MESSAGE_CONTENT) && message.id().equals("1"))
+            .assertValueAt(2, message -> message.content().toString().equals(MESSAGE_CONTENT) && message.id().equals("2"));
 
         verify(logger).info("Received message:\n" + MESSAGE_TO_LOG);
     }

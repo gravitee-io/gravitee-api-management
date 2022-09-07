@@ -36,13 +36,9 @@ public class EntrypointConnectorPluginConfiguration {
     @Bean
     public ConfigurablePluginManager<EntrypointConnectorPlugin<?, ?>> entrypointPluginManager(
         final EntrypointConnectorClassLoaderFactory entrypointConnectorClassLoaderFactory,
-        final io.gravitee.node.api.configuration.Configuration configuration,
-        final ObjectMapper objectMapper
+        final ConnectorFactoryHelper connectorFactoryHelper
     ) {
-        return new DefaultEntrypointConnectorPluginManager(
-            entrypointConnectorClassLoaderFactory,
-            new ConnectorFactoryHelper(configuration, objectMapper)
-        );
+        return new DefaultEntrypointConnectorPluginManager(entrypointConnectorClassLoaderFactory, connectorFactoryHelper);
     }
 
     @Bean

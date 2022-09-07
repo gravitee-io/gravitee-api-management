@@ -69,6 +69,10 @@ public class Flow implements Serializable {
 
     @JsonIgnore
     public Optional<Selector> selectorByType(SelectorType type) {
-        return selectors.stream().filter(selector -> selector.getType() == type).findFirst();
+        if (selectors != null) {
+            return selectors.stream().filter(selector -> selector.getType() == type).findFirst();
+        }
+
+        return Optional.empty();
     }
 }

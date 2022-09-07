@@ -18,13 +18,11 @@ package io.gravitee.plugin.endpoint.mock;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
-import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
@@ -48,13 +46,14 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
 
     @Override
     public Completable connect(ExecutionContext ctx) {
-        return Completable.defer(() ->
-            ctx
-                .request()
-                .messages()
-                .doOnNext(message -> log.info("Received message:\n" + message.content().toString()))
-                .ignoreElements()
-                .andThen(Completable.fromRunnable(() -> ctx.response().messages(generateMessageFlow())))
+        return Completable.defer(
+            () ->
+                ctx
+                    .request()
+                    .messages()
+                    .doOnNext(message -> log.info("Received message:\n" + message.content().toString()))
+                    .ignoreElements()
+                    .andThen(Completable.fromRunnable(() -> ctx.response().messages(generateMessageFlow())))
         );
     }
 
@@ -64,13 +63,14 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
                 () -> 0L,
                 (state, emitter) -> {
                     if (configuration.getMessageCount() == null || state < configuration.getMessageCount()) {
-                        emitter.onNext(new DefaultMessage(configuration.getMessageContent()).id(Long.toString(state));
+                        emitter.onNext(new DefaultMessage(configuration.getMessageContent()).id(Long.toString(state)));
                     } else {
                         emitter.onComplete();
                     }
                     return state + 1;
                 }
             )
-            .delay(configuration.getMessageInterval(), TimeUnit.MILLISECONDS);
+            .delay(configuration.getMessageInterval(), TimeUnit.MILLISECONDS)
+            .rebatchRequests(1);
     }
 }

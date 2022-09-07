@@ -119,16 +119,19 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
                 .forEach(
                     plan -> {
                         PlanSecurity security = plan.getSecurity();
-                        Policy secPolicy = new Policy();
-                        secPolicy.setName(security.getType());
+                        // TODO: associate plan security with its policy (https://github.com/gravitee-io/issues/issues/8427)
+                        if (!security.getType().equalsIgnoreCase("subscription")) {
+                            Policy secPolicy = new Policy();
+                            secPolicy.setName(security.getType());
 
-                        if (secPolicy.getName() != null) {
-                            policies.add(secPolicy);
-                        }
+                            if (secPolicy.getName() != null) {
+                                policies.add(secPolicy);
+                            }
 
-                        if (plan.getFlows() != null) {
-                            List<Flow> flows = plan.getFlows();
-                            addFlowsPolicies(policies, flows);
+                            if (plan.getFlows() != null) {
+                                List<Flow> flows = plan.getFlows();
+                                addFlowsPolicies(policies, flows);
+                            }
                         }
                     }
                 );

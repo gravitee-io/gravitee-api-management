@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.jupiter.reactor;
 
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_LISTENER_TYPE;
+
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ExecutionMode;
@@ -28,6 +30,7 @@ import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
 import io.gravitee.gateway.http.vertx.grpc.VertxGrpcServerRequest;
 import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
@@ -143,7 +146,6 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                 )
                 .andThen(handleNotFound(mutableCtx));
         } else if (httpAcceptor.reactor() instanceof ApiReactor) {
-            ApiReactor apiReactor = (ApiReactor) httpAcceptor.reactor();
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
 
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
@@ -186,6 +188,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
         MutableExecutionContext ctx = createExecutionContext(request);
         ctx.componentProvider(globalComponentProvider);
+        ctx.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.HTTP);
         return ctx;
     }
 

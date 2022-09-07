@@ -61,8 +61,9 @@ class SseEntrypointIntegrationTest extends AbstractGatewayTest {
             .flatMapPublisher(HttpClientResponse::toFlowable)
             .test();
 
+        // We expect 3 chuncks, 1 retry message, 2 messages
         obs
-            .awaitCount(5)
+            .awaitCount(3)
             .assertValueAt(
                 0,
                 chunk -> {
@@ -73,28 +74,12 @@ class SseEntrypointIntegrationTest extends AbstractGatewayTest {
             .assertValueAt(
                 1,
                 chunk -> {
-                    // A message is followed by a double return as per developed in SseEntrypointConnector
-                    assertThat(chunk).isEqualTo(Buffer.buffer("\n\n"));
-                    return true;
-                }
-            )
-            .assertValueAt(
-                2,
-                chunk -> {
                     assertOnChunk(chunk, 0);
                     return true;
                 }
             )
             .assertValueAt(
-                3,
-                chunk -> {
-                    // A message is followed by a double return as per developed in SseEntrypointConnector
-                    assertThat(chunk).isEqualTo(Buffer.buffer("\n\n"));
-                    return true;
-                }
-            )
-            .assertValueAt(
-                4,
+                2,
                 chunk -> {
                     assertOnChunk(chunk, 1);
                     return true;

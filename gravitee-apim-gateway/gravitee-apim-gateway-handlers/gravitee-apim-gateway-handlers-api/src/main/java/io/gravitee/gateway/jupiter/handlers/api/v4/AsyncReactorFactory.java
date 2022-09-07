@@ -25,7 +25,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver;
-import io.gravitee.gateway.jupiter.core.v4.entrypoint.HttpEntrypointConnectorResolver;
+import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.jupiter.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
@@ -74,7 +74,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
     protected final PolicyChainFactory platformPolicyChainFactory;
     protected final OrganizationManager organizationManager;
     protected final io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory;
-    private final FlowResolverFactory v4FlowResolverFactory;
+    protected final FlowResolverFactory v4FlowResolverFactory;
 
     public AsyncReactorFactory(
         final ApplicationContext applicationContext,
@@ -109,7 +109,11 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
         return (
             api.getDefinitionVersion() == DefinitionVersion.V4 &&
             api.getDefinition().getType() == ApiType.ASYNC &&
-            api.getDefinition().getListeners().stream().anyMatch(listener -> listener.getType() == ListenerType.HTTP)
+            api
+                .getDefinition()
+                .getListeners()
+                .stream()
+                .anyMatch(listener -> listener.getType() == ListenerType.HTTP || listener.getType() == ListenerType.SUBSCRIPTION)
         );
     }
 
@@ -175,7 +179,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
                     api,
                     apiComponentProvider,
                     policyManager,
-                    new HttpEntrypointConnectorResolver(api.getDefinition(), entrypointConnectorPluginManager),
+                    new DefaultEntrypointConnectorResolver(api.getDefinition(), entrypointConnectorPluginManager),
                     new EndpointInvoker(new DefaultEndpointConnectorResolver(api.getDefinition(), endpointConnectorPluginManager)),
                     flowChainFactory,
                     v4FlowChainFactory

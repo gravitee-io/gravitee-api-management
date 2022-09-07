@@ -15,22 +15,23 @@
  */
 package io.gravitee.plugin.entrypoint.webhook;
 
+import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
-import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
-import io.reactivex.*;
-import io.reactivex.functions.Function;
-import io.vertx.core.Vertx;
+import io.reactivex.Completable;
+import io.reactivex.Maybe;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.buffer.Buffer;
 import io.vertx.reactivex.core.http.HttpClient;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,9 @@ public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH);
 
     private static final String TYPE = "webhook";
+    private static final char URI_QUERY_DELIMITER_CHAR = '?';
+    protected static final String INTERNAL_ATTR_WEBHOOK_REQUEST_URI = "webhook.requestUri";
+    protected static final String INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT = "webhook.httpClient";
 
     protected final WebhookEntrypointConnectorConfiguration configuration;
 
@@ -76,96 +80,102 @@ public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
     @Override
     public boolean matches(final ExecutionContext ctx) {
         // The context should contain a "subscription_type" internal attribute with the "webhook" value
-        return TYPE.equalsIgnoreCase(ctx.getInternalAttribute(ContextAttributes.ATTR_SUBSCRIPTION_TYPE));
+        return TYPE.equalsIgnoreCase(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE));
     }
-
-    private HttpClient client;
-    private String requestUri;
 
     @Override
     public Completable handleRequest(final ExecutionContext ctx) {
-        io.vertx.reactivex.core.Vertx vertx = io.vertx.reactivex.core.Vertx.newInstance(ctx.getComponent(Vertx.class));
-
-        try {
-            this.client = vertx.createHttpClient(prepareClientOptions());
-
-            return Completable.complete();
-        } catch (Exception ex) {
-            log.error("Unable to prepare the HTTP client for the webhook subscription url[{}]", configuration.getCallbackUrl());
-            return Completable.error(ex);
-        }
+        return prepareClientOptions(ctx);
     }
-
-    private HttpClientOptions prepareClientOptions() {
-        HttpClientOptions options = new HttpClientOptions();
-
-        String url = configuration.getCallbackUrl();
-
-        URL target;
-        try {
-            target = new URL(null, url);
-        } catch (MalformedURLException e) {
-            throw new IllegalStateException();
-        }
-
-        final String protocol = target.getProtocol();
-
-        if (protocol.charAt(protocol.length() - 1) == 's') {
-            // Configure SSL
-            options.setSsl(true).setUseAlpn(true);
-        }
-
-        options.setDefaultHost(target.getHost());
-
-        if (target.getPort() == -1) {
-            options.setDefaultPort(options.isSsl() ? 443 : 80);
-        } else {
-            options.setDefaultPort(target.getPort());
-        }
-
-        requestUri = (target.getQuery() == null) ? target.getPath() : target.getPath() + URI_QUERY_DELIMITER_CHAR + target.getQuery();
-
-        return options;
-    }
-
-    private static final char URI_QUERY_DELIMITER_CHAR = '?';
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
-        return Completable.defer(
-            () ->
+        return Completable.fromRunnable(
+            () -> {
+                final String requestUri = ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI);
+                final HttpClient httpClient = ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
+
+                // Basically produces no response chunks since messages are consumed, sent to the remote webhook then discarded because subscription mode does not need producing content.
                 ctx
                     .response()
-                    .messages()
-                    .flatMapSingle(
-                        (Function<Message, SingleSource<?>>) message -> {
-                            // HTTP headers
-                            return client
-                                .rxRequest(HttpMethod.POST, requestUri)
-                                .flatMap(
-                                    request -> {
-                                        if (message.headers() != null) {
-                                            message.headers().forEach(header -> request.putHeader(header.getKey(), header.getValue()));
-                                        }
-                                        if (message.content() != null) {
-                                            return request.rxSend(Buffer.buffer(message.content().getBytes()));
-                                        } else {
-                                            return request.rxSend();
-                                        }
-                                    }
-                                );
-                        }
-                    )
-                    .onErrorResumeNext(
-                        error -> {
-                            log.error("Error when dealing with response messages", error);
-
-                            return subscriber -> {};
-                        }
-                    )
-                    .ignoreElements()
-                    .andThen(client.rxClose())
-                    .andThen(ctx.response().end())
+                    .chunks(
+                        ctx
+                            .response()
+                            .messages()
+                            .flatMapCompletable(message -> sendAndDiscard(requestUri, httpClient, message))
+                            .doFinally(httpClient::close)
+                            .toFlowable()
+                    );
+            }
         );
+    }
+
+    private Completable prepareClientOptions(final ExecutionContext ctx) {
+        return Completable.defer(
+            () -> {
+                try {
+                    final Vertx vertx = ctx.getComponent(Vertx.class);
+                    final Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
+                    final ConnectorFactoryHelper connectorFactoryHelper = ctx.getComponent(ConnectorFactoryHelper.class);
+                    final WebhookEntrypointConnectorConfiguration configuration = connectorFactoryHelper.getConnectorConfiguration(
+                        WebhookEntrypointConnectorConfiguration.class,
+                        subscription.getConfiguration()
+                    );
+
+                    final HttpClientOptions options = new HttpClientOptions();
+                    final String url = configuration.getCallbackUrl();
+                    final URL target = new URL(null, url);
+                    final String protocol = target.getProtocol();
+
+                    if (protocol.charAt(protocol.length() - 1) == 's') {
+                        options.setSsl(true).setUseAlpn(true);
+                    }
+
+                    options.setDefaultHost(target.getHost());
+
+                    if (target.getPort() == -1) {
+                        options.setDefaultPort(options.isSsl() ? 443 : 80);
+                    } else {
+                        options.setDefaultPort(target.getPort());
+                    }
+
+                    final String requestUri = (target.getQuery() == null)
+                        ? target.getPath()
+                        : target.getPath() + URI_QUERY_DELIMITER_CHAR + target.getQuery();
+                    final HttpClient httpClient = vertx.createHttpClient(options);
+
+                    ctx.setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, requestUri);
+                    ctx.setInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT, httpClient);
+
+                    return Completable.complete();
+                } catch (Exception ex) {
+                    return Completable.error(
+                        new IllegalArgumentException(
+                            "Unable to prepare the HTTP client for the webhook subscription url[" + configuration.getCallbackUrl() + "]",
+                            ex
+                        )
+                    );
+                }
+            }
+        );
+    }
+
+    private Completable sendAndDiscard(String requestUri, HttpClient httpClient, Message message) {
+        // Consume the message in order to send it to the remote webhook and discard it to preserve memory.
+        return httpClient
+            .rxRequest(HttpMethod.POST, requestUri)
+            .flatMap(
+                request -> {
+                    if (message.headers() != null) {
+                        message.headers().forEach(header -> request.putHeader(header.getKey(), header.getValue()));
+                    }
+                    if (message.content() != null) {
+                        return request.rxSend(Buffer.buffer(message.content().getBytes()));
+                    } else {
+                        return request.rxSend();
+                    }
+                }
+            )
+            .flatMapCompletable(response -> Completable.complete());
     }
 }

@@ -15,10 +15,14 @@
  */
 package io.gravitee.gateway.jupiter.reactor.v4.subscription;
 
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_LISTENER_TYPE;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
@@ -74,8 +78,13 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                             MutableExecutionContext context = subscriptionExecutionRequestFactory.create(subscription);
 
                             // This attribute is used by connectors
-                            context.setInternalAttribute(ContextAttributes.ATTR_SUBSCRIPTION_TYPE, type);
-                            context.setInternalAttribute(ContextAttributes.ATTR_SUBSCRIPTION, subscription);
+                            context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE, type);
+                            context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+
+                            // Skip the security chain (currently requires to be an attribute as long as we support v3).
+                            context.setAttribute(ContextAttributes.ATTR_SKIP_SECURITY_CHAIN, true);
+
+                            context.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.SUBSCRIPTION);
 
                             // Maintain state depending on subscription status
                             // + timer on end (dispose on timer)

@@ -89,16 +89,18 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
-        return Completable.fromRunnable(() -> {
-            // Set required sse headers.
-            ctx.response().headers().add(HttpHeaderNames.CONTENT_TYPE, "text/event-stream;charset=UTF-8");
-            ctx.response().headers().add(HttpHeaderNames.CONNECTION, "keep-alive");
-            ctx.response().headers().add(HttpHeaderNames.CACHE_CONTROL, "no-cache");
-            ctx.response().headers().add(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
+        return Completable.fromRunnable(
+            () -> {
+                // Set required sse headers.
+                ctx.response().headers().add(HttpHeaderNames.CONTENT_TYPE, "text/event-stream;charset=UTF-8");
+                ctx.response().headers().add(HttpHeaderNames.CONNECTION, "keep-alive");
+                ctx.response().headers().add(HttpHeaderNames.CACHE_CONTROL, "no-cache");
+                ctx.response().headers().add(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
 
-            // Assign the chunks that come from the transformation of messages.
-            ctx.response().chunks(messagesToBuffers(ctx));
-        });
+                // Assign the chunks that come from the transformation of messages.
+                ctx.response().chunks(messagesToBuffers(ctx));
+            }
+        );
     }
 
     private Flowable<Buffer> messagesToBuffers(ExecutionContext ctx) {
@@ -134,14 +136,7 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
         }
 
         return Buffer.buffer(
-            SseEvent
-                .builder()
-                .id(message.id())
-                .event("message")
-                .data(message.content().getBytes())
-                .comments(comments)
-                .build()
-                .format()
+            SseEvent.builder().id(message.id()).event("message").data(message.content().getBytes()).comments(comments).build().format()
         );
     }
 

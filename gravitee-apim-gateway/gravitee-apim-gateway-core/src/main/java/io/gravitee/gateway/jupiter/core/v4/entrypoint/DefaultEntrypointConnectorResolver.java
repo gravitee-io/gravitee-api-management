@@ -15,10 +15,11 @@
  */
 package io.gravitee.gateway.jupiter.core.v4.entrypoint;
 
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_LISTENER_TYPE;
+import static io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
+
 import io.gravitee.definition.model.v4.Api;
-import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
-import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
@@ -34,18 +35,16 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @SuppressWarnings("unchecked")
-public class HttpEntrypointConnectorResolver {
+public class DefaultEntrypointConnectorResolver {
 
     private final List<EntrypointConnector> entrypointConnectors;
 
-    public HttpEntrypointConnectorResolver(final Api api, final EntrypointConnectorPluginManager entrypointConnectorPluginManager) {
+    public DefaultEntrypointConnectorResolver(final Api api, final EntrypointConnectorPluginManager entrypointConnectorPluginManager) {
         entrypointConnectors =
             api
                 .getListeners()
                 .stream()
-                .filter(listener -> listener.getType() == ListenerType.HTTP)
-                .map(HttpListener.class::cast)
-                .flatMap(httpListener -> httpListener.getEntrypoints().stream())
+                .flatMap(listener -> listener.getEntrypoints().stream())
                 .map(entrypoint -> this.<EntrypointConnector>createConnector(entrypointConnectorPluginManager, entrypoint))
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparingInt(EntrypointConnector::matchCriteriaCount))
@@ -67,8 +66,10 @@ public class HttpEntrypointConnectorResolver {
     public <T extends EntrypointConnector> T resolve(final ExecutionContext ctx) {
         Optional<EntrypointConnector> entrypointConnector = entrypointConnectors
             .stream()
-            .filter(connector -> connector.supportedListenerType() == io.gravitee.gateway.jupiter.api.ListenerType.HTTP)
-            .filter(connector -> connector.matches(ctx))
+            .filter(
+                connector ->
+                    connector.supportedListenerType() == ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE) && connector.matches(ctx)
+            )
             .findFirst();
         return (T) entrypointConnector.orElse(null);
     }

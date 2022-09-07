@@ -24,6 +24,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
 import io.gravitee.plugin.connector.spring.ConnectorPluginConfiguration;
 import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
@@ -105,6 +106,14 @@ public class ServiceConfiguration {
 
         objectMapper.registerModule(module);
         return objectMapper;
+    }
+
+    @Bean
+    public ConnectorFactoryHelper connectorFactoryHelper(
+        final io.gravitee.node.api.configuration.Configuration configuration,
+        final ObjectMapper objectMapper
+    ) {
+        return new ConnectorFactoryHelper(configuration, objectMapper);
     }
 
     @Bean

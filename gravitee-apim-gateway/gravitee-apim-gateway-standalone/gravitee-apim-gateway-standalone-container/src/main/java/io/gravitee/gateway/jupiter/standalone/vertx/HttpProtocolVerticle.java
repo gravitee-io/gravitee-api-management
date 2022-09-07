@@ -20,6 +20,7 @@ import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
 import io.reactivex.Completable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.plugins.RxJavaPlugins;
+import io.reactivex.schedulers.Schedulers;
 import io.vertx.core.http.HttpServer;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.core.RxHelper;

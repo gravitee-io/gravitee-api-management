@@ -34,6 +34,6 @@ public class SubscriptionResponseTest {
         Assertions.assertNull(response.reason());
         Assertions.assertNull(response.trailers());
         Assertions.assertFalse(response.ended());
-        Assertions.assertNull(response.messages());
+        Assertions.assertNotNull(response.messages());
     }
 }

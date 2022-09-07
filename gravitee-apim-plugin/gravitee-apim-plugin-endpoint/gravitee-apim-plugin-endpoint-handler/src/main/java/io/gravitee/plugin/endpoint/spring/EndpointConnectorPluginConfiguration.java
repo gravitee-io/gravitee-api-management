@@ -34,13 +34,9 @@ public class EndpointConnectorPluginConfiguration {
     @Bean
     public ConfigurablePluginManager<EndpointConnectorPlugin<?, ?>> endpointPluginManager(
         final EndpointConnectorClassLoaderFactory endpointConnectorClassLoaderFactory,
-        final io.gravitee.node.api.configuration.Configuration configuration,
-        final ObjectMapper objectMapper
+        final ConnectorFactoryHelper connectorFactoryHelper
     ) {
-        return new DefaultEndpointConnectorPluginManager(
-            endpointConnectorClassLoaderFactory,
-            new ConnectorFactoryHelper(configuration, objectMapper)
-        );
+        return new DefaultEndpointConnectorPluginManager(endpointConnectorClassLoaderFactory, connectorFactoryHelper);
     }
 
     @Bean

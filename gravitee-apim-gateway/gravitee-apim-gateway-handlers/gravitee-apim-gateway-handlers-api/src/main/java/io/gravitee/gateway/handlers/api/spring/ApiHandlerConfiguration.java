@@ -37,7 +37,6 @@ import io.gravitee.gateway.jupiter.flow.condition.evaluation.PathBasedConditionF
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.AsyncReactorFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
-import io.gravitee.gateway.jupiter.handlers.api.v4.subscription.SubscriptionReactorFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
@@ -206,29 +205,6 @@ public class ApiHandlerConfiguration {
         FlowResolverFactory v4FlowResolverFactory
     ) {
         return new AsyncReactorFactory(
-            applicationContext,
-            configuration,
-            policyFactory,
-            entrypointConnectorPluginManager,
-            endpointConnectorPluginManager,
-            platformPolicyChainFactory,
-            organizationManager,
-            flowResolverFactory,
-            v4FlowResolverFactory
-        );
-    }
-
-    @Bean
-    public ReactorFactory<io.gravitee.gateway.jupiter.handlers.api.v4.Api> subscriptionApiReactorFactory(
-        PolicyFactory policyFactory,
-        EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        EndpointConnectorPluginManager endpointConnectorPluginManager,
-        @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
-        OrganizationManager organizationManager,
-        io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
-        FlowResolverFactory v4FlowResolverFactory
-    ) {
-        return new SubscriptionReactorFactory(
             applicationContext,
             configuration,
             policyFactory,

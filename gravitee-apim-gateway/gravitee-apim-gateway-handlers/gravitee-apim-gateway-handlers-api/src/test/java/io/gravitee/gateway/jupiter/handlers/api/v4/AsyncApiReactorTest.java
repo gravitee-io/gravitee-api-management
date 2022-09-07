@@ -29,14 +29,14 @@ import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.gravitee.gateway.jupiter.core.v4.entrypoint.HttpEntrypointConnectorResolver;
+import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.security.SecurityChain;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
-import java.util.Date;
-
 import io.gravitee.reporter.api.http.Metrics;
+import io.reactivex.Completable;
+import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,7 +67,7 @@ class AsyncApiReactorTest {
     private PolicyManager policyManager;
 
     @Mock
-    private HttpEntrypointConnectorResolver asyncEntrypointResolver;
+    private DefaultEntrypointConnectorResolver asyncEntrypointResolver;
 
     @Mock
     private Invoker defaultInvoker;
@@ -133,6 +133,7 @@ class AsyncApiReactorTest {
 
     @Test
     public void shouldReturn404WhenNoEntrypoint() {
+        when(response.end()).thenReturn(Completable.complete());
         when(asyncEntrypointResolver.resolve(executionContext)).thenReturn(null);
 
         asyncApiReactor.handle(executionContext).test();
@@ -144,6 +145,7 @@ class AsyncApiReactorTest {
 
     @Test
     public void shouldExecuteFlowChainWhenEntrypointFound() {
+        when(response.end()).thenReturn(Completable.complete());
         when(asyncEntrypointResolver.resolve(executionContext)).thenReturn(entrypointConnector);
 
         ReflectionTestUtils.setField(asyncApiReactor, "platformFlowChain", platformFlowChain);
@@ -161,7 +163,15 @@ class AsyncApiReactorTest {
         asyncApiReactor.handle(executionContext).test();
 
         // verify flow chain has been executed in the right order
-        InOrder inOrder = inOrder(platformFlowChain, securityChain, apiPlanFlowChain, apiFlowChain, entrypointConnector, entrypointConnector, platformFlowChain);
+        InOrder inOrder = inOrder(
+            platformFlowChain,
+            securityChain,
+            apiPlanFlowChain,
+            apiFlowChain,
+            entrypointConnector,
+            entrypointConnector,
+            platformFlowChain
+        );
         inOrder.verify(platformFlowChain).execute(executionContext, REQUEST);
         inOrder.verify(securityChain).execute(executionContext);
         inOrder.verify(entrypointConnector).handleRequest(executionContext);
