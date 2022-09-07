@@ -145,6 +145,11 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>io.gravitee.kubernetes</groupId>
+			<artifactId>gravitee-kubernetes-mapper</artifactId>
+		</dependency>
+
 		<!-- Lucene -->
 		<dependency>
 			<groupId>org.apache.lucene</groupId>

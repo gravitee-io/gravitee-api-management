@@ -13,12 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.rest.api.service.spring;
 
-import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.kubernetes.mapper.CustomResourceDefinitionMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public interface ApiExportService {
-    String exportAsJson(ExecutionContext executionContext, String apiId, String exportVersion, String... filteredFields);
+/**
+ * @author GraviteeSource Team
+ */
+@Configuration
+public class KubernetesMapperConfiguration {
 
-    String exportAsCustomResourceDefinition(ExecutionContext executionContext, String apiId);
+    @Bean
+    CustomResourceDefinitionMapper customResourceDefinitionMapper() {
+        return new CustomResourceDefinitionMapper();
+    }
 }

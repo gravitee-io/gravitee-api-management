@@ -21,13 +21,14 @@
       <div>
         <h4>Export API definition as :</h4>
         <div layout="column" layout-align="space-between center">
-          <md-select ng-model="data.exportVersion" placeholder="Export as">
+          <md-select ng-model="data.exportVersion" placeholder="Export as" ng-change="updateFilteredFields()">
             <md-option value="default" selected>Current version ({{ graviteeVersion }})</md-option>
             <md-option value="3.7">3.7.x to 3.9.x version</md-option>
             <md-option value="3.0">3.0.x to 3.6.x version</md-option>
             <md-option value="1.25">1.25.x to 1.30.x version</md-option>
             <md-option value="1.20">1.20.x to 1.24.x version</md-option>
             <md-option value="1.15">1.15.x to 1.16.x version</md-option>
+            <md-option value="crd">v1 alpha1 CRD</md-option>
           </md-select>
         </div>
         <span ng-if="data.exportVersion !== 'default'" style="font-size: 75%; color: orange">
@@ -36,7 +37,9 @@
       </div>
       <h4>What do you want to export ?</h4>
       <div layout="column">
-        <md-checkbox ng-repeat="fl in filteredFields" aria-label="fl.id" ng-model="fl.checked"> {{ fl.description }} </md-checkbox>
+        <md-checkbox ng-repeat="fl in filteredFields" aria-label="fl.id" ng-model="fl.checked" ng-disabled="fl.disabled">
+          {{ fl.description }}
+        </md-checkbox>
       </div>
     </md-dialog-content>
     <md-dialog-actions layout="row">
