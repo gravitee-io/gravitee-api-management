@@ -13,21 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
-
 function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64, Build) {
   'ngInject';
 
-  $scope.filteredFields = [
-    { id: 'groups', description: 'Groups', checked: true },
-    { id: 'members', description: 'Members', checked: true },
-    { id: 'pages', description: 'Pages', checked: true },
-    { id: 'plans', description: 'Plans', checked: true },
-    { id: 'metadata', description: 'Metadata', checked: true },
+  const defaultFilteredFields = [
+    { id: 'groups', description: 'Groups', checked: true, disabled: false },
+    { id: 'members', description: 'Members', checked: true, disabled: false },
+    { id: 'pages', description: 'Pages', checked: true, disabled: false },
+    { id: 'plans', description: 'Plans', checked: true, disabled: false },
+    { id: 'metadata', description: 'Metadata', checked: true, disabled: false },
+  ];
+
+  const crdFilteredFields = [
+    { id: 'groups', description: 'Groups', checked: false, disabled: true },
+    { id: 'members', description: 'Members', checked: false, disabled: true },
+    { id: 'pages', description: 'Pages', checked: false, disabled: true },
+    { id: 'plans', description: 'Plans', checked: true, disabled: true },
+    { id: 'metadata', description: 'Metadata', checked: false, disabled: true },
   ];
 
   $scope.data = {
     exportVersion: null,
+  };
+
+  $scope.filteredFields = defaultFilteredFields;
+
+  $scope.updateFilteredFields = () => {
+    if ($scope.data.exportVersion === 'crd') {
+      $scope.filteredFields = crdFilteredFields;
+    } else {
+      $scope.filteredFields = defaultFilteredFields;
+    }
   };
 
   $scope.hide = function () {
@@ -37,31 +53,49 @@ function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64,
   $scope.graviteeVersion = Build.version;
 
   $scope.export = function () {
-    const excludes = _.map(
-      _.filter($scope.filteredFields, (fl: any) => {
-        return !fl.checked;
-      }),
-      'id',
-    );
-    ApiService.export(apiId, excludes, $scope.data.exportVersion)
-      .then((response) => {
-        const link = document.createElement('a');
-        document.body.appendChild(link);
-        link.href = 'data:application/json;charset=utf-8;base64,' + base64.encode(JSON.stringify(response.data, null, 2));
-        let fileName = response.data.name + ' ' + response.data.version;
-        fileName = fileName.replace(/[\s]/gi, '-');
-        fileName = fileName.replace(/[^\w]/gi, '-');
-        link.download = fileName + '.json';
-        link.target = '_self';
-        link.click();
-        document.body.removeChild(link);
-      })
-      .then(() => {
-        ApiService.get(apiId).then((response) => {
-          $mdDialog.hide(response);
-        });
-      });
+    if ($scope.data.exportVersion !== 'crd') {
+      exportAsJson(buildExcludes());
+    } else {
+      exportAsCrd();
+    }
   };
+
+  function buildExcludes() {
+    return $scope.filteredFields.filter((field) => !field.checked).map((field) => field.id);
+  }
+
+  function exportAsJson(excludes) {
+    ApiService.export(apiId, excludes, $scope.data.exportVersion)
+      .then((response) => buildDownloadLink('json', JSON.stringify(response.data)))
+      .then((link) => download(link, '.json'));
+  }
+
+  function exportAsCrd() {
+    ApiService.exportCrd(apiId)
+      .then((response) => buildDownloadLink('yaml', response.data))
+      .then((link) => download(link, '-crd.yml'));
+  }
+
+  function download(link, extension) {
+    ApiService.get(apiId).then((response) => {
+      link.download = buildFileName(response.data, extension);
+      link.target = '_self';
+      link.click();
+      document.body.removeChild(link);
+      $mdDialog.hide();
+    });
+  }
+
+  function buildFileName(api, extension) {
+    return `${api.name}-${api.version}`.replace(/[\s]/gi, '-').replace(/[^\w]/gi, '-') + extension;
+  }
+
+  function buildDownloadLink(format, data) {
+    const link = document.createElement('a');
+    document.body.appendChild(link);
+    link.href = `data:application/${format};charset=utf-8;base64,` + base64.encode(data);
+    return link;
+  }
 }
 
 export default DialogApiExportController;

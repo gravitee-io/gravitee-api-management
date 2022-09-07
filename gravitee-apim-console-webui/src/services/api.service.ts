@@ -268,6 +268,10 @@ export class ApiService {
     );
   }
 
+  exportCrd(apiId: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + apiId + '/crd');
+  }
+
   verify(criteria: any, config?: any): IHttpPromise<any> {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/verify`, criteria, config);
   }

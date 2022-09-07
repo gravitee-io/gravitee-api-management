@@ -597,7 +597,27 @@ public class ApiResource extends AbstractResource {
         final String apiDefinition = apiExportService.exportAsJson(executionContext, api, version, exclude.split(","));
         return Response
             .ok(apiDefinition)
-            .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity)))
+            .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity, "json")))
+            .build();
+    }
+
+    @GET
+    @Produces("application/yaml")
+    @Path("crd")
+    @Operation(
+        summary = "Export the API definition in a GKO CRD format",
+        description = "User must have the MANAGE_API permission to use this service"
+    )
+    @ApiResponse(responseCode = "200", description = "API definition", content = @Content(mediaType = "application/yaml"))
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    public Response exportApiCRD() {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final ApiEntity apiEntity = apiService.findById(executionContext, api);
+        final String apiDefinition = apiExportService.exportAsCustomResourceDefinition(executionContext, api);
+        return Response
+            .ok(apiDefinition)
+            .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity, "yml")))
             .build();
     }
 
@@ -942,8 +962,8 @@ public class ApiResource extends AbstractResource {
         }
     }
 
-    private String getExportFilename(ApiEntity apiEntity) {
-        return format("%s-%s.json", apiEntity.getName(), apiEntity.getVersion())
+    private String getExportFilename(ApiEntity apiEntity, String extension) {
+        return format("%s-%s.%s", apiEntity.getName(), apiEntity.getVersion(), extension)
             .trim()
             .toLowerCase()
             .replaceAll(" +", " ")

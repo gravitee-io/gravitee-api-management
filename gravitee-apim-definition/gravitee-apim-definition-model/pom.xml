@@ -32,6 +32,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.gravitee.kubernetes</groupId>
+            <artifactId>gravitee-kubernetes-mapper</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
         </dependency>

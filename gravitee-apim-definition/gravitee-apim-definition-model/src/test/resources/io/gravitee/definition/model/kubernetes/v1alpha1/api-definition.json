@@ -1,0 +1,139 @@
+{
+  "name": "api1",
+  "crossId": "5364d4fb-6ad0-4ad5-a4d4-fb6ad03ad50f",
+  "version": "1",
+  "execution_mode": "v3",
+  "description": "api 1",
+  "visibility": "PRIVATE",
+  "gravitee": "2.0.0",
+  "flow_mode": "DEFAULT",
+  "flows": [],
+  "createdAt": 1661848370924,
+  "resources": [],
+  "properties": [],
+  "members": [
+    {
+      "source": "memory",
+      "sourceId": "admin",
+      "roles": [
+        "dd0e6498-7a8c-492d-8e64-987a8c492d1f"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "id": "01b2e0c3-2831-39a8-8039-54f4e83d4379",
+      "crossId": "9edb1e92-1cc9-4523-9b1e-921cc9952311",
+      "name": "Aside",
+      "type": "SYSTEM_FOLDER",
+      "order": 0,
+      "published": true,
+      "visibility": "PUBLIC",
+      "lastModificationDate": 1662559764415,
+      "contentType": "application/json",
+      "homepage": false,
+      "parentPath": "",
+      "excludedAccessControls": false,
+      "accessControls": [],
+      "api": "f8216fd9-92e0-4008-a16f-d992e0e00860",
+      "attached_media": []
+    }
+  ],
+  "plans": [
+    {
+      "id": "66dd9a40-e5ef-38ee-9493-8e44b70aff4a",
+      "crossId": "584e2c1b-2c81-49df-8e2c-1b2c81d9df04",
+      "name": "free",
+      "description": "free",
+      "validation": "AUTO",
+      "security": "KEY_LESS",
+      "type": "API",
+      "status": "PUBLISHED",
+      "api": "f8216fd9-92e0-4008-a16f-d992e0e00860",
+      "order": 0,
+      "characteristics": [],
+      "created_at": 1661848370924,
+      "updated_at": 1662631173273,
+      "paths": {},
+      "flows": [
+        {
+          "name": "",
+          "path-operator": {
+            "path": "/",
+            "operator": "STARTS_WITH"
+          },
+          "condition": "",
+          "consumers": [],
+          "methods": [],
+          "pre": [],
+          "post": [],
+          "enabled": true
+        }
+      ],
+      "comment_required": false
+    }
+  ],
+  "metadata": [
+    {
+      "key": "test",
+      "name": "test",
+      "format": "STRING",
+      "value": "test",
+      "apiId": "f8216fd9-92e0-4008-a16f-d992e0e00860"
+    },
+    {
+      "key": "email-support",
+      "name": "email-support",
+      "format": "MAIL",
+      "value": "${(api.primaryOwner.email)!''}",
+      "defaultValue": "support@change.me",
+      "apiId": "f8216fd9-92e0-4008-a16f-d992e0e00860"
+    }
+  ],
+  "id": "f8216fd9-92e0-4008-a16f-d992e0e00860",
+  "path_mappings": [],
+  "proxy": {
+    "virtual_hosts": [
+      {
+        "host": "domain.restriction1.io",
+        "path": "/api1"
+      }
+    ],
+    "strip_context_path": false,
+    "preserve_host": false,
+    "groups": [
+      {
+        "name": "default-group",
+        "endpoints": [
+          {
+            "backup": false,
+            "inherit": true,
+            "name": "default",
+            "weight": 1,
+            "type": "http",
+            "target": "https://api.gravitee.io/echo"
+          }
+        ],
+        "load_balancing": {
+          "type": "ROUND_ROBIN"
+        },
+        "http": {
+          "connectTimeout": 5000,
+          "idleTimeout": 60000,
+          "keepAlive": true,
+          "readTimeout": 10000,
+          "pipelining": false,
+          "maxConcurrentConnections": 100,
+          "useCompression": true,
+          "followRedirects": false
+        }
+      }
+    ]
+  },
+  "response_templates": {},
+  "primaryOwner": {
+    "id": "e3c249ed-61c1-4c24-8249-ed61c1ec2414",
+    "displayName": "admin",
+    "type": "USER"
+  }
+}

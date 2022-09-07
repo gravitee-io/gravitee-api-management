@@ -15,7 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.definition.model.kubernetes.v1alpha1.ApiDefinitionResource;
+import io.gravitee.kubernetes.mapper.CustomResourceDefinitionMapper;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -52,6 +56,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     private final ApiConverter apiConverter;
     private final PlanConverter planConverter;
     private final PageConverter pageConverter;
+    private final CustomResourceDefinitionMapper customResourceDefinitionMapper;
 
     public ApiExportServiceImpl(
         ObjectMapper objectMapper,
@@ -60,7 +65,8 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         ApiService apiService,
         ApiConverter apiConverter,
         PlanConverter planConverter,
-        PageConverter pageConverter
+        PageConverter pageConverter,
+        CustomResourceDefinitionMapper customResourceDefinitionMapper
     ) {
         this.objectMapper = objectMapper;
         this.pageService = pageService;
@@ -69,6 +75,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         this.apiConverter = apiConverter;
         this.planConverter = planConverter;
         this.pageConverter = pageConverter;
+        this.customResourceDefinitionMapper = customResourceDefinitionMapper;
     }
 
     @Override
@@ -90,6 +97,20 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
             return objectMapper.writeValueAsString(apiEntity);
         } catch (final Exception e) {
             LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
+        }
+        return "";
+    }
+
+    @Override
+    public String exportAsCustomResourceDefinition(ExecutionContext executionContext, String apiId) {
+        String json = exportAsJson(executionContext, apiId, "2.0.0");
+        try {
+            JsonNode jsonNode = objectMapper.readTree(json);
+            String name = jsonNode.get("name").asText();
+            ApiDefinitionResource apiDefinitionResource = new ApiDefinitionResource(name, (ObjectNode) jsonNode);
+            return customResourceDefinitionMapper.toCustomResourceDefinition(apiDefinitionResource);
+        } catch (final Exception e) {
+            LOGGER.error("An error occurs while trying to convert API {} to CRD", apiId, e);
         }
         return "";
     }
