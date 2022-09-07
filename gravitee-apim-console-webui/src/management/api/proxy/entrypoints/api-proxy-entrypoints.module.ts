@@ -25,6 +25,7 @@ import { GioConfirmDialogModule, GioIconsModule, GioSaveBarModule } from '@gravi
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 import { ApiProxyEntrypointsVirtualHostComponent } from './virtual-host/api-proxy-entrypoints-virtual-host.component';
 import { ApiProxyEntrypointsContextPathComponent } from './context-path/api-proxy-entrypoints-context-path.component';
@@ -46,6 +47,7 @@ import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-for
     MatDialogModule,
     MatTableModule,
     MatCheckboxModule,
+    MatAutocompleteModule,
     GioPermissionModule,
     GioSaveBarModule,
     GioConfirmDialogModule,
