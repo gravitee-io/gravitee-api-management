@@ -26,6 +26,7 @@ import io.gravitee.gateway.dictionary.spring.DictionaryConfiguration;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.TimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.gateway.platform.spring.PlatformConfiguration;
 import io.gravitee.gateway.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.reactor.spring.ReactorConfiguration;
@@ -98,6 +99,14 @@ public class StandaloneConfiguration {
         ObjectMapper mapper = new GraviteeMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return mapper;
+    }
+
+    @Bean
+    public ConnectorFactoryHelper connectorFactoryHelper(
+        final io.gravitee.node.api.configuration.Configuration configuration,
+        final ObjectMapper objectMapper
+    ) {
+        return new ConnectorFactoryHelper(configuration, objectMapper);
     }
 
     @Bean

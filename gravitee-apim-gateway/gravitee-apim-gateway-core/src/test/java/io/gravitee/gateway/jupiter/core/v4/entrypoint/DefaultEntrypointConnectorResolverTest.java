@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.core.v4.entrypoint;
 
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_LISTENER_TYPE;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
@@ -25,17 +26,12 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
-import io.gravitee.gateway.jupiter.api.ApiType;
-import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.plugin.entrypoint.internal.DefaultEntrypointConnectorPluginManager;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import javax.validation.constraints.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,12 +43,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class HttpEntrypointConnectorResolverTest {
+class DefaultEntrypointConnectorResolverTest {
 
     protected static final String ENTRYPOINT_TYPE = "test";
     protected static final String ENTRYPOINT_CONFIG = "{ \"config\": \"something\"}";
-    protected static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
-    protected static final ApiType SUPPORTED_API_TYPE = ApiType.ASYNC;
 
     @Mock
     private ExecutionContext ctx;
@@ -73,11 +67,12 @@ class HttpEntrypointConnectorResolverTest {
         final Api api = buildApi();
         final EntrypointConnector entrypointConnector = mock(EntrypointConnector.class);
 
-        when(connectorFactory.createConnector(ENTRYPOINT_CONFIG)).thenReturn(entrypointConnector);
         when(entrypointConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE)).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
+        when(connectorFactory.createConnector(ENTRYPOINT_CONFIG)).thenReturn(entrypointConnector);
         when(entrypointConnector.matches(ctx)).thenReturn(true);
 
-        final HttpEntrypointConnectorResolver cut = new HttpEntrypointConnectorResolver(api, pluginManager);
+        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, pluginManager);
         final EntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertSame(entrypointConnector, resolvedEntrypointConnector);
@@ -87,7 +82,7 @@ class HttpEntrypointConnectorResolverTest {
     void shouldNotResolveEntrypointConnectorWhenEntryPointFactoryNotFound() {
         when(pluginManager.getFactoryById(ENTRYPOINT_TYPE)).thenReturn(null);
         final Api api = buildApi();
-        final HttpEntrypointConnectorResolver cut = new HttpEntrypointConnectorResolver(api, pluginManager);
+        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, pluginManager);
         final EntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertNull(resolvedEntrypointConnector);
@@ -104,19 +99,22 @@ class HttpEntrypointConnectorResolverTest {
 
         final EntrypointConnector entrypointConnector = mock(EntrypointConnector.class);
 
+        when(entrypointConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE)).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
         when(connectorFactory.createConnector(ENTRYPOINT_CONFIG))
             .thenReturn(entrypointConnector)
             .thenReturn(mock(EntrypointConnector.class))
             .thenReturn(mock(EntrypointConnector.class));
 
         when(entrypointConnector.matches(ctx)).thenReturn(true);
-        when(entrypointConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
 
-        final HttpEntrypointConnectorResolver cut = new HttpEntrypointConnectorResolver(api, pluginManager);
+        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, pluginManager);
         final EntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertSame(entrypointConnector, resolvedEntrypointConnector);
-        verify(connectorFactory, times(3)).createConnector(ENTRYPOINT_CONFIG);
+
+        // 3 entrypoints defined on HTTP listener + 1 SUBSCRIPTION listener -> 4 connectors instantiated.
+        verify(connectorFactory, times(4)).createConnector(ENTRYPOINT_CONFIG);
     }
 
     @Test
@@ -124,7 +122,22 @@ class HttpEntrypointConnectorResolverTest {
         final Api api = buildApi();
         api.getListeners().get(0).setType(ListenerType.TCP);
 
-        final HttpEntrypointConnectorResolver cut = new HttpEntrypointConnectorResolver(api, pluginManager);
+        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, pluginManager);
+        final EntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
+
+        assertNull(resolvedEntrypointConnector);
+    }
+
+    @Test
+    void shouldNotResolveWhenNotSameListenerType() {
+        final Api api = buildApi();
+        final EntrypointConnector entrypointConnector = mock(EntrypointConnector.class);
+
+        when(entrypointConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.SUBSCRIPTION);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE)).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
+        when(connectorFactory.createConnector(ENTRYPOINT_CONFIG)).thenReturn(entrypointConnector);
+
+        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, pluginManager);
         final EntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertNull(resolvedEntrypointConnector);
@@ -135,11 +148,12 @@ class HttpEntrypointConnectorResolverTest {
         final Api api = buildApi();
         final EntrypointConnector entrypointConnector = mock(EntrypointConnector.class);
 
-        when(connectorFactory.createConnector(ENTRYPOINT_CONFIG)).thenReturn(entrypointConnector);
         when(entrypointConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE)).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
+        when(connectorFactory.createConnector(ENTRYPOINT_CONFIG)).thenReturn(entrypointConnector);
         when(entrypointConnector.matches(ctx)).thenReturn(false);
 
-        final HttpEntrypointConnectorResolver cut = new HttpEntrypointConnectorResolver(api, pluginManager);
+        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, pluginManager);
         final EntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertNull(resolvedEntrypointConnector);

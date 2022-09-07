@@ -79,7 +79,7 @@ class HttpPostEntrypointConnectorTest {
     }
 
     @Test
-    void shouldCompleteAndSetRequestBufferInRequestMessage() {
+    void shouldCompleteAndSetRequestBuffersInRequestMessages() {
         DummyMessageRequest dummyMessageRequest = new DummyMessageRequest();
         dummyMessageRequest.headers(HttpHeaders.create());
         dummyMessageRequest.body(Maybe.just(Buffer.buffer("bodyContent")));
@@ -93,9 +93,7 @@ class HttpPostEntrypointConnectorTest {
     }
 
     @Test
-    void shouldCompleteAndEndWhenResponseMessagesComplete() {
-        when(mockResponse.end()).thenReturn(Completable.complete());
-        when(mockExecutionContext.response()).thenReturn(mockResponse);
+    void shouldCompleteWhenResponseMessagesComplete() {
         httpPostEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
     }
 }

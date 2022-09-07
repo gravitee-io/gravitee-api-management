@@ -22,6 +22,7 @@ import static io.reactivex.Completable.defer;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.Hookable;
 import io.gravitee.gateway.jupiter.api.hook.SecurityPlanHook;
@@ -51,7 +52,6 @@ import org.slf4j.LoggerFactory;
  */
 public class SecurityChain implements Hookable<SecurityPlanHook> {
 
-    public static final String SKIP_SECURITY_CHAIN = "skip-security-chain";
     protected static final String PLAN_UNRESOLVABLE = "GATEWAY_PLAN_UNRESOLVABLE";
     protected static final String UNAUTHORIZED_MESSAGE = "Unauthorized";
     protected static final Single<Boolean> TRUE = Single.just(true);
@@ -96,7 +96,7 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
     public Completable execute(ExecutionContext ctx) {
         return defer(
             () -> {
-                if (!Objects.equals(true, ctx.getAttribute(SKIP_SECURITY_CHAIN))) {
+                if (!Objects.equals(true, ctx.getAttribute(ContextAttributes.ATTR_SKIP_SECURITY_CHAIN))) {
                     return chain
                         .flatMapSingle(policy -> continueChain(ctx, policy), false, 1)
                         .any(Boolean::booleanValue)

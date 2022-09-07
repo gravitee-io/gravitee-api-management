@@ -23,6 +23,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,20 +82,30 @@ public class AsyncReactorFactoryTest {
     }
 
     @Test
-    public void shouldNotCreateApiWithNoHttpListener() {
+    public void shouldNotCreateApiWithNoHttpOrSubscriptionListener() {
         when(api.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
         when(definition.getType()).thenReturn(ApiType.ASYNC);
-        when(definition.getListeners()).thenReturn(Collections.singletonList(new SubscriptionListener()));
+        when(definition.getListeners()).thenReturn(Collections.singletonList(new TcpListener()));
 
         boolean create = factory.canCreate(api);
         assertFalse(create);
     }
 
     @Test
-    public void shouldCreateApi() {
+    public void shouldCreateApiWithHttpListener() {
         when(api.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
         when(definition.getType()).thenReturn(ApiType.ASYNC);
         when(definition.getListeners()).thenReturn(Collections.singletonList(new HttpListener()));
+
+        boolean create = factory.canCreate(api);
+        assertTrue(create);
+    }
+
+    @Test
+    public void shouldCreateApiWithSubscriptionListener() {
+        when(api.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+        when(definition.getType()).thenReturn(ApiType.ASYNC);
+        when(definition.getListeners()).thenReturn(Collections.singletonList(new SubscriptionListener()));
 
         boolean create = factory.canCreate(api);
         assertTrue(create);

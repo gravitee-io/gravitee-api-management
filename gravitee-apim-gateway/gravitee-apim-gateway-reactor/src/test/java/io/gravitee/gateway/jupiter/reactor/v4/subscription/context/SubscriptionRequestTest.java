@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.reactor.v4.subscription.context;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.service.Subscription;
 import io.reactivex.Flowable;
@@ -42,20 +43,19 @@ public class SubscriptionRequestTest {
 
         Assertions.assertEquals("sub-id1", request.id());
         Assertions.assertEquals("sub-id1", request.transactionId());
-        Assertions.assertThrows(IllegalStateException.class, request::contextPath);
-        Assertions.assertThrows(IllegalStateException.class, request::uri);
-        Assertions.assertThrows(IllegalStateException.class, request::path);
-        Assertions.assertThrows(IllegalStateException.class, request::pathInfo);
-        Assertions.assertEquals(Collections.emptyMap(), request.parameters());
-        Assertions.assertEquals(Collections.emptyMap(), request.pathParameters());
-        Assertions.assertThrows(IllegalStateException.class, request::method);
-        Assertions.assertThrows(IllegalStateException.class, request::scheme);
-        Assertions.assertThrows(IllegalStateException.class, request::version);
-        Assertions.assertThrows(IllegalStateException.class, request::remoteAddress);
-        Assertions.assertThrows(IllegalStateException.class, request::localAddress);
-        Assertions.assertThrows(IllegalStateException.class, request::sslSession);
-        Assertions.assertNull(request.metrics());
-        Assertions.assertFalse(request.ended());
+        Assertions.assertEquals("", request.contextPath());
+        Assertions.assertEquals("", request.uri());
+        Assertions.assertEquals("", request.path());
+        Assertions.assertEquals("", request.pathInfo());
+        Assertions.assertEquals(HttpMethod.OTHER, request.method());
+        Assertions.assertEquals("", request.scheme());
+        Assertions.assertNull(request.version());
+        Assertions.assertEquals("localhost", request.host());
+        Assertions.assertEquals("localhost", request.remoteAddress());
+        Assertions.assertEquals("localhost", request.localAddress());
+        Assertions.assertNull(request.sslSession());
+        Assertions.assertNotNull(request.metrics());
+        Assertions.assertTrue(request.ended());
         Assertions.assertEquals(Maybe.empty(), request.body());
         Assertions.assertEquals(Flowable.empty(), request.messages());
     }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4.flow;
 
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE;
 
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
@@ -33,8 +34,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE;
-
 /**
  * A flow chain basically allows to execute all the policies configured on a list of flows.
  * Each flow can define policies, either on request or response phase. The purpose of the flow chain is to execute the policies in the right order, while multiple flows can be involved.
@@ -43,6 +42,7 @@ import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
 public class FlowChain implements Hookable<ChainHook> {
 
     private static final Logger log = LoggerFactory.getLogger(FlowChain.class);
@@ -87,7 +87,7 @@ public class FlowChain implements Hookable<ChainHook> {
                     ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);
                 }
             )
-            .flatMapCompletable(flow -> executeFlow(ctx, flow, phase), false, 1)
+            .concatMapCompletable(flow -> executeFlow(ctx, flow, phase))
             .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
     }
 

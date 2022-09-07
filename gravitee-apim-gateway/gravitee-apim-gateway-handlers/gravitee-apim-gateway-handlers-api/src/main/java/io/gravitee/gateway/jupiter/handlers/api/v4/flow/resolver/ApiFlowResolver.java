@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
 class ApiFlowResolver extends AbstractFlowResolver {
 
     private final Flowable<Flow> flows;

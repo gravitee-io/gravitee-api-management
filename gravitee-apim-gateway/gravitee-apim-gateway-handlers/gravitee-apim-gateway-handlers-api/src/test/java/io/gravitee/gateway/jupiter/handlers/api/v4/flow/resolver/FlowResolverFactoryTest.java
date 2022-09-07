@@ -15,25 +15,19 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
-import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
-import io.gravitee.gateway.jupiter.v4.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.jupiter.v4.flow.FlowResolver;
-import io.gravitee.gateway.platform.Organization;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -67,18 +61,6 @@ class FlowResolverFactoryTest {
     }
 
     @Test
-    void shouldCreateBestMatchApiFlowResolver() {
-        final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
-        final Api api = new Api(definition);
-        definition.setFlowMode(FlowMode.BEST_MATCH);
-
-        final FlowResolver flowResolver = cut.forApi(api);
-
-        assertNotNull(flowResolver);
-        assertTrue(flowResolver instanceof BestMatchFlowResolver);
-    }
-
-    @Test
     void shouldCreateApiPlanFlowResolver() {
         final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
         final Api api = new Api(definition);
@@ -88,17 +70,5 @@ class FlowResolverFactoryTest {
 
         assertNotNull(flowResolver);
         assertTrue(flowResolver instanceof ApiPlanFlowResolver);
-    }
-
-    @Test
-    void shouldCreateBestMatchApiPlanFlowResolver() {
-        final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
-        final Api api = new Api(definition);
-        definition.setFlowMode(FlowMode.BEST_MATCH);
-
-        final FlowResolver flowResolver = cut.forApiPlan(api);
-
-        assertNotNull(flowResolver);
-        assertTrue(flowResolver instanceof BestMatchFlowResolver);
     }
 }

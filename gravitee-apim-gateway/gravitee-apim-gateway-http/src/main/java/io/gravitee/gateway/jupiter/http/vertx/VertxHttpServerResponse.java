@@ -23,6 +23,8 @@ import io.reactivex.FlowableTransformer;
 import io.reactivex.Maybe;
 import io.reactivex.MaybeTransformer;
 import io.reactivex.Single;
+import java.util.concurrent.atomic.AtomicReference;
+import org.reactivestreams.Subscription;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -87,17 +89,22 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
                 }
                 prepareHeaders();
 
+                AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
+
                 if (bufferFlow.chunks != null) {
-                    return nativeResponse.rxSend(
-                        chunks()
-                            .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
-                            .doOnNext(
-                                buffer ->
-                                    serverRequest
-                                        .metrics()
-                                        .setResponseContentLength(serverRequest.metrics().getResponseContentLength() + buffer.length())
-                            )
-                    );
+                    return nativeResponse
+                        .rxSend(
+                            chunks()
+                                .doOnSubscribe(subscriptionRef::set)
+                                .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                                .doOnNext(
+                                    buffer ->
+                                        serverRequest
+                                            .metrics()
+                                            .setResponseContentLength(serverRequest.metrics().getResponseContentLength() + buffer.length())
+                                )
+                        )
+                        .doOnDispose(() -> subscriptionRef.get().cancel());
                 }
 
                 return nativeResponse.rxEnd();
@@ -121,30 +128,6 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
     @Override
     public Completable onMessages(final FlowableTransformer<Message, Message> onMessages) {
         return Completable.fromRunnable(() -> getMessageFlow().onMessages(onMessages));
-    }
-
-    @Override
-    public Completable end(final Buffer buffer) {
-        return Completable.defer(
-            () -> {
-                if (!opened()) {
-                    return Completable.error(new IllegalStateException("The response is already ended"));
-                }
-                prepareHeaders();
-
-                return nativeResponse.rxEnd(io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()));
-            }
-        );
-    }
-
-    @Override
-    public Completable write(final Buffer buffer) {
-        return Completable.defer(() -> nativeResponse.rxWrite(io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer())));
-    }
-
-    public Completable writeHeaders() {
-        super.prepareHeaders();
-        return Completable.defer(() -> nativeResponse.rxWrite(io.vertx.reactivex.core.buffer.Buffer.buffer()));
     }
 
     private MessageFlow getMessageFlow() {

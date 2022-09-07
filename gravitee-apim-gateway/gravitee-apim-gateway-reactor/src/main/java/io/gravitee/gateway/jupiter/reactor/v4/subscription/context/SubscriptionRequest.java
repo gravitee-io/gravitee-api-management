@@ -40,17 +40,24 @@ import javax.net.ssl.SSLSession;
  */
 public class SubscriptionRequest implements MutableRequest {
 
-    private final HttpHeaders headers = HttpHeaders.create();
+    protected static final String DEFAULT_LOCALHOST = "localhost";
 
-    private final long timestamp = System.currentTimeMillis();
+    private final long timestamp;
     private final String id;
     private String transactionId;
-
-    private static final MultiValueMap<String, String> EMPTY_MAP = new LinkedMultiValueMap<>(Collections.emptyMap());
+    private final HttpHeaders headers;
+    private final Metrics metrics;
+    private final LinkedMultiValueMap<String, String> parameters;
+    private final LinkedMultiValueMap<String, String> pathParameters;
 
     public SubscriptionRequest(Subscription subscription) {
         this.id = subscription.getId();
         this.transactionId = subscription.getId();
+        this.timestamp = System.currentTimeMillis();
+        this.headers = HttpHeaders.create();
+        this.metrics = Metrics.on(timestamp).build();
+        this.parameters = new LinkedMultiValueMap<>(Collections.emptyMap());
+        this.pathParameters = new LinkedMultiValueMap<>(Collections.emptyMap());
     }
 
     @Override
@@ -86,57 +93,64 @@ public class SubscriptionRequest implements MutableRequest {
 
     @Override
     public String uri() {
-        throw new IllegalStateException();
+        return "";
     }
 
     @Override
     public String host() {
-        throw new IllegalStateException();
+        return DEFAULT_LOCALHOST;
     }
 
     @Override
     public String path() {
-        throw new IllegalStateException();
+        return "";
     }
 
     @Override
     public String pathInfo() {
-        throw new IllegalStateException();
+        return "";
     }
 
     @Override
     public String contextPath() {
-        throw new IllegalStateException();
+        return "";
     }
 
     @Override
     public MultiValueMap<String, String> parameters() {
-        return EMPTY_MAP;
+        // We still maintain request parameters to be compliant with the execution flow (eg: policies), that could access metrics.
+        return parameters;
     }
 
     @Override
     public MultiValueMap<String, String> pathParameters() {
-        return EMPTY_MAP;
+        // We still maintain request path parameters to be compliant with the execution flow (eg: policies), that could access metrics.
+        return pathParameters;
     }
 
     @Override
     public HttpHeaders headers() {
+        // We still maintain request headers to be compliant with the execution flow (eg: policies), that could access metrics.
         return this.headers;
     }
 
     @Override
     public HttpMethod method() {
-        throw new IllegalStateException();
+        // We still maintain metrics to be compliant with the execution flow (eg: policies), that could access metrics.
+
+        return HttpMethod.OTHER;
     }
 
     @Override
     public String scheme() {
-        throw new IllegalStateException();
+        // There is no concept of scheme for a subscription request as it is issued internally by the gateway.
+        return "";
     }
 
     @Override
     public HttpVersion version() {
-        throw new IllegalStateException();
+        // There is no real concept of http version for a subscription request as it is issued internally by the gateway.
+        return null;
     }
 
     @Override
@@ -146,31 +160,37 @@ public class SubscriptionRequest implements MutableRequest {
 
     @Override
     public String remoteAddress() {
-        throw new IllegalStateException();
+        // Subscription request is issued by the gateway itslef.
+        return DEFAULT_LOCALHOST;
     }
 
     @Override
     public String localAddress() {
-        throw new IllegalStateException();
+        // Subscription request is issued by the gateway internally.
+        return DEFAULT_LOCALHOST;
     }
 
     @Override
     public SSLSession sslSession() {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Metrics metrics() {
+        // There is no ssl session on a subscription request.
         return null;
     }
 
     @Override
+    public Metrics metrics() {
+        // We still maintain metrics to be compliant with the execution flow (eg: policies), that could access metrics.
+        return metrics;
+    }
+
+    @Override
     public boolean ended() {
-        return false;
+        // Subscription request must always be considered has ended because it is issued by the gateway itself and there is no body to consume in that case.
+        return true;
     }
 
     @Override
     public boolean isWebSocket() {
+        // A subscription request can't be upgraded to websocket.
         return false;
     }
 
@@ -181,45 +201,58 @@ public class SubscriptionRequest implements MutableRequest {
 
     @Override
     public Maybe<Buffer> body() {
+        // Subscription request has no body because it is issue by the gateway itself.
         return Maybe.empty();
     }
 
     @Override
     public Single<Buffer> bodyOrEmpty() {
-        return null;
+        // Subscription request has no body. Just return an empty buffer.
+        return Single.just(Buffer.buffer());
     }
 
     @Override
-    public void body(Buffer buffer) {}
+    public void body(Buffer buffer) {
+        // It is not possible to assign a body to a subscription request.
+    }
 
     @Override
     public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
-        return null;
+        // No transformation on body can be performed on a subscription request.
+        return Completable.complete();
     }
 
     @Override
     public Flowable<Buffer> chunks() {
-        return null;
-    }
-
-    @Override
-    public void chunks(Flowable<Buffer> chunks) {}
-
-    @Override
-    public Completable onChunks(FlowableTransformer<Buffer, Buffer> onChunks) {
-        return null;
-    }
-
-    @Override
-    public Flowable<Message> messages() {
+        // There is no chunks on a subscription request.
         return Flowable.empty();
     }
 
     @Override
-    public void messages(Flowable<Message> messages) {}
+    public void chunks(Flowable<Buffer> chunks) {
+        // It is not possible to assign chunks to a subscription request.
+    }
+
+    @Override
+    public Completable onChunks(FlowableTransformer<Buffer, Buffer> onChunks) {
+        // No transformation on chunks can be performed on a subscription request.
+        return Completable.complete();
+    }
+
+    @Override
+    public Flowable<Message> messages() {
+        // A subscription request is not able to deal with messages.
+        return Flowable.empty();
+    }
+
+    @Override
+    public void messages(Flowable<Message> messages) {
+        // It is not possible to assign messages to a subscription request.
+    }
 
     @Override
     public Completable onMessages(FlowableTransformer<Message, Message> onMessages) {
+        // No transformation on messages can be performed on a subscription request.
         return Completable.complete();
     }
 }

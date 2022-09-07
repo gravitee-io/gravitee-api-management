@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.security;
 
+import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_SKIP_SECURITY_CHAIN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -122,7 +123,7 @@ class SecurityChainTest {
         when(policy1.order()).thenReturn(0);
         when(policy2.order()).thenReturn(1);
 
-        when(ctx.getAttribute(SecurityChain.SKIP_SECURITY_CHAIN)).thenReturn(true);
+        when(ctx.getAttribute(ATTR_SKIP_SECURITY_CHAIN)).thenReturn(true);
 
         final SecurityChain cut = new SecurityChain(api, policyManager, ExecutionPhase.REQUEST);
         final TestObserver<Void> obs = cut.execute(ctx).test();

@@ -30,6 +30,7 @@ import java.util.List;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
 public class FlowChainFactory {
 
     protected final List<ChainHook> flowHooks = new ArrayList<>();
