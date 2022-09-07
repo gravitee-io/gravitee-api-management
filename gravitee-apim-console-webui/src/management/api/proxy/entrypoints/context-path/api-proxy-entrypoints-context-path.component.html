@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<form *ngIf="entrypointsForm" [formGroup]="entrypointsForm" (ngSubmit)="onSubmit()" autocomplete="off" gioFormFocusInvalid>
+<form *ngIf="entrypointsForm" [formGroup]="entrypointsForm" autocomplete="off" gioFormFocusInvalid>
   <mat-card *ngIf="!virtualHostModeEnabled" class="form-card">
     <mat-form-field appearance="fill" class="form-card__context-path-field">
       <mat-label>Gateway context-path</mat-label>
@@ -35,5 +35,5 @@
     </mat-form-field>
   </mat-card>
 
-  <gio-save-bar [form]="entrypointsForm" [formInitialValues]="initialEntrypointsFormValue"> </gio-save-bar>
+  <gio-save-bar [form]="entrypointsForm" [formInitialValues]="initialEntrypointsFormValue" (submitted)="onSubmit()"></gio-save-bar>
 </form>

@@ -16,7 +16,7 @@
 
 -->
 
-<form *ngIf="virtualHostsFormArray" [formGroup]="virtualHostsFormArray" (ngSubmit)="onSubmit()" autocomplete="off" gioFormFocusInvalid>
+<form *ngIf="virtualHostsFormArray" [formGroup]="virtualHostsFormArray" autocomplete="off" gioFormFocusInvalid>
   <mat-card>
     <table
       mat-table
@@ -84,5 +84,5 @@
     </table>
   </mat-card>
 
-  <gio-save-bar [form]="virtualHostsFormArray" [formInitialValues]="initialVirtualHostsFormValue"> </gio-save-bar>
+  <gio-save-bar [form]="virtualHostsFormArray" [formInitialValues]="initialVirtualHostsFormValue" (submitted)="onSubmit()"></gio-save-bar>
 </form>

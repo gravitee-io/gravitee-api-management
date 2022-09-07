@@ -24,7 +24,11 @@ export class GioFormFocusInvalidDirective {
   @HostListener('submit')
   onFormSubmit() {
     try {
-      const invalidControl = this.renderer.selectRootElement('.ng-invalid[formControlName]', true);
+      const invalidControl = this.renderer.selectRootElement(
+        '.ng-invalid[formControlName],input.ng-invalid,mat-select.ng-invalid,textarea.ng-invalid',
+        true,
+      );
+
       if (invalidControl) {
         invalidControl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
