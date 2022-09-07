@@ -158,22 +158,20 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                     ExecutionPhase.REQUEST
                 )
                 .andThen(
-                    Completable.defer(
-                        () -> {
-                            // Jupiter execution mode.
-                            ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
-                            return handleJupiterRequest(mutableCtx, httpAcceptor)
-                                .andThen(
-                                    HookHelper.hook(
-                                        () -> postProcessorChain.execute(mutableCtx, ExecutionPhase.RESPONSE),
-                                        postProcessorChain.getId(),
-                                        processorChainHooks,
-                                        mutableCtx,
-                                        ExecutionPhase.RESPONSE
-                                    )
-                                );
-                        }
-                    )
+                    Completable.defer(() -> {
+                        // Jupiter execution mode.
+                        ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
+                        return handleJupiterRequest(mutableCtx, httpAcceptor)
+                            .andThen(
+                                HookHelper.hook(
+                                    () -> postProcessorChain.execute(mutableCtx, ExecutionPhase.RESPONSE),
+                                    postProcessorChain.getId(),
+                                    processorChainHooks,
+                                    mutableCtx,
+                                    ExecutionPhase.RESPONSE
+                                )
+                            );
+                    })
                 );
         }
         // V3 execution mode.
@@ -228,21 +226,17 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         // Set gateway tenants and zones in request metrics.
         prepareMetrics(request.metrics());
         // Prepare handler chain and catch the end of the v3 request handling to complete the reactive chain.
-        return Completable.create(
-            emitter -> {
-                Handler<io.gravitee.gateway.api.ExecutionContext> endHandler = endRequestHandler(emitter, httpServerRequest);
-                requestProcessorChainFactory
-                    .create()
-                    .handler(
-                        ctx -> {
-                            reactorHandler.handle(ctx, executionContext -> processResponse(executionContext, endHandler));
-                        }
-                    )
-                    .errorHandler(result -> processResponse(simpleExecutionContext, endHandler))
-                    .exitHandler(result -> processResponse(simpleExecutionContext, endHandler))
-                    .handle(simpleExecutionContext);
-            }
-        );
+        return Completable.create(emitter -> {
+            Handler<io.gravitee.gateway.api.ExecutionContext> endHandler = endRequestHandler(emitter, httpServerRequest);
+            requestProcessorChainFactory
+                .create()
+                .handler(ctx -> {
+                    reactorHandler.handle(ctx, executionContext -> processResponse(executionContext, endHandler));
+                })
+                .errorHandler(result -> processResponse(simpleExecutionContext, endHandler))
+                .exitHandler(result -> processResponse(simpleExecutionContext, endHandler))
+                .handle(simpleExecutionContext);
+        });
     }
 
     private Handler<io.gravitee.gateway.api.ExecutionContext> endRequestHandler(
