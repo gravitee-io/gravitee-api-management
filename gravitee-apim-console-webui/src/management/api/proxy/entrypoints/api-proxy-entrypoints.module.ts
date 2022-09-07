@@ -31,6 +31,7 @@ import { ApiProxyEntrypointsContextPathComponent } from './context-path/api-prox
 import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 
 @NgModule({
   declarations: [ApiProxyEntrypointsComponent, ApiProxyEntrypointsContextPathComponent, ApiProxyEntrypointsVirtualHostComponent],
@@ -48,6 +49,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioPermissionModule,
     GioSaveBarModule,
     GioConfirmDialogModule,
+    GioFormFocusInvalidModule,
   ],
 })
 export class ApiProxyEntrypointsModule {}
