@@ -104,6 +104,17 @@ describe('ApiProxyEntrypointsComponent', () => {
       expect(req.request.body.proxy.virtual_hosts).toEqual([{ path: '/new-path' }]);
     });
 
+    it('should disable field when origin is kubernetes', async () => {
+      const api = fakeApi({ id: API_ID, proxy: { virtual_hosts: [{ path: '/path' }] }, origin: 'kubernetes' });
+      expectApiGetRequest(api);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const contextPathInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=contextPath]' }));
+      expect(await contextPathInput.isDisabled()).toEqual(true);
+    });
+
     it('should switch to virtual-host mode', async () => {
       expectApiGetRequest(fakeApi({ id: API_ID }));
 

@@ -17,7 +17,6 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { Api } from '../../../../../entities/api';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-proxy-entrypoints-context-path',
@@ -25,6 +24,9 @@ import { GioPermissionService } from '../../../../../shared/components/gio-permi
   styles: [require('./api-proxy-entrypoints-context-path.component.scss')],
 })
 export class ApiProxyEntrypointsContextPathComponent implements OnChanges {
+  @Input()
+  readOnly: boolean;
+
   @Input()
   apiProxy: Api['proxy'];
 
@@ -34,10 +36,8 @@ export class ApiProxyEntrypointsContextPathComponent implements OnChanges {
   public entrypointsForm: FormGroup;
   public initialEntrypointsFormValue: unknown;
 
-  constructor(private readonly permissionService: GioPermissionService) {}
-
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.apiProxy) {
+    if (changes.apiProxy || changes.readOnly) {
       this.initForm(this.apiProxy);
     }
   }
@@ -51,7 +51,7 @@ export class ApiProxyEntrypointsContextPathComponent implements OnChanges {
       contextPath: new FormControl(
         {
           value: apiProxy.virtual_hosts[0].path,
-          disabled: !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']),
+          disabled: this.readOnly,
         },
         [Validators.required, Validators.minLength(3), Validators.pattern(/^\/[/.a-zA-Z0-9-_]+$/)],
       ),
