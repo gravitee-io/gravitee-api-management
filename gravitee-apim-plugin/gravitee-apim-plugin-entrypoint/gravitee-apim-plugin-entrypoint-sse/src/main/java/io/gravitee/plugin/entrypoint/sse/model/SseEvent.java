@@ -55,6 +55,7 @@ public class SseEvent {
                 }
             );
         }
+        event.add("\n");
         return String.join("\n", event);
     }
 }

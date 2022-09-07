@@ -64,7 +64,8 @@ public class SubscriptionReactorFactory extends AsyncReactorFactory {
         EndpointConnectorPluginManager endpointConnectorPluginManager,
         PolicyChainFactory platformPolicyChainFactory,
         OrganizationManager organizationManager,
-        FlowResolverFactory flowResolverFactory
+        FlowResolverFactory flowResolverFactory,
+        io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory v4FlowResolverFactory
     ) {
         super(
             applicationContext,
@@ -74,7 +75,8 @@ public class SubscriptionReactorFactory extends AsyncReactorFactory {
             endpointConnectorPluginManager,
             platformPolicyChainFactory,
             organizationManager,
-            flowResolverFactory
+            flowResolverFactory,
+            v4FlowResolverFactory
         );
     }
 

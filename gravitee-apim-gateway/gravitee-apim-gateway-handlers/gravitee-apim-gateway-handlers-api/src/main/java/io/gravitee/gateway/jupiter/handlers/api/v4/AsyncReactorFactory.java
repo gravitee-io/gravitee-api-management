@@ -29,7 +29,7 @@ import io.gravitee.gateway.jupiter.core.v4.entrypoint.HttpEntrypointConnectorRes
 import io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.jupiter.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
-import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
@@ -73,7 +73,8 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
     protected final EndpointConnectorPluginManager endpointConnectorPluginManager;
     protected final PolicyChainFactory platformPolicyChainFactory;
     protected final OrganizationManager organizationManager;
-    protected final FlowResolverFactory flowResolverFactory;
+    protected final io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory;
+    private final FlowResolverFactory v4FlowResolverFactory;
 
     public AsyncReactorFactory(
         final ApplicationContext applicationContext,
@@ -83,7 +84,8 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
         EndpointConnectorPluginManager endpointConnectorPluginManager,
         final PolicyChainFactory platformPolicyChainFactory,
         final OrganizationManager organizationManager,
-        final FlowResolverFactory flowResolverFactory
+        final io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
+        final FlowResolverFactory v4FlowResolverFactory
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
@@ -93,6 +95,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
         this.platformPolicyChainFactory = platformPolicyChainFactory;
         this.organizationManager = organizationManager;
         this.flowResolverFactory = flowResolverFactory;
+        this.v4FlowResolverFactory = v4FlowResolverFactory;
     }
 
     @Override
@@ -148,6 +151,12 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
                     configuration
                 );
 
+                final io.gravitee.gateway.jupiter.v4.policy.PolicyChainFactory v4PolicyChainFactory = new io.gravitee.gateway.jupiter.v4.policy.DefaultPolicyChainFactory(
+                    api.getId(),
+                    policyManager,
+                    configuration
+                );
+
                 final FlowChainFactory flowChainFactory = new FlowChainFactory(
                     platformPolicyChainFactory,
                     policyChainFactory,
@@ -156,13 +165,20 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
                     flowResolverFactory
                 );
 
+                final io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory = new io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory(
+                    v4PolicyChainFactory,
+                    configuration,
+                    v4FlowResolverFactory
+                );
+
                 return new AsyncApiReactor(
                     api,
                     apiComponentProvider,
                     policyManager,
                     new HttpEntrypointConnectorResolver(api.getDefinition(), entrypointConnectorPluginManager),
                     new EndpointInvoker(new DefaultEndpointConnectorResolver(api.getDefinition(), endpointConnectorPluginManager)),
-                    flowChainFactory
+                    flowChainFactory,
+                    v4FlowChainFactory
                 );
             }
         } catch (Exception ex) {
@@ -182,7 +198,6 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
             ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class)
         );
 
-        System.out.println(beanNamesForType[0]);
         ConfigurablePluginManager<ResourcePlugin<?>> cpm = (ConfigurablePluginManager<ResourcePlugin<?>>) applicationContext.getBean(
             beanNamesForType[0]
         );

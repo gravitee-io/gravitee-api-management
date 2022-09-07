@@ -34,9 +34,9 @@ import io.gravitee.gateway.jupiter.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.jupiter.flow.condition.evaluation.HttpMethodConditionFilter;
 import io.gravitee.gateway.jupiter.flow.condition.evaluation.PathBasedConditionFilter;
-import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.AsyncReactorFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.subscription.SubscriptionReactorFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
@@ -140,14 +140,19 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public FlowResolverFactory flowResolverFactory() {
-        return new FlowResolverFactory(
+    public io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory() {
+        return new io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory(
             new CompositeConditionFilter<>(
                 new HttpMethodConditionFilter(),
                 new PathBasedConditionFilter(),
                 new ExpressionLanguageConditionFilter<>()
             )
         );
+    }
+
+    @Bean
+    public FlowResolverFactory v4FlowResolverFactory() {
+        return new FlowResolverFactory(new CompositeConditionFilter<>());
     }
 
     @Bean
@@ -158,7 +163,7 @@ public class ApiHandlerConfiguration {
         OrganizationManager organizationManager,
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
-        FlowResolverFactory flowResolverFactory,
+        io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
     ) {
         return new ApiReactorHandlerFactory(
@@ -197,7 +202,8 @@ public class ApiHandlerConfiguration {
         EndpointConnectorPluginManager endpointConnectorPluginManager,
         @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
         OrganizationManager organizationManager,
-        FlowResolverFactory flowResolverFactory
+        io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
+        FlowResolverFactory v4FlowResolverFactory
     ) {
         return new AsyncReactorFactory(
             applicationContext,
@@ -207,7 +213,8 @@ public class ApiHandlerConfiguration {
             endpointConnectorPluginManager,
             platformPolicyChainFactory,
             organizationManager,
-            flowResolverFactory
+            flowResolverFactory,
+            v4FlowResolverFactory
         );
     }
 
@@ -218,7 +225,8 @@ public class ApiHandlerConfiguration {
         EndpointConnectorPluginManager endpointConnectorPluginManager,
         @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
         OrganizationManager organizationManager,
-        FlowResolverFactory flowResolverFactory
+        io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
+        FlowResolverFactory v4FlowResolverFactory
     ) {
         return new SubscriptionReactorFactory(
             applicationContext,
@@ -228,7 +236,8 @@ public class ApiHandlerConfiguration {
             endpointConnectorPluginManager,
             platformPolicyChainFactory,
             organizationManager,
-            flowResolverFactory
+            flowResolverFactory,
+            v4FlowResolverFactory
         );
     }
 }

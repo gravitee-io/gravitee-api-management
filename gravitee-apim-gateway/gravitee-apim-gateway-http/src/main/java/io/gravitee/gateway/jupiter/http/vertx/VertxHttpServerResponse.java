@@ -87,7 +87,7 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
                 }
                 prepareHeaders();
 
-                if (bufferFlow.chunks != null && messageFlow == null) {
+                if (bufferFlow.chunks != null) {
                     return nativeResponse.rxSend(
                         chunks()
                             .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))

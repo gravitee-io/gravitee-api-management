@@ -85,6 +85,6 @@ public class HttpPostEntrypointConnector implements EntrypointAsyncConnector {
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
-        return Completable.defer(() -> ctx.response().end());
+        return Completable.complete();
     }
 }
