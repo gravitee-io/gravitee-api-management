@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.ConnectorFeature;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
@@ -26,6 +27,7 @@ import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.impl.AbstractPluginService;
 import io.gravitee.rest.api.service.v4.ConnectorPluginService;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -73,6 +75,18 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
                     .supportedModes()
                     .stream()
                     .map(connectorMode -> ConnectorMode.fromLabel(connectorMode.getLabel()))
+                    .collect(Collectors.toSet())
+            );
+        }
+        if (
+            plugin.manifest().properties() != null &&
+            plugin.manifest().properties().get("features") != null &&
+            !plugin.manifest().properties().get("features").isEmpty()
+        ) {
+            entity.setAvailableFeatures(
+                Arrays
+                    .stream(plugin.manifest().properties().get("features").split(","))
+                    .map(ConnectorFeature::fromLabel)
                     .collect(Collectors.toSet())
             );
         }
