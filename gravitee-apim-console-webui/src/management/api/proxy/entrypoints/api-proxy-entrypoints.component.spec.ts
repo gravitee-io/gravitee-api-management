@@ -36,6 +36,7 @@ import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgrade
 import { User } from '../../../../entities/user';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 describe('ApiProxyEntrypointsComponent', () => {
   let fixture: ComponentFixture<ApiProxyEntrypointsComponent>;
@@ -50,7 +51,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyEntrypointsModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyEntrypointsModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
@@ -162,7 +163,91 @@ describe('ApiProxyEntrypointsComponent', () => {
         },
         {
           host: 'host.io',
-          override_entrypoint: undefined,
+          override_entrypoint: false,
+          path: '/path-bar',
+        },
+      ]);
+    });
+
+    it('should add virtual-host', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        proxy: {
+          virtual_hosts: [
+            { path: '/path-foo', host: 'host.io' },
+          ],
+        },
+      });
+      expectApiGetRequest(api);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+      const addButton = await loader.getHarness(MatButtonHarness.with({ text: 'Add virtual-host' }));
+      await addButton.click();
+
+      const vhTable = await loader.getHarness(MatTableHarness.with({ selector: '#virtualHostsTable' }));
+      const vhTableRows = await vhTable.getRows();
+      const [vhTableNewRowHostCell, vhTableNewRowPathCell] = await vhTableRows[1].getCells();
+
+      const vhTableNewRowHostInput = await vhTableNewRowHostCell.getHarness(MatInputHarness);
+      await vhTableNewRowHostInput.setValue('host-bar');
+
+      const vhTableNewRowPathInput = await vhTableNewRowPathCell.getHarness(MatInputHarness);
+      await vhTableNewRowPathInput.setValue('/path-bar');
+
+
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      // Expect fetch api get and update proxy
+      expectApiGetRequest(api);
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+      expect(req.request.body.proxy.virtual_hosts).toEqual([
+        {
+          path: '/path-foo',
+          host: 'host.io',
+          override_entrypoint: false,
+        },
+        {
+          host: 'host-bar',
+          override_entrypoint: false,
+          path: '/path-bar',
+        },
+      ]);
+    });
+
+
+    it('should remove virtual-host', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        proxy: {
+          virtual_hosts: [
+            { path: '/path-foo', host: 'host.io' },
+            { path: '/path-bar', host: 'host.io' },
+          ],
+        },
+      });
+      expectApiGetRequest(api);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+      const vhTable = await loader.getHarness(MatTableHarness.with({ selector: '#virtualHostsTable' }));
+      const vhTableRows = await vhTable.getRows();
+      const [_1, _2, _3, vhTableFirstRowRemoveCell] = await vhTableRows[0].getCells();
+      
+      const vhTableFirstRowRemoveButton = await vhTableFirstRowRemoveCell.getHarness(MatButtonHarness);
+      await vhTableFirstRowRemoveButton.click();
+
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      // Expect fetch api get and update proxy
+      expectApiGetRequest(api);
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+      expect(req.request.body.proxy.virtual_hosts).toEqual([
+        {
+          host: 'host.io',
+          override_entrypoint: false,
           path: '/path-bar',
         },
       ]);

@@ -18,11 +18,10 @@
 <div class="title">
   <h1>Entrypoints</h1>
   <button
+    *gioPermission="{ anyOf: ['api-definition-u'] }"
     (click)="switchVirtualHostMode()"
     mat-raised-button
     color="primary"
-    aria-label="add-api"
-    *gioPermission="{ anyOf: ['api-definition-u'] }"
   >
     {{ virtualHostModeEnabled ? 'Switch to context-path mode' : 'Switch to virtual-hosts mode' }}
   </button>
