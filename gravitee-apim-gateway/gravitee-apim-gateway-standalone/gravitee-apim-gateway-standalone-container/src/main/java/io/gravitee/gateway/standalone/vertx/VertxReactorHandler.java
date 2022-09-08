@@ -63,7 +63,7 @@ public class VertxReactorHandler implements Handler<HttpServerRequest> {
             request = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         }
 
-        route(request, request.create());
+        route(request, request.createResponse());
     }
 
     protected void route(final Request request, final Response response) {

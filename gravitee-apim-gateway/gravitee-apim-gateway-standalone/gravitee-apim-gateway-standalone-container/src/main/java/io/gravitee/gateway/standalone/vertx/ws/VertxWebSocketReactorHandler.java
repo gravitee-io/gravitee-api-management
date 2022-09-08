@@ -45,7 +45,7 @@ public class VertxWebSocketReactorHandler extends VertxReactorHandler {
     public void handle(HttpServerRequest httpServerRequest) {
         if (isWebSocket(httpServerRequest)) {
             VertxHttpServerRequest request = new VertxWebSocketServerRequest(httpServerRequest, idGenerator);
-            super.route(request, request.create());
+            super.route(request, request.createResponse());
         } else {
             super.handle(httpServerRequest);
         }

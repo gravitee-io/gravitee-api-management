@@ -18,14 +18,12 @@ package io.gravitee.gateway.jupiter.reactor;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.http.utils.WebSocketUtils;
-import io.gravitee.gateway.http.vertx.TimeoutServerResponse;
 import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
 import io.gravitee.gateway.http.vertx.grpc.VertxGrpcServerRequest;
 import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
@@ -302,7 +300,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         HttpServerRequest httpServerRequest,
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request
     ) {
-        SimpleExecutionContext simpleExecutionContext = new SimpleExecutionContext(request, request.create());
+        SimpleExecutionContext simpleExecutionContext = new SimpleExecutionContext(request, request.createResponse());
 
         if (httpRequestTimeoutConfiguration.getHttpRequestTimeout() > 0 && !isV3WebSocket(httpServerRequest)) {
             final long vertxTimerId = vertx.setTimer(

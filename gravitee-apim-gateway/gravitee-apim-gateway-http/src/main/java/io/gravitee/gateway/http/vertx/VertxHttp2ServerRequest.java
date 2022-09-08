@@ -50,7 +50,7 @@ public class VertxHttp2ServerRequest extends VertxHttpServerRequest {
     }
 
     @Override
-    public Response create() {
+    public Response createResponse() {
         return new VertxHttp2ServerResponse(this);
     }
 }
