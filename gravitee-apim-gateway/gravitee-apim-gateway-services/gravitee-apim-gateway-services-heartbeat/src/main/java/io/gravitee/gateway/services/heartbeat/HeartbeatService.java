@@ -17,7 +17,6 @@ package io.gravitee.gateway.services.heartbeat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hazelcast.topic.ITopic;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
 import io.gravitee.common.utils.UUID;
@@ -148,7 +147,7 @@ public class HeartbeatService extends AbstractService<HeartbeatService> implemen
 
             LOGGER.info("Monitoring scheduled with fixed delay {} {} ", delay, unit.name());
 
-            ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(monitorThread, 0, delay, unit);
+            ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(monitorThread, delay, delay, unit);
 
             LOGGER.info("Start gateway heartbeat : DONE");
         }
