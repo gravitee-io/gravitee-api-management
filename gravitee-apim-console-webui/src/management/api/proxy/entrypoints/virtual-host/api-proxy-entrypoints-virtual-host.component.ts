@@ -43,7 +43,6 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
     return [...(this.virtualHostsFormArray?.controls ?? [])];
   }
   public virtualHostsTableDisplayedColumns = ['host', 'path', 'override_entrypoint', 'remove'];
-  public initialVirtualHostsFormValue: unknown;
 
   public hostPattern: string;
 
@@ -76,10 +75,13 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
     this.virtualHostsFormArray.markAsDirty();
   }
 
+  onResetClicked() {
+    // Nedded to re init all form controls
+    this.initForm(this.apiProxy);
+  }
+
   private initForm(apiProxy: Api['proxy']) {
     this.virtualHostsFormArray = new FormArray([...apiProxy.virtual_hosts.map((virtualHost) => this.newVirtualHostFormGroup(virtualHost))]);
-
-    this.initialVirtualHostsFormValue = this.virtualHostsFormArray.getRawValue();
   }
 
   private newVirtualHostFormGroup(virtualHost?: Api['proxy']['virtual_hosts'][number]) {

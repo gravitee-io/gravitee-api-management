@@ -114,5 +114,5 @@
     </table>
   </mat-card>
 
-  <gio-save-bar [form]="virtualHostsFormArray" [formInitialValues]="initialVirtualHostsFormValue" (submitted)="onSubmit()"></gio-save-bar>
+  <gio-save-bar [form]="virtualHostsFormArray" (submitted)="onSubmit()" (resetClicked)="onResetClicked()"></gio-save-bar>
 </form>
