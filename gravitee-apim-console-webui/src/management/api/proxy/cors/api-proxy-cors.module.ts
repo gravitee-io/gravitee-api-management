@@ -16,12 +16,37 @@
 
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
+import { GioFormSlideToggleModule } from '../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 
 import { ApiProxyCorsComponent } from './api-proxy-cors.component';
 
 @NgModule({
   declarations: [ApiProxyCorsComponent],
   exports: [ApiProxyCorsComponent],
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+
+    ReactiveFormsModule,
+
+    MatFormFieldModule,
+    MatSelectModule,
+    MatCardModule,
+    MatDialogModule,
+    MatSlideToggleModule,
+    MatDividerModule,
+    GioFormSlideToggleModule,
+    GioFormTagsInputModule,
+    GioSaveBarModule,
+    GioFormFocusInvalidModule,
+  ],
 })
 export class ApiProxyCorsModule {}

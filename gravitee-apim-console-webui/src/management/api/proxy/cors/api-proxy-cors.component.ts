@@ -13,8 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { EMPTY, Subject } from 'rxjs';
+import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { ApiService } from '../../../../services-ngx/api.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { CorsUtil } from '../../../../shared/utils';
 
 @Component({
   selector: 'api-proxy-cors',
@@ -24,12 +32,121 @@ import { Subject } from 'rxjs';
 export class ApiProxyCorsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  constructor() {}
+  public httpMethods = CorsUtil.httpMethods;
+  public corsForm: FormGroup;
+  public initialCorsFormValue: unknown;
 
-  ngOnInit(): void {}
+  private allowAllOriginsConfirmDialog?: MatDialogRef<GioConfirmDialogComponent, boolean>;
+
+  constructor(
+    private readonly matDialog: MatDialog,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly apiService: ApiService,
+    private readonly snackBarService: SnackBarService,
+  ) {}
+
+  ngOnInit(): void {
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((api) => {
+          const cors = api.proxy?.cors ?? {
+            enabled: false,
+          };
+
+          this.corsForm = new FormGroup({
+            enabled: new FormControl({
+              value: cors.enabled,
+              disabled: false,
+            }),
+            allowOrigin: new FormControl({
+              value: cors.allowOrigin ?? [],
+              disabled: !cors.enabled,
+            }),
+            allowMethods: new FormControl({
+              value: cors.allowMethods ?? [],
+              disabled: !cors.enabled,
+            }),
+          });
+          this.initialCorsFormValue = this.corsForm.getRawValue();
+
+          // Disable all Control if enabled is not checked
+          const controlKeys = ['allowOrigin', 'allowMethods'];
+          this.corsForm.get('enabled').valueChanges.subscribe((checked) => {
+            controlKeys.forEach((k) => {
+              return checked ? this.corsForm.get(k).enable() : this.corsForm.get(k).disable();
+            });
+          });
+        }),
+      )
+      .subscribe();
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  confirmAllowAllOrigins(): (tag: string, validationCb: (shouldAddTag: boolean) => void) => void {
+    return (tag, validationCb) => {
+      // Confirm allow all origins
+      if ('*' === tag && !this.allowAllOriginsConfirmDialog) {
+        this.allowAllOriginsConfirmDialog = this.matDialog.open<GioConfirmDialogComponent, GioConfirmDialogData>(
+          GioConfirmDialogComponent,
+          {
+            width: '450px',
+            data: {
+              title: 'Are you sure?',
+              content: 'Do you want to remove all cross-origin restrictions?',
+              confirmButton: 'Yes, I want to allow all origins.',
+            },
+            role: 'alertdialog',
+            id: 'allowAllOriginsConfirmDialog',
+          },
+        );
+
+        this.allowAllOriginsConfirmDialog
+          .afterClosed()
+          .pipe(takeUntil(this.unsubscribe$))
+          .subscribe((shouldAddTag) => {
+            this.allowAllOriginsConfirmDialog = null;
+            validationCb(shouldAddTag);
+          });
+      } else {
+        validationCb(true);
+      }
+    };
+  }
+
+  onSubmit() {
+    const corsFormValue = this.corsForm.getRawValue();
+
+    return this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((api) =>
+          this.apiService.update({
+            ...api,
+            proxy: {
+              ...api.proxy,
+              cors: {
+                ...api.proxy.cors,
+                enabled: corsFormValue.enabled,
+                allowOrigin: corsFormValue.allowOrigin,
+                allowMethods: corsFormValue.allowMethods,
+              },
+            },
+          }),
+        ),
+        tap(() => this.snackBarService.success('Configuration successfully saved!')),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap(() => this.ngOnInit()),
+      )
+      .subscribe();
   }
 }
