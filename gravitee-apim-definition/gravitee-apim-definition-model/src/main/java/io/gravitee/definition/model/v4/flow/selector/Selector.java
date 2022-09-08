@@ -15,9 +15,7 @@
  */
 package io.gravitee.definition.model.v4.flow.selector;
 
-import static io.gravitee.definition.model.v4.flow.selector.Selector.CHANNEL_LABEL;
-import static io.gravitee.definition.model.v4.flow.selector.Selector.CONDITION_LABEL;
-import static io.gravitee.definition.model.v4.flow.selector.Selector.HTTP_LABEL;
+import static io.gravitee.definition.model.v4.flow.selector.Selector.*;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -30,7 +28,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.FieldNameConstants;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -42,8 +39,7 @@ import lombok.experimental.FieldNameConstants;
 @Setter
 @ToString
 @EqualsAndHashCode
-@FieldNameConstants
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = Selector.Fields.type)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes(
     {
         @JsonSubTypes.Type(value = HttpSelector.class, name = HTTP_LABEL),

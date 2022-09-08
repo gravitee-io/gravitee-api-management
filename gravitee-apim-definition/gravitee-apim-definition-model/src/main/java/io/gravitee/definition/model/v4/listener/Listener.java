@@ -15,9 +15,7 @@
  */
 package io.gravitee.definition.model.v4.listener;
 
-import static io.gravitee.definition.model.v4.listener.Listener.HTTP_LABEL;
-import static io.gravitee.definition.model.v4.listener.Listener.SUBSCRIPTION_LABEL;
-import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
+import static io.gravitee.definition.model.v4.listener.Listener.*;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -32,8 +30,11 @@ import java.io.Serializable;
 import java.util.List;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import lombok.*;
-import lombok.experimental.FieldNameConstants;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -44,8 +45,7 @@ import lombok.experimental.FieldNameConstants;
 @Setter
 @ToString
 @EqualsAndHashCode
-@FieldNameConstants
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = Listener.Fields.type)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes(
     {
         @JsonSubTypes.Type(value = HttpListener.class, name = HTTP_LABEL),
