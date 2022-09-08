@@ -20,32 +20,93 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { ApiProxyCorsModule } from './api-proxy-cors.module';
 import { ApiProxyCorsComponent } from './api-proxy-cors.component';
 
-import { GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { fakeApi } from '../../../../entities/api/Api.fixture';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { Api } from '../../../../entities/api';
+import { User } from '../../../../entities/user';
+import { UIRouterStateParams, CurrentUserService } from '../../../../ajs-upgraded-providers';
 
 describe('ApiProxyEntrypointsComponent', () => {
+  const API_ID = 'apiId';
+
+  const currentUser = new User();
+  currentUser.userPermissions = ['api-definition-u'];
+
   let fixture: ComponentFixture<ApiProxyCorsComponent>;
-  let component: ApiProxyCorsComponent;
+  let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyCorsModule],
+      providers: [
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: CurrentUserService, useValue: { currentUser } },
+      ],
     });
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ApiProxyCorsComponent);
-    component = fixture.componentInstance;
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
   });
 
-  it('should work', async () => {
-    expect(component).toBeTruthy();
-  });
-
   afterEach(() => {
     httpTestingController.verify();
   });
+
+  it('should enable and set CORS config', async () => {
+    const api = fakeApi({
+      id: API_ID,
+      proxy: {
+        cors: {
+          enabled: false,
+        },
+      },
+    });
+    expectApiGetRequest(api);
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    expect(await saveBar.isVisible()).toBe(false);
+
+    const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+    expect(await enabledSlideToggle.isChecked()).toEqual(false);
+
+    // Check each field is disabled
+    const allowOriginInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowOrigin"]' }));
+    // TODO: add int after merge in ui-particles
+    // expect(await allowOriginInput.isDisabled()).toEqual(true);
+
+    const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="allowMethods"]' }));
+    expect(await allowMethodsInput.isDisabled()).toEqual(true);
+
+    // Enable Cors & set some values
+    await enabledSlideToggle.toggle();
+
+    await allowOriginInput.addTag('toto');
+    await allowMethodsInput.getOptions({ text: 'GET' });
+
+    expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+    await saveBar.clickSubmit();
+
+    // Expect fetch api and update
+    expectApiGetRequest(api);
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+    expect(req.request.body.proxy.cors).toStrictEqual({ enabled: true, allowMethods: [], allowOrigin: ['toto'] });
+  });
+
+  function expectApiGetRequest(api: Api) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
+  }
 });

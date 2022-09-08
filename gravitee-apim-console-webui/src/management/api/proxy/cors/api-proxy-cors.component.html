@@ -15,4 +15,63 @@
     limitations under the License.
 
 -->
-🚧
+<h1>Cross-origin resource sharing (CORS)</h1>
+
+<form *ngIf="corsForm" [formGroup]="corsForm" autocomplete="off" gioFormFocusInvalid>
+  <mat-card>
+    <mat-card-content>
+      <gio-form-slide-toggle appearance="fill" class="cors-card__enable-toggle">
+        <gio-form-label>Enable Cors</gio-form-label>
+        CORS is a mechanism that allows restricted resources (e.g. fonts) on a web page to be requested from another domain outside the
+        domain from which the first resource was served. If you enable the try-it feature of a Swagger page you probably have to enable and
+        configure the CORS.
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="enabled"
+          aria-label="CORS enable toggle "
+          name="enableCors"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+
+      <mat-divider></mat-divider>
+
+      <div class="cors-card__allow-origin" [class.disabled]="!corsForm.get('enabled').value">
+        <div class="cors-card__allow-origin__label">Access-Control-Allow-Origin</div>
+        <p class="cors-card__allow-origin__hint">
+          The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the
+          <em>same-origin</em> definition. <br />
+          If you choose to enable '*' it means that is allows all requests, regardless of origin.
+        </p>
+        <mat-form-field class="cors-card__allow-origin__form-field" appearance="fill">
+          <mat-label>Allow-Origin</mat-label>
+          <gio-form-tags-input
+            formControlName="allowOrigin"
+            placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
+            [tagValidationHook]="confirmAllowAllOrigins()"
+          >
+          </gio-form-tags-input>
+
+          <mat-error *ngIf="corsForm.get('allowOrigin')?.errors?.allowOrigin">{{
+            formSettings.get('allowOrigin')?.errors?.allowOrigin
+          }}</mat-error>
+          <mat-hint>Regular Expressions are also supported</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <div class="cors-card__allow-methods" [class.disabled]="!corsForm.get('enabled').value">
+        <div class="cors-card__allow-methods__label">Access-Control-Allow-Methods</div>
+        <p class="cors-card__allow-methods__hint">
+          Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.
+        </p>
+        <mat-form-field class="cors-card__allow-methods__form-field" appearance="fill">
+          <mat-label>Access-Control-Allow-Methods</mat-label>
+          <mat-select formControlName="allowMethods" multiple>
+            <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</form>
+
+<gio-save-bar [form]="corsForm" [formInitialValues]="initialCorsFormValue" (submitted)="onSubmit()"></gio-save-bar>
