@@ -18,9 +18,12 @@ $foreground: map.get(gio.$mat-theme, foreground);
   }
 
   &__allow-origin,
-  &__allow-methods {
-    margin-top: 16px;
-
+  &__allow-methods,
+  &__allow-headers,
+  &__allow-credentials,
+  &__max-age,
+  &__expose-headers,
+  &__run-policies {
     &__label,
     &__hint {
       padding: 0 0.75em 0 0.75em;
@@ -30,13 +33,20 @@ $foreground: map.get(gio.$mat-theme, foreground);
       @include mat.typography-level($typography, body-2);
     }
 
-    &__form-field {
+    &__form-field,
+    &__enable-toggle {
       width: 100%;
-      padding-bottom: 16px;
     }
 
     &.disabled {
       color: mat.get-color-from-palette($foreground, disabled);
     }
+  }
+
+  &__allow-origin,
+  &__allow-methods,
+  &__allow-headers,
+  &__expose-headers {
+    margin-top: 16px;
   }
 }

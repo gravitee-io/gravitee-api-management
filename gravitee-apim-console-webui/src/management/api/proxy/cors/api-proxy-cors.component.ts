@@ -19,6 +19,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
@@ -33,6 +34,7 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public httpMethods = CorsUtil.httpMethods;
+  public defaultHttpHeaders = CorsUtil.defaultHttpHeaders;
   public corsForm: FormGroup;
   public initialCorsFormValue: unknown;
 
@@ -60,19 +62,42 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
               value: cors.enabled,
               disabled: false,
             }),
-            allowOrigin: new FormControl({
-              value: cors.allowOrigin ?? [],
-              disabled: !cors.enabled,
-            }),
+            allowOrigin: new FormControl(
+              {
+                value: cors.allowOrigin ?? [],
+                disabled: !cors.enabled,
+              },
+              [CorsUtil.allowOriginValidator()],
+            ),
             allowMethods: new FormControl({
               value: cors.allowMethods ?? [],
+              disabled: !cors.enabled,
+            }),
+            allowHeaders: new FormControl({
+              value: cors.allowHeaders ?? [],
+              disabled: !cors.enabled,
+            }),
+            allowCredentials: new FormControl({
+              value: cors.allowCredentials ?? false,
+              disabled: !cors.enabled,
+            }),
+            maxAge: new FormControl({
+              value: cors.maxAge ?? -1,
+              disabled: !cors.enabled,
+            }),
+            exposeHeaders: new FormControl({
+              value: cors.exposeHeaders ?? [],
+              disabled: !cors.enabled,
+            }),
+            runPolicies: new FormControl({
+              value: cors.runPolicies ?? false,
               disabled: !cors.enabled,
             }),
           });
           this.initialCorsFormValue = this.corsForm.getRawValue();
 
           // Disable all Control if enabled is not checked
-          const controlKeys = ['allowOrigin', 'allowMethods'];
+          const controlKeys = ['allowOrigin', 'allowMethods', 'allowHeaders', 'allowCredentials', 'maxAge', 'exposeHeaders', 'runPolicies'];
           this.corsForm.get('enabled').valueChanges.subscribe((checked) => {
             controlKeys.forEach((k) => {
               return checked ? this.corsForm.get(k).enable() : this.corsForm.get(k).disable();
@@ -136,6 +161,11 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
                 enabled: corsFormValue.enabled,
                 allowOrigin: corsFormValue.allowOrigin,
                 allowMethods: corsFormValue.allowMethods,
+                allowHeaders: corsFormValue.allowHeaders,
+                allowCredentials: corsFormValue.allowCredentials,
+                maxAge: corsFormValue.maxAge,
+                exposeHeaders: corsFormValue.exposeHeaders,
+                runPolicies: corsFormValue.runPolicies,
               },
             },
           }),
