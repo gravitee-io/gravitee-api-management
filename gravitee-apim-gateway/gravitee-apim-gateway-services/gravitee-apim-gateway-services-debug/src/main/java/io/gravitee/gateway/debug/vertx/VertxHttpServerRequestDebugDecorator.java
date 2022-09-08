@@ -29,7 +29,7 @@ public class VertxHttpServerRequestDebugDecorator extends VertxHttpServerRequest
     }
 
     @Override
-    public Response create() {
+    public Response createResponse() {
         return new VertxHttpServerResponseDebugDecorator(delegate);
     }
 }

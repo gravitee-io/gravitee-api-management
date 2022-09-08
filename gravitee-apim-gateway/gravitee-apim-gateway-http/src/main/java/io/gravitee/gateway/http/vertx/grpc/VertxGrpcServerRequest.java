@@ -31,7 +31,7 @@ public class VertxGrpcServerRequest extends VertxHttp2ServerRequest {
     }
 
     @Override
-    public Response create() {
+    public Response createResponse() {
         return new VertxGrpcServerResponse(this);
     }
 }

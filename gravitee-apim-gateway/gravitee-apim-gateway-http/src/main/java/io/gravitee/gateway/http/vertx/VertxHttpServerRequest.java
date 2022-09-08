@@ -29,10 +29,8 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.reporter.api.http.Metrics;
-import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.net.SocketAddress;
-import java.util.Map;
 import javax.net.ssl.SSLSession;
 
 /**
@@ -265,7 +263,7 @@ public class VertxHttpServerRequest implements Request {
         return serverRequest;
     }
 
-    public Response create() {
+    public Response createResponse() {
         return new VertxHttpServerResponse(this);
     }
 }

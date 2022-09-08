@@ -56,7 +56,7 @@ public class VertxWebSocketServerRequest extends VertxHttpServerRequest {
     }
 
     @Override
-    public Response create() {
+    public Response createResponse() {
         return new VertxWebSocketServerResponse(this);
     }
 }
