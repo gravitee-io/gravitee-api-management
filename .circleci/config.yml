@@ -904,7 +904,7 @@ jobs:
                                       "type": "section",
                                       "text": {
                                         "type": "mrkdwn",
-                                        "text": "🚀 Starting << pipeline.parameters.graviteeio_version >> release"
+                                        "text": "🚀 Starting APIM << pipeline.parameters.graviteeio_version >> release"
                                       }
                                     }
                                   ]
