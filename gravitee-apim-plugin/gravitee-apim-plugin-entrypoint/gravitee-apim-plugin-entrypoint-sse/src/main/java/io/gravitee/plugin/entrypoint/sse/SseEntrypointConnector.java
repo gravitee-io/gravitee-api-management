@@ -114,7 +114,7 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
                                     Buffer.buffer(
                                         SseEvent
                                             .builder()
-                                            .id(UUID.randomUUID().toString())
+                                            .id(message.id())
                                             .event("message")
                                             .data(message.content().getBytes())
                                             .comments(comments)

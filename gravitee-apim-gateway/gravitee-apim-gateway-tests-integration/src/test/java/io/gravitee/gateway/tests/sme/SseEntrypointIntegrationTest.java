@@ -128,8 +128,8 @@ class SseEntrypointIntegrationTest extends AbstractGatewayTest {
     private void assertOnChunk(Buffer chunk, int messageNumber) {
         final String[] splitMessage = chunk.toString().split("\n");
         assertThat(splitMessage).hasSize(3);
-        assertThat(splitMessage[0]).startsWith("id: ");
+        assertThat(splitMessage[0]).startsWith("id: " + messageNumber);
         assertThat(splitMessage[1]).isEqualTo("event: message");
-        assertThat(splitMessage[2]).isEqualTo("data: Mock data " + messageNumber);
+        assertThat(splitMessage[2]).isEqualTo("data: Mock data");
     }
 }

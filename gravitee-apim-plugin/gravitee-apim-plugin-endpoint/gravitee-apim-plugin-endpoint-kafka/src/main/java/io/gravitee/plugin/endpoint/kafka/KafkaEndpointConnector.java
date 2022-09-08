@@ -26,6 +26,7 @@ import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.kafka.vertx.client.consumer.KafkaConsumer;
+import io.gravitee.plugin.endpoint.kafka.vertx.client.consumer.KafkaConsumerRecord;
 import io.gravitee.plugin.endpoint.kafka.vertx.client.producer.KafkaProducer;
 import io.gravitee.plugin.endpoint.kafka.vertx.client.producer.KafkaProducerRecord;
 import io.reactivex.Completable;
@@ -60,6 +61,7 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
     static final String CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY = KAFKA_CONTEXT_ATTRIBUTE + "recordKey";
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
+    private static final String ID_SEPARATOR = "-";
 
     protected final KafkaEndpointConnectorConfiguration configuration;
 
@@ -160,6 +162,7 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                                                     );
                                                 return DefaultMessage
                                                     .builder()
+                                                    .id(generateId(consumerRecord))
                                                     .headers(httpHeaders)
                                                     .content(Buffer.buffer(consumerRecord.value()))
                                                     .metadata(
@@ -184,6 +187,17 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                 }
             }
         );
+    }
+
+    private String generateId(final KafkaConsumerRecord<String, byte[]> consumerRecord) {
+        StringBuilder idBuilder = new StringBuilder();
+        if (consumerRecord.key() != null) {
+            idBuilder.append(consumerRecord.key());
+        } else {
+            idBuilder.append(UUID.randomUUID());
+        }
+        idBuilder.append(ID_SEPARATOR).append(consumerRecord.partition()).append(ID_SEPARATOR).append(consumerRecord.offset());
+        return idBuilder.toString();
     }
 
     private Vertx getVertx(final MessageExecutionContext ctx) {
