@@ -17,13 +17,14 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { get, isEmpty, isNil } from 'lodash';
-import { combineLatest, Subject } from 'rxjs';
-import { switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
+import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Api } from '../../../../entities/api';
 import { ApiService } from '../../../../services-ngx/api.service';
 import { EnvironmentService } from '../../../../services-ngx/environment.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
@@ -46,6 +47,7 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
     private readonly environmentService: EnvironmentService,
     private readonly matDialog: MatDialog,
     private readonly permissionService: GioPermissionService,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
@@ -82,6 +84,11 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         switchMap((api) => this.apiService.update({ ...api, proxy: apiProxy })),
         tap((api) => (this.apiProxy = api.proxy)),
+        tap(() => this.snackBarService.success('Configuration successfully saved!')),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
       )
       .subscribe();
   }
