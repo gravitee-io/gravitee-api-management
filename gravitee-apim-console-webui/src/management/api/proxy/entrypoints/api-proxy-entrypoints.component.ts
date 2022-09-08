@@ -16,6 +16,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { get, isEmpty, isNil } from 'lodash';
 import { combineLatest, Subject } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
@@ -54,10 +55,11 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
         tap(([api, environment]) => {
           this.apiProxy = api.proxy;
 
+          // virtual host mode is enabled if there domain restrictions or if there is more than one virtual host or if the first virtual host has a host
           this.virtualHostModeEnabled =
-            api.proxy?.virtual_hosts?.length > 1 ||
-            api.proxy.virtual_hosts[0].host !== undefined ||
-            environment.domainRestrictions?.length > 0;
+            !isEmpty(environment.domainRestrictions) ||
+            get(api, 'proxy.virtual_hosts', []) > 1 ||
+            !isNil(get(api, 'proxy.virtual_hosts[0].host', null));
 
           this.domainRestrictions = environment.domainRestrictions ?? [];
 
