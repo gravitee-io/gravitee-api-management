@@ -21,13 +21,16 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
-import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
-import { GioFormSlideToggleModule } from '../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 
 import { ApiProxyCorsComponent } from './api-proxy-cors.component';
+
+import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
+import { GioFormSlideToggleModule } from '../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 
 @NgModule({
   declarations: [ApiProxyCorsComponent],
@@ -43,6 +46,8 @@ import { ApiProxyCorsComponent } from './api-proxy-cors.component';
     MatDialogModule,
     MatSlideToggleModule,
     MatDividerModule,
+    MatSnackBarModule,
+    MatInputModule,
     GioFormSlideToggleModule,
     GioFormTagsInputModule,
     GioSaveBarModule,
