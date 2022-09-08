@@ -55,6 +55,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
@@ -69,6 +70,8 @@ class DefaultHttpRequestDispatcherTest {
     protected static final String HOST = "gravitee.io";
     protected static final String PATH = "/path";
     protected static final String MOCK_ERROR_MESSAGE = "Mock error";
+
+    @Spy
     private final Vertx vertx = Vertx.vertx();
 
     @Mock
@@ -233,12 +236,19 @@ class DefaultHttpRequestDispatcherTest {
 
         final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
 
+        verify(vertx, never()).setTimer(anyLong(), any());
+        verify(vertx, never()).cancelTimer(anyLong());
+
         obs.assertResult();
     }
 
     @Test
     void shouldHandleV3RequestWithTimeout() {
-        when(httpRequestTimeoutConfiguration.getHttpRequestTimeout()).thenReturn(50L);
+        long vertxTimerId = 125366;
+        long timeout = 57;
+
+        doReturn(vertxTimerId).when(vertx).setTimer(anyLong(), any());
+        when(httpRequestTimeoutConfiguration.getHttpRequestTimeout()).thenReturn(timeout);
 
         final ReactorHandler apiReactor = mock(ReactorHandler.class);
 
@@ -257,8 +267,8 @@ class DefaultHttpRequestDispatcherTest {
 
         final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
 
-        final ExecutionContext ctxCaptorValue = ctxCaptor.getValue();
-        assertThat(ctxCaptorValue.response()).isInstanceOf(TimeoutServerResponse.class);
+        verify(vertx).setTimer(eq(timeout), any());
+        verify(vertx).cancelTimer(vertxTimerId);
 
         obs.assertResult();
     }

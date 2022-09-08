@@ -81,9 +81,4 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest v3Request = super.createV3Request(httpServerRequest, idGenerator);
         return new VertxHttpServerRequestDebugDecorator(v3Request, idGenerator);
     }
-
-    @Override
-    protected Response createV3TimeoutResponse(Vertx vertx, io.gravitee.gateway.http.vertx.VertxHttpServerRequest request, long timeoutId) {
-        return new TimeoutServerResponseDebugDecorator(vertx, request.create(), timeoutId);
-    }
 }

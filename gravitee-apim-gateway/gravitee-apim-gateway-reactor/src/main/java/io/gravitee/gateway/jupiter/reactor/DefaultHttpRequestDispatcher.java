@@ -70,7 +70,9 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
+    private static final String ATTR_INTERNAL_VERTX_TIMER_ID = ContextAttributes.ATTR_PREFIX + "vertx-timer-id";
     public static final String ATTR_ENTRYPOINT = ContextAttributes.ATTR_PREFIX + "entrypoint";
+
     private final Logger log = LoggerFactory.getLogger(DefaultHttpRequestDispatcher.class);
     private final GatewayConfiguration gatewayConfiguration;
     private final HttpAcceptorResolver httpAcceptorResolver;
@@ -247,6 +249,11 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         final HttpServerRequest httpServerRequest
     ) {
         return context -> {
+            Long vertxTimerId = (Long) context.getAttribute(ATTR_INTERNAL_VERTX_TIMER_ID);
+            if (vertxTimerId != null) {
+                vertx.cancelTimer(vertxTimerId);
+                context.removeAttribute(ATTR_INTERNAL_VERTX_TIMER_ID);
+            }
             if (context.response().ended()) {
                 emitter.onComplete();
             } else {
@@ -295,9 +302,10 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         HttpServerRequest httpServerRequest,
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request
     ) {
-        SimpleExecutionContext simpleExecutionContext;
+        SimpleExecutionContext simpleExecutionContext = new SimpleExecutionContext(request, request.create());
+
         if (httpRequestTimeoutConfiguration.getHttpRequestTimeout() > 0 && !isV3WebSocket(httpServerRequest)) {
-            final long timeoutId = vertx.setTimer(
+            final long vertxTimerId = vertx.setTimer(
                 httpRequestTimeoutConfiguration.getHttpRequestTimeout(),
                 event -> {
                     if (!httpServerRequest.response().ended()) {
@@ -306,15 +314,10 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                     }
                 }
             );
-            simpleExecutionContext = new SimpleExecutionContext(request, createV3TimeoutResponse(vertx, request, timeoutId));
-        } else {
-            simpleExecutionContext = new SimpleExecutionContext(request, request.create());
+            simpleExecutionContext.setAttribute(ATTR_INTERNAL_VERTX_TIMER_ID, vertxTimerId);
         }
-        return simpleExecutionContext;
-    }
 
-    protected Response createV3TimeoutResponse(Vertx vertx, io.gravitee.gateway.http.vertx.VertxHttpServerRequest request, long timeoutId) {
-        return new TimeoutServerResponse(vertx, request.create(), timeoutId);
+        return simpleExecutionContext;
     }
 
     /**
