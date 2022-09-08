@@ -44,6 +44,9 @@ class MockEndpointConnectorTest {
     private static final String MESSAGE_TO_LOG = "message to log";
     private final MockEndpointConnectorConfiguration configuration = new MockEndpointConnectorConfiguration();
 
+    @Mock
+    Logger logger;
+
     @InjectMocks
     private MockEndpointConnector mockEndpointConnector;
 
@@ -55,9 +58,6 @@ class MockEndpointConnectorTest {
 
     @Mock
     private Response response;
-
-    @Mock
-    Logger logger;
 
     @BeforeEach
     public void setup() {
@@ -84,9 +84,9 @@ class MockEndpointConnectorTest {
             .test()
             .awaitCount(3)
             .assertValueCount(3)
-            .assertValueAt(0, message -> message.content().toString().equals("test mock endpoint 0"))
-            .assertValueAt(1, message -> message.content().toString().equals("test mock endpoint 1"))
-            .assertValueAt(2, message -> message.content().toString().equals("test mock endpoint 2"));
+            .assertValueAt(0, message -> message.content().toString().equals("test mock endpoint") && message.id().equals("0"))
+            .assertValueAt(1, message -> message.content().toString().equals("test mock endpoint") && message.id().equals("1"))
+            .assertValueAt(2, message -> message.content().toString().equals("test mock endpoint") && message.id().equals("2"));
 
         verify(logger).info("Received message:\n" + MESSAGE_TO_LOG);
     }

@@ -86,7 +86,10 @@ class HttpPostEntrypointConnectorTest {
         when(mockExecutionContext.request()).thenReturn(dummyMessageRequest);
         httpPostEntrypointConnector.handleRequest(mockExecutionContext).test().assertComplete();
 
-        dummyMessageRequest.messages().test().assertValue(message -> "bodyContent".equals(message.content().toString()));
+        dummyMessageRequest
+            .messages()
+            .test()
+            .assertValue(message -> "bodyContent".equals(message.content().toString()) && message.id() != null);
     }
 
     @Test

@@ -17,7 +17,9 @@ package io.gravitee.plugin.endpoint.kafka;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
@@ -36,8 +38,13 @@ import io.reactivex.Flowable;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.subscribers.TestSubscriber;
 import io.vertx.junit5.VertxExtension;
+import io.vertx.kafka.client.producer.RecordMetadata;
 import io.vertx.reactivex.core.Vertx;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -73,7 +80,7 @@ import org.testcontainers.utility.DockerImageName;
 @ExtendWith(VertxExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Testcontainers
-public class KafkaEndpointConnectorTest {
+class KafkaEndpointConnectorTest {
 
     @Container
     private static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"));
@@ -173,10 +180,17 @@ public class KafkaEndpointConnectorTest {
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
         KafkaProducer<String, byte[]> producer = KafkaProducer.create(vertx, config);
-        producer.write(KafkaProducerRecord.create(topicId, "key", Buffer.buffer("message").getBytes()));
+        RecordMetadata publishMetadata = producer
+            .rxSend(KafkaProducerRecord.create(topicId, "key", Buffer.buffer("message").getBytes()))
+            .blockingGet();
         producer.close();
 
         testSubscriber.awaitTerminalEvent(10, TimeUnit.SECONDS);
         testSubscriber.assertValueCount(1);
+        testSubscriber.assertValue(
+            message ->
+                message.content().toString().equals("message") &&
+                message.id().equals("key-" + publishMetadata.getPartition() + "-" + publishMetadata.getOffset())
+        );
     }
 }
