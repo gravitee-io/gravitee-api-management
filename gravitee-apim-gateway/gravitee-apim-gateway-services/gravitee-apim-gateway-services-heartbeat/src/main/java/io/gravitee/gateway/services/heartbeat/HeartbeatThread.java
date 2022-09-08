@@ -50,7 +50,7 @@ public class HeartbeatThread implements Runnable, MessageListener<Event> {
                 // Update heartbeat timestamp
                 event.setUpdatedAt(new Date());
                 event.getProperties().put(HeartbeatService.EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(event.getUpdatedAt().getTime()));
-                topic.publish(event);
+                topic.publish(new Event(event));
                 event.getProperties().remove(EVENT_STATE_PROPERTY);
             }
         } catch (Exception ex) {

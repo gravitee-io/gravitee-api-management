@@ -154,4 +154,17 @@ public class Event implements Serializable {
             return this.value;
         }
     }
+
+    public Event(Event event) {
+        this.id = event.id;
+        this.environments = event.environments;
+        this.type = event.type;
+        this.payload = event.payload;
+        this.parentId = event.parentId;
+        this.properties = event.properties;
+        this.createdAt = event.createdAt;
+        this.updatedAt = event.updatedAt;
+    }
+
+    public Event() {}
 }
