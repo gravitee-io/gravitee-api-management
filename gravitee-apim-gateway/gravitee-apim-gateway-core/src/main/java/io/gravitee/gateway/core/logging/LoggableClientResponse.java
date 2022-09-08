@@ -65,15 +65,27 @@ public class LoggableClientResponse implements Response {
     }
 
     @Override
+    public void end() {
+        response.end();
+    }
+
+    @Override
+    public void end(Buffer buffer) {
+        response.end(buffer);
+    }
+
+    @Override
     public Response status(int statusCode) {
         log.setClientResponse(new io.gravitee.reporter.api.common.Response(statusCode));
-        return response.status(statusCode);
+        response.status(statusCode);
+        return this;
     }
 
     @Override
     public Response endHandler(Handler<Void> endHandler) {
         writeClientResponseLog(buffer);
-        return response.endHandler(endHandler);
+        response.endHandler(endHandler);
+        return this;
     }
 
     private void writeClientResponseLog(Buffer buffer) {
@@ -101,7 +113,8 @@ public class LoggableClientResponse implements Response {
 
     @Override
     public Response reason(String reason) {
-        return response.reason(reason);
+        response.reason(reason);
+        return this;
     }
 
     @Override
@@ -121,7 +134,8 @@ public class LoggableClientResponse implements Response {
 
     @Override
     public Response writeCustomFrame(HttpFrame frame) {
-        return response.writeCustomFrame(frame);
+        response.writeCustomFrame(frame);
+        return this;
     }
 
     @Override

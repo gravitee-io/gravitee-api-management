@@ -43,7 +43,8 @@ public class TimeoutServerResponse implements Response {
 
     @Override
     public Response status(int i) {
-        return response.status(i);
+        response.status(i);
+        return this;
     }
 
     @Override
@@ -58,7 +59,8 @@ public class TimeoutServerResponse implements Response {
 
     @Override
     public Response reason(String reason) {
-        return response.reason(reason);
+        response.reason(reason);
+        return this;
     }
 
     @Override
@@ -97,7 +99,8 @@ public class TimeoutServerResponse implements Response {
 
     @Override
     public Response endHandler(Handler<Void> endHandler) {
-        return response.endHandler(endHandler);
+        response.endHandler(endHandler);
+        return this;
     }
 
     private void release() {
@@ -116,6 +119,7 @@ public class TimeoutServerResponse implements Response {
 
     @Override
     public Response writeCustomFrame(HttpFrame frame) {
-        return response.writeCustomFrame(frame);
+        response.writeCustomFrame(frame);
+        return this;
     }
 }
