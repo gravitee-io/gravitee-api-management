@@ -26,6 +26,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiProxyEntrypointsVirtualHostComponent } from './virtual-host/api-proxy-entrypoints-virtual-host.component';
 import { ApiProxyEntrypointsContextPathComponent } from './context-path/api-proxy-entrypoints-context-path.component';
@@ -48,6 +49,7 @@ import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-for
     MatTableModule,
     MatCheckboxModule,
     MatAutocompleteModule,
+    MatSnackBarModule,
     GioPermissionModule,
     GioSaveBarModule,
     GioConfirmDialogModule,
