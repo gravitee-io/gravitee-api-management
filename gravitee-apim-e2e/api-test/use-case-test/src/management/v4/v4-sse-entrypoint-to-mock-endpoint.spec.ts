@@ -118,13 +118,16 @@ describeIfJupiter('Gateway V4 - SSE entrypoint to mock endpoint', () => {
       const messages = [];
       await fetchEventSourceGateway({ contextPath: `/${contextPath}` }, (ev) => {
         if (!ev.retry) {
-          messages.push(ev.data);
+          messages.push(ev);
         }
       });
       expect(messages).toHaveLength(3);
-      expect(messages[0]).toBe('e2e test message 0');
-      expect(messages[1]).toBe('e2e test message 1');
-      expect(messages[2]).toBe('e2e test message 2');
+      expect(messages[0].id).toBe('0');
+      expect(messages[0].data).toBe('e2e test message');
+      expect(messages[1].id).toBe('1');
+      expect(messages[1].data).toBe('e2e test message');
+      expect(messages[2].id).toBe('2');
+      expect(messages[2].data).toBe('e2e test message');
     });
 
     afterAll(async () => {
@@ -141,14 +144,18 @@ describeIfJupiter('Gateway V4 - SSE entrypoint to mock endpoint', () => {
       const messages = [];
       await fetchEventSourceGateway({ contextPath: `/${contextPath}` }, (ev) => {
         if (!ev.retry) {
-          messages.push(ev.data);
+          messages.push(ev);
         }
       });
       expect(messages).toHaveLength(4);
-      expect(messages[0]).toBe('e2e test message from group configuration 0');
-      expect(messages[1]).toBe('e2e test message from group configuration 1');
-      expect(messages[2]).toBe('e2e test message from group configuration 2');
-      expect(messages[3]).toBe('e2e test message from group configuration 3');
+      expect(messages[0].id).toBe('0');
+      expect(messages[0].data).toBe('e2e test message from group configuration');
+      expect(messages[1].id).toBe('1');
+      expect(messages[1].data).toBe('e2e test message from group configuration');
+      expect(messages[2].id).toBe('2');
+      expect(messages[2].data).toBe('e2e test message from group configuration');
+      expect(messages[3].id).toBe('3');
+      expect(messages[3].data).toBe('e2e test message from group configuration');
     });
 
     afterAll(async () => {
