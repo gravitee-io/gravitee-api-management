@@ -32,6 +32,7 @@ export async function init(): Promise<GatewayTestData> {
     envId,
     newApiEntity: ApisFaker.newApi({
       endpoint: process.env.API_ENDPOINT_URL,
+      gravitee: '2.0.0',
     }),
   });
   if (api && api.id) {
