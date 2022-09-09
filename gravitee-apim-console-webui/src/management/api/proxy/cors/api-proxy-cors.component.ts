@@ -57,41 +57,44 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
             enabled: false,
           };
 
+          const isReadOnly = api.origin === 'kubernetes';
+          const isCorsDisabled = isReadOnly || !cors.enabled;
+
           this.corsForm = new FormGroup({
             enabled: new FormControl({
               value: cors.enabled,
-              disabled: false,
+              disabled: isReadOnly,
             }),
             allowOrigin: new FormControl(
               {
                 value: cors.allowOrigin ?? [],
-                disabled: !cors.enabled,
+                disabled: isCorsDisabled,
               },
               [CorsUtil.allowOriginValidator()],
             ),
             allowMethods: new FormControl({
               value: cors.allowMethods ?? [],
-              disabled: !cors.enabled,
+              disabled: isCorsDisabled,
             }),
             allowHeaders: new FormControl({
               value: cors.allowHeaders ?? [],
-              disabled: !cors.enabled,
+              disabled: isCorsDisabled,
             }),
             allowCredentials: new FormControl({
               value: cors.allowCredentials ?? false,
-              disabled: !cors.enabled,
+              disabled: isCorsDisabled,
             }),
             maxAge: new FormControl({
               value: cors.maxAge ?? -1,
-              disabled: !cors.enabled,
+              disabled: isCorsDisabled,
             }),
             exposeHeaders: new FormControl({
               value: cors.exposeHeaders ?? [],
-              disabled: !cors.enabled,
+              disabled: isCorsDisabled,
             }),
             runPolicies: new FormControl({
               value: cors.runPolicies ?? false,
-              disabled: !cors.enabled,
+              disabled: isCorsDisabled,
             }),
           });
           this.initialCorsFormValue = this.corsForm.getRawValue();

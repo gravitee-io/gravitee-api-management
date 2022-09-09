@@ -229,6 +229,28 @@ describe('ApiProxyEntrypointsComponent', () => {
     });
   });
 
+  it('should disable field when origin is kubernetes', async () => {
+    const api = fakeApi({
+      id: API_ID,
+      proxy: {
+        cors: {
+          enabled: true,
+        },
+      },
+      origin: 'kubernetes',
+    });
+    expectApiGetRequest(api);
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    expect(await saveBar.isVisible()).toBe(false);
+
+    const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="allowMethods"]' }));
+    expect(await allowMethodsInput.isDisabled()).toEqual(true);
+
+    const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+    expect(await enabledSlideToggle.isDisabled()).toEqual(true);
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
