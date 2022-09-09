@@ -23,6 +23,7 @@ import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { CorsUtil } from '../../../../shared/utils';
 
 @Component({
@@ -45,6 +46,7 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiService,
     private readonly snackBarService: SnackBarService,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   ngOnInit(): void {
@@ -57,7 +59,7 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
             enabled: false,
           };
 
-          const isReadOnly = api.origin === 'kubernetes';
+          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.origin === 'kubernetes';
           const isCorsDisabled = isReadOnly || !cors.enabled;
 
           this.corsForm = new FormGroup({
