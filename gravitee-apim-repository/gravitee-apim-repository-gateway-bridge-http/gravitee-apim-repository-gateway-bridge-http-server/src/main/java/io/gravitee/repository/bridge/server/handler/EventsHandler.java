@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.vertx.core.AsyncResult;
@@ -28,6 +29,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,6 +170,24 @@ public class EventsHandler extends AbstractHandler {
                     }
                 },
                 (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
+            );
+    }
+
+    public void findById(RoutingContext ctx) {
+        final String idParam = ctx.request().getParam("eventId");
+
+        ctx
+            .vertx()
+            .executeBlocking(
+                (Handler<Promise<Optional<Event>>>) promise -> {
+                    try {
+                        promise.complete(eventRepository.findById(idParam));
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to find event by id {}", idParam, ex);
+                        promise.fail(ex);
+                    }
+                },
+                event -> handleResponse(ctx, event)
             );
     }
 

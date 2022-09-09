@@ -36,8 +36,13 @@ import org.springframework.stereotype.Component;
 public class HttpEventRepository extends AbstractRepository implements EventRepository {
 
     @Override
-    public Optional<Event> findById(String s) throws TechnicalException {
-        throw new IllegalStateException();
+    public Optional<Event> findById(String eventId) throws TechnicalException {
+        try {
+            return blockingGet(get("/event" + eventId, BodyCodecs.optional(Event.class)).send()).payload();
+        } catch (TechnicalException te) {
+            // Ensure that an exception is thrown and managed by the caller
+            throw new IllegalStateException(te);
+        }
     }
 
     @Override

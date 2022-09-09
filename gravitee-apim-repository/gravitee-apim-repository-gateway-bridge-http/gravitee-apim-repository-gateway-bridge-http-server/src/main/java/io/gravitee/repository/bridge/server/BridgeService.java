@@ -150,6 +150,7 @@ public class BridgeService extends AbstractService {
             bridgeRouter.post("/events/_searchLatest").handler(eventsHandler::searchLatest);
             bridgeRouter.post("/events").handler(eventsHandler::create);
             bridgeRouter.put("/events/:eventId").handler(eventsHandler::update);
+            bridgeRouter.get("/events/:eventId").handler(eventsHandler::findById);
 
             // Dictionaries handler
             DictionariesHandler dictionariesHandler = new DictionariesHandler();
