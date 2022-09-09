@@ -20,6 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
@@ -30,11 +31,14 @@ import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.schedulers.TestScheduler;
 import io.reactivex.subscribers.TestSubscriber;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -116,11 +120,11 @@ class MockEndpointConnectorTest {
     }
 
     @Test
-    @DisplayName("Should generate messages flow with a limited count of messages")
-    void shouldGenerateLimitedMessagesFlow() throws InterruptedException {
+    @DisplayName("Should generate messages flow with a limited count of messages from the configuration")
+    void shouldGenerateLimitedMessagesFlowFromConfiguration() throws InterruptedException {
         when(request.onMessage(any())).thenReturn(Completable.complete());
 
-        configuration.setMessageCount(5L);
+        configuration.setMessageCount(5);
 
         mockEndpointConnector.connect(ctx).test().assertComplete();
 
@@ -128,5 +132,78 @@ class MockEndpointConnectorTest {
         verify(response).messages(messagesCaptor.capture());
 
         messagesCaptor.getValue().test().await().assertValueCount(5);
+    }
+
+    @Test
+    @DisplayName("Should generate messages flow with a limited count of messages from the client request")
+    void shouldGenerateLimitedMessagesFlowFromClientRequest() throws InterruptedException {
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(3);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID)).thenReturn(null);
+        when(request.onMessage(any())).thenReturn(Completable.complete());
+
+        mockEndpointConnector.connect(ctx).test().assertComplete();
+
+        ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
+        verify(response).messages(messagesCaptor.capture());
+
+        messagesCaptor.getValue().test().await().assertValueCount(3);
+    }
+
+    @ParameterizedTest
+    @CsvSource({ "3,4", "4,2" })
+    @DisplayName("Should generate messages flow with a limited count of messages from the client request and the configuration")
+    void shouldGenerateLimitedMessagesFlowFromClientRequestAndConfiguration(int configurationLimitCount, int ctxLimitCount)
+        throws InterruptedException {
+        configuration.setMessageCount(configurationLimitCount);
+
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(ctxLimitCount);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID)).thenReturn(null);
+        when(request.onMessage(any())).thenReturn(Completable.complete());
+
+        mockEndpointConnector.connect(ctx).test().assertComplete();
+
+        ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
+        verify(response).messages(messagesCaptor.capture());
+
+        messagesCaptor.getValue().test().await().assertValueCount(Math.min(configurationLimitCount, ctxLimitCount));
+    }
+
+    @Test
+    @DisplayName("Should generate messages flow during a specific amount of time requested by the client")
+    void shouldGenerateLimitedInTimeMessagesFlowFromClientRequest() throws InterruptedException {
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(1_000L);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID)).thenReturn(null);
+        when(request.onMessage(any())).thenReturn(Completable.complete());
+
+        mockEndpointConnector.connect(ctx).test().assertComplete();
+
+        ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
+        verify(response).messages(messagesCaptor.capture());
+
+        messagesCaptor.getValue().test().awaitDone(1_500L, TimeUnit.MILLISECONDS).assertComplete();
+    }
+
+    @Test
+    @DisplayName("Should generate messages flow from lastId")
+    void shouldGenerateMessagesFlowFromLastId() {
+        configuration.setMessageCount(2);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID)).thenReturn("1");
+        when(request.onMessage(any())).thenReturn(Completable.complete());
+
+        mockEndpointConnector.connect(ctx).test().assertComplete();
+
+        ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
+        verify(response).messages(messagesCaptor.capture());
+
+        TestSubscriber<Message> messages = messagesCaptor.getValue().test();
+        messages.awaitTerminalEvent();
+        messages.assertValueCount(2);
+        messages.assertValueAt(0, message -> message.id().equals("2"));
+        messages.assertValueAt(1, message -> message.id().equals("3"));
     }
 }
