@@ -15,4 +15,21 @@
     limitations under the License.
 
 -->
-🚧
+<h1>Deployments</h1>
+
+<form *ngIf="deploymentsForm" [formGroup]="deploymentsForm" autocomplete="off" gioFormFocusInvalid>
+  <mat-card>
+    <p>Use sharding tags to control where the API must be deployed.</p>
+
+    <mat-form-field class="deployments-card__form-field" appearance="fill">
+      <mat-label>Sharding tags</mat-label>
+      <mat-select formControlName="tags" multiple>
+        <mat-option *ngFor="let tag of shardingTags" [value]="tag.id"
+          >{{ tag.name }}<span *ngIf="tag.description"> - {{ tag.description }}</span></mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+  </mat-card>
+</form>
+
+<gio-save-bar [form]="deploymentsForm" [formInitialValues]="initialDeploymentsFormValue" (submitted)="onSubmit()"></gio-save-bar>

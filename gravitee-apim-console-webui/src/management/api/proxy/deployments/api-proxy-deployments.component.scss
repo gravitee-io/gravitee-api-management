@@ -3,3 +3,9 @@
 :host {
   @include gio-layout.gio-responsive-content-container;
 }
+
+.deployments-card {
+  &__form-field {
+    width: 100%;
+  }
+}
