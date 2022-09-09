@@ -52,7 +52,7 @@ export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
         tap(([api, shardingTags]) => {
           this.shardingTags = shardingTags;
 
-          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
+          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.origin === 'kubernetes';
 
           this.deploymentsForm = new FormGroup({
             tags: new FormControl({
