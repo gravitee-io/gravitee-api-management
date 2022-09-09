@@ -106,6 +106,22 @@ describe('ApiProxyDeploymentsComponent', () => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags`, method: 'GET' });
   });
 
+  it('should disable field when origin is kubernetes', async () => {
+    const api = fakeApi({
+      id: API_ID,
+      tags: ['tag2'],
+      origin: 'kubernetes',
+    });
+    expectApiGetRequest(api);
+    expectTagGetRequest([fakeTag({ id: 'tag1', name: 'tag1' })]);
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    expect(await saveBar.isVisible()).toBe(false);
+
+    const tagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="tags"]' }));
+    expect(await tagsInput.isDisabled()).toEqual(true);
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
