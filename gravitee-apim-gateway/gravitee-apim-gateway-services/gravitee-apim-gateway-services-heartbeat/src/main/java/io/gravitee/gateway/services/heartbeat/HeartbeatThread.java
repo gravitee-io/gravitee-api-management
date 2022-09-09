@@ -15,11 +15,12 @@
  */
 package io.gravitee.gateway.services.heartbeat;
 
+import static io.gravitee.gateway.services.heartbeat.HeartbeatService.EVENT_LAST_HEARTBEAT_PROPERTY;
 import static io.gravitee.gateway.services.heartbeat.HeartbeatService.EVENT_STATE_PROPERTY;
 
-import com.hazelcast.topic.Message;
-import com.hazelcast.topic.MessageListener;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.node.api.message.Message;
+import io.gravitee.node.api.message.MessageConsumer;
 import io.gravitee.node.api.message.Topic;
 import io.gravitee.repository.management.model.Event;
 import java.util.Date;
@@ -30,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HeartbeatThread implements Runnable, MessageListener<Event> {
+public class HeartbeatThread implements Runnable, MessageConsumer<Event> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatThread.class);
 
@@ -49,7 +50,7 @@ public class HeartbeatThread implements Runnable, MessageListener<Event> {
             synchronized (event) {
                 // Update heartbeat timestamp
                 event.setUpdatedAt(new Date());
-                event.getProperties().put(HeartbeatService.EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(event.getUpdatedAt().getTime()));
+                event.getProperties().put(EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(event.getUpdatedAt().getTime()));
                 topic.publish(event);
                 event.getProperties().remove(EVENT_STATE_PROPERTY);
             }

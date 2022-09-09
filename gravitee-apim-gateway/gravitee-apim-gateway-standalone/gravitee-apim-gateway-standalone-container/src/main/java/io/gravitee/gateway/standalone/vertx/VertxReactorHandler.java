@@ -25,6 +25,7 @@ import io.gravitee.gateway.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.http.vertx.grpc.VertxGrpcServerRequest;
 import io.gravitee.gateway.reactor.Reactor;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpVersion;
 
@@ -37,10 +38,14 @@ public class VertxReactorHandler implements Handler<HttpServerRequest> {
 
     private final Reactor reactor;
     private final IdGenerator idGenerator;
+    private final long requestTimeout;
+    private final Vertx vertx;
 
-    public VertxReactorHandler(final Reactor reactor, IdGenerator idGenerator) {
+    public VertxReactorHandler(final Reactor reactor, IdGenerator idGenerator, final Vertx vertx, long requestTimeout) {
         this.reactor = reactor;
         this.idGenerator = idGenerator;
+        this.vertx = vertx;
+        this.requestTimeout = requestTimeout;
     }
 
     @Override
@@ -61,6 +66,21 @@ public class VertxReactorHandler implements Handler<HttpServerRequest> {
     }
 
     protected void route(final Request request, final Response response) {
-        reactor.route(request, response, __ -> {});
+        if (!request.isWebSocket() && requestTimeout > 0) {
+            long timeoutId = vertx.setTimer(
+                requestTimeout,
+                event -> {
+                    if (!response.ended()) {
+                        io.gravitee.gateway.api.handler.Handler<Long> handler = request.timeoutHandler();
+                        handler.handle(event);
+                    }
+                }
+            );
+
+            // Release timeout when response ends
+            reactor.route(request, new TimeoutServerResponse(vertx, response, timeoutId), __ -> {});
+        } else {
+            reactor.route(request, response, __ -> {});
+        }
     }
 }

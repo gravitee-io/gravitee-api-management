@@ -121,7 +121,7 @@
 
     <gio-table-wrapper
       *ngIf="environmentsTableDS && environmentsRolesFormGroup"
-      [length]="environmentsTableDS.length"
+      [length]="tablesUnpaginatedLength['environmentsTableDS']"
       (filtersChange)="onFiltersChanged('environmentsTableDS', $event)"
     >
       <table
@@ -196,7 +196,7 @@
 
     <gio-table-wrapper
       *ngIf="groupsTableDS && groupsRolesFormGroup"
-      [length]="groupsTableDS.length"
+      [length]="tablesUnpaginatedLength['groupsTableDS']"
       (filtersChange)="onFiltersChanged('groupsTableDS', $event)"
     >
       <table
@@ -293,7 +293,11 @@
     <h2 gioTableOfContents>APIs</h2>
     <p>Here is the list of all APIs of this user.</p>
 
-    <gio-table-wrapper *ngIf="apisTableDS" [length]="apisTableDS.length" (filtersChange)="onFiltersChanged('apisTableDS', $event)">
+    <gio-table-wrapper
+      *ngIf="apisTableDS"
+      [length]="tablesUnpaginatedLength['apisTableDS']"
+      (filtersChange)="onFiltersChanged('apisTableDS', $event)"
+    >
       <table mat-table [dataSource]="apisTableDS" matSort aria-label="APIs table">
         <!-- Name Column -->
         <ng-container matColumnDef="name">
@@ -341,7 +345,7 @@
 
     <gio-table-wrapper
       *ngIf="applicationsTableDS"
-      [length]="applicationsTableDS.length"
+      [length]="tablesUnpaginatedLength['applicationsTableDS']"
       (filtersChange)="onFiltersChanged('applicationsTableDS', $event)"
     >
       <table
@@ -380,7 +384,11 @@
       </button>
     </div>
 
-    <gio-table-wrapper *ngIf="tokensTableDS" [length]="tokensTableDS.length" (filtersChange)="onFiltersChanged('tokensTableDS', $event)">
+    <gio-table-wrapper
+      *ngIf="tokensTableDS"
+      [length]="tablesUnpaginatedLength['tokensTableDS']"
+      (filtersChange)="onFiltersChanged('tokensTableDS', $event)"
+    >
       <table class="org-settings-user-detail__tokens__card__table" mat-table [dataSource]="tokensTableDS" aria-label="Tokens table">
         <!-- Name Column -->
         <ng-container matColumnDef="name">
