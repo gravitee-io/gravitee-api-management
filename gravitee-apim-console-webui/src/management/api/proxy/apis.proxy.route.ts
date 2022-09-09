@@ -106,6 +106,19 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.proxy.ng-deployments', {
+      url: '/ng-deployments',
+      component: 'ngApiProxyDeployments',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['api-definition-r'],
+        },
+        docs: {
+          page: 'management-api-proxy',
+        },
+      },
+    })
     .state('management.apis.detail.proxy.failover', {
       url: '/failover',
       template: require('./backend/failover/apiProxyFailover.html'),
