@@ -5,7 +5,7 @@
   "private": true,
   "devDependencies": {
     "@types/k6": "~0.37.0",
-    "@types/node": "^18.0.6",
+    "@types/node": "16.10.9",
     "@types/webpack": "5.28.0",
     "dotenv": "^16.0.1",
     "fs-extra": "^10.1.0",
