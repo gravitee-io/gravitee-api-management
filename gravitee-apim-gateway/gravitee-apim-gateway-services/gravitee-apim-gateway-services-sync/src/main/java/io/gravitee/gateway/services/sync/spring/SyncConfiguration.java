@@ -15,16 +15,20 @@
  */
 package io.gravitee.gateway.services.sync.spring;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.services.sync.SyncManager;
 import io.gravitee.gateway.services.sync.cache.configuration.LocalCacheConfiguration;
 import io.gravitee.gateway.services.sync.healthcheck.ApiSyncProbe;
 import io.gravitee.gateway.services.sync.synchronizer.*;
+import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cache.CacheManager;
+import io.gravitee.plugin.core.api.PluginRegistry;
 import io.reactivex.annotations.NonNull;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -39,6 +43,18 @@ import org.springframework.context.annotation.Import;
 public class SyncConfiguration {
 
     public static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
+
+    @Autowired
+    private EventManager eventManager;
+
+    @Autowired
+    private Node node;
+
+    @Autowired
+    private PluginRegistry pluginRegistry;
+
+    @Autowired
+    private io.gravitee.node.api.configuration.Configuration configuration;
 
     @Bean
     public SyncManager syncManager() {
@@ -75,7 +91,7 @@ public class SyncConfiguration {
 
     @Bean
     public DebugApiSynchronizer debugApiSynchronizer() {
-        return new DebugApiSynchronizer();
+        return new DebugApiSynchronizer(eventManager, pluginRegistry, configuration, node);
     }
 
     @Bean
