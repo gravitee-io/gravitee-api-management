@@ -29,7 +29,7 @@ public class MockEndpointConnectorConfiguration implements EndpointConnectorConf
     /**
      * Interval between mock messages publication, in milliseconds.
      */
-    private Long messageInterval = 1000L;
+    private Long messageInterval = 1_000L;
 
     /**
      * Content of mocked messages.
@@ -40,5 +40,5 @@ public class MockEndpointConnectorConfiguration implements EndpointConnectorConf
      * Count of published messages.
      * If null, there is no limit.
      */
-    private Long messageCount;
+    private Integer messageCount;
 }

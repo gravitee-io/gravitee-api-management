@@ -18,6 +18,7 @@ package io.gravitee.plugin.endpoint.mock;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
@@ -26,6 +27,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
@@ -50,7 +52,22 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
     public Completable connect(ExecutionContext ctx) {
         return Completable.defer(
             () -> {
-                ctx.response().messages(generateMessageFlow());
+                final Integer messagesLimitCount = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT);
+                final Long messagesLimitDurationMs = ctx.getInternalAttribute(
+                    InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS
+                );
+
+                final String messagesResumeLastId = ctx.getInternalAttribute(
+                    InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID
+                );
+
+                final Integer configurationLimitCount = configuration.getMessageCount();
+
+                final Integer limitCount = configurationLimitCount != null && messagesLimitCount != null
+                    ? Integer.valueOf(Math.min(configurationLimitCount, messagesLimitCount))
+                    : messagesLimitCount != null ? messagesLimitCount : configurationLimitCount;
+
+                ctx.response().messages(generateMessageFlow(limitCount, messagesLimitDurationMs, messagesResumeLastId));
                 return ctx
                     .request()
                     .onMessage(
@@ -63,12 +80,15 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
         );
     }
 
-    private Flowable<Message> generateMessageFlow() {
-        return Flowable
+    private Flowable<Message> generateMessageFlow(Integer messagesLimitCount, Long messagesLimitDurationMs, String lastId) {
+        final long stateInitValue;
+        stateInitValue = getStateInitValue(lastId);
+
+        Flowable<Message> messageFlow = Flowable
             .<Message, Long>generate(
-                () -> 0L,
+                () -> stateInitValue,
                 (state, emitter) -> {
-                    if (configuration.getMessageCount() == null || state < configuration.getMessageCount()) {
+                    if (messagesLimitCount == null || (state - stateInitValue) < messagesLimitCount) {
                         emitter.onNext(new DefaultMessage(configuration.getMessageContent()).id(Long.toString(state)));
                     } else {
                         emitter.onComplete();
@@ -78,5 +98,24 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
             )
             .delay(configuration.getMessageInterval(), TimeUnit.MILLISECONDS)
             .rebatchRequests(1);
+
+        if (messagesLimitDurationMs != null) {
+            messageFlow = messageFlow.take(messagesLimitDurationMs, TimeUnit.MILLISECONDS);
+        }
+
+        return messageFlow;
+    }
+
+    private long getStateInitValue(String lastId) {
+        long stateInitValue = 0L;
+        if (lastId != null) {
+            try {
+                stateInitValue = Long.parseLong(lastId) + 1;
+            } catch (NumberFormatException nfe) {
+                log.warn("Unable to parse lastId: {}. Setting to 0", lastId);
+            }
+        }
+
+        return stateInitValue;
     }
 }
