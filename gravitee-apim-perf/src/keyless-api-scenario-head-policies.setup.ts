@@ -38,52 +38,7 @@ export async function init(): Promise<GatewayTestData> {
     envId,
     newApiEntity: ApisFaker.newApi({
       endpoint: process.env.API_ENDPOINT_URL,
-      flows: [
-        {
-          name: '',
-          path_operator: {
-            path: '/',
-            operator: PathOperatorOperatorEnum.STARTS_WITH,
-          },
-          condition: '',
-          consumers: [],
-          methods: [],
-          pre: [
-            {
-              name: 'Transform Headers',
-              description: '',
-              enabled: true,
-              policy: 'transform-headers',
-              configuration: {
-                addHeaders: [
-                  {
-                    name: 'Header-added-1',
-                    value: 'value',
-                  },
-                  {
-                    name: 'Header-added-2',
-                    value: 'value',
-                  },
-                ],
-                scope: 'REQUEST',
-              },
-            },
-          ],
-          post: [
-            {
-              name: 'Transform Headers',
-              description: '',
-              enabled: true,
-              policy: 'transform-headers',
-              configuration: {
-                scope: 'RESPONSE',
-                removeHeaders: ['Header-added-2'],
-              },
-            },
-          ],
-          enabled: true,
-        },
-      ],
+      gravitee: '2.0.0',
     }),
   });
   if (api && api.id) {
@@ -95,7 +50,55 @@ export async function init(): Promise<GatewayTestData> {
     await apiManagementApiAsApiUser.updateApi({
       orgId,
       envId,
-      updateApiEntity: UpdateApiEntityFromJSON({ ...api }),
+      updateApiEntity: UpdateApiEntityFromJSON({
+        ...api,
+        flows: [
+          {
+            name: '',
+            'path-operator': {
+              path: '/',
+              operator: 'STARTS_WITH',
+            },
+            condition: '',
+            consumers: [],
+            methods: [],
+            pre: [
+              {
+                name: 'Transform Headers',
+                description: '',
+                enabled: true,
+                policy: 'transform-headers',
+                configuration: {
+                  addHeaders: [
+                    {
+                      name: 'header-added-1',
+                      value: 'value-1',
+                    },
+                    {
+                      name: 'header-added-2',
+                      value: 'value-2',
+                    },
+                  ],
+                  scope: 'REQUEST',
+                },
+              },
+            ],
+            post: [
+              {
+                name: 'Transform Headers',
+                description: '',
+                enabled: true,
+                policy: 'transform-headers',
+                configuration: {
+                  scope: 'RESPONSE',
+                  removeHeaders: ['header-added-1'],
+                },
+              },
+            ],
+            enabled: true,
+          },
+        ],
+      }),
       api: api.id,
     });
 

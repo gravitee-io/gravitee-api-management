@@ -26,6 +26,6 @@ export default () => {
   const res = http.get(url);
   check(res, {
     'status is 200': () => res.status === 200,
-    'contains header': () => res.json('headers.Header-added-1') === 'value',
+    'contains header': () => res.json('headers.header-added-1') === 'value-1',
   });
 };
