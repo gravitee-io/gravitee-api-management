@@ -1,4 +1,4 @@
-# API Portal Informations
+# API Portal Information
 
 Add a list of name/value to display in the API aside.
 The name could be used as is, or could be a translated key.
