@@ -13,8 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { StateService } from '@uirouter/core';
+import { flatMap } from 'lodash';
 import { Subject } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
+
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { ApiService } from '../../../../services-ngx/api.service';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+
+export type ResponseTemplatesDS = {
+  key: string;
+  contentType: string;
+  statusCode?: number;
+  body?: string;
+}[];
 
 @Component({
   selector: 'api-proxy-response-templates',
@@ -24,12 +38,56 @@ import { Subject } from 'rxjs';
 export class ApiProxyResponseTemplatesComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  constructor() {}
+  public responseTemplateTableDisplayedColumns = ['key', 'contentType', 'statusCode', 'body', 'actions'];
+  public responseTemplateTableData: ResponseTemplatesDS = [];
+  public isReadOnly = false;
+  public apiId: string;
 
-  ngOnInit(): void {}
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly apiService: ApiService,
+    private readonly permissionService: GioPermissionService,
+  ) {}
+
+  ngOnInit(): void {
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((api) => {
+          this.apiId = api.id;
+          this.responseTemplateTableData = flatMap(Object.entries(api.response_templates), ([key, responseTemplates]) => {
+            return [
+              ...Object.entries(responseTemplates).map(([contentType, responseTemplate]) => ({
+                key: key,
+                contentType,
+                statusCode: responseTemplate.status,
+                body: responseTemplate.body,
+              })),
+            ];
+          });
+
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-response_templates-u']);
+        }),
+      )
+      .subscribe();
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  onAddResponseTemplateClicked() {
+    this.ajsState.go('management.apis.detail.proxy.responsetemplates.new', { apiId: this.apiId });
+  }
+
+  onEditResponseTemplateClicked(element: ResponseTemplatesDS[number]) {
+    this.ajsState.go('management.apis.detail.proxy.responsetemplates.edit', { apiId: this.apiId, key: element.key });
+  }
+
+  onDeleteResponseTemplateClicked() {
+    // TODO in next commit
   }
 }

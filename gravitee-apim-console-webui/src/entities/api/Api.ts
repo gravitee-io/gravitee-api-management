@@ -53,7 +53,7 @@ export interface Api {
   picture_url?: string;
   resources?: ApiResource[];
   path_mappings?: string[];
-  response_templates?: Record<string, unknown>;
+  response_templates?: Record<string, Record<string, ApiResponseTemplate>>;
   lifecycle_state?: ApiLifecycleState;
   workflow_state?: ApiWorkflowState;
   disable_membership_notifications?: boolean;
@@ -132,4 +132,10 @@ export interface ApiStateEntity {
 export interface ApiQualityMetrics {
   score: number;
   metricsPassed: Record<string, boolean>;
+}
+
+export interface ApiResponseTemplate {
+  body?: string;
+  headers?: Record<string, string>;
+  status?: number;
 }
