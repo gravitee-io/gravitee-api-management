@@ -52,7 +52,7 @@ public class DebugApiSynchronizer extends AbstractSynchronizer {
 
         this.isDebugModeAvailable =
             pluginRegistry.plugins().stream().map(Plugin::id).anyMatch("gateway-debug"::equalsIgnoreCase) &&
-            configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class);
+            configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true);
     }
 
     @Override
