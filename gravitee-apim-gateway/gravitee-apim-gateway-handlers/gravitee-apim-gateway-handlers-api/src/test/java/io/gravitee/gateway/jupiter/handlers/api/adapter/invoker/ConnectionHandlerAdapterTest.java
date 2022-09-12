@@ -15,12 +15,11 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.adapter.invoker;
 
-import static io.gravitee.common.http.HttpStatusCode.BAD_GATEWAY_502;
 import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.HttpHeaders;
@@ -42,6 +41,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockSettings;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -52,12 +52,13 @@ class ConnectionHandlerAdapterTest {
 
     protected static final String MOCK_EXCEPTION_MESSAGE = "Mock exception";
     protected static final HttpHeaders MOCK_HTTP_HEADERS = HttpHeaders.create().add("X-Test1", "X-Value1").add("X-Test2", "X-Value2");
+    protected static final HttpHeaders MOCK_HTTP_TRAILERS = HttpHeaders.create().add("X-Test3", "X-Value3").add("X-Test4", "X-Value4");
 
     @Mock
     private HttpExecutionContext ctx;
 
     @Mock
-    private CompletableEmitter nexEmitter;
+    private CompletableEmitter nextEmitter;
 
     @Mock
     private ProxyConnection proxyConnection;
@@ -68,14 +69,20 @@ class ConnectionHandlerAdapterTest {
     @Mock
     private HttpResponse response;
 
+    @Mock
+    private FlowableProxyResponse flowableProxyResponse;
+
     @Captor
     private ArgumentCaptor<Handler<ProxyResponse>> handlerCaptor;
+
+    @Captor
+    private ArgumentCaptor<Runnable> runnableCaptor;
 
     private ConnectionHandlerAdapter cut;
 
     @BeforeEach
     public void init() {
-        cut = new ConnectionHandlerAdapter(ctx, nexEmitter);
+        cut = new ConnectionHandlerAdapter(ctx, nextEmitter);
     }
 
     @Test
@@ -97,8 +104,37 @@ class ConnectionHandlerAdapterTest {
         proxyResponseHandler.handle(proxyResponse);
 
         verify(response).status(200);
-        verify(nexEmitter).onComplete();
+        verify(nextEmitter).onComplete();
         assertTrue(responseHeaders.deeplyEquals(MOCK_HTTP_HEADERS));
+    }
+
+    @Test
+    public void shouldSetResponseTrailers() {
+        ReflectionTestUtils.setField(cut, "chunks", flowableProxyResponse);
+
+        final HttpHeaders responseTrailers = HttpHeaders.create();
+
+        cut.handle(proxyConnection);
+
+        verify(proxyConnection).responseHandler(handlerCaptor.capture());
+
+        when(ctx.response()).thenReturn(response);
+        when(response.trailers()).thenReturn(responseTrailers);
+        when(response.headers()).thenReturn(HttpHeaders.create());
+        when(response.ended()).thenReturn(false);
+        when(proxyResponse.connected()).thenReturn(true);
+        when(proxyResponse.headers()).thenReturn(MOCK_HTTP_HEADERS);
+        when(proxyResponse.trailers()).thenReturn(MOCK_HTTP_TRAILERS);
+
+        when(flowableProxyResponse.initialize(ctx, proxyConnection, proxyResponse)).thenReturn(flowableProxyResponse);
+
+        final Handler<ProxyResponse> proxyResponseHandler = handlerCaptor.getValue();
+        proxyResponseHandler.handle(proxyResponse);
+
+        verify(flowableProxyResponse).doOnComplete(runnableCaptor.capture());
+        runnableCaptor.getValue().run();
+
+        assertTrue(responseTrailers.deeplyEquals(MOCK_HTTP_TRAILERS));
     }
 
     @Test
@@ -118,7 +154,7 @@ class ConnectionHandlerAdapterTest {
 
         final ArgumentCaptor<InterruptionFailureException> exceptionCaptor = ArgumentCaptor.forClass(InterruptionFailureException.class);
 
-        verify(nexEmitter).tryOnError(exceptionCaptor.capture());
+        verify(nextEmitter).tryOnError(exceptionCaptor.capture());
 
         final ExecutionFailure executionFailure = exceptionCaptor.getValue().getExecutionFailure();
         assertEquals(SERVICE_UNAVAILABLE_503, executionFailure.statusCode());
@@ -151,7 +187,7 @@ class ConnectionHandlerAdapterTest {
 
         final ArgumentCaptor<InterruptionFailureException> exceptionCaptor = ArgumentCaptor.forClass(InterruptionFailureException.class);
 
-        verify(nexEmitter).tryOnError(exceptionCaptor.capture());
+        verify(nextEmitter).tryOnError(exceptionCaptor.capture());
 
         final ExecutionFailure executionFailure = exceptionCaptor.getValue().getExecutionFailure();
         assertEquals(SERVICE_UNAVAILABLE_503, executionFailure.statusCode());
@@ -178,7 +214,7 @@ class ConnectionHandlerAdapterTest {
 
         verify(response, times(0)).status(anyInt());
         assertTrue(responseHeaders.isEmpty());
-        verify(nexEmitter).onComplete();
+        verify(nextEmitter).onComplete();
     }
 
     @Test
@@ -195,6 +231,6 @@ class ConnectionHandlerAdapterTest {
         final Handler<ProxyResponse> proxyResponseHandler = handlerCaptor.getValue();
         proxyResponseHandler.handle(proxyResponse);
 
-        verify(nexEmitter).tryOnError(argThat(t -> t.getMessage().equals(MOCK_EXCEPTION_MESSAGE)));
+        verify(nextEmitter).tryOnError(argThat(t -> t.getMessage().equals(MOCK_EXCEPTION_MESSAGE)));
     }
 }
