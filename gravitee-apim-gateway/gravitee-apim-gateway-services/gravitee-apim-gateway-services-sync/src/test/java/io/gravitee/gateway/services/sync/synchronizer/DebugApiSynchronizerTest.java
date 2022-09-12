@@ -76,7 +76,7 @@ public class DebugApiSynchronizerTest extends TestCase {
         Plugin debugPlugin = mock(Plugin.class);
         when(debugPlugin.id()).thenReturn("gateway-debug");
         when(pluginRegistry.plugins()).thenReturn((Collection) List.of(debugPlugin));
-        when(configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class)).thenReturn(true);
+        when(configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true)).thenReturn(true);
 
         debugApiSynchronizer = new DebugApiSynchronizer(eventManager, pluginRegistry, configuration, node);
         debugApiSynchronizer.eventRepository = eventRepository;
@@ -118,7 +118,7 @@ public class DebugApiSynchronizerTest extends TestCase {
 
     @Test
     public void shouldNotSyncIfDebugModeServiceIsDisabled() {
-        when(configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class)).thenReturn(false);
+        when(configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true)).thenReturn(false);
         debugApiSynchronizer = new DebugApiSynchronizer(eventManager, pluginRegistry, configuration, node);
 
         debugApiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
