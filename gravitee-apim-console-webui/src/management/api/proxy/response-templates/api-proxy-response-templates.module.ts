@@ -23,14 +23,14 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
-import { ApiProxyResponseTemplatesComponent } from './api-proxy-response-templates.component';
+import { ApiProxyResponseTemplatesListComponent } from './list/api-proxy-response-templates-list.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-
+import { ApiProxyResponseTemplatesEditComponent } from './edit/api-proxy-response-templates-edit.component';
 
 @NgModule({
-  declarations: [ApiProxyResponseTemplatesComponent],
-  exports: [ApiProxyResponseTemplatesComponent],
+  declarations: [ApiProxyResponseTemplatesListComponent, ApiProxyResponseTemplatesEditComponent],
+  exports: [ApiProxyResponseTemplatesListComponent, ApiProxyResponseTemplatesEditComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,

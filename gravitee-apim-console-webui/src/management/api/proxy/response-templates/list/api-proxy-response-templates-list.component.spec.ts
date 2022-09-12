@@ -22,21 +22,20 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
-import { ApiProxyResponseTemplatesModule } from './api-proxy-response-templates.module';
-import { ApiProxyResponseTemplatesComponent } from './api-proxy-response-templates.component';
+import { ApiProxyResponseTemplatesModule } from '../api-proxy-response-templates.module';
+import { ApiProxyResponseTemplatesListComponent } from './api-proxy-response-templates-list.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
-import { UIRouterStateParams, CurrentUserService, UIRouterState } from '../../../../ajs-upgraded-providers';
-import { User } from '../../../../entities/user';
-import { Api } from '../../../../entities/api';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { fakeApi } from '../../../../../entities/api/Api.fixture';
+import { UIRouterStateParams, CurrentUserService, UIRouterState } from '../../../../../ajs-upgraded-providers';
+import { User } from '../../../../../entities/user';
+import { Api } from '../../../../../entities/api';
 
-
-describe('ApiProxyResponseTemplatesComponent', () => {
+describe('ApiProxyResponseTemplatesListComponent', () => {
   const API_ID = 'apiId';
   const fakeUiRouter = { go: jest.fn() };
 
-  let fixture: ComponentFixture<ApiProxyResponseTemplatesComponent>;
+  let fixture: ComponentFixture<ApiProxyResponseTemplatesListComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
@@ -55,7 +54,7 @@ describe('ApiProxyResponseTemplatesComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiProxyResponseTemplatesComponent);
+    fixture = TestBed.createComponent(ApiProxyResponseTemplatesListComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -78,7 +77,7 @@ describe('ApiProxyResponseTemplatesComponent', () => {
 
       await loader.getHarness(MatButtonHarness.with({ text: /Add new Response Template/ })).then((button) => button.click());
 
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.responsetemplates.new', { apiId: 'apiId' });
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.ng-responsetemplate-edit', { apiId: 'apiId', key: '' });
     });
   });
 
@@ -117,7 +116,7 @@ describe('ApiProxyResponseTemplatesComponent', () => {
       );
       await vhTableFirstRowHostInput.click();
 
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.responsetemplates.edit', { apiId: 'apiId', key: 'DEFAULT' });
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.ng-responsetemplate-edit', { apiId: 'apiId', key: 'DEFAULT' });
     });
   });
 

@@ -19,9 +19,9 @@ import { flatMap } from 'lodash';
 import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { ApiService } from '../../../../services-ngx/api.service';
-import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { ApiService } from '../../../../../services-ngx/api.service';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 export type ResponseTemplatesDS = {
   key: string;
@@ -31,11 +31,11 @@ export type ResponseTemplatesDS = {
 }[];
 
 @Component({
-  selector: 'api-proxy-response-templates',
-  template: require('./api-proxy-response-templates.component.html'),
-  styles: [require('./api-proxy-response-templates.component.scss')],
+  selector: 'api-proxy-response-templates-list',
+  template: require('./api-proxy-response-templates-list.component.html'),
+  styles: [require('./api-proxy-response-templates-list.component.scss')],
 })
-export class ApiProxyResponseTemplatesComponent implements OnInit, OnDestroy {
+export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public responseTemplateTableDisplayedColumns = ['key', 'contentType', 'statusCode', 'body', 'actions'];
@@ -80,11 +80,11 @@ export class ApiProxyResponseTemplatesComponent implements OnInit, OnDestroy {
   }
 
   onAddResponseTemplateClicked() {
-    this.ajsState.go('management.apis.detail.proxy.responsetemplates.new', { apiId: this.apiId });
+    this.ajsState.go('management.apis.detail.proxy.ng-responsetemplate-edit', { apiId: this.apiId, key: '' });
   }
 
   onEditResponseTemplateClicked(element: ResponseTemplatesDS[number]) {
-    this.ajsState.go('management.apis.detail.proxy.responsetemplates.edit', { apiId: this.apiId, key: element.key });
+    this.ajsState.go('management.apis.detail.proxy.ng-responsetemplate-edit', { apiId: this.apiId, key: element.key });
   }
 
   onDeleteResponseTemplateClicked() {

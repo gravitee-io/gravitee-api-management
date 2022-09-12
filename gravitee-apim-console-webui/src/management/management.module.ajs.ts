@@ -550,7 +550,8 @@ import { ApiProxyEntrypointsContextPathComponent } from './api/proxy/entrypoints
 import { ApiProxyEntrypointsVirtualHostComponent } from './api/proxy/entrypoints/virtual-host/api-proxy-entrypoints-virtual-host.component';
 import { ApiProxyCorsComponent } from './api/proxy/cors/api-proxy-cors.component';
 import { ApiProxyDeploymentsComponent } from './api/proxy/deployments/api-proxy-deployments.component';
-import { ApiProxyResponseTemplatesComponent } from './api/proxy/response-templates/api-proxy-response-templates.component';
+import { ApiProxyResponseTemplatesListComponent } from './api/proxy/response-templates/list/api-proxy-response-templates-list.component';
+import { ApiProxyResponseTemplatesEditComponent } from './api/proxy/response-templates/edit/api-proxy-response-templates-edit.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -685,7 +686,14 @@ graviteeManagementModule.directive(
 );
 graviteeManagementModule.directive('ngApiProxyCors', downgradeComponent({ component: ApiProxyCorsComponent }));
 graviteeManagementModule.directive('ngApiProxyDeployments', downgradeComponent({ component: ApiProxyDeploymentsComponent }));
-graviteeManagementModule.directive('ngApiProxyResponseTemplates', downgradeComponent({ component: ApiProxyResponseTemplatesComponent }));
+graviteeManagementModule.directive(
+  'ngApiProxyResponseTemplatesList',
+  downgradeComponent({ component: ApiProxyResponseTemplatesListComponent }),
+);
+graviteeManagementModule.directive(
+  'ngApiProxyResponseTemplatesEdit',
+  downgradeComponent({ component: ApiProxyResponseTemplatesEditComponent }),
+);
 
 // Pendo Analytics
 graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPendoService));
