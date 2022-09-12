@@ -15,9 +15,9 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.adapter.invoker;
 
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
@@ -94,7 +94,17 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
             proxyResponse.headers().forEach(entry -> ctx.response().headers().add(entry.getKey(), entry.getValue()));
 
             // Keep a reference on the proxy response to be able to resume it when a subscription will occur on the Flowable<Buffer> chunks.
-            chunks.initialize(ctx, connection, proxyResponse);
+            chunks
+                .initialize(ctx, connection, proxyResponse)
+                .doOnComplete(
+                    (Runnable) () -> {
+                        // Capture invoker trailers and copy them to the response.
+                        final HttpHeaders trailers = proxyResponse.trailers();
+                        if (trailers != null && !trailers.isEmpty()) {
+                            trailers.forEach((entry -> ctx.response().trailers().add(entry.getKey(), entry.getValue())));
+                        }
+                    }
+                );
         } else {
             tryCancel(proxyResponse);
         }

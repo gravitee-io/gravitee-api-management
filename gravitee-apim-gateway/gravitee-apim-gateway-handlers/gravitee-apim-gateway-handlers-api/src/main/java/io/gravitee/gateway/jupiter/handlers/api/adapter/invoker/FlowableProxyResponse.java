@@ -41,14 +41,22 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
 
     private Subscription subscription;
     private Subscriber<? super Buffer> subscriber;
+    private Runnable onComplete;
 
-    public void initialize(HttpExecutionContext ctx, ProxyConnection connection, ProxyResponse proxyResponse) {
+    public FlowableProxyResponse initialize(HttpExecutionContext ctx, ProxyConnection connection, ProxyResponse proxyResponse) {
         this.ctx = ctx;
         this.connection = connection;
         this.proxyResponse = proxyResponse;
 
         // Always start by pausing the response.
         pauseProxyResponse();
+
+        return this;
+    }
+
+    public FlowableProxyResponse doOnComplete(Runnable onComplete) {
+        this.onComplete = onComplete;
+        return this;
     }
 
     private void release() {
@@ -105,6 +113,9 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
 
     private void handleEnd() {
         release();
+        if (onComplete != null) {
+            onComplete.run();
+        }
         subscriber.onComplete();
     }
 

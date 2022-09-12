@@ -131,6 +131,20 @@ class FlowableProxyResponseTest {
     }
 
     @Test
+    public void shouldCompleteAndCallOnComplete() {
+        Runnable onComplete = mock(Runnable.class);
+        cut.doOnComplete(onComplete);
+
+        final TestSubscriber<Buffer> obs = cut.test();
+        verify(proxyResponse).endHandler(endHandlerCaptor.capture());
+        endHandlerCaptor.getValue().handle(null);
+
+        obs.assertComplete();
+        verify(onComplete).run();
+        verifyNoMoreInteractions(onComplete);
+    }
+
+    @Test
     public void shouldCompleteReceiveProxyResponseWithBackPressure() {
         final AtomicInteger chunkCount = new AtomicInteger(0);
 
