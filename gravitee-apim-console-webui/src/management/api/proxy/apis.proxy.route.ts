@@ -287,6 +287,19 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.proxy.ng-responsetemplates.list', {
+      url: '/ng-responsetemplates',
+      component: 'ngApiProxyResponseTemplates',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['api-response_templates-r'],
+        },
+        docs: {
+          page: 'management-api-proxy-response-templates',
+        },
+      },
+    })
     .state('management.apis.detail.proxy.responsetemplates', {
       url: '/responsetemplates',
       abstract: true,

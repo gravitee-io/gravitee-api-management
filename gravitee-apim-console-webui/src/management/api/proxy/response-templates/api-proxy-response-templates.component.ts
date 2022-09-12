@@ -13,15 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
 
-import { NgModule } from '@angular/core';
-
-import { ApiProxyCorsModule } from './cors/api-proxy-cors.module';
-import { ApiProxyDeploymentsModule } from './deployments/api-proxy-deployments.module';
-import { ApiProxyEntrypointsModule } from './entrypoints/api-proxy-entrypoints.module';
-import { ApiProxyResponseTemplatesModule } from './response-templates/api-proxy-response-templates.module';
-
-@NgModule({
-  imports: [ApiProxyEntrypointsModule, ApiProxyCorsModule, ApiProxyDeploymentsModule, ApiProxyResponseTemplatesModule],
+@Component({
+  selector: 'api-proxy-response-templates',
+  template: require('./api-proxy-response-templates.component.html'),
+  styles: [require('./api-proxy-response-templates.component.scss')],
 })
-export class ApiProxyModule {}
+export class ApiProxyResponseTemplatesComponent implements OnInit, OnDestroy {
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  constructor() {}
+
+  ngOnInit(): void {}
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+}
