@@ -15,11 +15,15 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.adapter.invoker;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
+import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.reactivex.CompletableEmitter;
 import io.reactivex.Flowable;
 
@@ -69,27 +73,50 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
 
     private void handleProxyResponse(ProxyConnection connection, ProxyResponse proxyResponse) {
         try {
-            // In case of connectivity error, a 502 error may already have been returned to the client and the response is complete.
-            if (!ctx.response().ended()) {
-                // Set the response status and reason with the ones coming from the invoker.
-                ctx.response().status(proxyResponse.status());
-                ctx.response().reason(proxyResponse.reason());
-
-                // Capture invoker headers and copy them to the response.
-                proxyResponse.headers().forEach(entry -> ctx.response().headers().add(entry.getKey(), entry.getValue()));
-
-                if (proxyResponse.connected()) {
-                    // Keep a reference on the proxy response to be able to resume it when a subscription will occur on the Flowable<Buffer> chunks.
-                    chunks.initialize(ctx, connection, proxyResponse);
-                }
+            if (proxyResponse.connected()) {
+                handleResponse(connection, proxyResponse);
             } else {
-                tryCancel(proxyResponse);
+                handleConnectionError(proxyResponse);
             }
-
-            nextEmitter.onComplete();
         } catch (Throwable t) {
             nextEmitter.tryOnError(t);
         }
+    }
+
+    private void handleResponse(ProxyConnection connection, ProxyResponse proxyResponse) {
+        // In case of connectivity error, a 502 error may already have been returned to the client and the response is complete.
+        if (!ctx.response().ended()) {
+            // Set the response status and reason with the ones coming from the invoker.
+            ctx.response().status(proxyResponse.status());
+            ctx.response().reason(proxyResponse.reason());
+
+            // Capture invoker headers and copy them to the response.
+            proxyResponse.headers().forEach(entry -> ctx.response().headers().add(entry.getKey(), entry.getValue()));
+
+            // Keep a reference on the proxy response to be able to resume it when a subscription will occur on the Flowable<Buffer> chunks.
+            chunks.initialize(ctx, connection, proxyResponse);
+        } else {
+            tryCancel(proxyResponse);
+        }
+
+        nextEmitter.onComplete();
+    }
+
+    private void handleConnectionError(ProxyResponse proxyResponse) {
+        if (proxyResponse instanceof ProcessorFailure) {
+            final ProcessorFailure failureResponse = (ProcessorFailure) proxyResponse;
+            nextEmitter.tryOnError(new InterruptionFailureException(toExecutionFailure(failureResponse)));
+        } else {
+            nextEmitter.tryOnError(new InterruptionFailureException(new ExecutionFailure(proxyResponse.status())));
+        }
+    }
+
+    private ExecutionFailure toExecutionFailure(ProcessorFailure failureResponse) {
+        return new ExecutionFailure(failureResponse.statusCode())
+            .key(failureResponse.key())
+            .message(failureResponse.message())
+            .contentType(failureResponse.contentType())
+            .parameters(failureResponse.parameters());
     }
 
     private void tryCancel(ProxyResponse proxyResponse) {

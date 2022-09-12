@@ -25,6 +25,7 @@ import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
+import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
@@ -43,7 +44,8 @@ import org.slf4j.LoggerFactory;
  */
 public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker {
 
-    private final Logger log = LoggerFactory.getLogger(InvokerAdapter.class);
+    private static final Logger log = LoggerFactory.getLogger(InvokerAdapter.class);
+    static final String GATEWAY_CLIENT_CONNECTION_ERROR = "GATEWAY_CLIENT_CONNECTION_ERROR";
 
     private final io.gravitee.gateway.api.Invoker legacyInvoker;
     private final String id;
@@ -80,7 +82,7 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
 
                     try {
                         // Invoke to make the connection happen.
-                        legacyInvoker.invoke(adaptedCtx, streamAdapter, connectionHandlerAdapter);
+                        invoke(adaptedCtx, streamAdapter, connectionHandlerAdapter);
                     } catch (Throwable t) {
                         nextEmitter.tryOnError(new Exception("An error occurred while trying to execute invoker " + id, t));
                     }
@@ -89,10 +91,15 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
             .doFinally(adaptedCtx::restore)
             .onErrorResumeNext(
                 throwable -> {
-                    log.error("An error occurred when invoking the backend.", throwable);
                     // In case of any error, make sure to reset the response content.
                     ctx.response().chunks(Flowable.empty());
-                    return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502));
+
+                    if (throwable instanceof InterruptionFailureException) {
+                        return ctx.interruptWith(((InterruptionFailureException) throwable).getExecutionFailure());
+                    } else {
+                        log.error("An error occurred when invoking the backend.", throwable);
+                        return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key(GATEWAY_CLIENT_CONNECTION_ERROR));
+                    }
                 }
             );
     }

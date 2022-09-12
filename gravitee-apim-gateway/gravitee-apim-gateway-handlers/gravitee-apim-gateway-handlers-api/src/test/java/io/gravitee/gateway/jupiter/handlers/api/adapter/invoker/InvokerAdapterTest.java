@@ -15,8 +15,9 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.adapter.invoker;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static io.gravitee.common.http.HttpStatusCode.INTERNAL_SERVER_ERROR_500;
+import static io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter.GATEWAY_CLIENT_CONNECTION_ERROR;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -40,8 +41,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.commons.function.Try;
 import org.junit.platform.commons.util.ReflectionUtils;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -72,7 +75,7 @@ class InvokerAdapterTest {
     }
 
     @Test
-    public void shouldCompleteAndSetChunkedBody() {
+    void shouldCompleteAndSetChunkedBody() {
         when(ctx.response()).thenReturn(response);
 
         // Simulate the ConnectionHandlerAdapter behavior by completing the nextEmitter (this will complete the InvokerAdapter execution).
@@ -87,7 +90,15 @@ class InvokerAdapterTest {
     }
 
     @Test
-    public void shouldErrorWhenExceptionOccurs() {
+    void shouldGetIdFromInvokerClassName() {
+        final String id = cut.getId();
+
+        assertNotNull(id);
+        assertTrue(id.startsWith("invoker"));
+    }
+
+    @Test
+    void shouldInterruptWith502WhenExceptionOccurs() {
         when(ctx.response()).thenReturn(response);
         when(ctx.interruptWith(any(ExecutionFailure.class)))
             .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
@@ -102,6 +113,7 @@ class InvokerAdapterTest {
             e -> {
                 assertTrue(e instanceof InterruptionFailureException);
                 assertEquals(HttpStatusCode.BAD_GATEWAY_502, ((InterruptionFailureException) e).getExecutionFailure().statusCode());
+                assertEquals(GATEWAY_CLIENT_CONNECTION_ERROR, ((InterruptionFailureException) e).getExecutionFailure().key());
                 return true;
             }
         );
@@ -109,7 +121,53 @@ class InvokerAdapterTest {
     }
 
     @Test
-    public void shouldRestoreContextWhenInvokerExecutionCompleted() {
+    void shouldInterruptAndPropagateFailureWhenInterruptionFailureExceptionOccurs() {
+        when(ctx.response()).thenReturn(response);
+        when(ctx.interruptWith(any(ExecutionFailure.class)))
+            .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
+
+        final String failureContentType = "text/plain";
+        final String failureKey = "INTERNAL_ERROR";
+
+        final InterruptionFailureException interruptionFailureException = new InterruptionFailureException(
+            new ExecutionFailure(INTERNAL_SERVER_ERROR_500).contentType(failureContentType).message(MOCK_EXCEPTION_MESSAGE).key(failureKey)
+        );
+
+        final ArgumentCaptor<ConnectionHandlerAdapter> connectionHandlerAdapterCaptor = ArgumentCaptor.forClass(
+            ConnectionHandlerAdapter.class
+        );
+
+        doNothing()
+            .when(invoker)
+            .invoke(
+                any(io.gravitee.gateway.api.ExecutionContext.class),
+                any(ReadWriteStream.class),
+                connectionHandlerAdapterCaptor.capture()
+            );
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test();
+
+        // Simulate an InterruptionFailureException from the connection handler.
+        final ConnectionHandlerAdapter connectionHandlerAdapter = connectionHandlerAdapterCaptor.getValue();
+        final CompletableEmitter nextEmitter = (CompletableEmitter) ReflectionTestUtils.getField(connectionHandlerAdapter, "nextEmitter");
+        nextEmitter.tryOnError(interruptionFailureException);
+
+        obs.assertError(
+            e -> {
+                assertTrue(e instanceof InterruptionFailureException);
+                final ExecutionFailure executionFailure = ((InterruptionFailureException) e).getExecutionFailure();
+                assertEquals(INTERNAL_SERVER_ERROR_500, executionFailure.statusCode());
+                assertEquals(failureKey, executionFailure.key());
+                assertEquals(failureContentType, executionFailure.contentType());
+                assertEquals(MOCK_EXCEPTION_MESSAGE, executionFailure.message());
+                return true;
+            }
+        );
+        verify(response).chunks(Flowable.empty());
+    }
+
+    @Test
+    void shouldRestoreContextWhenInvokerExecutionCompleted() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
@@ -129,7 +187,7 @@ class InvokerAdapterTest {
     }
 
     @Test
-    public void shouldRestoreContextWhenInvokerExecutionCancelled() {
+    void shouldRestoreContextWhenInvokerExecutionCancelled() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
@@ -145,7 +203,7 @@ class InvokerAdapterTest {
     }
 
     @Test
-    public void shouldRestoreContextWhenInvokerExecutionError() {
+    void shouldRestoreContextWhenInvokerExecutionError() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
