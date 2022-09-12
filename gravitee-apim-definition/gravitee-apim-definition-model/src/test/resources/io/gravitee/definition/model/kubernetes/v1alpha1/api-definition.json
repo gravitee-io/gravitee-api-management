@@ -11,6 +11,20 @@
   "createdAt": 1661848370924,
   "resources": [],
   "properties": [],
+  "picture": "L1VzZXJzL2Fjb3JkaWVyL0Rvd25sb2Fkcy9BdmF0YXItUHJvZmlsZS5wbmcK",
+  "apiMedia": [
+    {
+      "id": "7b5c71f5-5a83-4e59-9c71-f55a83be5945",
+      "hash": "573BBD2EC55AA637D539C3D0D18A25C6",
+      "type": "image",
+      "subType": "png",
+      "fileName": "Avatar-Profile.png",
+      "createAt": 1662974642783,
+      "size": 25721,
+      "data": "iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AABkQElEQVR42ux9B3hUVfr+uO7",
+      "mimeType": "image/png"
+    }
+  ],
   "members": [
     {
       "source": "memory",
@@ -36,7 +50,8 @@
       "excludedAccessControls": false,
       "accessControls": [],
       "api": "f8216fd9-92e0-4008-a16f-d992e0e00860",
-      "attached_media": []
+      "attached_media": [],
+      "published_at": 1662559764415
     }
   ],
   "plans": [
