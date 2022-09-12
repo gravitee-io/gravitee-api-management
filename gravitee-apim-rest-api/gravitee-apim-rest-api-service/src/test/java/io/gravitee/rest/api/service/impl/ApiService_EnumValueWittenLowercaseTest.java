@@ -148,6 +148,7 @@ public class ApiService_EnumValueWittenLowercaseTest {
             "  \"description\" : \"Gravitee.io\",\n" +
             "  \"visibility\" : \"PUBLIC\",\n" +
             "  \"paths\" : { },\n" +
+            "  \"gravitee\" : \"1.0.0\",\n" +
             "  \"resources\" : [ ],\n" +
             "  \"path_mappings\" : [ ]\n" +
             "}";

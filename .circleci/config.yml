@@ -534,7 +534,7 @@ jobs:
             - run:
                   name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -s .gravitee.settings.xml   -DaltDeploymentRepository=${ALT_DEPLOYMENT_REPOSITORY}
+                      mvn deploy --no-transfer-progress -Dmaven.test.skip=true -DskipTests -Dskip.validation=true -T 2C -s .gravitee.settings.xml   -DaltDeploymentRepository=${ALT_DEPLOYMENT_REPOSITORY} -U
             - notify-on-failure
             - save-maven-job-cache:
                   jobName: publish-on-artifactory
@@ -552,7 +552,7 @@ jobs:
             - run:
                   name: "Maven Package and deploy to Nexus Snapshots"
                   command: |
-                      mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -s .gravitee.settings.xml
+                      mvn deploy --no-transfer-progress -Dmaven.test.skip=true -DskipTests -Dskip.validation=true -T 2C -s .gravitee.settings.xml -U
             - notify-on-failure
             - save-maven-job-cache:
                   jobName: publish-on-nexus
@@ -1003,7 +1003,7 @@ jobs:
                                       "type": "section",
                                       "text": {
                                         "type": "mrkdwn",
-                                        "text": "🚀 Starting << pipeline.parameters.graviteeio_version >> release"
+                                        "text": "🚀 Starting APIM << pipeline.parameters.graviteeio_version >> release"
                                       }
                                     }
                                   ]
@@ -1216,7 +1216,7 @@ jobs:
             - run:
                   name: Release on Nexus
                   command: |
-                      mvn clean deploy --activate-profiles gravitee-release --batch-mode -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
+                      mvn clean deploy --activate-profiles gravitee-release --batch-mode -Dmaven.test.skip=true -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
             - save-maven-job-cache:
                   jobName: nexus-staging
             - keeper/env-export:

@@ -40,6 +40,7 @@ import {
 export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['id', 'name', 'description', 'actions'];
   tenantsDataSource: MatTableDataSource<Tenant> = new MatTableDataSource([]);
+  tenantsTableUnpaginatedLength = 0;
 
   private unsubscribe$ = new Subject<boolean>();
   private tenants: Tenant[] = [];
@@ -54,6 +55,7 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
     this.tenantService.list().subscribe((tenants) => {
       this.tenants = tenants;
       this.tenantsDataSource.data = tenants;
+      this.tenantsTableUnpaginatedLength = tenants.length;
     });
   }
 
@@ -135,6 +137,8 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
-    this.tenantsDataSource.data = gioTableFilterCollection(this.tenants, filters);
+    const filtered = gioTableFilterCollection(this.tenants, filters);
+    this.tenantsDataSource.data = filtered.filteredCollection;
+    this.tenantsTableUnpaginatedLength = filtered.unpaginatedLength;
   }
 }

@@ -24,15 +24,8 @@ export const gioTableFilterCollection = <T>(
   options?: {
     searchTermIgnoreKeys?: string[];
   },
-): T[] => {
+): { unpaginatedLength: number; filteredCollection: T[] } => {
   let sortedCollection: T[] = cloneDeep(collection);
-
-  if (filters?.pagination) {
-    sortedCollection = sortedCollection.slice(
-      (filters.pagination.index - 1) * filters.pagination.size,
-      filters.pagination.index * filters.pagination.size,
-    );
-  }
 
   if (filters?.searchTerm) {
     sortedCollection = sortedCollection.filter((element) => {
@@ -47,5 +40,15 @@ export const gioTableFilterCollection = <T>(
     sortedCollection = orderBy(sortedCollection, filters.sort.active, sortDirection);
   }
 
-  return sortedCollection;
+  // Get collection item length before slice by pagination
+  const unpaginatedLength = sortedCollection.length;
+
+  if (filters?.pagination) {
+    sortedCollection = sortedCollection.slice(
+      (filters.pagination.index - 1) * filters.pagination.size,
+      filters.pagination.index * filters.pagination.size,
+    );
+  }
+
+  return { unpaginatedLength: unpaginatedLength, filteredCollection: sortedCollection };
 };
