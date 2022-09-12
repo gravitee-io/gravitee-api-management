@@ -287,7 +287,7 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.proxy.ng-responsetemplates.list', {
+    .state('management.apis.detail.proxy.ng-responsetemplates', {
       url: '/ng-responsetemplates',
       component: 'ngApiProxyResponseTemplates',
       data: {

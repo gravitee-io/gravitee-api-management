@@ -3,3 +3,29 @@
 :host {
   @include gio-layout.gio-responsive-content-container;
 }
+
+.response-template {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__table {
+    &__actions {
+      display: flex;
+      justify-content: center;
+    }
+
+    &__body {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      max-width: 80%;
+      // Addition lines for 2 line or multiline ellipsis
+      display: -webkit-box !important;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      white-space: pre;
+    }
+  }
+}

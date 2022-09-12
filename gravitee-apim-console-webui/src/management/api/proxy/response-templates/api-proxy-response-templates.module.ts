@@ -16,12 +16,33 @@
 
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTableModule } from '@angular/material/table';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { ApiProxyResponseTemplatesComponent } from './api-proxy-response-templates.component';
+
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+
 
 @NgModule({
   declarations: [ApiProxyResponseTemplatesComponent],
   exports: [ApiProxyResponseTemplatesComponent],
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+
+    MatButtonModule,
+    MatCardModule,
+    MatTableModule,
+    MatSnackBarModule,
+
+    GioPermissionModule,
+    GioIconsModule,
+    GioPermissionModule,
+  ],
 })
 export class ApiProxyResponseTemplatesModule {}
