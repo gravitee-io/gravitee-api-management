@@ -46,6 +46,11 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
     }
 
     @Override
+    public Event createOrPatch(Event event) throws TechnicalException {
+        return blockingGet(post("/events/_createOrPatch", BodyCodec.json(Event.class)).send(event)).payload();
+    }
+
+    @Override
     public Event update(Event event) throws TechnicalException {
         return blockingGet(put("/events/" + event.getId(), BodyCodec.json(Event.class)).send(event)).payload();
     }
