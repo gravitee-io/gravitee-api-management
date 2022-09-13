@@ -19,7 +19,6 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.vertx.core.AsyncResult;
@@ -188,6 +187,23 @@ public class EventsHandler extends AbstractHandler {
                     }
                 },
                 event -> handleResponse(ctx, event)
+            );
+    }
+
+    public void createOrPatch(RoutingContext ctx) {
+        ctx
+            .vertx()
+            .executeBlocking(
+                promise -> {
+                    try {
+                        Event event = ctx.getBodyAsJson().mapTo(Event.class);
+                        promise.complete(eventRepository.createOrPatch(event));
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to create or update an event", ex);
+                        promise.fail(ex);
+                    }
+                },
+                (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
             );
     }
 

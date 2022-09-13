@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
@@ -48,7 +49,6 @@ public interface EventRepository extends CrudRepository<Event, String> {
      * @return the list of latest events.
      */
     List<Event> searchLatest(EventCriteria criteria, Event.EventProperties group, Long page, Long size);
-
     /**
      * Search for {@link Event} with {@link Pageable} feature.
      *
@@ -61,7 +61,6 @@ public interface EventRepository extends CrudRepository<Event, String> {
      * @return the list of events.
      */
     Page<Event> search(EventCriteria filter, Pageable pageable);
-
     /**
      * Search for {@link Event}.
      *
@@ -72,4 +71,20 @@ public interface EventRepository extends CrudRepository<Event, String> {
      * @return the list of events.
      */
     List<Event> search(EventCriteria filter);
+
+    /**
+     * This method allows to create an event if it does not exist in database or patch it if it's present.
+     *
+     * <p>
+     * The patch allows to pass a partial {@link Event}: <br/>
+     * - For the root fields of {@link Event} object, the update will perform only on non-null fields. It's not possible to update to null one of these fields<br/>
+     * - For the properties map, it will update the property value based on its key.
+     * </p>
+     *
+     * createdAt field is not updatable
+     * @param event
+     * @return the event passed as parameter.
+     * @throws TechnicalException
+     */
+    Event createOrPatch(Event event) throws TechnicalException;
 }
