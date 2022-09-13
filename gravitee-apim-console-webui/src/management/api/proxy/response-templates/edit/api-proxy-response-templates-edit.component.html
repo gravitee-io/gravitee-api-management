@@ -15,4 +15,43 @@
     limitations under the License.
 
 -->
-🚧
+<h1>Response Template</h1>
+
+<form *ngIf="responseTemplatesForm" [formGroup]="responseTemplatesForm" autocomplete="off" gioFormFocusInvalid>
+  <mat-card>
+    <!-- Key -->
+    <div class="card__template-key">
+      <div class="card__template-key__label">Template key</div>
+      <p class="card__template-key__hint">The template key for which template responses will be applied.</p>
+
+      <mat-form-field class="card__template-key__form-field" appearance="fill">
+        <mat-label>Template key</mat-label>
+        <input type="text" aria-label="Template key input" matInput formControlName="key" [matAutocomplete]="tkAuto" />
+        <mat-autocomplete #tkAuto="matAutocomplete">
+          <mat-option *ngFor="let key of defaultKeys" [value]="key">
+            {{ key }}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+
+
+    <div class="card__accept-header">
+      <div class="card__accept-header__label">Accept header to match</div>
+      <p class="card__accept-header__hint">The Accept header of requests for which this template response should be used.</p>
+
+      <mat-form-field class="card__accept-header__form-field" appearance="fill">
+        <mat-label>Accept</mat-label>
+        <input type="text" aria-label="Accept header to match input" matInput formControlName="acceptHeader" placeholder="*/*, application/json, text/xml, ..." />
+      </mat-form-field>
+    </div>
+
+  </mat-card>
+</form>
+
+<gio-save-bar
+  [creationMode]="mode === 'new'"
+  [form]="responseTemplatesForm"
+  [formInitialValues]="initialResponseTemplatesFormValue"
+  (submitted)="onSubmit()"
+></gio-save-bar>

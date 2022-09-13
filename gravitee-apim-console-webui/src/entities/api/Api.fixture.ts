@@ -172,7 +172,7 @@ export function fakeApi(modifier?: Partial<Api> | ((baseApi: Api) => Api)): Api 
     ],
     path_mappings: ['/product/:id'],
     response_templates: {
-      testhhh: {
+      customKey: {
         '*/*': {
           status: 400,
           body: '',
