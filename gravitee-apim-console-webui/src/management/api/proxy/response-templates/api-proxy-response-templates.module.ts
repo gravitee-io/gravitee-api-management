@@ -21,12 +21,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
+import { ApiProxyResponseTemplatesEditComponent } from './edit/api-proxy-response-templates-edit.component';
 import { ApiProxyResponseTemplatesListComponent } from './list/api-proxy-response-templates-list.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { ApiProxyResponseTemplatesEditComponent } from './edit/api-proxy-response-templates-edit.component';
 
 @NgModule({
   declarations: [ApiProxyResponseTemplatesListComponent, ApiProxyResponseTemplatesEditComponent],
@@ -39,10 +42,15 @@ import { ApiProxyResponseTemplatesEditComponent } from './edit/api-proxy-respons
     MatCardModule,
     MatTableModule,
     MatSnackBarModule,
+    MatAutocompleteModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSnackBarModule,
 
     GioPermissionModule,
     GioIconsModule,
     GioPermissionModule,
+    GioSaveBarModule
   ],
 })
 export class ApiProxyResponseTemplatesModule {}

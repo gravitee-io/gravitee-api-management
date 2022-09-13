@@ -22,9 +22,9 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
-import { ApiProxyResponseTemplatesModule } from '../api-proxy-response-templates.module';
 import { ApiProxyResponseTemplatesListComponent } from './api-proxy-response-templates-list.component';
 
+import { ApiProxyResponseTemplatesModule } from '../api-proxy-response-templates.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { UIRouterStateParams, CurrentUserService, UIRouterState } from '../../../../../ajs-upgraded-providers';

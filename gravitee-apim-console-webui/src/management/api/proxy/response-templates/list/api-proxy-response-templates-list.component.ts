@@ -15,20 +15,14 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { flatMap } from 'lodash';
 import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { ResponseTemplate, toResponseTemplates } from '../response-templates.adapter';
 
-export type ResponseTemplatesDS = {
-  key: string;
-  contentType: string;
-  statusCode?: number;
-  body?: string;
-}[];
 
 @Component({
   selector: 'api-proxy-response-templates-list',
@@ -39,7 +33,7 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public responseTemplateTableDisplayedColumns = ['key', 'contentType', 'statusCode', 'body', 'actions'];
-  public responseTemplateTableData: ResponseTemplatesDS = [];
+  public responseTemplateTableData: ResponseTemplate[] = [];
   public isReadOnly = false;
   public apiId: string;
 
@@ -57,17 +51,8 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
         takeUntil(this.unsubscribe$),
         tap((api) => {
           this.apiId = api.id;
-          this.responseTemplateTableData = flatMap(Object.entries(api.response_templates), ([key, responseTemplates]) => {
-            return [
-              ...Object.entries(responseTemplates).map(([contentType, responseTemplate]) => ({
-                key: key,
-                contentType,
-                statusCode: responseTemplate.status,
-                body: responseTemplate.body,
-              })),
-            ];
-          });
-
+          this.responseTemplateTableData = toResponseTemplates(api.response_templates)
+            
           this.isReadOnly = !this.permissionService.hasAnyMatching(['api-response_templates-u']);
         }),
       )
@@ -83,7 +68,7 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
     this.ajsState.go('management.apis.detail.proxy.ng-responsetemplate-edit', { apiId: this.apiId, key: '' });
   }
 
-  onEditResponseTemplateClicked(element: ResponseTemplatesDS[number]) {
+  onEditResponseTemplateClicked(element: ResponseTemplate) {
     this.ajsState.go('management.apis.detail.proxy.ng-responsetemplate-edit', { apiId: this.apiId, key: element.key });
   }
 

@@ -129,7 +129,7 @@ export function fakeUpdateApi(modifier?: Partial<UpdateApi> | ((baseApi: UpdateA
     labels: [],
     path_mappings: ['/product/:id'],
     response_templates: {
-      testhhh: { '*/*': { status: 400, body: '' } },
+      customKey: { '*/*': { status: 400, body: '' } },
       DEFAULT: { '*/*': { status: 400, body: '' }, test: { status: 400, body: '' } },
     },
     lifecycle_state: 'PUBLISHED',
