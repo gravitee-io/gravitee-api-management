@@ -17,9 +17,7 @@ package io.gravitee.repository.config.mock;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
-import static java.util.Collections.EMPTY_LIST;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
@@ -30,10 +28,8 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.Timestamp;
+import java.util.*;
 import org.mockito.internal.util.collections.Sets;
 
 /**
@@ -401,5 +397,52 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
             )
         )
             .thenReturn(singletonList(event1));
+
+        when(eventRepository.createOrPatch(argThat(event -> null != event && EventType.PUBLISH_API.equals(event.getType()))))
+            .thenAnswer(
+                invocation -> {
+                    Event parameter = invocation.getArgument(0);
+                    Event event = new Event();
+                    event.setId(parameter.getId());
+                    event.setType(EventType.PUBLISH_API);
+                    event.setUpdatedAt(parameter.getUpdatedAt());
+                    event.setPayload(parameter.getPayload());
+                    event.setEnvironments(parameter.getEnvironments());
+                    event.setProperties(
+                        Map.of(
+                            "last_heartbeat_at",
+                            new Timestamp(parameter.getUpdatedAt().getTime()).toString(),
+                            "to_update",
+                            "property_to_update",
+                            "to_update_with_null",
+                            "property_to_update_with_null",
+                            "not_updated",
+                            "will_not_change"
+                        )
+                    );
+                    return event;
+                }
+            );
+
+        when(eventRepository.createOrPatch(argThat(event -> null != event && EventType.UNPUBLISH_API.equals(event.getType()))))
+            .thenAnswer(
+                invocation -> {
+                    Event parameter = invocation.getArgument(0);
+                    Event event = new Event();
+                    event.setId(parameter.getId());
+                    event.setType(EventType.UNPUBLISH_API);
+                    event.setPayload(parameter.getPayload());
+                    event.setEnvironments(parameter.getEnvironments());
+                    event.setUpdatedAt(parameter.getUpdatedAt());
+                    Map<String, String> properties = new HashMap<>();
+                    properties.put("last_heartbeat_at", new Timestamp(parameter.getUpdatedAt().getTime()).toString());
+                    properties.put("to_update", "updated_property");
+                    properties.put("to_update_with_null", null);
+                    event.setProperties(properties);
+                    return event;
+                }
+            );
+
+        when(eventRepository.createOrPatch(isNull())).thenThrow(new IllegalStateException());
     }
 }

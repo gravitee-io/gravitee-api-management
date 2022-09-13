@@ -31,4 +31,6 @@ public interface EventMongoRepositoryCustom {
     List<EventMongo> searchLatest(EventCriteria criteria, Event.EventProperties group, Long page, Long size);
 
     Page<EventMongo> search(EventCriteria criteria, Pageable pageable);
+
+    Event patch(Event event);
 }

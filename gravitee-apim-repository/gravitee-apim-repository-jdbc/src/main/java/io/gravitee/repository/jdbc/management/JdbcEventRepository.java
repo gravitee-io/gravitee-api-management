@@ -28,7 +28,6 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.sql.*;
@@ -278,6 +277,67 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
 
         builder.append(" order by updated_at desc, id desc ");
         return queryEvents(builder.toString(), args);
+    }
+
+    @Override
+    public Event createOrPatch(Event event) throws TechnicalException {
+        if (event == null || event.getId() == null || event.getType() == null) {
+            throw new IllegalStateException("Event to create or update must have an id and a type");
+        }
+
+        final int updatedEventCount = patchEvent(event);
+        if (updatedEventCount <= 0) {
+            return create(event);
+        } else {
+            // update properties only if event was correctly updated
+            patchEventProperties(event);
+            storeEnvironments(event, true);
+            return event;
+        }
+    }
+
+    private int patchEvent(Event event) {
+        List<Object> args = new ArrayList<>();
+        StringBuilder queryBuilder = new StringBuilder();
+        boolean hasSet = false;
+        queryBuilder.append("update ").append(this.tableName);
+        if (event.getType() != null) {
+            queryBuilder.append(" set type = ?");
+            args.add(event.getType().name());
+            hasSet = true;
+        }
+        if (event.getPayload() != null) {
+            queryBuilder.append(hasSet ? "," : " set").append(" payload = ?");
+            args.add(event.getPayload());
+            hasSet = true;
+        }
+        if (event.getParentId() != null) {
+            queryBuilder.append(hasSet ? "," : " set").append(" parent_id = ?");
+            args.add(event.getParentId());
+            hasSet = true;
+        }
+        if (event.getUpdatedAt() != null) {
+            queryBuilder.append(hasSet ? "," : " set").append(" updated_at = ?");
+            args.add(event.getUpdatedAt());
+        }
+        queryBuilder.append(" where id = ? ");
+        args.add(event.getId());
+        return jdbcTemplate.update(queryBuilder.toString(), args.toArray());
+    }
+
+    private void patchEventProperties(Event event) {
+        if (event.getProperties() != null) {
+            event.getProperties().forEach((property, value) -> updateEventProperty(event.getId(), property, value));
+        }
+    }
+
+    private void updateEventProperty(String eventId, String propertyKey, String value) {
+        jdbcTemplate.update(
+            "update " + EVENT_PROPERTIES + " set property_value = ? where event_id = ? and property_key = ?",
+            value,
+            eventId,
+            propertyKey
+        );
     }
 
     private List<Event> queryEvents(String sql, List<Object> args) {

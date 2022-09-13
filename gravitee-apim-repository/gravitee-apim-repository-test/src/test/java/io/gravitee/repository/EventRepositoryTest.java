@@ -15,17 +15,20 @@
  */
 package io.gravitee.repository;
 
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import org.junit.Test;
 
@@ -471,5 +474,87 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         eventRepository.update(null);
         fail("A null event should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void createOrUpdateShouldThrowIllegalStateException() throws TechnicalException {
+        eventRepository.createOrPatch(null);
+    }
+
+    @Test
+    public void createOrUpdateShouldCreateHeartbeatEvent() throws TechnicalException {
+        Event event = new Event();
+        String uuid = UUID.toString(UUID.random());
+        event.setId(uuid);
+        event.setEnvironments(singleton("DEFAULT"));
+        // Here we use a PUBLISH_API event to ease the writing of this test and differentiate the cases
+        event.setType(EventType.PUBLISH_API);
+        event.setPayload("{}");
+        event.setParentId(null);
+        event.setCreatedAt(new Date());
+        event.setUpdatedAt(event.getCreatedAt());
+
+        var createdEvent = eventRepository.createOrPatch(event);
+
+        assertEquals("Invalid saved event type.", EventType.PUBLISH_API, createdEvent.getType());
+        assertEquals("Invalid saved event payload.", "{}", createdEvent.getPayload());
+        assertTrue("Invalid saved environment id.", createdEvent.getEnvironments().contains("DEFAULT"));
+    }
+
+    @Test
+    public void createOrUpdateShouldUpdateHeartbeatEvent() throws TechnicalException {
+        Event event = new Event();
+        String uuid = UUID.toString(UUID.random());
+        LocalDateTime localDate = LocalDateTime.now().minusMinutes(1);
+        Date createdDate = Date.from(localDate.atZone(ZoneId.systemDefault()).toInstant());
+        event.setId(uuid);
+        event.setEnvironments(singleton("DEFAULT"));
+        event.setType(EventType.PUBLISH_API);
+        event.setPayload("{}");
+        event.setParentId(null);
+        event.setCreatedAt(createdDate);
+        event.setUpdatedAt(createdDate);
+        event.setProperties(new HashMap<>());
+        event.getProperties().put("last_heartbeat_at", new Timestamp(createdDate.getTime()).toString());
+        event.getProperties().put("to_update", "property_to_update");
+        event.getProperties().put("to_update_with_null", "property_to_update_with_null");
+        event.getProperties().put("not_updated", "will_not_change");
+
+        // Should create the event
+        Event createdEvent = eventRepository.createOrPatch(event);
+
+        assertEquals("Invalid saved event type.", EventType.PUBLISH_API, createdEvent.getType());
+        assertEquals("Invalid saved event payload.", "{}", createdEvent.getPayload());
+        assertTrue("Invalid saved environment id.", createdEvent.getEnvironments().contains("DEFAULT"));
+        assertTrue("last_heartbeat_at property is absent", createdEvent.getProperties().containsKey("last_heartbeat_at"));
+        assertTrue("to_update property is absent", createdEvent.getProperties().containsKey("to_update"));
+        assertEquals("property_to_update", createdEvent.getProperties().get("to_update"));
+        assertTrue("to_update_with_null property is absent", createdEvent.getProperties().containsKey("to_update_with_null"));
+        assertEquals("property_to_update_with_null", createdEvent.getProperties().get("to_update_with_null"));
+        assertEquals("will_not_change", createdEvent.getProperties().get("not_updated"));
+
+        event.setType(EventType.UNPUBLISH_API);
+        Date updateDate = new Date();
+        event.setUpdatedAt(updateDate);
+        var properties = new HashMap<String, String>();
+        properties.put("last_heartbeat_at", new Timestamp(updateDate.getTime()).toString());
+        properties.put("to_update", "updated_property");
+        properties.put("to_update_with_null", null);
+        event.setProperties(properties);
+
+        // Should update the event with the new type and properties.
+        Event updatedEvent = eventRepository.createOrPatch(event);
+
+        assertTrue(updatedEvent.getUpdatedAt().after(createdEvent.getUpdatedAt()));
+        assertNotNull(updatedEvent.getProperties());
+        assertTrue(
+            Timestamp
+                .valueOf(updatedEvent.getProperties().get("last_heartbeat_at"))
+                .after(Timestamp.valueOf(createdEvent.getProperties().get("last_heartbeat_at")))
+        );
+        assertEquals(updatedEvent.getProperties().get("to_update"), "updated_property");
+        assertEquals(updatedEvent.getType(), EventType.UNPUBLISH_API);
+        assertTrue(updatedEvent.getProperties().containsKey("to_update_with_null"));
+        assertNull(updatedEvent.getProperties().get("to_update_with_null"));
     }
 }
