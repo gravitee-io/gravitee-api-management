@@ -18,10 +18,10 @@ package io.gravitee.repository.bridge.server.handler;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiKey;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -40,44 +40,44 @@ public class ApiKeysHandler extends AbstractHandler {
     @Autowired
     private ApiKeyRepository apiKeyRepository;
 
+    public ApiKeysHandler(WorkerExecutor bridgeWorkerExecutor) {
+        super(bridgeWorkerExecutor);
+    }
+
     public void findByCriteria(RoutingContext ctx) {
         final JsonObject searchPayload = ctx.getBodyAsJson();
 
         // Parse criteria
         final ApiKeyCriteria apiKeyCriteria = readCriteria(searchPayload);
 
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        promise.complete(apiKeyRepository.findByCriteria(apiKeyCriteria));
-                    } catch (TechnicalException te) {
-                        LOGGER.error("Unable to search for API Keys", te);
-                        promise.fail(te);
-                    }
-                },
-                (Handler<AsyncResult<List<ApiKey>>>) result -> handleResponse(ctx, result)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    promise.complete(apiKeyRepository.findByCriteria(apiKeyCriteria));
+                } catch (TechnicalException te) {
+                    LOGGER.error("Unable to search for API Keys", te);
+                    promise.fail(te);
+                }
+            },
+            (Handler<AsyncResult<List<ApiKey>>>) result -> handleResponse(ctx, result)
+        );
     }
 
     public void findByKeyAndApi(RoutingContext ctx) {
         final String apiId = ctx.request().getParam("apiId");
         final String key = ctx.request().getParam("key");
 
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        promise.complete(apiKeyRepository.findByKeyAndApi(key, apiId));
-                    } catch (TechnicalException te) {
-                        LOGGER.error("Unable to find the API Key", te);
-                        promise.fail(te);
-                    }
-                },
-                (Handler<AsyncResult<Optional<ApiKey>>>) result -> handleResponse(ctx, result)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    promise.complete(apiKeyRepository.findByKeyAndApi(key, apiId));
+                } catch (TechnicalException te) {
+                    LOGGER.error("Unable to find the API Key", te);
+                    promise.fail(te);
+                }
+            },
+            (Handler<AsyncResult<Optional<ApiKey>>>) result -> handleResponse(ctx, result)
+        );
     }
 
     private ApiKeyCriteria readCriteria(JsonObject payload) {
