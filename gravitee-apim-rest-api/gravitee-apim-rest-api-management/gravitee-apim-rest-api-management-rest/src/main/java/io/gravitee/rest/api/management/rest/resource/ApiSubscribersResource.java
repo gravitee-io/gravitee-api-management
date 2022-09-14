@@ -17,10 +17,15 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.rest.api.model.SubscriptionStatus.*;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
+import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
@@ -37,8 +42,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
@@ -78,11 +86,11 @@ public class ApiSubscribersResource extends AbstractResource {
         description = "Paged result of API subscribers",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ApplicationEntity.class))
+            array = @ArraySchema(schema = @Schema(implementation = ApplicationListItem.class))
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Collection<ApplicationEntity> getApiSubscribers() {
+    public Collection<ApplicationListItem> getApiSubscribers() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
             !hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ) &&
@@ -96,12 +104,25 @@ public class ApiSubscribersResource extends AbstractResource {
         subscriptionQuery.setStatuses(Set.of(PENDING, ACCEPTED));
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
-        return subscriptions
-            .stream()
-            .map(SubscriptionEntity::getApplication)
-            .distinct()
-            .map(application -> applicationService.findById(executionContext, application))
-            .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-            .collect(Collectors.toList());
+
+        Set<String> applicationIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(Collectors.toSet());
+
+        ApplicationQuery applicationQuery = new ApplicationQuery();
+        applicationQuery.setIds(applicationIds);
+
+        Sortable sortable = new SortableImpl("name", true);
+
+        Page<ApplicationListItem> subscribersApplicationPage = applicationService.search(
+            executionContext,
+            applicationQuery,
+            sortable,
+            null
+        );
+
+        if (subscribersApplicationPage == null) {
+            return Collections.emptyList();
+        }
+
+        return subscribersApplicationPage.getContent();
     }
 }
