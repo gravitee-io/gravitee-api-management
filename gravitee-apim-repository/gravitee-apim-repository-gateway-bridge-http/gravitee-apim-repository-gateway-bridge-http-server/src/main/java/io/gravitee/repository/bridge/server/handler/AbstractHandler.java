@@ -22,6 +22,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.web.RoutingContext;
@@ -42,6 +43,11 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractHandler {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+    protected WorkerExecutor bridgeWorkerExecutor;
+
+    protected AbstractHandler(WorkerExecutor bridgeWorkerExecutor) {
+        this.bridgeWorkerExecutor = bridgeWorkerExecutor;
+    }
 
     protected <T> void handleResponse(final RoutingContext ctx, AsyncResult<T> result) {
         final HttpServerResponse response = ctx.response();

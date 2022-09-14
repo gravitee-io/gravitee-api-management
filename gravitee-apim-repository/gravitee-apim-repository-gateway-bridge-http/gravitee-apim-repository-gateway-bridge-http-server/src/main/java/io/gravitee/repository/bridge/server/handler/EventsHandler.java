@@ -24,6 +24,7 @@ import io.gravitee.repository.management.model.EventType;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -44,6 +45,10 @@ public class EventsHandler extends AbstractHandler {
     private static final long DEFAULT_PAGE_SIZE = 10;
     private static final long DEFAULT_PAGE_NUMBER = 1;
 
+    public EventsHandler(WorkerExecutor bridgeWorkerExecutor) {
+        super(bridgeWorkerExecutor);
+    }
+
     public void search(RoutingContext ctx) {
         final JsonObject searchPayload = ctx.getBodyAsJson();
         final EventCriteria eventCriteria = readCriteria(searchPayload);
@@ -51,58 +56,30 @@ public class EventsHandler extends AbstractHandler {
         final String sPageNumber = ctx.request().getParam("page");
 
         if (sPageNumber != null) {
-            ctx
-                .vertx()
-                .executeBlocking(
-                    promise -> {
-                        Long pageSize = getPageSize(ctx, DEFAULT_PAGE_SIZE);
-                        Long pageNumber = getPageNumber(ctx, DEFAULT_PAGE_NUMBER);
-
-                        try {
-                            promise.complete(
-                                eventRepository.search(
-                                    eventCriteria,
-                                    new PageableBuilder().pageNumber(pageNumber.intValue()).pageSize(pageSize.intValue()).build()
-                                )
-                            );
-                        } catch (Exception ex) {
-                            LOGGER.error("Unable to search for events", ex);
-                            promise.fail(ex);
-                        }
-                    },
-                    (Handler<AsyncResult<Page<Event>>>) event -> handleResponse(ctx, event)
-                );
-        } else {
-            ctx
-                .vertx()
-                .executeBlocking(
-                    (Handler<Promise<List<Event>>>) promise -> {
-                        try {
-                            promise.complete(eventRepository.search(eventCriteria));
-                        } catch (Exception ex) {
-                            LOGGER.error("Unable to search for events", ex);
-                            promise.fail(ex);
-                        }
-                    },
-                    event -> handleResponse(ctx, event)
-                );
-        }
-    }
-
-    public void searchLatest(RoutingContext ctx) {
-        final JsonObject searchPayload = ctx.getBodyAsJson();
-        final EventCriteria eventCriteria = readCriteria(searchPayload);
-
-        ctx
-            .vertx()
-            .executeBlocking(
-                (Handler<Promise<List<Event>>>) promise -> {
-                    Long pageSize = getPageSize(ctx, null);
-                    Long pageNumber = getPageNumber(ctx, null);
-                    Event.EventProperties group = getGroup(ctx);
+            bridgeWorkerExecutor.executeBlocking(
+                promise -> {
+                    Long pageSize = getPageSize(ctx, DEFAULT_PAGE_SIZE);
+                    Long pageNumber = getPageNumber(ctx, DEFAULT_PAGE_NUMBER);
 
                     try {
-                        promise.complete(eventRepository.searchLatest(eventCriteria, group, pageNumber, pageSize));
+                        promise.complete(
+                            eventRepository.search(
+                                eventCriteria,
+                                new PageableBuilder().pageNumber(pageNumber.intValue()).pageSize(pageSize.intValue()).build()
+                            )
+                        );
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to search for events", ex);
+                        promise.fail(ex);
+                    }
+                },
+                (Handler<AsyncResult<Page<Event>>>) event -> handleResponse(ctx, event)
+            );
+        } else {
+            bridgeWorkerExecutor.executeBlocking(
+                (Handler<Promise<List<Event>>>) promise -> {
+                    try {
+                        promise.complete(eventRepository.search(eventCriteria));
                     } catch (Exception ex) {
                         LOGGER.error("Unable to search for events", ex);
                         promise.fail(ex);
@@ -110,6 +87,28 @@ public class EventsHandler extends AbstractHandler {
                 },
                 event -> handleResponse(ctx, event)
             );
+        }
+    }
+
+    public void searchLatest(RoutingContext ctx) {
+        final JsonObject searchPayload = ctx.getBodyAsJson();
+        final EventCriteria eventCriteria = readCriteria(searchPayload);
+
+        bridgeWorkerExecutor.executeBlocking(
+            (Handler<Promise<List<Event>>>) promise -> {
+                Long pageSize = getPageSize(ctx, null);
+                Long pageNumber = getPageNumber(ctx, null);
+                Event.EventProperties group = getGroup(ctx);
+
+                try {
+                    promise.complete(eventRepository.searchLatest(eventCriteria, group, pageNumber, pageSize));
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to search for events", ex);
+                    promise.fail(ex);
+                }
+            },
+            event -> handleResponse(ctx, event)
+        );
     }
 
     private Event.EventProperties getGroup(RoutingContext ctx) {
@@ -138,37 +137,33 @@ public class EventsHandler extends AbstractHandler {
     }
 
     public void create(RoutingContext ctx) {
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        Event event = ctx.getBodyAsJson().mapTo(Event.class);
-                        promise.complete(eventRepository.create(event));
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to create an event", ex);
-                        promise.fail(ex);
-                    }
-                },
-                (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    Event event = ctx.getBodyAsJson().mapTo(Event.class);
+                    promise.complete(eventRepository.create(event));
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to create an event", ex);
+                    promise.fail(ex);
+                }
+            },
+            (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
+        );
     }
 
     public void update(RoutingContext ctx) {
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        Event event = ctx.getBodyAsJson().mapTo(Event.class);
-                        promise.complete(eventRepository.update(event));
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to update an event", ex);
-                        promise.fail(ex);
-                    }
-                },
-                (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    Event event = ctx.getBodyAsJson().mapTo(Event.class);
+                    promise.complete(eventRepository.update(event));
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to update an event", ex);
+                    promise.fail(ex);
+                }
+            },
+            (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
+        );
     }
 
     private EventCriteria readCriteria(JsonObject payload) {
