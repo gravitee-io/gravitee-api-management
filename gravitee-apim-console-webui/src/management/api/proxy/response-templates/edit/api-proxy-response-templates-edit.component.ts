@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/core';
-import { merge } from 'lodash';
-import { EMPTY, Subject } from 'rxjs';
-import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { isEmpty, merge, toNumber, toString } from 'lodash';
+import { EMPTY, Observable, Subject } from 'rxjs';
+import { catchError, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams, UIRouterState } from '../../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { HttpUtil, StatusCode } from '../../../../../shared/utils';
 
 @Component({
   selector: 'api-proxy-response-templates-edit',
@@ -80,6 +81,9 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
   public isReadOnly = false;
   public mode: 'new' | 'edit' = 'new';
 
+  public filteredStatusCodes$: Observable<StatusCode[]>;
+  public selectedStatusCodes$: Observable<StatusCode>;
+
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -108,12 +112,35 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
               value: '*/*',
               disabled: this.isReadOnly,
             }),
-            status: new FormControl({
-              value: 200, // TODO : for next commit
-              disabled: this.isReadOnly,
-            }),
+            statusCode: new FormControl(
+              {
+                value: '400',
+                disabled: this.isReadOnly,
+              },
+              [Validators.required, HttpUtil.statusCodeValidator()],
+            ),
           });
           this.initialResponseTemplatesFormValue = this.responseTemplatesForm.getRawValue();
+
+          this.filteredStatusCodes$ = this.responseTemplatesForm.get('statusCode')?.valueChanges.pipe(
+            startWith(''),
+            map((value) => {
+              if (isEmpty(value)) {
+                return HttpUtil.statusCodes;
+              }
+
+              return HttpUtil.statusCodes.filter(
+                (statusCode) =>
+                  toString(statusCode.code).includes(toString(value)) ||
+                  statusCode.label.toLowerCase().includes(toString(value).toLowerCase()),
+              );
+            }),
+          );
+          this.selectedStatusCodes$ = this.responseTemplatesForm.get('statusCode')?.valueChanges.pipe(
+            takeUntil(this.unsubscribe$),
+            startWith(this.responseTemplatesForm.get('statusCode')?.value),
+            map((value) => HttpUtil.statusCodes.find((statusCode) => toString(statusCode.code) === toString(value))),
+          );
         }),
       )
       .subscribe();
@@ -126,7 +153,9 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
 
   onSubmit() {
     const responseTemplate = this.responseTemplatesForm.getRawValue();
-    const responseTemplateToMerge = { [responseTemplate.key]: { [responseTemplate.acceptHeader]: { status: responseTemplate.status } } };
+    const responseTemplateToMerge = {
+      [responseTemplate.key]: { [responseTemplate.acceptHeader]: { status: toNumber(responseTemplate.statusCode) } },
+    };
 
     return this.apiService
       .get(this.ajsStateParams.apiId)

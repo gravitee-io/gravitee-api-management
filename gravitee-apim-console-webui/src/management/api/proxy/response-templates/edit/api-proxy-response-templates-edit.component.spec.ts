@@ -82,6 +82,9 @@ describe('ApiProxyResponseTemplatesComponent', () => {
       const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
       await acceptHeaderInput.setValue('application/json');
 
+      const statusCodeInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="statusCode"]' }));
+      await statusCodeInput.setValue('200');
+
       const saveButton = await loader.getHarness(GioSaveBarHarness);
       await saveButton.clickSubmit();
 

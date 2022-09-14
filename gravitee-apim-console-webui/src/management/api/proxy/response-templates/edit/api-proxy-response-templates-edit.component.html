@@ -35,17 +35,44 @@
       </mat-form-field>
     </div>
 
-
+    <!-- Accept header -->
     <div class="card__accept-header">
       <div class="card__accept-header__label">Accept header to match</div>
       <p class="card__accept-header__hint">The Accept header of requests for which this template response should be used.</p>
 
       <mat-form-field class="card__accept-header__form-field" appearance="fill">
         <mat-label>Accept</mat-label>
-        <input type="text" aria-label="Accept header to match input" matInput formControlName="acceptHeader" placeholder="*/*, application/json, text/xml, ..." />
+        <input
+          type="text"
+          aria-label="Accept header to match input"
+          matInput
+          formControlName="acceptHeader"
+          placeholder="*/*, application/json, text/xml, ..."
+        />
       </mat-form-field>
     </div>
 
+    <!-- Status code -->
+    <div class="card__status-code">
+      <div class="card__status-code__label">Status code</div>
+      <p class="card__status-code__hint">The status code sent to the API consumer.</p>
+
+      <mat-form-field class="card__status-code__form-field" appearance="fill">
+        <mat-label>Status code</mat-label>
+        <input type="text" aria-label="Status code input" matInput formControlName="statusCode" [matAutocomplete]="scAuto" />
+        <mat-autocomplete #scAuto="matAutocomplete">
+          <mat-option *ngFor="let statusCode of filteredStatusCodes$ | async" [value]="statusCode.code">
+            {{ statusCode.code }} - {{ statusCode.label }}
+          </mat-option>
+        </mat-autocomplete>
+        <em matSuffix *ngIf="selectedStatusCodes$ | async as selectedStatusCodes">{{ selectedStatusCodes.label }}</em>
+
+        <mat-error *ngIf="responseTemplatesForm.get('statusCode').hasError('required')"> Status code is required. </mat-error>
+        <mat-error *ngIf="responseTemplatesForm.get('statusCode').hasError('statusCode')">
+          {{ responseTemplatesForm.get('statusCode').getError('statusCode') }}
+        </mat-error>
+      </mat-form-field>
+    </div>
   </mat-card>
 </form>
 

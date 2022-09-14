@@ -23,7 +23,6 @@ import { ApiService } from '../../../../../services-ngx/api.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ResponseTemplate, toResponseTemplates } from '../response-templates.adapter';
 
-
 @Component({
   selector: 'api-proxy-response-templates-list',
   template: require('./api-proxy-response-templates-list.component.html'),
@@ -51,8 +50,8 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
         takeUntil(this.unsubscribe$),
         tap((api) => {
           this.apiId = api.id;
-          this.responseTemplateTableData = toResponseTemplates(api.response_templates)
-            
+          this.responseTemplateTableData = toResponseTemplates(api.response_templates);
+
           this.isReadOnly = !this.permissionService.hasAnyMatching(['api-response_templates-u']);
         }),
       )

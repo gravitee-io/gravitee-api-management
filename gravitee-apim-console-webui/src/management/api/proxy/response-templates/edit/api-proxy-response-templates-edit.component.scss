@@ -12,7 +12,8 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .card {
   &__template-key,
-  &__accept-header {
+  &__accept-header,
+  &__status-code {
     &__label {
       @include mat.typography-level($typography, body-2);
     }
