@@ -23,6 +23,7 @@ import io.gravitee.repository.bridge.server.handler.*;
 import io.gravitee.repository.bridge.server.http.configuration.HttpServerConfiguration;
 import io.gravitee.repository.bridge.server.version.VersionHandler;
 import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.Router;
@@ -66,6 +67,10 @@ public class BridgeService extends AbstractService {
 
     @Autowired
     private HttpServerConfiguration httpServerConfiguration;
+
+    @Autowired
+    @Qualifier("bridgeWorkerExecutor")
+    private WorkerExecutor bridgeWorkerExecutor;
 
     @Override
     protected void doStart() throws Exception {
@@ -194,6 +199,7 @@ public class BridgeService extends AbstractService {
     protected void doStop() throws Exception {
         super.doStop();
 
+        bridgeWorkerExecutor.close(event -> LOGGER.debug("WorkerExecutor for bridge has been closed"));
         httpServer.close(event -> LOGGER.info("HTTP server for bridge has been stopped"));
     }
 
