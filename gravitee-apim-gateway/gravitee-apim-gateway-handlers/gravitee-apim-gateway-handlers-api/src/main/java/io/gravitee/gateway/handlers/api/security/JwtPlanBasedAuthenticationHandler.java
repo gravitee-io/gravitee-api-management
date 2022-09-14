@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.security;
 
+import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE;
 import static io.gravitee.reporter.api.http.SecurityType.JWT;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -49,9 +50,9 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
     private static final String CLAIM_AUDIENCE = "aud";
     private static final String CLAIM_AUTHORIZED_PARTY = "azp";
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private SubscriptionRepository subscriptionRepository;
+    private final SubscriptionRepository subscriptionRepository;
 
     public JwtPlanBasedAuthenticationHandler(AuthenticationHandler handler, Plan plan, SubscriptionRepository subscriptionRepository) {
         super(handler, plan);
@@ -59,7 +60,7 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
     }
 
     @Override
-    protected boolean canHandleSubscription(AuthenticationContext authenticationContext) {
+    protected boolean preCheckSubscription(AuthenticationContext authenticationContext) {
         LazyJwtToken token = (LazyJwtToken) authenticationContext.get(CONTEXT_ATTRIBUTE_JWT);
         if (token == null || token.getClaims() == null) {
             return false;
@@ -70,12 +71,22 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
             return false;
         }
 
-        return canHandleSubscription(authenticationContext.getApi(), clientId, authenticationContext);
+        return preCheckSubscription(authenticationContext.getApi(), clientId, authenticationContext);
     }
 
-    private boolean canHandleSubscription(String api, String clientId, AuthenticationContext authenticationContext) {
+    private boolean preCheckSubscription(String api, String clientId, AuthenticationContext authenticationContext) {
         try {
-            List<Subscription> subscriptions = subscriptionRepository.search(
+            if (
+                Boolean.TRUE.equals(
+                    authenticationContext.getInternalAttribute(ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE)
+                )
+            ) {
+                // Last handler (jwt or oauth), no need to check the subscription, let the CheckSubscriptionPolicy do the job and return an appropriate error.
+                return true;
+            }
+
+            // Find a matching subscription to try to target the good plan.
+            final List<Subscription> subscriptions = subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
                     .apis(Collections.singleton(api))
                     .plans(Collections.singleton(plan.getId()))
