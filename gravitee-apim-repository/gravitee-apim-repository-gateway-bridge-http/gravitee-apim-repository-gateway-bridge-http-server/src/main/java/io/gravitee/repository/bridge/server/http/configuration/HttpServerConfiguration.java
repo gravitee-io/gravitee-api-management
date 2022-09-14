@@ -75,6 +75,9 @@ public class HttpServerConfiguration {
     @Value("${services.bridge.http.maxChunkSize:8192}")
     private int maxChunkSize;
 
+    @Value("${services.bridge.http.workerPoolSize:-1}")
+    private int workerPoolSize;
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -209,5 +212,9 @@ public class HttpServerConfiguration {
 
     public void setMaxChunkSize(int maxChunkSize) {
         this.maxChunkSize = maxChunkSize;
+    }
+
+    public int getWorkerPoolSize() {
+        return workerPoolSize;
     }
 }
