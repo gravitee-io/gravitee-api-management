@@ -918,6 +918,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     item.setStatus(application.getStatus().name());
                     item.setPicture(application.getPicture());
                     item.setBackground(application.getBackground());
+                    item.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
                     return item;
                 }
             )
@@ -967,6 +968,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     item.setPicture(applicationEntity.getPicture());
                     item.setBackground(applicationEntity.getBackground());
                     item.setApiKeyMode(applicationEntity.getApiKeyMode());
+                    item.setDisableMembershipNotifications(applicationEntity.isDisableMembershipNotifications());
 
                     final Application app = applications
                         .stream()
