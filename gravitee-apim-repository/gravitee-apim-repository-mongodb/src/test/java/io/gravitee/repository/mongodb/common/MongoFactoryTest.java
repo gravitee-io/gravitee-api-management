@@ -193,11 +193,13 @@ public class MongoFactoryTest {
 
         assertThat(sslSettings).isNotNull();
         assertThat(sslSettings.isEnabled()).isFalse();
+        assertThat(sslSettings.isInvalidHostNameAllowed()).isFalse();
     }
 
     @Test
     public void buildSslSettingsShouldReturnSettingsConfiguredWithProperties() {
         environment.setProperty(PROPERTY_PREFIX + "sslEnabled", "true");
+        environment.setProperty(PROPERTY_PREFIX + "sslInvalidHostNameAllowed", "true");
         environment.setProperty(PROPERTY_PREFIX + "truststore.path", this.getClass().getResource("/ca-truststore.jks").getPath());
         environment.setProperty(PROPERTY_PREFIX + "truststore.password", "truststore-secret");
         environment.setProperty(PROPERTY_PREFIX + "truststore.type", "jks");
@@ -210,6 +212,7 @@ public class MongoFactoryTest {
 
         assertThat(sslSettings).isNotNull();
         assertThat(sslSettings.isEnabled()).isTrue();
+        assertThat(sslSettings.isInvalidHostNameAllowed()).isTrue();
         assertThat(sslSettings.getContext().getProtocol()).isEqualTo("TLS");
     }
 
