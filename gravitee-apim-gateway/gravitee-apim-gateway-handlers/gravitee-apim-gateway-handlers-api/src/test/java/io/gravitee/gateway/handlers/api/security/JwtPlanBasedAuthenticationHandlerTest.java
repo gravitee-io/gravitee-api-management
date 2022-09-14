@@ -17,8 +17,7 @@ package io.gravitee.gateway.handlers.api.security;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.Request;
@@ -119,49 +118,66 @@ public class JwtPlanBasedAuthenticationHandlerTest {
     }
 
     @Test
-    public void canHandleSubscription_should_return_false_cause_no_token_in_context() {
-        assertFalse(authenticationHandler.canHandleSubscription(authenticationContext));
+    public void preCheckSubscription_should_return_false_cause_no_token_in_context() {
+        assertFalse(authenticationHandler.preCheckSubscription(authenticationContext));
     }
 
     @Test
-    public void canHandleSubscription_should_return_false_cause_null_token_claims() {
+    public void preCheckSubscription_should_return_false_cause_null_token_claims() {
         when(token.getClaims()).thenReturn(null);
         when(authenticationContext.get("jwt")).thenReturn(token);
 
-        assertFalse(authenticationHandler.canHandleSubscription(authenticationContext));
+        assertFalse(authenticationHandler.preCheckSubscription(authenticationContext));
     }
 
     @Test
-    public void canHandleSubscription_should_return_false_cause_no_client_id_in_token() {
+    public void preCheckSubscription_should_return_false_cause_no_client_id_in_token() {
         when(token.getClaims()).thenReturn(new HashMap<>());
         when(authenticationContext.get("jwt")).thenReturn(token);
 
-        assertFalse(authenticationHandler.canHandleSubscription(authenticationContext));
+        assertFalse(authenticationHandler.preCheckSubscription(authenticationContext));
     }
 
     @Test
-    public void canHandleSubscription_should_return_false_cause_subscription_not_found() throws TechnicalException {
+    public void preCheckSubscription_should_return_false_cause_subscription_not_found_and_not_last_handler() throws TechnicalException {
         when(token.getClaims()).thenReturn(Map.of("client_id", CLIENT_ID));
         when(authenticationContext.get("jwt")).thenReturn(token);
+        when(
+            authenticationContext.getInternalAttribute(AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE)
+        )
+            .thenReturn(false);
 
-        assertFalse(authenticationHandler.canHandleSubscription(authenticationContext));
+        assertFalse(authenticationHandler.preCheckSubscription(authenticationContext));
         assertSubscriptionRepositorySearch();
     }
 
     @Test
-    public void canHandleSubscription_should_return_false_cause_subscription_ended() throws TechnicalException {
+    public void preCheckSubscription_should_return_true_and_skip_when_subscription_not_found_and_last_handler() {
+        when(token.getClaims()).thenReturn(Map.of("client_id", CLIENT_ID));
+        when(authenticationContext.get("jwt")).thenReturn(token);
+        when(
+            authenticationContext.getInternalAttribute(AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE)
+        )
+            .thenReturn(true);
+
+        assertTrue(authenticationHandler.preCheckSubscription(authenticationContext));
+        verifyNoInteractions(subscriptionRepository);
+    }
+
+    @Test
+    public void preCheckSubscription_should_return_false_cause_subscription_ended() throws TechnicalException {
         when(token.getClaims()).thenReturn(Map.of("client_id", CLIENT_ID));
         when(authenticationContext.get("jwt")).thenReturn(token);
         when(subscription.getEndingAt()).thenReturn(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)));
         when(request.timestamp()).thenReturn(new java.util.Date().getTime());
         when(subscriptionRepository.search(any())).thenReturn(List.of(subscription));
 
-        assertFalse(authenticationHandler.canHandleSubscription(authenticationContext));
+        assertFalse(authenticationHandler.preCheckSubscription(authenticationContext));
         assertSubscriptionRepositorySearch();
     }
 
     @Test
-    public void canHandleSubscription_should_return_true() throws TechnicalException {
+    public void preCheckSubscription_should_return_true() throws TechnicalException {
         when(token.getClaims()).thenReturn(Map.of("client_id", CLIENT_ID));
         when(authenticationContext.get("jwt")).thenReturn(token);
         when(subscription.getEndingAt()).thenReturn(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
@@ -169,7 +185,7 @@ public class JwtPlanBasedAuthenticationHandlerTest {
         when(request.metrics()).thenReturn(Metrics.on(new java.util.Date().getTime()).build());
         when(subscriptionRepository.search(any())).thenReturn(List.of(subscription));
 
-        assertTrue(authenticationHandler.canHandleSubscription(authenticationContext));
+        assertTrue(authenticationHandler.preCheckSubscription(authenticationContext));
         assertSubscriptionRepositorySearch();
     }
 

@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.security.keyless;
 
+import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTERNAL_TOKEN_IDENTIFIED;
+import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_NONE;
+
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
@@ -37,8 +40,8 @@ public class KeylessAuthenticationHandler implements AuthenticationHandler {
     private static final List<AuthenticationPolicy> POLICIES = Collections.singletonList((PluginAuthenticationPolicy) () -> KEYLESS_POLICY);
 
     @Override
-    public boolean canHandle(AuthenticationContext authenticationContext) {
-        return true;
+    public boolean canHandle(AuthenticationContext context) {
+        return !Boolean.TRUE.equals(context.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
     }
 
     @Override
@@ -54,5 +57,10 @@ public class KeylessAuthenticationHandler implements AuthenticationHandler {
     @Override
     public List<AuthenticationPolicy> handle(ExecutionContext executionContext) {
         return POLICIES;
+    }
+
+    @Override
+    public String tokenType() {
+        return TOKEN_TYPE_NONE;
     }
 }

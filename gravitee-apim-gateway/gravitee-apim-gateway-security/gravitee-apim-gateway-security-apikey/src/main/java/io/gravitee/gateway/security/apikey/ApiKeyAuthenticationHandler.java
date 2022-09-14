@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.security.apikey;
 
+import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTERNAL_TOKEN_IDENTIFIED;
+import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_API_KEY;
 import static io.gravitee.reporter.api.http.SecurityType.API_KEY;
 
 import io.gravitee.common.http.GraviteeHttpHeader;
@@ -68,6 +70,8 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
         if (apiKey == null) {
             return false;
         }
+
+        context.setInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED, true);
 
         if (apiKeyRepository != null) {
             // Get the api-key from the repository if not present in the context
@@ -125,5 +129,10 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
         Environment environment = componentProvider.getComponent(Environment.class);
         apiKeyHeader = environment.getProperty("policy.api-key.header", GraviteeHttpHeader.X_GRAVITEE_API_KEY);
         apiKeyQueryParameter = environment.getProperty("policy.api-key.param", "api-key");
+    }
+
+    @Override
+    public String tokenType() {
+        return TOKEN_TYPE_API_KEY;
     }
 }
