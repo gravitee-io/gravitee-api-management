@@ -50,7 +50,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioPermissionModule,
     GioIconsModule,
     GioPermissionModule,
-    GioSaveBarModule
+    GioSaveBarModule,
   ],
 })
 export class ApiProxyResponseTemplatesModule {}
