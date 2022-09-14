@@ -262,6 +262,13 @@ services:
      # This sync service requires to install Gravitee Kubernetes Operator
 #    kubernetes:
 #      enabled: false
+      # by default only the current namespace that the Gateway is running will be watched but you can watch "ALL" or a list
+      # of comma seprated namespaces "ns1,ns2,ns3" or an array of namespaces
+#      namespaces: 
+#        - ALL 
+#        - ns1
+#        - ns2
+#        - ns3
 
   # Local registry service.
   # This registry is used to load API Definition with json format from the file system. By doing so, you do not need
