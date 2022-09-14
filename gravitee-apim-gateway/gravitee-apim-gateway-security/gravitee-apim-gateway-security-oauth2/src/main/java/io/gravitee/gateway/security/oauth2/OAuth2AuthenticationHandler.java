@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.security.oauth2;
 
+import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTERNAL_TOKEN_IDENTIFIED;
+import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_AUTHORIZATION_BEARER;
+
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.*;
@@ -52,6 +55,8 @@ public class OAuth2AuthenticationHandler implements AuthenticationHandler {
             return false;
         }
 
+        context.setInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED, true);
+
         // Update the context with token
         if (context.get(JWT_CONTEXT_ATTRIBUTE) == null) {
             context.set(JWT_CONTEXT_ATTRIBUTE, new LazyJwtToken(token));
@@ -77,5 +82,10 @@ public class OAuth2AuthenticationHandler implements AuthenticationHandler {
     @Override
     public List<AuthenticationPolicy> handle(ExecutionContext executionContext) {
         return POLICIES;
+    }
+
+    @Override
+    public String tokenType() {
+        return TOKEN_TYPE_AUTHORIZATION_BEARER;
     }
 }

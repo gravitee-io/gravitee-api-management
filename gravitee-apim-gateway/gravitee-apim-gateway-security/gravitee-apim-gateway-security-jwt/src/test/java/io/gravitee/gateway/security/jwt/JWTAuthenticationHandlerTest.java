@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.security.jwt;
 
+import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTERNAL_TOKEN_IDENTIFIED;
+import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_AUTHORIZATION_BEARER;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -23,10 +26,8 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.security.core.AuthenticationContext;
-import io.gravitee.gateway.security.core.AuthenticationPolicy;
-import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
-import io.gravitee.gateway.security.core.SimpleAuthenticationContext;
+import io.gravitee.gateway.security.core.*;
+import io.gravitee.gateway.security.jwt.policy.CheckSubscriptionPolicy;
 import java.util.Iterator;
 import java.util.List;
 import org.junit.Assert;
@@ -66,7 +67,8 @@ public class JWTAuthenticationHandlerTest {
         when(request.headers()).thenReturn(HttpHeaders.create());
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertFalse(handle);
+        assertFalse(handle);
+        assertNull(authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
     }
 
     @Test
@@ -77,7 +79,8 @@ public class JWTAuthenticationHandlerTest {
         headers.add(HttpHeaderNames.AUTHORIZATION, "");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertFalse(handle);
+        assertFalse(handle);
+        assertNull(authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
     }
 
     @Test
@@ -88,8 +91,9 @@ public class JWTAuthenticationHandlerTest {
         headers.add(HttpHeaderNames.AUTHORIZATION, "Basic xxx-xx-xxx-xx-xx");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertFalse(handle);
-        Assert.assertNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
+        assertFalse(handle);
+        assertNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
+        assertNull(authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
     }
 
     @Test
@@ -100,8 +104,9 @@ public class JWTAuthenticationHandlerTest {
         headers.add(HttpHeaderNames.AUTHORIZATION, "Bearer xxx-xx-xxx-xx-xx");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertTrue(handle);
-        Assert.assertNotNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
+        assertTrue(handle);
+        assertNotNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
+        assertTrue(authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
     }
 
     @Test
@@ -112,8 +117,9 @@ public class JWTAuthenticationHandlerTest {
         headers.add(HttpHeaderNames.AUTHORIZATION, "BeaRer xxx-xx-xxx-xx-xx");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertTrue(handle);
-        Assert.assertNotNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
+        assertTrue(handle);
+        assertNotNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
+        assertTrue(authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
     }
 
     @Test
@@ -126,8 +132,9 @@ public class JWTAuthenticationHandlerTest {
         parameters.add("access_token", "xxx-xx-xxx-xx-xx");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertTrue(handle);
-        Assert.assertNotNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
+        assertTrue(handle);
+        assertNotNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
+        assertTrue(authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
     }
 
     @Test
@@ -138,8 +145,9 @@ public class JWTAuthenticationHandlerTest {
         headers.add(HttpHeaderNames.AUTHORIZATION, "Bearer ");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertFalse(handle);
-        Assert.assertNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
+        assertFalse(handle);
+        assertNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
+        assertNull(authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
     }
 
     @Test
@@ -148,10 +156,13 @@ public class JWTAuthenticationHandlerTest {
 
         List<AuthenticationPolicy> jwtProviderPolicies = authenticationHandler.handle(executionContext);
 
-        Assert.assertEquals(1, jwtProviderPolicies.size());
+        Assert.assertEquals(2, jwtProviderPolicies.size());
         Iterator<AuthenticationPolicy> policyIte = jwtProviderPolicies.iterator();
         PluginAuthenticationPolicy policy = (PluginAuthenticationPolicy) policyIte.next();
         Assert.assertEquals(JWTAuthenticationHandler.AUTHENTICATION_HANDLER_NAME, policy.name());
+
+        HookAuthenticationPolicy policy2 = (HookAuthenticationPolicy) policyIte.next();
+        Assert.assertEquals(CheckSubscriptionPolicy.class, policy2.clazz());
     }
 
     @Test
@@ -162,5 +173,10 @@ public class JWTAuthenticationHandlerTest {
     @Test
     public void shouldReturnOrder() {
         Assert.assertEquals(0, authenticationHandler.order());
+    }
+
+    @Test
+    public void shouldReuturnTokenType() {
+        assertEquals(TOKEN_TYPE_AUTHORIZATION_BEARER, authenticationHandler.tokenType());
     }
 }

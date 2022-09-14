@@ -15,14 +15,13 @@
  */
 package io.gravitee.gateway.security.jwt;
 
+import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTERNAL_TOKEN_IDENTIFIED;
+import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_AUTHORIZATION_BEARER;
+
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.security.core.AuthenticationContext;
-import io.gravitee.gateway.security.core.AuthenticationHandler;
-import io.gravitee.gateway.security.core.AuthenticationPolicy;
-import io.gravitee.gateway.security.core.LazyJwtToken;
-import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
-import io.gravitee.gateway.security.core.TokenExtractor;
+import io.gravitee.gateway.security.core.*;
+import io.gravitee.gateway.security.jwt.policy.CheckSubscriptionPolicy;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,16 +40,20 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
 
     private static final List<AuthenticationPolicy> POLICIES = Arrays.asList(
         // First, validate the incoming access_token thanks to an OAuth2 authorization server
-        (PluginAuthenticationPolicy) () -> AUTHENTICATION_HANDLER_NAME
+        (PluginAuthenticationPolicy) () -> AUTHENTICATION_HANDLER_NAME,
+        // Then, check that there is an existing valid subscription associated to the client_id
+        (HookAuthenticationPolicy) () -> CheckSubscriptionPolicy.class
     );
 
     @Override
     public boolean canHandle(AuthenticationContext context) {
-        String token = readToken(context.request());
+        final String token = readToken(context.request());
 
         if (token == null || token.isEmpty()) {
             return false;
         }
+
+        context.setInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED, true);
 
         // Update the context with token
         if (context.get(JWT_CONTEXT_ATTRIBUTE) == null) {
@@ -77,5 +80,10 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
     @Override
     public List<AuthenticationPolicy> handle(ExecutionContext executionContext) {
         return POLICIES;
+    }
+
+    @Override
+    public String tokenType() {
+        return TOKEN_TYPE_AUTHORIZATION_BEARER;
     }
 }

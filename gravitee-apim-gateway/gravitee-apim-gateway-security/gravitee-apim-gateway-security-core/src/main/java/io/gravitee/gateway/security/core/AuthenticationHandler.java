@@ -46,6 +46,14 @@ public interface AuthenticationHandler {
     boolean canHandle(AuthenticationContext context);
 
     /**
+     * Indicates the type of token this authentication handler will base its security check. (ex: apikey, authorization bearer, none)
+     * This can be used to take decision regarding authentication handler chaining especially when different type of plan are base on the same type of security token (ex: jwt and oauth2).
+     *
+     * @return the type of token this authentication handler will base its security check.
+     */
+    String tokenType();
+
+    /**
      * Policies which will be run for each request after authentication method selection
      * The "Security policy chain" may be composed of
      * * {@link PluginAuthenticationPolicy}: a policy based on a plugin

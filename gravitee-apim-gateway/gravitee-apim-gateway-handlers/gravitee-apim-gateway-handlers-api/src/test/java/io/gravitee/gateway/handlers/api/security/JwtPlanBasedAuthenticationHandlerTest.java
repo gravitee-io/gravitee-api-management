@@ -124,49 +124,66 @@ public class JwtPlanBasedAuthenticationHandlerTest {
     }
 
     @Test
-    public void canHandleSubscription_should_return_false_cause_no_token_in_context() {
-        assertFalse(authenticationHandler.canHandleSubscription(authenticationContext));
+    public void preCheckSubscription_should_return_false_cause_no_token_in_context() {
+        assertFalse(authenticationHandler.preCheckSubscription(authenticationContext));
     }
 
     @Test
-    public void canHandleSubscription_should_return_false_cause_null_token_claims() {
+    public void preCheckSubscription_should_return_false_cause_null_token_claims() {
         when(token.getClaims()).thenReturn(null);
         when(authenticationContext.get("jwt")).thenReturn(token);
 
-        assertFalse(authenticationHandler.canHandleSubscription(authenticationContext));
+        assertFalse(authenticationHandler.preCheckSubscription(authenticationContext));
     }
 
     @Test
-    public void canHandleSubscription_should_return_false_cause_no_client_id_in_token() {
+    public void preCheckSubscription_should_return_false_cause_no_client_id_in_token() {
         when(token.getClaims()).thenReturn(new HashMap<>());
         when(authenticationContext.get("jwt")).thenReturn(token);
 
-        assertFalse(authenticationHandler.canHandleSubscription(authenticationContext));
+        assertFalse(authenticationHandler.preCheckSubscription(authenticationContext));
     }
 
     @Test
-    public void canHandleSubscription_should_return_false_cause_subscription_not_found() {
+    public void preCheckSubscription_should_return_false_cause_subscription_not_found_and_not_last_handler() {
         when(token.getClaims()).thenReturn(Map.of("client_id", CLIENT_ID));
         when(authenticationContext.get("jwt")).thenReturn(token);
+        when(
+            authenticationContext.getInternalAttribute(AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE)
+        )
+            .thenReturn(false);
 
-        assertFalse(authenticationHandler.canHandleSubscription(authenticationContext));
+        assertFalse(authenticationHandler.preCheckSubscription(authenticationContext));
         verify(subscriptionService).getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID);
     }
 
     @Test
-    public void canHandleSubscription_should_return_false_cause_subscription_time_invalid() {
+    public void preCheckSubscription_should_return_true_and_skip_when_subscription_not_found_and_last_handler() {
+        when(token.getClaims()).thenReturn(Map.of("client_id", CLIENT_ID));
+        when(authenticationContext.get("jwt")).thenReturn(token);
+        when(
+            authenticationContext.getInternalAttribute(AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE)
+        )
+            .thenReturn(true);
+
+        assertTrue(authenticationHandler.preCheckSubscription(authenticationContext));
+        verifyNoInteractions(subscriptionService);
+    }
+
+    @Test
+    public void preCheckSubscription_should_return_false_cause_subscription_ended() {
         when(token.getClaims()).thenReturn(Map.of("client_id", CLIENT_ID));
         when(authenticationContext.get("jwt")).thenReturn(token);
         when(subscription.isTimeValid(anyLong())).thenReturn(false);
         when(request.timestamp()).thenReturn(new java.util.Date().getTime());
         when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
 
-        assertFalse(authenticationHandler.canHandleSubscription(authenticationContext));
+        assertFalse(authenticationHandler.preCheckSubscription(authenticationContext));
         verify(subscriptionService).getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID);
     }
 
     @Test
-    public void canHandleSubscription_should_return_true() {
+    public void preCheckSubscription_should_return_true() {
         when(token.getClaims()).thenReturn(Map.of("client_id", CLIENT_ID));
         when(authenticationContext.get("jwt")).thenReturn(token);
         when(subscription.isTimeValid(anyLong())).thenReturn(true);
@@ -174,7 +191,7 @@ public class JwtPlanBasedAuthenticationHandlerTest {
         when(request.metrics()).thenReturn(Metrics.on(new java.util.Date().getTime()).build());
         when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
 
-        assertTrue(authenticationHandler.canHandleSubscription(authenticationContext));
+        assertTrue(authenticationHandler.preCheckSubscription(authenticationContext));
         verify(subscriptionService).getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID);
     }
 }
