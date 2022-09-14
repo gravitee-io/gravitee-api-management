@@ -53,7 +53,24 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
     }
 
     @Test
-    public void shouldNotHandle_ifKeyNotFound() {
+    public void shouldHandle_ifNoKeyInContext() {
+        AuthenticationHandler handler = mock(AuthenticationHandler.class);
+        Plan plan = mock(Plan.class);
+        apiKeyPlanBasedAuthenticationHandler = new ApiKeyPlanBasedAuthenticationHandler(handler, plan);
+        AuthenticationContext context = mock(AuthenticationContext.class);
+        when(handler.canHandle(any())).thenReturn(true);
+
+        when(context.contains(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(false);
+
+        boolean canHandle = apiKeyPlanBasedAuthenticationHandler.canHandle(context);
+
+        assertTrue(canHandle);
+        verify(context, never()).get(APIKEY_CONTEXT_ATTRIBUTE);
+        verify(plan, never()).getId();
+    }
+
+    @Test
+    public void shouldHandle_ifKeyNotFound() {
         AuthenticationHandler handler = mock(AuthenticationHandler.class);
         Plan plan = mock(Plan.class);
         apiKeyPlanBasedAuthenticationHandler = new ApiKeyPlanBasedAuthenticationHandler(handler, plan);
@@ -65,7 +82,7 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
 
         boolean canHandle = apiKeyPlanBasedAuthenticationHandler.canHandle(context);
 
-        assertFalse(canHandle);
+        assertTrue(canHandle);
         verify(context, times(1)).get(APIKEY_CONTEXT_ATTRIBUTE);
         verify(plan, never()).getId();
     }

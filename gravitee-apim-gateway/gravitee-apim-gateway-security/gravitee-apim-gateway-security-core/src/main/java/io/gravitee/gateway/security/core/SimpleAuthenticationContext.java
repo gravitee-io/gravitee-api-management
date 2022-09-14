@@ -23,8 +23,8 @@ import java.util.Map;
 public class SimpleAuthenticationContext implements AuthenticationContext {
 
     private final ExecutionContext executionContext;
-
     private final Map<String, Object> attributes = new HashMap<>();
+    private final Map<String, Object> internalAttributes = new HashMap<>();
 
     public SimpleAuthenticationContext(ExecutionContext executionContext) {
         this.executionContext = executionContext;
@@ -80,5 +80,15 @@ public class SimpleAuthenticationContext implements AuthenticationContext {
     @Override
     public void setPlan(String plan) {
         executionContext.setAttribute(ExecutionContext.ATTR_PLAN, plan);
+    }
+
+    @Override
+    public void setInternalAttribute(String key, Object value) {
+        internalAttributes.put(key, value);
+    }
+
+    @Override
+    public <T> T getInternalAttribute(String key) {
+        return (T) internalAttributes.get(key);
     }
 }

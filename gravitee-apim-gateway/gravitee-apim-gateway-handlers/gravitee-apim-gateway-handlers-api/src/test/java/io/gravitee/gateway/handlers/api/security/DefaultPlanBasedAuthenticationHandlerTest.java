@@ -38,6 +38,6 @@ public class DefaultPlanBasedAuthenticationHandlerTest {
 
     @Test
     public void canHandleSubscription_returns_true() {
-        assertTrue(authenticationHandler.canHandleSubscription(authenticationContext));
+        assertTrue(authenticationHandler.preCheckSubscription(authenticationContext));
     }
 }
