@@ -15,7 +15,9 @@
  */
 package io.gravitee.gateway.security.apikey;
 
+import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_API_KEY;
 import static java.util.Optional.of;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -159,20 +161,25 @@ public class ApiKeyAuthenticationHandlerTest {
 
         List<AuthenticationPolicy> apikeyProviderPolicies = authenticationHandler.handle(executionContext);
 
-        Assert.assertEquals(1, apikeyProviderPolicies.size());
+        assertEquals(1, apikeyProviderPolicies.size());
 
         PluginAuthenticationPolicy policy = (PluginAuthenticationPolicy) apikeyProviderPolicies.iterator().next();
-        Assert.assertEquals(policy.name(), ApiKeyAuthenticationHandler.API_KEY_POLICY);
+        assertEquals(policy.name(), ApiKeyAuthenticationHandler.API_KEY_POLICY);
     }
 
     @Test
     public void shouldReturnName() {
-        Assert.assertEquals("api_key", authenticationHandler.name());
+        assertEquals("api_key", authenticationHandler.name());
     }
 
     @Test
     public void shouldReturnOrder() {
-        Assert.assertEquals(500, authenticationHandler.order());
+        assertEquals(500, authenticationHandler.order());
+    }
+
+    @Test
+    public void shouldReuturnTokenType() {
+        assertEquals(TOKEN_TYPE_API_KEY, authenticationHandler.tokenType());
     }
     /*
     @Test

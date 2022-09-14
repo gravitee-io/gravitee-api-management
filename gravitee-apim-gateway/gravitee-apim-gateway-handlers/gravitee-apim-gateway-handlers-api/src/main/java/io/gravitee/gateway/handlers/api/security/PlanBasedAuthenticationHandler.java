@@ -53,7 +53,7 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
      * @param authenticationContext
      * @return true is it can handle the incoming request
      */
-    protected abstract boolean canHandleSubscription(AuthenticationContext authenticationContext);
+    protected abstract boolean preCheckSubscription(AuthenticationContext authenticationContext);
 
     public PlanBasedAuthenticationHandler(final AuthenticationHandler handler, final Plan plan) {
         this.handler = handler;
@@ -65,7 +65,7 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
         return (
             handler.canHandle(authenticationContext) &&
             canHandleSelectionRule(authenticationContext) &&
-            canHandleSubscription(authenticationContext)
+            preCheckSubscription(authenticationContext)
         );
     }
 
@@ -138,5 +138,10 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
                 }
             )
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public String tokenType() {
+        return handler.tokenType();
     }
 }
