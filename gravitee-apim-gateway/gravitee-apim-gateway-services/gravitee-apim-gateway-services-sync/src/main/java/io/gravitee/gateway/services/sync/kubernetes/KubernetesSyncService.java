@@ -25,6 +25,7 @@ import io.gravitee.gateway.services.sync.synchronizer.ApiSynchronizer;
 import io.gravitee.kubernetes.client.KubernetesClient;
 import io.gravitee.kubernetes.client.api.LabelSelector;
 import io.gravitee.kubernetes.client.api.WatchQuery;
+import io.gravitee.kubernetes.client.config.KubernetesConfig;
 import io.gravitee.kubernetes.client.model.v1.ConfigMap;
 import io.gravitee.kubernetes.client.model.v1.Event;
 import io.gravitee.repository.management.model.EventType;
@@ -39,6 +40,7 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -56,8 +58,11 @@ public class KubernetesSyncService extends AbstractService<KubernetesSyncService
     private final Logger logger = LoggerFactory.getLogger(KubernetesSyncService.class);
     private final KubernetesClient client;
     private final ApiSynchronizer apiSynchronizer;
-    private final ObjectMapper mapper;
+    private ObjectMapper mapper;
     private Disposable disposable;
+
+    @Value("${services.sync.kubernetes.namespaces:#{null}}")
+    private String[] namespaces;
 
     public KubernetesSyncService(KubernetesClient client, ApiSynchronizer apiSynchronizer) {
         this.client = client;
@@ -73,24 +78,52 @@ public class KubernetesSyncService extends AbstractService<KubernetesSyncService
     private void startWatch() {
         logger.info("Kubernetes synchronization started at {}", Instant.now().toString());
         this.disposable =
-            watch()
+            watchConfigMaps()
                 .flatMapCompletable(this::handleConfigMapEvent)
                 .doOnError(throwable -> logger.error("An error occurred during configmaps refresh. Restarting watch.", throwable))
                 .retry()
                 .subscribe();
     }
 
-    private Flowable<Event<ConfigMap>> watch() {
+    private Flowable<Event<ConfigMap>> watchConfigMaps() {
+        if (namespaces == null) {
+            // By default we will only watch configmaps in the current namespace that the Gateway is running inside it
+            return watchConfigMaps(KubernetesConfig.getInstance().getCurrentNamespace());
+        }
+
+        if (namespaces.length == 1) {
+            if ("ALL".equalsIgnoreCase(namespaces[0])) {
+                return watchConfigMaps(null);
+            } else {
+                return watchConfigMaps(namespaces[0]);
+            }
+        } else {
+            // Just create one Websocket connection and filter the results
+            return watchConfigMaps(null)
+                .filter(
+                    configMapEvent -> {
+                        for (String ns : namespaces) {
+                            if (ns.trim().equals(configMapEvent.getObject().getMetadata().getNamespace())) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                );
+        }
+    }
+
+    private Flowable<Event<ConfigMap>> watchConfigMaps(String namespace) {
         return client
             .watch(
                 WatchQuery
                     .configMaps()
+                    .namespace(namespace)
                     .labelSelector(LabelSelector.equals(LABEL_MANAGED_BY, GRAVITEE_IO))
                     .labelSelector(LabelSelector.equals(LABEL_GIO_TYPE, APIDEFINITIONS_TYPE))
                     .build()
             )
             .observeOn(Schedulers.computation())
-            .repeat()
             .retryWhen(errors -> errors.delay(RETRY_DELAY_MILLIS, TimeUnit.MILLISECONDS));
     }
 
@@ -160,5 +193,13 @@ public class KubernetesSyncService extends AbstractService<KubernetesSyncService
         if (disposable != null && !disposable.isDisposed()) {
             disposable.dispose();
         }
+    }
+
+    public void setMapper(ObjectMapper mapper) {
+        this.mapper = mapper;
+    }
+
+    public void setNamespaces(String[] namespaces) {
+        this.namespaces = namespaces;
     }
 }
