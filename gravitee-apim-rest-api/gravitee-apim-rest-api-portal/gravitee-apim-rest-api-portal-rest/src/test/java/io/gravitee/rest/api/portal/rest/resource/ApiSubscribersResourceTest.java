@@ -23,6 +23,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -31,6 +32,7 @@ import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationsResponse;
@@ -118,20 +120,32 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         subC1.setApi(API);
         doReturn(Arrays.asList(subB1, subC1, subA1)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
 
-        ApplicationEntity appA = new ApplicationEntity();
+        ApplicationListItem appA = new ApplicationListItem();
         appA.setId("A");
-        doReturn(appA).when(applicationService).findById(GraviteeContext.getExecutionContext(), "A");
-        doReturn(new Application().id("A")).when(applicationMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(appA), any());
-
-        ApplicationEntity appB = new ApplicationEntity();
+        ApplicationListItem appB = new ApplicationListItem();
         appB.setId("B");
-        doReturn(appB).when(applicationService).findById(GraviteeContext.getExecutionContext(), "B");
-        doReturn(new Application().id("B")).when(applicationMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(appB), any());
-
-        ApplicationEntity appC = new ApplicationEntity();
+        ApplicationListItem appC = new ApplicationListItem();
         appC.setId("C");
-        doReturn(appC).when(applicationService).findById(GraviteeContext.getExecutionContext(), "C");
-        doReturn(new Application().id("C")).when(applicationMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(appC), any());
+        Page<ApplicationListItem> applications = new Page(Arrays.asList(appA, appB, appC), 1, 10, 2);
+        doReturn(applications)
+            .when(applicationService)
+            .search(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(q -> q.getIds().containsAll(Arrays.asList("A", "B", "C"))),
+                eq(new SortableImpl("name", true)),
+                eq(null)
+            );
+        doReturn(new Application().id("A").name("A"))
+            .when(applicationMapper)
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(appA), any());
+
+        doReturn(new Application().id("B").name("B"))
+            .when(applicationMapper)
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(appB), any());
+
+        doReturn(new Application().id("C").name("C"))
+            .when(applicationMapper)
+            .convert(eq(GraviteeContext.getExecutionContext()), eq(appC), any());
 
         final Response response = target(API).path("subscribers").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -165,26 +179,32 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         subC1.setApi(API);
         doReturn(Arrays.asList(subB1, subC1, subA1)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
 
-        ApplicationEntity appA = new ApplicationEntity();
+        ApplicationListItem appA = new ApplicationListItem();
         appA.setId("A");
         appA.setName("A");
-        doReturn(appA).when(applicationService).findById(GraviteeContext.getExecutionContext(), "A");
+        ApplicationListItem appB = new ApplicationListItem();
+        appB.setId("B");
+        appB.setName("B");
+        ApplicationListItem appC = new ApplicationListItem();
+        appC.setId("C");
+        appC.setName("C");
+        Page<ApplicationListItem> applications = new Page(Arrays.asList(appA, appB, appC), 1, 10, 2);
+        doReturn(applications)
+            .when(applicationService)
+            .search(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(q -> q.getIds().containsAll(Arrays.asList("A", "B", "C"))),
+                eq(new SortableImpl("name", true)),
+                eq(null)
+            );
         doReturn(new Application().id("A").name("A"))
             .when(applicationMapper)
             .convert(eq(GraviteeContext.getExecutionContext()), eq(appA), any());
 
-        ApplicationEntity appB = new ApplicationEntity();
-        appB.setId("B");
-        appB.setName("B");
-        doReturn(appB).when(applicationService).findById(GraviteeContext.getExecutionContext(), "B");
         doReturn(new Application().id("B").name("B"))
             .when(applicationMapper)
             .convert(eq(GraviteeContext.getExecutionContext()), eq(appB), any());
 
-        ApplicationEntity appC = new ApplicationEntity();
-        appC.setId("C");
-        appC.setName("C");
-        doReturn(appC).when(applicationService).findById(GraviteeContext.getExecutionContext(), "C");
         doReturn(new Application().id("C").name("C"))
             .when(applicationMapper)
             .convert(eq(GraviteeContext.getExecutionContext()), eq(appC), any());
@@ -229,14 +249,20 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         subC1.setApi(API);
         doReturn(Arrays.asList(subA1, subC1)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
 
-        ApplicationEntity appA = new ApplicationEntity();
+        ApplicationListItem appA = new ApplicationListItem();
         appA.setId("A");
-        doReturn(appA).when(applicationService).findById(GraviteeContext.getExecutionContext(), "A");
-        doReturn(new Application().id("A")).when(applicationMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(appA), any());
-
-        ApplicationEntity appC = new ApplicationEntity();
+        ApplicationListItem appC = new ApplicationListItem();
         appC.setId("C");
-        doReturn(appC).when(applicationService).findById(GraviteeContext.getExecutionContext(), "C");
+        Page<ApplicationListItem> applications = new Page(Arrays.asList(appA, appC), 1, 10, 2);
+        doReturn(applications)
+            .when(applicationService)
+            .search(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(q -> q.getIds().containsAll(Arrays.asList("A", "C"))),
+                eq(new SortableImpl("name", true)),
+                eq(null)
+            );
+        doReturn(new Application().id("A")).when(applicationMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(appA), any());
         doReturn(new Application().id("C")).when(applicationMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(appC), any());
 
         ApplicationListItem appLIA = new ApplicationListItem();
