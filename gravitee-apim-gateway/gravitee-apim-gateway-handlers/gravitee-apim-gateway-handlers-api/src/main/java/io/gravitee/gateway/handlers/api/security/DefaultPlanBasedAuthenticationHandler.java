@@ -37,7 +37,7 @@ public class DefaultPlanBasedAuthenticationHandler extends PlanBasedAuthenticati
      * {@inheritDoc}
      */
     @Override
-    protected boolean canHandleSubscription(AuthenticationContext authenticationContext) {
+    protected boolean preCheckSubscription(AuthenticationContext authenticationContext) {
         return true;
     }
 }

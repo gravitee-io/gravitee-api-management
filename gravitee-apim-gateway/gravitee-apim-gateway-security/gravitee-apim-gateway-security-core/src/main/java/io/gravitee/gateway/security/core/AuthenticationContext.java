@@ -23,6 +23,13 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface AuthenticationContext {
+    String TOKEN_TYPE_AUTHORIZATION_BEARER = "AuthorizationBearer";
+    String TOKEN_TYPE_API_KEY = "ApiKey";
+    String TOKEN_TYPE_NONE = "None";
+
+    String ATTR_INTERNAL_TOKEN_IDENTIFIED = "auth.tokenIdentifiedInRequest";
+    String ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE = "auth.hasNextSecurityHandlerSupportingSameTokenType";
+
     Request request();
 
     /**
@@ -61,4 +68,8 @@ public interface AuthenticationContext {
     void setApplication(String application);
 
     void setPlan(String plan);
+
+    void setInternalAttribute(String key, Object value);
+
+    <T> T getInternalAttribute(String key);
 }

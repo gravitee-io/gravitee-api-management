@@ -40,9 +40,10 @@ public class ApiKeyPlanBasedAuthenticationHandler extends PlanBasedAuthenticatio
     }
 
     @Override
-    protected boolean canHandleSubscription(AuthenticationContext authenticationContext) {
+    protected boolean preCheckSubscription(AuthenticationContext authenticationContext) {
         if (!authenticationContext.contains(APIKEY_CONTEXT_ATTRIBUTE)) {
-            return false;
+            // There is no apikey at all, so no subscription to pre check.
+            return true;
         }
         Optional<ApiKey> optApikey = (Optional<ApiKey>) authenticationContext.get(APIKEY_CONTEXT_ATTRIBUTE);
         if (optApikey.isEmpty() || !optApikey.get().getPlan().equals(plan.getId())) {

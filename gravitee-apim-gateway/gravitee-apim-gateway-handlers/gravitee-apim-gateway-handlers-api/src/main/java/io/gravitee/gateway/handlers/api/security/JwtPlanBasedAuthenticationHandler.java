@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.security;
 
+import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE;
 import static io.gravitee.reporter.api.http.SecurityType.JWT;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,9 +27,8 @@ import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.LazyJwtToken;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import io.gravitee.repository.exceptions.TechnicalException;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +59,7 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
     }
 
     @Override
-    protected boolean canHandleSubscription(AuthenticationContext authenticationContext) {
+    protected boolean preCheckSubscription(AuthenticationContext authenticationContext) {
         LazyJwtToken token = (LazyJwtToken) authenticationContext.get(CONTEXT_ATTRIBUTE_JWT);
         if (token == null || token.getClaims() == null) {
             return false;
@@ -70,11 +70,23 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
             return false;
         }
 
-        return canHandleSubscription(authenticationContext.getApi(), clientId, authenticationContext);
+        return preCheckSubscription(authenticationContext.getApi(), clientId, authenticationContext);
     }
 
-    private boolean canHandleSubscription(String api, String clientId, AuthenticationContext authenticationContext) {
-        Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndClientIdAndPlan(api, clientId, plan.getId());
+    private boolean preCheckSubscription(String api, String clientId, AuthenticationContext authenticationContext) {
+        if (
+            Boolean.TRUE.equals(authenticationContext.getInternalAttribute(ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE))
+        ) {
+            // Last handler (jwt or oauth), no need to check the subscription, let the CheckSubscriptionPolicy do the job and return an appropriate error.
+            return true;
+        }
+
+        // Find a matching subscription to try to target the good plan.
+        Optional<io.gravitee.gateway.api.service.Subscription> subscriptionOpt = subscriptionService.getByApiAndClientIdAndPlan(
+            api,
+            clientId,
+            plan.getId()
+        );
 
         if (subscriptionOpt.isPresent()) {
             final Subscription subscription = subscriptionOpt.get();
