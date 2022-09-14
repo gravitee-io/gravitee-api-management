@@ -15,9 +15,12 @@
  */
 package io.gravitee.repository.bridge.server.http.spring;
 
+import static io.vertx.core.VertxOptions.DEFAULT_WORKER_POOL_SIZE;
+
 import io.gravitee.repository.bridge.server.http.auth.BasicAuthProvider;
 import io.gravitee.repository.bridge.server.http.configuration.HttpServerConfiguration;
 import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
@@ -125,5 +128,13 @@ public class HttpServerSpringConfiguration {
     @Bean
     public HttpServerConfiguration nodeHttpServerConfiguration() {
         return new HttpServerConfiguration();
+    }
+
+    @Bean("bridgeWorkerExecutor")
+    public WorkerExecutor workerExecutor(Vertx vertx, HttpServerConfiguration httpServerConfiguration) {
+        int workerPoolSize = httpServerConfiguration.getWorkerPoolSize() > 0
+            ? httpServerConfiguration.getWorkerPoolSize()
+            : DEFAULT_WORKER_POOL_SIZE;
+        return vertx.createSharedWorkerExecutor("bridge-worker-executor", workerPoolSize);
     }
 }
