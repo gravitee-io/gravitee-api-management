@@ -19,9 +19,8 @@ import static io.gravitee.rest.api.model.SubscriptionStatus.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -46,11 +45,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 
@@ -90,7 +91,7 @@ public class ApiSubscribersResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Collection<ApplicationListItem> getApiSubscribers() {
+    public Collection<ApplicationListItem> getApiSubscribers(@QueryParam("query") final String query, @Valid @BeanParam Pageable pageable) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
             !hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ) &&
@@ -109,6 +110,9 @@ public class ApiSubscribersResource extends AbstractResource {
 
         ApplicationQuery applicationQuery = new ApplicationQuery();
         applicationQuery.setIds(applicationIds);
+        if (query != null && !query.isEmpty()) {
+            applicationQuery.setName(query);
+        }
 
         Sortable sortable = new SortableImpl("name", true);
 
@@ -116,7 +120,7 @@ public class ApiSubscribersResource extends AbstractResource {
             executionContext,
             applicationQuery,
             sortable,
-            null
+            pageable.toPageable()
         );
 
         if (subscribersApplicationPage == null) {
