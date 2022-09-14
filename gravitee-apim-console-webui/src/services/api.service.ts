@@ -469,8 +469,19 @@ export class ApiService {
     return this.$http.get(req, { timeout: 30000 });
   }
 
-  getSubscribers(apiId: string): IHttpPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscribers`);
+  getSubscribers(apiId: string, query?: string, page?: number, size?: number): IHttpPromise<any> {
+    const queryParams: string[] = [];
+    if (query) {
+      queryParams.push(`query=${query}`);
+    }
+    if (page) {
+      queryParams.push(`page=${page}`);
+    }
+    if (size) {
+      queryParams.push(`size=${size}`);
+    }
+
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscribers${queryParams ? '?' + queryParams.join('&') : ''}`);
   }
 
   getSubscription(apiId, subscriptionId): IHttpPromise<any> {
