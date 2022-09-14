@@ -107,7 +107,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 argThat(q -> q.getIds().containsAll(Arrays.asList("A", "B", "C"))),
                 eq(new SortableImpl("name", true)),
-                eq(null)
+                argThat(pageable -> pageable.getPageNumber() == 1 && pageable.getPageSize() == 20)
             );
 
         final Response response = envTarget(API_ID).path("subscribers").request().get();
