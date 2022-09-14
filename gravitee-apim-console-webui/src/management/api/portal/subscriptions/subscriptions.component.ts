@@ -48,6 +48,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
     private subscriptions: PagedResult;
     private api: any;
     private subscribers: any = null;
+    private subscribersSelected: any = null;
 
     private query: SubscriptionQuery = new SubscriptionQuery();
 
@@ -60,6 +61,8 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
     };
 
     private subscriptionsFiltersForm: any;
+
+    private applicationSearchTerm: string;
 
     constructor(
       private ApiService: ApiService,
@@ -103,9 +106,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
     $onInit() {
       this.getSubscriptionAnalytics();
 
-      this.ApiService.getSubscribers(this.api.id).then((response) => {
-        this.subscribers = response.data
-      })
+      this.retrieveSelectedApplications();
     }
 
     onPaginate(page) {
@@ -309,6 +310,26 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
     get allowsSharedApiKeys(): boolean {
       return this.Constants.env?.settings?.plan?.security?.sharedApiKey?.enabled;
+    }
+
+    applicationSearchTermSearch() {
+      this.ApiService.getSubscribers(this.api.id, this.applicationSearchTerm, 1, 40).then((response) => {
+        this.subscribers = response.data;
+      });
+      this.retrieveSelectedApplications();
+    }
+
+    private retrieveSelectedApplications() {
+      const selectedApplications = this.query.applications;
+      if (selectedApplications && selectedApplications.length > 0) {
+        this.ApplicationService.list(null, null, 'active', selectedApplications).then((response) => {
+          this.subscribersSelected = response.data;
+        });
+      }
+    }
+
+    clearApplicationSearchTerm() {
+      this.applicationSearchTerm = '';
     }
   },
 };
