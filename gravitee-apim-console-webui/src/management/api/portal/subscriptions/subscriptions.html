@@ -32,6 +32,7 @@
             <md-input-container class="md-block" flex-gt-sm flex="20">
               <label>Application</label>
               <md-select ng-model="$ctrl.query.applications" placeholder="Applications" multiple>
+                <md-option ng-if="$ctrl.subscribers === null" disabled>Loading...</md-option>
                 <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribers track by subscriber.id"
                   >{{ subscriber.name }}</md-option
                 >

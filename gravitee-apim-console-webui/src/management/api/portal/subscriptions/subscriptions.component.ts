@@ -42,12 +42,12 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
     api: '<',
     plans: '<',
     subscriptions: '<',
-    subscribers: '<',
   },
   template: require('./subscriptions.html'),
   controller: class {
     private subscriptions: PagedResult;
     private api: any;
+    private subscribers: any = null;
 
     private query: SubscriptionQuery = new SubscriptionQuery();
 
@@ -102,6 +102,10 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
     $onInit() {
       this.getSubscriptionAnalytics();
+
+      this.ApiService.getSubscribers(this.api.id).then((response) => {
+        this.subscribers = response.data
+      })
     }
 
     onPaginate(page) {
