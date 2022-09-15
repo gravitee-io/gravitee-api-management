@@ -13,7 +13,9 @@ $typography: map.get(gio.$mat-theme, typography);
 .card {
   &__template-key,
   &__accept-header,
-  &__status-code {
+  &__status-code,
+  &__http-headers,
+  &__body {
     &__label {
       @include mat.typography-level($typography, body-2);
     }
@@ -25,6 +27,12 @@ $typography: map.get(gio.$mat-theme, typography);
 
     &__form-field {
       width: 100%;
+    }
+  }
+
+  &__http-headers {
+    &__label {
+      margin-bottom: 12px;
     }
   }
 }
