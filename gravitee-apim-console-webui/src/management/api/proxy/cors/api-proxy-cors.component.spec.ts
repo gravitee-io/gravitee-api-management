@@ -91,8 +91,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
     // Check each field is disabled
     const allowOriginInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowOrigin"]' }));
-    // TODO: add int after merge in ui-particles
-    // expect(await allowOriginInput.isDisabled()).toEqual(true);
+    expect(await allowOriginInput.isDisabled()).toEqual(true);
 
     const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="allowMethods"]' }));
     expect(await allowMethodsInput.isDisabled()).toEqual(true);
