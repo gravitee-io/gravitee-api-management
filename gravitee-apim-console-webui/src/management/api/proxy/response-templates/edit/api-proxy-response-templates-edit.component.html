@@ -26,12 +26,14 @@
 
       <mat-form-field class="card__template-key__form-field" appearance="fill">
         <mat-label>Template key</mat-label>
-        <input type="text" aria-label="Template key input" matInput formControlName="key" [matAutocomplete]="tkAuto" />
+        <input type="text" aria-label="Template key input" matInput formControlName="key" [matAutocomplete]="tkAuto" required />
         <mat-autocomplete #tkAuto="matAutocomplete">
           <mat-option *ngFor="let key of defaultKeys" [value]="key">
             {{ key }}
           </mat-option>
         </mat-autocomplete>
+
+        <mat-error *ngIf="responseTemplatesForm.get('key').hasError('required')"> Status code is required. </mat-error>
       </mat-form-field>
     </div>
 
@@ -48,6 +50,7 @@
           matInput
           formControlName="acceptHeader"
           placeholder="*/*, application/json, text/xml, ..."
+          required
         />
       </mat-form-field>
     </div>
@@ -59,7 +62,7 @@
 
       <mat-form-field class="card__status-code__form-field" appearance="fill">
         <mat-label>Status code</mat-label>
-        <input type="text" aria-label="Status code input" matInput formControlName="statusCode" [matAutocomplete]="scAuto" />
+        <input type="text" aria-label="Status code input" matInput formControlName="statusCode" [matAutocomplete]="scAuto" required />
         <mat-autocomplete #scAuto="matAutocomplete">
           <mat-option *ngFor="let statusCode of filteredStatusCodes$ | async" [value]="statusCode.code">
             {{ statusCode.code }} - {{ statusCode.label }}

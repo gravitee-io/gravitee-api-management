@@ -39,7 +39,7 @@
         <td mat-cell *matCellDef="let element">
           <mat-form-field appearance="fill" class="virtual-host__table__host-field">
             <mat-label>Listening host</mat-label>
-            <input #hostInput matInput [formControl]="element.controls.host" [matAutocomplete]="hostAuto" />
+            <input #hostInput matInput [formControl]="element.controls.host" [matAutocomplete]="hostAuto" required />
 
             <!-- Config Autocomplete to only select domain with input value -->
             <mat-autocomplete #hostAuto="matAutocomplete">
@@ -70,7 +70,7 @@
         <td mat-cell *matCellDef="let element">
           <mat-form-field appearance="fill" class="virtual-host__table__path-field">
             <mat-label>Listening Path</mat-label>
-            <input matInput [formControl]="element.controls.path" />
+            <input matInput [formControl]="element.controls.path" required />
             <mat-hint
               >Path where API is exposed, must start with a '/' and must contain any letter, capitalize letter, number, dash or
               underscore.</mat-hint
