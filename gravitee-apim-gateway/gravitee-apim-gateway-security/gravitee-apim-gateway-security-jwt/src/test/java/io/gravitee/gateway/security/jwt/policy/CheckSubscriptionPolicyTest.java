@@ -23,14 +23,12 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.SubscriptionRepository;
-import io.gravitee.repository.management.api.search.SubscriptionCriteria;
-import io.gravitee.repository.management.model.Subscription;
-import java.util.Collections;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,53 +46,36 @@ public class CheckSubscriptionPolicyTest {
     @Mock
     private Request request;
 
+    @Mock
+    private SubscriptionService subscriptionService;
+
+    @Mock
+    private ExecutionContext executionContext;
+
+    private static final String API_ID = "api-id";
+    private static final String PLAN_ID = "plan-id";
+    private static final String CLIENT_ID = "client-id";
+
     @Before
     public void init() {
         when(request.metrics()).thenReturn(on(currentTimeMillis()).build());
+        when(request.timestamp()).thenReturn(currentTimeMillis());
+
+        when(executionContext.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn(PLAN_ID);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
+        when(executionContext.request()).thenReturn(request);
     }
 
     @Test
-    public void shouldReturnUnauthorized_onException() throws PolicyException, TechnicalException {
-        CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
-
-        Response response = mock(Response.class);
-        PolicyChain policyChain = mock(PolicyChain.class);
-
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
-        when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
-        when(executionContext.request()).thenReturn(request);
-
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenThrow(TechnicalException.class);
-
-        policy.execute(policyChain, executionContext);
-
-        verify(policyChain, times(1))
-            .failWith(
-                argThat(
-                    result ->
-                        result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
-                        CheckSubscriptionPolicy.GATEWAY_OAUTH2_SERVER_ERROR_KEY.equals(result.key())
-                )
-            );
-    }
-
-    @Test
-    public void shouldReturnUnauthorized_noSubscription() throws PolicyException, TechnicalException {
+    public void shouldReturnUnauthorized_noSubscription() throws PolicyException {
         CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
 
         PolicyChain policyChain = mock(PolicyChain.class);
-
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
-        when(executionContext.request()).thenReturn(request);
-
-        SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
-        when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
 
         // Search subscription now includes all criteria so the result is empty in case of bad clientId or planId.
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(Collections.emptyList());
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.empty());
 
         policy.execute(policyChain, executionContext);
 
@@ -109,27 +90,51 @@ public class CheckSubscriptionPolicyTest {
     }
 
     @Test
-    public void shouldContinue() throws PolicyException, TechnicalException {
+    public void shouldContinueWhenNoSelectionRule() throws PolicyException {
         CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
 
         Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(false);
+
         when(executionContext.request()).thenReturn(request);
         when(executionContext.response()).thenReturn(response);
 
-        SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
-        when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
+        Subscription subscription = new Subscription();
 
-        Subscription subscription = mock(Subscription.class);
-
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(Collections.singletonList(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
+        verify(policyChain, times(1)).doNext(request, response);
+    }
+
+    @Test
+    public void shouldContinueAndUseRightPlanWhenSelectionRuleBasedPlan() throws PolicyException {
+        CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
+
+        Response response = mock(Response.class);
+        PolicyChain policyChain = mock(PolicyChain.class);
+
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(true);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn(PLAN_ID);
+        when(executionContext.request()).thenReturn(request);
+        when(executionContext.response()).thenReturn(response);
+
+        final Subscription subscription = new Subscription();
+        subscription.setId("subscription-id");
+        subscription.setPlan("plan-id");
+        subscription.setApplication("application-id");
+
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.of(subscription));
+
+        policy.execute(policyChain, executionContext);
+
+        verify(executionContext).setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
+        verify(executionContext).setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
+        verify(executionContext).setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
         verify(policyChain, times(1)).doNext(request, response);
     }
 
