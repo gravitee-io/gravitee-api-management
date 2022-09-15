@@ -196,10 +196,9 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         started = addStringsWhereClause(criteria.getPlans(), "s." + escapeReservedWord("plan"), argsList, builder, started);
         started = addStringsWhereClause(criteria.getApplications(), "s.application", argsList, builder, started);
         started = addStringsWhereClause(criteria.getApis(), "s.api", argsList, builder, started);
+        started = addStringsWhereClause(criteria.getIds(), "s.id", argsList, builder, started);
 
-        if (!isEmpty(criteria.getStatuses())) {
-            addStringsWhereClause(criteria.getStatuses(), "s.status", argsList, builder, started);
-        }
+        addStringsWhereClause(criteria.getStatuses(), "s.status", argsList, builder, started);
 
         builder.append(" order by s.created_at desc ");
 

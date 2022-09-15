@@ -111,6 +111,29 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldFindByIds() throws TechnicalException {
+        List<Subscription> subscriptions =
+            this.subscriptionRepository.search(new SubscriptionCriteria.Builder().ids(List.of("sub1", "sub3", "sub4")).build());
+
+        assertNotNull(subscriptions);
+        assertFalse(subscriptions.isEmpty());
+        assertEquals("Subscriptions size", 3, subscriptions.size());
+        final Iterator<Subscription> iterator = subscriptions.iterator();
+        assertEquals("Subscription id", "sub3", iterator.next().getId());
+        assertEquals("Subscription id", "sub4", iterator.next().getId());
+        assertEquals("Subscription id", "sub1", iterator.next().getId());
+    }
+
+    @Test
+    public void shoulNotFindByIds() throws TechnicalException {
+        List<Subscription> subscriptions =
+            this.subscriptionRepository.search(new SubscriptionCriteria.Builder().ids(singleton("unknown-subscription")).build());
+
+        assertNotNull(subscriptions);
+        assertTrue(subscriptions.isEmpty());
+    }
+
+    @Test
     public void shouldFindById() throws TechnicalException {
         Optional<Subscription> optionalSubscription = this.subscriptionRepository.findById("sub1");
 

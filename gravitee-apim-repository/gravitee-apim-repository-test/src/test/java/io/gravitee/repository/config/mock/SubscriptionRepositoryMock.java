@@ -87,6 +87,11 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
         when(subscriptionRepository.search(new SubscriptionCriteria.Builder().applications(singleton("unknown-app")).build()))
             .thenReturn(Collections.emptyList());
 
+        when(subscriptionRepository.search(new SubscriptionCriteria.Builder().ids(List.of("sub1", "sub3", "sub4")).build()))
+            .thenReturn(asList(sub3, sub4, sub1));
+        when(subscriptionRepository.search(new SubscriptionCriteria.Builder().ids(singleton("unknown-subscription")).build()))
+            .thenReturn(Collections.emptyList());
+
         when(subscriptionRepository.findById("sub1")).thenReturn(of(sub1));
         when(subscriptionRepository.findById("unknown-sub")).thenReturn(empty());
         when(subscriptionRepository.findById("sub2")).thenReturn(empty());
