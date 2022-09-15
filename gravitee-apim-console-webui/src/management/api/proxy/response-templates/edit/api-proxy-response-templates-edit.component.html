@@ -92,11 +92,11 @@
       </mat-form-field>
     </div>
   </mat-card>
-</form>
 
-<gio-save-bar
-  [creationMode]="mode === 'new'"
-  [form]="responseTemplatesForm"
-  [formInitialValues]="initialResponseTemplatesFormValue"
-  (submitted)="onSubmit()"
-></gio-save-bar>
+  <gio-save-bar
+    [creationMode]="mode === 'new'"
+    [form]="responseTemplatesForm"
+    [formInitialValues]="initialResponseTemplatesFormValue"
+    (submitted)="onSubmit()"
+  ></gio-save-bar>
+</form>
