@@ -56,6 +56,7 @@ public class SubscriptionsHandler extends AbstractHandler {
                     promise.fail(te);
                 }
             },
+            false,
             (Handler<AsyncResult<List<Subscription>>>) result -> handleResponse(ctx, result)
         );
     }
