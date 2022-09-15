@@ -73,6 +73,7 @@ public class EventsHandler extends AbstractHandler {
                         promise.fail(ex);
                     }
                 },
+                false,
                 (Handler<AsyncResult<Page<Event>>>) event -> handleResponse(ctx, event)
             );
         } else {
@@ -85,6 +86,7 @@ public class EventsHandler extends AbstractHandler {
                         promise.fail(ex);
                     }
                 },
+                false,
                 event -> handleResponse(ctx, event)
             );
         }

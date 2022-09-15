@@ -50,6 +50,7 @@ public class ApiPlansHandler extends AbstractHandler {
                     promise.fail(te);
                 }
             },
+            false,
             (Handler<AsyncResult<Set<Plan>>>) result -> handleResponse(ctx, result)
         );
     }

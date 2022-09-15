@@ -55,6 +55,7 @@ public class EnvironmentsHandler extends AbstractHandler {
                     promise.fail(ex);
                 }
             },
+            false,
             event -> handleResponse(ctx, event)
         );
     }
@@ -69,6 +70,7 @@ public class EnvironmentsHandler extends AbstractHandler {
                     promise.fail(ex);
                 }
             },
+            false,
             event -> handleResponse(ctx, event)
         );
     }
@@ -85,6 +87,7 @@ public class EnvironmentsHandler extends AbstractHandler {
                     promise.fail(ex);
                 }
             },
+            false,
             event -> handleResponse(ctx, event)
         );
     }
@@ -101,6 +104,7 @@ public class EnvironmentsHandler extends AbstractHandler {
                     promise.fail(ex);
                 }
             },
+            false,
             event -> handleResponse(ctx, event)
         );
     }

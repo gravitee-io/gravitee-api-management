@@ -47,6 +47,7 @@ public class InstallationHandler extends AbstractHandler {
                     promise.fail(ex);
                 }
             },
+            false,
             event -> handleResponse(ctx, event)
         );
     }

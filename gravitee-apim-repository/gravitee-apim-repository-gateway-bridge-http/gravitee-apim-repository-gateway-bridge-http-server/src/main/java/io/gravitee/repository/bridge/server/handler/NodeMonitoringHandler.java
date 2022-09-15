@@ -56,6 +56,7 @@ public class NodeMonitoringHandler extends AbstractHandler {
                     promise.fail(ex);
                 }
             },
+            false,
             (Handler<AsyncResult<Monitoring>>) event -> handleResponse(ctx, event)
         );
     }
@@ -79,6 +80,7 @@ public class NodeMonitoringHandler extends AbstractHandler {
                     promise.fail(ex);
                 }
             },
+            false,
             (Handler<AsyncResult<Monitoring>>) event -> handleResponse(ctx, event)
         );
     }
@@ -102,6 +104,7 @@ public class NodeMonitoringHandler extends AbstractHandler {
                     promise.fail(ex);
                 }
             },
+            false,
             (Handler<AsyncResult<Optional<Monitoring>>>) event -> handleResponse(ctx, event)
         );
     }
