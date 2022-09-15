@@ -31,6 +31,7 @@ import { ApiProxyResponseTemplatesListComponent } from './list/api-proxy-respons
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
+import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
   declarations: [ApiProxyResponseTemplatesListComponent, ApiProxyResponseTemplatesEditComponent],
@@ -54,6 +55,7 @@ import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-for
     GioSaveBarModule,
     GioFormHeadersModule,
     GioFormFocusInvalidModule,
+    GioGoBackButtonModule,
   ],
 })
 export class ApiProxyResponseTemplatesModule {}
