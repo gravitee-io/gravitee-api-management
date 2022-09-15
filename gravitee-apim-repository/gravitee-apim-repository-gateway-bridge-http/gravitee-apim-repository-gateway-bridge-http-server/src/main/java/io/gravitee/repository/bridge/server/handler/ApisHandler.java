@@ -61,6 +61,7 @@ public class ApisHandler extends AbstractHandler {
                     promise.fail(te);
                 }
             },
+            false,
             (Handler<AsyncResult<Collection<Api>>>) result -> handleResponse(ctx, result)
         );
     }
@@ -77,6 +78,7 @@ public class ApisHandler extends AbstractHandler {
                     promise.fail(te);
                 }
             },
+            false,
             (Handler<AsyncResult<Optional<Api>>>) result -> handleResponse(ctx, result)
         );
     }

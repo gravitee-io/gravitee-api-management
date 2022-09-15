@@ -51,6 +51,7 @@ public class PlansHandler extends AbstractHandler {
                     promise.fail(ex);
                 }
             },
+            false,
             (Handler<AsyncResult<List<Plan>>>) event -> handleResponse(ctx, event)
         );
     }
