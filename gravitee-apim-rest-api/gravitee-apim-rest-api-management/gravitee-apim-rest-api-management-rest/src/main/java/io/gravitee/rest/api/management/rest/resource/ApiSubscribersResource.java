@@ -21,6 +21,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.application.ApplicationExcludeFilter;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -91,7 +92,11 @@ public class ApiSubscribersResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Collection<ApplicationListItem> getApiSubscribers(@QueryParam("query") final String query, @Valid @BeanParam Pageable pageable) {
+    public Collection<ApplicationListItem> getApiSubscribers(
+        @QueryParam("query") final String query,
+        @QueryParam("exclude") final List<ApplicationExcludeFilter> exclude,
+        @Valid @BeanParam Pageable pageable
+    ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
             !hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ) &&
@@ -109,6 +114,9 @@ public class ApiSubscribersResource extends AbstractResource {
         Set<String> applicationIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(Collectors.toSet());
 
         ApplicationQuery applicationQuery = new ApplicationQuery();
+        if (exclude != null && !exclude.isEmpty()) {
+            applicationQuery.setExcludeFilters(exclude);
+        }
         applicationQuery.setIds(applicationIds);
         if (query != null && !query.isEmpty()) {
             applicationQuery.setName(query);

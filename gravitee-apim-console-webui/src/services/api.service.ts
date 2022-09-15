@@ -16,6 +16,8 @@
 import { IHttpPromise, IHttpService, IRootScopeService } from 'angular';
 import { clone } from 'lodash';
 
+import { ApplicationExcludeFilter } from './application.service';
+
 import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
 
@@ -469,7 +471,7 @@ export class ApiService {
     return this.$http.get(req, { timeout: 30000 });
   }
 
-  getSubscribers(apiId: string, query?: string, page?: number, size?: number): IHttpPromise<any> {
+  getSubscribers(apiId: string, query?: string, page?: number, size?: number, exclude: ApplicationExcludeFilter[] = []): IHttpPromise<any> {
     const queryParams: string[] = [];
     if (query) {
       queryParams.push(`query=${query}`);
@@ -480,7 +482,9 @@ export class ApiService {
     if (size) {
       queryParams.push(`size=${size}`);
     }
-
+    if (exclude && exclude.length > 0) {
+      queryParams.push(exclude.map((filter) => `exclude=${filter}`).join('&'));
+    }
     return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscribers${queryParams ? '?' + queryParams.join('&') : ''}`);
   }
 

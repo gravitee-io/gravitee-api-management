@@ -313,7 +313,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
     }
 
     applicationSearchTermSearch() {
-      this.ApiService.getSubscribers(this.api.id, this.applicationSearchTerm, 1, 40).then((response) => {
+      this.ApiService.getSubscribers(this.api.id, this.applicationSearchTerm, 1, 40, ['owner']).then((response) => {
         this.subscribers = response.data;
       });
       this.retrieveSelectedApplications();

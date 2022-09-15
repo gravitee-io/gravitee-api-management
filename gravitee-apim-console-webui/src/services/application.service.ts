@@ -35,7 +35,7 @@ interface IMembership {
   role: string;
 }
 
-type ApplicationExcludeFilter = 'owner' | 'picture';
+export type ApplicationExcludeFilter = 'owner' | 'picture';
 
 class ApplicationService {
   constructor(private $http: ng.IHttpService, private Constants) {
