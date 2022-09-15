@@ -16,6 +16,8 @@ $typography: map.get(gio.$mat-theme, typography);
   &__status-code,
   &__http-headers,
   &__body {
+    padding-bottom: 12px;
+
     &__label {
       @include mat.typography-level($typography, body-2);
     }
@@ -33,6 +35,12 @@ $typography: map.get(gio.$mat-theme, typography);
   &__http-headers {
     &__label {
       margin-bottom: 12px;
+    }
+  }
+
+  &__body {
+    &__label {
+      margin-top: 12px;
     }
   }
 }

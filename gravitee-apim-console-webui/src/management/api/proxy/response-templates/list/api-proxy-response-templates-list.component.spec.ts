@@ -77,7 +77,7 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
 
       await loader.getHarness(MatButtonHarness.with({ text: /Add new Response Template/ })).then((button) => button.click());
 
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.ng-responsetemplate-edit', { apiId: 'apiId', key: '' });
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.ng-responsetemplate-new', { apiId: 'apiId' });
     });
   });
 
@@ -116,7 +116,10 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
       );
       await vhTableFirstRowHostInput.click();
 
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.ng-responsetemplate-edit', { apiId: 'apiId', key: 'DEFAULT' });
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.ng-responsetemplate-edit', {
+        apiId: 'apiId',
+        responseTemplateId: 'DEFAULT-application/json',
+      });
     });
   });
 

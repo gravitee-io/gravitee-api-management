@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { Header } from '@gravitee/ui-particles-angular';
 import { StateService } from '@uirouter/core';
-import { isEmpty, merge, toNumber, toString } from 'lodash';
+import { isEmpty, isNil, toString } from 'lodash';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams, UIRouterState } from '../../../../../ajs-upgraded-providers';
-import { Api } from '../../../../../entities/api';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { HttpUtil, StatusCode } from '../../../../../shared/utils';
+import { fromResponseTemplates, ResponseTemplate, toResponseTemplates } from '../response-templates.adapter';
 
 @Component({
   selector: 'api-proxy-response-templates-edit',
@@ -77,6 +78,7 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
   ];
 
   public apiId: string;
+  public responseTemplateToEdit?: ResponseTemplate;
   public responseTemplatesForm: FormGroup;
   public initialResponseTemplatesFormValue: unknown;
   public isReadOnly = false;
@@ -100,38 +102,42 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
         takeUntil(this.unsubscribe$),
         tap((api) => {
           this.apiId = api.id;
-          this.mode = this.ajsStateParams.key ? 'edit' : 'new'; // TODO : for next commit
+
+          const responseTemplates = toResponseTemplates(api.response_templates);
+
+          this.responseTemplateToEdit = responseTemplates.find((rt) => rt.id === this.ajsStateParams.responseTemplateId);
+          this.mode = !isNil(this.responseTemplateToEdit) ? 'edit' : 'new';
 
           this.isReadOnly = !this.permissionService.hasAnyMatching(['api-response_templates-u']);
 
           this.responseTemplatesForm = new FormGroup({
             key: new FormControl(
               {
-                value: '',
+                value: this.responseTemplateToEdit?.key ?? '',
                 disabled: this.isReadOnly,
               },
-              [Validators.required],
+              [Validators.required, checkAcceptHeader()],
             ),
             acceptHeader: new FormControl(
               {
-                value: '*/*',
+                value: this.responseTemplateToEdit?.contentType ?? '*/*',
                 disabled: this.isReadOnly,
               },
-              [Validators.required],
+              [Validators.required, uniqAcceptHeaderValidator(responseTemplates, this.responseTemplateToEdit)],
             ),
             statusCode: new FormControl(
               {
-                value: '400',
+                value: toString(this.responseTemplateToEdit?.statusCode ?? 400),
                 disabled: this.isReadOnly,
               },
               [Validators.required, HttpUtil.statusCodeValidator()],
             ),
             headers: new FormControl({
-              value: [],
+              value: Object.entries(this.responseTemplateToEdit?.headers ?? {}).map(([key, value]) => ({ key, value })),
               disabled: this.isReadOnly,
             }),
             body: new FormControl({
-              value: '',
+              value: this.responseTemplateToEdit?.body ?? '',
               disabled: this.isReadOnly,
             }),
           });
@@ -167,27 +173,38 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
   }
 
   onSubmit() {
-    const responseTemplate = this.responseTemplatesForm.getRawValue();
-    const responseTemplateToMerge: Api['response_templates'] = {
-      [responseTemplate.key]: {
-        [responseTemplate.acceptHeader]: {
-          status: toNumber(responseTemplate.statusCode),
-          ...(!isEmpty(responseTemplate.headers) && { headers: responseTemplate.headers }),
-          body: responseTemplate.body,
-        },
-      },
+    const responseTemplateFormValue = this.responseTemplatesForm.getRawValue();
+    const headers = responseTemplateFormValue.headers as Header[] | undefined;
+
+    const responseTemplateToSave: ResponseTemplate = {
+      id: this.responseTemplateToEdit?.id,
+      key: responseTemplateFormValue.key,
+      contentType: responseTemplateFormValue.acceptHeader,
+      statusCode: parseInt(responseTemplateFormValue.statusCode, 10),
+      headers: !isEmpty(headers) ? Object.fromEntries(headers.map((h) => [h.key, h.value])) : undefined,
+      body: responseTemplateFormValue.body,
     };
 
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
         takeUntil(this.unsubscribe$),
-        switchMap((api) =>
-          this.apiService.update({
+        switchMap((api) => {
+          const responseTemplates = toResponseTemplates(api.response_templates);
+
+          // Find the response template to update or add the new one
+          const responseTemplateToEditIndex =
+            this.mode === 'edit' ? responseTemplates.findIndex((rt) => rt.id === this.responseTemplateToEdit?.id) : -1;
+
+          responseTemplateToEditIndex !== -1
+            ? responseTemplates.splice(responseTemplateToEditIndex, 1, responseTemplateToSave)
+            : responseTemplates.push(responseTemplateToSave);
+
+          return this.apiService.update({
             ...api,
-            response_templates: merge(api.response_templates, responseTemplateToMerge),
-          }),
-        ),
+            response_templates: fromResponseTemplates(responseTemplates),
+          });
+        }),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -198,3 +215,47 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
       .subscribe();
   }
 }
+
+// Template Key and Accept Header are unique
+const uniqAcceptHeaderValidator = (responseTemplate: ResponseTemplate[], editingResponseTemplate: ResponseTemplate): ValidatorFn => {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+
+    if (isEmpty(value)) {
+      // not validate if is empty. Required validator will do the job
+      return null;
+    }
+
+    if (!control.parent) {
+      return null;
+    }
+
+    const keyControl = control.parent.get('key');
+
+    if (
+      !responseTemplate
+        // ignore the response template we are editing
+        .filter((rt) => editingResponseTemplate?.id !== rt.id)
+        .some((rt) => rt.key === keyControl.value && rt.contentType === value)
+    ) {
+      return null;
+    }
+
+    return { uniqAcceptHeader: `Response template with key '${keyControl.value}' and accept header '${value}' already exists.` };
+  };
+};
+
+// Force uniqAcceptHeaderValidator to be called when key is changed
+const checkAcceptHeader = (): ValidatorFn => {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.parent) {
+      return null;
+    }
+
+    const acceptHeaderControl = control.parent.get('acceptHeader');
+    acceptHeaderControl.updateValueAndValidity();
+    acceptHeaderControl.markAsTouched();
+
+    return null;
+  };
+};

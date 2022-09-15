@@ -64,11 +64,11 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
   }
 
   onAddResponseTemplateClicked() {
-    this.ajsState.go('management.apis.detail.proxy.ng-responsetemplate-edit', { apiId: this.apiId, key: '' });
+    this.ajsState.go('management.apis.detail.proxy.ng-responsetemplate-new', { apiId: this.apiId });
   }
 
   onEditResponseTemplateClicked(element: ResponseTemplate) {
-    this.ajsState.go('management.apis.detail.proxy.ng-responsetemplate-edit', { apiId: this.apiId, key: element.key });
+    this.ajsState.go('management.apis.detail.proxy.ng-responsetemplate-edit', { apiId: this.apiId, responseTemplateId: element.id });
   }
 
   onDeleteResponseTemplateClicked() {

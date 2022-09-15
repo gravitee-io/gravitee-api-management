@@ -52,6 +52,9 @@
           placeholder="*/*, application/json, text/xml, ..."
           required
         />
+        <mat-error *ngIf="responseTemplatesForm.get('acceptHeader').hasError('uniqAcceptHeader')">
+          {{ responseTemplatesForm.get('acceptHeader').getError('uniqAcceptHeader') }}
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -79,7 +82,7 @@
 
     <div class="card__http-headers">
       <div class="card__http-headers__label">HTTP Headers</div>
-      <gio-form-headers formControlName="headers"></gio-form-headers>
+      <gio-form-headers class="card__http-headers__form-field" formControlName="headers"></gio-form-headers>
     </div>
 
     <!-- Status code -->
@@ -88,7 +91,7 @@
       <p class="card__body__hint">Response template body.</p>
       <mat-form-field class="card__body__form-field" appearance="fill">
         <mat-label>Body</mat-label>
-        <textarea matInput formControlName="body"> </textarea>
+        <textarea matInput formControlName="body" rows="8"> </textarea>
       </mat-form-field>
     </div>
   </mat-card>
