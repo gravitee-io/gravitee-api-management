@@ -217,7 +217,6 @@ describe('ApiProxyResponseTemplatesComponent', () => {
       expect(req.request.body.response_templates).toEqual(expectedResponseTemplates);
     });
 
-
     it('should throw if new template key and accept header already exist', async () => {
       const api = fakeApi({
         id: API_ID,

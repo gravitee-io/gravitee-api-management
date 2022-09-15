@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
-import { Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { StateService } from '@uirouter/angular';
+import { EMPTY, of, Subject } from 'rxjs';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../../services-ngx/api.service';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ResponseTemplate, toResponseTemplates } from '../response-templates.adapter';
 
@@ -41,6 +44,8 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly apiService: ApiService,
     private readonly permissionService: GioPermissionService,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
@@ -71,7 +76,36 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
     this.ajsState.go('management.apis.detail.proxy.ng-responsetemplate-edit', { apiId: this.apiId, responseTemplateId: element.id });
   }
 
-  onDeleteResponseTemplateClicked() {
-    // TODO in next commit
+  onDeleteResponseTemplateClicked(element: ResponseTemplate) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Delete a Response Template',
+          content: `Are you sure you want to delete the Response Template <strong>${element.key} - ${element.contentType}</strong>?`,
+          confirmButton: 'Delete',
+        },
+        role: 'alertdialog',
+        id: 'deleteResponseTemplateConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
+        switchMap((api) => {
+          if (api.response_templates[element.key] && api.response_templates[element.key][element.contentType]) {
+            delete api.response_templates[element.key][element.contentType];
+            return this.apiService.update(api);
+          }
+          return of({});
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap(() => this.snackBarService.success(`Response Template ${element.key} - ${element.contentType} successfully deleted!`)),
+      )
+      .subscribe(() => this.ngOnInit());
   }
 }
