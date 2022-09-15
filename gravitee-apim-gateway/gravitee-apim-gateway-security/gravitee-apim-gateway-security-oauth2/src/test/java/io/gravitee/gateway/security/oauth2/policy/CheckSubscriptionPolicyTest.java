@@ -133,6 +133,38 @@ public class CheckSubscriptionPolicyTest {
         verify(policyChain, times(1)).doNext(request, response);
     }
 
+    @Test
+    public void shouldFilterRightPlanWhenSelectionRuleBasedPlan() throws PolicyException, TechnicalException {
+        CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
+
+        Response response = mock(Response.class);
+        PolicyChain policyChain = mock(PolicyChain.class);
+
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(true);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
+        when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
+        when(executionContext.request()).thenReturn(request);
+        when(executionContext.response()).thenReturn(response);
+
+        SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
+        when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
+
+        final Subscription subscription = new Subscription();
+        subscription.setId("subscription-id");
+        subscription.setPlan("plan-id");
+        subscription.setApplication("application-id");
+
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(Collections.singletonList(subscription));
+
+        policy.execute(policyChain, executionContext);
+
+        verify(executionContext).setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
+        verify(executionContext).setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
+        verify(executionContext).setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
+        verify(policyChain, times(1)).doNext(request, response);
+    }
+
     ArgumentMatcher<PolicyResult> statusCode(int statusCode) {
         return argument -> argument.statusCode() == statusCode;
     }
