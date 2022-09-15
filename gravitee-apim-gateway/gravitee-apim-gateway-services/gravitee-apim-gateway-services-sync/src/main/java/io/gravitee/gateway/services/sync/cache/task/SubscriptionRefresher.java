@@ -61,6 +61,9 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
             Subscription eltSubscription = (Subscription) cache.get(oldKey);
             if (eltSubscription != null && eltSubscription.getId().equals(subscription.getId())) {
                 cache.evict(oldKey);
+
+                final String keyWithoutPlan = String.format("%s.%s.%s", eltSubscription.getApi(), eltSubscription.getClientId(), null);
+                cache.evict(keyWithoutPlan);
             }
         } else if (ACCEPTED.equals(subscription.getStatus())) {
             logger.debug(
@@ -79,6 +82,10 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
             subscription.setProcessedBy(null);
 
             cache.put(key, subscription);
+
+            // Index the subscription without plan id to allow search without plan criteria.
+            final String keyWithoutPlan = String.format("%s.%s.%s", subscription.getApi(), subscription.getClientId(), null);
+            cache.put(keyWithoutPlan, subscription);
 
             if (element != null) {
                 final String oldKey = (String) element;
