@@ -19,7 +19,7 @@
   <mat-card *ngIf="!virtualHostModeEnabled" class="form-card">
     <mat-form-field appearance="fill" class="form-card__context-path-field">
       <mat-label>Gateway context-path</mat-label>
-      <input matInput formControlName="contextPath" />
+      <input matInput formControlName="contextPath" required />
       <mat-hint
         >Path where API is exposed, must start with a '/' and must contain any letter, capitalize letter, number, dash or
         underscore.</mat-hint

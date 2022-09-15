@@ -104,14 +104,20 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
           this.isReadOnly = !this.permissionService.hasAnyMatching(['api-response_templates-u']);
 
           this.responseTemplatesForm = new FormGroup({
-            key: new FormControl({
-              value: '',
-              disabled: this.isReadOnly,
-            }),
-            acceptHeader: new FormControl({
-              value: '*/*',
-              disabled: this.isReadOnly,
-            }),
+            key: new FormControl(
+              {
+                value: '',
+                disabled: this.isReadOnly,
+              },
+              [Validators.required],
+            ),
+            acceptHeader: new FormControl(
+              {
+                value: '*/*',
+                disabled: this.isReadOnly,
+              },
+              [Validators.required],
+            ),
             statusCode: new FormControl(
               {
                 value: '400',
