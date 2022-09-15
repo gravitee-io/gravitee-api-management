@@ -21,7 +21,6 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
@@ -35,19 +34,25 @@ import java.util.Optional;
  */
 public class CheckSubscriptionPolicy implements Policy {
 
+    static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
+        ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
+
     static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
     static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
     static final String GATEWAY_OAUTH2_ACCESS_DENIED_KEY = "GATEWAY_OAUTH2_ACCESS_DENIED";
     static final String GATEWAY_OAUTH2_INVALID_CLIENT_KEY = "GATEWAY_OAUTH2_INVALID_CLIENT";
+
     private static final String OAUTH2_ERROR_ACCESS_DENIED = "access_denied";
+
+    private static final String OAUTH2_ERROR_SERVER_ERROR = "server_error";
 
     @Override
     public void execute(PolicyChain policyChain, ExecutionContext executionContext) throws PolicyException {
-        // get stuff from execution context
         SubscriptionService subscriptionService = executionContext.getComponent(SubscriptionService.class);
-        String api = (String) executionContext.getAttribute(ExecutionContext.ATTR_API);
-        String clientId = (String) executionContext.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
-        String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
+
+        final String api = (String) executionContext.getAttribute(ExecutionContext.ATTR_API);
+        final String clientId = (String) executionContext.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
+        final String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
 
         // client_id is mandatory
         if (clientId == null || clientId.trim().isEmpty()) {
@@ -64,15 +69,28 @@ public class CheckSubscriptionPolicy implements Policy {
         executionContext.request().metrics().setSecurityType(OAUTH2);
         executionContext.request().metrics().setSecurityToken(clientId);
 
-        Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndClientIdAndPlan(api, clientId, plan);
+        // FIXME: Use plan instead of `null` to properly handle plan selection in multi-plan context
+        Optional<io.gravitee.gateway.api.service.Subscription> optionalSubscription = subscriptionService.getByApiAndClientIdAndPlan(
+            api,
+            clientId,
+            null
+        );
 
-        if (subscriptionOpt.isPresent()) {
-            Subscription subscription = subscriptionOpt.get();
+        if (optionalSubscription.isPresent()) {
+            final boolean selectionRuleBasedPlan = Boolean.TRUE.equals(
+                executionContext.getAttribute(CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)
+            );
 
-            if (subscription.isTimeValid(executionContext.request().timestamp())) {
+            final io.gravitee.gateway.api.service.Subscription subscription = optionalSubscription
+                // FIXME: Remove `!selectionRuleBasedPlan` wild behavior when plan selection based on rules will be fixed
+                .filter(sub -> !selectionRuleBasedPlan || sub.getPlan().equals(plan))
+                .orElse(null);
+
+            if (subscription != null && subscription.isTimeValid(executionContext.request().timestamp())) {
                 executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
                 executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
                 executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
+
                 policyChain.doNext(executionContext.request(), executionContext.response());
                 return;
             }
