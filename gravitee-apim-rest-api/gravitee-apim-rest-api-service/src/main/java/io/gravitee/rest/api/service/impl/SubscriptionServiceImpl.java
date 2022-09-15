@@ -51,6 +51,7 @@ import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -967,19 +968,35 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             final SubscriptionCriteria.Builder builder = toSubscriptionCriteriaBuilder(query);
 
-            Stream<SubscriptionEntity> subscriptionsStream = subscriptionRepository.search(builder.build()).stream().map(this::convert);
+            Set<String> subscriptionsIds = null;
             if (query.getApiKey() != null && !query.getApiKey().isEmpty()) {
-                subscriptionsStream =
-                    subscriptionsStream.filter(
-                        subscriptionEntity -> {
-                            final List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(
-                                executionContext,
-                                subscriptionEntity.getId()
-                            );
-                            return apiKeys.stream().anyMatch(apiKeyEntity -> apiKeyEntity.getKey().equals(query.getApiKey()));
-                        }
+                if (query.getApis() != null && query.getApis().size() == 1) {
+                    // Search by API & API Key
+                    final ApiKeyEntity apiKey = apiKeyService.findByKeyAndApi(
+                        executionContext,
+                        query.getApiKey(),
+                        query.getApis().iterator().next()
                     );
+                    if (apiKey != null) {
+                        subscriptionsIds = apiKey.getSubscriptions().stream().map(SubscriptionEntity::getId).collect(Collectors.toSet());
+                    }
+                } else {
+                    // Search by API Key
+                    List<ApiKeyEntity> apiKeys = apiKeyService.findByKey(executionContext, query.getApiKey());
+                    if (apiKeys != null) {
+                        subscriptionsIds =
+                            apiKeys
+                                .stream()
+                                .flatMap(apiKeyEntity -> apiKeyEntity.getSubscriptions().stream())
+                                .map(SubscriptionEntity::getId)
+                                .collect(Collectors.toSet());
+                    }
+                }
             }
+            builder.ids(subscriptionsIds);
+
+            Stream<SubscriptionEntity> subscriptionsStream = subscriptionRepository.search(builder.build()).stream().map(this::convert);
+
             return subscriptionsStream.collect(toList());
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to search for subscriptions: {}", query, ex);

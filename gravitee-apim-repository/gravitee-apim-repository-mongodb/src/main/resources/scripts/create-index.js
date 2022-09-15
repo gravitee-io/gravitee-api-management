@@ -34,6 +34,7 @@ db.getCollection(`${prefix}plans`).reIndex();
 db.getCollection(`${prefix}subscriptions`).dropIndexes();
 db.getCollection(`${prefix}subscriptions`).createIndex( { "plan" : 1 }, { "name": "p1" } );
 db.getCollection(`${prefix}subscriptions`).createIndex( { "application" : 1 }, { "name": "a1" } );
+db.getCollection(`${prefix}subscriptions`).createIndex( { "createdAt" : -1 }, { "name": "c-1" } );
 db.getCollection(`${prefix}subscriptions`).reIndex();
 
 // "keys" collection

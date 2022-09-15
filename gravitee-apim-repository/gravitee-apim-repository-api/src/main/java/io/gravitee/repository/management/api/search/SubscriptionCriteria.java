@@ -29,6 +29,8 @@ import java.util.Objects;
  */
 public class SubscriptionCriteria {
 
+    private final Collection<String> ids;
+
     private final Collection<String> apis;
 
     private final Collection<String> plans;
@@ -48,6 +50,7 @@ public class SubscriptionCriteria {
     SubscriptionCriteria(SubscriptionCriteria.Builder builder) {
         this.from = builder.from;
         this.to = builder.to;
+        this.ids = builder.ids;
         this.apis = builder.apis;
         this.plans = builder.plans;
         this.applications = builder.applications;
@@ -56,6 +59,10 @@ public class SubscriptionCriteria {
         this.endingAtAfter = builder.endingAtAfter;
         this.endingAtBefore = builder.endingAtBefore;
         this.planSecurityTypes = builder.planSecurityTypes;
+    }
+
+    public Collection<String> getIds() {
+        return ids;
     }
 
     public Collection<String> getApis() {
@@ -110,6 +117,7 @@ public class SubscriptionCriteria {
             to == that.to &&
             endingAtAfter == that.endingAtAfter &&
             endingAtBefore == that.endingAtBefore &&
+            Objects.equals(ids, that.ids) &&
             Objects.equals(apis, that.apis) &&
             Objects.equals(plans, that.plans) &&
             Objects.equals(statuses, that.statuses) &&
@@ -120,10 +128,12 @@ public class SubscriptionCriteria {
 
     @Override
     public int hashCode() {
-        return Objects.hash(apis, plans, statuses, applications, from, to, endingAtAfter, endingAtBefore, planSecurityTypes);
+        return Objects.hash(ids, apis, plans, statuses, applications, from, to, endingAtAfter, endingAtBefore, planSecurityTypes);
     }
 
     public static class Builder {
+
+        private Collection<String> ids;
 
         private Collection<String> apis;
 
@@ -148,6 +158,11 @@ public class SubscriptionCriteria {
 
         public SubscriptionCriteria.Builder to(long to) {
             this.to = to;
+            return this;
+        }
+
+        public SubscriptionCriteria.Builder ids(Collection<String> ids) {
+            this.ids = ids;
             return this;
         }
 

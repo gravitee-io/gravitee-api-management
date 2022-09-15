@@ -23,7 +23,8 @@ import static com.mongodb.client.model.Sorts.descending;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.model.Facet;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Order;
@@ -36,6 +37,7 @@ import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.convert.MongoConverter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -58,6 +60,14 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
 
         if (criteria.getClientId() != null) {
             dataPipeline.add(match(eq("clientId", criteria.getClientId())));
+        }
+
+        if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
+            if (criteria.getIds().size() == 1) {
+                dataPipeline.add(match(eq("_id", criteria.getIds().iterator().next())));
+            } else {
+                dataPipeline.add(match(in("_id", criteria.getIds())));
+            }
         }
 
         if (criteria.getApis() != null && !criteria.getApis().isEmpty()) {
@@ -114,6 +124,8 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
 
         // set sort by created at
         dataPipeline.add(sort(Sorts.descending("createdAt")));
+
+        dataPipeline.add(Aggregates.project(Projections.exclude("_class")));
 
         Integer totalCount = null;
         // if pageable, count total subscriptions matching criterias
@@ -182,8 +194,9 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
     ) {
         List<SubscriptionMongo> subscriptions = new ArrayList<>();
 
+        MongoConverter converter = mongoTemplate.getConverter();
         for (Document doc : dataAggregate) {
-            subscriptions.add(mongoTemplate.getConverter().read(SubscriptionMongo.class, doc));
+            subscriptions.add(converter.read(SubscriptionMongo.class, doc));
         }
 
         return new Page<>(
