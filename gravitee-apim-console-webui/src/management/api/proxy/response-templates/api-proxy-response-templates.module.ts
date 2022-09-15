@@ -25,6 +25,7 @@ import { GioFormHeadersModule, GioIconsModule, GioSaveBarModule } from '@gravite
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { ApiProxyResponseTemplatesEditComponent } from './edit/api-proxy-response-templates-edit.component';
 import { ApiProxyResponseTemplatesListComponent } from './list/api-proxy-response-templates-list.component';
@@ -48,6 +49,7 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
     MatFormFieldModule,
     MatInputModule,
     MatSnackBarModule,
+    MatDialogModule,
 
     GioPermissionModule,
     GioIconsModule,

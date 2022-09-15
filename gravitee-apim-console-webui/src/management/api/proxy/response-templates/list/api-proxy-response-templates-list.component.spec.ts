@@ -21,6 +21,8 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ApiProxyResponseTemplatesListComponent } from './api-proxy-response-templates-list.component';
 
@@ -37,6 +39,7 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
 
   let fixture: ComponentFixture<ApiProxyResponseTemplatesListComponent>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   const currentUser = new User();
@@ -50,12 +53,17 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+      },
     });
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ApiProxyResponseTemplatesListComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -155,6 +163,45 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
     ]);
   });
 
+  it('should delete response template', async () => {
+    const api = fakeApi({
+      id: API_ID,
+      response_templates: {
+        DEFAULT: {
+          'application/json': {
+            body: 'json',
+            status: 200,
+          },
+          'text/xml': {
+            body: 'xml',
+            status: 200,
+          },
+          '*/*': {
+            body: 'default',
+            status: 200,
+          },
+        },
+      },
+    });
+    expectApiGetRequest(api);
+
+    const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
+    const rtTableFirstRow = (await rtTable.getRows())[0];
+
+    const [_1, _2, _3, _4, rtTableFirstRowActionsCell] = await rtTableFirstRow.getCells();
+
+    const vhTableFirstRowHostInput = await rtTableFirstRowActionsCell.getHarness(
+      MatButtonHarness.with({ selector: '[aria-label="Button to delete a Response Template"]' }),
+    );
+    await vhTableFirstRowHostInput.click();
+
+    const confirmDialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await confirmDialog.getHarness(MatButtonHarness.with({ text: /^Delete/ }))).click();
+
+    expectApiGetRequest(api);
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+    expect(req.request.body.response_templates['DEFAULT']['application/json']).toBeUndefined();
+  });
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
