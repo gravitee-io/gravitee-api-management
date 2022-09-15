@@ -61,6 +61,7 @@ public class DictionariesHandler extends AbstractHandler {
                     promise.fail(ex);
                 }
             },
+            false,
             event -> handleResponse(ctx, event)
         );
     }
@@ -75,6 +76,7 @@ public class DictionariesHandler extends AbstractHandler {
                     promise.fail(te);
                 }
             },
+            false,
             (Handler<AsyncResult<Set<Dictionary>>>) result -> handleResponse(ctx, result)
         );
     }

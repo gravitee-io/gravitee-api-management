@@ -58,6 +58,7 @@ public class ApiKeysHandler extends AbstractHandler {
                     promise.fail(te);
                 }
             },
+            false,
             (Handler<AsyncResult<List<ApiKey>>>) result -> handleResponse(ctx, result)
         );
     }
