@@ -18,21 +18,44 @@ import { flatMap } from 'lodash';
 import { Api } from '../../../../entities/api';
 
 export type ResponseTemplate = {
+  id: string;
   key: string;
   contentType: string;
   statusCode?: number;
   body?: string;
+  headers?: Record<string, string>;
 };
 
 export const toResponseTemplates = (responseTemplates: Api['response_templates']): ResponseTemplate[] => {
+  if (!responseTemplates) {
+    return [];
+  }
+
   return flatMap(Object.entries(responseTemplates), ([key, responseTemplates]) => {
     return [
       ...Object.entries(responseTemplates).map(([contentType, responseTemplate]) => ({
+        id: `${key}-${contentType}`,
         key: key,
         contentType,
         statusCode: responseTemplate.status,
         body: responseTemplate.body,
+        headers: responseTemplate.headers,
       })),
     ];
   });
+};
+
+export const fromResponseTemplates = (responseTemplates: ResponseTemplate[]): Api['response_templates'] => {
+  return responseTemplates.reduce((acc, responseTemplate) => {
+    const { key, contentType, statusCode, body, headers } = responseTemplate;
+    if (!acc[key]) {
+      acc[key] = {};
+    }
+    acc[key][contentType] = {
+      status: statusCode,
+      body,
+      headers,
+    };
+    return acc;
+  }, {} as Api['response_templates']);
 };

@@ -300,8 +300,21 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.proxy.ng-responsetemplate-new', {
+      url: '/ng-responsetemplates/',
+      component: 'ngApiProxyResponseTemplatesEdit',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
+        },
+        docs: {
+          page: 'management-api-proxy-response-template',
+        },
+      },
+    })
     .state('management.apis.detail.proxy.ng-responsetemplate-edit', {
-      url: '/ng-responsetemplates/:key',
+      url: '/ng-responsetemplates/:responseTemplateId',
       component: 'ngApiProxyResponseTemplatesEdit',
       data: {
         useAngularMaterial: true,
