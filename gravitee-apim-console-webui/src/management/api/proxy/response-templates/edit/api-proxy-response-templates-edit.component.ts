@@ -21,6 +21,7 @@ import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams, UIRouterState } from '../../../../../ajs-upgraded-providers';
+import { Api } from '../../../../../entities/api';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
@@ -125,6 +126,14 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
               },
               [Validators.required, HttpUtil.statusCodeValidator()],
             ),
+            headers: new FormControl({
+              value: [],
+              disabled: this.isReadOnly,
+            }),
+            body: new FormControl({
+              value: '',
+              disabled: this.isReadOnly,
+            }),
           });
           this.initialResponseTemplatesFormValue = this.responseTemplatesForm.getRawValue();
 
@@ -159,8 +168,14 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
 
   onSubmit() {
     const responseTemplate = this.responseTemplatesForm.getRawValue();
-    const responseTemplateToMerge = {
-      [responseTemplate.key]: { [responseTemplate.acceptHeader]: { status: toNumber(responseTemplate.statusCode) } },
+    const responseTemplateToMerge: Api['response_templates'] = {
+      [responseTemplate.key]: {
+        [responseTemplate.acceptHeader]: {
+          status: toNumber(responseTemplate.statusCode),
+          ...(!isEmpty(responseTemplate.headers) && { headers: responseTemplate.headers }),
+          body: responseTemplate.body,
+        },
+      },
     };
 
     return this.apiService

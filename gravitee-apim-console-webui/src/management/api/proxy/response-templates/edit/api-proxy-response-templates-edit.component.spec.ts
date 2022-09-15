@@ -18,7 +18,6 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
 
 import { ApiProxyResponseTemplatesEditComponent } from './api-proxy-response-templates-edit.component';
@@ -85,6 +84,12 @@ describe('ApiProxyResponseTemplatesComponent', () => {
       const statusCodeInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="statusCode"]' }));
       await statusCodeInput.setValue('200');
 
+      // const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
+      // TODO: When ui-particles is released
+
+      const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
+      await bodyInput.setValue('newTemplateBody');
+
       const saveButton = await loader.getHarness(GioSaveBarHarness);
       await saveButton.clickSubmit();
 
@@ -93,7 +98,7 @@ describe('ApiProxyResponseTemplatesComponent', () => {
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
       expect(req.request.body.response_templates).toStrictEqual({
         ...api.response_templates,
-        newTemplateKey: { 'application/json': { status: 200 } },
+        newTemplateKey: { 'application/json': { status: 200, body: 'newTemplateBody' } },
       });
     });
   });

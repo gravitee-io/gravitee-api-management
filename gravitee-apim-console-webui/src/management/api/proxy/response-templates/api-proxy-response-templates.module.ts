@@ -21,7 +21,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
-import { GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioFormHeadersModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -51,6 +51,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioIconsModule,
     GioPermissionModule,
     GioSaveBarModule,
+    GioFormHeadersModule,
   ],
 })
 export class ApiProxyResponseTemplatesModule {}
