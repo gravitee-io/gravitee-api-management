@@ -36,11 +36,13 @@ export class PolicyStudioPropertiesComponent implements OnInit, OnDestroy {
 
   public provider: any;
 
-  apiDefinition: ApiDefinition;
+  public apiDefinition: ApiDefinition;
 
-  providers: any;
+  public isReadonly = false;
 
-  dynamicPropertySchema: any;
+  public providers: any;
+
+  public dynamicPropertySchema: any;
 
   constructor(
     private readonly policyStudioService: PolicyStudioService,
@@ -60,6 +62,7 @@ export class PolicyStudioPropertiesComponent implements OnInit, OnDestroy {
           this.provider = apiDefinition.services['dynamic-property'];
           this.providers = providers;
           this.dynamicPropertySchema = dynamicPropertySchema;
+          this.isReadonly = apiDefinition.origin === 'kubernetes';
         }),
       )
       .subscribe();
