@@ -13,31 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.security;
-
-import static org.junit.Assert.assertTrue;
+package io.gravitee.gateway.handlers.api.policy.security.rule;
 
 import io.gravitee.gateway.security.core.AuthenticationContext;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import java.util.Map;
 
 /**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class DefaultPlanBasedAuthenticationHandlerTest {
+public class EvaluableAuthenticationContext {
 
-    @InjectMocks
-    private DefaultPlanBasedAuthenticationHandler authenticationHandler;
+    private final AuthenticationContext authenticationContext;
 
-    @Mock
-    private AuthenticationContext authenticationContext;
+    EvaluableAuthenticationContext(AuthenticationContext authenticationContext) {
+        this.authenticationContext = authenticationContext;
+    }
 
-    @Test
-    public void canHandleSubscription_returns_true() {
-        assertTrue(authenticationHandler.canHandleSubscription(authenticationContext));
+    public Map<String, Object> getAttributes() {
+        return authenticationContext.attributes();
     }
 }

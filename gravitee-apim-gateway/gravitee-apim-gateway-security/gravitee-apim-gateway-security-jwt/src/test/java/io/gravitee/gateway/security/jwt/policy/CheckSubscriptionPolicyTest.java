@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.security.oauth2.policy;
+package io.gravitee.gateway.security.jwt.policy;
 
 import static io.gravitee.reporter.api.http.Metrics.on;
 import static java.lang.System.currentTimeMillis;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -27,7 +26,6 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
-import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
@@ -59,14 +57,13 @@ public class CheckSubscriptionPolicyTest {
     public void shouldReturnUnauthorized_onException() throws PolicyException, TechnicalException {
         CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
 
+        Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
-        when(executionContext.request()).thenReturn(request);
-
         SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
         when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
+        when(executionContext.request()).thenReturn(request);
 
         when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenThrow(TechnicalException.class);
 
@@ -83,35 +80,10 @@ public class CheckSubscriptionPolicyTest {
     }
 
     @Test
-    public void shouldReturnUnauthorized_noClient() throws PolicyException, TechnicalException {
-        CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
-
-        Response response = mock(Response.class);
-        when(response.headers()).thenReturn(mock(HttpHeaders.class));
-        PolicyChain policyChain = mock(PolicyChain.class);
-
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        when(executionContext.response()).thenReturn(response);
-
-        SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
-        when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
-
-        policy.execute(policyChain, executionContext);
-
-        verify(policyChain, times(1))
-            .failWith(
-                argThat(
-                    result ->
-                        result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
-                        CheckSubscriptionPolicy.GATEWAY_OAUTH2_INVALID_CLIENT_KEY.equals(result.key())
-                )
-            );
-    }
-
-    @Test
     public void shouldReturnUnauthorized_badClient() throws PolicyException, TechnicalException {
         CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
 
+        Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
         ExecutionContext executionContext = mock(ExecutionContext.class);

@@ -71,7 +71,7 @@ public class OAuth2AuthenticationHandler implements AuthenticationHandler {
 
     @Override
     public int order() {
-        return 100;
+        return 0;
     }
 
     @Override

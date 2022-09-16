@@ -13,29 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.security;
+package io.gravitee.gateway.handlers.api.policy.security;
 
+import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
+import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import java.util.List;
-import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FreePlanAuthenticationHandler implements AuthenticationHandler {
+public class PlanBasedAuthenticationHandler implements AuthenticationHandler {
 
+    private static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
+        ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     protected final AuthenticationHandler handler;
-    protected final Api api;
+    protected final Plan plan;
 
-    public FreePlanAuthenticationHandler(final AuthenticationHandler handler, final Api api) {
+    public PlanBasedAuthenticationHandler(final AuthenticationHandler handler, final Plan plan) {
         this.handler = handler;
-        this.api = api;
+        this.plan = plan;
     }
 
     @Override
@@ -55,10 +58,17 @@ public class FreePlanAuthenticationHandler implements AuthenticationHandler {
 
     @Override
     public List<AuthenticationPolicy> handle(ExecutionContext executionContext) {
+        executionContext.setAttribute(ExecutionContext.ATTR_PLAN, plan.getId());
+        executionContext.setAttribute(
+            CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED,
+            plan.getSelectionRule() != null && !plan.getSelectionRule().isEmpty()
+        );
+
         return handler
             .handle(executionContext)
             .stream()
-            /*                .map(new Function<AuthenticationPolicy, AuthenticationPolicy>() {
+            .map(
+                new Function<AuthenticationPolicy, AuthenticationPolicy>() {
                     @Override
                     public AuthenticationPolicy apply(AuthenticationPolicy securityPolicy) {
                         // Override the configuration of the policy with the one provided by the plan
@@ -71,16 +81,15 @@ public class FreePlanAuthenticationHandler implements AuthenticationHandler {
 
                                 @Override
                                 public String configuration() {
-                                    return api.getAuthenticationDefinition();
+                                    return plan.getSecurityDefinition();
                                 }
                             };
                         }
 
-                        return null; // for free plan api, we doesn't want to check subscription
-                        // TODO check other thing ?
+                        return securityPolicy;
                     }
-                })*/
-            .filter(Objects::nonNull)
+                }
+            )
             .collect(Collectors.toList());
     }
 }

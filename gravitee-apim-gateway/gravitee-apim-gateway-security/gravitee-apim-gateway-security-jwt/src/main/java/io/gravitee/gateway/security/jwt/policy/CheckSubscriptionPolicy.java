@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.security.oauth2.policy;
+package io.gravitee.gateway.security.jwt.policy;
 
-import static io.gravitee.reporter.api.http.SecurityType.OAUTH2;
+import static io.gravitee.reporter.api.http.SecurityType.JWT;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
@@ -42,37 +40,23 @@ public class CheckSubscriptionPolicy implements Policy {
     static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
         ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
-    static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
 
     private static final String OAUTH2_ERROR_ACCESS_DENIED = "access_denied";
     private static final String OAUTH2_ERROR_SERVER_ERROR = "server_error";
 
     static final String GATEWAY_OAUTH2_ACCESS_DENIED_KEY = "GATEWAY_OAUTH2_ACCESS_DENIED";
     static final String GATEWAY_OAUTH2_SERVER_ERROR_KEY = "GATEWAY_OAUTH2_SERVER_ERROR";
-    static final String GATEWAY_OAUTH2_INVALID_CLIENT_KEY = "GATEWAY_OAUTH2_INVALID_CLIENT";
 
     @Override
     public void execute(PolicyChain policyChain, ExecutionContext executionContext) throws PolicyException {
         SubscriptionRepository subscriptionRepository = executionContext.getComponent(SubscriptionRepository.class);
 
         // Get plan and client_id from execution context
-        String clientId = (String) executionContext.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
-        if (clientId == null || clientId.trim().isEmpty()) {
-            sendError(
-                GATEWAY_OAUTH2_INVALID_CLIENT_KEY,
-                executionContext.response(),
-                policyChain,
-                "invalid_client",
-                "No client_id was supplied"
-            );
-            return;
-        }
-
-        executionContext.request().metrics().setSecurityType(OAUTH2);
-        executionContext.request().metrics().setSecurityToken(clientId);
-
         String api = (String) executionContext.getAttribute(ExecutionContext.ATTR_API);
+        String clientId = (String) executionContext.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
 
+        executionContext.request().metrics().setSecurityType(JWT);
+        executionContext.request().metrics().setSecurityToken(clientId);
         try {
             List<Subscription> subscriptions = subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
@@ -117,28 +101,6 @@ public class CheckSubscriptionPolicy implements Policy {
 
     private void sendUnauthorized(String key, PolicyChain policyChain, String description) {
         policyChain.failWith(PolicyResult.failure(key, HttpStatusCode.UNAUTHORIZED_401, description));
-    }
-
-    /**
-     * As per https://tools.ietf.org/html/rfc6750#page-7:
-     *
-     *      HTTP/1.1 401 Unauthorized
-     *      WWW-Authenticate: Bearer realm="example",
-     *      error="invalid_token",
-     *      error_description="The access token expired"
-     */
-    private void sendError(String key, Response response, PolicyChain policyChain, String error, String description) {
-        String headerValue =
-            BEARER_AUTHORIZATION_TYPE +
-            " realm=\"gravitee.io\"," +
-            " error=\"" +
-            error +
-            "\"," +
-            " error_description=\"" +
-            description +
-            "\"";
-        response.headers().add(HttpHeaders.WWW_AUTHENTICATE, headerValue);
-        policyChain.failWith(PolicyResult.failure(key, HttpStatusCode.UNAUTHORIZED_401, null));
     }
 
     @Override

@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.security.core;
 
-import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Request;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -24,10 +24,9 @@ import io.gravitee.gateway.api.ExecutionContext;
 @FunctionalInterface
 public interface AuthenticationHandlerSelector {
     /**
-     * Get an {@link AuthenticationHandler} from the ExecutionContext.
-     *
-     * @param executionContext ExecutionContext.
+     * Get an {@link AuthenticationHandler} from the incoming HTTP request.
+     * @param request Incoming HTTP request.
      * @return The authentication handler to apply to the incoming request.
      */
-    AuthenticationHandler select(ExecutionContext executionContext);
+    AuthenticationHandler select(Request request);
 }
