@@ -16,16 +16,23 @@
 package io.gravitee.plugin.entrypoint.http.post;
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
+import io.gravitee.plugin.entrypoint.http.post.configuration.HttpPostEntrypointConnectorConfiguration;
 import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @AllArgsConstructor
+@Slf4j
 public class HttpPostEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory {
+
+    private ConnectorFactoryHelper connectorFactoryHelper;
 
     @Override
     public Set<ConnectorMode> supportedModes() {
@@ -34,6 +41,13 @@ public class HttpPostEntrypointConnectorFactory implements EntrypointAsyncConnec
 
     @Override
     public HttpPostEntrypointConnector createConnector(final String configuration) {
-        return new HttpPostEntrypointConnector();
+        try {
+            return new HttpPostEntrypointConnector(
+                connectorFactoryHelper.getConnectorConfiguration(HttpPostEntrypointConnectorConfiguration.class, configuration)
+            );
+        } catch (PluginConfigurationException e) {
+            log.error("Can't create connector cause no valid configuration", e);
+            return null;
+        }
     }
 }

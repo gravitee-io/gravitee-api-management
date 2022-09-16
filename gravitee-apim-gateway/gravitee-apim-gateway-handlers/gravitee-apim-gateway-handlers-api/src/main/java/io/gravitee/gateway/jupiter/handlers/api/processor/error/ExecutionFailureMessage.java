@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.plugin.entrypoint.http.post.configuration;
+package io.gravitee.gateway.jupiter.handlers.api.processor.error;
 
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
+import io.gravitee.gateway.api.buffer.Buffer;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Getter
-@Setter
-public class HttpPostEntrypointConnectorConfiguration implements EntrypointConnectorConfiguration {
+@Builder
+public class ExecutionFailureMessage {
 
-    /**
-     * Allow adding incoming request headers to the generated message
-     */
-    private boolean requestHeadersToMessage;
+    private Buffer payload;
+    private String contentType;
 }

@@ -23,9 +23,11 @@ import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.*;
 import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
 import io.gravitee.gateway.jupiter.api.el.EvaluableResponse;
+import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,6 +71,16 @@ abstract class AbstractExecutionContext<RQ extends Request, RS extends Response>
                 return Completable.error(new InterruptionFailureException(executionFailure));
             }
         );
+    }
+
+    @Override
+    public Flowable<Message> interruptMessages() {
+        return Flowable.error(new InterruptionException());
+    }
+
+    @Override
+    public Flowable<Message> interruptMessagesWith(final ExecutionFailure executionFailure) {
+        return Flowable.error(new InterruptionFailureException(executionFailure));
     }
 
     @Override

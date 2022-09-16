@@ -16,6 +16,7 @@
 package io.gravitee.plugin.endpoint.kafka.configuration;
 
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,7 +37,7 @@ public class KafkaEndpointConnectorConfiguration implements EndpointConnectorCon
     private String bootstrapServers;
     private Consumer consumer = new Consumer();
     private Producer producer = new Producer();
-    private String topics;
+    private Set<String> topics;
 
     @NoArgsConstructor
     @AllArgsConstructor

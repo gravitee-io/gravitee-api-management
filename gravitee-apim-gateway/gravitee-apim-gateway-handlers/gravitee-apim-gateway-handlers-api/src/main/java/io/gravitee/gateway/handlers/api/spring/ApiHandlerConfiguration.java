@@ -37,6 +37,7 @@ import io.gravitee.gateway.jupiter.flow.condition.evaluation.PathBasedConditionF
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.AsyncReactorFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiMessageProcessorChainFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
@@ -206,6 +207,11 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
+    public ApiMessageProcessorChainFactory apiMessageProcessorChainFactory() {
+        return new ApiMessageProcessorChainFactory();
+    }
+
+    @Bean
     public ReactorFactory<io.gravitee.gateway.jupiter.handlers.api.v4.Api> asyncApiReactorFactory(
         PolicyFactory policyFactory,
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
@@ -213,6 +219,7 @@ public class ApiHandlerConfiguration {
         @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
         OrganizationManager organizationManager,
         io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory,
+        ApiMessageProcessorChainFactory apiMessageProcessorChainFactory,
         io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         FlowResolverFactory v4FlowResolverFactory
     ) {
@@ -225,6 +232,7 @@ public class ApiHandlerConfiguration {
             platformPolicyChainFactory,
             organizationManager,
             v4ApiProcessorChainFactory,
+            apiMessageProcessorChainFactory,
             flowResolverFactory,
             v4FlowResolverFactory
         );

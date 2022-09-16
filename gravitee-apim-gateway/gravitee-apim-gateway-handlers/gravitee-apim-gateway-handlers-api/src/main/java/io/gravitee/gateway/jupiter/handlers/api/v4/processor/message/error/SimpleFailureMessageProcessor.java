@@ -13,22 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.plugin.entrypoint.http.post.configuration;
-
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
-import lombok.Getter;
-import lombok.Setter;
+package io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Getter
-@Setter
-public class HttpPostEntrypointConnectorConfiguration implements EntrypointConnectorConfiguration {
+public class SimpleFailureMessageProcessor extends AbstractFailureMessageProcessor {
 
-    /**
-     * Allow adding incoming request headers to the generated message
-     */
-    private boolean requestHeadersToMessage;
+    public static final String ID = "message-processor-simple-failure";
+
+    private SimpleFailureMessageProcessor() {}
+
+    public static SimpleFailureMessageProcessor instance() {
+        return Holder.INSTANCE;
+    }
+
+    @Override
+    public String getId() {
+        return ID;
+    }
+
+    private static class Holder {
+
+        private static final SimpleFailureMessageProcessor INSTANCE = new SimpleFailureMessageProcessor();
+    }
 }

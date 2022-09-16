@@ -15,8 +15,6 @@
  */
 package io.gravitee.plugin.entrypoint.websocket;
 
-import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
@@ -27,7 +25,6 @@ import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.gravitee.plugin.entrypoint.websocket.configuration.WebSocketEntrypointConnectorConfiguration;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
-import java.util.HashSet;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,8 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WebSocketEntrypointConnector implements EntrypointAsyncConnector {
 
-    static final int WEBSOCKET_STATUS_INTERNAL_SERVER_ERROR = 1011;
-    static final String WEBSOCKET_STATUS_INTERNAL_SERVER_ERROR_MSG = "Internal server error";
+    static final int WEBSOCKET_STATUS_SERVER_ERROR = 1011;
+    static final String WEBSOCKET_STATUS_SERVER_ERROR_MSG = "Server error";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     private static final String ENTRYPOINT_ID = "websocket";
     protected final WebSocketEntrypointConnectorConfiguration configuration;
@@ -76,31 +73,22 @@ public class WebSocketEntrypointConnector implements EntrypointAsyncConnector {
 
     @Override
     public Completable handleRequest(final ExecutionContext ctx) {
-        return Completable.defer(
-            () ->
-                ctx
-                    .request()
-                    .webSocket()
-                    .upgrade()
-                    .doOnSuccess(webSocket -> ctx.request().messages(prepareRequestMessages(webSocket)))
-                    .ignoreElement()
+        return Completable.defer(() ->
+            ctx
+                .request()
+                .webSocket()
+                .upgrade()
+                .doOnSuccess(webSocket -> ctx.request().messages(prepareRequestMessages(webSocket)))
+                .ignoreElement()
         );
     }
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
         return Completable
-            .defer(
-                () ->
-                    Completable.mergeArray(
-                        ctx.request().messages().ignoreElements(),
-                        prepareResponseMessages(ctx).flatMapCompletable(buffer -> ctx.request().webSocket().write(buffer))
-                    )
-            )
+            .defer(() -> Completable.mergeArray(ctx.request().messages().ignoreElements(), processResponseMessages(ctx)))
             .andThen(Completable.defer(() -> ctx.request().webSocket().close()))
-            .onErrorResumeNext(
-                t -> ctx.request().webSocket().close(WEBSOCKET_STATUS_INTERNAL_SERVER_ERROR, WEBSOCKET_STATUS_INTERNAL_SERVER_ERROR_MSG)
-            );
+            .onErrorResumeNext(t -> ctx.request().webSocket().close(WEBSOCKET_STATUS_SERVER_ERROR, WEBSOCKET_STATUS_SERVER_ERROR_MSG));
     }
 
     private Flowable<Message> prepareRequestMessages(WebSocket webSocket) {
@@ -111,11 +99,20 @@ public class WebSocketEntrypointConnector implements EntrypointAsyncConnector {
         }
     }
 
-    private Flowable<Buffer> prepareResponseMessages(ExecutionContext ctx) {
+    private Completable processResponseMessages(ExecutionContext ctx) {
         if (configuration.getSubscriber().isEnabled()) {
-            return ctx.response().messages().map(Message::content);
+            return ctx
+                .response()
+                .messages()
+                .flatMapCompletable(message -> {
+                    if (!message.error()) {
+                        return ctx.request().webSocket().write(message.content());
+                    } else {
+                        return ctx.request().webSocket().close(WEBSOCKET_STATUS_SERVER_ERROR, WEBSOCKET_STATUS_SERVER_ERROR_MSG);
+                    }
+                });
         } else {
-            return Flowable.empty();
+            return Completable.complete();
         }
     }
 }

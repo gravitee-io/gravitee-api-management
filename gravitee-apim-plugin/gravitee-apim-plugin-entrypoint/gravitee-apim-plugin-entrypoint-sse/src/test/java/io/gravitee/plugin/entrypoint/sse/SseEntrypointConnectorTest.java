@@ -283,7 +283,7 @@ class SseEntrypointConnectorTest {
         chunkObs.assertValueAt(0, message -> message.toString().startsWith("retry: "));
         chunkObs.assertValueAt(1, message -> message.toString().equals("id: 1\nevent: message\ndata: content 1\n\n"));
         chunkObs.assertValueAt(2, message -> message.toString().matches("id: .*\nevent: error\ndata: MOCK EXCEPTION\n\n"));
-        chunkObs.assertError(RuntimeException.class);
+        chunkObs.assertComplete();
     }
 
     @Test

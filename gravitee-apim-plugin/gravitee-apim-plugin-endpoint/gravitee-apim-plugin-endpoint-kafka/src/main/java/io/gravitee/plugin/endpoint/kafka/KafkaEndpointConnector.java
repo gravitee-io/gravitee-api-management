@@ -31,15 +31,14 @@ import io.gravitee.plugin.endpoint.kafka.vertx.client.producer.KafkaProducer;
 import io.gravitee.plugin.endpoint.kafka.vertx.client.producer.KafkaProducerRecord;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 import io.vertx.kafka.client.common.KafkaClientOptions;
 import io.vertx.reactivex.core.Vertx;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -64,6 +63,7 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
     private static final String ID_SEPARATOR = "-";
 
     protected final KafkaEndpointConnectorConfiguration configuration;
+    private final Map<Integer, KafkaProducer<String, byte[]>> kafkaProducers = new HashMap<>();
 
     @Override
     public String id() {
@@ -95,19 +95,27 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                     Set<String> topics = getTopics(ctx);
                     return ctx
                         .request()
-                        .messages()
-                        .flatMapCompletable(
-                            message ->
-                                Flowable
-                                    .fromIterable(overrideTopics(topics, message))
-                                    .flatMapCompletable(
-                                        topic -> {
-                                            KafkaProducerRecord<String, byte[]> kafkaRecord = createKafkaRecord(ctx, message, topic);
-                                            return producer.rxWrite(kafkaRecord);
-                                        }
+                        .onMessages(
+                            upstream ->
+                                upstream
+                                    .concatMapMaybe(
+                                        message ->
+                                            Flowable
+                                                .fromIterable(overrideTopics(topics, message))
+                                                .flatMapCompletable(
+                                                    topic -> {
+                                                        KafkaProducerRecord<String, byte[]> kafkaRecord = createKafkaRecord(
+                                                            ctx,
+                                                            message,
+                                                            topic
+                                                        );
+                                                        return producer.rxWrite(kafkaRecord);
+                                                    }
+                                                )
+                                                .andThen(Maybe.<Message>empty())
                                     )
-                        )
-                        .andThen(producer.rxClose());
+                                    .doFinally(producer::close)
+                        );
                 }
             );
         } else {
@@ -120,7 +128,11 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
         final Message message,
         final String topic
     ) {
-        KafkaProducerRecord<String, byte[]> producerRecord = KafkaProducerRecord.create(topic, getKey(ctx), message.content().getBytes());
+        KafkaProducerRecord<String, byte[]> producerRecord = KafkaProducerRecord.create(
+            topic,
+            getKey(ctx, message),
+            message.content().getBytes()
+        );
         if (message.headers() != null) {
             message.headers().forEach(headerEntry -> producerRecord.addHeader(headerEntry.getKey(), headerEntry.getValue()));
         }
@@ -165,23 +177,20 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                                                     .forEach(
                                                         kafkaHeader -> httpHeaders.add(kafkaHeader.key(), kafkaHeader.value().toString())
                                                     );
+
+                                                Map<String, Object> metadata = new HashMap<>();
+                                                if (consumerRecord.key() != null) {
+                                                    metadata.put("key", consumerRecord.key());
+                                                }
+                                                metadata.put("topic", consumerRecord.topic());
+                                                metadata.put("partition", consumerRecord.partition());
+                                                metadata.put("offset", consumerRecord.offset());
                                                 return DefaultMessage
                                                     .builder()
                                                     .id(generateId(consumerRecord))
                                                     .headers(httpHeaders)
                                                     .content(Buffer.buffer(consumerRecord.value()))
-                                                    .metadata(
-                                                        Map.of(
-                                                            "key",
-                                                            consumerRecord.key(),
-                                                            "topic",
-                                                            consumerRecord.topic(),
-                                                            "partition",
-                                                            consumerRecord.partition(),
-                                                            "offset",
-                                                            consumerRecord.offset()
-                                                        )
-                                                    )
+                                                    .metadata(metadata)
                                                     .build();
                                             }
                                         )
@@ -224,7 +233,7 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
     }
 
     private Set<String> getTopics(final MessageExecutionContext ctx) {
-        String topics = ctx.getAttribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS);
+        Set<String> topics = ctx.getAttribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS);
         if (topics == null || topics.isEmpty()) {
             topics = configuration.getTopics();
             ctx.setAttribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS, topics);
@@ -232,31 +241,26 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
         if (topics == null) {
             throw new IllegalStateException("Kafka topics couldn't be loaded from Configuration or Context.");
         }
-        return splitTopic(topics);
+        return topics;
     }
 
     private Set<String> overrideTopics(final Set<String> sharedTopics, final Message message) {
-        String topics = message.attribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS);
-        if (topics != null) {
-            return splitTopic(topics);
+        Set<String> messagesTopics = message.attribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS);
+        if (messagesTopics != null && !messagesTopics.isEmpty()) {
+            return messagesTopics;
         }
         return sharedTopics;
     }
 
-    private Set<String> splitTopic(final String topics) {
-        if (topics != null) {
-            return Arrays.stream(topics.split(",")).collect(Collectors.toSet());
-        }
-        return Set.of();
-    }
-
-    private String getKey(final MessageExecutionContext ctx) {
-        String key = ctx.getAttribute(CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY);
+    private String getKey(final MessageExecutionContext ctx, final Message message) {
+        String key = message.attribute(CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY);
         if (key == null) {
-            key = UUID.randomUUID().toString();
-            ctx.setAttribute(CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY, key);
+            key = ctx.getAttribute(CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY);
+            if (key == null) {
+                key = message.id();
+                ctx.setAttribute(CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY, key);
+            }
         }
-
         return key;
     }
 

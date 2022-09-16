@@ -53,7 +53,7 @@ public class AsyncReactorFactoryTest {
     public void init() {
         lenient().when(api.getDefinition()).thenReturn(definition);
 
-        factory = new AsyncReactorFactory(null, null, null, null, null, null, null, null, null, null);
+        factory = new AsyncReactorFactory(null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @Test

@@ -15,8 +15,8 @@
  */
 package io.gravitee.plugin.entrypoint.websocket;
 
-import static io.gravitee.plugin.entrypoint.websocket.WebSocketEntrypointConnector.WEBSOCKET_STATUS_INTERNAL_SERVER_ERROR;
-import static io.gravitee.plugin.entrypoint.websocket.WebSocketEntrypointConnector.WEBSOCKET_STATUS_INTERNAL_SERVER_ERROR_MSG;
+import static io.gravitee.plugin.entrypoint.websocket.WebSocketEntrypointConnector.WEBSOCKET_STATUS_SERVER_ERROR;
+import static io.gravitee.plugin.entrypoint.websocket.WebSocketEntrypointConnector.WEBSOCKET_STATUS_SERVER_ERROR_MSG;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -223,7 +223,7 @@ class WebSocketEntrypointConnectorTest {
 
         obs.assertNoValues();
         verify(webSocket, never()).write(any(Buffer.class));
-        verify(webSocket).close(WEBSOCKET_STATUS_INTERNAL_SERVER_ERROR, WEBSOCKET_STATUS_INTERNAL_SERVER_ERROR_MSG);
+        verify(webSocket).close(WEBSOCKET_STATUS_SERVER_ERROR, WEBSOCKET_STATUS_SERVER_ERROR_MSG);
         verifyNoMoreInteractions(webSocket);
     }
 
@@ -241,7 +241,7 @@ class WebSocketEntrypointConnectorTest {
 
         obs.assertNoValues();
         verify(webSocket, never()).write(any(Buffer.class));
-        verify(webSocket).close(WEBSOCKET_STATUS_INTERNAL_SERVER_ERROR, WEBSOCKET_STATUS_INTERNAL_SERVER_ERROR_MSG);
+        verify(webSocket).close(WEBSOCKET_STATUS_SERVER_ERROR, WEBSOCKET_STATUS_SERVER_ERROR_MSG);
         verifyNoMoreInteractions(webSocket);
     }
 

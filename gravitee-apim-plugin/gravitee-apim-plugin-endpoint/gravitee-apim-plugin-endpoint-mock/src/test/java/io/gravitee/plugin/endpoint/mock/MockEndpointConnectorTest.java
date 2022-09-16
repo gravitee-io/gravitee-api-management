@@ -79,6 +79,7 @@ class MockEndpointConnectorTest {
         configuration.setMessageInterval(100L);
         configuration.setMessageContent(MESSAGE_CONTENT);
         mockEndpointConnector = new MockEndpointConnector(configuration);
+        when(request.onMessage(any())).thenReturn(Completable.complete());
 
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);
@@ -101,27 +102,19 @@ class MockEndpointConnectorTest {
 
     @Test
     @DisplayName("Should receive messages")
-    void shouldReceiveMessages() {
-        final ArgumentCaptor<Function<Message, Maybe<Message>>> onRequestMessagesCaptor = ArgumentCaptor.forClass(Function.class);
-        when(request.onMessage(onRequestMessagesCaptor.capture())).thenReturn(Completable.complete());
+    void shouldLogRequestMessagesFlow() {
         mockEndpointConnector.connect(ctx).test().assertComplete();
 
-        final Function<Message, Maybe<Message>> messageHandler = onRequestMessagesCaptor.getValue();
+        ArgumentCaptor<Function<Message, Maybe<Message>>> messagesCaptor = ArgumentCaptor.forClass(Function.class);
 
-        // Make sure the message handler has been set up by the MockEndpoint Connector by trying it.
-        Flowable
-            .just(new DefaultMessage(MESSAGE_TO_LOG))
-            .compose(upstream -> upstream.concatMapMaybe(messageHandler::apply))
-            .test()
-            .assertComplete();
-
+        verify(request).onMessage(messagesCaptor.capture());
+        messagesCaptor.getValue().apply(new DefaultMessage(MESSAGE_TO_LOG)).test().assertComplete();
         verify(logger).info("Received message: {}", MESSAGE_TO_LOG);
     }
 
     @Test
     @DisplayName("Should generate messages flow")
     void shouldGenerateMessagesFlow() {
-        when(request.onMessage(any())).thenReturn(Completable.complete());
         mockEndpointConnector.connect(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
@@ -141,8 +134,6 @@ class MockEndpointConnectorTest {
     @Test
     @DisplayName("Should generate messages flow with a limited count of messages from the configuration")
     void shouldGenerateLimitedMessagesFlowFromConfiguration() throws InterruptedException {
-        when(request.onMessage(any())).thenReturn(Completable.complete());
-
         configuration.setMessageCount(5);
 
         mockEndpointConnector.connect(ctx).test().assertComplete();
