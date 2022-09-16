@@ -23,6 +23,7 @@
 
   <gv-schema-form
     class="policy-studio-api-config__schema-form"
+    [attr.readonly]="isReadonly"
     [schema]="this.schema"
     [values]="this.apiDefinition"
     (:gv-schema-form:change)="onChange($event)"
@@ -35,6 +36,7 @@
       gioFormSlideToggle
       aria-label="Enable Jupiter mode"
       name="execution_mode"
+      [disabled]="isReadonly"
       [checked]="apiDefinition.execution_mode === 'jupiter'"
       (change)="toggleJupiterMode($event)"
     ></mat-slide-toggle>

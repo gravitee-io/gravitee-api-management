@@ -43,7 +43,9 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
 
   public schema: FlowConfigurationSchema;
 
-  apiDefinition: ApiDefinition;
+  public apiDefinition: ApiDefinition;
+
+  public isReadonly = false;
 
   get isLoading() {
     return this.apiDefinition == null;
@@ -65,6 +67,7 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
         tap(([definition, schema]) => {
           this.apiDefinition = definition;
           this.schema = schema;
+          this.isReadonly = definition.origin === 'kubernetes';
         }),
       )
       .subscribe();

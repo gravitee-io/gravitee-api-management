@@ -88,6 +88,7 @@ describe('PolicyStudioConfigComponent', () => {
       expect(component.apiDefinition).toStrictEqual({
         id: api.id,
         name: api.name,
+        origin: 'management',
         flows: api.flows,
         flow_mode: api.flow_mode,
         resources: api.resources,
@@ -112,6 +113,16 @@ describe('PolicyStudioConfigComponent', () => {
       expect(apiDefinition.execution_mode).toEqual('jupiter');
       done();
     });
+  });
+
+  it('should disable field when origin is kubernetes', async () => {
+    const api = fakeApi({
+      origin: 'kubernetes',
+    });
+    policyStudioService.emitApiDefinition(toApiDefinition(api));
+
+    const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'execution_mode' }));
+    expect(await activateSupportSlideToggle.isDisabled()).toEqual(true);
   });
 
   afterEach(() => {

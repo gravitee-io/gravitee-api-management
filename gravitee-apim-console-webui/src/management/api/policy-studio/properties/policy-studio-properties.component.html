@@ -18,6 +18,7 @@
 <gv-properties
   *ngIf="!isLoading"
   class="policy-studio-properties"
+  [attr.readonly]="isReadonly"
   [provider]="this.provider"
   (:gv-properties:change)="this.onChange($event)"
   (:gv-properties:save-provider)="this.onSaveProvider($event)"

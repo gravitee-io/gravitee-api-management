@@ -33,9 +33,11 @@ import { PolicyStudioService } from '../policy-studio.service';
 export class PolicyStudioResourcesComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
 
-  apiDefinition: ApiDefinition;
+  public apiDefinition: ApiDefinition;
 
-  resourceTypes: ResourceListItem[];
+  public isReadonly = false;
+
+  public resourceTypes: ResourceListItem[];
 
   constructor(
     private readonly policyStudioService: PolicyStudioService,
@@ -51,6 +53,7 @@ export class PolicyStudioResourcesComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         tap(([definition, resourceTypes]) => {
           this.apiDefinition = definition;
+          this.isReadonly = definition.origin === 'kubernetes';
           this.resourceTypes = resourceTypes;
         }),
       )
