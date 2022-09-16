@@ -1,6 +1,13 @@
 {
   "type": "object",
   "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:http:post:configuration:HttpPostEntrypointConnectorConfiguration",
-  "properties": {},
+  "properties": {
+    "requestHeadersToMessage": {
+      "type": "boolean",
+      "default": false,
+      "title": "Allow add request Headers to the generated message.",
+      "description": "Allow add request Headers to the generated message. Each headers from incoming request will be added to the generated message headers."
+    }
+  },
   "additionalProperties": false
 }

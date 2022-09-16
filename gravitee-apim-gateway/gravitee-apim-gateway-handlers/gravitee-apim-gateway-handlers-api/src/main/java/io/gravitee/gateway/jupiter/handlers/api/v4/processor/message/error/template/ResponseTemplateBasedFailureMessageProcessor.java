@@ -13,38 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.handlers.api.processor.error.template;
+package io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error.template;
 
-import io.gravitee.common.http.HttpHeadersValues;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.handlers.api.processor.error.AbstractFailureProcessor;
-import io.reactivex.Completable;
+import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
+import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
+import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.handlers.api.processor.error.template.EvaluableExecutionFailure;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error.AbstractFailureMessageProcessor;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Single;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProcessor {
+public class ResponseTemplateBasedFailureMessageProcessor extends AbstractFailureMessageProcessor {
 
-    public static final String ID = "response-template-failure-processor";
+    public static final String ID = "response-template-failure-message-processor";
     static final String WILDCARD_CONTENT_TYPE = "*/*";
     static final String DEFAULT_RESPONSE_TEMPLATE = "DEFAULT";
 
-    private ResponseTemplateBasedFailureProcessor() {
-        super();
-    }
+    private ResponseTemplateBasedFailureMessageProcessor() {}
 
-    public static ResponseTemplateBasedFailureProcessor instance() {
+    public static ResponseTemplateBasedFailureMessageProcessor instance() {
         return Holder.INSTANCE;
     }
 
@@ -54,42 +58,33 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     @Override
-    protected Completable processFailure(final HttpExecutionContext ctx, final ExecutionFailure executionFailure) {
+    protected Single<Message> buildMessage(final MessageExecutionContext ctx, final ExecutionFailure executionFailure) {
         if (executionFailure.key() != null) {
-            Map<String, Map<String, ResponseTemplate>> templates = getResponseTemplate(ctx);
+            io.gravitee.definition.model.v4.Api api = ctx.getComponent(io.gravitee.definition.model.v4.Api.class);
+            Map<String, Map<String, ResponseTemplate>> templates = api.getResponseTemplates();
 
             Map<String, ResponseTemplate> responseTemplates = templates.get(executionFailure.key());
 
             // No template associated to the error key, process the error message as usual
             if (responseTemplates == null) {
-                // Try to fallback to default response template
+                // Try to fall back to default response template
                 Map<String, ResponseTemplate> defaultResponseTemplate = templates.get(DEFAULT_RESPONSE_TEMPLATE);
                 if (defaultResponseTemplate != null) {
                     return handleAcceptHeader(ctx, defaultResponseTemplate, executionFailure);
                 } else {
-                    return super.processFailure(ctx, executionFailure);
+                    return super.buildMessage(ctx, executionFailure);
                 }
             } else {
                 return handleAcceptHeader(ctx, responseTemplates, executionFailure);
             }
         } else {
             // No error key, process the error message as usual
-            return super.processFailure(ctx, executionFailure);
+            return super.buildMessage(ctx, executionFailure);
         }
     }
 
-    private Map<String, Map<String, ResponseTemplate>> getResponseTemplate(final HttpExecutionContext ctx) {
-        try {
-            io.gravitee.definition.model.v4.Api api = ctx.getComponent(io.gravitee.definition.model.v4.Api.class);
-            return api.getResponseTemplates();
-        } catch (Exception e) {
-            io.gravitee.definition.model.Api api = ctx.getComponent(io.gravitee.definition.model.Api.class);
-            return api.getResponseTemplates();
-        }
-    }
-
-    private Completable handleAcceptHeader(
-        final HttpExecutionContext context,
+    private Single<Message> handleAcceptHeader(
+        final MessageExecutionContext context,
         final Map<String, ResponseTemplate> templates,
         final ExecutionFailure executionFailure
     ) {
@@ -116,34 +111,37 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
         }
     }
 
-    private Completable handleWildcardTemplate(
-        final HttpExecutionContext context,
+    private Single<Message> handleWildcardTemplate(
+        final MessageExecutionContext context,
         final Map<String, ResponseTemplate> templates,
         final ExecutionFailure executionFailure
     ) {
         ResponseTemplate template = templates.get(WILDCARD_CONTENT_TYPE);
         if (template == null) {
             // No template associated to the error key, process the error message as usual
-            return super.processFailure(context, executionFailure);
+            return super.buildMessage(context, executionFailure);
         } else {
             return handleTemplate(context, template, executionFailure);
         }
     }
 
-    private Completable handleTemplate(
-        final HttpExecutionContext context,
+    private Single<Message> handleTemplate(
+        final MessageExecutionContext context,
         final ResponseTemplate template,
         final ExecutionFailure executionFailure
     ) {
-        context.response().status(template.getStatusCode());
-        context.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-
-        if (template.getBody() != null && !template.getBody().isEmpty()) {
-            context.response().headers().set(HttpHeaderNames.CONTENT_TYPE, context.request().headers().get(HttpHeaderNames.ACCEPT));
+        DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage.builder().id(UUID.randomUUID().toString()).error(true);
+        messageBuilder.attributes(Map.of(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure));
+        Map<String, Object> metadata = new HashMap<>();
+        if (executionFailure.key() != null) {
+            metadata.put("key", executionFailure.key());
         }
+        metadata.put("statusCode", template.getStatusCode());
+        messageBuilder.metadata(metadata);
 
+        HttpHeaders httpHeaders = HttpHeaders.create();
         if (template.getHeaders() != null) {
-            template.getHeaders().forEach((name, value) -> context.response().headers().set(name, value));
+            template.getHeaders().forEach(httpHeaders::set);
         }
 
         if (template.getBody() != null && !template.getBody().isEmpty()) {
@@ -159,20 +157,19 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
             return templateEngine
                 .eval(template.getBody(), String.class)
                 .switchIfEmpty(Single.just(""))
-                .flatMapCompletable(
+                .flatMap(
                     body -> {
                         Buffer payload = Buffer.buffer(body);
-                        context.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
-                        context.response().body(payload);
-                        return Completable.complete();
+                        httpHeaders.set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
+                        return Single.just(messageBuilder.headers(httpHeaders).content(payload).build());
                     }
                 );
         }
-        return Completable.complete();
+        return Single.just(messageBuilder.headers(httpHeaders).build());
     }
 
     private static class Holder {
 
-        private static final ResponseTemplateBasedFailureProcessor INSTANCE = new ResponseTemplateBasedFailureProcessor();
+        private static final ResponseTemplateBasedFailureMessageProcessor INSTANCE = new ResponseTemplateBasedFailureMessageProcessor();
     }
 }

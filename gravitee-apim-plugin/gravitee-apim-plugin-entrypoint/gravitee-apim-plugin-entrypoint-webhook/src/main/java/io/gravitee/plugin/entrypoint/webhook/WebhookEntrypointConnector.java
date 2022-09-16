@@ -48,8 +48,6 @@ public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
     private static final String ENTRYPOINT_ID = "webhook";
     private static final char URI_QUERY_DELIMITER_CHAR = '?';
     protected final WebhookEntrypointConnectorConfiguration configuration;
-    private HttpClient client;
-    private String requestUri;
 
     public WebhookEntrypointConnector(final WebhookEntrypointConnectorConfiguration configuration) {
         this.configuration = configuration;

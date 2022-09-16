@@ -15,17 +15,28 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler.context;
 
-import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_CONTEXT;
+import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
+import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
+import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,12 +66,12 @@ class DefaultExecutionContextTest {
     protected Api api;
 
     @BeforeEach
-    public void init() {
+    void init() {
         cut = new DefaultExecutionContext(request, response);
     }
 
     @Test
-    public void shouldPutAndGetAttributes() {
+    void shouldPutAndGetAttributes() {
         for (int i = 0; i < 10; i++) {
             cut.putAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
@@ -71,7 +82,7 @@ class DefaultExecutionContextTest {
     }
 
     @Test
-    public void shouldGetAllAttributes() {
+    void shouldGetAllAttributes() {
         for (int i = 0; i < 10; i++) {
             cut.putAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
@@ -84,7 +95,7 @@ class DefaultExecutionContextTest {
     }
 
     @Test
-    public void shouldGetAllPrefixedAttributes() {
+    void shouldGetAllPrefixedAttributes() {
         for (int i = 0; i < 10; i++) {
             // Put attribute with prefix.
             cut.putAttribute(ContextAttributes.ATTR_PREFIX + ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
@@ -99,7 +110,7 @@ class DefaultExecutionContextTest {
     }
 
     @Test
-    public void shouldRemoveAttributes() {
+    void shouldRemoveAttributes() {
         for (int i = 0; i < 10; i++) {
             cut.putAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
@@ -111,7 +122,7 @@ class DefaultExecutionContextTest {
     }
 
     @Test
-    public void shouldGetCastAttributes() {
+    void shouldGetCastAttributes() {
         cut.putAttribute(ATTRIBUTE_KEY, 1.0f);
         assertEquals(1.0f, (float) cut.getAttribute(ATTRIBUTE_KEY));
 
@@ -124,7 +135,7 @@ class DefaultExecutionContextTest {
     }
 
     @Test
-    public void shouldReturnClassCastExceptionWhenInvalidCastAttribute() {
+    void shouldReturnClassCastExceptionWhenInvalidCastAttribute() {
         cut.putAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
 
         assertThrows(
@@ -136,12 +147,12 @@ class DefaultExecutionContextTest {
     }
 
     @Test
-    public void shouldReturnNullWhenGetUnknownAttribute() {
+    void shouldReturnNullWhenGetUnknownAttribute() {
         assertNull(cut.getAttribute(ATTRIBUTE_KEY));
     }
 
     @Test
-    public void shouldPutAndGetInternalAttributes() {
+    void shouldPutAndGetInternalAttributes() {
         for (int i = 0; i < 10; i++) {
             cut.putInternalAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
@@ -152,7 +163,7 @@ class DefaultExecutionContextTest {
     }
 
     @Test
-    public void shouldGetAllInternalAttributes() {
+    void shouldGetAllInternalAttributes() {
         for (int i = 0; i < 10; i++) {
             cut.putInternalAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
@@ -165,7 +176,7 @@ class DefaultExecutionContextTest {
     }
 
     @Test
-    public void shouldRemoveInternalAttributes() {
+    void shouldRemoveInternalAttributes() {
         for (int i = 0; i < 10; i++) {
             cut.putInternalAttribute(ATTRIBUTE_KEY + i, ATTRIBUTE_VALUE + i);
         }
@@ -177,7 +188,7 @@ class DefaultExecutionContextTest {
     }
 
     @Test
-    public void shouldGetCastInternalAttributes() {
+    void shouldGetCastInternalAttributes() {
         cut.putInternalAttribute(ATTRIBUTE_KEY, 1.0f);
         assertEquals(1.0f, (float) cut.getInternalAttribute(ATTRIBUTE_KEY));
 
@@ -190,7 +201,7 @@ class DefaultExecutionContextTest {
     }
 
     @Test
-    public void shouldReturnClassCastExceptionWhenInvalidCastInternalAttribute() {
+    void shouldReturnClassCastExceptionWhenInvalidCastInternalAttribute() {
         cut.putInternalAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
 
         assertThrows(
@@ -202,12 +213,12 @@ class DefaultExecutionContextTest {
     }
 
     @Test
-    public void shouldReturnNullWhenGetUnknownInternalAttribute() {
+    void shouldReturnNullWhenGetUnknownInternalAttribute() {
         assertNull(cut.getInternalAttribute(ATTRIBUTE_KEY));
     }
 
     @Test
-    public void shouldPopulateTemplateContextWithVariables() {
+    void shouldPopulateTemplateContextWithVariables() {
         final TemplateEngine templateEngine = cut.getTemplateEngine();
         final TemplateContext templateContext = templateEngine.getTemplateContext();
 
@@ -217,11 +228,53 @@ class DefaultExecutionContextTest {
     }
 
     @Test
-    public void shouldInitializeTemplateEngineOnlyOnce() {
+    void shouldInitializeTemplateEngineOnlyOnce() {
         final TemplateEngine templateEngine = cut.getTemplateEngine();
 
         for (int i = 0; i < 10; i++) {
             assertEquals(templateEngine, cut.getTemplateEngine());
         }
+    }
+
+    @Test
+    void shouldInterruptWithInterruptionException() {
+        cut.interrupt().test().assertError(InterruptionException.class);
+    }
+
+    @Test
+    void shouldInterruptWithInterruptionFailureException() {
+        cut
+            .interruptWith(new ExecutionFailure(404))
+            .test()
+            .assertError(
+                throwable -> {
+                    assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                    InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
+                    ExecutionFailure executionFailure = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
+                    assertThat(executionFailure.statusCode()).isEqualTo(404);
+                    return true;
+                }
+            );
+    }
+
+    @Test
+    void shouldInterruptMessagesWithInterruptionException() {
+        cut.interruptMessages().test().assertError(InterruptionException.class);
+    }
+
+    @Test
+    void shouldInterruptMessagesWithInterruptionFailureException() {
+        cut
+            .interruptMessagesWith(new ExecutionFailure(404))
+            .test()
+            .assertError(
+                throwable -> {
+                    assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                    InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
+                    return true;
+                }
+            );
     }
 }

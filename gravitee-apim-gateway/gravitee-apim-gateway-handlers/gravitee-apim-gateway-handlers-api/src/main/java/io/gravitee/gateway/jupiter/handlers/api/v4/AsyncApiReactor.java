@@ -46,6 +46,7 @@ import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnector
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiMessageProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.security.SecurityChain;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
@@ -80,6 +81,7 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
     private final ProcessorChain apiPreProcessorChain;
     private final ProcessorChain apiPostProcessorChain;
     private final ProcessorChain apiErrorProcessorChain;
+    private final ProcessorChain apiMessageProcessorChain;
     private final io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain platformFlowChain;
     private final FlowChain apiPlanFlowChain;
     private final FlowChain apiFlowChain;
@@ -92,6 +94,7 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
         final DefaultEntrypointConnectorResolver asyncEntrypointResolver,
         final Invoker defaultInvoker,
         final ApiProcessorChainFactory apiProcessorChainFactory,
+        final ApiMessageProcessorChainFactory apiMessageProcessorChainFactory,
         final io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory flowChainFactory,
         final FlowChainFactory v4FlowChainFactory
     ) {
@@ -104,6 +107,7 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
         this.apiPreProcessorChain = apiProcessorChainFactory.preProcessorChain(api);
         this.apiPostProcessorChain = apiProcessorChainFactory.postProcessorChain(api);
         this.apiErrorProcessorChain = apiProcessorChainFactory.errorProcessorChain(api);
+        this.apiMessageProcessorChain = apiMessageProcessorChainFactory.messageProcessorChain(api);
         this.platformFlowChain = flowChainFactory.createPlatformFlow(api);
         this.apiPlanFlowChain = v4FlowChainFactory.createPlanFlow(api);
         this.apiFlowChain = v4FlowChainFactory.createApiFlow(api);
@@ -152,11 +156,12 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
             .andThen(apiPlanFlowChain.execute(ctx, MESSAGE_RESPONSE))
             .andThen(apiFlowChain.execute(ctx, RESPONSE))
             .andThen(apiFlowChain.execute(ctx, MESSAGE_RESPONSE))
-            .andThen(executeProcessorsChain(ctx, apiPostProcessorChain, RESPONSE))
-            .onErrorResumeNext(error -> processThrowable(ctx, error))
             .andThen(platformFlowChain.execute(ctx, RESPONSE))
             .andThen(platformFlowChain.execute(ctx, MESSAGE_RESPONSE))
+            .andThen(executeProcessorsChain(ctx, apiMessageProcessorChain, MESSAGE_RESPONSE))
             .andThen(handleEntrypointResponse(ctx))
+            .andThen(executeProcessorsChain(ctx, apiPostProcessorChain, RESPONSE))
+            .onErrorResumeNext(error -> processThrowable(ctx, error))
             // Catch all possible unexpected errors
             .onErrorResumeNext(t -> handleUnexpectedError(ctx, t))
             // Finally, end the response.
@@ -185,7 +190,7 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
             () -> {
                 EntrypointAsyncConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
                 if (entrypointConnector != null) {
-                    return entrypointConnector.handleResponse(ctx).onErrorResumeNext(error -> processThrowable(ctx, error));
+                    return entrypointConnector.handleResponse(ctx);
                 }
                 return Completable.complete();
             }

@@ -17,8 +17,10 @@ package io.gravitee.plugin.entrypoint.http.post;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.plugin.entrypoint.http.post.HttpPostEntrypointConnector;
 import io.gravitee.plugin.entrypoint.http.post.HttpPostEntrypointConnectorFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +38,7 @@ class HttpPostEntrypointConnectorFactoryTest {
 
     @BeforeEach
     void beforeEach() {
-        httpPostEntrypointConnectorFactory = new HttpPostEntrypointConnectorFactory();
+        httpPostEntrypointConnectorFactory = new HttpPostEntrypointConnectorFactory(new ConnectorFactoryHelper(null, new ObjectMapper()));
     }
 
     @Test
@@ -48,7 +50,7 @@ class HttpPostEntrypointConnectorFactoryTest {
     @ValueSource(strings = { "wrong", "", "  " })
     void shouldCreateConnectorWithWrongConfiguration(String configuration) {
         HttpPostEntrypointConnector connector = httpPostEntrypointConnectorFactory.createConnector(configuration);
-        assertThat(connector).isNotNull();
+        assertThat(connector).isNull();
     }
 
     @Test

@@ -123,19 +123,22 @@ public class ApiProcessorChainFactory {
             if (pathMappings != null && !pathMappings.isEmpty()) {
                 errorProcessorList.add(PathMappingProcessor.instance());
             }
+        }
 
-            if (api.getDefinition().getResponseTemplates() != null && !api.getDefinition().getResponseTemplates().isEmpty()) {
-                errorProcessorList.add(ResponseTemplateBasedFailureProcessor.instance());
-            } else {
-                errorProcessorList.add(SimpleFailureProcessor.instance());
-            }
+        if (api.getDefinition().getResponseTemplates() != null && !api.getDefinition().getResponseTemplates().isEmpty()) {
+            errorProcessorList.add(ResponseTemplateBasedFailureProcessor.instance());
+        } else {
+            errorProcessorList.add(SimpleFailureProcessor.instance());
+        }
+
+        if (httpListenerOpt.isPresent()) {
+            HttpListener httpListener = httpListenerOpt.get();
 
             Logging logging = httpListener.getLogging();
             if (LoggingUtils.getLoggingContext(logging) != null) {
                 errorProcessorList.add(LogResponseProcessor.instance());
             }
         }
-
         ProcessorChain processorChain = new ProcessorChain("processor-chain-error-api", errorProcessorList);
         processorChain.addHooks(processorHooks);
         return processorChain;

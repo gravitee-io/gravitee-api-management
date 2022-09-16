@@ -24,13 +24,13 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
-import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver;
 import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.jupiter.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiMessageProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
@@ -74,6 +74,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
     protected final PolicyChainFactory platformPolicyChainFactory;
     protected final OrganizationManager organizationManager;
     protected final ApiProcessorChainFactory apiProcessorChainFactory;
+    protected final ApiMessageProcessorChainFactory apiMessageProcessorChainFactory;
     protected final io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory;
     protected final FlowResolverFactory v4FlowResolverFactory;
     private final Logger logger = LoggerFactory.getLogger(AsyncReactorFactory.class);
@@ -87,6 +88,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
         final PolicyChainFactory platformPolicyChainFactory,
         final OrganizationManager organizationManager,
         final ApiProcessorChainFactory apiProcessorChainFactory,
+        final ApiMessageProcessorChainFactory apiMessageProcessorChainFactory,
         final io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         final FlowResolverFactory v4FlowResolverFactory
     ) {
@@ -98,6 +100,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
         this.platformPolicyChainFactory = platformPolicyChainFactory;
         this.organizationManager = organizationManager;
         this.apiProcessorChainFactory = apiProcessorChainFactory;
+        this.apiMessageProcessorChainFactory = apiMessageProcessorChainFactory;
         this.flowResolverFactory = flowResolverFactory;
         this.v4FlowResolverFactory = v4FlowResolverFactory;
     }
@@ -185,6 +188,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
                     new DefaultEntrypointConnectorResolver(api.getDefinition(), entrypointConnectorPluginManager),
                     new EndpointInvoker(new DefaultEndpointConnectorResolver(api.getDefinition(), endpointConnectorPluginManager)),
                     apiProcessorChainFactory,
+                    apiMessageProcessorChainFactory,
                     flowChainFactory,
                     v4FlowChainFactory
                 );

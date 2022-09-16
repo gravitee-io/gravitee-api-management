@@ -85,33 +85,10 @@ public abstract class AbstractFailureProcessor implements Processor {
         }
 
         if (executionFailure.message() != null) {
-            List<String> accepts = request.headers().getAll(HttpHeaderNames.ACCEPT);
+            ExecutionFailureMessage failureMessage = ExecutionFailureMessageHelper.createFailureMessage(request, executionFailure, mapper);
 
-            Buffer payload;
-            String contentType;
-
-            if (accepts != null && (accepts.contains(MediaType.APPLICATION_JSON) || accepts.contains(MediaType.WILDCARD))) {
-                // Write error as json when accepted by the client.
-                contentType = MediaType.APPLICATION_JSON;
-
-                if (executionFailure.contentType() != null && executionFailure.contentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
-                    // Message is already json string.
-                    payload = Buffer.buffer(executionFailure.message());
-                } else {
-                    try {
-                        String contentAsJson = mapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
-                        payload = Buffer.buffer(contentAsJson);
-                    } catch (JsonProcessingException jpe) {
-                        // There is a problem with json. Just return the content in text/plain.
-                        contentType = MediaType.TEXT_PLAIN;
-                        payload = Buffer.buffer(executionFailure.message());
-                    }
-                }
-            } else {
-                // Fallback to text/plain error.
-                contentType = MediaType.TEXT_PLAIN;
-                payload = Buffer.buffer(executionFailure.message());
-            }
+            String contentType = failureMessage.getContentType();
+            Buffer payload = failureMessage.getPayload();
 
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);

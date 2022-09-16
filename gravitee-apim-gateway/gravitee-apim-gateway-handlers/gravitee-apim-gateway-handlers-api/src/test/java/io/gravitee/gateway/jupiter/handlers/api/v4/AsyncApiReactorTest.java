@@ -17,15 +17,10 @@ package io.gravitee.gateway.jupiter.handlers.api.v4;
 
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static io.gravitee.gateway.api.ExecutionContext.ATTR_INVOKER;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_REQUEST;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_RESPONSE;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
-import static io.reactivex.Completable.complete;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -51,8 +46,8 @@ import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionExcepti
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
-import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiMessageProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.security.SecurityChain;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
@@ -133,6 +128,9 @@ class AsyncApiReactorTest {
     Completable spyApiErrorProcessorChain = Completable.complete();
 
     @Spy
+    Completable spyApiMessageProcessorChain = Completable.complete();
+
+    @Spy
     Completable spyInvokerChain = Completable.complete();
 
     @Spy
@@ -184,6 +182,12 @@ class AsyncApiReactorTest {
     private ProcessorChain apiErrorProcessorChain;
 
     @Mock
+    private ApiMessageProcessorChainFactory apiMessageProcessorChainFactory;
+
+    @Mock
+    private ProcessorChain apiMessageProcessorChain;
+
+    @Mock
     private MutableExecutionContext ctx;
 
     @Mock
@@ -232,6 +236,8 @@ class AsyncApiReactorTest {
         lenient().when(apiProcessorChainFactory.preProcessorChain(api)).thenReturn(apiPreProcessorChain);
         lenient().when(apiProcessorChainFactory.postProcessorChain(api)).thenReturn(apiPostProcessorChain);
         lenient().when(apiProcessorChainFactory.errorProcessorChain(api)).thenReturn(apiErrorProcessorChain);
+        lenient().when(apiMessageProcessorChainFactory.messageProcessorChain(api)).thenReturn(apiMessageProcessorChain);
+
         lenient().when(flowChainFactory.createPlatformFlow(api)).thenReturn(platformFlowChain);
         lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
         lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.MESSAGE_REQUEST)).thenReturn(spyMessageRequestPlatformFlowChain);
@@ -252,6 +258,8 @@ class AsyncApiReactorTest {
         lenient().when(apiPreProcessorChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyApiPreProcessorChain);
         lenient().when(apiPostProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyApiPostProcessorChain);
         lenient().when(apiErrorProcessorChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyApiErrorProcessorChain);
+        lenient().when(apiMessageProcessorChain.execute(ctx, MESSAGE_RESPONSE)).thenReturn(spyApiMessageProcessorChain);
+
         lenient().when(defaultInvoker.invoke(any(ExecutionContext.class))).thenReturn(spyInvokerChain);
         lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER)).thenReturn(defaultInvoker);
         lenient().when(entrypointConnector.handleRequest(ctx)).thenReturn(spyEntrypointRequest);
@@ -265,6 +273,7 @@ class AsyncApiReactorTest {
                 asyncEntrypointResolver,
                 defaultInvoker,
                 apiProcessorChainFactory,
+                apiMessageProcessorChainFactory,
                 flowChainFactory,
                 v4FlowChainFactory
             );
@@ -293,8 +302,6 @@ class AsyncApiReactorTest {
     void shouldEndResponseWith404WhenNoEntrypoint() {
         when(response.end()).thenReturn(Completable.complete());
         when(asyncEntrypointResolver.resolve(ctx)).thenReturn(null);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(null);
-
         asyncApiReactor.handle(ctx).test().assertComplete();
 
         verify(ctx)
@@ -318,16 +325,6 @@ class AsyncApiReactorTest {
 
         asyncApiReactor.handle(ctx).test().assertComplete();
 
-        verify(platformFlowChain).execute(ctx, REQUEST);
-        verify(securityChain).execute(ctx);
-        verify(apiPreProcessorChain).execute(ctx, REQUEST);
-        verify(entrypointConnector).handleRequest(ctx);
-        verify(platformFlowChain).execute(ctx, MESSAGE_REQUEST);
-        verify(defaultInvoker).invoke(ctx);
-        verify(apiPostProcessorChain).execute(ctx, RESPONSE);
-        verify(platformFlowChain).execute(ctx, RESPONSE);
-        verify(platformFlowChain).execute(ctx, MESSAGE_RESPONSE);
-        verify(entrypointConnector).handleResponse(ctx);
         // verify flow chain has been executed in the right order
         InOrder inOrder = inOrder(
             spyRequestPlatformFlowChain,
@@ -344,9 +341,10 @@ class AsyncApiReactorTest {
             spyResponseApiFlowChain,
             spyMessageResponsePlanFlowChain,
             spyMessageResponseApiFlowChain,
-            spyApiPostProcessorChain,
             spyResponsePlatformFlowChain,
             spyMessageResponsePlatformFlowChain,
+            spyApiMessageProcessorChain,
+            spyApiPostProcessorChain,
             spyEntrypointResponse
         );
         inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
@@ -362,10 +360,11 @@ class AsyncApiReactorTest {
         inOrder.verify(spyMessageResponsePlanFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyMessageResponseApiFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyApiPostProcessorChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyMessageResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyApiMessageProcessorChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyApiPostProcessorChain).subscribe(any(CompletableObserver.class));
     }
 
     @Test

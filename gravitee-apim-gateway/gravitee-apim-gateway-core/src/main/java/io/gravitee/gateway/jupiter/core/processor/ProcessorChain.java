@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.core.processor;
 
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.Hookable;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;

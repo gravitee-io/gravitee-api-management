@@ -17,7 +17,11 @@ package io.gravitee.gateway.jupiter.handlers.api.processor.error;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 
+@Getter
+@Accessors(fluent = true)
 public class ExecutionFailureAsJson {
 
     @JsonProperty
@@ -29,13 +33,5 @@ public class ExecutionFailureAsJson {
     public ExecutionFailureAsJson(final ExecutionFailure executionFailure) {
         this.message = executionFailure.message();
         this.httpStatusCode = executionFailure.statusCode();
-    }
-
-    private String getMessage() {
-        return message;
-    }
-
-    private int httpStatusCode() {
-        return httpStatusCode;
     }
 }

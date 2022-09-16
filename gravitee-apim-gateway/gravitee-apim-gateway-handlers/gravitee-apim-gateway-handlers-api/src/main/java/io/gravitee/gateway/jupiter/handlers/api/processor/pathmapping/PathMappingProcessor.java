@@ -17,7 +17,8 @@ package io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping;
 
 import static java.util.Comparator.comparing;
 
-import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.reactivex.Completable;
@@ -48,8 +49,7 @@ public class PathMappingProcessor implements Processor {
     public Completable execute(final MutableExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
-                Api api = ctx.getComponent(Api.class);
-                Map<String, Pattern> pathMappings = api.getPathMappings();
+                Map<String, Pattern> pathMappings = getPathMappings(ctx);
                 String path = ctx.request().pathInfo();
                 if (path.length() == 0 || path.charAt(path.length() - 1) != '/') {
                     path += '/';
@@ -64,6 +64,22 @@ public class PathMappingProcessor implements Processor {
                     .ifPresent(resolvedMappedPath -> ctx.request().metrics().setMappedPath(resolvedMappedPath));
             }
         );
+    }
+
+    private Map<String, Pattern> getPathMappings(final MutableExecutionContext ctx) {
+        try {
+            io.gravitee.definition.model.v4.Api api = ctx.getComponent(io.gravitee.definition.model.v4.Api.class);
+            return api
+                .getListeners()
+                .stream()
+                .filter(listener -> listener.getType() == ListenerType.HTTP)
+                .map(listener -> ((HttpListener) listener).getPathMappingsPattern())
+                .findFirst()
+                .orElse(null);
+        } catch (Exception e) {
+            io.gravitee.definition.model.Api api = ctx.getComponent(io.gravitee.definition.model.Api.class);
+            return api.getPathMappings();
+        }
     }
 
     private Integer countOccurrencesOf(final String str) {

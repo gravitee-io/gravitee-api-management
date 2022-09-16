@@ -13,22 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.plugin.entrypoint.http.post.configuration;
+package io.gravitee.gateway.jupiter.core.processor;
 
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
-import lombok.Getter;
-import lombok.Setter;
+import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
+import io.reactivex.Completable;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Getter
-@Setter
-public class HttpPostEntrypointConnectorConfiguration implements EntrypointConnectorConfiguration {
-
-    /**
-     * Allow adding incoming request headers to the generated message
-     */
-    private boolean requestHeadersToMessage;
-}
+public interface MessageProcessor extends Processor {}

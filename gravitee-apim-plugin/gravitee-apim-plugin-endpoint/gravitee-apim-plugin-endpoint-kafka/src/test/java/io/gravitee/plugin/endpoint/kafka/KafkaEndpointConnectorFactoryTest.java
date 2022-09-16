@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -60,12 +61,12 @@ public class KafkaEndpointConnectorFactoryTest {
     @Test
     void shouldCreateConnectorWithRightConfiguration() {
         KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(
-            "{\"bootstrapServers\":\"localhost:8082\",\"topics\":\"topic\", \"consumer\":{\"autoOffsetReset\":\"latest\"}, \"producer\":{}}"
+            "{\"bootstrapServers\":\"localhost:8082\",\"topics\":[\"topic\"], \"consumer\":{\"autoOffsetReset\":\"latest\"}, \"producer\":{}}"
         );
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getBootstrapServers()).isEqualTo("localhost:8082");
-        assertThat(connector.configuration.getTopics()).isEqualTo("topic");
+        assertThat(connector.configuration.getTopics()).containsAll(Set.of("topic"));
         assertThat(connector.configuration.getConsumer()).isNotNull();
         assertThat(connector.configuration.getConsumer().isEnabled()).isTrue();
         assertThat(connector.configuration.getConsumer().getAutoOffsetReset()).isEqualTo("latest");

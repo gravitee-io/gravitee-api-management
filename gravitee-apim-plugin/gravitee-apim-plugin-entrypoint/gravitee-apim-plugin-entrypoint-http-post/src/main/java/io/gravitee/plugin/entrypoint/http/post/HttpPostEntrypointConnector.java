@@ -23,21 +23,28 @@ import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyn
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.plugin.entrypoint.http.post.configuration.HttpPostEntrypointConnectorConfiguration;
 import io.reactivex.Completable;
 import java.util.Set;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@NoArgsConstructor
 @Slf4j
 public class HttpPostEntrypointConnector implements EntrypointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH);
     private static final String ENTRYPOINT_ID = "http-post";
+    private HttpPostEntrypointConnectorConfiguration configuration;
+
+    public HttpPostEntrypointConnector(final HttpPostEntrypointConnectorConfiguration configuration) {
+        this.configuration = configuration;
+        if (this.configuration == null) {
+            this.configuration = new HttpPostEntrypointConnectorConfiguration();
+        }
+    }
 
     @Override
     public String id() {
@@ -75,8 +82,13 @@ public class HttpPostEntrypointConnector implements EntrypointAsyncConnector {
                             .request()
                             .body()
                             .<Message>map(
-                                buffer ->
-                                    DefaultMessage.builder().headers(HttpHeaders.create(ctx.request().headers())).content(buffer).build()
+                                buffer -> {
+                                    DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage.builder().content(buffer);
+                                    if (configuration.isRequestHeadersToMessage()) {
+                                        messageBuilder.headers(HttpHeaders.create(ctx.request().headers()));
+                                    }
+                                    return messageBuilder.build();
+                                }
                             )
                             .toFlowable()
                     )
@@ -85,6 +97,7 @@ public class HttpPostEntrypointConnector implements EntrypointAsyncConnector {
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
-        return Completable.complete();
+        // Start consuming incoming messages
+        return Completable.defer(() -> ctx.request().messages().ignoreElements());
     }
 }

@@ -36,7 +36,9 @@ import io.gravitee.plugin.endpoint.kafka.vertx.client.consumer.KafkaConsumer;
 import io.gravitee.plugin.endpoint.kafka.vertx.client.consumer.KafkaConsumerRecord;
 import io.gravitee.plugin.endpoint.kafka.vertx.client.producer.KafkaProducer;
 import io.gravitee.plugin.endpoint.kafka.vertx.client.producer.KafkaProducerRecord;
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.FlowableTransformer;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.subscribers.TestSubscriber;
 import io.vertx.junit5.VertxExtension;
@@ -46,6 +48,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -93,6 +96,9 @@ class KafkaEndpointConnectorTest {
     @Captor
     ArgumentCaptor<Flowable<Message>> messagesCaptor;
 
+    @Captor
+    ArgumentCaptor<FlowableTransformer<Message, Message>> messagesTransformerCaptor;
+
     private KafkaEndpointConnector kafkaEndpointConnector;
     private String topicId;
 
@@ -109,7 +115,7 @@ class KafkaEndpointConnectorTest {
     public void beforeEach() throws ExecutionException, InterruptedException, TimeoutException {
         topicId = UUID.randomUUID().toString();
         configuration.setBootstrapServers(kafka.getBootstrapServers());
-        configuration.setTopics(topicId);
+        configuration.setTopics(Set.of(topicId));
         kafkaEndpointConnector = new KafkaEndpointConnector(configuration);
         lenient().when(ctx.getComponent(any(Class.class))).thenReturn(vertx.getDelegate());
         lenient().when(ctx.response()).thenReturn(response);
@@ -141,17 +147,18 @@ class KafkaEndpointConnectorTest {
     @Test
     void shouldPublishRequestMessages() {
         configuration.getConsumer().setEnabled(false);
-        when(request.messages())
-            .thenReturn(
-                Flowable.just(
-                    DefaultMessage.builder().headers(HttpHeaders.create().add("key", "value")).content(Buffer.buffer("message")).build()
-                )
-            );
+        when(request.onMessages(any())).thenReturn(Completable.complete());
 
         TestObserver<Void> testObserver = kafkaEndpointConnector.connect(ctx).test();
         testObserver.awaitTerminalEvent(10, TimeUnit.SECONDS);
         testObserver.assertComplete();
-        verify(request).messages();
+        verify(request).onMessages(messagesTransformerCaptor.capture());
+        TestSubscriber<Message> messageTestSubscriber = Flowable
+            .just(DefaultMessage.builder().headers(HttpHeaders.create().add("key", "value")).content(Buffer.buffer("message")).build())
+            .compose(messagesTransformerCaptor.getValue())
+            .test();
+        messageTestSubscriber.awaitTerminalEvent();
+        messageTestSubscriber.assertComplete();
 
         Map<String, String> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
