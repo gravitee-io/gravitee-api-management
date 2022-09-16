@@ -15,6 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.mock;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,9 +25,12 @@ import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 import io.reactivex.schedulers.TestScheduler;
 import io.reactivex.subscribers.TestSubscriber;
+import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -68,15 +72,33 @@ class MockEndpointConnectorTest {
         configuration.setMessageContent(MESSAGE_CONTENT);
         mockEndpointConnector = new MockEndpointConnector(configuration);
 
-        when(request.messages()).thenReturn(Flowable.just(new DefaultMessage(MESSAGE_TO_LOG)));
-
         when(ctx.request()).thenReturn(request);
         when(ctx.response()).thenReturn(response);
     }
 
     @Test
+    @DisplayName("Should receive messages")
+    void shouldReceiveMessages() {
+        final ArgumentCaptor<Function<Message, Maybe<Message>>> onRequestMessagesCaptor = ArgumentCaptor.forClass(Function.class);
+        when(request.onMessage(onRequestMessagesCaptor.capture())).thenReturn(Completable.complete());
+        mockEndpointConnector.connect(ctx).test().assertComplete();
+
+        final Function<Message, Maybe<Message>> messageHandler = onRequestMessagesCaptor.getValue();
+
+        // Make sure the message handler has been set up by the MockEndpoint Connector by trying it.
+        Flowable
+            .just(new DefaultMessage(MESSAGE_TO_LOG))
+            .compose(upstream -> upstream.concatMapMaybe(messageHandler::apply))
+            .test()
+            .assertComplete();
+
+        verify(logger).info("Received message: {}", MESSAGE_TO_LOG);
+    }
+
+    @Test
     @DisplayName("Should generate messages flow")
     void shouldGenerateMessagesFlow() {
+        when(request.onMessage(any())).thenReturn(Completable.complete());
         mockEndpointConnector.connect(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
@@ -91,13 +113,13 @@ class MockEndpointConnectorTest {
             .assertValueAt(0, message -> message.content().toString().equals(MESSAGE_CONTENT) && message.id().equals("0"))
             .assertValueAt(1, message -> message.content().toString().equals(MESSAGE_CONTENT) && message.id().equals("1"))
             .assertValueAt(2, message -> message.content().toString().equals(MESSAGE_CONTENT) && message.id().equals("2"));
-
-        verify(logger).info("Received message:\n" + MESSAGE_TO_LOG);
     }
 
     @Test
     @DisplayName("Should generate messages flow with a limited count of messages")
     void shouldGenerateLimitedMessagesFlow() throws InterruptedException {
+        when(request.onMessage(any())).thenReturn(Completable.complete());
+
         configuration.setMessageCount(5L);
 
         mockEndpointConnector.connect(ctx).test().assertComplete();
@@ -106,7 +128,5 @@ class MockEndpointConnectorTest {
         verify(response).messages(messagesCaptor.capture());
 
         messagesCaptor.getValue().test().await().assertValueCount(5);
-
-        verify(logger).info("Received message:\n" + MESSAGE_TO_LOG);
     }
 }

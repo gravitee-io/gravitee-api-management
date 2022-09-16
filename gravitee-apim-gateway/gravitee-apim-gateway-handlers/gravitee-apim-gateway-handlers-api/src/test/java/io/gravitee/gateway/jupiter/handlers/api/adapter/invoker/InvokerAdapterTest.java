@@ -170,7 +170,7 @@ class InvokerAdapterTest {
     void shouldRestoreContextWhenInvokerExecutionCompleted() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
@@ -190,7 +190,7 @@ class InvokerAdapterTest {
     void shouldRestoreContextWhenInvokerExecutionCancelled() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
@@ -206,7 +206,7 @@ class InvokerAdapterTest {
     void shouldRestoreContextWhenInvokerExecutionError() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);

@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.policy.adapter.context;
 
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_ADAPTED_CONTEXT;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
 
 import io.gravitee.el.TemplateEngine;
@@ -54,11 +54,11 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
      * @return the v3 compatible {@link io.gravitee.gateway.api.ExecutionContext}.
      */
     public static ExecutionContextAdapter create(HttpExecutionContext ctx) {
-        ExecutionContextAdapter adaptedCtx = ctx.getInternalAttribute(ATTR_ADAPTED_CONTEXT);
+        ExecutionContextAdapter adaptedCtx = ctx.getInternalAttribute(ATTR_INTERNAL_ADAPTED_CONTEXT);
 
         if (adaptedCtx == null) {
             adaptedCtx = new ExecutionContextAdapter(ctx);
-            ctx.setInternalAttribute(ATTR_ADAPTED_CONTEXT, adaptedCtx);
+            ctx.setInternalAttribute(ATTR_INTERNAL_ADAPTED_CONTEXT, adaptedCtx);
         }
 
         return adaptedCtx;

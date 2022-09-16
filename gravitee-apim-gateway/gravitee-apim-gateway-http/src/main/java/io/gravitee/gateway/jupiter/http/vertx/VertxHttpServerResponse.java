@@ -17,6 +17,7 @@ package io.gravitee.gateway.jupiter.http.vertx;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableTransformer;
@@ -89,7 +90,7 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
                 }
                 prepareHeaders();
 
-                AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
+                final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
 
                 if (bufferFlow.chunks != null) {
                     return nativeResponse
