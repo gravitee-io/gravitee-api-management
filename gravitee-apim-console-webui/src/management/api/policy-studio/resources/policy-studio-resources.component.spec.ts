@@ -68,6 +68,7 @@ describe('PolicyStudioResourcesComponent', () => {
       expect(component.apiDefinition).toStrictEqual({
         id: api.id,
         name: api.name,
+        origin: 'management',
         flows: api.flows,
         flow_mode: api.flow_mode,
         resources: api.resources,
@@ -78,6 +79,14 @@ describe('PolicyStudioResourcesComponent', () => {
         execution_mode: api.execution_mode,
       });
     });
+  });
+
+  it('should disable field when origin is kubernetes', async () => {
+    const api = fakeApi({
+      origin: 'kubernetes',
+    });
+    policyStudioService.emitApiDefinition(toApiDefinition(api));
+    expect(component.isReadonly).toEqual(true);
   });
 
   afterEach(() => {

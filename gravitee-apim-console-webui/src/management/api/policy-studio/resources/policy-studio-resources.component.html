@@ -18,6 +18,7 @@
 <gv-resources
   *ngIf="!isLoading"
   class="policy-studio-resources"
+  [attr.readonly]="isReadonly"
   (:gv-resources:change)="this.onChange($event)"
   [resources]="this.apiDefinition.resources"
   [types]="this.resourceTypes"
