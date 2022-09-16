@@ -22,7 +22,7 @@
       [ajsGo]="{ to: 'management.apis.detail.proxy.ng-responsetemplates', params: { apiId: apiId } }"
     ></gio-go-back-button>
     <ng-container *ngIf="mode === 'new'">Create a new Response Template</ng-container>
-    <ng-container *ngIf="mode === 'edit'">Update Response Template</ng-container>
+    <ng-container *ngIf="mode === 'edit'">{{ isReadOnly ? '' : 'Update ' }}Response Template</ng-container>
   </h1>
 
   <mat-card>

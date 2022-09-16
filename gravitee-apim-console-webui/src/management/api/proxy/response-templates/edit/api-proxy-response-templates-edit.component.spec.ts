@@ -241,6 +241,44 @@ describe('ApiProxyResponseTemplatesComponent', () => {
       await acceptHeaderInput.setValue('*/*');
       expect(await saveBar.isSubmitButtonInvalid()).toBe(true);
     });
+
+    it('should disable field when origin is kubernetes', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        origin: 'kubernetes',
+        response_templates: {
+          DEFAULT: {
+            '*/*': {
+              body: 'json',
+              status: 400,
+            },
+          },
+        },
+      });
+      expectApiGetRequest(api);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
+      expect(await keyInput.isDisabled()).toEqual(true);
+      expect(await keyInput.getValue()).toEqual('DEFAULT');
+
+      const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
+      expect(await acceptHeaderInput.isDisabled()).toEqual(true);
+      expect(await acceptHeaderInput.getValue()).toEqual('*/*');
+
+      const statusCodeInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="statusCode"]' }));
+      expect(await statusCodeInput.isDisabled()).toEqual(true);
+      expect(await statusCodeInput.getValue()).toEqual('400');
+
+      const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
+      expect(await headersInput.isDisabled()).toEqual(true);
+
+      const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
+      expect(await bodyInput.isDisabled()).toEqual(true);
+      expect(await bodyInput.getValue()).toEqual('json');
+    });
   });
 
   function expectApiGetRequest(api: Api) {
