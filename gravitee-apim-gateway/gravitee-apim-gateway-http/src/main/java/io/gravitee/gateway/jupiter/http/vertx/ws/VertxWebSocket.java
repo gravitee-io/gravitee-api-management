@@ -17,13 +17,16 @@ package io.gravitee.gateway.jupiter.http.vertx.ws;
 
 import static io.vertx.reactivex.core.http.WebSocketFrame.*;
 
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.ws.WebSocket;
-import io.gravitee.gateway.api.ws.WebSocketFrame;
-import io.vertx.reactivex.core.buffer.Buffer;
+import io.gravitee.gateway.jupiter.api.ws.WebSocket;
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.Single;
+import io.vertx.core.http.HttpClosedException;
 import io.vertx.reactivex.core.http.HttpServerRequest;
 import io.vertx.reactivex.core.http.ServerWebSocket;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.reactivex.core.http.WebSocketFrame;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -33,7 +36,6 @@ public class VertxWebSocket implements WebSocket {
 
     private final HttpServerRequest httpServerRequest;
 
-    private boolean closed;
     private boolean upgraded;
     private ServerWebSocket webSocket;
 
@@ -42,77 +44,106 @@ public class VertxWebSocket implements WebSocket {
     }
 
     @Override
-    public CompletableFuture<WebSocket> upgrade() {
-        if (upgraded) {
-            return CompletableFuture.completedFuture(this);
-        }
-
-        final CompletableFuture<WebSocket> future = new CompletableFuture<>();
-
-        httpServerRequest.toWebSocket(
-            result -> {
-                if (result.failed()) {
-                    future.completeExceptionally(result.cause());
-                } else {
-                    webSocket = result.result();
-                    upgraded = true;
-                    future.complete(this);
-                }
-            }
-        );
-
-        return future;
-    }
-
-    @Override
-    public WebSocket reject(int statusCode) {
-        if (upgraded) {
-            webSocket.close((short) statusCode);
-        }
-        return this;
-    }
-
-    @Override
-    public WebSocket write(WebSocketFrame frame) {
-        if (upgraded) {
-            final io.vertx.reactivex.core.http.WebSocketFrame webSocketFrame = convert(frame);
-
-            if (webSocketFrame == null) {
-                this.close();
-            } else {
-                webSocket.writeFrame(webSocketFrame);
-            }
-        }
-        return this;
-    }
-
-    @Override
-    public WebSocket close() {
-        if (upgraded && !closed) {
-            webSocket.close();
-        }
-        return this;
-    }
-
-    @Override
-    public WebSocket frameHandler(Handler<WebSocketFrame> frameHandler) {
-        if (upgraded) {
-            webSocket.frameHandler(frame -> frameHandler.handle(new VertxWebSocketFrame(frame)));
-        }
-        return this;
-    }
-
-    @Override
-    public WebSocket closeHandler(Handler<Void> closeHandler) {
-        if (upgraded) {
-            webSocket.closeHandler(
-                event -> {
-                    closed = true;
-                    closeHandler.handle(event);
-                }
+    public Single<WebSocket> upgrade() {
+        if (!upgraded) {
+            return Single.defer(
+                () ->
+                    httpServerRequest
+                        .rxToWebSocket()
+                        .doOnSuccess(
+                            serverWebSocket -> {
+                                webSocket = serverWebSocket;
+                                upgraded = true;
+                            }
+                        )
+                        .map(serverWebSocket -> this)
             );
         }
-        return this;
+
+        return Single.just(this);
+    }
+
+    @Override
+    public Completable reject(int statusCode) {
+        if (isValid()) {
+            return webSocket.rxClose((short) statusCode);
+        }
+
+        return Completable.complete();
+    }
+
+    @Override
+    public Completable write(Buffer buffer) {
+        if (isValid()) {
+            return webSocket.rxWrite(io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()));
+        }
+
+        return Completable.complete();
+    }
+
+    public Completable writeFrame(io.gravitee.gateway.api.ws.WebSocketFrame frame) {
+        if (isValid()) {
+            final WebSocketFrame webSocketFrame = convert(frame);
+
+            if (webSocketFrame == null) {
+                return this.close();
+            }
+            return webSocket.rxWriteFrame(webSocketFrame);
+        }
+
+        return Completable.complete();
+    }
+
+    public void frameHandler(Handler<io.gravitee.gateway.api.ws.WebSocketFrame> frameHandler) {
+        if (isValid()) {
+            webSocket.frameHandler(frame -> frameHandler.handle(new VertxWebSocketFrame(frame)));
+        }
+    }
+
+    public void closeHandler(Handler<Void> closeHandler) {
+        if (isValid()) {
+            webSocket.closeHandler(closeHandler::handle);
+        }
+    }
+
+    @Override
+    public Flowable<Buffer> read() {
+        if (isValid()) {
+            return webSocket
+                .toFlowable()
+                .map(Buffer::buffer)
+                .onErrorResumeNext(
+                    t -> {
+                        if (t instanceof HttpClosedException) {
+                            // Ends the flow properly if connection is closed by the client.
+                            return Flowable.empty();
+                        }
+
+                        // Propagate in case of any other error.
+                        return Flowable.error(t);
+                    }
+                );
+        }
+
+        return Flowable.empty();
+    }
+
+    @Override
+    public Completable close() {
+        if (isValid()) {
+            return webSocket.rxClose();
+        }
+
+        return Completable.complete();
+    }
+
+    @Override
+    public Completable close(int status, String reason) {
+        if (isValid()) {
+            return webSocket.rxClose((short) status, reason);
+        }
+
+        return Completable.complete();
     }
 
     @Override
@@ -120,18 +151,27 @@ public class VertxWebSocket implements WebSocket {
         return upgraded;
     }
 
+    @Override
+    public boolean closed() {
+        return webSocket.isClosed();
+    }
+
+    private boolean isValid() {
+        return upgraded && !webSocket.isClosed();
+    }
+
     private io.vertx.reactivex.core.http.WebSocketFrame convert(io.gravitee.gateway.api.ws.WebSocketFrame frame) {
         switch (frame.type()) {
             case BINARY:
-                return binaryFrame(Buffer.buffer(frame.data().getNativeBuffer()), frame.isFinal());
+                return binaryFrame(io.vertx.reactivex.core.buffer.Buffer.buffer(frame.data().getNativeBuffer()), frame.isFinal());
             case TEXT:
                 return textFrame(frame.data().toString(), frame.isFinal());
             case CONTINUATION:
-                return continuationFrame(Buffer.buffer(frame.data().toString()), frame.isFinal());
+                return continuationFrame(io.vertx.reactivex.core.buffer.Buffer.buffer(frame.data().toString()), frame.isFinal());
             case PING:
-                return pingFrame(Buffer.buffer(frame.data().toString()));
+                return pingFrame(io.vertx.reactivex.core.buffer.Buffer.buffer(frame.data().toString()));
             case PONG:
-                return pongFrame(Buffer.buffer(frame.data().toString()));
+                return pongFrame(io.vertx.reactivex.core.buffer.Buffer.buffer(frame.data().toString()));
             default:
                 return null;
         }

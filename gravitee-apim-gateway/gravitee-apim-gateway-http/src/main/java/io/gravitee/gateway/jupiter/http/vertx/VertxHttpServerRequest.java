@@ -17,9 +17,9 @@ package io.gravitee.gateway.jupiter.http.vertx;
 
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.gateway.http.utils.WebSocketUtils;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.gravitee.gateway.jupiter.http.vertx.ws.VertxWebSocket;
 import io.reactivex.*;
 import io.vertx.reactivex.core.http.HttpServerRequest;

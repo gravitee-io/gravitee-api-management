@@ -61,7 +61,7 @@ class SseEntrypointIntegrationTest extends AbstractGatewayTest {
             .flatMapPublisher(HttpClientResponse::toFlowable)
             .test();
 
-        // We expect 3 chuncks, 1 retry message, 2 messages
+        // We expect 3 chunks, 1 retry message, 2 messages
         obs
             .awaitCount(3)
             .assertValueAt(

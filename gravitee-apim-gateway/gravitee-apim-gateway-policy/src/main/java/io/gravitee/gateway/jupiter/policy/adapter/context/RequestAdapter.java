@@ -39,6 +39,7 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
     private Runnable onResumeHandler;
     private Handler<Buffer> bodyHandler;
     private Handler<Void> endHandler;
+    private WebSocketAdapter adaptedWebSocket;
 
     public RequestAdapter(HttpRequest request) {
         this.request = request;
@@ -166,7 +167,10 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
 
     @Override
     public WebSocket websocket() {
-        return request.webSocket();
+        if (this.adaptedWebSocket == null) {
+            this.adaptedWebSocket = new WebSocketAdapter(request.webSocket());
+        }
+        return adaptedWebSocket;
     }
 
     @Override

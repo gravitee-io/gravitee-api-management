@@ -23,10 +23,12 @@ import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.reactivestreams.Subscription;
 
 /**
  * @author GraviteeSource Team
@@ -47,13 +49,17 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
     @Override
     public Completable connect(ExecutionContext ctx) {
         return Completable.defer(
-            () ->
-                ctx
+            () -> {
+                ctx.response().messages(generateMessageFlow());
+                return ctx
                     .request()
-                    .messages()
-                    .doOnNext(message -> log.info("Received message:\n" + message.content().toString()))
-                    .ignoreElements()
-                    .andThen(Completable.fromRunnable(() -> ctx.response().messages(generateMessageFlow())))
+                    .onMessage(
+                        message -> {
+                            log.info("Received message: {}", message.content().toString());
+                            return Maybe.empty();
+                        }
+                    );
+            }
         );
     }
 

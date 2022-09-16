@@ -1,0 +1,34 @@
+{
+  "type": "object",
+  "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:WebsocketEntrypointConnectorConfiguration",
+  "properties": {
+    "publisher": {
+      "type": "object",
+      "title": "Publisher configuration",
+      "id": "urn:jsonschema:io:gravitee:plugin:endpoint:kafka:configuration:WebsocketEntrypointConnectorConfiguration:Publisher",
+      "properties": {
+        "enabled": {
+          "title": "enabled",
+          "description": "Allow to enable or disable the publish capability. By disabling it, you assume that the application will never be able to publish any message.",
+          "type": "boolean",
+          "default": "true"
+        }
+      },
+      "subscriber": {
+        "type": "object",
+        "title": "Subscriber configuration",
+        "id": "urn:jsonschema:io:gravitee:plugin:endpoint:kafka:configuration:WebsocketEntrypointConnectorConfiguration:Subscriber",
+        "properties": {
+          "enabled": {
+            "title": "enabled",
+            "description": "Allow to enable or disable the subscription capability. By disabling it, you assume that the application will never receive any message.",
+            "type": "boolean",
+            "default": "true"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+  ]
+}

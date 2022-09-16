@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.ws.WebSocket;
+import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
