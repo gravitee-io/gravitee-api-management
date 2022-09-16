@@ -92,14 +92,16 @@
           >
             <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
           </button>
-          <button
-            *gioPermission="{ anyOf: ['api-response_templates-d'] }"
-            (click)="onDeleteResponseTemplateClicked(element)"
-            mat-icon-button
-            aria-label="Button to delete a Response Template"
-          >
-            <mat-icon svgIcon="gio:trash"></mat-icon>
-          </button>
+          <ng-container *ngIf="!isReadOnly">
+            <button
+              *gioPermission="{ anyOf: ['api-response_templates-d'] }"
+              (click)="onDeleteResponseTemplateClicked(element)"
+              mat-icon-button
+              aria-label="Button to delete a Response Template"
+            >
+              <mat-icon svgIcon="gio:trash"></mat-icon>
+            </button>
+          </ng-container>
         </div>
       </td>
     </ng-container>

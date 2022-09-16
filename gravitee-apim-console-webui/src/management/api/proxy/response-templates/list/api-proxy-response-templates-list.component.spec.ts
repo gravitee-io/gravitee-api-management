@@ -202,6 +202,44 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
     expect(req.request.body.response_templates['DEFAULT']['application/json']).toBeUndefined();
   });
+
+  it('should disable field when origin is kubernetes', async () => {
+    const routerSpy = jest.spyOn(fakeUiRouter, 'go');
+
+    const api = fakeApi({
+      id: API_ID,
+      origin: 'kubernetes',
+      response_templates: {
+        DEFAULT: {
+          'application/json': {
+            body: 'json',
+            status: 200,
+          },
+        },
+      },
+    });
+    expectApiGetRequest(api);
+
+    const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
+    const rtTableRows = await rtTable.getRows();
+
+    const [_1, _2, _3, _4, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
+
+    const allActionsBtn = await rtTableFirstRowActionsCell.getAllHarnesses(MatButtonHarness);
+    expect(allActionsBtn.length).toBe(1);
+
+    // expect open detail btn
+    const opentDetailBtn = allActionsBtn[0];
+    expect(await (await opentDetailBtn.host()).getAttribute('aria-label')).toBe('Button to open Response Template detail');
+
+    await opentDetailBtn.click();
+
+    expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.ng-responsetemplate-edit', {
+      apiId: 'apiId',
+      responseTemplateId: 'DEFAULT-application/json',
+    });
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
