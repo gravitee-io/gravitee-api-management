@@ -15,19 +15,23 @@
  */
 package io.gravitee.gateway.security.core;
 
-import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import java.util.HashMap;
 import java.util.Map;
 
 public class SimpleAuthenticationContext implements AuthenticationContext {
 
-    private final ExecutionContext executionContext;
+    private final Request request;
 
     private final Map<String, Object> attributes = new HashMap<>();
 
-    public SimpleAuthenticationContext(ExecutionContext executionContext) {
-        this.executionContext = executionContext;
+    public SimpleAuthenticationContext(Request request) {
+        this.request = request;
+    }
+
+    @Override
+    public Request request() {
+        return request;
     }
 
     @Override
@@ -48,37 +52,7 @@ public class SimpleAuthenticationContext implements AuthenticationContext {
     }
 
     @Override
-    public boolean contains(String name) {
-        return attributes().containsKey(name);
-    }
-
-    @Override
     public Map<String, Object> attributes() {
         return this.attributes;
-    }
-
-    @Override
-    public Request request() {
-        return executionContext.request();
-    }
-
-    @Override
-    public String getApi() {
-        return (String) executionContext.getAttribute(ExecutionContext.ATTR_API);
-    }
-
-    @Override
-    public void setSubscription(String subscription) {
-        executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription);
-    }
-
-    @Override
-    public void setApplication(String application) {
-        executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, application);
-    }
-
-    @Override
-    public void setPlan(String plan) {
-        executionContext.setAttribute(ExecutionContext.ATTR_PLAN, plan);
     }
 }

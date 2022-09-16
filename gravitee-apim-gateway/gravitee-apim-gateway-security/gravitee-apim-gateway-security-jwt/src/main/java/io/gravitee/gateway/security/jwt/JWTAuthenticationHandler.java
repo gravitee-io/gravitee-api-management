@@ -17,11 +17,8 @@ package io.gravitee.gateway.security.jwt;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.security.core.AuthenticationContext;
-import io.gravitee.gateway.security.core.AuthenticationHandler;
-import io.gravitee.gateway.security.core.AuthenticationPolicy;
-import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
-import io.gravitee.gateway.security.core.TokenExtractor;
+import io.gravitee.gateway.security.core.*;
+import io.gravitee.gateway.security.jwt.policy.CheckSubscriptionPolicy;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,9 +35,13 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
 
     static final String JWT_CONTEXT_ATTRIBUTE = "jwt";
 
+    static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
+
     private static final List<AuthenticationPolicy> POLICIES = Arrays.asList(
         // First, validate the incoming access_token thanks to an OAuth2 authorization server
-        (PluginAuthenticationPolicy) () -> AUTHENTICATION_HANDLER_NAME
+        (PluginAuthenticationPolicy) () -> AUTHENTICATION_HANDLER_NAME,
+        // Then, check that there is an existing valid subscription associated to the client_id
+        (HookAuthenticationPolicy) () -> CheckSubscriptionPolicy.class
     );
 
     @Override

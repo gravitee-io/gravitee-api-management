@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.security;
+package io.gravitee.gateway.handlers.api.policy.security;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.Plan;
+import io.gravitee.gateway.handlers.api.policy.security.apikey.ApiKeyPlanBasedAuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.repository.management.model.ApiKey;
@@ -53,19 +54,17 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
     }
 
     @Test
-    public void shouldNotHandle_ifKeyNotFound() {
+    public void shouldHandle_ifKeyNotFound() {
         AuthenticationHandler handler = mock(AuthenticationHandler.class);
         Plan plan = mock(Plan.class);
         apiKeyPlanBasedAuthenticationHandler = new ApiKeyPlanBasedAuthenticationHandler(handler, plan);
         AuthenticationContext context = mock(AuthenticationContext.class);
         when(handler.canHandle(any())).thenReturn(true);
-
-        when(context.contains(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(true);
         when(context.get(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(empty());
 
         boolean canHandle = apiKeyPlanBasedAuthenticationHandler.canHandle(context);
 
-        assertFalse(canHandle);
+        assertTrue(canHandle);
         verify(context, times(1)).get(APIKEY_CONTEXT_ATTRIBUTE);
         verify(plan, never()).getId();
     }
@@ -79,10 +78,7 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
         AuthenticationContext context = mock(AuthenticationContext.class);
         when(handler.canHandle(any())).thenReturn(true);
         ApiKey key = mock(ApiKey.class);
-
-        when(context.contains(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(true);
         when(context.get(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn((of(key)));
-
         when(key.getPlan()).thenReturn("planId");
 
         boolean canHandle = apiKeyPlanBasedAuthenticationHandler.canHandle(context);
@@ -101,10 +97,7 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
         AuthenticationContext context = mock(AuthenticationContext.class);
         when(handler.canHandle(any())).thenReturn(true);
         ApiKey key = mock(ApiKey.class);
-
-        when(context.contains(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(true);
         when(context.get(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn((of(key)));
-
         when(key.getPlan()).thenReturn("planId2");
 
         boolean canHandle = apiKeyPlanBasedAuthenticationHandler.canHandle(context);
