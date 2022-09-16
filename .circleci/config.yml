@@ -792,7 +792,7 @@ jobs:
                                       "type": "section",
                                       "text": {
                                         "type": "mrkdwn",
-                                        "text": "🚂 Starting **APIM << pipeline.parameters.graviteeio_version >>** release"
+                                        "text": "🚂 Starting APIM << pipeline.parameters.graviteeio_version >> release"
                                       }
                                     }
                                   ]
