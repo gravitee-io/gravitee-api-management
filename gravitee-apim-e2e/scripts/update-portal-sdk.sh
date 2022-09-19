@@ -37,7 +37,7 @@ npx @openapitools/openapi-generator-cli@1.0.18-4.3.1 generate \
   --type-mappings=DateTime=Date,object=any \
   --reserved-words-mappings=configuration=configuration
 
-sed -i.bak "s|export \* from \'\.\/AnalyticsApi\';||" lib/portal-webclient-sdk/src/lib/apis/index.ts
+sed -i.bak "s|export \* from './AnalyticsApi';||" lib/portal-webclient-sdk/src/lib/apis/index.ts
 sed -i.bak "1,30 s|DateHistoAnalytics \| GroupByAnalytics \| CountAnalytics|CountAnalytics, DateHistoAnalytics, GroupByAnalytics|" lib/portal-webclient-sdk/src/lib/apis/AnalyticsApi.ts
 sed -i.bak "1,30 s|CountAnalytics, DateHistoAnalytics, GroupByAnalyticsFromJSON,|GroupByAnalyticsFromJSON, CountAnalyticsFromJSON,|" lib/portal-webclient-sdk/src/lib/apis/AnalyticsApi.ts
 sed -i.bak "1,30 s|CountAnalytics, DateHistoAnalytics, GroupByAnalyticsToJSON,|GroupByAnalyticsToJSON,|" lib/portal-webclient-sdk/src/lib/apis/AnalyticsApi.ts
