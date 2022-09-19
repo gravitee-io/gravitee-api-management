@@ -1821,6 +1821,7 @@ workflows:
                               - 8386-refactor-context
                   requires:
                       - test
+                      - test-plugin
                       - test-repository
             - publish-on-nexus:
                   context: cicd-orchestrator
@@ -1832,12 +1833,14 @@ workflows:
                               - refactor-distribution-build-process
                   requires:
                       - test
+                      - test-plugin
                       - test-repository
             - publish-images-azure-registry:
                   name: Publish images on azure registry
                   context: cicd-orchestrator
                   requires:
                       - test
+                      - test-plugin
                       - test-repository
                   filters:
                       branches:
@@ -1866,6 +1869,7 @@ workflows:
                   requires:
                       - Build Console Storybook
                       - test-repository
+                      - test-plugin
                       - test
             - webui-build:
                   name: Build APIM Console
