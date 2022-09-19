@@ -73,7 +73,7 @@ public class EndpointsResource extends AbstractConnectorsResource {
         return super.expand(endpointService.findAll(), expands);
     }
 
-    @Path("{endpoint}")
+    @Path("{entrypoint}")
     public EntrypointResource getEntrypointResource() {
         return resourceContext.getResource(EntrypointResource.class);
     }
