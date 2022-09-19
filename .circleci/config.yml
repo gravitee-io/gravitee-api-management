@@ -1817,8 +1817,6 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - refactor-distribution-build-process
-                              - 8386-refactor-context
                   requires:
                       - test
                       - test-plugin
@@ -1830,7 +1828,6 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - refactor-distribution-build-process
                   requires:
                       - test
                       - test-plugin
