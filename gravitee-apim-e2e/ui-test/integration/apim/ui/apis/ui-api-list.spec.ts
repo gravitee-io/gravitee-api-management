@@ -24,11 +24,11 @@ describe('API List feature', () => {
   });
 
   it(`Visit Home board`, () => {
-    cy.visit(Cypress.env('managementUI'));
+    cy.visit(Cypress.env('managementUI'), { timeout: 10000 });
     cy.contains('Home board');
   });
 
-  xit(`Visit Search Apis`, () => {
-    cy.visit(`${Cypress.env('managementUI')}/#!/environments/DEFAULT/apis/`);
+  it(`Visit Search Apis`, () => {
+    cy.visit(`${Cypress.env('managementUI')}/#!/environments/DEFAULT/apis/`, { timeout: 10000 });
   });
 });
