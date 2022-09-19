@@ -506,6 +506,12 @@ export interface DuplicateAPIRequest {
     duplicateApiEntity: DuplicateApiEntity;
 }
 
+export interface ExportApiCRDRequest {
+    api: string;
+    envId: string;
+    orgId: string;
+}
+
 export interface ExportApiDefinitionRequest {
     api: string;
     version?: string;
@@ -2887,6 +2893,48 @@ export class APIsApi extends runtime.BaseAPI {
     async duplicateAPI(requestParameters: DuplicateAPIRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiEntity> {
         const response = await this.duplicateAPIRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     * User must have the MANAGE_API permission to use this service
+     * Export the API definition in a GKO CRD format
+     */
+    async exportApiCRDRaw(requestParameters: ExportApiCRDRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.api === null || requestParameters.api === undefined) {
+            throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling exportApiCRD.');
+        }
+
+        if (requestParameters.envId === null || requestParameters.envId === undefined) {
+            throw new runtime.RequiredError('envId','Required parameter requestParameters.envId was null or undefined when calling exportApiCRD.');
+        }
+
+        if (requestParameters.orgId === null || requestParameters.orgId === undefined) {
+            throw new runtime.RequiredError('orgId','Required parameter requestParameters.orgId was null or undefined when calling exportApiCRD.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/organizations/{orgId}/environments/{envId}/apis/{api}/crd`.replace(`{${"api"}}`, encodeURIComponent(String(requestParameters.api))).replace(`{${"envId"}}`, encodeURIComponent(String(requestParameters.envId))).replace(`{${"orgId"}}`, encodeURIComponent(String(requestParameters.orgId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * User must have the MANAGE_API permission to use this service
+     * Export the API definition in a GKO CRD format
+     */
+    async exportApiCRD(requestParameters: ExportApiCRDRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.exportApiCRDRaw(requestParameters, initOverrides);
     }
 
     /**
