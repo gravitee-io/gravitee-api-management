@@ -17,12 +17,14 @@ package io.gravitee.apim.gateway.tests.sdk.policy;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.SecurityPolicy;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 
 /**
@@ -31,10 +33,7 @@ import io.reactivex.rxjava3.core.Maybe;
  */
 public class KeylessPolicy implements SecurityPolicy {
 
-    @OnRequest
-    public void onRequest(Request request, Response response, PolicyChain policyChain) {
-        policyChain.doNext(request, response);
-    }
+    protected static final String ATTR_INTERNAL_SECURITY_TOKEN = "securityChain.securityToken";
 
     @Override
     public String id() {
@@ -42,7 +41,35 @@ public class KeylessPolicy implements SecurityPolicy {
     }
 
     @Override
+    public int order() {
+        return 1000;
+    }
+
+    @Override
+    public boolean requireSubscription() {
+        return false;
+    }
+
+    @Override
     public Maybe<SecurityToken> extractSecurityToken(HttpExecutionContext ctx) {
-        return Maybe.just(SecurityToken.none());
+        // This token is present in internal attributes if a previous SecurityPolicy has extracted a SecurityToken
+        final SecurityToken securityToken = ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
+        // If it is present with a type different from NONE, then we should not execute this KeylessPlan.
+        // Indeed, it means that a request was attempted with an authentication purpose, so we should not let it pass.
+        return securityToken != null && !SecurityToken.TokenType.NONE.name().equals(securityToken.getTokenType())
+            ? Maybe.empty()
+            : Maybe.just(SecurityToken.none());
+    }
+
+    @Override
+    public Completable onRequest(HttpExecutionContext ctx) {
+        return handleSecurity(ctx);
+    }
+
+    private Completable handleSecurity(final HttpExecutionContext ctx) {
+        return Completable.fromRunnable(() -> {
+            ctx.setAttribute(ContextAttributes.ATTR_APPLICATION, "1");
+            ctx.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, ctx.request().remoteAddress());
+        });
     }
 }

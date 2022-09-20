@@ -118,6 +118,11 @@
             <artifactId>gravitee-apim-plugin-apiservice-servicediscovery-consul</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin</groupId>
+            <artifactId>gravitee-apim-plugin-tests-integration</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
