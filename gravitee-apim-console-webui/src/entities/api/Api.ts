@@ -60,12 +60,15 @@ export interface Api {
   background_url?: string;
 
   etag?: string;
-  origin: ApiOrigin;
+  definition_context: ApiDefinitionContext;
 }
 
 export type ApiVisibility = 'PUBLIC' | 'PRIVATE';
 export type ApiState = 'INITIALIZED' | 'STOPPED' | 'STARTED' | 'CLOSED';
 export type ApiOrigin = 'management' | 'kubernetes';
+interface ApiDefinitionContext {
+  origin: ApiOrigin;
+}
 
 export interface ApiEntrypoint {
   tags?: string[];
