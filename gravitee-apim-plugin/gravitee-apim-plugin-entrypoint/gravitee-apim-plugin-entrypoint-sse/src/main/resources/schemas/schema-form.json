@@ -2,6 +2,13 @@
   "type": "object",
   "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:sse:configuration:SseEntrypointConnectorConfiguration",
   "properties": {
+    "heartbeatIntervalInMs": {
+      "type": "integer",
+      "default": 5000,
+      "minimum": 2000,
+      "title": "Define the interval in which heartbeat are sent to client.",
+      "description": "Define the interval in which heartbeat are sent to client. Interval must be higher or equal than 2000ms. Each heartbeat will be sent as extra empty comment ':'"
+    },
     "metadataAsComment": {
       "type": "boolean",
       "default": "false",

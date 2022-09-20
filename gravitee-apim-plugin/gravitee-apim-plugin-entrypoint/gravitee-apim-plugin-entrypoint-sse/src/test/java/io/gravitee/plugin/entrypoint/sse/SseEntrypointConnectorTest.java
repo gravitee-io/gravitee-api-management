@@ -136,7 +136,7 @@ class SseEntrypointConnectorTest {
         verifyResponseHeaders(httpHeaders);
         verify(response).chunks(chunksCaptor.capture());
 
-        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
+        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().filter(this::ignoreHeartbeat).test();
 
         chunkObs.assertComplete();
         chunkObs.assertValueCount(4);
@@ -165,10 +165,9 @@ class SseEntrypointConnectorTest {
         verifyResponseHeaders(httpHeaders);
         verify(response).chunks(chunksCaptor.capture());
 
-        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
+        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().filter(this::ignoreHeartbeat).test();
 
         chunkObs.assertComplete();
-        chunkObs.assertValueCount(2);
         chunkObs.assertValueAt(0, message -> message.toString().startsWith("retry: "));
         chunkObs.assertValueAt(1, message -> message.toString().matches("id: .*\nevent: message\ndata: 1\n\n"));
     }
@@ -197,10 +196,9 @@ class SseEntrypointConnectorTest {
         verifyResponseHeaders(httpHeaders);
         verify(response).chunks(chunksCaptor.capture());
 
-        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
+        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().filter(this::ignoreHeartbeat).test();
 
         chunkObs.assertComplete();
-        chunkObs.assertValueCount(2);
         chunkObs.assertValueAt(0, message -> message.toString().startsWith("retry: "));
         chunkObs.assertValueAt(
             1,
@@ -227,13 +225,40 @@ class SseEntrypointConnectorTest {
         verifyResponseHeaders(httpHeaders);
         verify(response).chunks(chunksCaptor.capture());
 
-        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
+        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().filter(this::ignoreHeartbeat).test();
 
         chunkObs.assertComplete();
         chunkObs.assertValueCount(3);
         chunkObs.assertValueAt(0, message -> message.toString().startsWith("retry: "));
         chunkObs.assertValueAt(1, message -> message.toString().matches("id: .*\nevent: message\ndata: 1\n\n"));
         chunkObs.assertValueAt(2, message -> message.toString().matches("id: .*\nevent: error\ndata: MOCK EXCEPTION\n\n"));
+    }
+
+    @Test
+    void shouldCompleteWithEmptyResponse() {
+        final Flowable<Message> messages = Flowable.empty();
+
+        final HttpHeaders httpHeaders = HttpHeaders.create();
+
+        when(response.messages()).thenReturn(messages);
+        when(response.headers()).thenReturn(httpHeaders);
+        when(ctx.response()).thenReturn(response);
+
+        final TestObserver<Void> obs = cut.handleResponse(ctx).test();
+        obs.assertComplete();
+
+        verifyResponseHeaders(httpHeaders);
+        verify(response).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().filter(this::ignoreHeartbeat).test();
+
+        chunkObs.assertComplete();
+        chunkObs.assertValueCount(1);
+        chunkObs.assertValueAt(0, message -> message.toString().startsWith("retry: "));
+    }
+
+    private boolean ignoreHeartbeat(final Buffer buffer) {
+        return !buffer.toString().equals(":\n\n");
     }
 
     private void verifyResponseHeaders(HttpHeaders httpHeaders) {
