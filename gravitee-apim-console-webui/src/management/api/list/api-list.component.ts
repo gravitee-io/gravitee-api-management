@@ -158,7 +158,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             ? this.apiService.getQualityMetrics(api.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
             : null,
           visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
-          origin: api.origin,
+          origin: api.definition_context.origin,
         }))
       : [];
   }
