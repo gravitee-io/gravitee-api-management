@@ -46,6 +46,7 @@ public class CustomFlowSelectorFactory implements BeanFactory {
             flowChannelSelector.setChannel(sourceFlowChannelSelector.getChannel());
             flowChannelSelector.setChannelOperator(sourceFlowChannelSelector.getChannelOperator());
             flowChannelSelector.setOperations(new HashSet<>(sourceFlowChannelSelector.getOperations()));
+            flowChannelSelector.setEntrypoints(new HashSet<>(sourceFlowChannelSelector.getEntrypoints()));
             return flowChannelSelector;
         }
         return source;

@@ -61,6 +61,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     private final String FLOW_SELECTORS;
     private final String FLOW_SELECTOR_HTTP_METHODS;
     private final String FLOW_SELECTOR_CHANNEL_OPERATIONS;
+    private final String FLOW_SELECTOR_CHANNEL_ENTRYPOINTS;
     private final String FLOW_TAGS;
     private final JdbcObjectMapper<FlowStep> stepsOrm;
 
@@ -71,6 +72,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         FLOW_SELECTORS = getTableNameFor("flow_selectors");
         FLOW_SELECTOR_HTTP_METHODS = getTableNameFor("flow_selector_http_methods");
         FLOW_SELECTOR_CHANNEL_OPERATIONS = getTableNameFor("flow_selector_channel_operations");
+        FLOW_SELECTOR_CHANNEL_ENTRYPOINTS = getTableNameFor("flow_selector_entrypoints");
         FLOW_TAGS = getTableNameFor("flow_tags");
         FLOW_CONSUMERS = getTableNameFor("flow_consumers");
         this.stepsOrm =
@@ -160,6 +162,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         jdbcTemplate.update("delete from " + FLOW_SELECTORS + " where flow_id = ?", id);
         jdbcTemplate.update("delete from " + FLOW_SELECTOR_HTTP_METHODS + " where flow_id = ?", id);
         jdbcTemplate.update("delete from " + FLOW_SELECTOR_CHANNEL_OPERATIONS + " where flow_id = ?", id);
+        jdbcTemplate.update("delete from " + FLOW_SELECTOR_CHANNEL_ENTRYPOINTS + " where flow_id = ?", id);
         jdbcTemplate.update("delete from " + FLOW_TAGS + " where flow_id = ?", id);
         // deprecated data
         jdbcTemplate.update("delete from " + FLOW_METHODS + " where flow_id = ?", id);
@@ -183,7 +186,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
 
     @Override
     public List<Flow> findByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException {
-        LOGGER.debug("JdbcFlowRepository.findByReference({}, {))", referenceType, referenceId);
+        LOGGER.debug("JdbcFlowRepository.findByReference({}, {})", referenceType, referenceId);
         try {
             return jdbcTemplate
                 .query(
@@ -211,7 +214,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
 
     @Override
     public void deleteByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException {
-        LOGGER.debug("JdbcFlowRepository.deleteByReference({}, {))", referenceType, referenceId);
+        LOGGER.debug("JdbcFlowRepository.deleteByReference({}, {})", referenceType, referenceId);
         try {
             List<Flow> flows = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ?",
@@ -220,8 +223,8 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 referenceType.name()
             );
 
-            if (flows.size() > 0) {
-                List<String> flowIds = flows.stream().map(flow -> flow.getId()).collect(Collectors.toList());
+            if (!flows.isEmpty()) {
+                List<String> flowIds = flows.stream().map(Flow::getId).collect(Collectors.toList());
                 String buildInClause = getOrm().buildInClause(flowIds);
                 String[] ids = flowIds.toArray(new String[0]);
                 jdbcTemplate.update("delete from " + tableName + " where id in (" + buildInClause + ")", ids);
@@ -229,6 +232,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 jdbcTemplate.update("delete from " + FLOW_SELECTORS + " where flow_id in (" + buildInClause + ")", ids);
                 jdbcTemplate.update("delete from " + FLOW_SELECTOR_HTTP_METHODS + " where flow_id in (" + buildInClause + ")", ids);
                 jdbcTemplate.update("delete from " + FLOW_SELECTOR_CHANNEL_OPERATIONS + " where flow_id in (" + buildInClause + ")", ids);
+                jdbcTemplate.update("delete from " + FLOW_SELECTOR_CHANNEL_ENTRYPOINTS + " where flow_id in (" + buildInClause + ")", ids);
                 jdbcTemplate.update("delete from " + FLOW_TAGS + " where flow_id in (" + buildInClause + ")", ids);
                 // deprecated data
                 jdbcTemplate.update("delete from " + FLOW_METHODS + " where flow_id in (" + buildInClause + ")", ids);
@@ -286,18 +290,30 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                         flowHttpSelector.setMethods(methods);
                     } else if (flowSelector.getType() == FlowSelectorType.CHANNEL) {
                         FlowChannelSelector flowChannelSelector = (FlowChannelSelector) flowSelector;
-                        flowChannelSelector.setOperations(getChannelOperation(flowId));
+                        flowChannelSelector.setOperations(getChannelOperations(flowId));
+                        flowChannelSelector.setEntrypoints(getChannelEntrypoints(flowId));
                     }
                 }
             )
             .collect(Collectors.toList());
     }
 
-    private Set<FlowChannelSelector.Operation> getChannelOperation(final String flowId) {
+    private Set<FlowChannelSelector.Operation> getChannelOperations(final String flowId) {
         return jdbcTemplate
             .queryForList("select channel_operation from " + FLOW_SELECTOR_CHANNEL_OPERATIONS + " where flow_id = ?", String.class, flowId)
             .stream()
             .map(FlowChannelSelector.Operation::valueOf)
+            .collect(Collectors.toSet());
+    }
+
+    private Set<String> getChannelEntrypoints(final String flowId) {
+        return jdbcTemplate
+            .queryForList(
+                "select channel_entrypoint from " + FLOW_SELECTOR_CHANNEL_ENTRYPOINTS + " where flow_id = ?",
+                String.class,
+                flowId
+            )
+            .stream()
             .collect(Collectors.toSet());
     }
 
@@ -522,19 +538,18 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                     }
                 }
             );
-            selectors
-                .stream()
-                .filter(flowSelector -> flowSelector instanceof FlowHttpSelector)
-                .map(flowSelector -> (FlowHttpSelector) flowSelector)
-                .findFirst()
-                .ifPresent(flowHttpSelector -> storeSelectorHttpMethods(flowId, flowHttpSelector.getMethods(), deleteFirst));
-
-            selectors
-                .stream()
-                .filter(flowSelector -> flowSelector instanceof FlowChannelSelector)
-                .map(flowSelector -> (FlowChannelSelector) flowSelector)
-                .findFirst()
-                .ifPresent(flowChannelSelector -> storeSelectorChannelOperation(flowId, flowChannelSelector.getOperations(), deleteFirst));
+            selectors.forEach(
+                flowSelector -> {
+                    if (flowSelector instanceof FlowHttpSelector) {
+                        FlowHttpSelector flowHttpSelector = (FlowHttpSelector) flowSelector;
+                        storeSelectorHttpMethods(flowId, flowHttpSelector.getMethods(), deleteFirst);
+                    } else if (flowSelector instanceof FlowChannelSelector) {
+                        FlowChannelSelector flowChannelSelector = (FlowChannelSelector) flowSelector;
+                        storeSelectorChannelOperations(flowId, flowChannelSelector.getOperations(), deleteFirst);
+                        storeSelectorChannelEntrypoints(flowId, flowChannelSelector.getEntrypoints(), deleteFirst);
+                    }
+                }
+            );
         }
     }
 
@@ -571,7 +586,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         }
     }
 
-    private void storeSelectorChannelOperation(final String flowId, Set<FlowChannelSelector.Operation> operations, boolean deleteFirst) {
+    private void storeSelectorChannelOperations(final String flowId, Set<FlowChannelSelector.Operation> operations, boolean deleteFirst) {
         if (deleteFirst) {
             jdbcTemplate.update("delete from " + FLOW_SELECTOR_CHANNEL_OPERATIONS + " where flow_id = ?", flowId);
         }
@@ -590,6 +605,31 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                     @Override
                     public int getBatchSize() {
                         return operations.size();
+                    }
+                }
+            );
+        }
+    }
+
+    private void storeSelectorChannelEntrypoints(final String flowId, Set<String> entrypoints, boolean deleteFirst) {
+        if (deleteFirst) {
+            jdbcTemplate.update("delete from " + FLOW_SELECTOR_CHANNEL_ENTRYPOINTS + " where flow_id = ?", flowId);
+        }
+        if (entrypoints != null && !entrypoints.isEmpty()) {
+            Iterator<String> operationIterator = entrypoints.iterator();
+            jdbcTemplate.batchUpdate(
+                "insert into " + FLOW_SELECTOR_CHANNEL_ENTRYPOINTS + " ( flow_id, channel_entrypoint ) values ( ?, ? )",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        String next = operationIterator.next();
+                        ps.setString(1, flowId);
+                        ps.setString(2, next);
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return entrypoints.size();
                     }
                 }
             );
