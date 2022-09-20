@@ -20,6 +20,12 @@ import { exists, mapValues } from '../runtime';
 export interface ConnectorPluginEntityV4 {
     /**
      * 
+     * @type {Array<string>}
+     * @memberof ConnectorPluginEntityV4
+     */
+    availableFeatures?: Array<ConnectorPluginEntityV4AvailableFeaturesEnum>;
+    /**
+     * 
      * @type {string}
      * @memberof ConnectorPluginEntityV4
      */
@@ -66,6 +72,15 @@ export interface ConnectorPluginEntityV4 {
 /**
  * @export
  */
+export const ConnectorPluginEntityV4AvailableFeaturesEnum = {
+    LIMIT: 'LIMIT',
+    RESUME: 'RESUME'
+} as const;
+export type ConnectorPluginEntityV4AvailableFeaturesEnum = typeof ConnectorPluginEntityV4AvailableFeaturesEnum[keyof typeof ConnectorPluginEntityV4AvailableFeaturesEnum];
+
+/**
+ * @export
+ */
 export const ConnectorPluginEntityV4SupportedApiTypeEnum = {
     SYNC: 'SYNC',
     ASYNC: 'ASYNC'
@@ -102,6 +117,7 @@ export function ConnectorPluginEntityV4FromJSONTyped(json: any, ignoreDiscrimina
     }
     return {
         
+        'availableFeatures': !exists(json, 'availableFeatures') ? undefined : json['availableFeatures'],
         'category': !exists(json, 'category') ? undefined : json['category'],
         'description': !exists(json, 'description') ? undefined : json['description'],
         'id': !exists(json, 'id') ? undefined : json['id'],
@@ -121,6 +137,7 @@ export function ConnectorPluginEntityV4ToJSON(value?: ConnectorPluginEntityV4 | 
     }
     return {
         
+        'availableFeatures': value.availableFeatures,
         'category': value.category,
         'description': value.description,
         'id': value.id,
