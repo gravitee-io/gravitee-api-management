@@ -139,6 +139,7 @@ public class FlowMapper {
                     .map(operation -> FlowChannelSelector.Operation.valueOf(operation.name()))
                     .collect(Collectors.toSet())
             );
+            repositoryFlowChannelSelector.setEntrypoints(definitionChannelSelector.getEntrypoints());
             return repositoryFlowChannelSelector;
         } else if (definitionSelector instanceof ConditionSelector) {
             ConditionSelector definitionConditionChannel = (ConditionSelector) definitionSelector;
@@ -169,6 +170,7 @@ public class FlowMapper {
                     .map(operation -> ChannelSelector.Operation.valueOf(operation.name()))
                     .collect(Collectors.toSet())
             );
+            definitionChannelSelector.setEntrypoints(repositoryFlowChannelSelector.getEntrypoints());
             return definitionChannelSelector;
         } else if (repositoryFlowSelector instanceof FlowConditionSelector) {
             FlowConditionSelector repositoryFlowConditionSelector = (FlowConditionSelector) repositoryFlowSelector;

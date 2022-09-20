@@ -49,6 +49,11 @@ public class FlowChannelSelector extends FlowSelector {
      */
     private FlowOperator channelOperator;
 
+    /**
+     * Entrypoints
+     */
+    private Set<String> entrypoints;
+
     public FlowChannelSelector() {
         super(FlowSelectorType.CHANNEL);
     }

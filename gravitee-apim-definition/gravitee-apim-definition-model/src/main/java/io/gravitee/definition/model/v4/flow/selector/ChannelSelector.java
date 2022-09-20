@@ -47,6 +47,9 @@ public class ChannelSelector extends Selector {
     @NotNull
     private Operator channelOperator = Operator.STARTS_WITH;
 
+    @JsonProperty
+    private Set<String> entrypoints;
+
     public ChannelSelector() {
         super(SelectorType.CHANNEL);
     }
